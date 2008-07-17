@@ -45,11 +45,6 @@ namespace OpenSim.Data.MSSQL
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// The database connection object
-        /// </summary>
-        private IDbConnection dbcon;
-
-        /// <summary>
         /// Connection string for ADO.net
         /// </summary>
         private readonly string connectionString;
@@ -57,11 +52,24 @@ namespace OpenSim.Data.MSSQL
         public MSSQLManager(string dataSource, string initialCatalog, string persistSecurityInfo, string userId,
                             string password)
         {
-            connectionString = "Data Source=" + dataSource + ";Initial Catalog=" + initialCatalog +
-                                   ";Persist Security Info=" + persistSecurityInfo + ";User ID=" + userId + ";Password=" +
-                                   password + ";";
-            dbcon = new SqlConnection(connectionString);
-            dbcon.Open();
+            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+
+            builder.DataSource = dataSource;
+            builder.InitialCatalog = initialCatalog;
+            builder.PersistSecurityInfo = Convert.ToBoolean(persistSecurityInfo);
+            builder.UserID = userId;
+            builder.Password = password;
+            builder.ApplicationName = Assembly.GetEntryAssembly().Location;
+            
+            connectionString = builder.ToString();
+        }
+
+        private SqlConnection createConnection()
+        {
+            SqlConnection conn = new SqlConnection(connectionString);
+            conn.Open();
+
+            return conn;
         }
 
         //private DataTable createRegionsTable()
@@ -121,7 +129,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// 
+        /// Define Table function
         /// </summary>
         /// <param name="dt"></param>
         /// <returns></returns>
@@ -178,35 +186,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-        /// <summary>
-        /// Shuts down the database connection
-        /// </summary>
-        public void Close()
-        {
-            dbcon.Close();
-            dbcon = null;
-        }
 
-        /// <summary>
-        /// Reconnects to the database
-        /// </summary>
-        public void Reconnect()
+        private static readonly Dictionary<string, string> emptyDictionary = new Dictionary<string, string>();
+        internal AutoClosingSqlCommand Query(string sql)
         {
-            lock (dbcon)
-            {
-                try
-                {
-                    // Close the DB connection
-                    dbcon.Close();
-                    // Try reopen it
-                    dbcon = new SqlConnection(connectionString);
-                    dbcon.Open();
-                }
-                catch (Exception e)
-                {
-                    m_log.Error("Unable to reconnect to database " + e.ToString());
-                }
-            }
+            return Query(sql, emptyDictionary);
         }
 
         /// <summary>
@@ -215,17 +199,19 @@ namespace OpenSim.Data.MSSQL
         /// <param name="sql">The SQL string - replace any variables such as WHERE x = "y" with WHERE x = @y</param>
         /// <param name="parameters">The parameters - index so that @y is indexed as 'y'</param>
         /// <returns>A Sql DB Command</returns>
-        public IDbCommand Query(string sql, Dictionary<string, string> parameters)
+        internal AutoClosingSqlCommand Query(string sql, Dictionary<string, string> parameters)
         {
-            SqlCommand dbcommand = (SqlCommand)dbcon.CreateCommand();
+            SqlCommand dbcommand = createConnection().CreateCommand();
             dbcommand.CommandText = sql;
             foreach (KeyValuePair<string, string> param in parameters)
             {
                 dbcommand.Parameters.AddWithValue(param.Key, param.Value);
             }
 
-            return (IDbCommand)dbcommand;
+            return new AutoClosingSqlCommand(dbcommand);
         }
+
+
 
         /// <summary>
         /// Runs a database reader object and returns a region row
@@ -400,7 +386,6 @@ namespace OpenSim.Data.MSSQL
             if (reader.Read())
             {
                 // Region Main
-
                 asset = new AssetBase();
                 asset.Data = (byte[])reader["data"];
                 asset.Description = (string)reader["description"];
@@ -443,19 +428,20 @@ namespace OpenSim.Data.MSSQL
 
             bool returnval = false;
 
-            try
+            using (IDbCommand result = Query(sql, parameters))
             {
-                IDbCommand result = Query(sql, parameters);
+                try
+                {
 
-                if (result.ExecuteNonQuery() == 1)
-                    returnval = true;
+                    if (result.ExecuteNonQuery() == 1)
+                        returnval = true;
 
-                result.Dispose();
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-                return false;
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(e.ToString());
+                    return false;
+                }
             }
 
             return returnval;
@@ -467,19 +453,12 @@ namespace OpenSim.Data.MSSQL
         /// <param name="name">the ressource string</param>
         public void ExecuteResourceSql(string name)
         {
-            SqlCommand cmd = new SqlCommand(getResourceString(name), (SqlConnection)dbcon);
-            cmd.ExecuteNonQuery();
-            cmd.Dispose();
+            using (IDbCommand cmd = Query(getResourceString(name), new Dictionary<string,string>()))
+            {
+                cmd.ExecuteNonQuery();
+            }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns>The actual SqlConnection</returns>
-        public SqlConnection getConnection()
-        {
-            return (SqlConnection)dbcon;
-        }
 
         /// <summary>
         /// Given a list of tables, return the version of the tables, as seen in the database
@@ -487,30 +466,29 @@ namespace OpenSim.Data.MSSQL
         /// <param name="tableList"></param>
         public void GetTableVersion(Dictionary<string, string> tableList)
         {
-            lock (dbcon)
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["dbname"] = new SqlConnectionStringBuilder(connectionString).InitialCatalog;
+
+            using (IDbCommand tablesCmd =
+                Query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG=@dbname", param))
+            using (IDataReader tables = tablesCmd.ExecuteReader())
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["dbname"] = dbcon.Database;
-                IDbCommand tablesCmd =
-                    Query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG=@dbname", param);
-                using (IDataReader tables = tablesCmd.ExecuteReader())
+                while (tables.Read())
                 {
-                    while (tables.Read())
+                    try
                     {
-                        try
-                        {
-                            string tableName = (string)tables["TABLE_NAME"];
-                            if (tableList.ContainsKey(tableName))
-                                tableList[tableName] = tableName;
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Error(e.ToString());
-                        }
+                        string tableName = (string)tables["TABLE_NAME"];
+                        if (tableList.ContainsKey(tableName))
+                            tableList[tableName] = tableName;
                     }
-                    tables.Close();
+                    catch (Exception e)
+                    {
+                        m_log.Error(e.ToString());
+                    }
                 }
+                tables.Close();
             }
+
         }
 
         /// <summary>
@@ -545,7 +523,6 @@ namespace OpenSim.Data.MSSQL
             Module module = GetType().Module;
             // string dllName = module.Assembly.ManifestModule.Name;
             Version dllVersion = module.Assembly.GetName().Version;
-
 
             return
                 string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,

@@ -67,12 +67,12 @@ namespace OpenSim.Data.MSSQL
         public void Initialise(string connect)
         {
             // TODO: actually use the provided connect string
-            IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
-            string settingDataSource = GridDataMySqlFile.ParseFileReadValue("data_source");
-            string settingInitialCatalog = GridDataMySqlFile.ParseFileReadValue("initial_catalog");
-            string settingPersistSecurityInfo = GridDataMySqlFile.ParseFileReadValue("persist_security_info");
-            string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
-            string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
+            IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
+            string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
+            string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
+            string settingPersistSecurityInfo = gridDataMSSqlFile.ParseFileReadValue("persist_security_info");
+            string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
+            string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
 
             database =
                 new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
@@ -165,29 +165,26 @@ namespace OpenSim.Data.MSSQL
         {
             try
             {
-                lock (database)
+                List<InventoryItemBase> items = new List<InventoryItemBase>();
+
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param["parentFolderID"] = folderID.ToString();
+
+                using (IDbCommand result =
+                    database.Query("SELECT * FROM inventoryitems WHERE parentFolderID = @parentFolderID", param))
+                using (IDataReader reader = result.ExecuteReader())
                 {
-                    List<InventoryItemBase> items = new List<InventoryItemBase>();
-
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["parentFolderID"] = folderID.ToString();
-
-                    IDbCommand result =
-                        database.Query("SELECT * FROM inventoryitems WHERE parentFolderID = @parentFolderID", param);
-                    IDataReader reader = result.ExecuteReader();
 
                     while (reader.Read())
                         items.Add(readInventoryItem(reader));
 
                     reader.Close();
-                    result.Dispose();
-
-                    return items;
                 }
+
+                return items;
             }
             catch (Exception e)
             {
-                database.Reconnect();
                 m_log.Error(e.ToString());
                 return null;
             }
@@ -202,30 +199,26 @@ namespace OpenSim.Data.MSSQL
         {
             try
             {
-                lock (database)
-                {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["uuid"] = user.ToString();
-                    param["zero"] = LLUUID.Zero.ToString();
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param["uuid"] = user.ToString();
+                param["zero"] = LLUUID.Zero.ToString();
 
-                    IDbCommand result =
-                        database.Query(
-                            "SELECT * FROM inventoryfolders WHERE parentFolderID = @zero AND agentID = @uuid", param);
-                    IDataReader reader = result.ExecuteReader();
+                using (IDbCommand result =
+                    database.Query(
+                        "SELECT * FROM inventoryfolders WHERE parentFolderID = @zero AND agentID = @uuid", param))
+                using (IDataReader reader = result.ExecuteReader())
+                {
 
                     List<InventoryFolderBase> items = new List<InventoryFolderBase>();
                     while (reader.Read())
                         items.Add(readInventoryFolder(reader));
 
-                    reader.Close();
-                    result.Dispose();
-
                     return items;
                 }
+
             }
             catch (Exception e)
             {
-                database.Reconnect();
                 m_log.Error(e.ToString());
                 return null;
             }
@@ -240,16 +233,15 @@ namespace OpenSim.Data.MSSQL
         {
             try
             {
-                lock (database)
-                {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["uuid"] = user.ToString();
-                    param["zero"] = LLUUID.Zero.ToString();
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param["uuid"] = user.ToString();
+                param["zero"] = LLUUID.Zero.ToString();
 
-                    IDbCommand result =
-                        database.Query(
-                            "SELECT * FROM inventoryfolders WHERE parentFolderID = @zero AND agentID = @uuid", param);
-                    IDataReader reader = result.ExecuteReader();
+                using (IDbCommand result =
+                    database.Query(
+                        "SELECT * FROM inventoryfolders WHERE parentFolderID = @zero AND agentID = @uuid", param))
+                using (IDataReader reader = result.ExecuteReader())
+                {
 
                     List<InventoryFolderBase> items = new List<InventoryFolderBase>();
                     while (reader.Read())
@@ -267,15 +259,12 @@ namespace OpenSim.Data.MSSQL
                         rootFolder = items[0];
                     }
 
-                    reader.Close();
-                    result.Dispose();
-
                     return rootFolder;
                 }
+
             }
             catch (Exception e)
             {
-                database.Reconnect();
                 m_log.Error(e.ToString());
                 return null;
             }
@@ -290,30 +279,23 @@ namespace OpenSim.Data.MSSQL
         {
             try
             {
-                lock (database)
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param["parentFolderID"] = parentID.ToString();
+
+                using (IDbCommand result =
+                    database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = @parentFolderID", param))
+                using (IDataReader reader = result.ExecuteReader())
                 {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["parentFolderID"] = parentID.ToString();
-
-
-                    IDbCommand result =
-                        database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = @parentFolderID", param);
-                    IDataReader reader = result.ExecuteReader();
-
                     List<InventoryFolderBase> items = new List<InventoryFolderBase>();
 
                     while (reader.Read())
                         items.Add(readInventoryFolder(reader));
-
-                    reader.Close();
-                    result.Dispose();
 
                     return items;
                 }
             }
             catch (Exception e)
             {
-                database.Reconnect();
                 m_log.Error(e.ToString());
                 return null;
             }
@@ -369,28 +351,23 @@ namespace OpenSim.Data.MSSQL
         {
             try
             {
-                lock (database)
-                {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["inventoryID"] = itemID.ToString();
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param["inventoryID"] = itemID.ToString();
 
-                    IDbCommand result =
-                        database.Query("SELECT * FROM inventoryitems WHERE inventoryID = @inventoryID", param);
-                    IDataReader reader = result.ExecuteReader();
+                using (IDbCommand result =
+                    database.Query("SELECT * FROM inventoryitems WHERE inventoryID = @inventoryID", param))
+                using (IDataReader reader = result.ExecuteReader())
+                {
 
                     InventoryItemBase item = null;
                     if (reader.Read())
                         item = readInventoryItem(reader);
-
-                    reader.Close();
-                    result.Dispose();
 
                     return item;
                 }
             }
             catch (Exception e)
             {
-                database.Reconnect();
                 m_log.Error(e.ToString());
             }
             return null;
@@ -431,25 +408,22 @@ namespace OpenSim.Data.MSSQL
         {
             try
             {
-                lock (database)
-                {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-                    param["uuid"] = folderID.ToString();
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param["uuid"] = folderID.ToString();
 
-                    IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE folderID = @uuid", param);
-                    IDataReader reader = result.ExecuteReader();
+                using (IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE folderID = @uuid", param))
+                using (IDataReader reader = result.ExecuteReader())
+                {
 
                     reader.Read();
+
                     InventoryFolderBase folder = readInventoryFolder(reader);
-                    reader.Close();
-                    result.Dispose();
 
                     return folder;
                 }
             }
             catch (Exception e)
             {
-                database.Reconnect();
                 m_log.Error(e.ToString());
                 return null;
             }
@@ -479,9 +453,8 @@ namespace OpenSim.Data.MSSQL
                     + ", @inventoryBasePermissions, @inventoryEveryOnePermissions, @salePrice, @saleType"
                     + ", @creationDate, @groupID, @groupOwned, @flags);";
 
-            try
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
-                SqlCommand command = new SqlCommand(sql, database.getConnection());
                 command.Parameters.AddWithValue("inventoryID", item.ID.ToString());
                 command.Parameters.AddWithValue("assetID", item.AssetID.ToString());
                 command.Parameters.AddWithValue("assetType", item.AssetType.ToString());
@@ -502,13 +475,16 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.AddWithValue("groupOwned", item.GroupOwned);
                 command.Parameters.AddWithValue("flags", ConvertUint32BitFieldToInt32(item.Flags));
 
-                command.ExecuteNonQuery();
-                command.Dispose();
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (SqlException e)
+                {
+                    m_log.Error(e.ToString());
+                }
             }
-            catch (SqlException e)
-            {
-                m_log.Error(e.ToString());
-            }
+
         }
 
         /// <summary>
@@ -517,7 +493,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="item">Inventory item to update</param>
         public void updateInventoryItem(InventoryItemBase item)
         {
-            SqlCommand command = new SqlCommand("UPDATE inventoryitems set inventoryID = @inventoryID, " +
+            using (AutoClosingSqlCommand command = database.Query("UPDATE inventoryitems set inventoryID = @inventoryID, " +
                                                 "assetID = @assetID, " +
                                                 "assetType = @assetType," +
                                                 "parentFolderID = @parentFolderID," +
@@ -529,42 +505,44 @@ namespace OpenSim.Data.MSSQL
                                                 "invType = @invType," +
                                                 "creatorID = @creatorID," +
                                                 "inventoryBasePermissions = @inventoryBasePermissions," +
-                                                "inventoryEveryOnePermissions = @inventoryEveryOnePermissions," + 
+                                                "inventoryEveryOnePermissions = @inventoryEveryOnePermissions," +
                                                 "salePrice = @salePrice," +
-                                                "saleType = @saleType," + 
+                                                "saleType = @saleType," +
                                                 "creationDate = @creationDate," +
-                                                "groupID = @groupID,"  +
-                                                "groupOwned = @groupOwned," + 
+                                                "groupID = @groupID," +
+                                                "groupOwned = @groupOwned," +
                                                 "flags = @flags where " +
-                                                "inventoryID = @keyInventoryID;", database.getConnection());
-            command.Parameters.AddWithValue("inventoryID", item.ID.ToString());
-            command.Parameters.AddWithValue("assetID", item.AssetID.ToString());
-            command.Parameters.AddWithValue("assetType", item.AssetType.ToString());
-            command.Parameters.AddWithValue("parentFolderID", item.Folder.ToString());
-            command.Parameters.AddWithValue("avatarID", item.Owner.ToString());
-            command.Parameters.AddWithValue("inventoryName", item.Name);
-            command.Parameters.AddWithValue("inventoryDescription", item.Description);
-            command.Parameters.AddWithValue("inventoryNextPermissions", ConvertUint32BitFieldToInt32(item.NextPermissions));
-            command.Parameters.AddWithValue("inventoryCurrentPermissions", ConvertUint32BitFieldToInt32(item.CurrentPermissions));
-            command.Parameters.AddWithValue("invType", item.InvType);
-            command.Parameters.AddWithValue("creatorID", item.Creator.ToString());
-            command.Parameters.AddWithValue("inventoryBasePermissions", ConvertUint32BitFieldToInt32(item.BasePermissions));
-            command.Parameters.AddWithValue("inventoryEveryOnePermissions", ConvertUint32BitFieldToInt32(item.EveryOnePermissions));
-            command.Parameters.AddWithValue("salePrice", item.SalePrice);
-            command.Parameters.AddWithValue("saleType", item.SaleType);
-            command.Parameters.AddWithValue("creationDate", item.CreationDate);
-            command.Parameters.AddWithValue("groupID", item.GroupID.ToString());
-            command.Parameters.AddWithValue("groupOwned", item.GroupOwned);
-            command.Parameters.AddWithValue("flags", ConvertUint32BitFieldToInt32(item.Flags));
-            command.Parameters.AddWithValue("@keyInventoryID", item.ID.ToString());
+                                                "inventoryID = @keyInventoryID;"))
+            {
+                command.Parameters.AddWithValue("inventoryID", item.ID.ToString());
+                command.Parameters.AddWithValue("assetID", item.AssetID.ToString());
+                command.Parameters.AddWithValue("assetType", item.AssetType.ToString());
+                command.Parameters.AddWithValue("parentFolderID", item.Folder.ToString());
+                command.Parameters.AddWithValue("avatarID", item.Owner.ToString());
+                command.Parameters.AddWithValue("inventoryName", item.Name);
+                command.Parameters.AddWithValue("inventoryDescription", item.Description);
+                command.Parameters.AddWithValue("inventoryNextPermissions", ConvertUint32BitFieldToInt32(item.NextPermissions));
+                command.Parameters.AddWithValue("inventoryCurrentPermissions", ConvertUint32BitFieldToInt32(item.CurrentPermissions));
+                command.Parameters.AddWithValue("invType", item.InvType);
+                command.Parameters.AddWithValue("creatorID", item.Creator.ToString());
+                command.Parameters.AddWithValue("inventoryBasePermissions", ConvertUint32BitFieldToInt32(item.BasePermissions));
+                command.Parameters.AddWithValue("inventoryEveryOnePermissions", ConvertUint32BitFieldToInt32(item.EveryOnePermissions));
+                command.Parameters.AddWithValue("salePrice", item.SalePrice);
+                command.Parameters.AddWithValue("saleType", item.SaleType);
+                command.Parameters.AddWithValue("creationDate", item.CreationDate);
+                command.Parameters.AddWithValue("groupID", item.GroupID.ToString());
+                command.Parameters.AddWithValue("groupOwned", item.GroupOwned);
+                command.Parameters.AddWithValue("flags", ConvertUint32BitFieldToInt32(item.Flags));
+                command.Parameters.AddWithValue("@keyInventoryID", item.ID.ToString());
 
-            try
-            {
-                command.ExecuteNonQuery();
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(e.ToString());
+                }
             }
         }
 
@@ -579,13 +557,13 @@ namespace OpenSim.Data.MSSQL
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 param["uuid"] = itemID.ToString();
 
-                IDbCommand cmd = database.Query("DELETE FROM inventoryitems WHERE inventoryID=@uuid", param);
-                cmd.ExecuteNonQuery();
-                cmd.Dispose();
+                using (IDbCommand cmd = database.Query("DELETE FROM inventoryitems WHERE inventoryID=@uuid", param))
+                {
+                    cmd.ExecuteNonQuery();
+                }
             }
             catch (SqlException e)
             {
-                database.Reconnect();
                 m_log.Error(e.ToString());
             }
         }
@@ -601,23 +579,24 @@ namespace OpenSim.Data.MSSQL
             sql += "(@folderID, @agentID, @parentFolderID, @folderName, @type, @version);";
 
 
-            SqlCommand command = new SqlCommand(sql, database.getConnection());
-            command.Parameters.AddWithValue("folderID", folder.ID.ToString());
-            command.Parameters.AddWithValue("agentID", folder.Owner.ToString());
-            command.Parameters.AddWithValue("parentFolderID", folder.ParentID.ToString());
-            command.Parameters.AddWithValue("folderName", folder.Name);
-            command.Parameters.AddWithValue("type", folder.Type);
-            command.Parameters.AddWithValue("version", Convert.ToInt32(folder.Version));
+            using (AutoClosingSqlCommand command = database.Query(sql))
+            {
+                command.Parameters.AddWithValue("folderID", folder.ID.ToString());
+                command.Parameters.AddWithValue("agentID", folder.Owner.ToString());
+                command.Parameters.AddWithValue("parentFolderID", folder.ParentID.ToString());
+                command.Parameters.AddWithValue("folderName", folder.Name);
+                command.Parameters.AddWithValue("type", folder.Type);
+                command.Parameters.AddWithValue("version", Convert.ToInt32(folder.Version));
 
-            try
-            {
-                //IDbCommand result = database.Query(sql, param);
-                command.ExecuteNonQuery();
-                command.Dispose();
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
+                try
+                {
+                    //IDbCommand result = database.Query(sql, param);
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(e.ToString());
+                }
             }
         }
 
@@ -627,35 +606,37 @@ namespace OpenSim.Data.MSSQL
         /// <param name="folder">Folder to update</param>
         public void updateInventoryFolder(InventoryFolderBase folder)
         {
-            SqlCommand command = new SqlCommand("UPDATE inventoryfolders set folderID = @folderID, " +
+            using (IDbCommand command = database.Query("UPDATE inventoryfolders set folderID = @folderID, " +
                                                 "agentID = @agentID, " +
                                                 "parentFolderID = @parentFolderID," +
                                                 "folderName = @folderName," +
                                                 "type = @type," +
                                                 "version = @version where " +
-                                                "folderID = @keyFolderID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@folderID", folder.ID.ToString());
-            SqlParameter param2 = new SqlParameter("@agentID", folder.Owner.ToString());
-            SqlParameter param3 = new SqlParameter("@parentFolderID", folder.ParentID.ToString());
-            SqlParameter param4 = new SqlParameter("@folderName", folder.Name);
-            SqlParameter param5 = new SqlParameter("@type", folder.Type);
-            SqlParameter param6 = new SqlParameter("@version", Convert.ToInt32(folder.Version));
-            SqlParameter param7 = new SqlParameter("@keyFolderID", folder.ID.ToString());
-            command.Parameters.Add(param1);
-            command.Parameters.Add(param2);
-            command.Parameters.Add(param3);
-            command.Parameters.Add(param4);
-            command.Parameters.Add(param5);
-            command.Parameters.Add(param6);
-            command.Parameters.Add(param7);
+                                                "folderID = @keyFolderID;"))
+            {
+                SqlParameter param1 = new SqlParameter("@folderID", folder.ID.ToString());
+                SqlParameter param2 = new SqlParameter("@agentID", folder.Owner.ToString());
+                SqlParameter param3 = new SqlParameter("@parentFolderID", folder.ParentID.ToString());
+                SqlParameter param4 = new SqlParameter("@folderName", folder.Name);
+                SqlParameter param5 = new SqlParameter("@type", folder.Type);
+                SqlParameter param6 = new SqlParameter("@version", Convert.ToInt32(folder.Version));
+                SqlParameter param7 = new SqlParameter("@keyFolderID", folder.ID.ToString());
+                command.Parameters.Add(param1);
+                command.Parameters.Add(param2);
+                command.Parameters.Add(param3);
+                command.Parameters.Add(param4);
+                command.Parameters.Add(param5);
+                command.Parameters.Add(param6);
+                command.Parameters.Add(param7);
 
-            try
-            {
-                command.ExecuteNonQuery();
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(e.ToString());
+                }
             }
         }
 
@@ -665,23 +646,25 @@ namespace OpenSim.Data.MSSQL
         /// <param name="folder">Folder to update</param>
         public void moveInventoryFolder(InventoryFolderBase folder)
         {
-            SqlCommand command = new SqlCommand("UPDATE inventoryfolders set folderID = @folderID, " +
+            using (IDbCommand command = database.Query("UPDATE inventoryfolders set folderID = @folderID, " +
                                                 "parentFolderID = @parentFolderID," +
-                                                "folderID = @keyFolderID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@folderID", folder.ID.ToString());
-            SqlParameter param2 = new SqlParameter("@parentFolderID", folder.ParentID.ToString());
-            SqlParameter param3 = new SqlParameter("@keyFolderID", folder.ID.ToString());
-            command.Parameters.Add(param1);
-            command.Parameters.Add(param2);
-            command.Parameters.Add(param3);
+                                                "folderID = @keyFolderID;"))
+            {
+                SqlParameter param1 = new SqlParameter("@folderID", folder.ID.ToString());
+                SqlParameter param2 = new SqlParameter("@parentFolderID", folder.ParentID.ToString());
+                SqlParameter param3 = new SqlParameter("@keyFolderID", folder.ID.ToString());
+                command.Parameters.Add(param1);
+                command.Parameters.Add(param2);
+                command.Parameters.Add(param3);
 
-            try
-            {
-                command.ExecuteNonQuery();
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(e.ToString());
+                }
             }
         }
 
@@ -721,13 +704,13 @@ namespace OpenSim.Data.MSSQL
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 param["folderID"] = folderID.ToString();
 
-                IDbCommand cmd = database.Query("DELETE FROM inventoryfolders WHERE folderID=@folderID", param);
-                cmd.ExecuteNonQuery();
-                cmd.Dispose();
+                using (IDbCommand cmd = database.Query("DELETE FROM inventoryfolders WHERE folderID=@folderID", param))
+                {
+                    cmd.ExecuteNonQuery();
+                }
             }
             catch (SqlException e)
             {
-                database.Reconnect();
                 m_log.Error(e.ToString());
             }
         }
@@ -744,14 +727,14 @@ namespace OpenSim.Data.MSSQL
                 param["parentFolderID"] = folderID.ToString();
 
 
-                IDbCommand cmd =
-                    database.Query("DELETE FROM inventoryitems WHERE parentFolderID=@parentFolderID", param);
-                cmd.ExecuteNonQuery();
-                cmd.Dispose();
+                using (IDbCommand cmd =
+                    database.Query("DELETE FROM inventoryitems WHERE parentFolderID=@parentFolderID", param))
+                {
+                    cmd.ExecuteNonQuery();
+                }
             }
             catch (SqlException e)
             {
-                database.Reconnect();
                 m_log.Error(e.ToString());
             }
         }
@@ -762,7 +745,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="folderId">Id of folder to delete</param>
         public void deleteInventoryFolder(LLUUID folderID)
         {
-            lock (database)
+            // lock (database)
             {
                 List<InventoryFolderBase> subFolders = getFolderHierarchy(folderID);
 

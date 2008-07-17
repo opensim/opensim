@@ -84,17 +84,17 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         private void TestTables()
         {
-            IDbCommand cmd = database.Query("SELECT TOP 1 * FROM "+m_regionsTableName, new Dictionary<string, string>());
-
-            try
+            using (IDbCommand cmd = database.Query("SELECT TOP 1 * FROM " + m_regionsTableName, new Dictionary<string, string>()))
             {
-                cmd.ExecuteNonQuery();
-                cmd.Dispose();
-            }
-            catch (Exception)
-            {
-                m_log.Info("[GRID DB]: MSSQL Database doesn't exist... creating");
-                database.ExecuteResourceSql("Mssql-regions.sql");
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    m_log.Info("[GRID DB]: MSSQL Database doesn't exist... creating");
+                    database.ExecuteResourceSql("Mssql-regions.sql");
+                }
             }
         }
 
@@ -103,7 +103,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         override public void Close()
         {
-            database.Close();
+            // nothing to close
         }
 
         /// <summary>
@@ -146,32 +146,22 @@ namespace OpenSim.Data.MSSQL
         /// <returns>Sim profile</returns>
         override public RegionProfileData GetProfileByHandle(ulong handle)
         {
-            IDataReader reader = null;
+
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["handle"] = handle.ToString();
+
             try
             {
-                if (database.getConnection().State == ConnectionState.Closed)
+                using (IDbCommand result = database.Query("SELECT * FROM " + m_regionsTableName + " WHERE regionHandle = @handle", param))
+                using (IDataReader reader = result.ExecuteReader())
                 {
-                    database.Reconnect();
+                    return database.getRegionRow(reader);
                 }
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["handle"] = handle.ToString();
-                IDbCommand result = database.Query("SELECT * FROM " + m_regionsTableName + " WHERE regionHandle = @handle", param);
-                reader = result.ExecuteReader();
-
-                RegionProfileData row = database.getRegionRow(reader);
-                reader.Close();
-                result.Dispose();
-
-                return row;
             }
-            catch (Exception)
+            catch
             {
-                if (reader != null)
-                {
-                    reader.Close();
-                }
+                return null;
             }
-            return null;
         }
 
         /// <summary>
@@ -183,14 +173,13 @@ namespace OpenSim.Data.MSSQL
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["uuid"] = uuid.ToString();
-            IDbCommand result = database.Query("SELECT * FROM " + m_regionsTableName + " WHERE uuid = @uuid", param);
-            IDataReader reader = result.ExecuteReader();
 
-            RegionProfileData row = database.getRegionRow(reader);
-            reader.Close();
-            result.Dispose();
+            using (IDbCommand result = database.Query("SELECT * FROM " + m_regionsTableName + " WHERE uuid = @uuid", param))
+            using (IDataReader reader = result.ExecuteReader())
+            {
+                return database.getRegionRow(reader);
+            }
 
-            return row;
         }
 
         /// <summary>
@@ -204,25 +193,19 @@ namespace OpenSim.Data.MSSQL
             {
                 try
                 {
-                    lock (database)
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    // Add % because this is a like query.
+                    param["?regionName"] = regionName + "%";
+                    // Order by statement will return shorter matches first.  Only returns one record or no record.
+                    using (IDbCommand result = database.Query("SELECT top 1 * FROM " + m_regionsTableName + " WHERE regionName like ?regionName order by regionName", param))
+                    using (IDataReader reader = result.ExecuteReader())
                     {
-                        Dictionary<string, string> param = new Dictionary<string, string>();
-                        // Add % because this is a like query.
-                        param["?regionName"] = regionName + "%";
-                        // Order by statement will return shorter matches first.  Only returns one record or no record.
-                        IDbCommand result = database.Query("SELECT top 1 * FROM " + m_regionsTableName + " WHERE regionName like ?regionName order by regionName", param);
-                        IDataReader reader = result.ExecuteReader();
-
-                        RegionProfileData row = database.getRegionRow(reader);
-                        reader.Close();
-                        result.Dispose();
-
-                        return row;
+                        return database.getRegionRow(reader);
                     }
+                    
                 }
                 catch (Exception e)
                 {
-                    database.Reconnect();
                     m_log.Error(e.ToString());
                     return null;
                 }
@@ -324,12 +307,13 @@ namespace OpenSim.Data.MSSQL
 
             try
             {
-                IDbCommand result = database.Query(sql, parameters);
+                using (IDbCommand result = database.Query(sql, parameters))
+                {
 
-                if (result.ExecuteNonQuery() == 1)
-                    returnval = true;
+                    if (result.ExecuteNonQuery() == 1)
+                        returnval = true;
 
-                result.Dispose();
+                }
             }
             catch (Exception e)
             {
@@ -347,17 +331,15 @@ namespace OpenSim.Data.MSSQL
         {
             //Insert new region
             string sql =
-                "INSERT INTO " + m_regionsTableName + " ([regionHandle], [regionName], [uuid], [regionRecvKey], [regionSecret], [regionSendKey], [regionDataURI], ";
-            sql +=
-                "[serverIP], [serverPort], [serverURI], [locX], [locY], [locZ], [eastOverrideHandle], [westOverrideHandle], [southOverrideHandle], [northOverrideHandle], [regionAssetURI], [regionAssetRecvKey], ";
-            sql +=
-                "[regionAssetSendKey], [regionUserURI], [regionUserRecvKey], [regionUserSendKey], [regionMapTexture], [serverHttpPort], [serverRemotingPort], [owner_uuid]) VALUES ";
-
-            sql += "(@regionHandle, @regionName, @uuid, @regionRecvKey, @regionSecret, @regionSendKey, @regionDataURI, ";
-            sql +=
-                "@serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, ";
-            sql +=
-                "@regionAssetSendKey, @regionUserURI, @regionUserRecvKey, @regionUserSendKey, @regionMapTexture, @serverHttpPort, @serverRemotingPort, @owner_uuid);";
+                "INSERT INTO " + m_regionsTableName + @" ([regionHandle], [regionName], [uuid], [regionRecvKey], [regionSecret], [regionSendKey], [regionDataURI], 
+                                                      [serverIP], [serverPort], [serverURI], [locX], [locY], [locZ], [eastOverrideHandle], [westOverrideHandle], 
+                                                      [southOverrideHandle], [northOverrideHandle], [regionAssetURI], [regionAssetRecvKey], [regionAssetSendKey], 
+                                                      [regionUserURI], [regionUserRecvKey], [regionUserSendKey], [regionMapTexture], [serverHttpPort], 
+                                                      [serverRemotingPort], [owner_uuid]) 
+                                                VALUES (@regionHandle, @regionName, @uuid, @regionRecvKey, @regionSecret, @regionSendKey, @regionDataURI, 
+                                                        @serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, 
+                                                        @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, @regionAssetSendKey, 
+                                                        @regionUserURI, @regionUserRecvKey, @regionUserSendKey, @regionMapTexture, @serverHttpPort, @serverRemotingPort, @owner_uuid);";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
@@ -393,12 +375,11 @@ namespace OpenSim.Data.MSSQL
 
             try
             {
-                IDbCommand result = database.Query(sql, parameters);
-
-                if (result.ExecuteNonQuery() == 1)
-                    returnval = true;
-
-                result.Dispose();
+                using (IDbCommand result = database.Query(sql, parameters))
+                {
+                    if (result.ExecuteNonQuery() == 1)
+                        returnval = true;
+                }
             }
             catch (Exception e)
             {

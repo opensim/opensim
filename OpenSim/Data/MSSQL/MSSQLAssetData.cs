@@ -86,19 +86,14 @@ namespace OpenSim.Data.MSSQL
         /// <returns></returns>
         override public AssetBase FetchAsset(LLUUID assetID)
         {
-            AssetBase asset = null;
-
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["id"] = assetID.ToString();
 
-            IDbCommand result = database.Query("SELECT * FROM assets WHERE id = @id", param);
-            IDataReader reader = result.ExecuteReader();
-
-            asset = database.getAssetRow(reader);
-            reader.Close();
-            result.Dispose();
-
-            return asset;
+            using (IDbCommand result = database.Query("SELECT * FROM assets WHERE id = @id", param))
+            using (IDataReader reader = result.ExecuteReader())
+            {
+                return database.getAssetRow(reader);
+            }
         }
 
         /// <summary>
@@ -113,15 +108,13 @@ namespace OpenSim.Data.MSSQL
             }
 
 
-            SqlCommand cmd =
-                new SqlCommand(
+            using (AutoClosingSqlCommand cmd =
+                database.Query(
                     "INSERT INTO assets ([id], [name], [description], [assetType], [local], [temporary], [data])" +
                     " VALUES " +
-                    "(@id, @name, @description, @assetType, @local, @temporary, @data)",
-                    database.getConnection());
-
-            using (cmd)
+                    "(@id, @name, @description, @assetType, @local, @temporary, @data)"))
             {
+
                 //SqlParameter p = cmd.Parameters.Add("id", SqlDbType.NVarChar);
                 //p.Value = asset.FullID.ToString();
                 cmd.Parameters.AddWithValue("id", asset.FullID.ToString());
@@ -135,16 +128,8 @@ namespace OpenSim.Data.MSSQL
                 h.Value = asset.Temporary;
                 SqlParameter i = cmd.Parameters.Add("data", SqlDbType.Image);
                 i.Value = asset.Data;
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
 
-                cmd.Dispose();
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -154,38 +139,40 @@ namespace OpenSim.Data.MSSQL
         /// <param name="asset">the asset</param>
         override public void UpdateAsset(AssetBase asset)
         {
-            SqlCommand command = new SqlCommand("UPDATE assets set id = @id, " +
+            using (IDbCommand command = database.Query("UPDATE assets set id = @id, " +
                                                 "name = @name, " +
                                                 "description = @description," +
                                                 "assetType = @assetType," +
                                                 "local = @local," +
                                                 "temporary = @temporary," +
                                                 "data = @data where " +
-                                                "id = @keyId;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@id", asset.FullID.ToString());
-            SqlParameter param2 = new SqlParameter("@name", asset.Name);
-            SqlParameter param3 = new SqlParameter("@description", asset.Description);
-            SqlParameter param4 = new SqlParameter("@assetType", asset.Type);
-            SqlParameter param6 = new SqlParameter("@local", asset.Local);
-            SqlParameter param7 = new SqlParameter("@temporary", asset.Temporary);
-            SqlParameter param8 = new SqlParameter("@data", asset.Data);
-            SqlParameter param9 = new SqlParameter("@keyId", asset.FullID.ToString());
-            command.Parameters.Add(param1);
-            command.Parameters.Add(param2);
-            command.Parameters.Add(param3);
-            command.Parameters.Add(param4);
-            command.Parameters.Add(param6);
-            command.Parameters.Add(param7);
-            command.Parameters.Add(param8);
-            command.Parameters.Add(param9);
+                                                "id = @keyId;"))
+            {
+                SqlParameter param1 = new SqlParameter("@id", asset.FullID.ToString());
+                SqlParameter param2 = new SqlParameter("@name", asset.Name);
+                SqlParameter param3 = new SqlParameter("@description", asset.Description);
+                SqlParameter param4 = new SqlParameter("@assetType", asset.Type);
+                SqlParameter param6 = new SqlParameter("@local", asset.Local);
+                SqlParameter param7 = new SqlParameter("@temporary", asset.Temporary);
+                SqlParameter param8 = new SqlParameter("@data", asset.Data);
+                SqlParameter param9 = new SqlParameter("@keyId", asset.FullID.ToString());
+                command.Parameters.Add(param1);
+                command.Parameters.Add(param2);
+                command.Parameters.Add(param3);
+                command.Parameters.Add(param4);
+                command.Parameters.Add(param6);
+                command.Parameters.Add(param7);
+                command.Parameters.Add(param8);
+                command.Parameters.Add(param9);
 
-            try
-            {
-                command.ExecuteNonQuery();
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(e.ToString());
+                }
             }
         }
 
@@ -228,12 +215,12 @@ namespace OpenSim.Data.MSSQL
         /// <remarks>it use mssql_connection.ini</remarks>
         override public void Initialise()
         {
-            IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
-            string settingDataSource = GridDataMySqlFile.ParseFileReadValue("data_source");
-            string settingInitialCatalog = GridDataMySqlFile.ParseFileReadValue("initial_catalog");
-            string settingPersistSecurityInfo = GridDataMySqlFile.ParseFileReadValue("persist_security_info");
-            string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
-            string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
+            IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
+            string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
+            string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
+            string settingPersistSecurityInfo = gridDataMSSqlFile.ParseFileReadValue("persist_security_info");
+            string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
+            string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
 
             database =
                 new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,

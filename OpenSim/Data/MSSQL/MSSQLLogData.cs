@@ -31,7 +31,7 @@ using System.Data;
 namespace OpenSim.Data.MSSQL
 {
     /// <summary>
-    /// An interface to the log database for MySQL
+    /// An interface to the log database for MSSQL
     /// </summary>
     internal class MSSQLLogData : ILogData
     {
@@ -46,26 +46,27 @@ namespace OpenSim.Data.MSSQL
         public void Initialise(string connect)
         {
             // TODO: do something with the connect string
-            IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
-            string settingDataSource = GridDataMySqlFile.ParseFileReadValue("data_source");
-            string settingInitialCatalog = GridDataMySqlFile.ParseFileReadValue("initial_catalog");
-            string settingPersistSecurityInfo = GridDataMySqlFile.ParseFileReadValue("persist_security_info");
-            string settingUserId = GridDataMySqlFile.ParseFileReadValue("user_id");
-            string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
+            IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
+            string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
+            string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
+            string settingPersistSecurityInfo = gridDataMSSqlFile.ParseFileReadValue("persist_security_info");
+            string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
+            string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
 
             database =
                 new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
                                  settingPassword);
 
-            IDbCommand cmd = database.Query("select top 1 * from logs", new Dictionary<string, string>());
-            try
+            using (IDbCommand cmd = database.Query("select top 1 * from logs", new Dictionary<string, string>()))
             {
-                cmd.ExecuteNonQuery();
-                cmd.Dispose();
-            }
-            catch
-            {
-                database.ExecuteResourceSql("Mssql-logs.sql");
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch
+                {
+                    database.ExecuteResourceSql("Mssql-logs.sql");
+                }
             }
 
         }
@@ -88,7 +89,7 @@ namespace OpenSim.Data.MSSQL
             }
             catch
             {
-                database.Reconnect();
+                // it didn't log, don't worry about it
             }
         }
 

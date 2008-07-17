@@ -1758,7 +1758,7 @@ namespace OpenSim.Data.MSSQL
             }
             catch (SqlException)
             {
-                m_log.Info("[REGION DB]: MySql Database doesn't exist... creating");
+                m_log.Info("[REGION DB]: MS Sql Database doesn't exist... creating");
                 InitDB(conn);
             }
 
