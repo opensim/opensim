@@ -138,7 +138,7 @@ namespace OpenSim.Data.NHibernate
             }
             catch (Exception e)
             {
-                m_log.Error("[NHIBERNATE] issue saving asset", e);
+                m_log.Error("[NHIBERNATE] issue saving prim", e);
             }
         }
 
@@ -166,7 +166,7 @@ namespace OpenSim.Data.NHibernate
             }
             catch (Exception e)
             {
-                m_log.Error("[NHIBERNATE] issue saving asset", e);
+                m_log.Error("[NHIBERNATE] issue saving terrain", e);
             }
         }
 
@@ -280,8 +280,10 @@ namespace OpenSim.Data.NHibernate
         /// <param name="regionID">region UUID</param>
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
-            Terrain t = new Terrain(regionID, ter);
-            SaveOrUpdate(t);
+            lock (this) {
+                Terrain t = new Terrain(regionID, ter);
+                SaveOrUpdate(t);
+            }
         }
 
         /// <summary>
