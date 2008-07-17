@@ -197,7 +197,13 @@ namespace OpenSim.Framework
         {
             get { return m_textureEntry; }
 
-            set { m_textureEntry = value; }
+            set 
+            { 
+                if (value == null) 
+                    m_textureEntry = new byte[1];
+                else 
+                    m_textureEntry = value; 
+            }
         }
 
 
@@ -838,6 +844,9 @@ namespace OpenSim.Framework
 
         public void ReadInExtraParamsBytes(byte[] data)
         {
+            if (data == null)
+                return;
+
             const ushort FlexiEP = 0x10;
             const ushort LightEP = 0x20;
             const ushort SculptEP = 0x30;
