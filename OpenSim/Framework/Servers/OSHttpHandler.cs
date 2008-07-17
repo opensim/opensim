@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace OpenSim.Framework.Servers
@@ -43,15 +44,9 @@ namespace OpenSim.Framework.Servers
     ///     <description>handler did not process the request</request>
     ///   </item>
     ///   <item>
-    ///     <term>Handled</term>
+    ///     <term>Done</term>
     ///     <description>handler did process the request, OSHttpServer
     ///       can clean up and close the request</request>
-    ///   </item>
-    ///   <item>
-    ///     <term>Detached</term>
-    ///     <description>handler handles the request, OSHttpServer
-    ///       can forget about the request and should not touch it as
-    ///       the handler has taken control</request>
     ///   </item>
     /// </list>
     /// </summary>
@@ -71,26 +66,41 @@ namespace OpenSim.Framework.Servers
     /// false otherwise</returns>
     public delegate bool OSHttpContentTypeChecker(OSHttpRequest req);
 
-    public interface OSHttpHandler
+    public abstract class OSHttpHandler
     {
         /// <summary>
-        /// Regular expression used to match against path of incoming
-        /// HTTP request. If you want to match any string either use
-        /// '.*' or null. To match for the emtpy string use '^$'
+        /// Regular expression used to match against method of
+        /// the incoming HTTP request. If you want to match any string
+        /// either use '.*' or null. To match on the empty string use
+        /// '^$'. 
         /// </summary>
-        Regex Path 
+        public virtual Regex Method
         {
-            get;
+            get { return _method; }
         }
+        protected Regex _method;
+        
+        /// <summary>
+        /// Regular expression used to match against path of the
+        /// incoming HTTP request. If you want to match any string
+        /// either use '.*' or null. To match on the emtpy string use
+        /// '^$'.
+        /// </summary>
+        public virtual Regex Path 
+        {
+            get { return _path; }
+        }
+        protected Regex _path;
 
         /// <summary>
         /// Dictionary of (header name, regular expression) tuples,
         /// allowing us to match on HTTP header fields.
         /// </summary>
-        Dictionary<string, Regex> Headers
+        public virtual Dictionary<string, Regex> Headers
         { 
-            get;
+            get { return _headers; }
         }
+        protected Dictionary<string, Regex> _headers;
 
         /// <summary>
         /// Dictionary of (header name, regular expression) tuples,
@@ -101,10 +111,11 @@ namespace OpenSim.Framework.Servers
         /// (trivial) changes to HttpServer.HttpListener that have not
         /// been implemented.
         /// </remarks>
-        Regex IPEndPointWhitelist
+        public virtual Regex IPEndPointWhitelist
         {
-            get;
+            get { return _ipEndPointRegex; }
         }
+        protected Regex _ipEndPointRegex;
 
 
         /// <summary>
@@ -114,11 +125,59 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         /// <returns>true if the handler is interested in the content;
         /// false otherwise</returns>
-        OSHttpContentTypeChecker ContentTypeChecker
+        internal virtual OSHttpContentTypeChecker ContentTypeChecker
         { 
-            get;
+            get { return null; }
         }
 
-        OSHttpHandlerResult Process(OSHttpRequest request);
+        /// <summary>
+        /// Base class constructor.
+        /// </summary>
+        /// <param name="path">null or path regex</param>
+        /// <param name="headers">null or dictionary of header
+        /// regexs</param>
+        /// <param name="contentType">null or content type
+        /// regex</param>
+        /// <param name="whitelist">null or IP address regex</param>
+        public OSHttpHandler(Regex method, Regex path, Dictionary<string, Regex> headers, Regex contentType, Regex whitelist)
+        {
+            _method = method;
+            _path = path;
+            _ipEndPointRegex = whitelist;
+
+            if (null == _headers && null != contentType)
+            {
+                _headers = new Dictionary<string, Regex>();
+                _headers.Add("content-type", contentType);
+            }
+        }
+
+
+        /// <summary>
+        /// Process an incoming OSHttpRequest that matched our
+        /// requirements. 
+        /// </summary>
+        /// <returns>
+        /// OSHttpHandlerResult.Pass if we are after all not
+        /// interested in the request; OSHttpHandlerResult.Done if we
+        /// did process the request.
+        /// </returns>
+        public abstract OSHttpHandlerResult Process(OSHttpRequest request);
+
+        public override string ToString()
+        {
+            StringWriter sw = new StringWriter();
+            sw.WriteLine("{0}", base.ToString());
+            sw.WriteLine("    method regex     {0}", null == Method ? "null" : Method.ToString());
+            sw.WriteLine("    path regex       {0}", null == Path ? "null": Path.ToString());
+            foreach (string tag in Headers.Keys)
+            {
+                sw.WriteLine("    header           {0} : {1}", tag, Headers[tag].ToString());
+            }
+            sw.WriteLine("    IP whitelist     {0}", null == IPEndPointWhitelist ? "null" : IPEndPointWhitelist.ToString());
+            sw.WriteLine();
+            sw.Close();
+            return sw.ToString();
+        }
     }
 }

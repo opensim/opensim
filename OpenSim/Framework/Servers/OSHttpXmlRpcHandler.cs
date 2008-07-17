@@ -45,49 +45,13 @@ namespace OpenSim.Framework.Servers
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Regular expression used to match against path of incoming
-        /// HTTP request. If you want to match any string either use
-        /// '.*' or null. To match for the emtpy string use '^$'
-        /// </summary>
-        public Regex Path 
-        {
-            get { return _pathsRegex; }
-        }
-        private Regex _pathsRegex;
-
-        /// <summary>
-        /// Dictionary of (header name, regular expression) tuples,
-        /// allowing us to match on HTTP header fields.
-        /// </summary>
-        public Dictionary<string, Regex> Headers
-        { 
-            get { return _headers; }
-        }
-        private Dictionary<string, Regex> _headers;
-
-        /// <summary>
-        /// Regex to whitelist IP end points. A null value disables
-        /// checking of IP end points.
-        /// </summary>
-        /// <remarks>
-        /// This feature is currently not implemented as it requires
-        /// (trivial) changes to HttpServer.HttpListener that have not
-        /// been implemented.
-        /// </remarks>
-        public Regex IPEndPointWhitelist
-        {
-            get { return _ipEndPointRegex; }
-        }
-        private Regex _ipEndPointRegex;
-
-        /// <summary>
         /// An OSHttpHandler that matches on the "content-type" header can
         /// supply an OSHttpContentTypeChecker delegate which will be
         /// invoked by the request matcher in OSHttpRequestPump.
         /// </summary>
         /// <returns>true if the handler is interested in the content;
         /// false otherwise</returns>
-        public OSHttpContentTypeChecker ContentTypeChecker
+        internal override OSHttpContentTypeChecker ContentTypeChecker
         { 
             get 
             { 
@@ -132,7 +96,7 @@ namespace OpenSim.Framework.Servers
         }
 
         // contains handler for processing XmlRpc Request
-        private OSHttpXmlRpcProcessor _handler;
+        private XmlRpcMethod _handler;
         
         // contains XmlRpc method name
         private string _methodName;
@@ -141,7 +105,7 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Instantiate an XmlRpc handler.
         /// </summary>
-        /// <param name="handler">OSHttpXmlRpcProcessor
+        /// <param name="handler">XmlRpcMethod
         /// delegate</param>
         /// <param name="methodName">XmlRpc method name</param>
         /// <param name="path">XmlRpc path prefix (regular expression)</param>
@@ -154,28 +118,24 @@ namespace OpenSim.Framework.Servers
         /// can be null, in which case they are not taken into account
         /// when the handler is being looked up.
         /// </remarks>
-        public OSHttpXmlRpcHandler(OSHttpXmlRpcProcessor handler, string methodName, Regex path, 
+        public OSHttpXmlRpcHandler(XmlRpcMethod handler, string methodName, Regex path, 
                                    Dictionary<string, Regex> headers, Regex whitelist)
+            : base(new Regex(@"^POST$", RegexOptions.IgnoreCase | RegexOptions.Compiled), path, headers, 
+                   new Regex(@"^(text|application)/xml", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+                   whitelist)
         {
             _handler = handler;
-            _pathsRegex = path;
             _methodName = methodName;
-
-            if (null == _headers) _headers = new Dictionary<string, Regex>();
-            _headers.Add("content-type", new Regex(@"^(text|application)/xml", RegexOptions.IgnoreCase | 
-                                                   RegexOptions.Compiled));
-
-            _ipEndPointRegex = whitelist;
         }
 
 
         /// <summary>
         /// Instantiate an XmlRpc handler.
         /// </summary>
-        /// <param name="handler">OSHttpXmlRpcProcessor
+        /// <param name="handler">XmlRpcMethod
         /// delegate</param>
         /// <param name="methodName">XmlRpc method name</param>
-        public OSHttpXmlRpcHandler(OSHttpXmlRpcProcessor handler, string methodName)
+        public OSHttpXmlRpcHandler(XmlRpcMethod handler, string methodName)
             : this(handler, methodName, null, null, null)
         {
         }
@@ -184,7 +144,7 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Invoked by OSHttpRequestPump.
         /// </summary>
-        public OSHttpHandlerResult Process(OSHttpRequest request) 
+        public override OSHttpHandlerResult Process(OSHttpRequest request) 
         {
             XmlRpcResponse xmlRpcResponse;
             string responseString;
