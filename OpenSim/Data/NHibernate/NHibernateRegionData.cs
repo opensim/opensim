@@ -120,13 +120,14 @@ namespace OpenSim.Data.NHibernate
             {
                 ICriteria criteria = session.CreateCriteria(typeof(SceneObjectPart));
                 criteria.Add(Expression.Eq("UUID", p.UUID));
-                if (criteria.List().Count < 1) 
+                ArrayList l = (ArrayList)criteria.List();
+                if (l.Count < 1) 
                 {
                     session.Save(p);
                 }
-                else if (criteria.List().Count == 1)
+                else if (l.Count == 1)
                 {
-                    SceneObjectPart old = (SceneObjectPart)criteria.List()[0];
+                    SceneObjectPart old = (SceneObjectPart)l[0];
                     session.Evict(old);
                     session.Update(p);
                 }
@@ -147,13 +148,14 @@ namespace OpenSim.Data.NHibernate
             {
                 ICriteria criteria = session.CreateCriteria(typeof(Terrain));
                 criteria.Add(Expression.Eq("RegionID", t.RegionID));
-                if (criteria.List().Count < 1) 
+                ArrayList l = (ArrayList)criteria.List();
+                if (l.Count < 1) 
                 {
                     session.Save(t);
                 }
-                else if (criteria.List().Count == 1)
+                else if (l.Count == 1)
                 {
-                    Terrain old = (Terrain)criteria.List()[0];
+                    Terrain old = (Terrain)l[0];
                     session.Evict(old);
                     session.Update(t);
                 }
@@ -278,7 +280,8 @@ namespace OpenSim.Data.NHibernate
         /// <param name="regionID">region UUID</param>
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
-
+            Terrain t = new Terrain(regionID, ter);
+            SaveOrUpdate(t);
         }
 
         /// <summary>
@@ -288,11 +291,19 @@ namespace OpenSim.Data.NHibernate
         /// <returns>Heightfield data</returns>
         public double[,] LoadTerrain(LLUUID regionID)
         {
-            double[,] terret = new double[256,256];
-            terret.Initialize();
-
-            
-            return terret;
+            try
+            {
+                Terrain t = session.Load(typeof(Terrain), regionID) as Terrain;
+                return t.Doubles;
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[NHIBERNATE] issue loading terrain", e);
+                
+                double[,] terret = new double[256,256];
+                terret.Initialize();
+                return terret;
+            }
         }
 
         /// <summary>

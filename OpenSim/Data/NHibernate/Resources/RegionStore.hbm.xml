@@ -103,6 +103,11 @@
           <property name="ExtraParams" type="System.Byte[]" />
           <property name="State" type="System.Byte" />
         </component>
-
+    </class>
+    <class name="OpenSim.Data.NHibernate.Terrain, OpenSim.Data.NHibernate" table="Terrain" lazy="false">
+        <id name="RegionID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+          <generator class="assigned" /> 
+        </id>
+        <property name="Map" type="System.Byte[]" />
     </class>
 </hibernate-mapping>

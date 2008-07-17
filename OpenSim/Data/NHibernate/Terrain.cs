@@ -62,6 +62,12 @@ namespace OpenSim.Data.NHibernate
             set { map = parseTerrain(value); }
         }
         
+        public double[,] Doubles
+        {
+            get {return map;}
+            set {map = value;}
+        }
+
         private static double[,] parseTerrain(byte[] data)
         {
             double[,] terret = new double[Constants.RegionSize,Constants.RegionSize];
