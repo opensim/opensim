@@ -141,6 +141,34 @@ namespace OpenSim.Data.NHibernate
             }
         }
 
+        private void SaveOrUpdate(Terrain t)
+        {
+            try
+            {
+                ICriteria criteria = session.CreateCriteria(typeof(Terrain));
+                criteria.Add(Expression.Eq("RegionID", t.RegionID));
+                if (criteria.List().Count < 1) 
+                {
+                    session.Save(t);
+                }
+                else if (criteria.List().Count == 1)
+                {
+                    Terrain old = (Terrain)criteria.List()[0];
+                    session.Evict(old);
+                    session.Update(t);
+                }
+                else 
+                {
+                    m_log.Error("Not unique");
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[NHIBERNATE] issue saving asset", e);
+            }
+        }
+
+
         /// <summary>
         /// Adds an object into region storage
         /// </summary>
