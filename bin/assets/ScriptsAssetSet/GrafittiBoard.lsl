@@ -6,13 +6,40 @@
 
 string text = "";
 
-int LISTENING_CHANNEL = 43;
+integer LISTENING_CHANNEL = 43;
 
 // XXX Only putting this here as well to get around OpenSim's int -> string casting oddness
 string LISTENING_CHANNEL_STRING = "43";
 
 // FIXME: Should be dynamic!
-int CHARS_WIDTH = 42;
+integer CHARS_WIDTH = 42;
+
+// Add some additional graffiti
+addGraffiti(string message)
+{
+    while (llStringLength(message) > CHARS_WIDTH)
+    {
+        text += "\n\n" + llGetSubString(message, 0, CHARS_WIDTH - 1);
+        message = llDeleteSubString(message, 0, CHARS_WIDTH - 1);
+    }
+    
+    text += "\n\n" + message;
+}
+
+// Clear the existing graffiti
+clearGraffiti()
+{
+    text = "";
+}
+
+// Actually fires the graffiti out to the dynamic texture module
+draw()
+{
+    //llSay(0, text);
+    string drawList = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text " + text + ";";
+
+    osSetDynamicTextureData("", "vector", drawList, "1024", 0);
+}
 
 default
 {
@@ -44,31 +71,4 @@ default
         
         draw();
     }
-}
-
-// Add some additional graffiti
-void addGraffiti(string message)
-{
-    while (llStringLength(message) > CHARS_WIDTH)
-    {
-        text += "\n\n" + llGetSubString(message, 0, CHARS_WIDTH - 1);
-        message = llDeleteSubString(message, 0, CHARS_WIDTH - 1);
-    }
-    
-    text += "\n\n" + message;
-}
-
-// Clear the existing graffiti
-void clearGraffiti()
-{
-    text = "";
-}
-
-// Actually fires the graffiti out to the dynamic texture module
-void draw()
-{
-    //llSay(0, text);
-    string drawList = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text " + text + ";";
-
-    osSetDynamicTextureData("", "vector", drawList, "1024", 0);
 }
