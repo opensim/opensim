@@ -160,6 +160,9 @@ namespace OpenSim.Framework.Servers
         /// <param name="stateinfo"></param>
         public virtual void HandleRequest(Object stateinfo)
         {
+            // force the culture to en-US
+            Culture.SetCurrentCulture();
+
             // If we don't catch the exception here it will just disappear into the thread pool and we'll be none the wiser
             try
             {
