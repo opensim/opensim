@@ -38,9 +38,9 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Data.MySQL
+namespace OpenSim.Data.SQLite
 {
-    public class MySQLEstateStore : IEstateDataStore
+    public class SQLiteEstateStore : IEstateDataStore
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
