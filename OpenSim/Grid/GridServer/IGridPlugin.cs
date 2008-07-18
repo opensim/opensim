@@ -29,7 +29,7 @@
 using Mono.Addins;
 using OpenSim.Framework;
 
-[assembly : AddinRoot("OpenSim", "0.5")]
+[assembly : AddinRoot("OpenSim.Grid.GridServer", "0.5")]
 
 namespace OpenSim.Grid.GridServer
 {
@@ -37,7 +37,6 @@ namespace OpenSim.Grid.GridServer
     public interface IGridPlugin : IPlugin
     {
         void Initialise(GridServerBase gridServer);
-        void Close();
     }
     
     public class GridPluginInitialiser : PluginInitialiserBase

@@ -33,12 +33,18 @@ using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
 using log4net;
+using Mono.Addins;
+using OpenSim.Framework;
+
+[assembly : Addin]
+[assembly : AddinDependency("OpenSim.Data", "0.5")]
 
 namespace OpenSim.Data.MySQL
 {
     /// <summary>
     /// A MySQL Interface for the Grid Server
     /// </summary>
+    [Extension("/OpenSim/GridDataStore")]
     public class MySQLGridData : GridDataBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -47,6 +53,12 @@ namespace OpenSim.Data.MySQL
         /// MySQL Database Manager
         /// </summary>
         private MySQLManager database;
+
+        override public void Initialise() 
+        { 
+            m_log.Info("[MySQLLogData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
 
         /// <summary>
         /// <para>Initialises Grid interface</para>
@@ -144,7 +156,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Shuts down the grid interface
         /// </summary>
-        override public void Close()
+        override public void Dispose()
         {
             database.Close();
         }
@@ -153,18 +165,18 @@ namespace OpenSim.Data.MySQL
         /// Returns the plugin name
         /// </summary>
         /// <returns>Plugin name</returns>
-        override public string getName()
+        override public string Name
         {
-            return "MySql OpenGridData";
+            get { return "MySql OpenGridData"; }
         }
 
         /// <summary>
         /// Returns the plugin version
         /// </summary>
         /// <returns>Plugin version</returns>
-        override public string getVersion()
+        override public string Version
         {
-            return "0.1";
+            get { return "0.1"; }
         }
 
         /// <summary>

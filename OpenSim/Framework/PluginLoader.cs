@@ -32,6 +32,7 @@ using System.Reflection;
 using log4net;
 using Mono.Addins;
 
+
 namespace OpenSim.Framework
 {
     /// <summary>
@@ -50,8 +51,17 @@ namespace OpenSim.Framework
     /// </summary>
     public interface IPluginConstraint
     {
-        bool Fail (string extpoint);
         string Message { get; }
+        bool Apply (string extpoint);
+    }
+
+    /// <summary>
+    /// Classes wishing to select specific plugins from a range of possible options
+    /// must implement this class and pass it to PluginLoader Load()
+    /// </summary>
+    public interface IPluginFilter
+    {
+        bool Apply (ExtensionNode plugin);
     }
 
     /// <summary>
@@ -64,18 +74,22 @@ namespace OpenSim.Framework
         private List<T> loaded = new List<T>();
         private List<string> extpoints = new List<string>();
         private PluginInitialiserBase initialiser;
+        
         private Dictionary<string,IPluginConstraint> constraints 
             = new Dictionary<string,IPluginConstraint>();
-        
+
+        private Dictionary<string,IPluginFilter> filters 
+            = new Dictionary<string,IPluginFilter>();
+
         private static readonly ILog log 
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public PluginInitialiserBase Initialiser
         { 
             set { initialiser = value; } 
             get { return initialiser; } 
         }
-        
+
         public List<T> Plugins 
         { 
             get { return loaded; } 
@@ -84,25 +98,19 @@ namespace OpenSim.Framework
         public PluginLoader () 
         {
             Initialiser = new PluginInitialiserBase();
+            initialise_plugin_dir_ (".");
         }
 
         public PluginLoader (PluginInitialiserBase init)
         {            
-           Initialiser = init;
+            Initialiser = init;
+            initialise_plugin_dir_ (".");
         }
 
         public PluginLoader (PluginInitialiserBase init, string dir)
         {            
-           Initialiser = init;
-           AddPluginDir (dir);
-        }
-
-        public void AddPluginDir (string dir)
-        {
-            suppress_console_output_ (true);
-            AddinManager.Initialize (dir);
-            AddinManager.Registry.Update (null);            
-            suppress_console_output_ (false);
+            Initialiser = init;
+            initialise_plugin_dir_ (dir);
         }
 
         public void AddExtensionPoint (string extpoint)
@@ -114,50 +122,88 @@ namespace OpenSim.Framework
         {
             constraints.Add (extpoint, cons);
         }
-        
-        public void Load (string extpoint, string dir)
+
+        public void AddFilter (string extpoint, IPluginFilter filter)
         {
-            AddPluginDir (dir);
+            filters.Add (extpoint, filter);
+        }
+
+        public void Load (string extpoint)
+        {
             AddExtensionPoint (extpoint);
             Load();
         }
 
         public void Load ()
         {            
-            suppress_console_output_ (true);
-            AddinManager.Registry.Update (null);            
-            suppress_console_output_ (false);
-
             foreach (string ext in extpoints)
             {
+                log.Info("[PLUGINS]: Loading extension point " + ext);
+
                 if (constraints.ContainsKey (ext))
                 {
                     IPluginConstraint cons = constraints [ext];
-                    if (cons.Fail (ext))
-                        throw new PluginConstraintViolatedException (cons.Message);
+                    if (cons.Apply (ext))
+                        log.Error ("[PLUGINS]: " + ext + " failed constraint: " + cons.Message);
                 }
 
-                ExtensionNodeList ns = AddinManager.GetExtensionNodes (ext);
-                foreach (TypeExtensionNode n in ns)
-                {
-                    T p = (T) n.CreateInstance();
-                    Initialiser.Initialise (p);
-                    Plugins.Add (p);
+                IPluginFilter filter = null;
+                
+                if (filters.ContainsKey (ext))
+                    filter = filters [ext];
 
-                    log.Info("[PLUGINS]: Loading plugin " + n.Path);
+                foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes (ext))
+                {
+                    log.Info("[PLUGINS]: Trying plugin " + node.Path);
+                    
+                    if ((filter != null) && (filter.Apply (node) == false))
+                        continue;
+                        
+                    T plugin = (T) node.CreateInstance();
+                    Initialiser.Initialise (plugin);
+                    Plugins.Add (plugin);
                 }
             }
         }
 
         public void Dispose ()
         {
-            foreach (T p in Plugins)
-                p.Dispose ();
+            foreach (T plugin in Plugins)
+                plugin.Dispose ();
         }
 
-        public void ClearCache()
+        private void initialise_plugin_dir_ (string dir)
         {
-            // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0) occasionally seems to corrupt its addin cache
+            if (AddinManager.IsInitialized == true)
+                return;
+
+            log.Info("[PLUGINS]: Initialzing");
+
+            AddinManager.AddinLoadError += on_addinloaderror_;
+            AddinManager.AddinLoaded += on_addinloaded_;
+
+            clear_registry_();
+
+            suppress_console_output_ (true);
+            AddinManager.Initialize (dir);
+            AddinManager.Registry.Update (null);
+            suppress_console_output_ (false);
+        }
+
+        private void on_addinloaded_(object sender, AddinEventArgs args)
+        {
+            log.Info ("[PLUGINS]: Plugin Loaded: " + args.AddinId);
+        }
+
+        private void on_addinloaderror_(object sender, AddinErrorEventArgs args)
+        {
+            log.Error ("[PLUGINS]: Plugin Error: " + args.Message);
+        }
+
+        private void clear_registry_ ()
+        {
+            // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0) 
+            // occasionally seems to corrupt its addin cache
             // Hence, as a temporary solution we'll remove it before each startup
             if (Directory.Exists("addin-db-000"))
                 Directory.Delete("addin-db-000", true);
@@ -182,6 +228,9 @@ namespace OpenSim.Framework
         }
     }
 
+    /// <summary>
+    /// Constraint that bounds the number of plugins to be loaded.
+    /// </summary>
     public class PluginCountConstraint : IPluginConstraint
     { 
         private int min; 
@@ -208,45 +257,32 @@ namespace OpenSim.Framework
             } 
         }
 
-        public bool Fail (string extpoint)
+        public bool Apply (string extpoint)
         {
-            ExtensionNodeList ns = AddinManager.GetExtensionNodes (extpoint);
-            if ((ns.Count < min) || (ns.Count > max))
-                return true;
-            else
-                return false;
+            int count = AddinManager.GetExtensionNodes (extpoint).Count;
+
+            if ((count < min) || (count > max))
+                throw new PluginConstraintViolatedException (Message);
+
+            return true;
         }
     }
+    
+    /// <summary>
+    /// Filters out which plugin to load based on its "Id", which is name given by the namespace or by Mono.Addins.
+    /// </summary>
+    public class PluginIdFilter : IPluginFilter
+    {
+        private string id;
 
-    public class PluginFilenameConstraint : IPluginConstraint
-    { 
-        private string filename; 
-
-        public PluginFilenameConstraint (string name)
-        { 
-            filename = name; 
-            
-        } 
-
-        public string Message 
-        { 
-            get 
-            { 
-                return "The plugin must have the following name: " + filename; 
-            } 
+        public PluginIdFilter (string id) 
+        {
+            this.id = id;
         }
 
-        public bool Fail (string extpoint)
+        public bool Apply (ExtensionNode plugin)
         {
-            ExtensionNodeList ns = AddinManager.GetExtensionNodes (extpoint);
-            if (ns.Count != 1)
-                return true;
-
-            string[] path = ns[0].Path.Split('/');
-            if (path [path.Length-1] == filename)
-                return false;
-                
-            return true;
+            return (plugin.Id == id);
         }
     }
 }

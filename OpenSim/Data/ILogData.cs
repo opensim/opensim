@@ -25,6 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using Mono.Addins;
+using OpenSim.Framework;
+
 namespace OpenSim.Data
 {
     /// <summary>
@@ -61,7 +64,8 @@ namespace OpenSim.Data
     /// <summary>
     /// An interface to a LogData storage system
     /// </summary>
-    public interface ILogData
+    [TypeExtensionPoint("/OpenSim/GridLogData")]
+    public interface ILogDataPlugin : IPlugin
     {
         void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority,
                      string logMessage);
@@ -70,22 +74,16 @@ namespace OpenSim.Data
         /// Initialises the interface
         /// </summary>
         void Initialise(string connect);
-
-        /// <summary>
-        /// Closes the interface
-        /// </summary>
-        void Close();
-
-        /// <summary>
-        /// The plugin being loaded
-        /// </summary>
-        /// <returns>A string containing the plugin name</returns>
-        string getName();
-
-        /// <summary>
-        /// The plugins version
-        /// </summary>
-        /// <returns>A string containing the plugin version</returns>
-        string getVersion();
+    }
+    
+    public class LogDataInitialiser : PluginInitialiserBase
+    {
+        private string connect;
+        public LogDataInitialiser (string s) { connect = s; }
+        public override void Initialise (IPlugin plugin)
+        {
+            ILogDataPlugin p = plugin as ILogDataPlugin;
+            p.Initialise (connect);
+        }
     }
 }

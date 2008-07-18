@@ -218,6 +218,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data.Base"/>
       <Reference name="log4net.dll"/>
+      <Reference name="Mono.Addins.dll" />
       <Files>
         <Match pattern="*.cs" recurse="false"/>
         <Match pattern="Properties/*.cs" recurse="false"/>
@@ -1293,6 +1294,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="log4net.dll"/>
+      <Reference name="Mono.Addins.dll" />
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -1322,6 +1324,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="log4net.dll"/>
+      <Reference name="Mono.Addins.dll" />
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -1352,6 +1355,7 @@
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Mono.Data.SqliteClient"/>
+      <Reference name="Mono.Addins.dll" />
       <Reference name="log4net.dll"/>
 
       <Files>

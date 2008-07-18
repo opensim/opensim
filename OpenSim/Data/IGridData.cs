@@ -26,6 +26,10 @@
  */
 
 using libsecondlife;
+using Mono.Addins;
+using OpenSim.Framework;
+
+[assembly : AddinRoot("OpenSim.Data", "0.5")]
 
 namespace OpenSim.Data
 {
@@ -40,8 +44,14 @@ namespace OpenSim.Data
     /// <summary>
     /// A standard grid interface
     /// </summary>
-    public interface IGridData
+    [TypeExtensionPoint("/OpenSim/GridDataStore")]
+    public interface IGridDataPlugin : IPlugin
     {
+        /// <summary>
+        /// Initialises the interface
+        /// </summary>
+        void Initialise(string connect);
+        
         /// <summary>
         /// Returns a sim profile from a regionHandle
         /// </summary>
@@ -84,28 +94,6 @@ namespace OpenSim.Data
         bool AuthenticateSim(LLUUID UUID, ulong regionHandle, string simrecvkey);
 
         /// <summary>
-        /// Initialises the interface
-        /// </summary>
-        void Initialise(string connect);
-
-        /// <summary>
-        /// Closes the interface
-        /// </summary>
-        void Close();
-
-        /// <summary>
-        /// The plugin being loaded
-        /// </summary>
-        /// <returns>A string containing the plugin name</returns>
-        string getName();
-
-        /// <summary>
-        /// The plugins version
-        /// </summary>
-        /// <returns>A string containing the plugin version</returns>
-        string getVersion();
-
-        /// <summary>
         /// Adds a new profile to the database
         /// </summary>
         /// <param name="profile">The profile to add</param>
@@ -115,5 +103,16 @@ namespace OpenSim.Data
         DataResponse UpdateProfile(RegionProfileData profile);
 
         ReservationData GetReservationAtPoint(uint x, uint y);
+    }
+    
+    public class GridDataStoreInitialiser : PluginInitialiserBase
+    {
+        private string connect;
+        public GridDataStoreInitialiser (string s) { connect = s; }
+        public override void Initialise (IPlugin plugin)
+        {
+            IGridDataPlugin p = plugin as IGridDataPlugin;
+            p.Initialise (connect);
+        }
     }
 }

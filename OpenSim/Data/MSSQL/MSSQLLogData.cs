@@ -25,20 +25,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Data;
+using log4net;
+using Mono.Addins;
+using OpenSim.Framework;
+
+// Only one attribute per assembly. See: *GridData.cs
+// [assembly : Addin]
+// [assembly : AddinDependency("OpenSim.Data", "0.5")]
 
 namespace OpenSim.Data.MSSQL
 {
     /// <summary>
     /// An interface to the log database for MSSQL
     /// </summary>
-    internal class MSSQLLogData : ILogData
+    [Extension("/OpenSim/GridLogData")]
+    internal class MSSQLLogData : ILogDataPlugin
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         /// <summary>
         /// The database manager
         /// </summary>
         public MSSQLManager database;
+
+        public void Initialise() 
+        { 
+            m_log.Info("[MSSQLLogData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
 
         /// <summary>
         /// Artificial constructor called when the plugin is loaded
@@ -97,15 +115,15 @@ namespace OpenSim.Data.MSSQL
         /// Returns the name of this DB provider
         /// </summary>
         /// <returns>A string containing the DB provider name</returns>
-        public string getName()
+        public string Name
         {
-            return "MSSQL Logdata Interface";
+            get { return "MSSQL Logdata Interface"; }
         }
 
         /// <summary>
         /// Closes the database provider
         /// </summary>
-        public void Close()
+        public void Dispose()
         {
             // Do nothing.
         }
@@ -114,9 +132,9 @@ namespace OpenSim.Data.MSSQL
         /// Returns the version of this DB provider
         /// </summary>
         /// <returns>A string containing the provider version</returns>
-        public string getVersion()
+        public string Version
         {
-            return "0.1";
+            get { return "0.1"; }
         }
     }
 }

@@ -33,12 +33,18 @@ using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
 using log4net;
+using Mono.Addins;
+using OpenSim.Framework;
+
+[assembly : Addin]
+[assembly : AddinDependency("OpenSim.Data", "0.5")]
 
 namespace OpenSim.Data.MSSQL
 {
     /// <summary>
     /// A grid data interface for MSSQL Server
     /// </summary>
+    [Extension("/OpenSim/GridDataStore")]
     public class MSSQLGridData : GridDataBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -49,6 +55,12 @@ namespace OpenSim.Data.MSSQL
         private MSSQLManager database;
 
         private string m_regionsTableName;
+
+        override public void Initialise() 
+        { 
+            m_log.Info("[MSSQLGridData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
 
         /// <summary>
         /// Initialises the Grid Interface
@@ -101,7 +113,7 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Shuts down the grid interface
         /// </summary>
-        override public void Close()
+        override public void Dispose()
         {
             // nothing to close
         }
@@ -110,18 +122,18 @@ namespace OpenSim.Data.MSSQL
         /// The name of this DB provider. 
         /// </summary>
         /// <returns>A string containing the storage system name</returns>
-        override public string getName()
+        override public string Name
         {
-            return "Sql OpenGridData";
+            get { return "Sql OpenGridData"; }
         }
 
         /// <summary>
         /// Database provider version. 
         /// </summary>
         /// <returns>A string containing the storage system version</returns>
-        override public string getVersion()
+        override public string Version
         {
-            return "0.1";
+            get { return "0.1"; }
         }
 
         /// <summary>

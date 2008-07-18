@@ -28,22 +28,37 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
+using log4net;
+using Mono.Addins;
 using OpenSim.Framework;
+
+[assembly : Addin]
+[assembly : AddinDependency("OpenSim.Data", "0.5")]
 
 namespace OpenSim.Data.SQLite
 {
     /// <summary>
     /// A Grid Interface to the SQLite database
     /// </summary>
+    [Extension("/OpenSim/GridDataStore")]
     public class SQLiteGridData : GridDataBase
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// SQLite database manager
         /// </summary>
         private SQLiteManager database;
+
+        override public void Initialise() 
+        { 
+            m_log.Info("[SQLite]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
 
         /// <summary>
         /// <list type="bullet">
@@ -61,7 +76,7 @@ namespace OpenSim.Data.SQLite
         /// <summary>
         /// Shuts down the grid interface
         /// </summary>
-        override public void Close()
+        override public void Dispose()
         {
             database.Close();
         }
@@ -70,18 +85,18 @@ namespace OpenSim.Data.SQLite
         /// Returns the name of this grid interface
         /// </summary>
         /// <returns>A string containing the grid interface</returns>
-        override public string getName()
+        override public string Name
         {
-            return "SQLite OpenGridData";
+            get { return "SQLite OpenGridData"; }
         }
 
         /// <summary>
         /// Returns the version of this grid interface
         /// </summary>
         /// <returns>A string containing the version</returns>
-        override public string getVersion()
+        override public string Version
         {
-            return "0.1";
+            get { return "0.1"; }
         }
 
         /// <summary>

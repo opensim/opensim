@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -46,8 +47,8 @@ namespace OpenSim.Grid.GridServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
-        private Dictionary<string, ILogData> _logplugins = new Dictionary<string, ILogData>();
+        private List<IGridDataPlugin> _plugins = new List<IGridDataPlugin>();
+        private List<ILogDataPlugin> _logplugins = new List<ILogDataPlugin>();
 
         // This is here so that the grid server can hand out MessageServer settings to regions on registration
         private List<MessageServerInfo> _MessageServers = new List<MessageServerInfo>();
@@ -57,42 +58,39 @@ namespace OpenSim.Grid.GridServer
         /// <summary>
         /// Adds a new grid server plugin - grid servers will be requested in the order they were loaded.
         /// </summary>
-        /// <param name="FileName">The filename to the grid server plugin DLL</param>
-        public void AddPlugin(string FileName, string Connect)
+        /// <param name="provider">The name of the grid server plugin DLL</param>
+        public void AddPlugin(string provider, string connect)
         {
-            m_log.Info("[DATA]: Attempting to load " + FileName);
-            Assembly pluginAssembly = Assembly.LoadFrom(FileName);
+            // FIXME: convert "provider" DLL file name to Mono.Addins "id", 
+            // which unless it is changed in the source code, is the .NET namespace.
+            // In the future, the "provider" should be changed to "id" in the 
+            // config files, and is independent of filenames or namespaces.
+            string[] s = provider.Split ('.');
+            int len = s.Length;
+            if ((len >= 2) && (s [len-1] == "dll"))
+                s [len-1] = s [len-2];
 
-            m_log.Info("[DATA]: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
-            foreach (Type pluginType in pluginAssembly.GetTypes())
-            {
-                if (!pluginType.IsAbstract)
-                {
-                    // Regions go here
-                    Type typeInterface = pluginType.GetInterface("IGridData", true);
+            provider = String.Join (".", s); 
 
-                    if (typeInterface != null)
-                    {
-                        IGridData plug =
-                            (IGridData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        plug.Initialise(Connect);
-                        _plugins.Add(plug.getName(), plug);
-                        m_log.Info("[DATA]: Added IGridData Interface");
-                    }
+            PluginLoader<IGridDataPlugin> gridloader = 
+                new PluginLoader<IGridDataPlugin> (new GridDataStoreInitialiser (connect));
 
-                    // Logs go here
-                    typeInterface = pluginType.GetInterface("ILogData", true);
+            PluginLoader<ILogDataPlugin> logloader = 
+                new PluginLoader<ILogDataPlugin> (new LogDataInitialiser (connect));
 
-                    if (typeInterface != null)
-                    {
-                        ILogData plug =
-                            (ILogData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        plug.Initialise(Connect);
-                        _logplugins.Add(plug.getName(), plug);
-                        m_log.Info("[DATA]: Added ILogData Interface");
-                    }
-                }
-            }
+            gridloader.AddExtensionPoint ("/OpenSim/GridDataStore");
+            logloader.AddExtensionPoint ("/OpenSim/GridLogData");
+            
+            // loader will try to load all providers (MySQL, MSSQL, etc) 
+            // unless it is constrainted to the correct "id"
+            gridloader.AddFilter ("/OpenSim/GridDataStore", new PluginIdFilter (provider + "GridData"));
+            logloader.AddFilter ("/OpenSim/GridLogData", new PluginIdFilter (provider + "LogData"));
+            
+            gridloader.Load();
+            logloader.Load();
+            
+            _plugins = gridloader.Plugins;
+            _logplugins = logloader.Plugins;
         }
 
         /// <summary>
@@ -105,15 +103,15 @@ namespace OpenSim.Grid.GridServer
         /// <param name="message">The message to log</param>
         private void logToDB(string target, string method, string args, int priority, string message)
         {
-            foreach (KeyValuePair<string, ILogData> kvp in _logplugins)
+            foreach (ILogDataPlugin plugin in _logplugins)
             {
                 try
                 {
-                    kvp.Value.saveLog("Gridserver", target, method, args, priority, message);
+                    plugin.saveLog("Gridserver", target, method, args, priority, message);
                 }
                 catch (Exception)
                 {
-                    m_log.Warn("[storage]: Unable to write log via " + kvp.Key);
+                    m_log.Warn("[storage]: Unable to write log via ");
                 }
             }
         }
@@ -125,11 +123,11 @@ namespace OpenSim.Grid.GridServer
         /// <returns>A SimProfileData for the region</returns>
         public RegionProfileData GetRegion(LLUUID uuid)
         {
-            foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+            foreach (IGridDataPlugin plugin in _plugins)
             {
                 try
                 {
-                    return kvp.Value.GetProfileByLLUUID(uuid);
+                    return plugin.GetProfileByLLUUID(uuid);
                 }
                 catch (Exception e)
                 {
@@ -146,15 +144,15 @@ namespace OpenSim.Grid.GridServer
         /// <returns>A SimProfileData for the region</returns>
         public RegionProfileData GetRegion(ulong handle)
         {
-            foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+            foreach (IGridDataPlugin plugin in _plugins)
             {
                 try
                 {
-                    return kvp.Value.GetProfileByHandle(handle);
+                    return plugin.GetProfileByHandle(handle);
                 }
                 catch
                 {
-                    m_log.Warn("[storage]: Unable to find region " + handle.ToString() + " via " + kvp.Key);
+                    m_log.Warn("[storage]: Unable to find region " + handle.ToString() + " via " + plugin.Name);
                 }
             }
             return null;
@@ -167,15 +165,15 @@ namespace OpenSim.Grid.GridServer
         /// <returns>A SimProfileData for the region</returns>
         public RegionProfileData GetRegion(string regionName)
         {
-            foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+            foreach (IGridDataPlugin plugin in _plugins)
             {
                 try
                 {
-                    return kvp.Value.GetProfileByString(regionName);
+                    return plugin.GetProfileByString(regionName);
                 }
                 catch
                 {
-                    m_log.Warn("[storage]: Unable to find region " + regionName + " via " + kvp.Key);
+                    m_log.Warn("[storage]: Unable to find region " + regionName + " via " + plugin.Name);
                 }
             }
             return null;
@@ -185,11 +183,11 @@ namespace OpenSim.Grid.GridServer
         {
             Dictionary<ulong, RegionProfileData> regions = new Dictionary<ulong, RegionProfileData>();
 
-            foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+            foreach (IGridDataPlugin plugin in _plugins)
             {
                 try
                 {
-                    RegionProfileData[] neighbours = kvp.Value.GetProfilesInRange(xmin, ymin, xmax, ymax);
+                    RegionProfileData[] neighbours = plugin.GetProfilesInRange(xmin, ymin, xmax, ymax);
                     foreach (RegionProfileData neighbour in neighbours)
                     {
                         regions[neighbour.regionHandle] = neighbour;
@@ -197,7 +195,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch
                 {
-                    m_log.Warn("[storage]: Unable to query regionblock via " + kvp.Key);
+                    m_log.Warn("[storage]: Unable to query regionblock via " + plugin.Name);
                 }
             }
 
@@ -404,7 +402,7 @@ namespace OpenSim.Grid.GridServer
                     return e.XmlRpcErrorResponse;
                 }
 
-                foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+                foreach (IGridDataPlugin plugin in _plugins)
                 {
                     try
                     {
@@ -412,11 +410,11 @@ namespace OpenSim.Grid.GridServer
 
                         if (existingSim == null)
                         {
-                            insertResponse = kvp.Value.AddProfile(sim);
+                            insertResponse = plugin.AddProfile(sim);
                         }
                         else
                         {
-                            insertResponse = kvp.Value.UpdateProfile(sim);
+                            insertResponse = plugin.UpdateProfile(sim);
                         }
 
                         switch (insertResponse)
@@ -441,7 +439,7 @@ namespace OpenSim.Grid.GridServer
                     catch (Exception e)
                     {
                         m_log.Warn("[LOGIN END]: " +
-                                              "Unable to login region " + sim.UUID.ToString() + " via " + kvp.Key);
+                                              "Unable to login region " + sim.UUID.ToString() + " via " + plugin.Name);
                         m_log.Warn("[LOGIN END]: " + e.ToString());
                     }
                 }
@@ -682,12 +680,12 @@ namespace OpenSim.Grid.GridServer
                 return response;
             }
 
-            foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+            foreach (IGridDataPlugin plugin in _plugins)
             {
                 //OpenSim.Data.MySQL.MySQLGridData dbengine = new OpenSim.Data.MySQL.MySQLGridData();
                 try
                 {
-                    MySQLGridData mysqldata = (MySQLGridData)(kvp.Value);
+                    MySQLGridData mysqldata = (MySQLGridData)(plugin);
                     //DataResponse insertResponse = mysqldata.DeleteProfile(TheSim);
                     DataResponse insertResponse = mysqldata.DeleteProfile(uuid);
                     switch (insertResponse)
@@ -1053,17 +1051,17 @@ namespace OpenSim.Grid.GridServer
                 m_log.Info("[DATA]: " +
                            "Updating / adding via " + _plugins.Count + " storage provider(s) registered.");
 
-                foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+                foreach (IGridDataPlugin plugin in _plugins)
                 {
                     try
                     {
                         //Check reservations
                         ReservationData reserveData =
-                            kvp.Value.GetReservationAtPoint(theSim.regionLocX, theSim.regionLocY);
+                            plugin.GetReservationAtPoint(theSim.regionLocX, theSim.regionLocY);
                         if ((reserveData != null && reserveData.gridRecvKey == theSim.regionRecvKey) ||
                             (reserveData == null && authkeynode.InnerText != theSim.regionRecvKey))
                         {
-                            kvp.Value.AddProfile(theSim);
+                            plugin.AddProfile(theSim);
                             m_log.Info("[grid]: New sim added to grid (" + theSim.regionName + ")");
                             logToDB(theSim.UUID.ToString(), "RestSetSimMethod", String.Empty, 5,
                                     "Region successfully updated and connected to grid.");
@@ -1078,7 +1076,7 @@ namespace OpenSim.Grid.GridServer
                     }
                     catch (Exception e)
                     {
-                        m_log.Warn("[GRID]: GetRegionPlugin Handle " + kvp.Key + " unable to add new sim: " +
+                        m_log.Warn("[GRID]: GetRegionPlugin Handle " + plugin.Name + " unable to add new sim: " +
                                                       e.ToString());
                     }
                 }

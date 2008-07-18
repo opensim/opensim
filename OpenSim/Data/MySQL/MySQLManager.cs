@@ -227,7 +227,7 @@ namespace OpenSim.Data.MySQL
 
             return
                 string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
-                              dllVersion.Revision);
+                        dllVersion.Revision);
         }
 
         /// <summary>
