@@ -67,7 +67,7 @@ Chin
 Chin angle - 22
 Jaw shape - 21
 Chin depth - 26
-Jaw angle 0 64
+Jaw angle - 64
 Jaw jut - 54
 Jowls - 39
 Chin cleft - 0
