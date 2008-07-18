@@ -175,18 +175,13 @@ namespace OpenSim.Framework.Servers
             _log.DebugFormat("[{0}] MatchHandlers for {1}", EngineID, req);
             foreach (OSHttpHandler h in handlers)
             {
-                Regex methodRegex = h.Method;
-                Regex pathRegex = h.Path;
-                Dictionary<string, Regex> headerRegexs = h.Headers;
-                Regex endPointsRegex = h.IPEndPointWhitelist;
-
                 // initial anchor
                 scoredHandlers[h] = 0;
 
                 // first, check whether IPEndPointWhitelist applies
                 // and, if it does, whether client is on that white
                 // list.
-                if (null != endPointsRegex)
+                if (null != h.IPEndPointWhitelist)
                 {
                     // TODO: following code requires code changes to
                     // HttpServer.HttpRequest to become functional
@@ -194,84 +189,65 @@ namespace OpenSim.Framework.Servers
                     IPEndPoint remote = req.RemoteIPEndPoint;
                     if (null != remote)
                     {
-                        Match epm = endPointsRegex.Match(remote.ToString());
-                        if (!epm.Success) continue;
+                        Match epm = h.IPEndPointWhitelist.Match(remote.ToString());
+                        if (!epm.Success) 
+                        {
+                            scoredHandlers.Remove(h);
+                            continue;
+                        }
                     }
                 }
 
-                if (null != methodRegex)
+                if (null != h.Method)
                 {
-                    Match m = methodRegex.Match(req.HttpMethod);
-                    if (!m.Success) continue;
-                    
+                    Match m = h.Method.Match(req.HttpMethod);
+                    if (!m.Success) 
+                    {
+                        scoredHandlers.Remove(h);
+                        continue;
+                    }
                     scoredHandlers[h]++;
                 }
 
                 // whitelist ok, now check path
-                if (null != pathRegex)
+                if (null != h.Path)
                 {
-                    Match m = pathRegex.Match(req.RawUrl);
-                    if (!m.Success) continue;
-
-                    scoredHandlers[h] = m.ToString().Length;
-                }
-
-                // whitelist & path ok, now check headers
-                if (null != headerRegexs)
-                {
-                    int headersMatch = 0;
-
-                    // go through all header Regexs and evaluate
-                    // match: 
-                    //     if header field not present or does not match: 
-                    //         remove handler from scoredHandlers 
-                    //         continue
-                    //     else: 
-                    //         add increment headersMatch
-                    NameValueCollection headers = req.HttpRequest.Headers;
-                    foreach (string tag in headerRegexs.Keys)
+                    Match m = h.Path.Match(req.RawUrl);
+                    if (!m.Success) 
                     {
-                        // do we have a header "tag"?
-                        if (null == headers[tag])
-                        {
-                            // no: remove the handler if it was added
-                            // earlier and on to the next one
-                            _log.DebugFormat("[{0}] dropping handler for {1}: null {2} header field: {3}", EngineID, req, tag, h);
-
-                            scoredHandlers.Remove(h);
-                            break;
-                        }
-                            
-                        // does the content of header "tag" match
-                        // the supplied regex?
-                        Match hm = headerRegexs[tag].Match(headers[tag]);
-                        if (!hm.Success) {
-                            // no: remove the handler if it was added
-                            // earlier and on to the next one
-                            _log.DebugFormat("[{0}] dropping handler for {1}: {2} header field content \"{3}\" does not match regex {4}: {5}", 
-                                             EngineID, req, tag, headers[tag], headerRegexs[tag].ToString(), h);
-                            scoredHandlers.Remove(h);
-                            break;
-                        }
-                        
-                        // if we are looking at the "content-type" tag,
-                        // check wether h has a ContentTypeChecker and
-                        // invoke it if it has
-                        if ((null != h.ContentTypeChecker) && !h.ContentTypeChecker(req))
-                        {
-                            scoredHandlers.Remove(h);
-                            _log.DebugFormat("[{0}] dropping handler for {1}: content checker returned false: {2}", EngineID, req, h);
-                            break;
-                        }
-                        
-                        // ok: header matches
-                        headersMatch++;
-                        _log.DebugFormat("[{0}] MatchHandlers: found handler for {1}: {2}", EngineID, req, h.ToString());
+                        scoredHandlers.Remove(h);
                         continue;
                     }
-                    // check whether h got kicked out
-                    if (!scoredHandlers.ContainsKey(h)) continue;
+                    scoredHandlers[h] += m.ToString().Length;
+                }
 
+                // whitelist & path ok, now check query string
+                if (null != h.Query)
+                {
+                    int queriesMatch = MatchOnNameValueCollection(req.QueryString, h.Query);
+                    if (0 == queriesMatch)
+                    {
+                        _log.DebugFormat("[{0}] request {1}", EngineID, req);
+                        _log.DebugFormat("[{0}] dropping handler {1}", EngineID, h);
+
+                        scoredHandlers.Remove(h);
+                        continue;
+                    }
+                    scoredHandlers[h] +=  queriesMatch;
+                }
+
+                // whitelist, path, query string ok, now check headers
+                if (null != h.Headers)
+                {
+                    int headersMatch = MatchOnNameValueCollection(req.Headers, h.Headers);
+                    if (0 == headersMatch)
+                    {
+                        _log.DebugFormat("[{0}] request {1}", EngineID, req);
+                        _log.DebugFormat("[{0}] dropping handler {1}", EngineID, h);
+
+                        scoredHandlers.Remove(h);
+                        continue;
+                    }
                     scoredHandlers[h] +=  headersMatch;
                 }
             }
@@ -283,6 +259,33 @@ namespace OpenSim.Framework.Servers
                                   });
             LogDumpHandlerList(matchingHandlers);
             return matchingHandlers;
+        }
+
+        protected int MatchOnNameValueCollection(NameValueCollection collection, Dictionary<string, Regex> regexs)
+        {
+            int matched = 0;
+
+            foreach (string tag in regexs.Keys)
+            {
+                // do we have a header "tag"?
+                if (null == collection[tag])
+                {
+                    return 0;
+                }
+                            
+                // does the content of collection[tag] match
+                // the supplied regex?
+                Match cm = regexs[tag].Match(collection[tag]);
+                if (!cm.Success) {
+                    return 0;
+                }
+                        
+                // ok: matches
+                matched++;
+                continue;
+            }
+
+            return matched;
         }
 
         [ConditionalAttribute("DEBUGGING")] 

@@ -93,6 +93,16 @@ namespace OpenSim.Framework.Servers
         protected Regex _path;
 
         /// <summary>
+        /// Dictionary of (query name, regular expression) tuples,
+        /// allowing us to match on URI query fields.
+        /// </summary>
+        public virtual Dictionary<string, Regex> Query
+        { 
+            get { return _query; }
+        }
+        protected Dictionary<string, Regex> _query;
+
+        /// <summary>
         /// Dictionary of (header name, regular expression) tuples,
         /// allowing us to match on HTTP header fields.
         /// </summary>
@@ -117,18 +127,6 @@ namespace OpenSim.Framework.Servers
         }
         protected Regex _ipEndPointRegex;
 
-
-        /// <summary>
-        /// An OSHttpHandler that matches on the "content-type" header can
-        /// supply an OSHttpContentTypeChecker delegate which will be
-        /// invoked by the request matcher in OSHttpRequestPump.
-        /// </summary>
-        /// <returns>true if the handler is interested in the content;
-        /// false otherwise</returns>
-        internal virtual OSHttpContentTypeChecker ContentTypeChecker
-        { 
-            get { return null; }
-        }
 
         /// <summary>
         /// Base class constructor.

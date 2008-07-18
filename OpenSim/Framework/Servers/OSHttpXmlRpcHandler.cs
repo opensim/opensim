@@ -51,48 +51,42 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         /// <returns>true if the handler is interested in the content;
         /// false otherwise</returns>
-        internal override OSHttpContentTypeChecker ContentTypeChecker
-        { 
-            get 
-            { 
-                return delegate(OSHttpRequest req)
+        protected bool XmlRpcMethodMatch(OSHttpRequest req)
+        {
+            XmlRpcRequest xmlRpcRequest = null;
+            
+            // check whether req is already reified
+            // if not: reify (and post to whiteboard)
+            try 
+            {
+                if (req.Whiteboard.ContainsKey("xmlrequest"))
                 {
-                    XmlRpcRequest xmlRpcRequest = null;
-                    
-                    // check whether req is already reified
-                    // if not: reify (and post to whiteboard)
-                    try 
-                    {
-                        if (req.Whiteboard.ContainsKey("xmlrequest"))
-                        {
-                            xmlRpcRequest = req.Whiteboard["xmlrequest"] as XmlRpcRequest;
-                        }
-                        else 
-                        {
-                            StreamReader body = new StreamReader(req.InputStream);
-                            string requestBody = body.ReadToEnd();
-                            xmlRpcRequest = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
-                            req.Whiteboard["xmlrequest"] = xmlRpcRequest;
-                        }
-                    }
-                    catch (XmlException)
-                    {
-                        _log.ErrorFormat("[OSHttpXmlRpcHandler] failed to deserialize XmlRpcRequest from {0}", req.ToString());
-                        return false;
-                    }
-
-                    // check against methodName
-                    if ((null != xmlRpcRequest) 
-                        && !String.IsNullOrEmpty(xmlRpcRequest.MethodName) 
-                        && xmlRpcRequest.MethodName == _methodName)
-                    {
-                        _log.DebugFormat("[OSHttpXmlRpcHandler] located handler {0} for {1}", _methodName, req.ToString());
-                        return true;
-                    }
-                    
-                    return false;
-                };
+                    xmlRpcRequest = req.Whiteboard["xmlrequest"] as XmlRpcRequest;
+                }
+                else 
+                {
+                    StreamReader body = new StreamReader(req.InputStream);
+                    string requestBody = body.ReadToEnd();
+                    xmlRpcRequest = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
+                    req.Whiteboard["xmlrequest"] = xmlRpcRequest;
+                }
             }
+            catch (XmlException)
+            {
+                _log.ErrorFormat("[OSHttpXmlRpcHandler] failed to deserialize XmlRpcRequest from {0}", req.ToString());
+                return false;
+            }
+            
+            // check against methodName
+            if ((null != xmlRpcRequest) 
+                && !String.IsNullOrEmpty(xmlRpcRequest.MethodName) 
+                && xmlRpcRequest.MethodName == _methodName)
+            {
+                _log.DebugFormat("[OSHttpXmlRpcHandler] located handler {0} for {1}", _methodName, req.ToString());
+                return true;
+            }
+            
+            return false;
         }
 
         // contains handler for processing XmlRpc Request
@@ -149,8 +143,11 @@ namespace OpenSim.Framework.Servers
             XmlRpcResponse xmlRpcResponse;
             string responseString;
 
+            // check whether we are interested in this request
+            if (!XmlRpcMethodMatch(request)) return OSHttpHandlerResult.Pass;
+
+
             OSHttpResponse resp = new OSHttpResponse(request);
-            
             try 
             {
                 // reified XmlRpcRequest must still be on the whiteboard
