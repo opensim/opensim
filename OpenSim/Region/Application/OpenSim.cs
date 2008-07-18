@@ -633,7 +633,7 @@ namespace OpenSim
                         {
                             m_console.Notice("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
                                              scene.RegionInfo.RegionLocX + " , Region YLoc: " +
-                                             scene.RegionInfo.RegionLocY);
+                                             scene.RegionInfo.RegionLocY + " , Region Port: " + scene.RegionInfo.InternalEndPoint.Port.ToString());
                         });
                     break;
             }
