@@ -1,3 +1,5 @@
+BEGIN TRANSACTION;
+
 drop table if exists `estate_groups`;
 CREATE TABLE `estate_groups` (
   `EstateID` int(10) NOT NULL,
@@ -101,3 +103,5 @@ CREATE INDEX `estate_managers_estate_id` on `estate_managers`(`EstateID`);
 CREATE INDEX `estate_map_estate_id` on `estate_map`(`EstateID`);
 CREATE UNIQUE INDEX `estate_map_region_id` on `estate_map`(`RegionID`);
 CREATE INDEX `estate_users_estate_id` on `estate_users`(`EstateID`);
+
+COMMIT;
