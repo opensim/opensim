@@ -271,9 +271,14 @@ namespace OpenSim.Region.Environment.Scenes
             // Load region settings
             // First try database
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
-
             // Hook up save event
             m_regInfo.RegionSettings.OnSave +=  m_storageManager.DataStore.StoreRegionSettings;
+            if(m_storageManager.EstateDataStore != null)
+            {
+                m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID);
+                m_regInfo.EstateSettings.OnSave +=  m_storageManager.EstateDataStore.StoreEstateSettings;
+            }
+
 
 
             //Bind Storage Manager functions to some land manager functions for this scene
@@ -1445,20 +1450,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void LoadRegionBanlist()
-        {
-            List<RegionBanListItem> regionbanlist = m_storageManager.DataStore.LoadRegionBanList(m_regInfo.RegionID);
-            m_regInfo.regionBanlist = regionbanlist;    
-        }
-        public void AddToRegionBanlist(RegionBanListItem item)
-        {
-            m_storageManager.DataStore.AddToRegionBanlist(item);
-        }
-
-        public void RemoveFromRegionBanlist(RegionBanListItem item)
-        {
-            m_storageManager.DataStore.RemoveFromRegionBanlist(item);
-        }
         #endregion
 
         #region Primitives Methods
@@ -1916,7 +1907,7 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                 if (RootPrim != null)
                 {
-                    if (m_regInfo.CheckIfUserBanned(RootPrim.OwnerID))
+                    if (m_regInfo.EstateSettings.IsBanned(RootPrim.OwnerID))
                     {
                         SceneObjectGroup grp = RootPrim.ParentGroup;
                         if (grp != null)
@@ -2410,7 +2401,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (regionHandle == m_regInfo.RegionHandle)
             {
-                if (m_regInfo.CheckIfUserBanned(agent.AgentID))
+                if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
                 {
                     m_log.WarnFormat(
                    "[CONNECTION DEBUGGING]: Denied access to: {0} [{1}] at {2} because the user is on the region banlist",

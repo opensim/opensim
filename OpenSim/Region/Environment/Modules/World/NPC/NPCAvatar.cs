@@ -291,6 +291,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        public event EstateChangeInfo OnEstateChangeInfo;
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
@@ -752,17 +753,17 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void SendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID)
+        public void SendBannedUserList(LLUUID invoice, EstateBan[] banlist, uint estateID)
         {
         }
 
         public void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
         {
         }
-        public void SendEstateCovenantInformation()
+        public void SendEstateCovenantInformation(LLUUID covenant)
         {
         }
-        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID)
+        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant)
         {
         }
 

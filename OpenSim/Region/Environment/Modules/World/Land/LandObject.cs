@@ -162,9 +162,13 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client)
         {
             IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
-            uint regionFlags = 67108864;
+            uint regionFlags = 336723974 & ~((uint)(Simulator.RegionFlags.AllowLandmark | Simulator.RegionFlags.AllowSetHome));
             if(estateModule != null)
                 regionFlags = estateModule.GetRegionFlags();
+            if((landData.landFlags & (uint)Parcel.ParcelFlags.AllowLandmark) != 0)
+                regionFlags |=  (uint)Simulator.RegionFlags.AllowLandmark;
+            if(landData.ownerID == remote_client.AgentId)
+                regionFlags |=  (uint)Simulator.RegionFlags.AllowSetHome;
             remote_client.SendLandProperties(remote_client, sequence_id,
                     snap_selection, request_result, landData,
                     (float)m_scene.RegionInfo.RegionSettings.ObjectBonus,

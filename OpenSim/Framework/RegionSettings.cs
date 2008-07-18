@@ -162,6 +162,8 @@ namespace OpenSim.Framework
                         (flags & Simulator.RegionFlags.SkipPhysics) != 0;
                 m_FixedSun =
                         (flags & Simulator.RegionFlags.SunFixed) != 0;
+                m_Sandbox =
+                        (flags & Simulator.RegionFlags.Sandbox) != 0;
                 break;
             case "max_agents":
                 m_AgentLimit = (int)value;
@@ -231,7 +233,8 @@ namespace OpenSim.Framework
 
         public void Save()
         {
-            OnSave(this);
+            if(OnSave != null)
+                OnSave(this);
         }
 
         private LLUUID m_RegionUUID = LLUUID.Zero;
@@ -472,6 +475,14 @@ namespace OpenSim.Framework
         {
             get { return m_UseEstateSun; }
             set { m_UseEstateSun = value; }
+        }
+
+        private bool m_Sandbox = false;
+        
+        public bool Sandbox
+        {
+            get { return m_Sandbox; }
+            set { m_Sandbox = value; }
         }
 
         private LLVector3 m_SunVector;

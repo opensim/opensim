@@ -158,6 +158,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event ObjectDeselect OnObjectDeselect;
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
+        public event EstateChangeInfo OnEstateChangeInfo;
 
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
 
@@ -741,17 +742,17 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void SendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID)
+        public void SendBannedUserList(LLUUID invoice, EstateBan[] banlist, uint estateID)
         {
         }
 
         public void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
         {
         }
-        public void SendEstateCovenantInformation()
+        public void SendEstateCovenantInformation(LLUUID covenant)
         {
         }
-        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID)
+        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant)
         {
         }
 

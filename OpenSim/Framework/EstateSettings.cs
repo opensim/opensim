@@ -28,6 +28,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Collections.Generic;
 using libsecondlife;
 using log4net;
 
@@ -38,451 +39,440 @@ namespace OpenSim.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private ConfigurationMember configMember;
 
-        //Settings to this island
-        private float m_billableFactor;
+        public delegate void SaveDelegate(EstateSettings rs);
 
-        private uint m_estateID;
-        private LLUUID m_estateManager0;
-        private LLUUID m_estateManager1;
-        private LLUUID m_estateManager2;
-        private LLUUID m_estateManager3;
-        private LLUUID m_estateManager4;
-        private LLUUID m_estateManager5;
-        private LLUUID m_estateManager6;
-        private LLUUID m_estateManager7;
-        private LLUUID m_estateManager8;
-        private LLUUID m_estateManager9;
-        private string m_estateName;
+        public event SaveDelegate OnSave;
 
-        private uint m_parentEstateID;
-        private int m_pricePerMeter;
-        private int m_redirectGridX;
-        private int m_redirectGridY;
+        // Only the client uses these
+        //
+        private uint m_EstateID = 100;
+
+        public uint EstateID
+        {
+            get { return m_EstateID; }
+            set { m_EstateID = value; }
+        }
+
+        private string m_EstateName;
+
+        public string EstateName
+        {
+            get { return m_EstateName; }
+            set { m_EstateName = value; }
+        }
+
+        private uint m_ParentEstateID = 100;
+
+        public uint ParentEstateID
+        {
+            get { return m_ParentEstateID; }
+            set { m_ParentEstateID = value; }
+        }
+
+        private float m_BillableFactor;
+
+        public float BillableFactor
+        {
+            get { return m_BillableFactor; }
+            set { m_BillableFactor = value; }
+        }
+
+        private int m_PricePerMeter;
+
+        public int PricePerMeter
+        {
+            get { return m_PricePerMeter; }
+            set { m_PricePerMeter = value; }
+        }
+
+        private int m_RedirectGridX;
+
+        public int RedirectGridX
+        {
+            get { return m_RedirectGridX; }
+            set { m_RedirectGridX = value; }
+        }
+
+        private int m_RedirectGridY;
+
+        public int RedirectGridY
+        {
+            get { return m_RedirectGridY; }
+            set { m_RedirectGridY = value; }
+        }
+
+        // Used by the sim
+        //
+        private bool m_UseGlobalTime = true;
+
+        public bool UseGlobalTime
+        {
+            get { return m_UseGlobalTime; }
+            set { m_UseGlobalTime = value; }
+        }
+
+        private bool m_FixedSun = false;
+
+        public bool FixedSun
+        {
+            get { return m_FixedSun; }
+            set { m_FixedSun = value; }
+        }
+
+        private double m_SunPosition = 0.0;
+
+        public double SunPosition
+        {
+            get { return m_SunPosition; }
+            set { m_SunPosition = value; }
+        }
+
+        private bool m_AllowVoice = true;
+
+        public bool AllowVoice
+        {
+            get { return m_AllowVoice; }
+            set { m_AllowVoice = value; }
+        }
+
+        private bool m_AllowDirectTeleport = true;
+
+        public bool AllowDirectTeleport
+        {
+            get { return m_AllowDirectTeleport; }
+            set { m_AllowDirectTeleport = value; }
+        }
+
+        private bool m_DenyAnonymous = false;
+
+        public bool DenyAnonymous
+        {
+            get { return m_DenyAnonymous; }
+            set { m_DenyAnonymous = value; }
+        }
+
+        private bool m_DenyIdentified = false;
+
+        public bool DenyIdentified
+        {
+            get { return m_DenyIdentified; }
+            set { m_DenyIdentified = value; }
+        }
+
+        private bool m_DenyTransacted = false;
+
+        public bool DenyTransacted
+        {
+            get { return m_DenyTransacted; }
+            set { m_DenyTransacted = value; }
+        }
+
+        private bool m_AbuseEmailToEstateOwner = false;
+
+        public bool AbuseEmailToEstateOwner
+        {
+            get { return m_AbuseEmailToEstateOwner; }
+            set { m_AbuseEmailToEstateOwner = value; }
+        }
+
+        private bool m_BlockDwell = false;
+
+        public bool BlockDwell
+        {
+            get { return m_BlockDwell; }
+            set { m_BlockDwell = value; }
+        }
+
+        private bool m_EstateSkipScripts = false;
+
+        public bool EstateSkipScripts
+        {
+            get { return m_EstateSkipScripts; }
+            set { m_EstateSkipScripts = value; }
+        }
+
+        private bool m_ResetHomeOnTeleport = false;
+
+        public bool ResetHomeOnTeleport
+        {
+            get { return m_ResetHomeOnTeleport; }
+            set { m_ResetHomeOnTeleport = value; }
+        }
+
+        private bool m_TaxFree = false;
+
+        public bool TaxFree
+        {
+            get { return m_TaxFree; }
+            set { m_TaxFree = value; }
+        }
+
+        private bool m_PublicAccess = true;
+
+        public bool PublicAccess
+        {
+            get { return m_PublicAccess; }
+            set { m_PublicAccess = value; }
+        }
+
+        // All those lists...
+        //
+        private List<LLUUID> l_EstateManagers = new List<LLUUID>();
+
+        public LLUUID[] EstateManagers
+        {
+            get { return l_EstateManagers.ToArray(); }
+            set { l_EstateManagers = new List<LLUUID>(value); }
+        }
+
+        private List<EstateBan> l_EstateBans = new List<EstateBan>();
+
+        public EstateBan[] EstateBans
+        {
+            get { return l_EstateBans.ToArray(); }
+            set { l_EstateBans = new List<EstateBan>(value); }
+        }
+
+        private List<LLUUID> l_EstateAccess = new List<LLUUID>();
+
+        public LLUUID[] EstateAccess
+        {
+            get { return l_EstateAccess.ToArray(); }
+            set { l_EstateAccess = new List<LLUUID>(value); }
+        }
+
+        private List<LLUUID> l_EstateGroups = new List<LLUUID>();
+
+        public LLUUID[] EstateGroups
+        {
+            get { return l_EstateGroups.ToArray(); }
+            set { l_EstateGroups = new List<LLUUID>(value); }
+        }
 
         public EstateSettings()
         {
-            // Temporary hack to prevent multiple loadings.
             if (configMember == null)
             {
+                // Load legacy defaults
+                //
                 configMember =
-                    new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.xml"), "ESTATE SETTINGS",
-                                            loadConfigurationOptions, handleIncomingConfiguration, true);
+                    new ConfigurationMember(Path.Combine(Util.configDir(),
+                            "estate_settings.xml"), "ESTATE SETTINGS",
+                            loadConfigurationOptions,
+                            handleIncomingConfiguration, true);
+
+                l_EstateManagers.Clear();
                 configMember.performConfigurationRetrieve();
             }
         }
 
-        public float billableFactor
+        public void Save()
         {
-            get { return m_billableFactor; }
-            set
-            {
-                m_billableFactor = value;
-                configMember.forceSetConfigurationOption("billable_factor", m_billableFactor.ToString());
-            }
-        }
-
-        public uint estateID
-        {
-            get { return m_estateID; }
-            set
-            {
-                m_estateID = value;
-                configMember.forceSetConfigurationOption("estate_id", m_estateID.ToString());
-            }
-        }
-
-        public uint parentEstateID
-        {
-            get { return m_parentEstateID; }
-            set
-            {
-                m_parentEstateID = value;
-                configMember.forceSetConfigurationOption("parent_estate_id", m_parentEstateID.ToString());
-            }
-        }
-
-        public int redirectGridX
-        {
-            get { return m_redirectGridX; }
-            set
-            {
-                m_redirectGridX = value;
-                configMember.forceSetConfigurationOption("redirect_grid_x", m_redirectGridX.ToString());
-            }
-        }
-
-        public int redirectGridY
-        {
-            get { return m_redirectGridY; }
-            set
-            {
-                m_redirectGridY = value;
-                configMember.forceSetConfigurationOption("redirect_grid_y", m_redirectGridY.ToString());
-            }
-        }
-
-        public int pricePerMeter
-        {
-            get { return m_pricePerMeter; }
-            set
-            {
-                m_pricePerMeter = value;
-                configMember.forceSetConfigurationOption("price_per_meter", m_pricePerMeter.ToString());
-            }
-        }
-
-        // Estate name
-
-        public string estateName
-        {
-            get { return m_estateName; }
-            set
-            {
-                m_estateName = value;
-                configMember.forceSetConfigurationOption("estate_name", m_estateName.ToString());
-            }
-        }
-
-        public LLUUID[] estateManagers
-        {
-            get
-            {
-                // returns a condensed array of LLUUIDs
-                return GetEstateManagers();
-            }
-            set
-            {
-                // Sets a Condensed array of LLUUIDS
-                int i = 0;
-                for (i = 0; i < value.Length; i++)
-                {
-                    switch (i)
-                    {
-                        case 0:
-                            m_estateManager0 = value[i];
-                            break;
-                        case 1:
-                            m_estateManager1 = value[i];
-                            break;
-                        case 2:
-                            m_estateManager2 = value[i];
-                            break;
-                        case 3:
-                            m_estateManager3 = value[i];
-                            break;
-                        case 4:
-                            m_estateManager4 = value[i];
-                            break;
-                        case 5:
-                            m_estateManager5 = value[i];
-                            break;
-                        case 6:
-                            m_estateManager6 = value[i];
-                            break;
-                        case 7:
-                            m_estateManager7 = value[i];
-                            break;
-                        case 8:
-                            m_estateManager8 = value[i];
-                            break;
-                        case 9:
-                            m_estateManager9 = value[i];
-                            break;
-                    }
-                }
-
-                // Clear the rest of them..   as they're no longer valid
-                for (int j = i; j < 10; j++)
-                {
-                    switch (j)
-                    {
-                        case 0:
-                            m_estateManager0 = LLUUID.Zero;
-                            break;
-                        case 1:
-                            m_estateManager1 = LLUUID.Zero;
-                            break;
-                        case 2:
-                            m_estateManager2 = LLUUID.Zero;
-                            break;
-                        case 3:
-                            m_estateManager3 = LLUUID.Zero;
-                            break;
-                        case 4:
-                            m_estateManager4 = LLUUID.Zero;
-                            break;
-                        case 5:
-                            m_estateManager5 = LLUUID.Zero;
-                            break;
-                        case 6:
-                            m_estateManager6 = LLUUID.Zero;
-                            break;
-                        case 7:
-                            m_estateManager7 = LLUUID.Zero;
-                            break;
-                        case 8:
-                            m_estateManager8 = LLUUID.Zero;
-                            break;
-                        case 9:
-                            m_estateManager9 = LLUUID.Zero;
-                            break;
-                    }
-                }
-
-                for (i = 0; i < 10; i++)
-                {
-                    // Writes out the Estate managers to the XML file.
-                    configMember.forceSetConfigurationOption("estate_manager_" + i, (GetEstateManagerAtPos(i)).ToString());
-                }
-            }
-        }
-
-        #region EstateManager Get Methods to sort out skipped spots in the XML (suser error)
-
-        private LLUUID GetEstateManagerAtPos(int pos)
-        {
-            // This is a helper for writing them out to the xml file
-            switch (pos)
-            {
-                case 0:
-                    return m_estateManager0;
-
-                case 1:
-                    return m_estateManager1;
-
-                case 2:
-                    return m_estateManager2;
-
-                case 3:
-                    return m_estateManager3;
-
-                case 4:
-                    return m_estateManager4;
-
-                case 5:
-                    return m_estateManager5;
-
-                case 6:
-                    return m_estateManager6;
-
-                case 7:
-                    return m_estateManager7;
-
-                case 8:
-                    return m_estateManager8;
-
-                case 9:
-                    return m_estateManager9;
-
-                default:
-                    return LLUUID.Zero;
-            }
-        }
-
-        private LLUUID[] GetEstateManagers()
-        {
-            int numEstateManagers = GetNumberOfEstateManagers();
-            LLUUID[] rEstateManagers = new LLUUID[numEstateManagers];
-
-            int pos = 0;
-
-            for (int i = 0; i < numEstateManagers; i++)
-            {
-                pos = GetNextEstateManager(pos);
-
-                rEstateManagers[i] = GetEstateManagerAtPos(pos);
-                pos++;
-            }
-            return rEstateManagers;
-        }
-
-        private int GetNextEstateManager(int startpos)
-        {
-            // This is a utility function that skips over estate managers set to LLUUID.Zero
-            int i = startpos;
-            for (i = startpos; i < 10; i++)
-            {
-                if (GetEstateManagerAtPos(i) != LLUUID.Zero) return i;
-            }
-            return i;
-        }
-
-        private int GetNumberOfEstateManagers()
-        {
-            // This function returns the number of estate managers set
-            // Regardless of whether there is a skipped spot
-            int numEstateManagers = 0;
-            if (m_estateManager0 != LLUUID.Zero) numEstateManagers++;
-            if (m_estateManager1 != LLUUID.Zero) numEstateManagers++;
-            if (m_estateManager2 != LLUUID.Zero) numEstateManagers++;
-            if (m_estateManager3 != LLUUID.Zero) numEstateManagers++;
-            if (m_estateManager4 != LLUUID.Zero) numEstateManagers++;
-            if (m_estateManager5 != LLUUID.Zero) numEstateManagers++;
-            if (m_estateManager6 != LLUUID.Zero) numEstateManagers++;
-            if (m_estateManager7 != LLUUID.Zero) numEstateManagers++;
-            if (m_estateManager8 != LLUUID.Zero) numEstateManagers++;
-            if (m_estateManager9 != LLUUID.Zero) numEstateManagers++;
-
-            return numEstateManagers;
+            if(OnSave != null)
+                OnSave(this);
         }
 
         public void AddEstateManager(LLUUID avatarID)
         {
-            LLUUID[] testateManagers = GetEstateManagers();
-            LLUUID[] nestateManagers = new LLUUID[testateManagers.Length + 1];
-
-            int i = 0;
-            for (i = 0; i < testateManagers.Length; i++)
-            {
-                nestateManagers[i] = testateManagers[i];
-            }
-
-            nestateManagers[i] = avatarID;
-
-            //Saves it to the estate settings file
-            estateManagers = nestateManagers;
+            if(avatarID == null || avatarID == LLUUID.Zero)
+                return;
+            if(!l_EstateManagers.Contains(avatarID))
+                l_EstateManagers.Add(avatarID);
         }
 
         public void RemoveEstateManager(LLUUID avatarID)
         {
-            int notfoundparam = 11; // starting high so the condense routine (max ten) doesn't run if we don't find it.
-            LLUUID[] testateManagers = GetEstateManagers(); // temporary estate managers list
-
-
-            int i = 0;
-            int foundpos = notfoundparam;
-
-            // search for estate manager.
-            for (i = 0; i < testateManagers.Length; i++)
-            {
-                if (testateManagers[i] == avatarID)
-                {
-                    foundpos = i;
-                    break;
-                }
-            }
-            if (foundpos < notfoundparam)
-            {
-                LLUUID[] restateManagers = new LLUUID[testateManagers.Length - 1];
-
-                // fill new estate managers array up to the found spot
-                for (int j = 0; j < foundpos; j++)
-                    restateManagers[j] = testateManagers[j];
-
-                // skip over the estate manager we're removing and compress
-                for (int j = foundpos + 1; j < testateManagers.Length; j++)
-                    restateManagers[j - 1] = testateManagers[j];
-
-                estateManagers = restateManagers;
-            }
-            else
-            {
-                m_log.Error("[ESTATESETTINGS]: Unable to locate estate manager : " + avatarID.ToString() + " for removal");
-            }
+            if(l_EstateManagers.Contains(avatarID))
+                l_EstateManagers.Remove(avatarID);
         }
 
-        #endregion
+        public bool IsEstateManager(LLUUID avatarID)
+        {
+            return l_EstateManagers.Contains(avatarID);
+        }
+
+        public bool IsBanned(LLUUID avatarID)
+        {
+            foreach (EstateBan ban in l_EstateBans)
+                if(ban.bannedUUID == avatarID)
+                    return true;
+            return false;
+        }
+
+        public void AddBan(EstateBan ban)
+        {
+            if(ban == null)
+                return;
+            if(!IsBanned(ban.bannedUUID))
+                l_EstateBans.Add(ban);
+        }
+
+        public void ClearBans()
+        {
+            l_EstateBans.Clear();
+        }
+
+        public void RemoveBan(LLUUID avatarID)
+        {
+            foreach (EstateBan ban in new List<EstateBan>(l_EstateBans))
+                if(ban.bannedUUID == avatarID)
+                    l_EstateBans.Remove(ban);
+        }
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("billable_factor", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty,
-                                                "0.0", true);
-            configMember.addConfigurationOption("estate_id", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, String.Empty, "100",
-                                                true);
-            configMember.addConfigurationOption("parent_estate_id", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                String.Empty, "1", true);
-            configMember.addConfigurationOption("max_agents", ConfigurationOption.ConfigurationTypes.TYPE_BYTE, String.Empty, "40",
-                                                true);
+            configMember.addConfigurationOption("billable_factor",
+                    ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
+                    String.Empty, "0.0", true);
 
-            configMember.addConfigurationOption("redirect_grid_x", ConfigurationOption.ConfigurationTypes.TYPE_INT32, String.Empty,
-                                                "0", true);
-            configMember.addConfigurationOption("redirect_grid_y", ConfigurationOption.ConfigurationTypes.TYPE_INT32, String.Empty,
-                                                "0", true);
-            configMember.addConfigurationOption("price_per_meter", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                String.Empty, "1", true);
+//            configMember.addConfigurationOption("estate_id",
+//                    ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+//                    String.Empty, "100", true);
 
-            configMember.addConfigurationOption("water_height", ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE, String.Empty,
-                                                "20.0", true);
+//            configMember.addConfigurationOption("parent_estate_id",
+//                    ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+//                    String.Empty, "1", true);
 
-            configMember.addConfigurationOption("estate_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                String.Empty, "TestEstate", true);
-            configMember.addConfigurationOption("estate_manager_0", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("estate_manager_1", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("estate_manager_2", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("estate_manager_3", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("estate_manager_4", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("estate_manager_5", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("estate_manager_6", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("estate_manager_7", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("estate_manager_8", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("estate_manager_9", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
+            configMember.addConfigurationOption("redirect_grid_x",
+                    ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                    String.Empty, "0", true);
+
+            configMember.addConfigurationOption("redirect_grid_y",
+                    ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                    String.Empty, "0", true);
+
+            configMember.addConfigurationOption("price_per_meter",
+                    ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                    String.Empty, "1", true);
+
+            configMember.addConfigurationOption("estate_name",
+                    ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                    String.Empty, "My Estate", true);
+
+            configMember.addConfigurationOption("estate_manager_0",
+                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    String.Empty, "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("estate_manager_1",
+                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    String.Empty, "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("estate_manager_2",
+                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    String.Empty, "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("estate_manager_3",
+                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    String.Empty, "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("estate_manager_4",
+                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    String.Empty, "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("estate_manager_5",
+                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    String.Empty, "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("estate_manager_6",
+                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    String.Empty, "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("estate_manager_7",
+                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    String.Empty, "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("estate_manager_8",
+                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    String.Empty, "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("estate_manager_9",
+                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    String.Empty, "00000000-0000-0000-0000-000000000000", true);
+
+            configMember.addConfigurationOption("region_flags",
+                    ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                    String.Empty, "336723974", true);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
         {
             switch (configuration_key)
             {
+                case "region_flags":
+                    Simulator.RegionFlags flags = (Simulator.RegionFlags)(uint)configuration_result;
+                    if((flags & (Simulator.RegionFlags)(1<<29)) != 0)
+                        m_AllowVoice = true;
+                    if((flags & Simulator.RegionFlags.AllowDirectTeleport) != 0)
+                        m_AllowDirectTeleport = true;
+                    if((flags & Simulator.RegionFlags.DenyAnonymous) != 0)
+                         m_DenyAnonymous = true;
+                    if((flags & Simulator.RegionFlags.DenyIdentified) != 0)
+                        m_DenyIdentified = true;
+                    if((flags & Simulator.RegionFlags.DenyTransacted) != 0)
+                        m_DenyTransacted = true;
+                    if((flags & Simulator.RegionFlags.AbuseEmailToEstateOwner) != 0)
+                        m_AbuseEmailToEstateOwner = true;
+                    if((flags & Simulator.RegionFlags.BlockDwell) != 0)
+                        m_BlockDwell = true;
+                    if((flags & Simulator.RegionFlags.EstateSkipScripts) != 0)
+                        m_EstateSkipScripts = true;
+                    if((flags & Simulator.RegionFlags.ResetHomeOnTeleport) != 0)
+                        m_ResetHomeOnTeleport = true;
+                    if((flags & Simulator.RegionFlags.TaxFree) != 0)
+                        m_TaxFree = true;
+                    if((flags & Simulator.RegionFlags.PublicAllowed) != 0)
+                        m_PublicAccess = true;
+                    break;
                 case "billable_factor":
-                    m_billableFactor = (float) configuration_result;
+                    m_BillableFactor = (float) configuration_result;
                     break;
-                case "estate_id":
-                    m_estateID = (uint) configuration_result;
-                    break;
-                case "parent_estate_id":
-                    m_parentEstateID = (uint) configuration_result;
-                    break;
+//                case "estate_id":
+//                    m_EstateID = (uint) configuration_result;
+//                    break;
+//                case "parent_estate_id":
+//                    m_ParentEstateID = (uint) configuration_result;
+//                    break;
                 case "redirect_grid_x":
-                    m_redirectGridX = (int) configuration_result;
+                    m_RedirectGridX = (int) configuration_result;
                     break;
                 case "redirect_grid_y":
-                    m_redirectGridY = (int) configuration_result;
+                    m_RedirectGridY = (int) configuration_result;
                     break;
                 case "price_per_meter":
-                    m_pricePerMeter = Convert.ToInt32(configuration_result);
+                    m_PricePerMeter = Convert.ToInt32(configuration_result);
                     break;
-
                 case "estate_name":
-                    m_estateName = (string) configuration_result;
+                    m_EstateName = (string) configuration_result;
                     break;
                 case "estate_manager_0":
-                    m_estateManager0 = (LLUUID) configuration_result;
+                    AddEstateManager((LLUUID)configuration_result);
                     break;
                 case "estate_manager_1":
-                    m_estateManager1 = (LLUUID) configuration_result;
+                    AddEstateManager((LLUUID)configuration_result);
                     break;
                 case "estate_manager_2":
-                    m_estateManager2 = (LLUUID) configuration_result;
+                    AddEstateManager((LLUUID)configuration_result);
                     break;
                 case "estate_manager_3":
-                    m_estateManager3 = (LLUUID) configuration_result;
+                    AddEstateManager((LLUUID)configuration_result);
                     break;
                 case "estate_manager_4":
-                    m_estateManager4 = (LLUUID) configuration_result;
+                    AddEstateManager((LLUUID)configuration_result);
                     break;
                 case "estate_manager_5":
-                    m_estateManager5 = (LLUUID) configuration_result;
+                    AddEstateManager((LLUUID)configuration_result);
                     break;
                 case "estate_manager_6":
-                    m_estateManager6 = (LLUUID) configuration_result;
+                    AddEstateManager((LLUUID)configuration_result);
                     break;
                 case "estate_manager_7":
-                    m_estateManager7 = (LLUUID) configuration_result;
+                    AddEstateManager((LLUUID)configuration_result);
                     break;
                 case "estate_manager_8":
-                    m_estateManager8 = (LLUUID) configuration_result;
+                    AddEstateManager((LLUUID)configuration_result);
                     break;
                 case "estate_manager_9":
-                    m_estateManager9 = (LLUUID) configuration_result;
+                    AddEstateManager((LLUUID)configuration_result);
                     break;
             }
 

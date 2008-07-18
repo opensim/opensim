@@ -166,6 +166,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private GenericCall4 handlerDeRezObject = null; //OnDeRezObject;
         private ModifyTerrain handlerModifyTerrain = null;
         private BakeTerrain handlerBakeTerrain = null;
+        private EstateChangeInfo handlerEstateChangeInfo = null;
         private Action<IClientAPI> handlerRegionHandShakeReply = null; //OnRegionHandShakeReply;
         private GenericCall2 handlerRequestWearables = null; //OnRequestWearables;
         private Action<IClientAPI> handlerRequestAvatarsData = null; //OnRequestAvatarsData;
@@ -920,6 +921,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event CommitEstateTerrainTextureRequest OnCommitEstateTerrainTextureRequest;
         public event SetRegionTerrainSettings OnSetRegionTerrainSettings;
         public event BakeTerrain OnBakeTerrain;
+        public event EstateChangeInfo OnEstateChangeInfo;
         public event EstateRestartSimRequest OnEstateRestartSimRequest;
         public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
         public event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
@@ -2614,18 +2616,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void SendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID)
+        public void SendBannedUserList(LLUUID invoice, EstateBan[] bl, uint estateID)
         {
-            RegionBanListItem[] bl = banlist.ToArray();
-
-            LLUUID[] BannedUsers = new LLUUID[bl.Length];
-
+            List<LLUUID>BannedUsers = new List<LLUUID>();
 
             for (int i = 0; i < bl.Length; i++)
             {
                 if (bl[i] == null)
                     continue;
-                BannedUsers[i] = bl[i].bannedUUID;
+                if (bl[i].bannedUUID == LLUUID.Zero)
+                    continue;
+                BannedUsers.Add(bl[i].bannedUUID);
             }
 
             EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
@@ -2635,9 +2636,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.MethodData.Invoice = invoice;
             packet.MethodData.Method = Helpers.StringToField("setaccess");
 
-            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + BannedUsers.Length];
+            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + BannedUsers.Count];
 
-            for (int i = 0; i < (6 + BannedUsers.Length); i++)
+            for (int i = 0; i < (6 + BannedUsers.Count); i++)
             {
                 returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
             }
@@ -2647,12 +2648,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             returnblock[j].Parameter = Helpers.StringToField(((int)Constants.EstateAccessCodex.EstateBans).ToString()); j++;
             returnblock[j].Parameter = Helpers.StringToField("0"); j++;
             returnblock[j].Parameter = Helpers.StringToField("0"); j++;
-            returnblock[j].Parameter = Helpers.StringToField(BannedUsers.Length.ToString()); j++;
+            returnblock[j].Parameter = Helpers.StringToField(BannedUsers.Count.ToString()); j++;
             returnblock[j].Parameter = Helpers.StringToField("0"); j++;
 
-            for (int i = 0; i < BannedUsers.Length; i++)
+            foreach (LLUUID banned in BannedUsers)
             {
-                returnblock[j].Parameter = BannedUsers[i].GetBytes(); j++;
+                returnblock[j].Parameter = banned.GetBytes(); j++;
             }
             packet.ParamList = returnblock;
             packet.Header.Reliable = false;
@@ -2687,11 +2688,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(rinfopack, ThrottleOutPacketType.Task);
         }
 
-        public void SendEstateCovenantInformation()
+        public void SendEstateCovenantInformation(LLUUID covenant)
         {
             EstateCovenantReplyPacket einfopack = new EstateCovenantReplyPacket();
             EstateCovenantReplyPacket.DataBlock edata = new EstateCovenantReplyPacket.DataBlock();
-            edata.CovenantID = m_scene.RegionInfo.CovenantID;
+            edata.CovenantID = covenant;
             edata.CovenantTimestamp = 0;
             edata.EstateOwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
             edata.EstateName =
@@ -2700,7 +2701,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(einfopack, ThrottleOutPacketType.Task);
         }
 
-        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID)
+        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant)
         {
             EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
             packet.MethodData.Invoice = invoice;
@@ -2718,13 +2719,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             returnblock[1].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarAssignedUUID.ToString());
             returnblock[2].Parameter = Helpers.StringToField(estateID.ToString());
 
-            // TODO: Resolve Magic numbers here
-            returnblock[3].Parameter = Helpers.StringToField("269516800");
-            returnblock[4].Parameter = Helpers.StringToField("0");
-            returnblock[5].Parameter = Helpers.StringToField("1");
-            returnblock[6].Parameter = Helpers.StringToField(m_scene.RegionInfo.RegionID.ToString());
-            returnblock[7].Parameter = Helpers.StringToField("1160895077");
-            returnblock[8].Parameter = Helpers.StringToField("1");
+            returnblock[3].Parameter = Helpers.StringToField(estateFlags.ToString());
+            returnblock[4].Parameter = Helpers.StringToField(sunPosition.ToString());
+            returnblock[5].Parameter = Helpers.StringToField(parentEstate.ToString());
+            returnblock[6].Parameter = Helpers.StringToField(covenant.ToString());
+            returnblock[7].Parameter = Helpers.StringToField("1160895077"); // what is this?
+            returnblock[8].Parameter = Helpers.StringToField("1"); // what is this?
 
             packet.ParamList = returnblock;
             packet.Header.Reliable = false;
@@ -5959,10 +5959,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                             tmp = Helpers.FieldToUTF8String(messagePacket.ParamList[2].Parameter);
                                             if (!tmp.Contains(".")) tmp += ".00";
                                             float TerrainLowerLimit = (float)Convert.ToDecimal(tmp);
+                                            bool UseEstateSun = convertParamStringToBool(messagePacket.ParamList[3].Parameter);
                                             bool UseFixedSun = convertParamStringToBool(messagePacket.ParamList[4].Parameter);
                                             float SunHour = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(messagePacket.ParamList[5].Parameter));
+                                            bool UseGlobal = convertParamStringToBool(messagePacket.ParamList[6].Parameter);
+                                            bool EstateFixedSun = convertParamStringToBool(messagePacket.ParamList[7].Parameter);
+                                            float EstateSunHour = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(messagePacket.ParamList[8].Parameter));
 
-                                            OnSetRegionTerrainSettings(WaterHeight, TerrainRaiseLimit, TerrainLowerLimit, UseFixedSun, SunHour);
+                                            OnSetRegionTerrainSettings(WaterHeight, TerrainRaiseLimit, TerrainLowerLimit, UseEstateSun, UseFixedSun, SunHour, UseGlobal, EstateFixedSun, EstateSunHour);
 
                                         }
                                         catch (Exception ex)
@@ -6072,6 +6076,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     if (handlerBakeTerrain != null)
                                     {
                                         handlerBakeTerrain(this);
+                                    }
+                                }
+                                break;
+
+                            case "estatechangeinfo":
+                                if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(this.AgentId))
+                                {
+                                    LLUUID invoice = messagePacket.MethodData.Invoice;
+                                    LLUUID SenderID = messagePacket.AgentData.AgentID;
+                                    UInt32 param1 = Convert.ToUInt32(Helpers.FieldToUTF8String(messagePacket.ParamList[1].Parameter));
+                                    UInt32 param2 = Convert.ToUInt32(Helpers.FieldToUTF8String(messagePacket.ParamList[2].Parameter));
+
+                                    handlerEstateChangeInfo = OnEstateChangeInfo;
+                                    if (handlerEstateChangeInfo != null)
+                                    {
+                                        handlerEstateChangeInfo(this, invoice, SenderID, param1, param2);
                                     }
                                 }
                                 break;

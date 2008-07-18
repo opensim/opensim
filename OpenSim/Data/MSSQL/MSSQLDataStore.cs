@@ -548,9 +548,9 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="regionUUID">the region UUID</param>
         /// <returns>the banlist list</returns>
-        public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
+        public List<EstateBan> LoadRegionBanList(LLUUID regionUUID)
         {
-            List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
+            List<EstateBan> regionbanlist = new List<EstateBan>();
             return regionbanlist;
         }
 
@@ -558,7 +558,7 @@ namespace OpenSim.Data.MSSQL
         /// STUB, add an item into region banlist
         /// </summary>
         /// <param name="item">the item</param>
-        public void AddToRegionBanlist(RegionBanListItem item)
+        public void AddToRegionBanlist(EstateBan item)
         {
 
         }
@@ -567,7 +567,7 @@ namespace OpenSim.Data.MSSQL
         /// STUB, remove an item from region banlist
         /// </summary>
         /// <param name="item"></param>
-        public void RemoveFromRegionBanlist(RegionBanListItem item)
+        public void RemoveFromRegionBanlist(EstateBan item)
         {
 
         }

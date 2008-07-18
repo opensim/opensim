@@ -246,17 +246,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         protected bool IsEstateManager(LLUUID user)
         {
-            if (user != LLUUID.Zero)
-            {
-                LLUUID[] estatemanagers = m_scene.RegionInfo.EstateSettings.estateManagers;
-                foreach (LLUUID estatemanager in estatemanagers)
-                {
-                    if (estatemanager == user)
-                        return true;
-                }
-            }
-
-            return false;
+            return m_scene.RegionInfo.EstateSettings.IsEstateManager(user);
         }
 #endregion
 

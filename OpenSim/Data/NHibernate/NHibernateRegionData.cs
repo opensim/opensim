@@ -349,9 +349,9 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="regionUUID">the region UUID</param>
         /// <returns>The banlist</returns>
-        public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
+        public List<EstateBan> LoadRegionBanList(LLUUID regionUUID)
         {
-            List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
+            List<EstateBan> regionbanlist = new List<EstateBan>();
 
             return regionbanlist;
         }
@@ -360,7 +360,7 @@ namespace OpenSim.Data.NHibernate
         /// Add en entry into region banlist
         /// </summary>
         /// <param name="item"></param>
-        public void AddToRegionBanlist(RegionBanListItem item)
+        public void AddToRegionBanlist(EstateBan item)
         {
 
         }
@@ -369,7 +369,7 @@ namespace OpenSim.Data.NHibernate
         /// remove an entry from the region banlist
         /// </summary>
         /// <param name="item"></param>
-        public void RemoveFromRegionBanlist(RegionBanListItem item)
+        public void RemoveFromRegionBanlist(EstateBan item)
         {
 
         }

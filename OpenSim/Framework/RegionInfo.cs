@@ -193,7 +193,6 @@ namespace OpenSim.Framework
 
         public bool commFailTF = false;
         public ConfigurationMember configMember;
-        public LLUUID CovenantID = LLUUID.Zero;
         public string DataStore = String.Empty;
         public bool isSandbox = false;
         private EstateSettings m_estateSettings;
@@ -212,7 +211,6 @@ namespace OpenSim.Framework
 
         public LLUUID lastMapUUID = LLUUID.Zero;
         public string lastMapRefresh = "0";
-        public List<RegionBanListItem> regionBanlist = new List<RegionBanListItem>();
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
@@ -279,6 +277,8 @@ namespace OpenSim.Framework
 
                 return m_estateSettings;
             }
+
+            set { m_estateSettings = value; }
         }
 
         public RegionSettings RegionSettings
@@ -364,28 +364,6 @@ namespace OpenSim.Framework
             configMember.performConfigurationRetrieve();
         }
 
-        public bool CheckIfUserBanned(LLUUID user)
-        {
-
-            RegionBanListItem[] bl = regionBanlist.ToArray();
-            
-            bool banned = false;
-
-            for (int i = 0; i < bl.Length; i++)
-            {
-                if (bl[i] == null)
-                    continue;
-            
-                if (bl[i].bannedUUID == user)
-                {
-                    banned = true;
-                    break;
-                }
-            }
-
-            return banned;
-        }
-
         public void loadConfigurationOptionsFromMe()
         {
             configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID_NULL_FREE,
@@ -415,9 +393,6 @@ namespace OpenSim.Framework
                                                 "External Host Name", m_externalHostName, true);
             configMember.addConfigurationOption("master_avatar_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                                                 "Master Avatar UUID", MasterAvatarAssignedUUID.ToString(), true);
-            configMember.addConfigurationOption("estate_covanant_uuid",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "Estate Covenant",
-                                                CovenantID.ToString(), true);
             configMember.addConfigurationOption("master_avatar_first",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "First Name of Master Avatar", MasterAvatarFirstName, true);
@@ -461,9 +436,6 @@ namespace OpenSim.Framework
                                                 "External Host Name", "127.0.0.1", false);
             configMember.addConfigurationOption("master_avatar_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                                                 "Master Avatar UUID", LLUUID.Zero.ToString(), true);
-            configMember.addConfigurationOption("estate_covanant_uuid",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "Estate Covenant",
-                                                LLUUID.Zero.ToString(), true);
             configMember.addConfigurationOption("master_avatar_first",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "First Name of Master Avatar", "Test", false,
@@ -538,10 +510,6 @@ namespace OpenSim.Framework
                 case "master_avatar_uuid":
                     MasterAvatarAssignedUUID = (LLUUID) configuration_result;
                     break;
-                case "estate_covanant_uuid":
-                    CovenantID = (LLUUID) configuration_result;
-                    break;
-
                 case "master_avatar_first":
                     MasterAvatarFirstName = (string) configuration_result;
                     break;
@@ -563,11 +531,6 @@ namespace OpenSim.Framework
             return true;
         }
 
-        public void SaveEstatecovenantUUID(LLUUID notecard)
-        {
-            if (null == configMember) return;
-            configMember.forceSetConfigurationOption("estate_covanant_uuid", notecard.ToString());
-        }
         public void SaveLastMapUUID(LLUUID mapUUID)
         {
             if (null == configMember) return;

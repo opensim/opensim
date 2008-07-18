@@ -285,7 +285,8 @@ namespace OpenSim.Framework
     public delegate void SetEstateTerrainDetailTexture(IClientAPI remoteClient, int corner, LLUUID side);
     public delegate void SetEstateTerrainTextureHeights(IClientAPI remoteClient, int corner, float lowVal, float highVal);
     public delegate void CommitEstateTerrainTextureRequest(IClientAPI remoteClient);
-    public delegate void SetRegionTerrainSettings(float waterHeight, float terrainRaiseLimit, float terrainLowerLimit, bool fixedSun, float sunHour);
+    public delegate void SetRegionTerrainSettings(float waterHeight, float terrainRaiseLimit, float terrainLowerLimit, bool estateSun, bool fixedSun, float sunHour, bool globalSun, bool estateFixed, float estateSunHour);
+    public delegate void EstateChangeInfo(IClientAPI client, LLUUID invoice, LLUUID senderID, UInt32 param1, UInt32 param2);
     public delegate void BakeTerrain(IClientAPI remoteClient );
     public delegate void EstateRestartSimRequest(IClientAPI remoteClient, int secondsTilReboot);
     public delegate void EstateChangeCovenantRequest(IClientAPI remoteClient, LLUUID newCovenantID);
@@ -349,6 +350,7 @@ namespace OpenSim.Framework
         // [Obsolete("LLClientView Specific - Replace with more suitable arguments.")]
         event ModifyTerrain OnModifyTerrain;
         event BakeTerrain OnBakeTerrain;
+        event EstateChangeInfo OnEstateChangeInfo;
         // [Obsolete("LLClientView Specific.")]
         event SetAppearance OnSetAppearance;
         // [Obsolete("LLClientView Specific - Replace and rename OnAvatarUpdate. Difference from SetAppearance?")]
@@ -628,11 +630,11 @@ namespace OpenSim.Framework
 
         void SendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID);
 
-        void SendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID);
+        void SendBannedUserList(LLUUID invoice, EstateBan[] banlist, uint estateID);
 
         void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args);
-        void SendEstateCovenantInformation();
-        void SendDetailedEstateData(LLUUID invoice,string estateName, uint estateID);
+        void SendEstateCovenantInformation(LLUUID covenant);
+        void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant);
 
         void SendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags);
         void SendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID);

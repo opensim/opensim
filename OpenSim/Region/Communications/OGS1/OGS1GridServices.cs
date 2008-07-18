@@ -623,7 +623,7 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     if (regions[i].RegionHandle == regionHandle)
                     {
-                        if (regions[i].CheckIfUserBanned(agentData.AgentID))
+                        if (regions[i].EstateSettings.IsBanned(agentData.AgentID))
                         {
                             banned = true;
                             break;
@@ -1158,7 +1158,7 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     if (regions[i].RegionHandle == regionHandle)
                     {
-                        if (regions[i].CheckIfUserBanned(agentID))
+                        if (regions[i].EstateSettings.IsBanned(agentID))
                         {
                             banned = true;
                             break;

@@ -25,75 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Collections.Generic;
-using libsecondlife;
+using System;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
+using libsecondlife;
 
-namespace OpenSim.Data.Null
+namespace OpenSim.Region.Environment.Interfaces
 {
-    /// <summary>
-    /// NULL DataStore, do not store anything
-    /// </summary>
-    public class NullDataStore : IRegionDataStore
+    public interface IEstateDataStore
     {
-        public void Initialise(string dbfile, bool persistPrimInventories)
-        {
-            return;
-        }
+        void Initialise(string connectstring);
 
-        public void StoreRegionSettings(RegionSettings rs)
-        {
-        }
-
-        public RegionSettings LoadRegionSettings(LLUUID regionUUID)
-        {
-            return null;
-        }
-
-        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
-        {
-        }
-
-        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
-        {
-        }
-
-        // see IRegionDatastore
-        public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
-        {
-        }
-
-        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
-        {
-            return new List<SceneObjectGroup>();
-        }
-
-        public void StoreTerrain(double[,] ter, LLUUID regionID)
-        {
-        }
-
-        public double[,] LoadTerrain(LLUUID regionID)
-        {
-            return null;
-        }
-
-        public void RemoveLandObject(LLUUID globalID)
-        {
-        }
-
-        public void StoreLandObject(ILandObject land)
-        {
-        }
-
-        public List<LandData> LoadLandObjects(LLUUID regionUUID)
-        {
-            return new List<LandData>();
-        }
-
-        public void Shutdown()
-        {
-        }
+        EstateSettings LoadEstateSettings(LLUUID regionID);
+        void StoreEstateSettings(EstateSettings es);
     }
 }

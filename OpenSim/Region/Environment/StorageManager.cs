@@ -43,6 +43,13 @@ namespace OpenSim.Region.Environment
             get { return m_dataStore; }
         }
 
+        private IEstateDataStore m_estateDataStore;
+
+        public IEstateDataStore EstateDataStore
+        {
+            get { return m_estateDataStore; }
+        }
+
         public StorageManager(IRegionDataStore storage)
         {
             m_dataStore = storage;
@@ -68,6 +75,17 @@ namespace OpenSim.Region.Environment
                         m_dataStore = plug;
 
                         m_log.Info("[DATASTORE]: Added IRegionDataStore Interface");
+                    }
+
+                    typeInterface = pluginType.GetInterface("IEstateDataStore", true);
+
+                    if(typeInterface != null)
+                    {
+                        IEstateDataStore estPlug =
+                            (IEstateDataStore) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        estPlug.Initialise(connectionstring);
+
+                        m_estateDataStore = estPlug;
                     }
                 }
             }
