@@ -318,7 +318,7 @@ namespace OpenSim.Data.MySQL
 
             while(r.Read())
             {
-                EstateBan eb = new EstateBan();
+                // EstateBan eb = new EstateBan();
 
                 LLUUID uuid = new LLUUID();
                 LLUUID.TryParse(r["uuid"].ToString(), out uuid);
