@@ -310,7 +310,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                         if (clientName != m_last_leaving_user)
                         {
                             Console.WriteLine("Avatar was seen logging out.");
-                            Console.ReadLine();
+                            //Console.ReadLine();
                             Console.WriteLine();
                             m_last_leaving_user = clientName;
                             m_irc.PrivMsg(m_irc.Nick, "Sim", String.Format("notices {0} logging out", clientName));
