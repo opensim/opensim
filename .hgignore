@@ -6,6 +6,11 @@
 \.mds$
 \.dll\.build$
 ^bin/Debug/.+\.dll$
+^bin/.+\.db$
+^bin/OpenSim\.ini$
+^bin/OpenSim\.log$
+^bin/estate_settings\.xml$
+^bin/Regions
 bin/.+\.dll.mdb$
 bin/addin-db-
 bin/.+\.dll$
