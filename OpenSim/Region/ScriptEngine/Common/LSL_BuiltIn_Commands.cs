@@ -2569,7 +2569,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.Children.Count > 0)
+            if (m_host.ParentGroup.Children.Count > 1)
             {
                 return m_host.LinkNum + 1;
             }
