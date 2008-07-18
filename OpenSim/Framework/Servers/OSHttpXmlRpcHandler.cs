@@ -114,7 +114,7 @@ namespace OpenSim.Framework.Servers
         /// </remarks>
         public OSHttpXmlRpcHandler(XmlRpcMethod handler, string methodName, Regex path, 
                                    Dictionary<string, Regex> headers, Regex whitelist)
-            : base(new Regex(@"^POST$", RegexOptions.IgnoreCase | RegexOptions.Compiled), path, headers, 
+            : base(new Regex(@"^POST$", RegexOptions.IgnoreCase | RegexOptions.Compiled), path, null, headers, 
                    new Regex(@"^(text|application)/xml", RegexOptions.IgnoreCase | RegexOptions.Compiled),
                    whitelist)
         {

@@ -137,10 +137,12 @@ namespace OpenSim.Framework.Servers
         /// <param name="contentType">null or content type
         /// regex</param>
         /// <param name="whitelist">null or IP address regex</param>
-        public OSHttpHandler(Regex method, Regex path, Dictionary<string, Regex> headers, Regex contentType, Regex whitelist)
+        public OSHttpHandler(Regex method, Regex path, Dictionary<string, Regex> query, 
+                             Dictionary<string, Regex> headers, Regex contentType, Regex whitelist)
         {
             _method = method;
             _path = path;
+            _query = query;
             _ipEndPointRegex = whitelist;
 
             if (null == _headers && null != contentType)
