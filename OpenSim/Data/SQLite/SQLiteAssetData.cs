@@ -94,22 +94,24 @@ namespace OpenSim.Data.SQLite
         /// <returns>Asset base</returns>
         override public AssetBase FetchAsset(LLUUID uuid)
         {
-
-            using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
+            lock(this)
             {
-                cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
-                using (IDataReader reader = cmd.ExecuteReader())
+                using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
                 {
-                    if (reader.Read())
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
+                    using (IDataReader reader = cmd.ExecuteReader())
                     {
-                        AssetBase asset = buildAsset(reader);
-                        reader.Close();
-                        return asset;
-                    }
-                    else
-                    {
-                        reader.Close();
-                        return null;
+                        if (reader.Read())
+                        {
+                            AssetBase asset = buildAsset(reader);
+                            reader.Close();
+                            return asset;
+                        }
+                        else
+                        {
+                            reader.Close();
+                            return null;
+                        }
                     }
                 }
             }
@@ -128,17 +130,19 @@ namespace OpenSim.Data.SQLite
             }
             else
             {
-                using (SqliteCommand cmd = new SqliteCommand(InsertAssetSQL, m_conn))
-                {
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));
-                    cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
-                    cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
-                    cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
-                    cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
-                    cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
-                    cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
-
-                    cmd.ExecuteNonQuery();
+                lock(this) {
+                    using (SqliteCommand cmd = new SqliteCommand(InsertAssetSQL, m_conn))
+                    {
+                        cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));
+                        cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
+                        cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
+                        cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
+                        cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
+                        cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
+                        cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
+                        
+                        cmd.ExecuteNonQuery();
+                    }
                 }
             }
         }
@@ -150,20 +154,21 @@ namespace OpenSim.Data.SQLite
         override public void UpdateAsset(AssetBase asset)
         {
             LogAssetLoad(asset);
-
-            using (SqliteCommand cmd = new SqliteCommand(UpdateAssetSQL, m_conn))
-            {
-                cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));
-                cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
-                cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
-                cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
-                cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
-                cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
-                cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
-
-                cmd.ExecuteNonQuery();
+            
+            lock(this) {
+                using (SqliteCommand cmd = new SqliteCommand(UpdateAssetSQL, m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));
+                    cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
+                    cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
+                    cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
+                    cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
+                    cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
+                    cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
+                    
+                    cmd.ExecuteNonQuery();
+                }
             }
-
         }
 
         /// <summary>
@@ -190,20 +195,22 @@ namespace OpenSim.Data.SQLite
         /// <returns>True if exist, or false.</returns>
         override public bool ExistsAsset(LLUUID uuid)
         {
-            using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
-            {
-                cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
-                using (IDataReader reader = cmd.ExecuteReader())
+            lock (this) {
+                using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
                 {
-                    if (reader.Read())
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
+                    using (IDataReader reader = cmd.ExecuteReader())
                     {
-                        reader.Close();
-                        return true;
-                    }
-                    else
-                    {
-                        reader.Close();
-                        return false;
+                        if (reader.Read())
+                        {
+                            reader.Close();
+                            return true;
+                        }
+                        else
+                        {
+                            reader.Close();
+                            return false;
+                        }
                     }
                 }
             }
