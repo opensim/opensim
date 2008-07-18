@@ -417,7 +417,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r)
         {
             m_host.AddScriptLPS(1);
-            return (new LSL_Types.Vector3(1,0,0) * r);
+            double x,y,z,m;
+            m = Math.Sqrt(r.x*r.x+r.y*r.y+r.z*r.z+r.s*r.s);
+            // m is always greater than zero
+            if (m!=1) // if m is not equal to 1 then Rotation needs to be normalized
+            {
+            	r.x/=m;
+            	r.y/=m;
+            	r.z/=m;
+            	r.s/=m;
+            }
+            // Fast Algebric Calculations instead of Vectors & Quaternions Product
+            x = r.x*r.x-r.y*r.y-r.z*r.z+r.s*r.s;
+            y = 2*(r.x*r.y+r.z*r.s);
+            z = 2*(r.x*r.z-r.y*r.s);
+            return (new LSL_Types.Vector3(x,y,z)); 
         }
 
         public LSL_Types.Vector3 llRot2Left(LSL_Types.Quaternion r)
