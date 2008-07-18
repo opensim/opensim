@@ -300,9 +300,8 @@ namespace OpenSim
                 }
                 m_storageConnectionString
                     = startupConfig.GetString("storage_connection_string", "URI=file:OpenSim.db,version=3");
-                m_storagePersistPrimInventories
-                    = startupConfig.GetBoolean("storage_prim_inventories", true);
-
+                m_estateConnectionString
+                    = startupConfig.GetString("estate_connection_string", m_storageConnectionString);
                 m_scriptEngine = startupConfig.GetString("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
                 m_assetStorage = startupConfig.GetString("asset_database", "local");
                 m_clientstackDll = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
@@ -555,9 +554,9 @@ namespace OpenSim
             return clientServer;
         }
 
-        protected override StorageManager CreateStorageManager(string connectionstring)
+        protected override StorageManager CreateStorageManager(string connectionstring, string estateconnectionstring)
         {
-            return new StorageManager(m_storageDll, connectionstring, m_storagePersistPrimInventories);
+            return new StorageManager(m_storageDll, connectionstring, estateconnectionstring);
         }
 
         protected override ClientStackManager CreateClientStackManager()

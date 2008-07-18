@@ -38,7 +38,7 @@ namespace OpenSim.Data.Null
     /// </summary>
     public class NullDataStore : IRegionDataStore
     {
-        public void Initialise(string dbfile, bool persistPrimInventories)
+        public void Initialise(string dbfile)
         {
             return;
         }

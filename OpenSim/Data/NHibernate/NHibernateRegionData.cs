@@ -61,7 +61,7 @@ namespace OpenSim.Data.NHibernate
         //     Initialise("SQLiteDialect;SqliteClientDriver;URI=file:OpenSim.db,version=3", true);
         // }
 
-        public void Initialise(string connect, bool persistpriminventories)
+        public void Initialise(string connect)
         {
             // Split out the dialect, driver, and connect string
             char[] split = {';'};

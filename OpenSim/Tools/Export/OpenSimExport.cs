@@ -54,7 +54,7 @@ namespace OpenSimExport
             sman = new StorageManager(
                 startup.GetString("storage_plugin", "OpenSim.DataStore.NullStorage.dll"),
                 startup.GetString("storage_connection_string", String.Empty),
-                false
+                startup.GetString("estate_connection_string", String.Empty)
                 );
         }
 

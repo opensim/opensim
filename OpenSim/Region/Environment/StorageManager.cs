@@ -55,7 +55,7 @@ namespace OpenSim.Region.Environment
             m_dataStore = storage;
         }
 
-        public StorageManager(string dllName, string connectionstring, bool persistPrimInventories)
+        public StorageManager(string dllName, string connectionstring, string estateconnectionstring)
         {
             m_log.Info("[DATASTORE]: Attempting to load " + dllName);
             Assembly pluginAssembly = Assembly.LoadFrom(dllName);
@@ -70,7 +70,7 @@ namespace OpenSim.Region.Environment
                     {
                         IRegionDataStore plug =
                             (IRegionDataStore) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        plug.Initialise(connectionstring, persistPrimInventories);
+                        plug.Initialise(connectionstring);
 
                         m_dataStore = plug;
 
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Environment
                     {
                         IEstateDataStore estPlug =
                             (IEstateDataStore) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        estPlug.Initialise(connectionstring);
+                        estPlug.Initialise(estateconnectionstring);
 
                         m_estateDataStore = estPlug;
                     }

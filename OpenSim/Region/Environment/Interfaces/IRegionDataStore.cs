@@ -39,8 +39,7 @@ namespace OpenSim.Region.Environment.Interfaces
         /// </summary>
         /// <param name="filename">The file to save the database to (may not be applicable).  Alternatively,
         /// a connection string for the database</param>
-        /// <param name="persistPrimInventories">Temporary switch while this option is immature</param>
-        void Initialise(string filename, bool persistPrimInventories);
+        void Initialise(string filename);
 
         /// <summary>
         /// Stores all object's details apart from inventory

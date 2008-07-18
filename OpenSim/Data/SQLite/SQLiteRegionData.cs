@@ -68,7 +68,6 @@ namespace OpenSim.Data.SQLite
         private String m_connectionString;
 
         // Temporary attribute while this is experimental
-        private bool persistPrimInventories;
 
         /***********************************************************************
          *
@@ -84,11 +83,9 @@ namespace OpenSim.Data.SQLite
         /// </list>
         /// </summary>
         /// <param name="connectionString">the connection string</param>
-        /// <param name="persistPrimInventories">?</param>
-        public void Initialise(string connectionString, bool persistPrimInventories)
+        public void Initialise(string connectionString)
         {
             m_connectionString = connectionString;
-            this.persistPrimInventories = persistPrimInventories;
 
             ds = new DataSet();
 
@@ -137,12 +134,9 @@ namespace OpenSim.Data.SQLite
                 ds.Tables.Add(createShapeTable());
                 setupShapeCommands(shapeDa, m_conn);
 
-                if (persistPrimInventories)
-                {
                     ds.Tables.Add(createItemsTable());
                     setupItemsCommands(itemsDa, m_conn);
                     itemsDa.Fill(ds.Tables["primitems"]);
-                }
 
                 ds.Tables.Add(createTerrainTable());
                 setupTerrainCommands(terrainDa, m_conn);
@@ -267,10 +261,7 @@ namespace OpenSim.Data.SQLite
                         shapeRow.Delete();
                     }
 
-                    if (persistPrimInventories)
-                    {
                         RemoveItems(uuid);
-                    }
 
                     // Remove prim row
                     row.Delete();
@@ -367,11 +358,8 @@ namespace OpenSim.Data.SQLite
                             createdObjects[new LLUUID(objID)].AddPart(prim);
                         }
 
-                        if (persistPrimInventories)
-                        {
                             LoadItems(prim);
                         }
-                    }
                     catch (Exception e)
                     {
                         m_log.Error("[REGION DB]: Failed create prim object, exception and data follows");
@@ -615,10 +603,7 @@ namespace OpenSim.Data.SQLite
                 primDa.Update(ds, "prims");
                 shapeDa.Update(ds, "primshapes");
 
-                if (persistPrimInventories)
-                {
                     itemsDa.Update(ds, "primitems");
-                }
 
                 terrainDa.Update(ds, "terrain");
                 landDa.Update(ds, "land");
@@ -1475,9 +1460,6 @@ namespace OpenSim.Data.SQLite
         /// <param name="items"></param>
         public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
-            if (!persistPrimInventories)
-                return;
-
             m_log.InfoFormat("[REGION DB]: Entered StorePrimInventory with prim ID {0}", primID);
 
             DataTable dbItems = ds.Tables["primitems"];
@@ -1779,8 +1761,6 @@ namespace OpenSim.Data.SQLite
         //         m_log.Warn("[REGION DB]: Shapes Table Already Exists");
         //     }
 
-        //     if (persistPrimInventories)
-        //     {
         //         try
         //         {
         //             icmd.ExecuteNonQuery();
@@ -1789,7 +1769,6 @@ namespace OpenSim.Data.SQLite
         //         {
         //             m_log.Warn("[REGION DB]: Primitives Inventory Table Already Exists");
         //         }
-        //     }
 
         //     try
         //     {
@@ -1851,7 +1830,6 @@ namespace OpenSim.Data.SQLite
                 pDa.Fill(tmpDS, "prims");
                 sDa.Fill(tmpDS, "primshapes");
 
-                if (persistPrimInventories)
                     iDa.Fill(tmpDS, "primitems");
 
                 tDa.Fill(tmpDS, "terrain");
@@ -1874,7 +1852,6 @@ namespace OpenSim.Data.SQLite
             // pDa.Fill(tmpDS, "prims");
             // sDa.Fill(tmpDS, "primshapes");
 
-            // if (persistPrimInventories)
             //     iDa.Fill(tmpDS, "primitems");
 
             // tDa.Fill(tmpDS, "terrain");

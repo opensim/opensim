@@ -42,16 +42,9 @@ storage_connection_string="URI=file:OpenSim.db,version=3";
 ;     note that the supplied account needs create privilegies if you want it to auto-create needed tables.
 ; storage_plugin="OpenSim.Data.MySQL.dll"
 ; storage_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
-
-; turn on experimental storage of prim inventories in the region database
-
-; Prim inventory storage is now turned on by default
-; However, this option remains in case it needs to be disabled
-; More details of the current state of this can be found at
-;
-; http://opensimulator.org/wiki/OpenSim:Prim_Inventory_Persistence
-;
-storage_prim_inventories = true
+; If you want to use a different database/server for estate data, then
+; uncomment and change this connect string. Defaults to the above if not set
+; estate_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
 
 ; Select whether you want to use local or grid asset storage.
 ;

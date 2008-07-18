@@ -92,9 +92,6 @@ namespace OpenSim.Data.MySQL
         private DataTable m_landAccessListTable;
         private DataTable m_regionSettingsTable;
 
-        /// <value>Temporary attribute while this is experimental</value>
-        private bool persistPrimInventories;
-
         /***********************************************************************
          *
          *  Public Interface Functions
@@ -105,13 +102,11 @@ namespace OpenSim.Data.MySQL
         /// see IRegionDataStore
         /// </summary>
         /// <param name="connectionstring"></param>
-        /// <param name="persistPrimInventories"></param>
-        public void Initialise(string connectionString, bool persistPrimInventories)
+        public void Initialise(string connectionString)
         {
             m_connectionString = connectionString;
             
             m_dataSet = new DataSet();
-            this.persistPrimInventories = persistPrimInventories;
 
             int passPosition = 0;
             int passEndPosition = 0;
@@ -184,13 +179,10 @@ namespace OpenSim.Data.MySQL
                 m_shapeDataAdapter.Fill(m_shapeTable);
                 
 
-                if (persistPrimInventories)
-                {
                     m_itemsTable = createItemsTable();
                     m_dataSet.Tables.Add(m_itemsTable);
                     SetupItemsCommands(m_itemsDataAdapter, m_connection);
                     m_itemsDataAdapter.Fill(m_itemsTable);
-                }
 
                 m_terrainTable = createTerrainTable();
                 m_dataSet.Tables.Add(m_terrainTable);
@@ -429,10 +421,7 @@ namespace OpenSim.Data.MySQL
                         shapeRow.Delete();
                     }
 
-                    if (persistPrimInventories)
-                    {
                         RemoveItems(uuid);
-                    }
 
                     // Remove prim row
                     row.Delete();
@@ -527,11 +516,8 @@ namespace OpenSim.Data.MySQL
                             createdObjects[new LLUUID(objID)].AddPart(prim);
                         }
 
-                        if (persistPrimInventories)
-                        {
                             LoadItems(prim);
                         }
-                    }
                     catch (Exception e)
                     {
                         m_log.Error("[REGION DB]: Failed create prim object, exception and data follows");
@@ -827,10 +813,7 @@ namespace OpenSim.Data.MySQL
                 m_primDataAdapter.Update(m_primTable);
                 m_shapeDataAdapter.Update(m_shapeTable);
 
-                if (persistPrimInventories)
-                {
                     m_itemsDataAdapter.Update(m_itemsTable);
-                }
 
                 m_terrainDataAdapter.Update(m_terrainTable);
                 m_landDataAdapter.Update(m_landTable);
@@ -1812,9 +1795,6 @@ namespace OpenSim.Data.MySQL
         /// <param name="items"></param>
         public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
-            if (!persistPrimInventories)
-                return;
-
             m_log.InfoFormat("[REGION DB]: Persisting Prim Inventory with prim ID {0}", primID);
 
             // For now, we're just going to crudely remove all the previous inventory items
@@ -2241,7 +2221,6 @@ namespace OpenSim.Data.MySQL
             // pDa.Fill(tmpDS, "prims");
             // sDa.Fill(tmpDS, "primshapes");
 
-            // if (persistPrimInventories)
             //     iDa.Fill(tmpDS, "primitems");
 
             // tDa.Fill(tmpDS, "terrain");

@@ -62,12 +62,9 @@ namespace OpenSim.Region.ClientStack
 
         protected StorageManager m_storageManager;
         protected string m_storageConnectionString;
+        protected string m_estateConnectionString;
 
         protected ClientStackManager m_clientStackManager;
-
-        // An attribute to indicate whether prim inventories should be persisted.
-        // Probably will be temporary until this stops being experimental.
-        protected bool m_storagePersistPrimInventories;
 
         public SceneManager SceneManager
         {
@@ -78,7 +75,7 @@ namespace OpenSim.Region.ClientStack
         {
             base.Startup();
             
-            m_storageManager = CreateStorageManager(m_storageConnectionString);
+            m_storageManager = CreateStorageManager(m_storageConnectionString, m_estateConnectionString);
 
             m_clientStackManager = CreateClientStackManager();
 
@@ -101,7 +98,7 @@ namespace OpenSim.Region.ClientStack
 
         // protected abstract ConsoleBase CreateConsole();
         protected abstract PhysicsScene GetPhysicsScene();
-        protected abstract StorageManager CreateStorageManager(string connectionstring);
+        protected abstract StorageManager CreateStorageManager(string connectionstring, string estateconnectionstring);
         protected abstract ClientStackManager CreateClientStackManager();
 
         protected PhysicsScene GetPhysicsScene(string engine, string meshEngine, IConfigSource config)
