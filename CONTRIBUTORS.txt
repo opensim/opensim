@@ -28,6 +28,7 @@ OpenSim Developers
 * Alondria
 * Dr Scofield (IBM)
 * dahlia
+* mikem (3Di)
 
 
 Patches

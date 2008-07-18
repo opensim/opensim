@@ -3421,6 +3421,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             try
             {
+                if (src.Data[index] is LSL_Types.LSLInteger)
+                    return Convert.ToInt32(((LSL_Types.LSLInteger) src.Data[index]).value);
+                else if (src.Data[index] is LSL_Types.LSLFloat)
+                    return Convert.ToInt32(((LSL_Types.LSLFloat) src.Data[index]).value);
+                else if (src.Data[index] is LSL_Types.LSLString)
+                    return Convert.ToInt32(((LSL_Types.LSLString) src.Data[index]).m_string);
                 return Convert.ToInt32(src.Data[index]);
             }
             catch (FormatException)
@@ -3440,6 +3446,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return 0.0;
             }
+            if (src.Data[index] is LSL_Types.LSLInteger)
+                return Convert.ToDouble(((LSL_Types.LSLInteger) src.Data[index]).value);
+            else if (src.Data[index] is LSL_Types.LSLFloat)
+                return Convert.ToDouble(((LSL_Types.LSLFloat) src.Data[index]).value);
+            else if (src.Data[index] is LSL_Types.LSLString)
+                return Convert.ToDouble(((LSL_Types.LSLString) src.Data[index]).m_string);
             return Convert.ToDouble(src.Data[index]);
         }
 
@@ -3456,6 +3468,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             try
             {
+                if (src.Data[index] is LSL_Types.LSLInteger)
+                    return Convert.ToDouble(((LSL_Types.LSLInteger) src.Data[index]).value);
+                else if (src.Data[index] is LSL_Types.LSLFloat)
+                    return Convert.ToDouble(((LSL_Types.LSLFloat) src.Data[index]).value);
+                else if (src.Data[index] is LSL_Types.LSLString)
+                    return Convert.ToDouble(((LSL_Types.LSLString) src.Data[index]).m_string);
                 return Convert.ToDouble(src.Data[index]);
             }
             catch (FormatException)
