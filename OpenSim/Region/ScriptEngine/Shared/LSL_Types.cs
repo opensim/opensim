@@ -1309,6 +1309,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLInteger(u);
             }
 
+            static public implicit operator LSLInteger(double d)
+            {
+                return new LSLInteger(d);
+            }
+
             static public bool operator ==(LSLInteger i1, LSLInteger i2)
             {
                 bool ret = i1.value == i2.value;
