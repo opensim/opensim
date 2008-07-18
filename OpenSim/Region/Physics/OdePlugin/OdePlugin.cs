@@ -1127,10 +1127,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
                                      IMesh mesh, PrimitiveBaseShape pbs, bool isphysical)
         {
-            PhysicsVector pos = new PhysicsVector();
-            pos.X = position.X;
-            pos.Y = position.Y;
-            pos.Z = position.Z;
+            PhysicsVector pos = new PhysicsVector(position.X, position.Y, position.Z);
+            //pos.X = position.X;
+            //pos.Y = position.Y;
+            //pos.Z = position.Z;
             PhysicsVector siz = new PhysicsVector();
             siz.X = size.X;
             siz.Y = size.Y;
@@ -1171,17 +1171,19 @@ namespace OpenSim.Region.Physics.OdePlugin
             PhysicsActor result;
             IMesh mesh = null;
 
-            switch (pbs.ProfileShape)
-            {
-                case ProfileShape.Square:
+            //switch (pbs.ProfileShape)
+            //{
+            //    case ProfileShape.Square:
                     /// support simple box & hollow box now; later, more shapes
-                    if (needsMeshing(pbs))
-                    {
-                        mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
-                    }
+                    //if (needsMeshing(pbs))
+                    //{
+                    //    mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
+                    //}
 
-                    break;
-            }
+            //        break;
+            //}
+
+            mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
 
             result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
 
@@ -1521,61 +1523,61 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         /// <param name="pbs"></param>
         /// <returns></returns>
-        public bool needsMeshing(PrimitiveBaseShape pbs)
-        {
-            //if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle && pbs.ProfileCurve == (byte)LLObject.ProfileCurve.Circle && pbs.PathScaleY <= 0.75f)
-            //Console.WriteLine("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + LLObject.UnpackPathScale(pbs.PathScaleY).ToString());
-            if (pbs.SculptEntry && !meshSculptedPrim)
-            {
-                return false;
-            }
+        //public bool needsMeshing(PrimitiveBaseShape pbs)
+        //{
+        //    //if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle && pbs.ProfileCurve == (byte)LLObject.ProfileCurve.Circle && pbs.PathScaleY <= 0.75f)
+        //    //Console.WriteLine("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + LLObject.UnpackPathScale(pbs.PathScaleY).ToString());
+        //    if (pbs.SculptEntry && !meshSculptedPrim)
+        //    {
+        //        return false;
+        //    }
 
-            if (pbs.ProfileHollow != 0)
-                return true;
+        //    if (pbs.ProfileHollow != 0)
+        //        return true;
 
-            if (((Int16)pbs.PathTwistBegin != 0) || ((Int16)pbs.PathTwist != 0))
-                return true;
+        //    if (((Int16)pbs.PathTwistBegin != 0) || ((Int16)pbs.PathTwist != 0))
+        //        return true;
 
-            if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
-                return true;
+        //    if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
+        //        return true;
 
-            if ((pbs.PathScaleX != 100) || (pbs.PathScaleY != 100))
-                return true;
+        //    if ((pbs.PathScaleX != 100) || (pbs.PathScaleY != 100))
+        //        return true;
 
-            if ((pbs.PathShearX != 0) || (pbs.PathShearY != 0))
-                return true;
+        //    if ((pbs.PathShearX != 0) || (pbs.PathShearY != 0))
+        //        return true;
 
-            if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
-                return true;
-            //if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1 && (pbs.Scale.X != pbs.Scale.Y || pbs.Scale.Y != pbs.Scale.Z || pbs.Scale.Z != pbs.Scale.X))
-            //    return true;
+        //    if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
+        //        return true;
+        //    //if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1 && (pbs.Scale.X != pbs.Scale.Y || pbs.Scale.Y != pbs.Scale.Z || pbs.Scale.Z != pbs.Scale.X))
+        //    //    return true;
 
-            if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte) Extrusion.Curve1)
-                return true;
+        //    if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte) Extrusion.Curve1)
+        //        return true;
 
-            // test for torus
-            if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
-                && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.Circle
-                && LLObject.UnpackPathScale(pbs.PathScaleY) <= 0.75f)
-                return true;
+        //    // test for torus
+        //    if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
+        //        && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.Circle
+        //        && LLObject.UnpackPathScale(pbs.PathScaleY) <= 0.75f)
+        //        return true;
 
-            // test for tube
-            if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
-                && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.EqualTriangle)
-                return true;
+        //    // test for tube
+        //    if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
+        //        && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.EqualTriangle)
+        //        return true;
 
-            // test for ring
-            if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
-                && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.EqualTriangle)
-                return true;
+        //    // test for ring
+        //    if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
+        //        && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.EqualTriangle)
+        //        return true;
 
-            if (pbs.ProfileShape == ProfileShape.EquilateralTriangle)
-                return true;
+        //    if (pbs.ProfileShape == ProfileShape.EquilateralTriangle)
+        //        return true;
 
             
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /// <summary>
         /// Called after our prim properties are set Scale, position etc.
