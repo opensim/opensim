@@ -245,7 +245,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                             ScenePresence s = m_scene.GetScenePresence(user);
                             if (s != null)
                             {
-                                m_scene.TeleportClientHome(user, s.ControllingClient);
+                                if(!s.IsChildAgent)
+                                    m_scene.TeleportClientHome(user, s.ControllingClient);
                             }
 
                         }

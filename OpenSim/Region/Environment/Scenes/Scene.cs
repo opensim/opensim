@@ -269,15 +269,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_externalChecks = new SceneExternalChecks(this);
 
             // Load region settings
-            // First try database
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
-            // Hook up save event
-            m_regInfo.RegionSettings.OnSave +=  m_storageManager.DataStore.StoreRegionSettings;
             if(m_storageManager.EstateDataStore != null)
-            {
                 m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID);
-                m_regInfo.EstateSettings.OnSave +=  m_storageManager.EstateDataStore.StoreEstateSettings;
-            }
 
 
 

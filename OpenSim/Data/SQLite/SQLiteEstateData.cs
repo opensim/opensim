@@ -86,6 +86,7 @@ namespace OpenSim.Data.SQLite
         public EstateSettings LoadEstateSettings(LLUUID regionID)
         {
             EstateSettings es = new EstateSettings();
+            es.OnSave += StoreEstateSettings;
 
             string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = @RegionID";
 
@@ -184,6 +185,8 @@ namespace OpenSim.Data.SQLite
                 catch (Exception)
                 {
                 }
+
+                es.Save();
             }
 
             LoadBanList(es);
