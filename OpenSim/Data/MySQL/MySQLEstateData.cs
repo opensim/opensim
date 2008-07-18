@@ -60,8 +60,31 @@ namespace OpenSim.Data.MySQL
         public void Initialise(string connectionString)
         {
             m_connectionString = connectionString;
+
+            int passPosition = 0;
+            int passEndPosition = 0;
+            string displayConnectionString = null;
+
+            try
+            {  // hide the password in the connection string
+                passPosition = m_connectionString.IndexOf("password", StringComparison.OrdinalIgnoreCase);
+                passPosition = m_connectionString.IndexOf("=", passPosition);
+                if (passPosition < m_connectionString.Length)
+                    passPosition += 1;
+                passEndPosition = m_connectionString.IndexOf(";", passPosition);
+
+                displayConnectionString = m_connectionString.Substring(0, passPosition);
+                displayConnectionString += "***";
+                displayConnectionString += m_connectionString.Substring(passEndPosition, m_connectionString.Length - passEndPosition);
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("Exception: password not found in connection string\n" + e.ToString());
+            }
+
+            m_log.Info("[REGION DB]: MySql - connecting: " + displayConnectionString);
             
-            m_log.Info("[ESTATE DB]: MySql - connecting: "+m_connectionString);
+            //m_log.Info("[ESTATE DB]: MySql - connecting: "+m_connectionString);
 
             m_connection = new MySqlConnection(m_connectionString);
             m_connection.Open();
