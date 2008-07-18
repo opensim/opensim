@@ -114,31 +114,25 @@ namespace OpenSim.Data.NHibernate
             return null;
         }
         
+        // This looks inefficient, but it turns out that it isn't
+        // based on trial runs with nhibernate 1.2
         private void SaveOrUpdate(SceneObjectPart p)
         {
             try
             {
-                ICriteria criteria = session.CreateCriteria(typeof(SceneObjectPart));
-                criteria.Add(Expression.Eq("UUID", p.UUID));
-                ArrayList l = (ArrayList)criteria.List();
-                if (l.Count < 1) 
-                {
-                    session.Save(p);
-                }
-                else if (l.Count == 1)
-                {
-                    SceneObjectPart old = (SceneObjectPart)l[0];
-                    session.Evict(old);
-                    session.Update(p);
-                }
-                else 
-                {
-                    m_log.Error("Not unique");
-                }
+                SceneObjectPart old = session.Load(typeof(SceneObjectPart), p.UUID) as SceneObjectPart;
+                session.Evict(old);
+                session.Update(p);
+                m_log.InfoFormat("[NHIBERNATE] updating object {0}", p.UUID);
+            }
+            catch (ObjectNotFoundException e)
+            {
+                m_log.InfoFormat("[NHIBERNATE] saving object {0}", p.UUID);
+                session.Save(p);
             }
             catch (Exception e)
             {
-                m_log.Error("[NHIBERNATE] issue saving prim", e);
+                m_log.Error("[NHIBERNATE] issue saving part", e);
             }
         }
 
@@ -146,23 +140,15 @@ namespace OpenSim.Data.NHibernate
         {
             try
             {
-                ICriteria criteria = session.CreateCriteria(typeof(Terrain));
-                criteria.Add(Expression.Eq("RegionID", t.RegionID));
-                ArrayList l = (ArrayList)criteria.List();
-                if (l.Count < 1) 
-                {
-                    session.Save(t);
-                }
-                else if (l.Count == 1)
-                {
-                    Terrain old = (Terrain)l[0];
-                    session.Evict(old);
-                    session.Update(t);
-                }
-                else 
-                {
-                    m_log.Error("Not unique");
-                }
+                Terrain old = session.Load(typeof(Terrain), t.RegionID) as Terrain;
+                session.Evict(old);
+                session.Update(t);
+                session.Flush();
+            }
+            catch (ObjectNotFoundException e)
+            {
+                session.Save(t);
+                session.Flush();
             }
             catch (Exception e)
             {

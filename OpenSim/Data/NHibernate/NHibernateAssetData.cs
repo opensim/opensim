@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -33,6 +34,7 @@ using libsecondlife;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
+using NHibernate.Expression;
 using NHibernate.Mapping.Attributes;
 using NHibernate.Tool.hbm2ddl;
 using OpenSim.Framework;
@@ -105,36 +107,45 @@ namespace OpenSim.Data.NHibernate
             {
                 return session.Load(typeof(AssetBase), uuid) as AssetBase;
             }
+            catch (ObjectNotFoundException e)
+            {
+                m_log.ErrorFormat("[NHIBERNATE] no such asset {0}", uuid);
+                return null;
+            } 
             catch (Exception e)
             {
-                m_log.Error("[NHIBERNATE] issue loading asset", e);
+                m_log.Error("[NHIBERNATE] unexpected exception: ", e);
                 return null;
+            }
+        }
+
+        private void Save(AssetBase asset)
+        {
+            try 
+            {
+                AssetBase a = session.Load(typeof(AssetBase), asset.FullID) as AssetBase;
+            }
+            catch (ObjectNotFoundException e)
+            {
+                session.Save(asset);
+                session.Flush();
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[NHIBERNATE] issue saving asset", e);
             }
         }
 
         override public void CreateAsset(AssetBase asset)
         {
-            if (!ExistsAsset(asset.FullID))
-            {
-                m_log.InfoFormat("[NHIBERNATE] inserting asset {0}", asset.FullID);
-                using (ITransaction transaction = session.BeginTransaction())
-                {
-                    session.Save(asset);
-                    transaction.Commit();
-                }
-            }
+            m_log.InfoFormat("[NHIBERNATE] inserting asset {0}", asset.FullID);
+            Save(asset);
         }
 
         override public void UpdateAsset(AssetBase asset)
         {
-            if (ExistsAsset(asset.FullID))
-            {
-                using (ITransaction transaction = session.BeginTransaction())
-                {
-                    session.Update(asset);
-                    transaction.Commit();
-                }
-            }
+            m_log.InfoFormat("[NHIBERNATE] updating asset {0}", asset.FullID);
+            Save(asset);
         }
 
         // private void LogAssetLoad(AssetBase asset)
