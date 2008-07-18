@@ -1,15 +1,22 @@
+drop table if exists `estate_groups`;
 CREATE TABLE `estate_groups` (
   `EstateID` int(10) NOT NULL,
   `uuid` char(36) NOT NULL
 );
+
+drop table if exists `estate_managers`;
 CREATE TABLE `estate_managers` (
   `EstateID` int(10) NOT NULL,
   `uuid` char(36) NOT NULL
 );
+
+drop table if exists `estate_map`;
 CREATE TABLE `estate_map` (
   `RegionID` char(36) NOT NULL default '00000000-0000-0000-0000-000000000000',
   `EstateID` int(11) NOT NULL
 );
+
+drop table if exists `estate_settings`;
 CREATE TABLE `estate_settings` (
   `EstateID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   `EstateName` varchar(64) default NULL,
@@ -39,6 +46,8 @@ CREATE TABLE `estate_users` (
   `EstateID` int(10) NOT NULL,
   `uuid` char(36) NOT NULL
 );
+
+drop table if exists `estateban`;
 CREATE TABLE `estateban` (
   `EstateID` int(10) NOT NULL,
   `bannedUUID` varchar(36) NOT NULL,
@@ -46,6 +55,7 @@ CREATE TABLE `estateban` (
   `bannedIpHostMask` varchar(16) NOT NULL,
   `bannedNameMask` varchar(64) default NULL
 );
+
 drop table if exists `regionsettings`;
 CREATE TABLE `regionsettings` (
   `regionUUID` char(36) NOT NULL,
@@ -84,9 +94,10 @@ CREATE TABLE `regionsettings` (
   `Sandbox` tinyint(4) NOT NULL,
   PRIMARY KEY  (`regionUUID`)
 );
+
 CREATE INDEX `estate_ban_estate_id` on `estateban`(`EstateID`);
 CREATE INDEX `estate_groups_estate_id` on `estate_groups`(`EstateID`);
 CREATE INDEX `estate_managers_estate_id` on `estate_managers`(`EstateID`);
 CREATE INDEX `estate_map_estate_id` on `estate_map`(`EstateID`);
-CREATE UNIQUE INDEX `estate_map_region)id` on `estate_map`(`RegionID`);
+CREATE UNIQUE INDEX `estate_map_region_id` on `estate_map`(`RegionID`);
 CREATE INDEX `estate_users_estate_id` on `estate_users`(`EstateID`);
