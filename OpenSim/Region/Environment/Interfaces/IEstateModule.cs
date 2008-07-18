@@ -34,5 +34,6 @@ namespace OpenSim.Region.Environment.Interfaces
     public interface IEstateModule : IRegionModule
     {
         uint GetRegionFlags();
+        bool IsManager(LLUUID avatarID);
     }
 }

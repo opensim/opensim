@@ -796,5 +796,17 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
             return (uint)flags;
         }
+
+        public bool IsManager(LLUUID avatarID)
+        {
+            if (avatarID == m_scene.RegionInfo.MasterAvatarAssignedUUID)
+                return true;
+
+            List<LLUUID> ems = new List<LLUUID>(m_scene.RegionInfo.EstateSettings.EstateManagers);
+            if(ems.Contains(avatarID))
+                return true;
+
+            return false;
+        }
     }
 }
