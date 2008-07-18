@@ -36,7 +36,7 @@ namespace OpenSim.Framework
 {
     public class EstateSettings
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private ConfigurationMember configMember;
 
         public delegate void SaveDelegate(EstateSettings rs);
@@ -268,21 +268,21 @@ namespace OpenSim.Framework
 
         public void Save()
         {
-            if(OnSave != null)
+            if (OnSave != null)
                 OnSave(this);
         }
 
         public void AddEstateManager(LLUUID avatarID)
         {
-            if(avatarID == null || avatarID == LLUUID.Zero)
+            if (avatarID == LLUUID.Zero)
                 return;
-            if(!l_EstateManagers.Contains(avatarID))
+            if (!l_EstateManagers.Contains(avatarID))
                 l_EstateManagers.Add(avatarID);
         }
 
         public void RemoveEstateManager(LLUUID avatarID)
         {
-            if(l_EstateManagers.Contains(avatarID))
+            if (l_EstateManagers.Contains(avatarID))
                 l_EstateManagers.Remove(avatarID);
         }
 
@@ -294,16 +294,16 @@ namespace OpenSim.Framework
         public bool IsBanned(LLUUID avatarID)
         {
             foreach (EstateBan ban in l_EstateBans)
-                if(ban.bannedUUID == avatarID)
+                if (ban.bannedUUID == avatarID)
                     return true;
             return false;
         }
 
         public void AddBan(EstateBan ban)
         {
-            if(ban == null)
+            if (ban == null)
                 return;
-            if(!IsBanned(ban.bannedUUID))
+            if (!IsBanned(ban.bannedUUID))
                 l_EstateBans.Add(ban);
         }
 
@@ -315,7 +315,7 @@ namespace OpenSim.Framework
         public void RemoveBan(LLUUID avatarID)
         {
             foreach (EstateBan ban in new List<EstateBan>(l_EstateBans))
-                if(ban.bannedUUID == avatarID)
+                if (ban.bannedUUID == avatarID)
                     l_EstateBans.Remove(ban);
         }
 
@@ -400,27 +400,27 @@ namespace OpenSim.Framework
             {
                 case "region_flags":
                     Simulator.RegionFlags flags = (Simulator.RegionFlags)(uint)configuration_result;
-                    if((flags & (Simulator.RegionFlags)(1<<29)) != 0)
+                    if ((flags & (Simulator.RegionFlags)(1<<29)) != 0)
                         m_AllowVoice = true;
-                    if((flags & Simulator.RegionFlags.AllowDirectTeleport) != 0)
+                    if ((flags & Simulator.RegionFlags.AllowDirectTeleport) != 0)
                         m_AllowDirectTeleport = true;
-                    if((flags & Simulator.RegionFlags.DenyAnonymous) != 0)
+                    if ((flags & Simulator.RegionFlags.DenyAnonymous) != 0)
                          m_DenyAnonymous = true;
-                    if((flags & Simulator.RegionFlags.DenyIdentified) != 0)
+                    if ((flags & Simulator.RegionFlags.DenyIdentified) != 0)
                         m_DenyIdentified = true;
-                    if((flags & Simulator.RegionFlags.DenyTransacted) != 0)
+                    if ((flags & Simulator.RegionFlags.DenyTransacted) != 0)
                         m_DenyTransacted = true;
-                    if((flags & Simulator.RegionFlags.AbuseEmailToEstateOwner) != 0)
+                    if ((flags & Simulator.RegionFlags.AbuseEmailToEstateOwner) != 0)
                         m_AbuseEmailToEstateOwner = true;
-                    if((flags & Simulator.RegionFlags.BlockDwell) != 0)
+                    if ((flags & Simulator.RegionFlags.BlockDwell) != 0)
                         m_BlockDwell = true;
-                    if((flags & Simulator.RegionFlags.EstateSkipScripts) != 0)
+                    if ((flags & Simulator.RegionFlags.EstateSkipScripts) != 0)
                         m_EstateSkipScripts = true;
-                    if((flags & Simulator.RegionFlags.ResetHomeOnTeleport) != 0)
+                    if ((flags & Simulator.RegionFlags.ResetHomeOnTeleport) != 0)
                         m_ResetHomeOnTeleport = true;
-                    if((flags & Simulator.RegionFlags.TaxFree) != 0)
+                    if ((flags & Simulator.RegionFlags.TaxFree) != 0)
                         m_TaxFree = true;
-                    if((flags & Simulator.RegionFlags.PublicAllowed) != 0)
+                    if ((flags & Simulator.RegionFlags.PublicAllowed) != 0)
                         m_PublicAccess = true;
                     break;
                 case "billable_factor":
