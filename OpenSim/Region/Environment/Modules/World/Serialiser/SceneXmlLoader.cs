@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Scenes
             return grp.ToXmlString2();
         }
 
-        public static SceneObjectGroup LoadGroupFromXml2(Scene scene, string xmlString)
+        public static SceneObjectGroup DeserializeGroupFromXml2(string xmlString)
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
@@ -124,15 +124,15 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
-                    CreatePrimFromXml2(scene, aPrimNode.OuterXml);
+                    // There is only ever one prim.  This oddity should be removeable post 0.5.9
+                    return new SceneObjectGroup(aPrimNode.OuterXml);
                 }
-                
-                // There is only ever one prim, but it's easiest to return null here since this part should disappear post 0.5.9 anyway
+                               
                 return null;
             }
             else
             {
-                return CreatePrimFromXml2(scene, rootNode.OuterXml);
+                return new SceneObjectGroup(rootNode.OuterXml);
             }            
         }
 

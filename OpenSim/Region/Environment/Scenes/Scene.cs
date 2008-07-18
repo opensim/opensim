@@ -1902,7 +1902,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Warn("{[INTERREGION]: A new prim arrived from a neighbor");
             if (XMLMethod == 0)
             {
-                m_serialiser.LoadGroupFromXml2(this, objXMLData);
+                SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);                
+                AddRestoredSceneObject(sceneObject, true, false);
 
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                 if (RootPrim != null)

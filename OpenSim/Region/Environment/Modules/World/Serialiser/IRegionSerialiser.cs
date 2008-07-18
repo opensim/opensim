@@ -81,12 +81,11 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         void SavePrimListToXml2(List<EntityBase> entityList, string fileName);
 
         /// <summary>
-        /// Load an individual scene object from the xml2 format
+        /// Deserializes a scene object from its xml2 representation.  This does not load the object into the scene.
         /// </summary>
-        /// <param name="scene"></param>
         /// <param name="xmlString"></param>
         /// <returns>The scene object created.  null if the scene object already existed</returns>
-        SceneObjectGroup LoadGroupFromXml2(Scene scene, string xmlString);
+        SceneObjectGroup DeserializeGroupFromXml2(string xmlString);
 
         /// <summary>
         /// Serialize an individual scene object into the xml2 format

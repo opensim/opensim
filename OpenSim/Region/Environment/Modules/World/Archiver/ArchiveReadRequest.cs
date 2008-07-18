@@ -123,21 +123,19 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             foreach (string serialisedSceneObject in serialisedSceneObjects)
             {             
-                SceneObjectGroup sceneObject = serialiser.LoadGroupFromXml2(m_scene, serialisedSceneObject);
+                SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
                 
-                // TODO: Change object creator/owner here
-                
-                if (null != sceneObject)
+                // Make the master the owner/creator of everything imported for now
+                LLUUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
-                    // Make the master the owner/creator of everything imported for now
-                    LLUUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-                    foreach (SceneObjectPart part in sceneObject.Children.Values)
-                    {
-                        part.CreatorID = masterAvatarId;
-                        part.OwnerID = masterAvatarId;
-                        part.LastOwnerID = masterAvatarId;
-                    }
-                        
+                    part.CreatorID = masterAvatarId;
+                    part.OwnerID = masterAvatarId;
+                    part.LastOwnerID = masterAvatarId;
+                }                                                
+                
+                if (m_scene.AddRestoredSceneObject(sceneObject, true, false))
+                {                        
                     sceneObjects.Add(sceneObject);
                 }
             }            
