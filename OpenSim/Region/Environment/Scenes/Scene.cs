@@ -2474,6 +2474,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="capsObjectPath"></param>
         public void AddCapsHandler(LLUUID agentId)
         {
+			if(RegionInfo.EstateSettings.IsBanned(agentId))
+				return;
             String capsObjectPath = GetCapsPath(agentId);
 
             m_log.DebugFormat(
