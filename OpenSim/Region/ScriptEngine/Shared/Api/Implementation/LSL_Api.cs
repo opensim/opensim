@@ -2487,7 +2487,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_host.ParentGroup.Children.Count > 1)
             {
-                return m_host.LinkNum + 1;
+                return m_host.LinkNum;
             }
             else
             {
@@ -2923,7 +2923,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             object[] resobj = new object[]
                             {
-                                new LSL_Types.LSLInteger(m_host.LinkNum + 1), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
+                                new LSL_Types.LSLInteger(m_host.LinkNum), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
                             };
 
                             m_ScriptEngine.PostScriptEvent(partItemID,
@@ -2947,7 +2947,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 partItemID = item.ItemID;
                                 Object[] resobj = new object[]
                                 {
-                                    new LSL_Types.LSLInteger(m_host.LinkNum + 1), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
+                                    new LSL_Types.LSLInteger(m_host.LinkNum), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
                                 };
 
                                 m_ScriptEngine.PostScriptEvent(partItemID,
@@ -2975,7 +2975,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     partItemID = item.ItemID;
                                     Object[] resobj = new object[]
                                     {
-                                        new LSL_Types.LSLInteger(m_host.LinkNum + 1), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
+                                        new LSL_Types.LSLInteger(m_host.LinkNum), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
                                     };
 
                                     m_ScriptEngine.PostScriptEvent(partItemID,
@@ -3005,7 +3005,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     partItemID = item.ItemID;
                                     Object[] resobj = new object[]
                                     {
-                                        new LSL_Types.LSLInteger(m_host.LinkNum + 1), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
+                                        new LSL_Types.LSLInteger(m_host.LinkNum), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
                                     };
 
                                     m_ScriptEngine.PostScriptEvent(partItemID,
@@ -3029,7 +3029,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             object[] resobj = new object[]
                             {
-                                new LSL_Types.LSLInteger(m_host.LinkNum + 1), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
+                                new LSL_Types.LSLInteger(m_host.LinkNum), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
                             };
 
                             m_ScriptEngine.PostScriptEvent(partItemID,
@@ -3045,7 +3045,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
                     {
 
-                        if ((partInst.LinkNum + 1) == linknum)
+                        if ((partInst.LinkNum) == linknum)
                         {
 
                             foreach (TaskInventoryItem item in partInst.TaskInventory.Values)
@@ -3056,7 +3056,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     partItemID = item.ItemID;
                                     Object[] resObjDef = new object[]
                                     {
-                                        new LSL_Types.LSLInteger(m_host.LinkNum + 1), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
+                                        new LSL_Types.LSLInteger(m_host.LinkNum), new LSL_Types.LSLInteger(num), new LSL_Types.LSLString(msg), new LSL_Types.LSLString(id)
                                     };
 
                                     m_ScriptEngine.PostScriptEvent(partItemID,
@@ -5046,7 +5046,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
                 {
-                    if ((partInst.LinkNum + 1) == linknumber)
+                    if ((partInst.LinkNum) == linknumber)
                     {
                         part = partInst;
                         break;

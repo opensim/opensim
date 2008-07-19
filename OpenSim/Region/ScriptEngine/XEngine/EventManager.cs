@@ -93,9 +93,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (part == null)
                 return;
 
-            det[0].LinkNum = 0;
-            if (part.ParentGroup.Children.Count > 0)
-                det[0].LinkNum = part.LinkNum + 1;
+            det[0].LinkNum = part.LinkNum;
 
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "touch_start", new Object[] { new LSL_Types.LSLInteger(1) },
@@ -119,9 +117,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (part == null)
                 return;
 
-            det[0].LinkNum = 0;
-            if (part.ParentGroup.Children.Count > 0)
-                det[0].LinkNum = part.LinkNum + 1;
+            det[0].LinkNum = part.LinkNum;
 
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "touch", new Object[] { new LSL_Types.LSLInteger(1) },
@@ -141,9 +137,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (part == null)
                 return;
 
-            det[0].LinkNum = 0;
-            if (part.ParentGroup.Children.Count > 0)
-                det[0].LinkNum = part.LinkNum + 1;
+            det[0].LinkNum = part.LinkNum;
 
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "touch_end", new Object[] { new LSL_Types.LSLInteger(1) },

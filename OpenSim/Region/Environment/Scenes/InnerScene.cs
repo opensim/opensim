@@ -1372,7 +1372,16 @@ namespace OpenSim.Region.Environment.Scenes
 
             // We need to explicitly resend the newly link prim's object properties since no other actions
             // occur on link to invoke this elsewhere (such as object selection)
-            parenPrim.GetProperties(client);
+            parenPrim.TriggerScriptChangedEvent(Changed.LINK);
+            if(client != null)
+                parenPrim.GetProperties(client);
+            else
+            {
+                foreach (ScenePresence p in ScenePresences.Values)
+                {
+                    parenPrim.GetProperties(p.ControllingClient);
+                }
+            }
         }
 
         /// <summary>
@@ -1380,6 +1389,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="prims"></param>
         protected internal void DelinkObjects(List<uint> primIds)
+        {
+            DelinkObjects(primIds, true);
+        }
+
+        protected internal void DelinkObjects(List<uint> primIds, bool sendEvents)
         {
             SceneObjectGroup parenPrim = null;
 
@@ -1407,7 +1421,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (sceneObjects.ContainsKey(primIds[i]))
                 {
-
                     parenPrim = sceneObjects[primIds[i]];
                     primIds.RemoveAt(i);
                     break;
@@ -1418,11 +1431,64 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (uint childPrimId in primIds)
                 {
-                    parenPrim.DelinkFromGroup(childPrimId);
+                    parenPrim.DelinkFromGroup(childPrimId, sendEvents);
+                }
+
+                if(parenPrim.Children.Count == 1)
+                {
+                    // The link set has been completely torn down
+                    // This is the case if you select a link set and delink
+                    //
+                    parenPrim.RootPart.LinkNum = 1;
+                    if(sendEvents)
+                        parenPrim.TriggerScriptChangedEvent(Changed.LINK);
+                }
+                else 
+                {
+                    // The link set has prims remaining. This path is taken
+                    // when a subset of a link set's prims are selected
+                    // and the root prim is part of that selection
+                    //
+                    List<SceneObjectPart> parts = new List<SceneObjectPart>(parenPrim.Children.Values);
+                    
+                    List<uint> unlink_ids = new List<uint>();
+                    foreach (SceneObjectPart unlink_part in parts)
+                        unlink_ids.Add(unlink_part.LocalId);
+
+                    // Tear down the remaining link set
+                    //
+                    if(unlink_ids.Count == 2)
+                    {
+                        DelinkObjects(unlink_ids, true);
+                        return;
+                    }
+
+                    DelinkObjects(unlink_ids, false);
+
+                    // Send event to root prim, then we're done with it
+                    parenPrim.TriggerScriptChangedEvent(Changed.LINK);
+
+                    unlink_ids.Remove(parenPrim.RootPart.LocalId);
+
+                    foreach (uint localId in unlink_ids)
+                    {
+                        SceneObjectPart nr = GetSceneObjectPart(localId);
+                        nr.UpdateFlag = 0;
+                    }
+
+                    uint newRoot = unlink_ids[0];
+                    unlink_ids.Remove(newRoot);
+
+                    LinkObjects(null, newRoot, unlink_ids);
                 }
             }
             else
             {
+                // The selected prims were all child prims. Edit linked parts
+                // without the root prim selected will get us here
+                //
+                List<SceneObjectGroup> parents = new List<SceneObjectGroup>();
+
                 // If the first scan failed, we need to do a /deep/ scan of the linkages.  This is /really/ slow
                 // We know that this is not the root prim now essentially, so we don't have to worry about remapping
                 // which one is the root prim
@@ -1436,6 +1502,8 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             grp.DelinkFromGroup(primIds[i]);
                             delinkedSomething = true;
+                            if(!parents.Contains(grp))
+                                parents.Add(grp);
                         }
 
                     }
@@ -1445,6 +1513,13 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.InfoFormat("[SCENE]: " +
                                     "DelinkObjects(): Could not find a root prim out of {0} as given to a delink request!",
                                     primIds);
+                }
+                else
+                {
+                    foreach (SceneObjectGroup g in parents)
+                    {
+                        g.TriggerScriptChangedEvent(Changed.LINK);
+                    }
                 }
             }
         }

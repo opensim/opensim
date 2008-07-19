@@ -674,12 +674,7 @@ namespace OpenSim.Region.Environment.Scenes
         public int LinkNum
         {
             get { return m_linkNum; }
-            set
-            {
-                m_linkNum = value;
-                TriggerScriptChangedEvent(Changed.LINK);
-
-            }
+            set { m_linkNum = value; }
         }
 
         public byte ClickAction
@@ -2250,7 +2245,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetAvatarOnSitTarget(LLUUID avatarID)
         {
             m_sitTargetAvatar = avatarID;
-            TriggerScriptChangedEvent(Changed.LINK);
+            if(ParentGroup != null)
+                ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
         }
 
         public void SetAxisRotation(int axis, int rotate)

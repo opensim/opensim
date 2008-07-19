@@ -427,7 +427,10 @@ namespace OpenSim.Region.Environment.Scenes
                         if (reader.Name == "SceneObjectPart")
                         {
                             SceneObjectPart Part = SceneObjectPart.FromXml(reader);
+                            if(m_rootPart.LinkNum == 0)
+                                m_rootPart.LinkNum++;
                             AddPart(Part);
+                            Part.LinkNum = m_parts.Count;
                             Part.StoreUndoState();
                         }
                         else
@@ -462,7 +465,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 rootOffset = new LLVector3(0, 0, 0);
             SceneObjectPart newPart =
                 new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rot, rootOffset);
-            newPart.LinkNum = m_parts.Count;
+            newPart.LinkNum = 0;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
             
@@ -817,7 +820,6 @@ namespace OpenSim.Region.Environment.Scenes
             lock (m_parts)
             {
                 part.SetParent(this);
-                part.LinkNum = m_parts.Count;
 
                 try
                 {
@@ -828,6 +830,11 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_log.Error("Failed to add scened object part", e);
                 }
+
+                part.LinkNum = m_parts.Count;
+
+                if(part.LinkNum == 2 && RootPart != null)
+                    RootPart.LinkNum = 1;
             }
         }
 
@@ -1738,13 +1745,15 @@ namespace OpenSim.Region.Environment.Scenes
             linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
 
             linkPart.ParentID = m_rootPart.LocalId;
-
-            linkPart.LinkNum = m_parts.Count;
+            if(m_rootPart.LinkNum == 0)
+                m_rootPart.LinkNum = 1;
 
             lock (m_parts)
             {
                 m_parts.Add(linkPart.UUID, linkPart);
             }
+
+            linkPart.LinkNum = m_parts.Count;
 
             linkPart.SetParent(this);
 
@@ -1784,6 +1793,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="partID"></param>
         public void DelinkFromGroup(uint partID)
         {
+            DelinkFromGroup(partID, true);
+        }
+
+        public void DelinkFromGroup(uint partID, bool sendEvents)
+        {
             SceneObjectPart linkPart = GetChildPart(partID);
 
             if (null != linkPart)
@@ -1801,7 +1815,17 @@ namespace OpenSim.Region.Environment.Scenes
                     m_parts.Remove(linkPart.UUID);
                 }
 
+                if(m_parts.Count == 1 && RootPart != null) //Single prim is left
+                    RootPart.LinkNum = 0;
+                else
+                {
+                    foreach (SceneObjectPart p in m_parts.Values)
+                        if(p.LinkNum > linkPart.LinkNum)
+                            p.LinkNum--;
+                }
+
                 linkPart.ParentID = 0;
+                linkPart.LinkNum = 0;
 
                 if (linkPart.PhysActor != null)
                 {
@@ -1834,6 +1858,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                 m_scene.AddNewSceneObject(objectGroup, true);
 
+                if(sendEvents)
+                    linkPart.TriggerScriptChangedEvent(Changed.LINK);
+
                 HasGroupChanged = true;
                 ScheduleGroupForFullUpdate();
             }
@@ -1858,12 +1885,13 @@ namespace OpenSim.Region.Environment.Scenes
         {
             part.SetParent(this);
             part.ParentID = m_rootPart.LocalId;
-            part.LinkNum = m_parts.Count;
 
             lock (m_parts)
             {
                 m_parts.Add(part.UUID, part);
             }
+
+            part.LinkNum = m_parts.Count;
 
             Vector3 axiomOldPos = new Vector3(part.OffsetPosition.X, part.OffsetPosition.Y, part.OffsetPosition.Z);
             axiomOldPos = oldGroupRotation * axiomOldPos;
@@ -2669,6 +2697,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
             ScheduleGroupForFullUpdate();
+        }
+
+        public void TriggerScriptChangedEvent(Changed val)
+        {
+            foreach (SceneObjectPart part in Children.Values)
+            {
+                part.TriggerScriptChangedEvent(val);
+            }
         }
     }
 }

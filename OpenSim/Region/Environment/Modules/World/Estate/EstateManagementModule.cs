@@ -558,10 +558,10 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             args.regionFlags = GetRegionFlags();
             args.regionName = m_scene.RegionInfo.RegionName;
             args.SimOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-            args.terrainBase0 = m_scene.RegionInfo.RegionSettings.TerrainTexture1;
-            args.terrainBase1 = m_scene.RegionInfo.RegionSettings.TerrainTexture2;
-            args.terrainBase2 = m_scene.RegionInfo.RegionSettings.TerrainTexture3;
-            args.terrainBase3 = m_scene.RegionInfo.RegionSettings.TerrainTexture4;
+            args.terrainBase0 = LLUUID.Zero;
+            args.terrainBase1 = LLUUID.Zero;
+            args.terrainBase2 = LLUUID.Zero;
+            args.terrainBase3 = LLUUID.Zero;
             args.terrainDetail0 = m_scene.RegionInfo.RegionSettings.TerrainTexture1;
             args.terrainDetail1 = m_scene.RegionInfo.RegionSettings.TerrainTexture2;
             args.terrainDetail2 = m_scene.RegionInfo.RegionSettings.TerrainTexture3;
