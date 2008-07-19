@@ -423,10 +423,38 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llAxes2Rot");
-            return new LSL_Types.Quaternion();
+            double x,y,z,s;
+            int f=0;
+			// Important Note: q1=<x,y,z,s> is equal to q2=<-x,-y,-z,-s>
+			// Computing quaternion x,y,z,s values        
+        	x=((fwd.x-left.y-up.z+1)/4);
+        	x*=x;
+        	x=Math.Sqrt(Math.Sqrt(x));
+        	y=((1-up.z)/2-x*x);
+        	y*=y;
+        	y=Math.Sqrt(Math.Sqrt(y));
+        	z=((1-left.y)/2-x*x);
+        	z*=z;
+        	z=Math.Sqrt(Math.Sqrt(z));
+        	s=(1-x*x-y*y-z*z);
+        	s*=s;
+        	s=Math.Sqrt(Math.Sqrt(s));
+        	
+			// Set f for signs detection         
+        	if (fwd.y+left.x >= 0){f+=1;}
+        	if (fwd.z+up.x >= 0){f+=2;}
+        	if (left.z-up.y >= 0){f+=4;}
+			// Set correct quaternion signs based on f value
+        	if (f==0){x=-x;}
+        	if (f==1){x=-x;y=-y;}
+        	if (f==2){x=-x;z=-z;}
+        	if (f==3){s=-s;}
+        	if (f==4){x=-x;s=-s;}
+        	if (f==5){z=-z;}
+        	if (f==6){y=-y;}
+        	return new LSL_Types.Quaternion(x, y, z, s);
         }
-
+        
         public LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r)
         {
             m_host.AddScriptLPS(1);
