@@ -610,7 +610,14 @@ namespace OpenSim.Data.MSSQL
         /// <param name="agent">The agent to create</param>
         override public void AddNewUserAgent(UserAgentData agent)
         {
-            // Do nothing.
+            try
+            {
+                database.insertAgentRow(agent);
+            }
+            catch (Exception e)
+            {
+                m_log.Error(e.ToString());
+            }
         }
 
         /// <summary>

@@ -190,28 +190,15 @@ namespace OpenSim.Grid.UserServer
             {
                 // ulong cregionhandle = 0;
                 LLUUID regionUUID = LLUUID.Zero;
-                LLUUID AvatarID = LLUUID.Zero;
+                LLUUID avatarUUID = LLUUID.Zero;
 
-                Helpers.TryParse((string)requestData["avatar_id"], out AvatarID);
+                Helpers.TryParse((string)requestData["avatar_id"], out avatarUUID);
                 Helpers.TryParse((string)requestData["region_uuid"], out regionUUID);
-                // try
-                // {
-                //     cregionhandle = (ulong)Convert.ToInt64((string)requestData["region_handle"]);
-                // }
-                // catch (ArgumentException)
-                // {
-                // }
-                // catch (OverflowException)
-                // {
-                // }
-                // catch (FormatException)
-                // {
-                // }
 
-                if (AvatarID != LLUUID.Zero)
+                if (avatarUUID != LLUUID.Zero)
                 {
-                    UserProfileData userProfile = GetUserProfile(new LLUUID((string)requestData["avatar_id"]));
-                    userProfile.CurrentAgent.Region = new LLUUID((string)requestData["region_uuid"]);
+                    UserProfileData userProfile = GetUserProfile(avatarUUID);
+                    userProfile.CurrentAgent.Region = regionUUID;
                     userProfile.CurrentAgent.Handle = (ulong)Convert.ToInt64((string)requestData["region_handle"]);
                     //userProfile.CurrentAgent.
                     CommitAgent(ref userProfile);

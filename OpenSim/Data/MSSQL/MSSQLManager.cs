@@ -354,7 +354,7 @@ namespace OpenSim.Data.MSSQL
                 // Agent Who?
                 retval.AgentIP = (string)reader["agentIP"];
                 retval.AgentPort = Convert.ToUInt32(reader["agentPort"].ToString());
-                retval.AgentOnline = Convert.ToBoolean(reader["agentOnline"].ToString());
+                retval.AgentOnline = Convert.ToInt32(reader["agentOnline"].ToString()) != 0;
 
                 // Login/Logout times (UNIX Epoch)
                 retval.LoginTime = Convert.ToInt32(reader["loginTime"].ToString());
@@ -527,6 +527,64 @@ namespace OpenSim.Data.MSSQL
             return
                 string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
                               dllVersion.Revision);
+        }
+
+        public bool insertAgentRow(UserAgentData agentdata)
+        {
+            string sql = @"
+
+IF EXISTS (SELECT * FROM agents WHERE UUID = @UUID)
+    BEGIN
+        UPDATE agents SET UUID = @UUID, sessionID = @sessionID, secureSessionID = @secureSessionID, agentIP = @agentIP, agentPort = @agentPort, agentOnline = @agentOnline, loginTime = @loginTime, logoutTime = @logoutTime, currentRegion = @currentRegion, currentHandle = @currentHandle, currentPos = @currentPos
+        WHERE UUID = @UUID
+    END
+ELSE
+    BEGIN
+        INSERT INTO 
+            agents (UUID, sessionID, secureSessionID, agentIP, agentPort, agentOnline, loginTime, logoutTime, currentRegion, currentHandle, currentPos) VALUES 
+            (@UUID, @sessionID, @secureSessionID, @agentIP, @agentPort, @agentOnline, @loginTime, @logoutTime, @currentRegion, @currentHandle, @currentPos)
+    END
+";
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+
+            parameters["@UUID"] = agentdata.ProfileID.ToString();
+            parameters["@sessionID"] = agentdata.SessionID.ToString();
+            parameters["@secureSessionID"] = agentdata.SecureSessionID.ToString();
+            parameters["@agentIP"] = agentdata.AgentIP.ToString();
+            parameters["@agentPort"] = agentdata.AgentPort.ToString();
+            parameters["@agentOnline"] = (agentdata.AgentOnline == true) ? "1" : "0";
+            parameters["@loginTime"] = agentdata.LoginTime.ToString();
+            parameters["@logoutTime"] = agentdata.LogoutTime.ToString();
+            parameters["@currentRegion"] = agentdata.Region.ToString();
+            parameters["@currentHandle"] = agentdata.Handle.ToString();
+            parameters["@currentPos"] = "<" + ((int)agentdata.Position.X).ToString() + "," + ((int)agentdata.Position.Y).ToString() + "," + ((int)agentdata.Position.Z).ToString() + ">";
+
+
+            using (IDbCommand result = Query(sql, parameters))
+            {
+                result.Transaction = result.Connection.BeginTransaction(IsolationLevel.Serializable);
+                try
+                {
+                    if (result.ExecuteNonQuery() > 0)
+                    {
+                        result.Transaction.Commit();
+                        return true;
+                    }
+                    else
+                    {
+                        result.Transaction.Rollback();
+                        return false;
+                    }
+                }
+                catch (Exception e)
+                {
+                    result.Transaction.Rollback();
+                    m_log.Error(e.ToString());
+                    return false;
+                }
+            }
+
         }
     }
 }
