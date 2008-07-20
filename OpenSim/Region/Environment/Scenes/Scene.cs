@@ -88,6 +88,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// Are we applying physics to any of the prims in this scene?
         /// </summary>
         public bool m_physicalPrim;
+		public float m_maxNonphys = 65536;
+		public float m_maxPhys = 10;
 
         public bool m_seeIntoRegionFromNeighbor;
         public int MaxUndoCount = 5;
@@ -308,6 +310,18 @@ namespace OpenSim.Region.Environment.Scenes
             m_simulatorVersion = simulatorVersion
                 + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString()
                 + " PhysPrim:" + m_physicalPrim.ToString();
+
+			try
+			{
+				IConfig startupConfig = m_config.Configs["Startup"];
+				m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", 65536.0f);
+				m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
+			}
+			catch (Exception)
+			{
+				m_log.Warn("Failed to load StartupConfig");
+			}
+
         }
 
         #endregion
@@ -1146,7 +1160,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 catch (Exception)
                 {
-                    m_log.Warn("Failed to load StarupConfg");
+                    m_log.Warn("Failed to load StartupConfig");
                 }
 
                 if (drawPrimVolume)

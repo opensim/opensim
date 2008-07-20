@@ -2131,12 +2131,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void Resize(LLVector3 scale, uint localID)
         {
-            if(scale.X > 65536.0f)
-                scale.X = 65536.0f;
-            if(scale.Y > 65536.0f)
-                scale.Y = 65536.0f;
-            if(scale.Z > 65536.0f)
-                scale.Z = 65536.0f;
+            if(scale.X > m_scene.m_maxNonphys)
+                scale.X = m_scene.m_maxNonphys;
+            if(scale.Y > m_scene.m_maxNonphys)
+                scale.Y = m_scene.m_maxNonphys;
+            if(scale.Z > m_scene.m_maxNonphys)
+                scale.Z = m_scene.m_maxNonphys;
 
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
@@ -2146,12 +2146,12 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if(part.PhysActor.IsPhysical)
                     {
-                        if(scale.X > 10.0f)
-                            scale.X = 10.0f;
-                        if(scale.Y > 10.0f)
-                            scale.Y = 10.0f;
-                        if(scale.Z > 10.0f)
-                            scale.Z = 10.0f;
+                        if(scale.X > m_scene.m_maxPhys)
+                            scale.X = m_scene.m_maxPhys;
+                        if(scale.Y > m_scene.m_maxPhys)
+                            scale.Y = m_scene.m_maxPhys;
+                        if(scale.Z > m_scene.m_maxPhys)
+                            scale.Z = m_scene.m_maxPhys;
                     }
                     part.PhysActor.Size =
                         new PhysicsVector(scale.X, scale.Y, scale.Z);
@@ -2179,20 +2179,20 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                if(scale.X > 65536.0f)
-                    scale.X = 65536.0f;
-                if(scale.Y > 65536.0f)
-                    scale.Y = 65536.0f;
-                if(scale.Z > 65536.0f)
-                    scale.Z = 65536.0f;
+                if(scale.X > m_scene.m_maxNonphys)
+                    scale.X = m_scene.m_maxNonphys;
+                if(scale.Y > m_scene.m_maxNonphys)
+                    scale.Y = m_scene.m_maxNonphys;
+                if(scale.Z > m_scene.m_maxNonphys)
+                    scale.Z = m_scene.m_maxNonphys;
                 if(part.PhysActor != null && part.PhysActor.IsPhysical)
                 {
-                    if(scale.X > 10.0f)
-                        scale.X = 10.0f;
-                    if(scale.Y > 10.0f)
-                        scale.Y = 10.0f;
-                    if(scale.Z > 10.0f)
-                        scale.Z = 10.0f;
+                    if(scale.X > m_scene.m_maxPhys)
+                        scale.X = m_scene.m_maxPhys;
+                    if(scale.Y > m_scene.m_maxPhys)
+                        scale.Y = m_scene.m_maxPhys;
+                    if(scale.Z > m_scene.m_maxPhys)
+                        scale.Z = m_scene.m_maxPhys;
                 }
                 float x = (scale.X / part.Scale.X);
                 float y = (scale.Y / part.Scale.Y);
@@ -2213,25 +2213,25 @@ namespace OpenSim.Region.Environment.Scenes
 
                                 if(part.PhysActor != null && part.PhysActor.IsPhysical)
                                 {
-                                    if(oldSize.X*x > 10.0f)
+                                    if(oldSize.X*x > m_scene.m_maxPhys)
                                     {
-                                        f = 10.0f / oldSize.X;
+                                        f = m_scene.m_maxPhys / oldSize.X;
                                         a = f / x;
                                         x *= a;
                                         y *= a;
                                         z *= a;
                                     }
-                                    if(oldSize.Y*y > 10.0f)
+                                    if(oldSize.Y*y > m_scene.m_maxPhys)
                                     {
-                                        f = 10.0f / oldSize.Y;
+                                        f = m_scene.m_maxPhys / oldSize.Y;
                                         a = f / y;
                                         x *= a;
                                         y *= a;
                                         z *= a;
                                     }
-                                    if(oldSize.Z*z > 10.0f)
+                                    if(oldSize.Z*z > m_scene.m_maxPhys)
                                     {
-                                        f = 10.0f / oldSize.Z;
+                                        f = m_scene.m_maxPhys / oldSize.Z;
                                         a = f / z;
                                         x *= a;
                                         y *= a;
@@ -2240,25 +2240,25 @@ namespace OpenSim.Region.Environment.Scenes
                                 }
                                 else
                                 {
-                                    if(oldSize.X*x > 65536.0f)
+                                    if(oldSize.X*x > m_scene.m_maxNonphys)
                                     {
-                                        f = 65536.0f / oldSize.X;
+                                        f = m_scene.m_maxNonphys / oldSize.X;
                                         a = f / x;
                                         x *= a;
                                         y *= a;
                                         z *= a;
                                     }
-                                    if(oldSize.Y*y > 65536.0f)
+                                    if(oldSize.Y*y > m_scene.m_maxNonphys)
                                     {
-                                        f = 65536.0f / oldSize.Y;
+                                        f = m_scene.m_maxNonphys / oldSize.Y;
                                         a = f / y;
                                         x *= a;
                                         y *= a;
                                         z *= a;
                                     }
-                                    if(oldSize.Z*z > 65536.0f)
+                                    if(oldSize.Z*z > m_scene.m_maxNonphys)
                                     {
-                                        f = 65536.0f / oldSize.Z;
+                                        f = m_scene.m_maxNonphys / oldSize.Z;
                                         a = f / z;
                                         x *= a;
                                         y *= a;

@@ -26,6 +26,10 @@ region_info_source = "filesystem"
 ; objects, so you can turn it off here if you'd like.
 DrawPrimOnMapTile = true
 
+; Maximum total size, and maximum size where a prim can be physical
+NonPhysicalPrimMax = 65536
+PhysicalPrimMax = 10
+
 ; ##
 ; ## STORAGE
 ; ##

@@ -775,7 +775,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     bool allow = true;
                     foreach(SceneObjectPart part in group.Children.Values)
                     {
-                        if(part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
+                        if(part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
                         {
                             allow = false;
                             break;
@@ -922,19 +922,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if(part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
             {
-                if(scale.x > 10.0)
-                    scale.x = 10.0;
-                if(scale.y > 10.0)
-                    scale.y = 10.0;
-                if(scale.z > 10.0)
-                    scale.z = 10.0;
+                if(scale.x > World.m_maxPhys)
+                    scale.x = World.m_maxPhys;
+                if(scale.y > World.m_maxPhys)
+                    scale.y = World.m_maxPhys;
+                if(scale.z > World.m_maxPhys)
+                    scale.z = World.m_maxPhys;
             }
-            if(scale.x > 65536.0)
-                scale.x = 65536.0;
-            if(scale.y > 65536.0)
-                scale.y = 65536.0;
-            if(scale.z > 65536.0)
-                scale.z = 65536.0;
+            if(scale.x > World.m_maxNonphys)
+                scale.x = World.m_maxNonphys;
+            if(scale.y > World.m_maxNonphys)
+                scale.y = World.m_maxNonphys;
+            if(scale.z > World.m_maxNonphys)
+                scale.z = World.m_maxNonphys;
             LLVector3 tmp = part.Scale;
             tmp.X = (float)scale.x;
             tmp.Y = (float)scale.y;
