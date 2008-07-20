@@ -206,7 +206,7 @@ namespace OpenSim.Region.Communications.OGS1
             // Hashtable griddatahash = GridRespData;
 
             // Process Response
-            if (GridRespData.ContainsKey("error"))
+            if (GridRespData != null && GridRespData.ContainsKey("error"))
             {
                 string errorstring = (string)GridRespData["error"];
                 m_log.Error("Unable to connect to grid: " + errorstring);
