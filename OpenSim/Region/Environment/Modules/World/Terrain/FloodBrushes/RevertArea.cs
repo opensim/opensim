@@ -40,6 +40,12 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FloodBrushes
 
         #region ITerrainFloodEffect Members
 
+        /// <summary>
+        /// reverts an area of the map to the heightfield stored in the revertmap
+        /// </summary>
+        /// <param name="map">the current heightmap</param>
+        /// <param name="fillArea">array indicating which sections of the map are to be reverted</param>
+        /// <param name="strength">unused</param>
         public void FloodEffect(ITerrainChannel map, bool[,] fillArea, double strength)
         {
             int x;
@@ -50,7 +56,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FloodBrushes
                 {
                     if (fillArea[x, y])
                     {
-                        map[x, y] = (map[x, y] * (1.0 - strength)) + (m_revertmap[x, y] * strength);
+                        map[x, y] = m_revertmap[x, y];
                     }
                 }
             }
