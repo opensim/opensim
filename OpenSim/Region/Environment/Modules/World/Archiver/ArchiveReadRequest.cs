@@ -61,9 +61,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         }
 
         protected void DearchiveRegion()
-        {            
-            m_log.InfoFormat("[ARCHIVER]: Restoring archive {0}", m_loadPath);
-            
+        {                        
             TarArchiveReader archive 
                 = new TarArchiveReader(
                     new GZipStream(new FileStream(m_loadPath, FileMode.Open), CompressionMode.Decompress));           
