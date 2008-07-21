@@ -383,7 +383,7 @@ namespace OpenSim
                     else
                     {
                         m_console.Error("CONSOLE", "Current Region: " + m_sceneManager.CurrentScene.RegionInfo.RegionName +
-                                        ". To change region please use 'change-region <regioname>'");
+                                        ". To change region please use 'change-region <region name>'");
                     }
 
                     break;
