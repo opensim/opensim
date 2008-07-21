@@ -265,97 +265,8 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 float hollowFactorF = (float)fhollowFactor / (float)50000;
 
-                //Vertex IQ1Q15 = new Vertex(-0.35f * hollowFactorF, -0.35f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q16 = new Vertex(-0.30f * hollowFactorF, -0.40f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q17 = new Vertex(-0.24f * hollowFactorF, -0.43f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q18 = new Vertex(-0.18f * hollowFactorF, -0.46f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q19 = new Vertex(-0.11f * hollowFactorF, -0.48f * hollowFactorF, 0.0f);
-
-                //Vertex IQ2Q10 = new Vertex(+0.0f * hollowFactorF, -0.50f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q11 = new Vertex(+0.11f * hollowFactorF, -0.48f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q12 = new Vertex(+0.18f * hollowFactorF, -0.46f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q13 = new Vertex(+0.24f * hollowFactorF, -0.43f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q14 = new Vertex(+0.30f * hollowFactorF, -0.40f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q15 = new Vertex(+0.35f * hollowFactorF, -0.35f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q16 = new Vertex(+0.40f * hollowFactorF, -0.30f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q17 = new Vertex(+0.43f * hollowFactorF, -0.24f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q18 = new Vertex(+0.46f * hollowFactorF, -0.18f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q19 = new Vertex(+0.48f * hollowFactorF, -0.11f * hollowFactorF, 0.0f);
-
-                //Vertex IQ2Q20 = new Vertex(+0.50f * hollowFactorF, +0.0f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q21 = new Vertex(+0.48f * hollowFactorF, +0.11f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q22 = new Vertex(+0.46f * hollowFactorF, +0.18f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q23 = new Vertex(+0.43f * hollowFactorF, +0.24f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q24 = new Vertex(+0.40f * hollowFactorF, +0.30f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q25 = new Vertex(+0.35f * hollowFactorF, +0.35f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q26 = new Vertex(+0.30f * hollowFactorF, +0.40f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q27 = new Vertex(+0.24f * hollowFactorF, +0.43f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q28 = new Vertex(+0.18f * hollowFactorF, +0.46f * hollowFactorF, 0.0f);
-                //Vertex IQ2Q29 = new Vertex(+0.11f * hollowFactorF, +0.48f * hollowFactorF, 0.0f);
-
-                //Vertex IQ1Q20 = new Vertex(+0.0f * hollowFactorF, +0.50f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q21 = new Vertex(-0.11f * hollowFactorF, +0.48f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q22 = new Vertex(-0.18f * hollowFactorF, +0.46f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q23 = new Vertex(-0.24f * hollowFactorF, +0.43f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q24 = new Vertex(-0.30f * hollowFactorF, +0.40f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q25 = new Vertex(-0.35f * hollowFactorF, +0.35f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q26 = new Vertex(-0.40f * hollowFactorF, +0.30f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q27 = new Vertex(-0.43f * hollowFactorF, +0.24f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q28 = new Vertex(-0.46f * hollowFactorF, +0.18f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q29 = new Vertex(-0.48f * hollowFactorF, +0.11f * hollowFactorF, 0.0f);
-
-                //Vertex IQ1Q10 = new Vertex(-0.50f * hollowFactorF, +0.0f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q11 = new Vertex(-0.48f * hollowFactorF, -0.11f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q12 = new Vertex(-0.46f * hollowFactorF, -0.18f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q13 = new Vertex(-0.43f * hollowFactorF, -0.24f * hollowFactorF, 0.0f);
-                //Vertex IQ1Q14 = new Vertex(-0.40f * hollowFactorF, -0.30f * hollowFactorF, 0.0f);
-
                 //Counter clockwise around the quadrants
                 holeHull = new SimpleHull();
-                //holeHull.AddVertex(IQ1Q15);
-                //holeHull.AddVertex(IQ1Q14);
-                //holeHull.AddVertex(IQ1Q13);
-                //holeHull.AddVertex(IQ1Q12);
-                //holeHull.AddVertex(IQ1Q11);
-                //holeHull.AddVertex(IQ1Q10);
-
-                //holeHull.AddVertex(IQ1Q29);
-                //holeHull.AddVertex(IQ1Q28);
-                //holeHull.AddVertex(IQ1Q27);
-                //holeHull.AddVertex(IQ1Q26);
-                //holeHull.AddVertex(IQ1Q25);
-                //holeHull.AddVertex(IQ1Q24);
-                //holeHull.AddVertex(IQ1Q23);
-                //holeHull.AddVertex(IQ1Q22);
-                //holeHull.AddVertex(IQ1Q21);
-                //holeHull.AddVertex(IQ1Q20);
-
-                //holeHull.AddVertex(IQ2Q29);
-                //holeHull.AddVertex(IQ2Q28);
-                //holeHull.AddVertex(IQ2Q27);
-                //holeHull.AddVertex(IQ2Q26);
-                //holeHull.AddVertex(IQ2Q25);
-                //holeHull.AddVertex(IQ2Q24);
-                //holeHull.AddVertex(IQ2Q23);
-                //holeHull.AddVertex(IQ2Q22);
-                //holeHull.AddVertex(IQ2Q21);
-                //holeHull.AddVertex(IQ2Q20);
-
-                //holeHull.AddVertex(IQ2Q19);
-                //holeHull.AddVertex(IQ2Q18);
-                //holeHull.AddVertex(IQ2Q17);
-                //holeHull.AddVertex(IQ2Q16);
-                //holeHull.AddVertex(IQ2Q15);
-                //holeHull.AddVertex(IQ2Q14);
-                //holeHull.AddVertex(IQ2Q13);
-                //holeHull.AddVertex(IQ2Q12);
-                //holeHull.AddVertex(IQ2Q11);
-                //holeHull.AddVertex(IQ2Q10);
-
-                //holeHull.AddVertex(IQ1Q19);
-                //holeHull.AddVertex(IQ1Q18);
-                //holeHull.AddVertex(IQ1Q17);
-                //holeHull.AddVertex(IQ1Q16);
 
                 holeHull.AddVertex(new Vertex(0.353553f * hollowFactorF, 0.353553f * hollowFactorF, 0.0f)); // 45 degrees
                 holeHull.AddVertex(new Vertex(0.433013f * hollowFactorF, 0.250000f * hollowFactorF, 0.0f)); // 30 degrees
@@ -439,11 +350,6 @@ namespace OpenSim.Region.Physics.Meshing
             Mesh box = new Mesh();
 
             // bottom
-
-            //box.Add(new Vertex(maxX, maxY, minZ));
-            //box.Add(new Vertex(minX, maxY, minZ));
-            //box.Add(new Vertex(minX, minY, minZ));
-            //box.Add(new Vertex(maxX, minY, minZ));
 
             box.Add(new Vertex(minX, maxY, minZ));
             box.Add(new Vertex(maxX, maxY, minZ));
@@ -549,10 +455,7 @@ namespace OpenSim.Region.Physics.Meshing
             Vertex MP = new Vertex(-0.5f, +0.5f, 0.0f);
 
             SimpleHull outerHull = new SimpleHull();
-            //outerHull.AddVertex(MM);
-            //outerHull.AddVertex(PM);
-            //outerHull.AddVertex(PP);
-            //outerHull.AddVertex(MP);
+
             outerHull.AddVertex(PP);
             outerHull.AddVertex(MP);
             outerHull.AddVertex(MM);
@@ -805,98 +708,8 @@ namespace OpenSim.Region.Physics.Meshing
             // The mapping to Scene space is done later during the "extrusion" phase
 
             // Base
-            // Q1Q15 = Quadrant 1, Quadrant1, Vertex 5
-            //Vertex Q1Q15 = new Vertex(-0.35f, -0.35f, 0.0f);
-            //Vertex Q1Q16 = new Vertex(-0.30f, -0.40f, 0.0f);
-            //Vertex Q1Q17 = new Vertex(-0.24f, -0.43f, 0.0f);
-            //Vertex Q1Q18 = new Vertex(-0.18f, -0.46f, 0.0f);
-            //Vertex Q1Q19 = new Vertex(-0.11f, -0.48f, 0.0f);
-
-            //Vertex Q2Q10 = new Vertex(+0.0f, -0.50f, 0.0f);
-            //Vertex Q2Q11 = new Vertex(+0.11f, -0.48f, 0.0f);
-            //Vertex Q2Q12 = new Vertex(+0.18f, -0.46f, 0.0f);
-            //Vertex Q2Q13 = new Vertex(+0.24f, -0.43f, 0.0f);
-            //Vertex Q2Q14 = new Vertex(+0.30f, -0.40f, 0.0f);
-            //Vertex Q2Q15 = new Vertex(+0.35f, -0.35f, 0.0f);
-            //Vertex Q2Q16 = new Vertex(+0.40f, -0.30f, 0.0f);
-            //Vertex Q2Q17 = new Vertex(+0.43f, -0.24f, 0.0f);
-            //Vertex Q2Q18 = new Vertex(+0.46f, -0.18f, 0.0f);
-            //Vertex Q2Q19 = new Vertex(+0.48f, -0.11f, 0.0f);
-
-            //Vertex Q2Q20 = new Vertex(+0.50f, +0.0f, 0.0f);
-            //Vertex Q2Q21 = new Vertex(+0.48f, +0.11f, 0.0f);
-            //Vertex Q2Q22 = new Vertex(+0.46f, +0.18f, 0.0f);
-            //Vertex Q2Q23 = new Vertex(+0.43f, +0.24f, 0.0f);
-            //Vertex Q2Q24 = new Vertex(+0.40f, +0.30f, 0.0f);
-            //Vertex Q2Q25 = new Vertex(+0.35f, +0.35f, 0.0f);
-            //Vertex Q2Q26 = new Vertex(+0.30f, +0.40f, 0.0f);
-            //Vertex Q2Q27 = new Vertex(+0.24f, +0.43f, 0.0f);
-            //Vertex Q2Q28 = new Vertex(+0.18f, +0.46f, 0.0f);
-            //Vertex Q2Q29 = new Vertex(+0.11f, +0.48f, 0.0f);
-
-            //Vertex Q1Q20 = new Vertex(+0.0f, +0.50f, 0.0f);
-            //Vertex Q1Q21 = new Vertex(-0.11f, +0.48f, 0.0f);
-            //Vertex Q1Q22 = new Vertex(-0.18f, +0.46f, 0.0f);
-            //Vertex Q1Q23 = new Vertex(-0.24f, +0.43f, 0.0f);
-            //Vertex Q1Q24 = new Vertex(-0.30f, +0.40f, 0.0f);
-            //Vertex Q1Q25 = new Vertex(-0.35f, +0.35f, 0.0f);
-            //Vertex Q1Q26 = new Vertex(-0.40f, +0.30f, 0.0f);
-            //Vertex Q1Q27 = new Vertex(-0.43f, +0.24f, 0.0f);
-            //Vertex Q1Q28 = new Vertex(-0.46f, +0.18f, 0.0f);
-            //Vertex Q1Q29 = new Vertex(-0.48f, +0.11f, 0.0f);
-
-            //Vertex Q1Q10 = new Vertex(-0.50f, +0.0f, 0.0f);
-            //Vertex Q1Q11 = new Vertex(-0.48f, -0.11f, 0.0f);
-            //Vertex Q1Q12 = new Vertex(-0.46f, -0.18f, 0.0f);
-            //Vertex Q1Q13 = new Vertex(-0.43f, -0.24f, 0.0f);
-            //Vertex Q1Q14 = new Vertex(-0.40f, -0.30f, 0.0f);
 
             SimpleHull outerHull = new SimpleHull();
-            //Clockwise around the quadrants
-            //outerHull.AddVertex(Q1Q15);
-            //outerHull.AddVertex(Q1Q16);
-            //outerHull.AddVertex(Q1Q17);
-            //outerHull.AddVertex(Q1Q18);
-            //outerHull.AddVertex(Q1Q19);
-
-            //outerHull.AddVertex(Q2Q10);
-            //outerHull.AddVertex(Q2Q11);
-            //outerHull.AddVertex(Q2Q12);
-            //outerHull.AddVertex(Q2Q13);
-            //outerHull.AddVertex(Q2Q14);
-            //outerHull.AddVertex(Q2Q15);
-            //outerHull.AddVertex(Q2Q16);
-            //outerHull.AddVertex(Q2Q17);
-            //outerHull.AddVertex(Q2Q18);
-            //outerHull.AddVertex(Q2Q19);
-
-            //outerHull.AddVertex(Q2Q20);
-            //outerHull.AddVertex(Q2Q21);
-            //outerHull.AddVertex(Q2Q22);
-            //outerHull.AddVertex(Q2Q23);
-            //outerHull.AddVertex(Q2Q24);
-            //outerHull.AddVertex(Q2Q25);
-            //outerHull.AddVertex(Q2Q26);
-            //outerHull.AddVertex(Q2Q27);
-            //outerHull.AddVertex(Q2Q28);
-            //outerHull.AddVertex(Q2Q29);
-
-            //outerHull.AddVertex(Q1Q20);
-            //outerHull.AddVertex(Q1Q21);
-            //outerHull.AddVertex(Q1Q22);
-            //outerHull.AddVertex(Q1Q23);
-            //outerHull.AddVertex(Q1Q24);
-            //outerHull.AddVertex(Q1Q25);
-            //outerHull.AddVertex(Q1Q26);
-            //outerHull.AddVertex(Q1Q27);
-            //outerHull.AddVertex(Q1Q28);
-            //outerHull.AddVertex(Q1Q29);
-
-            //outerHull.AddVertex(Q1Q10);
-            //outerHull.AddVertex(Q1Q11);
-            //outerHull.AddVertex(Q1Q12);
-            //outerHull.AddVertex(Q1Q13);
-            //outerHull.AddVertex(Q1Q14);
 
             // counter-clockwise around the quadrants, start at 45 degrees
 
@@ -1182,9 +995,7 @@ namespace OpenSim.Region.Physics.Meshing
 
 
             SimpleHull outerHull = new SimpleHull();
-            //outerHull.AddVertex(MM);
-            //outerHull.AddVertex(PM);
-            //outerHull.AddVertex(PP);
+
             outerHull.AddVertex(PP);
             outerHull.AddVertex(MM);
             outerHull.AddVertex(PM);
@@ -2130,53 +1941,6 @@ namespace OpenSim.Region.Physics.Meshing
                 CalcNormals(mesh);
             }
 
-            //else
-            //{
-            //    switch (primShape.ProfileShape)
-            //    {
-            //        case ProfileShape.Square:
-            //            mesh = CreateBoxMesh(primName, primShape, size);
-            //            CalcNormals(mesh);
-            //            break;
-            //        case ProfileShape.Circle:
-            //            if (primShape.PathCurve == (byte)Extrusion.Straight)
-            //            {
-            //                mesh = CreateCylinderMesh(primName, primShape, size);
-            //                CalcNormals(mesh);
-            //            }
-
-            //            // look at LLObject.cs in libsecondlife for how to know the prim type
-            //            // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
-            //            else if ((primShape.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.Circle && LLObject.UnpackPathScale(primShape.PathScaleY) <= 0.75f)
-            //            {  // dahlia's favorite, a torus :)
-            //                mesh = CreateCylinderMesh(primName, primShape, size);
-            //                CalcNormals(mesh);
-            //            }
-
-            //            break;
-            //        case ProfileShape.HalfCircle:
-            //            if (primShape.PathCurve == (byte)Extrusion.Curve1)
-            //            {
-            //                mesh = CreateSphereMesh(primName, primShape, size);
-            //                CalcNormals(mesh);
-            //            }
-            //            break;
-
-            //        case ProfileShape.EquilateralTriangle:
-            //            mesh = CreatePrismMesh(primName, primShape, size);
-            //            CalcNormals(mesh);
-            //            break;
-
-            //        default:
-            //            mesh = CreateBoxMesh(primName, primShape, size);
-            //            CalcNormals(mesh);
-            //            //Set default mesh to cube otherwise it'll return
-            //            // null and crash on the 'setMesh' method in the physics plugins.
-            //            //mesh = null;
-            //            break;
-            //    }
-            //}
-
             if (mesh != null)
             {
                 if ((!isPhysical) && size.X < minSizeForComplexMesh && size.Y < minSizeForComplexMesh && size.Z < minSizeForComplexMesh)
@@ -2191,18 +1955,6 @@ namespace OpenSim.Region.Physics.Meshing
                 // trim the vertex and triangle lists to free up memory
                 mesh.vertices.TrimExcess();
                 mesh.triangles.TrimExcess();
-
-                //int vertCount = 0;
-                //foreach (Vertex v in mesh.vertices)
-                //    if (v != null)
-                //        vertCount++;
-                //mesh.vertices.Capacity = vertCount;
-
-                //int triCount = 0;
-                //foreach (Triangle t in mesh.triangles)
-                //    if (t != null)
-                //        triCount++;
-                //mesh.triangles.Capacity = triCount;
             }
 
             return mesh;
