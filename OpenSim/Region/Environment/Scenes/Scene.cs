@@ -1742,27 +1742,37 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void LoadPrimsFromXml(string fileName, bool newIdsFlag, LLVector3 loadOffset)
         {
+            m_log.InfoFormat("[SCENE]: Loading prims in xml format to region {0}", RegionInfo.RegionName);            
+            
             m_serialiser.LoadPrimsFromXml(this, fileName, newIdsFlag, loadOffset);
         }
 
         public void SavePrimsToXml(string fileName)
         {
+            m_log.InfoFormat("[SCENE]: Saving prims in xml2 format for region {0}", RegionInfo.RegionName);
+
             m_serialiser.SavePrimsToXml(this, fileName);
         }
 
         public void LoadPrimsFromXml2(string fileName)
         {
+            m_log.InfoFormat("[SCENE]: Loading prims in xml2 format to region {0}", RegionInfo.RegionName);            
+            
             m_serialiser.LoadPrimsFromXml2(this, fileName);
         }
 
         public void SavePrimsToXml2(string fileName)
         {
+            m_log.InfoFormat("[SCENE]: Saving prims in xml format for region {0}", RegionInfo.RegionName);
+            
             m_serialiser.SavePrimsToXml2(this, fileName);
         }
 
 
         public void SaveNamedPrimsToXml2(string primName, string fileName)
         {
+            m_log.InfoFormat("[SCENE]: Saving prims with name {0} in xml2 format to region {1}", primName, RegionInfo.RegionName);                        
+            
             List<EntityBase> entityList = GetEntities();
             List<EntityBase> primList = new List<EntityBase>();
 
@@ -1787,6 +1797,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="filePath"></param>
         public void LoadPrimsFromArchive(string filePath)
         {
+            m_log.InfoFormat("[SCENE]: Loading archive to region {0}", RegionInfo.RegionName);
+                        
             m_archiver.DearchiveRegion(filePath);
         }
 
@@ -1796,6 +1808,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="filePath"></param>
         public void SavePrimsToArchive(string filePath)
         {
+            m_log.InfoFormat("[SCENE]: Writing archive for region {0}", RegionInfo.RegionName);
+            
             m_archiver.ArchiveRegion(filePath);
         }
 
