@@ -123,18 +123,18 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {             
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
                 
+                // For now, give all incoming scene objects new uuids.  This will allow scenes to be cloned
+                // on the same region server and multiple examples a single object archive to be imported
+                // to the same scene (when this is possible).
+                sceneObject.ResetIDs();
+                
                 // Make the master the owner/creator of everything imported for now
                 LLUUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
                     part.CreatorID = masterAvatarId;
                     part.OwnerID = masterAvatarId;
-                    part.LastOwnerID = masterAvatarId;
-                    
-                    // For now, give all incoming scene objects new uuids.  This will allow scenes to be cloned
-                    // on the same region server and multiple examples a single object archive to be imported
-                    // to the same scene (when this is possible).
-                    //part.UUID = LLUUID.Random();
+                    part.LastOwnerID = masterAvatarId;                    
                 }                 
                 
                 if (m_scene.AddRestoredSceneObject(sceneObject, true, false))

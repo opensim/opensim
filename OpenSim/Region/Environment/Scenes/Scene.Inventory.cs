@@ -2047,7 +2047,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="vel"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public virtual SceneObjectGroup RezObject(SceneObjectPart sourcePart, TaskInventoryItem item, LLVector3 pos, LLQuaternion rot, LLVector3 vel, int param)
+        public virtual SceneObjectGroup RezObject(
+            SceneObjectPart sourcePart, TaskInventoryItem item, 
+            LLVector3 pos, LLQuaternion rot, LLVector3 vel, int param)
         {
             // Rez object
             if (item != null)
