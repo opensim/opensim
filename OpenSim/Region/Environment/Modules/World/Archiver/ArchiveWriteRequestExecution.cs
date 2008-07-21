@@ -44,7 +44,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// <summary>
     /// Method called when all the necessary assets for an archive request have been received.
     /// </summary>
-    public delegate void AssetsRequestCallback(IDictionary<LLUUID, AssetBase> assets);
+    public delegate void AssetsRequestCallback(IDictionary<LLUUID, AssetBase> assetsFound, ICollection<LLUUID> assetsNotFoundUuids);
 
     /// <summary>
     /// Execute the write of an archive once we have received all the necessary data
@@ -73,9 +73,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_savePath = savePath;
         }
 
-        protected internal void ReceivedAllAssets(IDictionary<LLUUID, AssetBase> assets)
+        protected internal void ReceivedAllAssets(IDictionary<LLUUID, AssetBase> assetsFound, ICollection<LLUUID> assetsNotFoundUuids)
         {
-            m_log.DebugFormat("[ARCHIVER]: Received all {0} assets required", assets.Count);
+            foreach (LLUUID uuid in assetsNotFoundUuids)
+            {
+                m_log.DebugFormat("[ARCHIVER]: Could not find asset {0}", uuid);
+            }
+            
+            m_log.InfoFormat(
+                "[ARCHIVER]: Received {0} of {1} assets requested", assetsFound.Count, assetsFound.Count + assetsNotFoundUuids.Count);
 
             TarArchiveWriter archive = new TarArchiveWriter();
             
@@ -108,7 +114,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             }
 
             // Write out assets
-            AssetsArchiver assetsArchiver = new AssetsArchiver(assets);
+            AssetsArchiver assetsArchiver = new AssetsArchiver(assetsFound);
             assetsArchiver.Archive(archive);
 
             archive.WriteTar(new GZipStream(new FileStream(m_savePath, FileMode.Create), CompressionMode.Compress));

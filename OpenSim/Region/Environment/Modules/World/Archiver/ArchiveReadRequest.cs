@@ -132,7 +132,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     part.CreatorID = masterAvatarId;
                     part.OwnerID = masterAvatarId;
                     part.LastOwnerID = masterAvatarId;
-                }                                                
+                    
+                    // For now, give all incoming scene objects new uuids.  This will allow scenes to be cloned
+                    // on the same region server and multiple examples a single object archive to be imported
+                    // to the same scene (when this is possible).
+                    //part.UUID = LLUUID.Random();
+                }                 
                 
                 if (m_scene.AddRestoredSceneObject(sceneObject, true, false))
                 {                        

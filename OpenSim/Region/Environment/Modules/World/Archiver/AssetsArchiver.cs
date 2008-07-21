@@ -121,23 +121,16 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 AssetBase asset = m_assets[uuid];
                 
-                if (asset != null)
+                string extension = string.Empty;
+                
+                if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
                 {
-                    string extension = string.Empty;
-                    
-                    if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
-                    {
-                        extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
-                    }
-                    
-                    archive.AddFile(
-                        ArchiveConstants.ASSETS_PATH + uuid.ToString() + extension,
-                        asset.Data);
+                    extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
                 }
-                else
-                {
-                    m_log.WarnFormat("[ARCHIVER]: Could not find asset {0} to archive", uuid);
-                }
+                
+                archive.AddFile(
+                    ArchiveConstants.ASSETS_PATH + uuid.ToString() + extension,
+                    asset.Data);
             }
         }
     }

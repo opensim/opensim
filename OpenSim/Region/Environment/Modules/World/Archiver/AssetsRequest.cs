@@ -54,6 +54,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// Assets retrieved in this request
         /// </summary>
         protected Dictionary<LLUUID, AssetBase> m_assets = new Dictionary<LLUUID, AssetBase>();
+        
+        /// <summary>
+        /// Maintain a list of assets that could not be found.  This will be passed back to the requester.
+        /// </summary>
+        protected List<LLUUID> m_notFoundAssetUuids = new List<LLUUID>();
 
         /// <summary>
         /// Record the number of asset replies required so we know when we've finished
@@ -77,7 +82,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             // We can stop here if there are no assets to fetch
             if (m_repliesRequired == 0)
-                m_assetsRequestCallback(m_assets);
+                m_assetsRequestCallback(m_assets, m_notFoundAssetUuids);
 
             foreach (LLUUID uuid in m_uuids)
             {
@@ -92,7 +97,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <param name="asset"></param>
         public void AssetRequestCallback(LLUUID assetID, AssetBase asset)
         {
-            m_assets[assetID] = asset;
+            if (asset != null)
+                m_assets[assetID] = asset;
+            else
+                m_notFoundAssetUuids.Add(assetID);
 
             if (m_assets.Count == m_repliesRequired)
             {
@@ -108,7 +116,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         protected void PerformAssetsRequestCallback()
         {
-            m_assetsRequestCallback(m_assets);
+            m_assetsRequestCallback(m_assets, m_notFoundAssetUuids);
         }
     }
 }
