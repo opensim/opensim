@@ -40,7 +40,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //private static readonly log4net.ILog m_log
         //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private LLClientStackNetworkHandler m_networkHandler;
+        private readonly LLClientStackNetworkHandler m_networkHandler;
         private IScene m_scene;
 
         //private readonly ClientManager m_clientManager = new ClientManager();

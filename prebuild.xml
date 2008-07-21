@@ -1189,9 +1189,7 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="Mono.Addins.dll" />
       <Reference name="System"/>
-      <Reference name="System.IO"/>
       <Reference name="System.Xml"/>
-      <Reference name="System.Xml.Serialization"/>
       <Reference name="libsecondlife.dll" />
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll" />

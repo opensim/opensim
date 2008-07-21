@@ -921,7 +921,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         [XmlIgnore]
-        public LLUUID RegionID
+        public virtual LLUUID RegionID
         {
             get { return ParentGroup.Scene.RegionInfo.RegionID; }
             set {} // read only

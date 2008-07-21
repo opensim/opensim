@@ -441,7 +441,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         // Preserves the original handler's semantics
 
-        public new void AddStreamHandler(string httpMethod, string path, RestMethod method)
+        public void AddStreamHandler(string httpMethod, string path, RestMethod method)
         {
 
             if (!IsEnabled)

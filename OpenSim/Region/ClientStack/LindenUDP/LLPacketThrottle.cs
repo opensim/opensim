@@ -29,63 +29,63 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public class LLPacketThrottle
     {
-        private int max; // max allowable throttle
-        private int min; // min allowable throttle
-        private int throttle; // current throttle setting
-        private static int divisor = 7; // the throttle time divisor, this probably should factor out
-        private int sent; // current number of bytes sent
+        private readonly int m_maxAllowableThrottle;
+        private readonly int m_minAllowableThrottle;
+        private int m_currentThrottle;
+        private const int m_throttleTimeDivisor = 7;
+        private int m_currentBytesSent;
 
         public LLPacketThrottle(int Min, int Max, int Throttle)
         {
-            max = Max;
-            min = Min;
-            throttle = Throttle;
-            sent = 0;
+            m_maxAllowableThrottle = Max;
+            m_minAllowableThrottle = Min;
+            m_currentThrottle = Throttle;
+            m_currentBytesSent = 0;
         }
 
         public void Reset()
         {
-            sent = 0;
+            m_currentBytesSent = 0;
         }
 
         public bool UnderLimit()
         {
-            return (sent < (throttle/divisor));
+            return (m_currentBytesSent < (m_currentThrottle/m_throttleTimeDivisor));
         }
 
         public int Add(int bytes)
         {
-            sent += bytes;
-            return sent;
+            m_currentBytesSent += bytes;
+            return m_currentBytesSent;
         }
 
         // Properties
         public int Max
         {
-            get { return max; }
+            get { return m_maxAllowableThrottle; }
         }
 
         public int Min
         {
-            get { return min; }
+            get { return m_minAllowableThrottle; }
         }
 
         public int Throttle
         {
-            get { return throttle; }
+            get { return m_currentThrottle; }
             set
             {
-                if (value > max)
+                if (value > m_maxAllowableThrottle)
                 {
-                    throttle = max;
+                    m_currentThrottle = m_maxAllowableThrottle;
                 }
-                else if (value < min)
+                else if (value < m_minAllowableThrottle)
                 {
-                    throttle = min;
+                    m_currentThrottle = m_minAllowableThrottle;
                 }
                 else
                 {
-                    throttle = value;
+                    m_currentThrottle = value;
                 }
             }
         }
