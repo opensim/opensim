@@ -122,7 +122,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
               Match SecurityM;
  
             // BROKEN: this check is very wrong.  It block's any url in strings.
-            SecurityM = Regex.Match(checkscript, @"(?:[a-zA-Z])\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            SecurityM = Regex.Match(checkscript, @"(?:[a-zA-Z])\.(?:[a-rt-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             if (SecurityM.Success)
                 throw new Exception("CS0103: 'The . symbol cannot be used in LSL except in float values or vector components'.  Detected around: " + SecurityM.Captures[0].Value);

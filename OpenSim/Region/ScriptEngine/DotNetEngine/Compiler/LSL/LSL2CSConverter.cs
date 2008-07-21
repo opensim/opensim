@@ -124,7 +124,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             Match SecurityM;
 
 
-            SecurityM = Regex.Match(checkscript, @"([a-zA-Z])\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            SecurityM = Regex.Match(checkscript, @"([a-zA-Z])\.(?:[a-rt-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
             if (SecurityM.Success)
                throw new Exception("CS0103: 'The . symbol cannot be used in LSL except in float values or vector components'.  Detected around: " + SecurityM.Captures[0].Value);
 
