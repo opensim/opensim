@@ -153,7 +153,7 @@ namespace OpenSim.Region.Environment.Scenes
                 try
                 {
                     IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
-                    statpack.Region.RegionFlags = estateModule.GetRegionFlags();
+                    statpack.Region.RegionFlags = estateModule != null ? estateModule.GetRegionFlags() : (uint) 0;
                 }
                 catch (Exception)
                 {

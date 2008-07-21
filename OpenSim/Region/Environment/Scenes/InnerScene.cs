@@ -95,22 +95,14 @@ namespace OpenSim.Region.Environment.Scenes
                 // If we're not doing the initial set
                 // Then we've got to remove the previous
                 // event handler
-                try
-                {
+
+                if (_PhyScene != null) 
                     _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
-                }
-                catch (NullReferenceException)
-                {
-                    // This occurs when storing to _PhyScene the first time.
-                    // Is there a better way to check the event handler before
-                    // getting here
-                    // This can be safely ignored.  We're setting the first inital
-                    // there are no event handler's registered.
-                }
 
                 _PhyScene = value;
 
-                _PhyScene.OnPhysicsCrash += physicsBasedCrash;
+                if (_PhyScene != null)
+                    _PhyScene.OnPhysicsCrash += physicsBasedCrash;
             }
         }
 
