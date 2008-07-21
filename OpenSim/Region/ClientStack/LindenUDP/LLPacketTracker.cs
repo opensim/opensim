@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using libsecondlife;
+using libsecondlife.Packets;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -36,11 +38,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void TrackTerrainPacket(uint sequenceNumber, int patchX, int patchY)
         {
+            TrackTerrainPacket(sequenceNumber, patchX, patchY, false, null);
+        }
+
+        public void TrackTerrainPacket(uint sequenceNumber, int patchX, int patchY, bool keepResending, LayerDataPacket packet)
+        {
             TerrainPacketTracker tracker = new TerrainPacketTracker();
             tracker.X = patchX;
             tracker.Y = patchY;
             tracker.SeqNumber = sequenceNumber;
             tracker.TimeSent = DateTime.Now;
+            tracker.KeepResending = keepResending;
+            tracker.Packet = packet;
             lock (m_sentTerrainPackets)
             {
                 m_sentTerrainPackets[patchX, patchY] = tracker;
@@ -85,7 +94,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             foreach (TerrainPacketTracker tracker in resendList)
             {
-                m_parentClient.TriggerTerrainUnackedEvent(tracker.X, tracker.Y);
+                if (!tracker.KeepResending)
+                {
+                    m_parentClient.TriggerTerrainUnackedEvent(tracker.X, tracker.Y);
+                }
+                else
+                {
+                    if (tracker.Packet != null)
+                    {
+                        tracker.Packet.Header.Resent = true;
+                        m_parentClient.OutPacket(tracker.Packet, ThrottleOutPacketType.Resend);
+                        tracker.TimeSent = DateTime.Now;
+                        lock (m_sentTerrainPackets)
+                        {
+                            if (m_sentTerrainPackets[tracker.X, tracker.Y] == null)
+                            {
+                                m_sentTerrainPackets[tracker.X, tracker.Y] = tracker;
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -220,7 +248,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             public int X;
             public int Y;
             public DateTime TimeSent;
-
+            public LayerDataPacket Packet;
+            public bool KeepResending;
         }
 
         public class PrimPacketTracker
