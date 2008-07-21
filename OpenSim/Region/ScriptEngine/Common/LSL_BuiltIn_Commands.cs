@@ -456,72 +456,84 @@ namespace OpenSim.Region.ScriptEngine.Common
             LSL_Types.Quaternion result = new LSL_Types.Quaternion(x, y, z, s);
 
             // a hack to correct a few questionable angles :(
-            LSL_Types.Vector3 fwdTest = new LSL_Types.Vector3(1, 0, 0);
-            LSL_Types.Vector3 leftTest = new LSL_Types.Vector3(0, 1, 0);
-            if (llVecDist(fwdTest * result, fwd) > 0.001 || llVecDist(leftTest * result, left) > 0.001)
+            if (llVecDist(llRot2Fwd(result), fwd) > 0.001 || llVecDist(llRot2Left(result), left) > 0.001)
                 result.s = -s;
 
         	return result;
         }
-        
+
         public LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r)
         {
             m_host.AddScriptLPS(1);
-            double x,y,z,m;
-            m = Math.Sqrt(r.x*r.x+r.y*r.y+r.z*r.z+r.s*r.s);
+
+            double x, y, z, m;
+
+            m = r.x * r.x + r.y * r.y + r.z * r.z + r.s * r.s;
             // m is always greater than zero
-            if (m!=1) // if m is not equal to 1 then Rotation needs to be normalized
+            // if m is not equal to 1 then Rotation needs to be normalized
+            if (Math.Abs(1.0 - m) > 0.000001) // allow a little slop here for calculation precision
             {
-            	r.x/=m;
-            	r.y/=m;
-            	r.z/=m;
-            	r.s/=m;
+                m = 1.0 / Math.Sqrt(m);
+                r.x *= m;
+                r.y *= m;
+                r.z *= m;
+                r.s *= m;
             }
+
             // Fast Algebric Calculations instead of Vectors & Quaternions Product
-            x = r.x*r.x-r.y*r.y-r.z*r.z+r.s*r.s;
-            y = 2*(r.x*r.y+r.z*r.s);
-            z = 2*(r.x*r.z-r.y*r.s);
-            return (new LSL_Types.Vector3(x,y,z)); 
+            x = r.x * r.x - r.y * r.y - r.z * r.z + r.s * r.s;
+            y = 2 * (r.x * r.y + r.z * r.s);
+            z = 2 * (r.x * r.z - r.y * r.s);
+            return (new LSL_Types.Vector3(x, y, z));
         }
 
         public LSL_Types.Vector3 llRot2Left(LSL_Types.Quaternion r)
         {
             m_host.AddScriptLPS(1);
-            double x,y,z,m;
-            m = Math.Sqrt(r.x*r.x+r.y*r.y+r.z*r.z+r.s*r.s);
+
+            double x, y, z, m;
+
+            m = r.x * r.x + r.y * r.y + r.z * r.z + r.s * r.s;
             // m is always greater than zero
-            if (m!=1) // if m is not equal to 1 then Rotation needs to be normalized
+            // if m is not equal to 1 then Rotation needs to be normalized
+            if (Math.Abs(1.0 - m) > 0.000001) // allow a little slop here for calculation precision
             {
-            	r.x/=m;
-            	r.y/=m;
-            	r.z/=m;
-            	r.s/=m;
+                m = 1.0 / Math.Sqrt(m);
+                r.x *= m;
+                r.y *= m;
+                r.z *= m;
+                r.s *= m;
             }
+
             // Fast Algebric Calculations instead of Vectors & Quaternions Product
-            x = 2*(r.x*r.y-r.z*r.s);
-            y = -r.x*r.x+r.y*r.y-r.z*r.z+r.s*r.s;
-            z = 2*(r.x*r.s+r.y*r.z);
-            return (new LSL_Types.Vector3(x,y,z)); 
+            x = 2 * (r.x * r.y - r.z * r.s);
+            y = -r.x * r.x + r.y * r.y - r.z * r.z + r.s * r.s;
+            z = 2 * (r.x * r.s + r.y * r.z);
+            return (new LSL_Types.Vector3(x, y, z)); 
         }
 
         public LSL_Types.Vector3 llRot2Up(LSL_Types.Quaternion r)
         {
             m_host.AddScriptLPS(1);
-            double x,y,z,m;
-            m = Math.Sqrt(r.x*r.x+r.y*r.y+r.z*r.z+r.s*r.s);
+            double x, y, z, m;
+
+            m = r.x * r.x + r.y * r.y + r.z * r.z + r.s * r.s;
             // m is always greater than zero
-            if (m!=1) // if m is not equal to 1 then Rotation needs to be normalized
+            // if m is not equal to 1 then Rotation needs to be normalized
+            if (Math.Abs(1.0 - m) > 0.000001) // allow a little slop here for calculation precision
             {
-            	r.x/=m;
-            	r.y/=m;
-            	r.z/=m;
-            	r.s/=m;
+                m = 1.0 / Math.Sqrt(m);
+                r.x *= m;
+                r.y *= m;
+                r.z *= m;
+                r.s *= m;
             }
+
             // Fast Algebric Calculations instead of Vectors & Quaternions Product
-            x = 2*(r.x*r.z+r.y*r.s);
-            y = 2*(-r.x*r.s+r.y*r.z);
-            z = -r.x*r.x-r.y*r.y+r.z*r.z+r.s*r.s;
-            return (new LSL_Types.Vector3(x,y,z));
+            x = 2 * (r.x * r.z + r.y * r.s);
+            y = 2*(-r.x * r.s + r.y * r.z);
+            z = -r.x * r.x - r.y * r.y + r.z * r.z + r.s * r.s;
+            return (new LSL_Types.Vector3(x, y, z));
         }
         
         public LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 a, LSL_Types.Vector3 b)
@@ -537,6 +549,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             return new LSL_Types.Quaternion(axis.x * s, axis.y * s, axis.z * s, (float)Math.Cos(angle / 2));
         }
+
         public void llWhisper(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
