@@ -296,6 +296,8 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
         public event UpdateVector OnAutoPilotGo;
+
+        public event TerrainUnacked OnUnackedTerrain;
 #pragma warning restore 67
 
         #endregion
@@ -438,6 +440,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public virtual void SendLayerData(int px, int py, float[] map)
         {
         }
+        public virtual void SendLayerData(int px, int py, float[] map, bool track)
+        {
+        }
 
         public virtual void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look)
         {
@@ -513,7 +518,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
                                                   LLVector3 acc, LLQuaternion rotation, LLVector3 rvel, uint flags,
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
-                                                  byte[] particleSystem, byte clickAction)
+                                                  byte[] particleSystem, byte clickAction, bool track)
         {
         }
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
@@ -522,7 +527,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
                                                   byte[] particleSystem, byte clickAction, byte[] textureanimation,
-                                                  bool attachment, uint AttachmentPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius)
+                                                  bool attachment, uint AttachmentPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius, bool track)
         {
         }
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,

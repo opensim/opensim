@@ -118,6 +118,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private Dictionary<string, LLUUID> m_defaultAnimations = new Dictionary<string, LLUUID>();
 
+        private LLPacketTracker m_packetTracker;
+
         /* protected variables */
 
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers =
@@ -282,6 +284,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private SetScriptRunning handlerSetScriptRunning = null;
         private UpdateVector handlerAutoPilotGo = null;
 
+        private TerrainUnacked handlerUnackedTerrain = null;
+
+        //**
+
         /* Properties */
 
         public LLUUID SecureSessionId
@@ -377,6 +383,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public LLClientView(EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
                           AgentCircuitManager authenSessions, LLUUID agentId, LLUUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
+            m_packetTracker = new LLPacketTracker(this);
+
             m_moneyBalance = 1000;
 
             m_channelVersion = Helpers.StringToField(scene.GetSimulatorVersion());
@@ -409,6 +417,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_packetQueue = new LLPacketQueue(agentId);
 
             RegisterLocalPacketHandlers();
+
 
             m_clientThread = new Thread(new ThreadStart(AuthUser));
             m_clientThread.Name = "ClientThread";
@@ -654,6 +663,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         # endregion
 
+        protected int m_terrainCheckerCount = 0;
         /// <summary>
         /// Event handler for check client timer
         /// checks to ensure that the client is still connected
@@ -685,7 +695,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_probesWithNoIngressPackets = 0;
                 m_lastPacketsReceived = m_packetsReceived;
             }
+
             //SendPacketStats();
+            m_packetTracker.Process();
+
+            if (m_terrainCheckerCount >= 4)
+            {
+                m_packetTracker.TerrainPacketCheck();
+               // m_packetTracker.PrimPacketCheck();
+                m_terrainCheckerCount = -1;
+            }
+            m_terrainCheckerCount++;
         }
 
         # region Setup
@@ -934,6 +954,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event SetScriptRunning OnSetScriptRunning;
         public event UpdateVector OnAutoPilotGo;
 
+        public event TerrainUnacked OnUnackedTerrain;
+
         #region Scene/Avatar to Client
 
         /// <summary>
@@ -1083,29 +1105,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual void SendLayerData(float[] map)
         {
             ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendLayerData), (object)map);
-            //try
-            //{
-            //    int[] patches = new int[4];
-
-            //    for (int y = 0; y < 16; y++)
-            //    {
-            //        for (int x = 0; x < 16; x += 4)
-            //        {
-            //            patches[0] = x + 0 + y * 16;
-            //            patches[1] = x + 1 + y * 16;
-            //            patches[2] = x + 2 + y * 16;
-            //            patches[3] = x + 3 + y * 16;
-
-            //            Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
-            //            OutPacket(layerpack, ThrottleOutPacketType.Land);
-            //        }
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    m_log.Warn("[client]: " +
-            //               "ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
-            //}
+           
         }
 
         /// <summary>
@@ -1166,6 +1166,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         public void SendLayerData(int px, int py, float[] map)
         {
+            SendLayerData(px, py, map, true);
+        }
+
+        public void SendLayerData(int px, int py, float[] map, bool track)
+        {
             try
             {
                 int[] patches = new int[1];
@@ -1177,6 +1182,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 LayerDataPacket layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
                 layerpack.Header.Zerocoded = true;
+               
+                if (track)
+                {
+                    layerpack.Header.Sequence = NextSeqNum();
+                    m_packetTracker.TrackTerrainPacket(layerpack.Header.Sequence, px, py);
+                }
+
                 OutPacket(layerpack, ThrottleOutPacketType.Land);
             }
             catch (Exception e)
@@ -2297,14 +2309,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                           ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                           LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
                                           uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
-                                          uint parentID, byte[] particleSystem, byte clickAction)
+                                          uint parentID, byte[] particleSystem, byte clickAction, bool track)
         {
             byte[] textureanim = new byte[0];
 
             SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, vel,
                                   acc, rotation, rvel, flags,
                                   objectID, ownerID, text, color, parentID, particleSystem,
-                                  clickAction, textureanim, false, (uint)0, LLUUID.Zero, LLUUID.Zero, 0, 0, 0);
+                                  clickAction, textureanim, false, (uint)0, LLUUID.Zero, LLUUID.Zero, 0, 0, 0, track);
         }
 
         public void SendPrimitiveToClient(
@@ -2312,8 +2324,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLVector3 pos, LLVector3 velocity, LLVector3 acceleration, LLQuaternion rotation, LLVector3 rotational_velocity,
             uint flags,
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-            byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId, LLUUID SoundId, double SoundGain, byte SoundFlags, double SoundRadius)
+            byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId, LLUUID SoundId, double SoundGain, byte SoundFlags, double SoundRadius, bool track)
         {
+
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = LLQuaternion.Identity;
 
@@ -2396,6 +2409,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 outPacket.ObjectData[0].TextureAnim = textureanim;
             }
             outPacket.Header.Zerocoded = true;
+
+            if (track)
+            {
+                outPacket.Header.Sequence = NextSeqNum();
+                m_packetTracker.TrackPrimPacket(outPacket.Header.Sequence, objectID);
+            }
+
             OutPacket(outPacket, ThrottleOutPacketType.Task);
         }
 
@@ -3816,7 +3836,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (!Pack.Header.Resent)
             {
-                Pack.Header.Sequence = NextSeqNum();
+                if (Pack.Header.Sequence == 0)
+                {
+                    Pack.Header.Sequence = NextSeqNum();
+                }
 
                 if (Pack.Header.Reliable) //DIRTY HACK
                 {
@@ -3878,13 +3901,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         foreach (uint ackedPacketId in NewPack.Header.AckList)
                         {
-                            Packet ackedPacket;
-
-                            if (m_needAck.TryGetValue(ackedPacketId, out ackedPacket))
-                            {
-                                m_unAckedBytes -= ackedPacket.ToBytes().Length;
-                                m_needAck.Remove(ackedPacketId);
-                            }
+                            RemovePacketFromNeedAckList(ackedPacketId);
                         }
                     }
                 }
@@ -3899,12 +3916,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
                         {
                             uint ackedPackId = block.ID;
-                            Packet ackedPacket;
-                            if (m_needAck.TryGetValue(ackedPackId, out ackedPacket))
-                            {
-                                m_unAckedBytes -= ackedPacket.ToBytes().Length;
-                                m_needAck.Remove(ackedPackId);
-                            }
+                            RemovePacketFromNeedAckList(ackedPackId);
                         }
                     }
                 }
@@ -3923,6 +3935,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     item.Incoming = true;
                     m_packetQueue.Enqueue(item);
                 }
+            }
+        }
+
+        private void RemovePacketFromNeedAckList(uint ackedPackId)
+        {
+            Packet ackedPacket;
+            if (m_needAck.TryGetValue(ackedPackId, out ackedPacket))
+            {
+                m_unAckedBytes -= ackedPacket.ToBytes().Length;
+                m_needAck.Remove(ackedPackId);
+
+                m_packetTracker.PacketAck(ackedPackId);
             }
         }
 
@@ -4037,6 +4061,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendAcks();
             ResendUnacked();
             SendPacketStats();
+           // TerrainPacketTrack();
         }
 
         /// <summary>
@@ -4052,6 +4077,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_lastPacketsSentSentToScene = m_packetsSent;
             }
         }
+
 
         /// <summary>
         /// Emties out the old packets in the packet duplication tracking table.
@@ -4091,6 +4117,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #endregion
+
+        public void TriggerTerrainUnackedEvent(int patchX, int patchY)
+        {
+            handlerUnackedTerrain = OnUnackedTerrain;
+            if (handlerUnackedTerrain != null)
+            {
+                handlerUnackedTerrain(this, patchX, patchY);
+            }
+        }
 
         // Previously ClientView.ProcessPackets
 

@@ -299,6 +299,9 @@ namespace OpenSim.Framework
     public delegate void GetScriptRunning(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
     public delegate void SetScriptRunning(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, bool running);
 
+
+    public delegate void TerrainUnacked(IClientAPI remoteClient, int patchX, int patchY);
+
     #endregion
 
     public interface IClientAPI
@@ -501,6 +504,8 @@ namespace OpenSim.Framework
         event SetScriptRunning OnSetScriptRunning;
         event UpdateVector OnAutoPilotGo;
 
+        event TerrainUnacked OnUnackedTerrain;
+
         // [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);
         void SendWearables(AvatarWearable[] wearables, int serial);
@@ -521,6 +526,8 @@ namespace OpenSim.Framework
 
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);
+        void SendLayerData(int px, int py, float[] map, bool track);
+
         void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look);
         void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint);
         AgentCircuitData RequestClientInfo();
@@ -554,13 +561,13 @@ namespace OpenSim.Framework
                                    LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
                                    uint flags,
                                    LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-                                   byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius);
+                                   byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius, bool track);
 
 
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                           LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
                                           uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
-                                   uint parentID, byte[] particleSystem, byte clickAction);
+                                   uint parentID, byte[] particleSystem, byte clickAction, bool track);
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                  LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity, byte state, LLUUID AssetId);

@@ -2084,6 +2084,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnGetScriptRunning += GetScriptRunning;
             client.OnSetScriptRunning += SetScriptRunning;
 
+            client.OnUnackedTerrain += TerrainUnAcked;
+
             // EventManager.TriggerOnNewClient(client);
         }
 
@@ -3702,6 +3704,13 @@ namespace OpenSim.Region.Environment.Scenes
 //                Thread.Sleep(200);
 //                client.SendParcelMediaCommand((uint)(4), ParcelMediaCommandEnum.Play, 0);
 //            });
+        }
+
+
+        public void TerrainUnAcked(IClientAPI client, int patchX, int patchY)
+        {
+            //Console.WriteLine("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
+             client.SendLayerData(patchX, patchY, Heightmap.GetFloatsSerialised());
         }
     }
 }              

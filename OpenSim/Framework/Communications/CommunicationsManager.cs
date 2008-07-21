@@ -125,9 +125,7 @@ namespace OpenSim.Framework.Communications
                     {
                         return invService;
                     }
-
                 }
-
                 return null;
             }
         }
@@ -138,7 +136,6 @@ namespace OpenSim.Framework.Communications
             {
                 host = m_defaultInventoryHost;
             }
-
 
             lock (m_inventoryServices)
             {
