@@ -237,7 +237,6 @@ namespace OpenSim.Region.Environment.Scenes
             CurrentOrFirstScene.LoadPrimsFromArchive(filename);
         }
 
-
         public string SaveCurrentSceneMapToXmlString()
         {
             return CurrentOrFirstScene.Heightmap.SaveToXmlString();

@@ -716,7 +716,8 @@ namespace OpenSim
         
         protected void LoadOar(string[] cmdparams)
         {
-            m_log.Warn("[CONSOLE]: Highly experimental functionality.  Please don't rely on this.");
+            m_log.Warn("[CONSOLE]: Experimental functionality.  Please don't rely on this.");
+            m_log.Warn("[CONSOLE]: See http://opensimulator.org/wiki/OpenSim_Archives for more details.");
 
             if (cmdparams.Length > 0)
             {
@@ -730,7 +731,8 @@ namespace OpenSim
         
         protected void SaveOar(string[] cmdparams)
         {
-            m_log.Warn("[CONSOLE]: Highly experimental functionality.  Please don't rely on this.");
+            m_log.Warn("[CONSOLE]: Experimental functionality.  Please don't rely on this.");
+            m_log.Warn("[CONSOLE]: See http://opensimulator.org/wiki/OpenSim_Archives for more details.");
 
             if (cmdparams.Length > 0)
             {
