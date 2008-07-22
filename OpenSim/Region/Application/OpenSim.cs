@@ -248,10 +248,9 @@ namespace OpenSim
                     m_console.Notice("alert - send alert to a designated user or all users.");
                     m_console.Notice("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
                     m_console.Notice("  alert general [Message] - send an alert to all users.");
-                    m_console.Notice("backup - trigger a simulator backup");
+                    m_console.Notice("backup - persist simulator objects to the database ahead of the normal schedule.");
                     m_console.Notice("clear-assets - clear asset cache");
                     m_console.Notice("create-region <name> <regionfile.xml> - creates a new region");
-                    m_console.Notice("create user - adds a new user.");
                     m_console.Notice("change-region [name] - sets the region that many of these commands affect.");
                     m_console.Notice("command-script [filename] - Execute command in a file.");
                     m_console.Notice("debug - debugging commands");
@@ -277,8 +276,17 @@ namespace OpenSim
                     m_console.Notice("config set section field value - set a config value");
                     m_console.Notice("config get section field - get a config value");
                     m_console.Notice("config save - save OpenSim.ini");
-                    m_console.Notice("terrain help - show help for terrain commands.");
+                    m_console.Notice("terrain help - show help for terrain commands.");                    
                     ShowPluginCommandsHelp(CombineParams(cmdparams, 0), m_console);
+                    
+                    if (m_sandbox)
+                    {
+                        m_console.Notice("");
+                        m_console.Notice("create user - adds a new user.");
+                    }
+                    
+                    m_console.Notice("");
+                    
                     break;
 
                 case "save-xml":
@@ -336,7 +344,9 @@ namespace OpenSim
                     break;
 
                 case "create":
-                    CreateAccount(cmdparams);
+                    if (m_sandbox)
+                        CreateAccount(cmdparams);
+                    
                     break;
 
                 case "create-region":

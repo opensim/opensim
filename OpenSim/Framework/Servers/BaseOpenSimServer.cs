@@ -149,6 +149,7 @@ namespace OpenSim.Framework.Servers
             switch (command)
             {
                 case "help":
+                    Notice("");
                     Notice("quit - equivalent to shutdown.");
 
                     Notice("show info - show server information (e.g. startup path).");
