@@ -51,6 +51,11 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             m_scene = scene;
         }
 
+        public IScene Scene
+        {
+            get { return m_scene; }
+        }
+
         public void Say(string message)
         {
             SendOnChatFromViewer(message, ChatTypeEnum.Say);
@@ -259,7 +264,6 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event FriendActionDelegate OnApproveFriendRequest;
         public event FriendActionDelegate OnDenyFriendRequest;
         public event FriendshipTermination OnTerminateFriendship;
-        public event PacketStats OnPacketStats;
 
         public event EconomyDataRequest OnEconomyDataRequest;
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
@@ -518,7 +522,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
                                                   LLVector3 acc, LLQuaternion rotation, LLVector3 rvel, uint flags,
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
-                                                  byte[] particleSystem, byte clickAction, bool track)
+                                                  byte[] particleSystem, byte clickAction)
         {
         }
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
@@ -527,7 +531,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
                                                   byte[] particleSystem, byte clickAction, byte[] textureanimation,
-                                                  bool attachment, uint AttachmentPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius, bool track)
+                                                  bool attachment, uint AttachmentPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius)
         {
         }
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
@@ -708,6 +712,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
 
         public void InPacket(Packet NewPack)
+        {
+        }
+
+        public void ProcessInPacket(Packet NewPack)
         {
         }
 

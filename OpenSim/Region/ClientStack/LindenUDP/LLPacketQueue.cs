@@ -54,6 +54,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Queue<LLQueItem> WindOutgoingPacketQueue;
         private Queue<LLQueItem> CloudOutgoingPacketQueue;
         private Queue<LLQueItem> TaskOutgoingPacketQueue;
+        private Queue<LLQueItem> TaskLowpriorityPacketQueue;
         private Queue<LLQueItem> TextureOutgoingPacketQueue;
         private Queue<LLQueItem> AssetOutgoingPacketQueue;
 
@@ -99,6 +100,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             WindOutgoingPacketQueue = new Queue<LLQueItem>();
             CloudOutgoingPacketQueue = new Queue<LLQueItem>();
             TaskOutgoingPacketQueue = new Queue<LLQueItem>();
+            TaskLowpriorityPacketQueue = new Queue<LLQueItem>();
             TextureOutgoingPacketQueue = new Queue<LLQueItem>();
             AssetOutgoingPacketQueue = new Queue<LLQueItem>();
 
@@ -106,8 +108,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Set up the throttle classes (min, max, current) in bytes
             ResendThrottle = new LLPacketThrottle(5000, 100000, 16000);
             LandThrottle = new LLPacketThrottle(1000, 100000, 2000);
-            WindThrottle = new LLPacketThrottle(1000, 100000, 1000);
-            CloudThrottle = new LLPacketThrottle(1000, 100000, 1000);
+            WindThrottle = new LLPacketThrottle(0, 100000, 0);
+            CloudThrottle = new LLPacketThrottle(0, 100000, 0);
             TaskThrottle = new LLPacketThrottle(1000, 800000, 3000);
             AssetThrottle = new LLPacketThrottle(1000, 800000, 1000);
             TextureThrottle = new LLPacketThrottle(1000, 800000, 4000);
@@ -149,6 +151,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
+            if (item.Incoming)
+            {
+                SendQueue.PriorityEnqueue(item);
+                return;
+            }
+
             lock (this)
             {
                 switch (item.throttleType)
@@ -161,6 +169,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
                     case ThrottleOutPacketType.Task:
                         ThrottleCheck(ref TaskThrottle, ref TaskOutgoingPacketQueue, item);
+                        break;
+                    case ThrottleOutPacketType.LowpriorityTask:
+                        ThrottleCheck(ref TaskThrottle, ref TaskLowpriorityPacketQueue, item);
                         break;
                     case ThrottleOutPacketType.Land:
                         ThrottleCheck(ref LandThrottle, ref LandOutgoingPacketQueue, item);
@@ -178,7 +189,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     default:
                         // Acknowledgements and other such stuff should go directly to the blocking Queue
                         // Throttling them may and likely 'will' be problematic
-                        SendQueue.Enqueue(item);
+                        SendQueue.PriorityEnqueue(item);
                         break;
                 }
             }
@@ -214,7 +225,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     if (TaskOutgoingPacketQueue.Count > 0)
                     {
-                        SendQueue.Enqueue(TaskOutgoingPacketQueue.Dequeue());
+                        SendQueue.PriorityEnqueue(TaskOutgoingPacketQueue.Dequeue());
+                    }
+                    if (TaskLowpriorityPacketQueue.Count > 0)
+                    {
+                        SendQueue.Enqueue(TaskLowpriorityPacketQueue.Dequeue());
                     }
                     if (TextureOutgoingPacketQueue.Count > 0)
                     {
@@ -261,6 +276,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     WindOutgoingPacketQueue.Count > 0 ||
                     CloudOutgoingPacketQueue.Count > 0 ||
                     TaskOutgoingPacketQueue.Count > 0 ||
+                    TaskLowpriorityPacketQueue.Count > 0 ||
                     AssetOutgoingPacketQueue.Count > 0 ||
                     TextureOutgoingPacketQueue.Count > 0);
         }
@@ -319,11 +335,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TotalThrottle.Add(qpack.Packet.ToBytes().Length);
                         CloudThrottle.Add(qpack.Packet.ToBytes().Length);
                     }
-                    if (TaskThrottle.UnderLimit() && TaskOutgoingPacketQueue.Count > 0)
+                    if (TaskThrottle.UnderLimit() && (TaskOutgoingPacketQueue.Count > 0 || TaskLowpriorityPacketQueue.Count > 0))
                     {
-                        LLQueItem qpack = TaskOutgoingPacketQueue.Dequeue();
-
-                        SendQueue.Enqueue(qpack);
+                        LLQueItem qpack;
+                        if(TaskOutgoingPacketQueue.Count > 0)
+                        {
+                            qpack = TaskOutgoingPacketQueue.Dequeue();
+                            SendQueue.PriorityEnqueue(qpack);
+                        }
+                        else
+                        {
+                            qpack = TaskLowpriorityPacketQueue.Dequeue();
+                            SendQueue.Enqueue(qpack);
+                        }
                         TotalThrottle.Add(qpack.Packet.ToBytes().Length);
                         TaskThrottle.Add(qpack.Packet.ToBytes().Length);
                     }
@@ -490,18 +514,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 AssetThrottle.Throttle = tAsset;
                 TotalThrottle.Throttle = tall;
             }
-            else if (tall < 1)
-            {
-                // client is stupid, penalize him by minning everything
-                ResendThrottle.Throttle = ResendThrottle.Min;
-                LandThrottle.Throttle = LandThrottle.Min;
-                WindThrottle.Throttle = WindThrottle.Min;
-                CloudThrottle.Throttle = CloudThrottle.Min;
-                TaskThrottle.Throttle = TaskThrottle.Min;
-                TextureThrottle.Throttle = TextureThrottle.Min;
-                AssetThrottle.Throttle = AssetThrottle.Min;
-                TotalThrottle.Throttle = TotalThrottle.Min;
-            }
+//            else if (tall < 1)
+//            {
+//                // client is stupid, penalize him by minning everything
+//                ResendThrottle.Throttle = ResendThrottle.Min;
+//                LandThrottle.Throttle = LandThrottle.Min;
+//                WindThrottle.Throttle = WindThrottle.Min;
+//                CloudThrottle.Throttle = CloudThrottle.Min;
+//                TaskThrottle.Throttle = TaskThrottle.Min;
+//                TextureThrottle.Throttle = TextureThrottle.Min;
+//                AssetThrottle.Throttle = AssetThrottle.Min;
+//                TotalThrottle.Throttle = TotalThrottle.Min;
+//            }
             else
             {
                 // we're over so figure out percentages and use those
@@ -516,7 +540,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 TotalThrottle.Throttle = TotalThrottle.Max;
             }
             // effectively wiggling the slider causes things reset
-            ResetCounters();
+//            ResetCounters(); // DO NOT reset, better to send less for one period than more
         }
 
         // See IPullStatsProvider

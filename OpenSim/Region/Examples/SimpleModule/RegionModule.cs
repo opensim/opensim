@@ -84,7 +84,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
             for (int i = 0; i < 1; i++)
             {
-                MyNpcCharacter m_character = new MyNpcCharacter(m_scene.EventManager);
+                MyNpcCharacter m_character = new MyNpcCharacter(m_scene);
                 m_scene.AddNewClient(m_character, false);
             }
 

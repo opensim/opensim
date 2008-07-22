@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 
@@ -39,5 +40,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public Packet Packet;
         public bool Incoming;
         public ThrottleOutPacketType throttleType;
+        public Object Identifier;
     }
 }

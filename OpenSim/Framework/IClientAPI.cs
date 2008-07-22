@@ -254,8 +254,6 @@ namespace OpenSim.Framework
 
     public delegate void FriendshipTermination(IClientAPI remoteClient, LLUUID agentID, LLUUID ExID);
 
-    public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
-
     public delegate void MoneyTransferRequest(LLUUID sourceID, LLUUID destID, int amount, int transactionType, string description);
 
     public delegate void ParcelBuy(LLUUID agentId, LLUUID groupId, bool final, bool groupOwned,
@@ -323,6 +321,8 @@ namespace OpenSim.Framework
         string FirstName { get; }
         
         string LastName { get; }
+
+        IScene Scene { get; }
 
         // [Obsolete("LLClientView Specific - Replace with ???")]
         int NextAnimationSequenceNumber { get; }
@@ -460,7 +460,6 @@ namespace OpenSim.Framework
         event FriendActionDelegate OnApproveFriendRequest;
         event FriendActionDelegate OnDenyFriendRequest;
         event FriendshipTermination OnTerminateFriendship;
-        event PacketStats OnPacketStats;
 
         // Financial packets
         event MoneyTransferRequest OnMoneyTransferRequest;
@@ -526,7 +525,6 @@ namespace OpenSim.Framework
 
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);
-        void SendLayerData(int px, int py, float[] map, bool track);
 
         void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look);
         void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint);
@@ -561,13 +559,14 @@ namespace OpenSim.Framework
                                    LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
                                    uint flags,
                                    LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-                                   byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius, bool track);
+                                   byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius);
 
 
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                           LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
                                           uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
-                                   uint parentID, byte[] particleSystem, byte clickAction, bool track);
+                                   uint parentID, byte[] particleSystem, byte clickAction);
+
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                  LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity, byte state, LLUUID AssetId);
@@ -703,6 +702,7 @@ namespace OpenSim.Framework
 
         void SetDebug(int newDebug);
         void InPacket(Packet NewPack);
+        void ProcessInPacket(Packet NewPack);
         void Close(bool ShutdownCircuit);
         void Kick(string message);
         void Stop();

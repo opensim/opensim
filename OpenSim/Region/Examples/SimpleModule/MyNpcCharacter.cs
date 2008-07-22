@@ -42,6 +42,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         private LLQuaternion bodyDirection = LLQuaternion.Identity;
         private short count = 0;
         private short frame = 0;
+        private Scene m_scene;
 
 // disable warning: public events, part of the public API
 #pragma warning disable 67
@@ -165,7 +166,6 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event FriendActionDelegate OnApproveFriendRequest;
         public event FriendActionDelegate OnDenyFriendRequest;
         public event FriendshipTermination OnTerminateFriendship;
-        public event PacketStats OnPacketStats;
 
         public event EconomyDataRequest OnEconomyDataRequest;
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
@@ -208,10 +208,12 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         private LLUUID myID = LLUUID.Random();
 
-        public MyNpcCharacter(EventManager eventManager)
+        public MyNpcCharacter(Scene scene)
         {
+
             // startPos = new LLVector3(128, (float)(Util.RandomClass.NextDouble()*100), 2);
-            eventManager.OnFrame += Update;
+            m_scene = scene;
+            m_scene.EventManager.OnFrame += Update;
         }
 
         private LLVector3 startPos = new LLVector3(128, 128, 2);
@@ -278,6 +280,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         public virtual int NextAnimationSequenceNumber
         {
             get { return 1; }
+        }
+
+        public IScene Scene
+        {
+            get { return m_scene; }
         }
 
         public virtual void OutPacket(Packet newPack, ThrottleOutPacketType packType)
@@ -432,7 +439,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                                                   LLVector3 acc, LLQuaternion rotation, LLVector3 rvel, uint flags,
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
-                                                  byte[] particleSystem, byte clickAction, bool track)
+                                                  byte[] particleSystem, byte clickAction)
         {
         }
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
@@ -441,7 +448,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
                                                   byte[] particleSystem, byte clickAction, byte[] textureanimation,
-                                                  bool attachment, uint AttachmentPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius, bool track)
+                                                  bool attachment, uint AttachmentPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius)
         {
         }
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
@@ -697,6 +704,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public void InPacket(Packet NewPack)
+        {
+        }
+
+        public void ProcessInPacket(Packet NewPack)
         {
         }
 

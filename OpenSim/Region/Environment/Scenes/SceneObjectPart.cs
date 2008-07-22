@@ -2085,7 +2085,7 @@ namespace OpenSim.Region.Environment.Scenes
             remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
                                                lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, _ownerID,
                                                m_text, color, _parentID, m_particleSystem, m_clickAction, m_TextureAnimation, m_IsAttachment,
-                                               m_attachmentPoint,fromAssetID, Sound, SoundGain, SoundFlags, SoundRadius, false);
+                                               m_attachmentPoint,fromAssetID, Sound, SoundGain, SoundFlags, SoundRadius);
         }
 
         /// <summary>

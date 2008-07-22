@@ -2088,7 +2088,6 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
             client.OnParcelBuy += ProcessParcelBuy;
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
-            client.OnPacketStats += AddPacketStats;
             client.OnObjectIncludeInSearch += m_innerScene.MakeObjectSearchable;
             client.OnTeleportHomeRequest += TeleportClientHome;
             client.OnSetStartLocationRequest += SetHomeRezPoint;

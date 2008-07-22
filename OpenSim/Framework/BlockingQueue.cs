@@ -32,8 +32,18 @@ namespace OpenSim.Framework
 {
     public class BlockingQueue<T>
     {
+        private readonly Queue<T> m_pqueue = new Queue<T>();
         private readonly Queue<T> m_queue = new Queue<T>();
         private readonly object m_queueSync = new object();
+
+        public void PriorityEnqueue(T value)
+        {
+            lock (m_queueSync)
+            {
+                m_pqueue.Enqueue(value);
+                Monitor.Pulse(m_queueSync);
+            }
+        }
 
         public void Enqueue(T value)
         {
@@ -48,11 +58,13 @@ namespace OpenSim.Framework
         {
             lock (m_queueSync)
             {
-                if (m_queue.Count < 1)
+                if (m_queue.Count < 1 && m_pqueue.Count < 1)
                 {
                     Monitor.Wait(m_queueSync);
                 }
 
+                if(m_pqueue.Count > 0)
+                    return m_pqueue.Dequeue();
                 return m_queue.Dequeue();
             }
         }
@@ -61,6 +73,8 @@ namespace OpenSim.Framework
         {
             lock (m_queueSync)
             {
+                if(m_pqueue.Contains(item))
+                    return true;
                 return m_queue.Contains(item);
             }
         }
@@ -69,7 +83,7 @@ namespace OpenSim.Framework
         {
             lock (m_queueSync)
             {
-                return m_queue.Count;
+                return m_queue.Count+m_pqueue.Count;
             }
         }
 

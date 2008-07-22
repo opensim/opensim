@@ -50,20 +50,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 
     /// <summary>
-    /// Class that keeps track of past packets so that they don't get 
-    /// duplicated when the client doesn't get back an ack
-    /// </summary>
-    public class PacketDupeLimiter
-    {
-        public PacketType pktype;
-        public int timeIn;
-        public uint packetId;
-        public PacketDupeLimiter()
-        {
-        }
-    }
-
-    /// <summary>
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
     /// </summary>
@@ -79,7 +65,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /* static variables */
         public static TerrainManager TerrainManager = new TerrainManager(new SecondLife());
 
-        public delegate bool SynchronizeClientHandler(IScene scene, Packet packet, LLUUID agentID, ThrottleOutPacketType throttlePacketType);
         public static SynchronizeClientHandler SynchronizeClient = null;
         /* private variables */
         private readonly LLUUID m_sessionId;
@@ -93,15 +78,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool m_clientBlocked = false;
 
-        // for sim stats
-        private int m_packetsReceived = 0;
-        private int m_lastPacketsReceivedSentToScene = 0;
-        private int m_unAckedBytes = 0;
-
-        private int m_packetsSent = 0;
-        private int m_lastPacketsSentSentToScene = 0;
-        private int m_clearDuplicatePacketTrackingOlderThenXSeconds = 30;
-
         private int m_probesWithNoIngressPackets = 0;
         private int m_lastPacketsReceived = 0;
         private byte[] ZeroOutBuffer = new byte[4096];
@@ -109,16 +85,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly LLUUID m_agentId;
         private readonly uint m_circuitCode;
         private int m_moneyBalance;
-
-        private Dictionary<uint, PacketDupeLimiter> m_dupeLimiter = new Dictionary<uint, PacketDupeLimiter>();
+        private IPacketHandler m_PacketHandler;
 
         private int m_animationSequenceNumber = 1;
 
         private byte[] m_channelVersion = Helpers.StringToField("OpenSimulator 0.5"); // Dummy value needed by libSL
 
         private Dictionary<string, LLUUID> m_defaultAnimations = new Dictionary<string, LLUUID>();
-
-        private LLPacketTracker m_packetTracker;
 
         /* protected variables */
 
@@ -130,17 +103,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected IScene m_scene;
         protected AgentCircuitManager m_authenticateSessionsHandler;
 
-        protected LLPacketQueue m_packetQueue;
-
-        protected Dictionary<uint, uint> m_pendingAcks = new Dictionary<uint, uint>();
-        protected Dictionary<uint, Packet> m_needAck = new Dictionary<uint, Packet>();
-
-        protected Timer m_ackTimer;
-        protected uint m_sequence = 0;
-        protected object m_sequenceLock = new object();
-        protected const int MAX_APPENDED_ACKS = 10;
-        protected const int RESEND_TIMEOUT = 4000;
-        protected const int MAX_SEQUENCE = 0xFFFFFF;
         protected LLPacketServer m_networkServer;
 
         /* public variables */
@@ -263,7 +225,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private UpdateVector handlerUpdateVector = null; //OnUpdatePrimGroupPosition;
         private UpdatePrimRotation handlerUpdatePrimRotation = null; //OnUpdatePrimGroupRotation;
         // private UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = null; //OnUpdatePrimGroupMouseRotation;
-        private PacketStats handlerPacketStats = null; // OnPacketStats;#
         // private RequestAsset handlerRequestAsset = null; // OnRequestAsset;
         private UUIDNameRequest handlerTeleportHomeRequest = null;
 
@@ -378,13 +339,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_animationSequenceNumber++; }
         }
 
+        public IPacketHandler PacketHandler
+        {
+            get { return m_PacketHandler; }
+        }
+
+        bool m_IsActive = true;
+
+        public bool IsActive
+        {
+            get { return m_IsActive; }
+            set { m_IsActive = value; }
+        }
+
         /* METHODS */
 
         public LLClientView(EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
                           AgentCircuitManager authenSessions, LLUUID agentId, LLUUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
-            m_packetTracker = new LLPacketTracker(this);
-
             m_moneyBalance = 1000;
 
             m_channelVersion = Helpers.StringToField(scene.GetSimulatorVersion());
@@ -414,7 +386,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // in it to process.  It's an on-purpose threadlock though because
             // without it, the clientloop will suck up all sim resources.
 
-            m_packetQueue = new LLPacketQueue(agentId);
+            m_PacketHandler = new LLPacketHandler(this);
+            m_PacketHandler.SynchronizeClient = SynchronizeClient;
 
             RegisterLocalPacketHandlers();
 
@@ -423,7 +396,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientThread.Name = "ClientThread";
             m_clientThread.IsBackground = true;
             m_clientThread.Start();
-            ThreadTracker.Add(m_clientThread);
         }
 
         public void SetDebug(int newDebug)
@@ -444,12 +416,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
             OutPacket(disable, ThrottleOutPacketType.Unknown);
 
-            m_packetQueue.Close();
-
             Thread.Sleep(2000);
 
             // Shut down timers
-            m_ackTimer.Stop();
             m_clientPingTimer.Stop();
 
             // This is just to give the client a reasonable chance of
@@ -479,7 +448,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Pull Client out of Region
             m_log.Info("[CLIENT]: Close has been called");
-            m_packetQueue.Flush();
+            m_PacketHandler.Flush();
 
             //raiseevent on the packet server to Shutdown the circuit
             if (shutdownCircuit)
@@ -509,20 +478,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Stop()
         {
             // Shut down timers
-            m_ackTimer.Stop();
             m_clientPingTimer.Stop();
         }
 
         public void Restart()
         {
             // re-construct
-            m_pendingAcks = new Dictionary<uint, uint>();
-            m_needAck = new Dictionary<uint, Packet>();
-            m_sequence += 1000000;
-
-            m_ackTimer = new Timer(750);
-            m_ackTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
-            m_ackTimer.Start();
+            m_PacketHandler.Clear();
 
             m_clientPingTimer = new Timer(5000);
             m_clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
@@ -531,8 +493,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Terminate()
         {
-            // disable blocking queue
-            m_packetQueue.Enqueue(null);
+            m_PacketHandler.Stop();
 
             // wait for thread stoped
             m_clientThread.Join();
@@ -638,7 +599,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_log.Info("[CLIENT]: Entered loop");
             while (true)
             {
-                LLQueItem nextPacket = m_packetQueue.Dequeue();
+                LLQueItem nextPacket = m_PacketHandler.PacketQueue.Dequeue();
                 if (nextPacket == null)
                 {
                     m_log.Error("Got a NULL packet in Client Loop, bailing out of our client loop");
@@ -646,12 +607,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 if (nextPacket.Incoming)
                 {
-                    if (nextPacket.Packet.Type != PacketType.AgentUpdate)
-                    {
-                        m_packetsReceived++;
-                    }
                     DebugPacket("IN", nextPacket.Packet);
-                    ProcessInPacket(nextPacket.Packet);
+                    m_PacketHandler.ProcessInPacket(nextPacket.Packet);
                 }
                 else
                 {
@@ -672,7 +629,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="e"></param>
         protected void CheckClientConnectivity(object sender, ElapsedEventArgs e)
         {
-            if (m_packetsReceived == m_lastPacketsReceived)
+            if (m_PacketHandler.PacketsReceived == m_PacketHandler.PacketsReceivedReported)
             {
                 m_probesWithNoIngressPackets++;
                 if ((m_probesWithNoIngressPackets > 30 && !m_clientBlocked) || (m_probesWithNoIngressPackets > 90 && m_clientBlocked))
@@ -693,19 +650,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // Something received in the meantime - we can reset the counters
                 m_probesWithNoIngressPackets = 0;
-                m_lastPacketsReceived = m_packetsReceived;
             }
 
-            //SendPacketStats();
-            m_packetTracker.Process();
-
-            if (m_terrainCheckerCount >= 4)
-            {
-                m_packetTracker.TerrainPacketCheck();
-               // m_packetTracker.PrimPacketCheck();
-                m_terrainCheckerCount = -1;
-            }
-            m_terrainCheckerCount++;
         }
 
         # region Setup
@@ -719,9 +665,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
 
             // Establish our two timers.  We could probably get this down to one
-            m_ackTimer = new Timer(750);
-            m_ackTimer.Elapsed += new ElapsedEventHandler(AckTimer_Elapsed);
-            m_ackTimer.Start();
 
             m_clientPingTimer = new Timer(5000);
             m_clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
@@ -754,7 +697,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         "[CLIENT]: New user request denied to avatar {0} connecting with circuit code {1} from {2}",
                         m_agentId, m_circuitCode, m_userEndPoint);
 
-                    m_packetQueue.Close();
+                    m_PacketHandler.Stop();
                     m_clientThread.Abort();
                 }
                 else
@@ -920,7 +863,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event FriendActionDelegate OnApproveFriendRequest;
         public event FriendActionDelegate OnDenyFriendRequest;
         public event FriendshipTermination OnTerminateFriendship;
-        public event PacketStats OnPacketStats;
         public event MoneyTransferRequest OnMoneyTransferRequest;
         public event EconomyDataRequest OnEconomyDataRequest;
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
@@ -1105,7 +1047,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual void SendLayerData(float[] map)
         {
             ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendLayerData), (object)map);
-           
         }
 
         /// <summary>
@@ -1166,11 +1107,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         public void SendLayerData(int px, int py, float[] map)
         {
-            SendLayerData(px, py, map, true);
-        }
-
-        public void SendLayerData(int px, int py, float[] map, bool track)
-        {
             try
             {
                 int[] patches = new int[1];
@@ -1183,12 +1119,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 LayerDataPacket layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
                 layerpack.Header.Zerocoded = true;
                
-                if (track)
-                {
-                    layerpack.Header.Sequence = NextSeqNum();
-                    m_packetTracker.TrackTerrainPacket(layerpack.Header.Sequence, px, py);
-                }
-
                 OutPacket(layerpack, ThrottleOutPacketType.Land);
             }
             catch (Exception e)
@@ -2309,14 +2239,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                           ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                           LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
                                           uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
-                                          uint parentID, byte[] particleSystem, byte clickAction, bool track)
+                                          uint parentID, byte[] particleSystem, byte clickAction)
         {
             byte[] textureanim = new byte[0];
 
             SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, vel,
                                   acc, rotation, rvel, flags,
                                   objectID, ownerID, text, color, parentID, particleSystem,
-                                  clickAction, textureanim, false, (uint)0, LLUUID.Zero, LLUUID.Zero, 0, 0, 0, track);
+                                  clickAction, textureanim, false, (uint)0, LLUUID.Zero, LLUUID.Zero, 0, 0, 0);
         }
 
         public void SendPrimitiveToClient(
@@ -2324,7 +2254,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLVector3 pos, LLVector3 velocity, LLVector3 acceleration, LLQuaternion rotation, LLVector3 rotational_velocity,
             uint flags,
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-            byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId, LLUUID SoundId, double SoundGain, byte SoundFlags, double SoundRadius, bool track)
+            byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId, LLUUID SoundId, double SoundGain, byte SoundFlags, double SoundRadius)
         {
 
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
@@ -2410,13 +2340,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             outPacket.Header.Zerocoded = true;
 
-            if (track)
-            {
-                outPacket.Header.Sequence = NextSeqNum();
-                m_packetTracker.TrackPrimPacket(outPacket.Header.Sequence, objectID);
-            }
-
-            OutPacket(outPacket, ThrottleOutPacketType.Task);
+            OutPacket(outPacket, ThrottleOutPacketType.LowpriorityTask);
         }
 
         /// <summary>
@@ -2440,7 +2364,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, state); // AssetID should fall into here probably somehow...
             terse.Header.Reliable = false;
             terse.Header.Zerocoded = true;
-            OutPacket(terse, ThrottleOutPacketType.Task);
+            OutPacket(terse, ThrottleOutPacketType.LowpriorityTask);
         }
 
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
@@ -2456,7 +2380,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, 0);
             terse.Header.Reliable = false;
             terse.Header.Zerocoded = true;
-            OutPacket(terse, ThrottleOutPacketType.Task);
+            OutPacket(terse, ThrottleOutPacketType.LowpriorityTask);
         }
 
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID)
@@ -3736,7 +3660,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         public byte[] GetThrottlesPacked(float multiplier)
         {
-            return m_packetQueue.GetThrottlesPacked(multiplier);
+            return m_PacketHandler.PacketQueue.GetThrottlesPacked(multiplier);
         }
         /// <summary>
         /// sets the throttles from values supplied by the client 
@@ -3744,85 +3668,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="throttles"></param>
         public void SetChildAgentThrottle(byte[] throttles)
         {
-            m_packetQueue.SetThrottleFromClient(throttles);
+            m_PacketHandler.PacketQueue.SetThrottleFromClient(throttles);
         }
 
         // Previously ClientView.m_packetQueue
-
-        // A thread safe sequence number allocator.
-        protected uint NextSeqNum()
-        {
-            // Set the sequence number
-            uint seq = 1;
-            lock (m_sequenceLock)
-            {
-                if (m_sequence >= MAX_SEQUENCE)
-                {
-                    m_sequence = 1;
-                }
-                else
-                {
-                    m_sequence++;
-                }
-                seq = m_sequence;
-            }
-            return seq;
-        }
-
-        protected void AddAck(Packet Pack)
-        {
-            lock (m_needAck)
-            {
-                if (!m_needAck.ContainsKey(Pack.Header.Sequence))
-                {
-                    try
-                    {
-                        m_needAck.Add(Pack.Header.Sequence, Pack);
-                        m_unAckedBytes += Pack.ToBytes().Length;
-                    }
-                    //BUG: severity=major - This looks like a framework bug!?
-                    catch (Exception) // HACKY
-                    {
-                        // Ignore
-                        // Seems to throw a exception here occasionally
-                        // of 'duplicate key' despite being locked.
-                        // !?!?!?
-                    }
-                }
-                else
-                {
-                    //  Client.Log("Attempted to add a duplicate sequence number (" +
-                    //     packet.Header.m_sequence + ") to the m_needAck dictionary for packet type " +
-                    //      packet.Type.ToString(), Helpers.LogLevel.Warning);
-                }
-            }
-        }
-        /// <summary>
-        /// Append any ACKs that need to be sent out to this packet
-        /// </summary>
-        /// <param name="Pack"></param>
-        protected virtual void SetPendingAcks(ref Packet Pack)
-        {
-
-            lock (m_pendingAcks)
-            {
-                // TODO: If we are over MAX_APPENDED_ACKS we should drain off some of these
-                if (m_pendingAcks.Count > 0 && m_pendingAcks.Count < MAX_APPENDED_ACKS)
-                {
-                    Pack.Header.AckList = new uint[m_pendingAcks.Count];
-                    int i = 0;
-
-                    foreach (uint ack in m_pendingAcks.Values)
-                    {
-                        Pack.Header.AckList[i] = ack;
-                        i++;
-                    }
-
-                    m_pendingAcks.Clear();
-                    Pack.Header.AppendedAcks = true;
-                }
-            }
-        }
 
         /// <summary>
         /// Helper routine to prepare the packet for sending to UDP client
@@ -3833,24 +3682,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Keep track of when this packet was sent out
             Pack.TickCount = System.Environment.TickCount;
-
-            if (!Pack.Header.Resent)
-            {
-                if (Pack.Header.Sequence == 0)
-                {
-                    Pack.Header.Sequence = NextSeqNum();
-                }
-
-                if (Pack.Header.Reliable) //DIRTY HACK
-                {
-                    AddAck(Pack); // this adds the need to ack this packet later
-
-                    if (Pack.Type != PacketType.PacketAck && Pack.Type != PacketType.LogoutRequest)
-                    {
-                        SetPendingAcks(ref Pack);
-                    }
-                }
-            }
 
             // Actually make the byte array and send it
             try
@@ -3886,248 +3717,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="NewPack"></param>
         public virtual void InPacket(Packet NewPack)
         {
-            if (!m_packetProcessingEnabled && NewPack.Type != PacketType.LogoutRequest)
-            {
-                PacketPool.Instance.ReturnPacket(NewPack);
-                return;
-            }
-
-            // Handle appended ACKs
-            if (NewPack != null)
-            {
-                if (NewPack.Header.AppendedAcks)
-                {
-                    lock (m_needAck)
-                    {
-                        foreach (uint ackedPacketId in NewPack.Header.AckList)
-                        {
-                            RemovePacketFromNeedAckList(ackedPacketId);
-                        }
-                    }
-                }
-
-                // Handle PacketAck packets
-                if (NewPack.Type == PacketType.PacketAck)
-                {
-                    PacketAckPacket ackPacket = (PacketAckPacket)NewPack;
-
-                    lock (m_needAck)
-                    {
-                        foreach (PacketAckPacket.PacketsBlock block in ackPacket.Packets)
-                        {
-                            uint ackedPackId = block.ID;
-                            RemovePacketFromNeedAckList(ackedPackId);
-                        }
-                    }
-                }
-                else if ((NewPack.Type == PacketType.StartPingCheck))
-                {
-                    //reply to pingcheck
-                    StartPingCheckPacket startPing = (StartPingCheckPacket)NewPack;
-                    CompletePingCheckPacket endPing = (CompletePingCheckPacket)PacketPool.Instance.GetPacket(PacketType.CompletePingCheck);
-                    endPing.PingID.PingID = startPing.PingID.PingID;
-                    OutPacket(endPing, ThrottleOutPacketType.Task);
-                }
-                else
-                {
-                    LLQueItem item = new LLQueItem();
-                    item.Packet = NewPack;
-                    item.Incoming = true;
-                    m_packetQueue.Enqueue(item);
-                }
-            }
-        }
-
-        private void RemovePacketFromNeedAckList(uint ackedPackId)
-        {
-            Packet ackedPacket;
-            if (m_needAck.TryGetValue(ackedPackId, out ackedPacket))
-            {
-                m_unAckedBytes -= ackedPacket.ToBytes().Length;
-                m_needAck.Remove(ackedPackId);
-
-                m_packetTracker.PacketAck(ackedPackId);
-            }
+            m_PacketHandler.InPacket(NewPack);
         }
 
         /// <summary>
-        /// The dreaded OutPacket.   This should only be called from withink the ClientStack itself right now
-        /// This is the entry point for simulator packets to go out to the client.
+        /// The dreaded OutPacket. This should only be called from within
+        /// the ClientStack itself right now
+        /// This is the entry point for simulator packets to go out to
+        /// the client.
         /// </summary>
         /// <param name="NewPack"></param>
         /// <param name="throttlePacketType">Corresponds to the type of data that is going out.  Enum</param>
         public virtual void OutPacket(Packet NewPack, ThrottleOutPacketType throttlePacketType)
         {
-            if ((SynchronizeClient != null) && (!IsActive))
-            {
-                // Sending packet to active client's server.
-                if (SynchronizeClient(m_scene, NewPack, m_agentId, throttlePacketType))
-                {
-                    return;
-                }
-            }
-
-            LLQueItem item = new LLQueItem();
-            item.Packet = NewPack;
-            item.Incoming = false;
-            item.throttleType = throttlePacketType; // Packet throttle type
-            m_packetQueue.Enqueue(item);
-            m_packetsSent++;
+            m_PacketHandler.OutPacket(NewPack, throttlePacketType);
         }
-
-        # region Low Level Packet Methods
-
-        protected void ack_pack(Packet Pack)
-        {
-            if (Pack.Header.Reliable)
-            {
-                PacketAckPacket ack_it = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
-                // TODO: don't create new blocks if recycling an old packet
-                ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
-                ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
-                ack_it.Packets[0].ID = Pack.Header.Sequence;
-                ack_it.Header.Reliable = false;
-
-                OutPacket(ack_it, ThrottleOutPacketType.Unknown);
-            }
-            /*
-            if (Pack.Header.Reliable)
-            {
-                lock (m_pendingAcks)
-                {
-                    uint sequence = (uint)Pack.Header.m_sequence;
-                    if (!m_pendingAcks.ContainsKey(sequence)) { m_pendingAcks[sequence] = sequence; }
-                }
-            }*/
-        }
-
-        protected void ResendUnacked()
-        {
-            int now = System.Environment.TickCount;
-
-            lock (m_needAck)
-            {
-                foreach (Packet packet in m_needAck.Values)
-                {
-                    if ((now - packet.TickCount > RESEND_TIMEOUT) && (!packet.Header.Resent))
-                    {
-                        //m_log.Debug("[NETWORK]: Resending " + packet.Type.ToString() + " packet, " +
-                        //(now - packet.TickCount) + "ms have passed");
-
-                        packet.Header.Resent = true;
-                        OutPacket(packet, ThrottleOutPacketType.Resend);
-                    }
-                }
-            }
-        }
-
-        protected void SendAcks()
-        {
-            lock (m_pendingAcks)
-            {
-                if (m_pendingAcks.Count > 0)
-                {
-                    if (m_pendingAcks.Count > 250)
-                    {
-                        // FIXME: Handle the odd case where we have too many pending ACKs queued up
-                        m_log.Info("[NETWORK]: Too many ACKs queued up!");
-                        return;
-                    }
-
-                    //m_log.Info("[NETWORK]: Sending PacketAck");
-
-                    int i = 0;
-                    PacketAckPacket acks = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
-                    // TODO: don't create new blocks if recycling an old packet
-                    acks.Packets = new PacketAckPacket.PacketsBlock[m_pendingAcks.Count];
-
-                    foreach (uint ack in m_pendingAcks.Values)
-                    {
-                        acks.Packets[i] = new PacketAckPacket.PacketsBlock();
-                        acks.Packets[i].ID = ack;
-                        i++;
-                    }
-
-                    acks.Header.Reliable = false;
-                    OutPacket(acks, ThrottleOutPacketType.Unknown);
-
-                    m_pendingAcks.Clear();
-                }
-            }
-        }
-
-        protected void AckTimer_Elapsed(object sender, ElapsedEventArgs ea)
-        {
-            SendAcks();
-            ResendUnacked();
-            SendPacketStats();
-           // TerrainPacketTrack();
-        }
-
-        /// <summary>
-        /// Keeps track of the packet stats for the simulator stats reporter
-        /// </summary>
-        protected void SendPacketStats()
-        {
-            handlerPacketStats = OnPacketStats;
-            if (handlerPacketStats != null)
-            {
-                handlerPacketStats(m_packetsReceived - m_lastPacketsReceivedSentToScene, m_packetsSent - m_lastPacketsSentSentToScene, m_unAckedBytes);
-                m_lastPacketsReceivedSentToScene = m_packetsReceived;
-                m_lastPacketsSentSentToScene = m_packetsSent;
-            }
-        }
-
-
-        /// <summary>
-        /// Emties out the old packets in the packet duplication tracking table.
-        /// </summary>
-        protected void ClearOldPacketDupeTracking()
-        {
-            lock (m_dupeLimiter)
-            {
-                List<uint> toEliminate = new List<uint>();
-                try
-                {
-                    foreach (uint seq in m_dupeLimiter.Keys)
-                    {
-                        PacketDupeLimiter pkdata = null;
-                        m_dupeLimiter.TryGetValue(seq, out pkdata);
-                        if (pkdata != null)
-                        {
-                            // doing a foreach loop, so we don't want to modify the dictionary while we're searching it
-                            if (Util.UnixTimeSinceEpoch() - pkdata.timeIn > m_clearDuplicatePacketTrackingOlderThenXSeconds)
-                                toEliminate.Add(seq);
-                        }
-                    }
-                }
-                catch (InvalidOperationException)
-                {
-                    m_log.Info("[PACKET]: Unable to clear dupe check packet data");
-                }
-
-                // remove the dupe packets that we detected in the loop above.
-                uint[] seqsToRemove = toEliminate.ToArray();
-                for (int i = 0; i < seqsToRemove.Length; i++)
-                {
-                    if (m_dupeLimiter.ContainsKey(seqsToRemove[i]))
-                        m_dupeLimiter.Remove(seqsToRemove[i]);
-                }
-            }
-        }
-
-        #endregion
-
-        public void TriggerTerrainUnackedEvent(int patchX, int patchY)
-        {
-            handlerUnackedTerrain = OnUnackedTerrain;
-            if (handlerUnackedTerrain != null)
-            {
-                handlerUnackedTerrain(this, patchX, patchY);
-            }
-        }
-
-        // Previously ClientView.ProcessPackets
 
         public bool AddMoney(int debit)
         {
@@ -4141,14 +3745,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 return false;
             }
-        }
-
-        private bool m_packetProcessingEnabled = true;
-
-        public bool IsActive
-        {
-            get { return m_packetProcessingEnabled; }
-            set { m_packetProcessingEnabled = value; }
         }
 
         /// <summary>
@@ -4206,31 +3802,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// all UDP packets from the client will end up here
         /// </summary>
         /// <param name="Pack">libsecondlife.packet</param>
-        protected void ProcessInPacket(Packet Pack)
+        public void ProcessInPacket(Packet Pack)
         {
-            // always ack the packet!
-            ack_pack(Pack);
-
-            // check for duplicate packets..    packets that the client is 
-            // resending because it didn't receive our ack
-
-            lock (m_dupeLimiter)
-            {
-                if (m_dupeLimiter.ContainsKey(Pack.Header.Sequence))
-                {
-                    //m_log.Info("[CLIENT]: Warning Duplicate packet detected" + Pack.Type.ToString() + " Dropping.");
-                    return;
-                }
-                else
-                {
-                    PacketDupeLimiter pkdedupe = new PacketDupeLimiter();
-                    pkdedupe.packetId = Pack.Header.ID;
-                    pkdedupe.pktype = Pack.Type;
-                    pkdedupe.timeIn = Util.UnixTimeSinceEpoch();
-                    m_dupeLimiter.Add(Pack.Header.Sequence, pkdedupe);
-                }
-            }
-
             // check if we've got a local packet handler for this packet.type.   See RegisterLocalPacketHandlers()
             if (ProcessPacketMethod(Pack))
             {
@@ -4702,7 +4275,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     case PacketType.AgentThrottle:
                         AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
-                        m_packetQueue.SetThrottleFromClient(atpack.Throttle.Throttles);
+                        m_PacketHandler.PacketQueue.SetThrottleFromClient(atpack.Throttle.Throttles);
                         break;
 
                     case PacketType.AgentPause:
@@ -6648,76 +6221,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public ClientInfo GetClientInfo()
         {
-            //MainLog.Instance.Verbose("CLIENT", "GetClientInfo BGN");
+            ClientInfo info = m_PacketHandler.GetClientInfo();
 
-            ClientInfo info = new ClientInfo();
             info.userEP = this.m_userEndPoint;
             info.proxyEP = this.m_proxyEndPoint;
             info.agentcircuit = new sAgentCircuitData(RequestClientInfo());
-
-            info.pendingAcks = m_pendingAcks;
-
-            info.needAck = new Dictionary<uint, byte[]>();
-
-            lock (m_needAck)
-            {
-                foreach (uint key in m_needAck.Keys)
-                {
-                    info.needAck.Add(key, m_needAck[key].ToBytes());
-                }
-            }
-
-            /* pending
-                        QueItem[] queitems = m_packetQueue.GetQueueArray();
-
-                        MainLog.Instance.Verbose("CLIENT", "Queue Count : [{0}]", queitems.Length);
-
-                        for (int i = 0; i < queitems.Length; i++)
-                        {
-                            if (queitems[i].Incoming == false)
-                            {
-                                info.out_packets.Add(queitems[i].Packet.ToBytes());
-                                MainLog.Instance.Verbose("CLIENT", "Add OutPacket [{0}]", queitems[i].Packet.Type.ToString());
-                            }
-                        }
-            */
-
-            info.sequence = m_sequence;
-
-            //MainLog.Instance.Verbose("CLIENT", "GetClientInfo END");
 
             return info;
         }
 
         public void SetClientInfo(ClientInfo info)
         {
-            m_pendingAcks = info.pendingAcks;
-
-            m_needAck = new Dictionary<uint, Packet>();
-
-            Packet packet = null;
-            int packetEnd = 0;
-            byte[] zero = new byte[3000];
-
-            foreach (uint key in info.needAck.Keys)
-            {
-                byte[] buff = info.needAck[key];
-
-                packetEnd = buff.Length - 1;
-
-                try
-                {
-                    packet = PacketPool.Instance.GetPacket(buff, ref packetEnd, zero);
-                }
-                catch (Exception)
-                {
-
-                }
-
-                m_needAck.Add(key, packet);
-            }
-
-            m_sequence = info.sequence;
+            m_PacketHandler.SetClientInfo(info);
         }
 
         #region Media Parcel Members
