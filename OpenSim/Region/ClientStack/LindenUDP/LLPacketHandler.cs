@@ -251,27 +251,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Add acks to outgoing packets
             //
-            lock(m_PendingAcks)
-            {
-                if(m_PendingAcks.Count > 0)
-                {
-                    int count = m_PendingAcks.Count;
-                    if(count > 10)
-                        count = 10;
-                    packet.Header.AckList = new uint[count];
+			if(m_PendingAcks.Count > 0)
+			{
+				int count = m_PendingAcks.Count;
+				if(count > 10)
+					count = 10;
+				packet.Header.AckList = new uint[count];
 
-                    int i = 0;
+				int i = 0;
 
-                    foreach (uint ack in new List<uint>(m_PendingAcks.Keys))
-                    {
-                        packet.Header.AckList[i] = ack;
-                        i++;
-                        m_PendingAcks.Remove(ack);
-                        if (i >= 10) // That is how much space there is
-                            break;
-                    }
-                }
-            }
+				foreach (uint ack in new List<uint>(m_PendingAcks.Keys))
+				{
+					packet.Header.AckList[i] = ack;
+					i++;
+					m_PendingAcks.Remove(ack);
+					if (i >= 10) // That is how much space there is
+						break;
+				}
+			}
 
             packet.TickCount = System.Environment.TickCount;
 
