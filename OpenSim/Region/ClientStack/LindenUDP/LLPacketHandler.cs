@@ -309,8 +309,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // No need to resend anything. Keep it until it gets stale,
                 // then it will be dropped.
                 //
-                if (((now - lastAck) > m_SilenceLimit) &&
-                        m_NeedAck.Count > 0)
+                if ((((now - lastAck) > m_SilenceLimit) &&
+                        m_NeedAck.Count > 0) || m_NeedAck.Count == 0)
                 {
                     return;
                 }
