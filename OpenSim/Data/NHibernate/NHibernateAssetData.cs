@@ -107,7 +107,7 @@ namespace OpenSim.Data.NHibernate
             {
                 return session.Load(typeof(AssetBase), uuid) as AssetBase;
             }
-            catch (ObjectNotFoundException e)
+            catch (ObjectNotFoundException)
             {
                 m_log.ErrorFormat("[NHIBERNATE] no such asset {0}", uuid);
                 return null;
@@ -125,7 +125,7 @@ namespace OpenSim.Data.NHibernate
             {
                 AssetBase a = session.Load(typeof(AssetBase), asset.FullID) as AssetBase;
             }
-            catch (ObjectNotFoundException e)
+            catch (ObjectNotFoundException)
             {
                 session.Save(asset);
                 session.Flush();

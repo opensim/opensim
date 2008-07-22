@@ -125,7 +125,7 @@ namespace OpenSim.Data.NHibernate
                 session.Update(p);
                 m_log.InfoFormat("[NHIBERNATE] updating object {0}", p.UUID);
             }
-            catch (ObjectNotFoundException e)
+            catch (ObjectNotFoundException)
             {
                 m_log.InfoFormat("[NHIBERNATE] saving object {0}", p.UUID);
                 session.Save(p);
@@ -145,7 +145,7 @@ namespace OpenSim.Data.NHibernate
                 session.Update(t);
                 session.Flush();
             }
-            catch (ObjectNotFoundException e)
+            catch (ObjectNotFoundException)
             {
                 session.Save(t);
                 session.Flush();
