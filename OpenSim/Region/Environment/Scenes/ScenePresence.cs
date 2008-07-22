@@ -1626,7 +1626,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Tell *ALL* agents about this agent
         /// </summary>
-        public void SendFullUpdateToAllClients()
+        public void SendInitialFullUpdateToAllClients()
         {
             m_perfMonMS = System.Environment.TickCount;
 
@@ -1648,6 +1648,21 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }
 
+        public void SendFullUpdateToAllClients()
+        {
+            m_perfMonMS = System.Environment.TickCount;
+
+            List<ScenePresence> avatars = m_scene.GetScenePresences();
+            foreach (ScenePresence avatar in avatars)
+            {
+                SendFullUpdateToOtherClient(avatar);
+
+            }
+            m_scene.AddAgentUpdates(avatars.Count);
+            m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
+        }
+
+
         /// <summary>
         /// Do everything required once a client completes its movement into a region 
         /// </summary>
@@ -1664,7 +1679,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_scene.InformClientOfNeighbours(this);
             }
 
-            SendFullUpdateToAllClients();
+            SendInitialFullUpdateToAllClients();
             SendAppearanceToAllOtherAgents();
          }
 
