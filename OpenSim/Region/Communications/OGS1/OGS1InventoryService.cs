@@ -306,9 +306,10 @@ namespace OpenSim.Region.Communications.OGS1
             return null;
         }
 
-        public bool CreateNewUserInventory(LLUUID user)
+        public bool CreateNewUserInventory(LLUUID userId)
         {
-            return false;
+            return SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
+                "POST", _inventoryServerUrl + "CreateInventory/", userId.UUID);
         }
 
         // See IInventoryServices

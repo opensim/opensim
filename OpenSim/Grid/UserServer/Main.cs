@@ -34,10 +34,12 @@ using libsecondlife;
 using log4net;
 using log4net.Config;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
+using OpenSim.Region.Communications.OGS1;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -52,6 +54,7 @@ namespace OpenSim.Grid.UserServer
         public UserManager m_userManager;
         public UserLoginService m_loginService;
         public MessageServersConnector m_messagesService;
+        protected IInventoryServices m_inventoryService;
 
         private LLUUID m_lastCreatedUser = LLUUID.Random();
 
@@ -100,6 +103,8 @@ namespace OpenSim.Grid.UserServer
             m_loginService = new UserLoginService(
                  m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
 
+            m_inventoryService = new OGS1InventoryService(m_userManager._config.InventoryUrl);
+            
             m_messagesService = new MessageServersConnector();
 
             m_loginService.OnUserLoggedInAtLocation += NotifyMessageServersUserLoggedInToLocation;
@@ -178,6 +183,7 @@ namespace OpenSim.Grid.UserServer
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
 
                     LLUUID userID = new LLUUID();
+                    
                     try
                     {
                         userID = m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
@@ -188,12 +194,8 @@ namespace OpenSim.Grid.UserServer
                     }
 
                     try
-                    {
-                        bool created
-                            = SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
-                                "POST", m_userManager._config.InventoryUrl + "CreateInventory/", userID.UUID);
-
-                        if (!created)
+                    {                        
+                        if (!m_inventoryService.CreateNewUserInventory(userID))
                         {
                             throw new Exception(
                                 String.Format(
@@ -201,7 +203,6 @@ namespace OpenSim.Grid.UserServer
                                         + "  Please contact your inventory service provider for more information.",
                                     userID));
                         }
-
                     }
                     catch (WebException)
                     {
