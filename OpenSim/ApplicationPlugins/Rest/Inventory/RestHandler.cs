@@ -32,16 +32,9 @@ using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.ApplicationPlugins.Rest;
-using Mono.Addins;
-
-[assembly : Addin]
-[assembly : AddinDependency("OpenSim", "0.5")]
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
-
-    [Extension("/OpenSim/Startup")]
-
     public class RestHandler : RestPlugin, IHttpAgentHandler
     {
 

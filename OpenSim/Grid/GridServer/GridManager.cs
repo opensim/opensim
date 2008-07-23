@@ -73,18 +73,18 @@ namespace OpenSim.Grid.GridServer
             provider = String.Join (".", s); 
 
             PluginLoader<IGridDataPlugin> gridloader = 
-                new PluginLoader<IGridDataPlugin> (new GridDataStoreInitialiser (connect));
+                new PluginLoader<IGridDataPlugin> (new GridDataInitialiser (connect));
 
             PluginLoader<ILogDataPlugin> logloader = 
                 new PluginLoader<ILogDataPlugin> (new LogDataInitialiser (connect));
 
-            gridloader.AddExtensionPoint ("/OpenSim/GridDataStore");
-            logloader.AddExtensionPoint ("/OpenSim/GridLogData");
+            gridloader.AddExtensionPoint ("/OpenSim/GridData");
+            logloader.AddExtensionPoint ("/OpenSim/LogData");
             
             // loader will try to load all providers (MySQL, MSSQL, etc) 
             // unless it is constrainted to the correct "id"
-            gridloader.AddFilter ("/OpenSim/GridDataStore", new PluginIdFilter (provider + "GridData"));
-            logloader.AddFilter ("/OpenSim/GridLogData", new PluginIdFilter (provider + "LogData"));
+            //gridloader.AddFilter ("/OpenSim/GridData", new PluginIdFilter (provider + "GridData"));
+            //logloader.AddFilter ("/OpenSim/LogData", new PluginIdFilter (provider + "LogData"));
             
             gridloader.Load();
             logloader.Load();
@@ -111,7 +111,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch (Exception)
                 {
-                    m_log.Warn("[storage]: Unable to write log via ");
+                    m_log.Warn("[storage]: Unable to write log via " + plugin.Name);
                 }
             }
         }

@@ -28,19 +28,13 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using log4net;
-using Mono.Addins;
 using OpenSim.Framework;
-
-// Only one attribute per assembly. See: *GridData.cs
-// [assembly : Addin]
-// [assembly : AddinDependency("OpenSim.Data", "0.5")]
 
 namespace OpenSim.Data.MySQL
 {
     /// <summary>
     /// An interface to the log database for MySQL
     /// </summary>
-    [Extension("/OpenSim/GridLogData")]
     internal class MySQLLogData : ILogDataPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

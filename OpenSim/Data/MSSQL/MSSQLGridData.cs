@@ -33,18 +33,13 @@ using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
 using log4net;
-using Mono.Addins;
 using OpenSim.Framework;
-
-[assembly : Addin]
-[assembly : AddinDependency("OpenSim.Data", "0.5")]
 
 namespace OpenSim.Data.MSSQL
 {
     /// <summary>
     /// A grid data interface for MSSQL Server
     /// </summary>
-    [Extension("/OpenSim/GridDataStore")]
     public class MSSQLGridData : GridDataBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

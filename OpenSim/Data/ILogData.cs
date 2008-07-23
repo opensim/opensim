@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Mono.Addins;
 using OpenSim.Framework;
 
 namespace OpenSim.Data
@@ -64,7 +63,6 @@ namespace OpenSim.Data
     /// <summary>
     /// An interface to a LogData storage system
     /// </summary>
-    [TypeExtensionPoint("/OpenSim/GridLogData")]
     public interface ILogDataPlugin : IPlugin
     {
         void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority,

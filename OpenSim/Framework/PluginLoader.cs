@@ -197,7 +197,9 @@ namespace OpenSim.Framework
 
         private void on_addinloaderror_(object sender, AddinErrorEventArgs args)
         {
-            log.Error ("[PLUGINS]: Plugin Error: " + args.Message);
+            log.Error ("[PLUGINS]: Plugin Error: " + args.Message 
+                    + ": " + args.Exception.Message 
+                    + "\n"+ args.Exception.StackTrace);
         }
 
         private void clear_registry_ ()

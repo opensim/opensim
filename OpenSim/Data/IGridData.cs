@@ -26,10 +26,7 @@
  */
 
 using libsecondlife;
-using Mono.Addins;
 using OpenSim.Framework;
-
-[assembly : AddinRoot("OpenSim.Data", "0.5")]
 
 namespace OpenSim.Data
 {
@@ -44,7 +41,6 @@ namespace OpenSim.Data
     /// <summary>
     /// A standard grid interface
     /// </summary>
-    [TypeExtensionPoint("/OpenSim/GridDataStore")]
     public interface IGridDataPlugin : IPlugin
     {
         /// <summary>
@@ -105,10 +101,10 @@ namespace OpenSim.Data
         ReservationData GetReservationAtPoint(uint x, uint y);
     }
     
-    public class GridDataStoreInitialiser : PluginInitialiserBase
+    public class GridDataInitialiser : PluginInitialiserBase
     {
         private string connect;
-        public GridDataStoreInitialiser (string s) { connect = s; }
+        public GridDataInitialiser (string s) { connect = s; }
         public override void Initialise (IPlugin plugin)
         {
             IGridDataPlugin p = plugin as IGridDataPlugin;
