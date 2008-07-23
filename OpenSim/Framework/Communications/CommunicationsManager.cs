@@ -36,68 +36,77 @@ using OpenSim.Framework.Servers;
 
 namespace OpenSim.Framework.Communications
 {
+    /// <summary>
+    /// This class manages references to OpenSim non-region services (asset, inventory, user, etc.)
+    /// </summary>
     public class CommunicationsManager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        protected IUserService m_userService;
+        
         protected Dictionary<LLUUID, string[]> m_nameRequestCache = new Dictionary<LLUUID, string[]>();
 
         public IUserService UserService
         {
             get { return m_userService; }
         }
-
-        protected IGridServices m_gridService;
+        protected IUserService m_userService;        
 
         public IGridServices GridService
         {
             get { return m_gridService; }
         }
-
-
-        protected IInterRegionCommunications m_interRegion;
-
+        protected IGridServices m_gridService;        
+       
         public IInterRegionCommunications InterRegion
         {
             get { return m_interRegion; }
         }
-
-        protected UserProfileCacheService m_userProfileCacheService;
+        protected IInterRegionCommunications m_interRegion;                
 
         public UserProfileCacheService UserProfileCacheService
         {
             get { return m_userProfileCacheService; }
         }
+        protected UserProfileCacheService m_userProfileCacheService;
 
       //  protected AgentAssetTransactionsManager m_transactionsManager;
 
        // public AgentAssetTransactionsManager TransactionsManager
       //  {
       //      get { return m_transactionsManager; }
-      //  }
-
-        protected IAvatarService m_avatarService;
+      //  }       
 
         public IAvatarService AvatarService
         {
             get { return m_avatarService; }
         }
-
-        protected AssetCache m_assetCache;
+        protected IAvatarService m_avatarService;                
 
         public AssetCache AssetCache
         {
             get { return m_assetCache; }
         }
-
-        protected NetworkServersInfo m_networkServersInfo;
+        protected AssetCache m_assetCache;                
+        
+        public IInterGridInventoryServices InterGridInventoryService
+        {
+            get { return m_interGridInventoryService; }
+        }        
+        protected IInterGridInventoryServices m_interGridInventoryService;
 
         public NetworkServersInfo NetworkServersInfo
         {
             get { return m_networkServersInfo; }
         }
+        protected NetworkServersInfo m_networkServersInfo;          
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="serversInfo"></param>
+        /// <param name="httpServer"></param>
+        /// <param name="assetCache"></param>
+        /// <param name="dumpAssetsToFile"></param>
         public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache,
                                      bool dumpAssetsToFile)
         {

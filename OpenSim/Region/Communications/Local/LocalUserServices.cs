@@ -37,7 +37,7 @@ namespace OpenSim.Region.Communications.Local
         // private readonly NetworkServersInfo m_serversInfo;
         private readonly uint m_defaultHomeX;
         private readonly uint m_defaultHomeY;
-        private IInventoryServices m_inventoryService;
+        private IInterGridInventoryServices m_interGridInventoryService;
 
         /// <summary>
         ///
@@ -48,14 +48,14 @@ namespace OpenSim.Region.Communications.Local
         /// <param name="inventoryService"></param>
         /// <param name="statsCollector">Can be null if stats collection is not required.</param>
         public LocalUserServices(NetworkServersInfo serversInfo, uint defaultHomeLocX, uint defaultHomeLocY,
-                                 IInventoryServices inventoryService)
+                                 IInterGridInventoryServices interGridInventoryService)
         {
             // m_serversInfo = serversInfo;
 
             m_defaultHomeX = defaultHomeLocX;
             m_defaultHomeY = defaultHomeLocY;
 
-            m_inventoryService = inventoryService;
+            m_interGridInventoryService = interGridInventoryService;
         }
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName)
@@ -82,7 +82,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                m_inventoryService.CreateNewUserInventory(profile.ID);
+                m_interGridInventoryService.CreateNewUserInventory(profile.ID);
             }
 
             return profile;

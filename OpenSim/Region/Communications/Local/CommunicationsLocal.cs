@@ -44,8 +44,9 @@ namespace OpenSim.Region.Communications.Local
             IGridServices gridService, bool dumpAssetsToFile)
             : base(serversInfo, httpServer, assetCache, dumpAssetsToFile)
         {
-            AddInventoryService( inventoryService);
+            AddInventoryService(inventoryService);
             m_defaultInventoryHost = inventoryService.Host;
+            m_interGridInventoryService = inventoryService;
             m_userService = userService;
             m_avatarService = (IAvatarService)userService;
             m_gridService = gridService;
