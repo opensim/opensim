@@ -203,29 +203,218 @@ namespace OpenSim.Framework
                 "gesture"
             };
 
-        public LLUUID AssetID = LLUUID.Zero;
+        private LLUUID _assetID = LLUUID.Zero;
 
-        public uint BaseMask = FULL_MASK_PERMISSIONS_GENERAL;
-        public uint CreationDate = 0;
-        public LLUUID CreatorID = LLUUID.Zero;
-        public string Description = String.Empty;
-        public uint EveryoneMask = FULL_MASK_PERMISSIONS_GENERAL;
-        public uint Flags = 0;
-        public LLUUID GroupID = LLUUID.Zero;
-        public uint GroupMask = FULL_MASK_PERMISSIONS_GENERAL;
+        private uint _baseMask = FULL_MASK_PERMISSIONS_GENERAL;
+        private uint _creationDate = 0;
+        private LLUUID _creatorID = LLUUID.Zero;
+        private string _description = String.Empty;
+        private uint _everyoneMask = FULL_MASK_PERMISSIONS_GENERAL;
+        private uint _flags = 0;
+        private LLUUID _groupID = LLUUID.Zero;
+        private uint _groupMask = FULL_MASK_PERMISSIONS_GENERAL;
 
-        public int InvType = 0;
-        public LLUUID ItemID = LLUUID.Zero;
-        public LLUUID LastOwnerID = LLUUID.Zero;
-        public string Name = String.Empty;
-        public uint NextOwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
-        public LLUUID OwnerID = LLUUID.Zero;
-        public uint OwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
-        public LLUUID ParentID = LLUUID.Zero; //parent folder id
-        public LLUUID ParentPartID = LLUUID.Zero;
-        public LLUUID PermsGranter;
-        public int PermsMask;
-        public int Type = 0;
+        private int _invType = 0;
+        private LLUUID _itemID = LLUUID.Zero;
+        private LLUUID _lastOwnerID = LLUUID.Zero;
+        private string _name = String.Empty;
+        private uint _nextOwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
+        private LLUUID _ownerID = LLUUID.Zero;
+        private uint _ownerMask = FULL_MASK_PERMISSIONS_GENERAL;
+        private LLUUID _parentID = LLUUID.Zero; //parent folder id
+        private LLUUID _parentPartID = LLUUID.Zero; // SceneObjectPart this is inside
+        private LLUUID _permsGranter;
+        private int _permsMask;
+        private int _type = 0;
+        
+        public LLUUID AssetID {
+            get {
+                return _assetID;
+            }
+            set {
+                _assetID = value;
+            }
+        }
+
+        public uint BaseMask {
+            get {
+                return _baseMask;
+            }
+            set {
+                _baseMask = value;
+            }
+        }
+
+        public uint CreationDate {
+            get {
+                return _creationDate;
+            }
+            set {
+                _creationDate = value;
+            }
+        }
+
+        public LLUUID CreatorID {
+            get {
+                return _creatorID;
+            }
+            set {
+                _creatorID = value;
+            }
+        }
+
+        public string Description {
+            get {
+                return _description;
+            }
+            set {
+                _description = value;
+            }
+        }
+
+        public uint EveryoneMask {
+            get {
+                return _everyoneMask;
+            }
+            set {
+                _everyoneMask = value;
+            }
+        }
+
+        public uint Flags {
+            get {
+                return _flags;
+            }
+            set {
+                _flags = value;
+            }
+        }
+
+        public LLUUID GroupID {
+            get {
+                return _groupID;
+            }
+            set {
+                _groupID = value;
+            }
+        }
+
+        public uint GroupMask {
+            get {
+                return _groupMask;
+            }
+            set {
+                _groupMask = value;
+            }
+        }
+
+        public int InvType {
+            get {
+                return _invType;
+            }
+            set {
+                _invType = value;
+            }
+        }
+
+        public LLUUID ItemID {
+            get {
+                return _itemID;
+            }
+            set {
+                _itemID = value;
+            }
+        }
+
+        public LLUUID LastOwnerID {
+            get {
+                return _lastOwnerID;
+            }
+            set {
+                _lastOwnerID = value;
+            }
+        }
+
+        public string Name {
+            get {
+                return _name;
+            }
+            set {
+                _name = value;
+            }
+        }
+
+        public uint NextOwnerMask {
+            get {
+                return _nextOwnerMask;
+            }
+            set {
+                _nextOwnerMask = value;
+            }
+        }
+
+        public LLUUID OwnerID {
+            get {
+                return _ownerID;
+            }
+            set {
+                _ownerID = value;
+            }
+        }
+
+        public uint OwnerMask {
+            get {
+                return _ownerMask;
+            }
+            set {
+                _ownerMask = value;
+            }
+        }
+
+        public LLUUID ParentID {
+            get {
+                return _parentID;
+            }
+            set {
+                _parentID = value;
+            }
+        }
+
+        public LLUUID ParentPartID {
+            get {
+                return _parentPartID;
+            }
+            set {
+                _parentPartID = value;
+            }
+        }
+
+        public LLUUID PermsGranter {
+            get {
+                return _permsGranter;
+            }
+            set {
+                _permsGranter = value;
+            }
+        }
+
+        public int PermsMask {
+            get {
+                return _permsMask;
+            }
+            set {
+                _permsMask = value;
+            }
+        }
+
+        public int Type {
+            get {
+                return _type;
+            }
+            set {
+                _type = value;
+            }
+        }
 
         // See ICloneable
 
@@ -244,8 +433,8 @@ namespace OpenSim.Framework
         /// <param name="partID">The new part ID to which this item belongs</param>
         public void ResetIDs(LLUUID partID)
         {
-            ItemID = LLUUID.Random();
-            ParentPartID = partID;
+            _itemID = LLUUID.Random();
+            _parentPartID = partID;
         }
     }
 }
