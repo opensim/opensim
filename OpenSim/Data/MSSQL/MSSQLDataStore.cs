@@ -470,7 +470,7 @@ namespace OpenSim.Data.MSSQL
                 DataTable land = m_landTable;
                 DataTable landaccesslist = m_landAccessListTable;
 
-                DataRow landRow = land.Rows.Find(parcel.landData.globalID.UUID);
+                DataRow landRow = land.Rows.Find(parcel.landData.GlobalID.UUID);
                 if (landRow == null)
                 {
                     landRow = land.NewRow();
@@ -486,14 +486,14 @@ namespace OpenSim.Data.MSSQL
                     SqlCommand cmd =
                         new SqlCommand("delete from landaccesslist where LandUUID=@LandUUID", m_connection))
                 {
-                    cmd.Parameters.Add(new SqlParameter("@LandUUID", parcel.landData.globalID.UUID));
+                    cmd.Parameters.Add(new SqlParameter("@LandUUID", parcel.landData.GlobalID.UUID));
                     cmd.ExecuteNonQuery();
                 }
 
-                foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.parcelAccessList)
+                foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.ParcelAccessList)
                 {
                     DataRow newAccessRow = landaccesslist.NewRow();
-                    fillLandAccessRow(newAccessRow, entry, parcel.landData.globalID);
+                    fillLandAccessRow(newAccessRow, entry, parcel.landData.GlobalID);
                     landaccesslist.Rows.Add(newAccessRow);
                 }
 
@@ -518,11 +518,11 @@ namespace OpenSim.Data.MSSQL
                 foreach (DataRow rawDataLand in rawDataForRegion)
                 {
                     LandData newLand = buildLandData(rawDataLand);
-                    string accessListSearchExp = "LandUUID = '" + newLand.globalID.UUID + "'";
+                    string accessListSearchExp = "LandUUID = '" + newLand.GlobalID.UUID + "'";
                     DataRow[] rawDataForLandAccessList = landaccesslist.Select(accessListSearchExp);
                     foreach (DataRow rawDataLandAccess in rawDataForLandAccessList)
                     {
-                        newLand.parcelAccessList.Add(buildLandAccessData(rawDataLandAccess));
+                        newLand.ParcelAccessList.Add(buildLandAccessData(rawDataLandAccess));
                     }
 
                     landDataForRegion.Add(newLand);
@@ -992,43 +992,43 @@ namespace OpenSim.Data.MSSQL
         {
             LandData newData = new LandData();
 
-            newData.globalID        = new LLUUID((String)row["UUID"]);
-            newData.localID         = Convert.ToInt32(row["LocalLandID"]);
+            newData.GlobalID        = new LLUUID((String)row["UUID"]);
+            newData.LocalID         = Convert.ToInt32(row["LocalLandID"]);
 
             // Bitmap is a byte[512]
-            newData.landBitmapByteArray = (Byte[])row["Bitmap"];
+            newData.Bitmap = (Byte[])row["Bitmap"];
 
-            newData.landName        = (String)row["Name"];
-            newData.landDesc        = (String)row["Description"];
-            newData.ownerID         = (String)row["OwnerUUID"];
-            newData.isGroupOwned    = Convert.ToBoolean(row["IsGroupOwned"]);
-            newData.area            = Convert.ToInt32(row["Area"]);
-            newData.auctionID       = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
-            newData.category        = (Parcel.ParcelCategory)Convert.ToInt32(row["Category"]);
+            newData.Name        = (String)row["Name"];
+            newData.Description        = (String)row["Description"];
+            newData.OwnerID         = (String)row["OwnerUUID"];
+            newData.IsGroupOwned    = Convert.ToBoolean(row["IsGroupOwned"]);
+            newData.Area            = Convert.ToInt32(row["Area"]);
+            newData.AuctionID       = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
+            newData.Category        = (Parcel.ParcelCategory)Convert.ToInt32(row["Category"]);
             //Enum libsecondlife.Parcel.ParcelCategory
-            newData.claimDate       = Convert.ToInt32(row["ClaimDate"]);
-            newData.claimPrice      = Convert.ToInt32(row["ClaimPrice"]);
-            newData.groupID         = new LLUUID((String)row["GroupUUID"]);
-            newData.salePrice       = Convert.ToInt32(row["SalePrice"]);
-            newData.landStatus      = (Parcel.ParcelStatus)Convert.ToInt32(row["LandStatus"]);
+            newData.ClaimDate       = Convert.ToInt32(row["ClaimDate"]);
+            newData.ClaimPrice      = Convert.ToInt32(row["ClaimPrice"]);
+            newData.GroupID         = new LLUUID((String)row["GroupUUID"]);
+            newData.SalePrice       = Convert.ToInt32(row["SalePrice"]);
+            newData.Status      = (Parcel.ParcelStatus)Convert.ToInt32(row["LandStatus"]);
             //Enum. libsecondlife.Parcel.ParcelStatus
-            newData.landFlags       = Convert.ToUInt32(row["LandFlags"]);
-            newData.landingType     = Convert.ToByte(row["LandingType"]);
-            newData.mediaAutoScale  = Convert.ToByte(row["MediaAutoScale"]);
-            newData.mediaID         = new LLUUID((String)row["MediaTextureUUID"]);
-            newData.mediaURL        = (String)row["MediaURL"];
-            newData.musicURL        = (String)row["MusicURL"];
-            newData.passHours       = Convert.ToSingle(row["PassHours"]);
-            newData.passPrice       = Convert.ToInt32(row["PassPrice"]);
-            newData.snapshotID      = (String)row["SnapshotUUID"];
+            newData.Flags       = Convert.ToUInt32(row["LandFlags"]);
+            newData.LandingType     = Convert.ToByte(row["LandingType"]);
+            newData.MediaAutoScale  = Convert.ToByte(row["MediaAutoScale"]);
+            newData.MediaID         = new LLUUID((String)row["MediaTextureUUID"]);
+            newData.MediaURL        = (String)row["MediaURL"];
+            newData.MusicURL        = (String)row["MusicURL"];
+            newData.PassHours       = Convert.ToSingle(row["PassHours"]);
+            newData.PassPrice       = Convert.ToInt32(row["PassPrice"]);
+            newData.SnapshotID      = (String)row["SnapshotUUID"];
 
-            newData.userLocation =
+            newData.UserLocation =
                 new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
                               Convert.ToSingle(row["UserLocationZ"]));
-            newData.userLookAt =
+            newData.UserLookAt =
                 new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
                               Convert.ToSingle(row["UserLookAtZ"]));
-            newData.parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+            newData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
 
             return newData;
         }
@@ -1186,40 +1186,40 @@ namespace OpenSim.Data.MSSQL
         /// <param name="regionUUID"></param>
         private static void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
-            row["UUID"] = land.globalID.UUID;
+            row["UUID"] = land.GlobalID.UUID;
             row["RegionUUID"] = regionUUID.UUID;
-            row["LocalLandID"] = land.localID;
+            row["LocalLandID"] = land.LocalID;
 
             // Bitmap is a byte[512]
-            row["Bitmap"] = land.landBitmapByteArray;
+            row["Bitmap"] = land.Bitmap;
 
-            row["Name"] = land.landName;
-            row["Description"] = land.landDesc;
-            row["OwnerUUID"] = land.ownerID.UUID;
-            row["IsGroupOwned"] = land.isGroupOwned;
-            row["Area"] = land.area;
-            row["AuctionID"] = land.auctionID; //Unemplemented
-            row["Category"] = land.category; //Enum libsecondlife.Parcel.ParcelCategory
-            row["ClaimDate"] = land.claimDate;
-            row["ClaimPrice"] = land.claimPrice;
-            row["GroupUUID"] = land.groupID.UUID;
-            row["SalePrice"] = land.salePrice;
-            row["LandStatus"] = land.landStatus; //Enum. libsecondlife.Parcel.ParcelStatus
-            row["LandFlags"] = land.landFlags;
-            row["LandingType"] = land.landingType;
-            row["MediaAutoScale"] = land.mediaAutoScale;
-            row["MediaTextureUUID"] = land.mediaID.UUID;
-            row["MediaURL"] = land.mediaURL;
-            row["MusicURL"] = land.musicURL;
-            row["PassHours"] = land.passHours;
-            row["PassPrice"] = land.passPrice;
-            row["SnapshotUUID"] = land.snapshotID.UUID;
-            row["UserLocationX"] = land.userLocation.X;
-            row["UserLocationY"] = land.userLocation.Y;
-            row["UserLocationZ"] = land.userLocation.Z;
-            row["UserLookAtX"] = land.userLookAt.X;
-            row["UserLookAtY"] = land.userLookAt.Y;
-            row["UserLookAtZ"] = land.userLookAt.Z;
+            row["Name"] = land.Name;
+            row["Description"] = land.Description;
+            row["OwnerUUID"] = land.OwnerID.UUID;
+            row["IsGroupOwned"] = land.IsGroupOwned;
+            row["Area"] = land.Area;
+            row["AuctionID"] = land.AuctionID; //Unemplemented
+            row["Category"] = land.Category; //Enum libsecondlife.Parcel.ParcelCategory
+            row["ClaimDate"] = land.ClaimDate;
+            row["ClaimPrice"] = land.ClaimPrice;
+            row["GroupUUID"] = land.GroupID.UUID;
+            row["SalePrice"] = land.SalePrice;
+            row["LandStatus"] = land.Status; //Enum. libsecondlife.Parcel.ParcelStatus
+            row["LandFlags"] = land.Flags;
+            row["LandingType"] = land.LandingType;
+            row["MediaAutoScale"] = land.MediaAutoScale;
+            row["MediaTextureUUID"] = land.MediaID.UUID;
+            row["MediaURL"] = land.MediaURL;
+            row["MusicURL"] = land.MusicURL;
+            row["PassHours"] = land.PassHours;
+            row["PassPrice"] = land.PassPrice;
+            row["SnapshotUUID"] = land.SnapshotID.UUID;
+            row["UserLocationX"] = land.UserLocation.X;
+            row["UserLocationY"] = land.UserLocation.Y;
+            row["UserLocationZ"] = land.UserLocation.Z;
+            row["UserLookAtX"] = land.UserLookAt.X;
+            row["UserLookAtY"] = land.UserLookAt.Y;
+            row["UserLookAtZ"] = land.UserLookAt.Z;
         }
 
         /// <summary>

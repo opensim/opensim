@@ -147,7 +147,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
                 LandData land = m_scene.GetLandData(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
 
                 LLSDParcelVoiceInfoResponse parcelVoiceInfo =
-                    new LLSDParcelVoiceInfoResponse(regionName, land.localID, creds);
+                    new LLSDParcelVoiceInfoResponse(regionName, land.LocalID, creds);
 
                 string r = LLSDHelpers.SerialiseLLSDReply(parcelVoiceInfo);
                 m_log.DebugFormat("[VOICE][PARCELVOICE]: {0}", r);

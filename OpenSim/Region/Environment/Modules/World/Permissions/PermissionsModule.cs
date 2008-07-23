@@ -331,7 +331,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             // Users should be able to edit what is over their land.
             ILandObject parcel = m_scene.LandChannel.GetLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y);
-            if (parcel != null && parcel.landData.ownerID == user)
+            if (parcel != null && parcel.landData.OwnerID == user)
                 return objectOwnerMask;
 
             // Admin objects should not be editable by the above
@@ -423,7 +423,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             // Users should be able to edit what is over their land.
             ILandObject parcel = m_scene.LandChannel.GetLandObject(group.AbsolutePosition.X, group.AbsolutePosition.Y);
-            if ((parcel != null) && (parcel.landData.ownerID == currentUser))
+            if ((parcel != null) && (parcel.landData.OwnerID == currentUser))
             {
                 permission = true;
             }
@@ -492,12 +492,12 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         {
             bool permission = false;
 
-            if (parcel.landData.ownerID == user)
+            if (parcel.landData.OwnerID == user)
             {
                 permission = true;
             }
 
-            if (parcel.landData.isGroupOwned)
+            if (parcel.landData.IsGroupOwned)
             {
                 // TODO: Need to do some extra checks here. Requires group code.
             }
@@ -723,7 +723,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     return false;
                 }
 
-                if ((land.landData.landFlags & ((int)Parcel.ParcelFlags.AllowAllObjectEntry)) != 0)
+                if ((land.landData.Flags & ((int)Parcel.ParcelFlags.AllowAllObjectEntry)) != 0)
                 {
                     return true;
                 }
@@ -770,7 +770,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 ILandObject land = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
                 if (land == null) return false;
 
-                if ((land.landData.landFlags & ((int)Parcel.ParcelFlags.CreateObjects)) ==
+                if ((land.landData.Flags & ((int)Parcel.ParcelFlags.CreateObjects)) ==
                     (int)Parcel.ParcelFlags.CreateObjects)
                     permission = true;
 

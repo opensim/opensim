@@ -142,7 +142,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                 foreach (LandObject land in landList.Values)
                 {
                     LandData parcel = land.landData;
-                    if ((parcel.landFlags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory)
+                    if ((parcel.Flags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory)
                     {
 
                         //TODO: make better method of marshalling data from LandData to XmlNode
@@ -152,7 +152,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         XmlAttribute scripts_attr = nodeFactory.CreateAttribute("scripts");
                         scripts_attr.Value = GetScriptsPermissions(parcel);
                         XmlAttribute category_attr = nodeFactory.CreateAttribute("category");
-                        category_attr.Value = parcel.category.ToString();
+                        category_attr.Value = parcel.Category.ToString();
                         //XmlAttribute entities_attr = nodeFactory.CreateAttribute("entities");
                         //entities_attr.Value = land.primsOverMe.Count.ToString();
                         xmlparcel.Attributes.Append(scripts_attr);
@@ -162,24 +162,24 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
                         //name, description, area, and UUID
                         XmlNode name = nodeFactory.CreateNode(XmlNodeType.Element, "name", "");
-                        name.InnerText = parcel.landName;
+                        name.InnerText = parcel.Name;
                         xmlparcel.AppendChild(name);
 
                         XmlNode desc = nodeFactory.CreateNode(XmlNodeType.Element, "description", "");
-                        desc.InnerText = parcel.landDesc;
+                        desc.InnerText = parcel.Description;
                         xmlparcel.AppendChild(desc);
 
                         XmlNode uuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
-                        uuid.InnerText = parcel.globalID.ToString();
+                        uuid.InnerText = parcel.GlobalID.ToString();
                         xmlparcel.AppendChild(uuid);
 
                         XmlNode area = nodeFactory.CreateNode(XmlNodeType.Element, "area", "");
-                        area.InnerText = parcel.area.ToString();
+                        area.InnerText = parcel.Area.ToString();
                         xmlparcel.AppendChild(area);
 
                         //default location
                         XmlNode tpLocation = nodeFactory.CreateNode(XmlNodeType.Element, "location", "");
-                        LLVector3 loc = parcel.userLocation;
+                        LLVector3 loc = parcel.UserLocation;
                         if (loc.Equals(LLVector3.Zero)) // This test is mute at this point: the location is wrong by default
                             loc = new LLVector3((parcel.AABBMax.X - parcel.AABBMin.X) / 2, (parcel.AABBMax.Y - parcel.AABBMin.Y) / 2, (parcel.AABBMax.Y - parcel.AABBMin.Y) / 2);
                         tpLocation.InnerText = loc.X.ToString() + "/" + loc.Y.ToString() + "/" + loc.Z.ToString();
@@ -188,19 +188,19 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         //TODO: figure how to figure out teleport system landData.landingType
 
                         //land texture snapshot uuid
-                        if (parcel.snapshotID != LLUUID.Zero)
+                        if (parcel.SnapshotID != LLUUID.Zero)
                         {
                             XmlNode textureuuid = nodeFactory.CreateNode(XmlNodeType.Element, "image", "");
-                            textureuuid.InnerText = parcel.snapshotID.ToString();
+                            textureuuid.InnerText = parcel.SnapshotID.ToString();
                             xmlparcel.AppendChild(textureuuid);
                         }
 
                         //attached user and group
-                        if (parcel.groupID != LLUUID.Zero)
+                        if (parcel.GroupID != LLUUID.Zero)
                         {
                             XmlNode groupblock = nodeFactory.CreateNode(XmlNodeType.Element, "group", "");
                             XmlNode groupuuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
-                            groupuuid.InnerText = parcel.groupID.ToString();
+                            groupuuid.InnerText = parcel.GroupID.ToString();
                             groupblock.AppendChild(groupuuid);
 
                             //No name yet, there's no way to get a group name since they don't exist yet.
@@ -209,11 +209,11 @@ namespace OpenSim.Region.DataSnapshot.Providers
                             xmlparcel.AppendChild(groupblock);
                         }
 
-                        if (!parcel.isGroupOwned)
+                        if (!parcel.IsGroupOwned)
                         {
                             XmlNode userblock = nodeFactory.CreateNode(XmlNodeType.Element, "owner", "");
 
-                            LLUUID userOwnerUUID = parcel.ownerID;
+                            LLUUID userOwnerUUID = parcel.OwnerID;
 
                             XmlNode useruuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
                             useruuid.InnerText = userOwnerUUID.ToString();
@@ -278,7 +278,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
         private string GetScriptsPermissions(LandData parcel)
         {
-            if ((parcel.landFlags & (uint)Parcel.ParcelFlags.AllowOtherScripts) == (uint)Parcel.ParcelFlags.AllowOtherScripts)
+            if ((parcel.Flags & (uint)Parcel.ParcelFlags.AllowOtherScripts) == (uint)Parcel.ParcelFlags.AllowOtherScripts)
                 return "yes";
             else
                 return "no";

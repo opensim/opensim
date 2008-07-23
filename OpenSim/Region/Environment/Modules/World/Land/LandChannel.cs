@@ -89,7 +89,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 return m_landManagementModule.GetLandObject(x_float, y_float);
             }
             ILandObject obj = new LandObject(LLUUID.Zero, false, m_scene);
-            obj.landData.landName = "NO LAND";
+            obj.landData.Name = "NO LAND";
             return obj;
         }
 
@@ -101,7 +101,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 return m_landManagementModule.GetLandObject(x, y);
             }
             ILandObject obj = new LandObject(LLUUID.Zero, false, m_scene);
-            obj.landData.landName = "NO LAND";
+            obj.landData.Name = "NO LAND";
             return obj;
         }
 

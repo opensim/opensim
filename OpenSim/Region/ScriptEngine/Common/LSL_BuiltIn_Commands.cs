@@ -4334,9 +4334,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                         ILandObject parcel = World.LandChannel.GetLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y);
                         if (parcel != null)
                         {
-                            if (m_host.ObjectOwner == parcel.landData.ownerID ||
-                                (m_host.OwnerID == m_host.GroupID && m_host.GroupID == parcel.landData.groupID
-                                && parcel.landData.isGroupOwned) || World.ExternalChecks.ExternalChecksCanBeGodLike(m_host.OwnerID))
+                            if (m_host.ObjectOwner == parcel.landData.OwnerID ||
+                                (m_host.OwnerID == m_host.GroupID && m_host.GroupID == parcel.landData.GroupID
+                                && parcel.landData.IsGroupOwned) || World.ExternalChecks.ExternalChecksCanBeGodLike(m_host.OwnerID))
                             {
                                 av.StandUp();
                             }
@@ -4702,7 +4702,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             LLUUID key;
             LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
-            if (land.ownerID == m_host.OwnerID)
+            if (land.OwnerID == m_host.OwnerID)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 if (LLUUID.TryParse(avatar, out key))
@@ -4710,7 +4710,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     entry.AgentID = key;
                     entry.Flags = ParcelManager.AccessList.Access;
                     entry.Time = DateTime.Now.AddHours(hours);
-                    land.parcelAccessList.Add(entry);
+                    land.ParcelAccessList.Add(entry);
                 }
             }
         }
@@ -6852,7 +6852,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             LLUUID key;
             LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
-            if (land.ownerID == m_host.OwnerID)
+            if (land.OwnerID == m_host.OwnerID)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 if (LLUUID.TryParse(avatar, out key))
@@ -6860,7 +6860,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     entry.AgentID = key;
                     entry.Flags = ParcelManager.AccessList.Ban;
                     entry.Time = DateTime.Now.AddHours(hours);
-                    land.parcelAccessList.Add(entry);
+                    land.ParcelAccessList.Add(entry);
                 }
             }
         }
@@ -6870,15 +6870,15 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             LLUUID key;
             LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
-            if (land.ownerID == m_host.OwnerID)
+            if (land.OwnerID == m_host.OwnerID)
             {
                 if (LLUUID.TryParse(avatar, out key))
                 {
-                    foreach (ParcelManager.ParcelAccessEntry entry in land.parcelAccessList)
+                    foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
                     {
                         if (entry.AgentID == key && entry.Flags == ParcelManager.AccessList.Access)
                         {
-                            land.parcelAccessList.Remove(entry);
+                            land.ParcelAccessList.Remove(entry);
                             break;
                         }
                     }
@@ -6891,15 +6891,15 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             LLUUID key;
             LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
-            if (land.ownerID == m_host.OwnerID)
+            if (land.OwnerID == m_host.OwnerID)
             {
                 if (LLUUID.TryParse(avatar, out key))
                 {
-                    foreach (ParcelManager.ParcelAccessEntry entry in land.parcelAccessList)
+                    foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
                     {
                         if (entry.AgentID == key && entry.Flags == ParcelManager.AccessList.Ban)
                         {
-                            land.parcelAccessList.Remove(entry);
+                            land.ParcelAccessList.Remove(entry);
                             break;
                         }
                     }
@@ -6961,7 +6961,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.LSLInteger llGetParcelFlags(LSL_Types.Vector3 pos)
         {
             m_host.AddScriptLPS(1);
-            return (int)World.LandChannel.GetLandObject((float)pos.x, (float)pos.y).landData.landFlags;
+            return (int)World.LandChannel.GetLandObject((float)pos.x, (float)pos.y).landData.Flags;
         }
 
         public LSL_Types.LSLInteger llGetRegionFlags()
@@ -7038,13 +7038,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
-            if (land.ownerID == m_host.OwnerID)
+            if (land.OwnerID == m_host.OwnerID)
             {
-                foreach (ParcelManager.ParcelAccessEntry entry in land.parcelAccessList)
+                foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
                 {
                     if (entry.Flags == ParcelManager.AccessList.Ban)
                     {
-                        land.parcelAccessList.Remove(entry);
+                        land.ParcelAccessList.Remove(entry);
                     }
                 }
             }
@@ -7054,13 +7054,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
-            if (land.ownerID == m_host.OwnerID)
+            if (land.OwnerID == m_host.OwnerID)
             {
-                foreach (ParcelManager.ParcelAccessEntry entry in land.parcelAccessList)
+                foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
                 {
                     if (entry.Flags == ParcelManager.AccessList.Access)
                     {
-                        land.parcelAccessList.Remove(entry);
+                        land.ParcelAccessList.Remove(entry);
                     }
                 }
             }
@@ -7083,7 +7083,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     if (category == 0)
                     {
-                        return land.simwidePrims;
+                        return land.SimwidePrims;
                     }
 
                     else
@@ -7102,22 +7102,22 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     else if (category == 1)//Owner Prims
                     {
-                        return land.ownerPrims;
+                        return land.OwnerPrims;
                     }
 
                     else if (category == 2)//Group Prims
                     {
-                        return land.groupPrims;
+                        return land.GroupPrims;
                     }
 
                     else if (category == 3)//Other Prims
                     {
-                        return land.otherPrims;
+                        return land.OtherPrims;
                     }
 
                     else if (category == 4)//Selected
                     {
-                        return land.selectedPrims;
+                        return land.SelectedPrims;
                     }
 
                     else if (category == 5)//Temp
@@ -7175,14 +7175,14 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             if (sim_wide == 1)
             {
-                decimal v = land.simwideArea * (decimal)(0.22) * (decimal)bonusfactor;
+                decimal v = land.SimwideArea * (decimal)(0.22) * (decimal)bonusfactor;
 
                 return (int)v;
             }
 
             else
             {
-                decimal v = land.area * (decimal)(0.22) * (decimal)bonusfactor;
+                decimal v = land.Area * (decimal)(0.22) * (decimal)bonusfactor;
 
                 return (int)v;
             }
@@ -7203,19 +7203,19 @@ namespace OpenSim.Region.ScriptEngine.Common
                 switch (o.ToString())
                 {
                     case "0":
-                        ret = ret + new LSL_Types.list(land.landName);
+                        ret = ret + new LSL_Types.list(land.Name);
                         break;
                     case "1":
-                        ret = ret + new LSL_Types.list(land.landDesc);
+                        ret = ret + new LSL_Types.list(land.Description);
                         break;
                     case "2":
-                        ret = ret + new LSL_Types.list(land.ownerID.ToString());
+                        ret = ret + new LSL_Types.list(land.OwnerID.ToString());
                         break;
                     case "3":
-                        ret = ret + new LSL_Types.list(land.groupID.ToString());
+                        ret = ret + new LSL_Types.list(land.GroupID.ToString());
                         break;
                     case "4":
-                        ret = ret + new LSL_Types.list(land.area);
+                        ret = ret + new LSL_Types.list(land.Area);
                         break;
                     default:
                         ret = ret + new LSL_Types.list(0);

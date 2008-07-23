@@ -33,103 +33,427 @@ namespace OpenSim.Framework
 {
     public class LandData
     {
-        public LLVector3 AABBMax = new LLVector3();
-        public LLVector3 AABBMin = new LLVector3();
-        public int area = 0;
-        public uint auctionID = 0; //Unemplemented. If set to 0, not being auctioned
-        public LLUUID authBuyerID = LLUUID.Zero; //Unemplemented. Authorized Buyer's UUID
-        public Parcel.ParcelCategory category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
-        public int claimDate = 0; 
-        public int claimPrice = 0; //Unemplemented
-        public LLUUID globalID = LLUUID.Zero;
-        public LLUUID groupID = LLUUID.Zero; //Unemplemented
-        public int groupPrims = 0;
-        public bool isGroupOwned = false;
-        public byte[] landBitmapByteArray = new byte[512];
-        public string landDesc = String.Empty;
+        public LLVector3 _AABBMax = new LLVector3();
+        public LLVector3 _AABBMin = new LLVector3();
+        public int _area = 0;
+        public uint _auctionID = 0; //Unemplemented. If set to 0, not being auctioned
+        public LLUUID _authBuyerID = LLUUID.Zero; //Unemplemented. Authorized Buyer's UUID
+        public Parcel.ParcelCategory _category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
+        public int _claimDate = 0; 
+        public int _claimPrice = 0; //Unemplemented
+        public LLUUID _globalID = LLUUID.Zero;
+        public LLUUID _groupID = LLUUID.Zero; //Unemplemented
+        public int _groupPrims = 0;
+        public bool _isGroupOwned = false;
+        public byte[] _bitmap = new byte[512];
+        public string _description = String.Empty;
 
 
-        public uint landFlags = (uint) Parcel.ParcelFlags.AllowFly | (uint) Parcel.ParcelFlags.AllowLandmark |
+        public uint _flags = (uint) Parcel.ParcelFlags.AllowFly | (uint) Parcel.ParcelFlags.AllowLandmark |
                                 (uint) Parcel.ParcelFlags.AllowAllObjectEntry |
                                 (uint) Parcel.ParcelFlags.AllowDeedToGroup | (uint) Parcel.ParcelFlags.AllowTerraform |
                                 (uint) Parcel.ParcelFlags.CreateObjects | (uint) Parcel.ParcelFlags.AllowOtherScripts |
                                 (uint) Parcel.ParcelFlags.SoundLocal;
 
-        public byte landingType = 0;
-        public string landName = "Your Parcel";
-        public Parcel.ParcelStatus landStatus = Parcel.ParcelStatus.Leased;
-        public int localID = 0;
-        public byte mediaAutoScale = 0;
-        public LLUUID mediaID = LLUUID.Zero;
+        public byte _landingType = 0;
+        public string _name = "Your Parcel";
+        public Parcel.ParcelStatus _status = Parcel.ParcelStatus.Leased;
+        public int _localID = 0;
+        public byte _mediaAutoScale = 0;
+        public LLUUID _mediaID = LLUUID.Zero;
 
-        public string mediaURL = String.Empty;
-        public string musicURL = String.Empty;
-        public int otherPrims = 0;
-        public LLUUID ownerID = LLUUID.Zero;
-        public int ownerPrims = 0;
-        public List<ParcelManager.ParcelAccessEntry> parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
-        public float passHours = 0;
-        public int passPrice = 0;
-        public int salePrice = 0; //Unemeplemented. Parcels price.
-        public int selectedPrims = 0;
-        public int simwideArea = 0;
-        public int simwidePrims = 0;
-        public LLUUID snapshotID = LLUUID.Zero;
-        public LLVector3 userLocation = new LLVector3();
-        public LLVector3 userLookAt = new LLVector3();
+        public string _mediaURL = String.Empty;
+        public string _musicURL = String.Empty;
+        public int _otherPrims = 0;
+        public LLUUID _ownerID = LLUUID.Zero;
+        public int _ownerPrims = 0;
+        public List<ParcelManager.ParcelAccessEntry> _parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+        public float _passHours = 0;
+        public int _passPrice = 0;
+        public int _salePrice = 0; //Unemeplemented. Parcels price.
+        public int _selectedPrims = 0;
+        public int _simwideArea = 0;
+        public int _simwidePrims = 0;
+        public LLUUID _snapshotID = LLUUID.Zero;
+        public LLVector3 _userLocation = new LLVector3();
+        public LLVector3 _userLookAt = new LLVector3();
+        
+        public LLVector3 AABBMax {
+            get {
+                return _AABBMax;
+            }
+            set {
+                _AABBMax = value;
+            }
+        }
+
+        public LLVector3 AABBMin {
+            get {
+                return _AABBMin;
+            }
+            set {
+                _AABBMin = value;
+            }
+        }
+
+        public int Area {
+            get {
+                return _area;
+            }
+            set {
+                _area = value;
+            }
+        }
+
+        public uint AuctionID {
+            get {
+                return _auctionID;
+            }
+            set {
+                _auctionID = value;
+            }
+        }
+
+        public LLUUID AuthBuyerID {
+            get {
+                return _authBuyerID;
+            }
+            set {
+                _authBuyerID = value;
+            }
+        }
+
+        public libsecondlife.Parcel.ParcelCategory Category {
+            get {
+                return _category;
+            }
+            set {
+                _category = value;
+            }
+        }
+
+        public int ClaimDate {
+            get {
+                return _claimDate;
+            }
+            set {
+                _claimDate = value;
+            }
+        }
+
+        public int ClaimPrice {
+            get {
+                return _claimPrice;
+            }
+            set {
+                _claimPrice = value;
+            }
+        }
+
+        public LLUUID GlobalID {
+            get {
+                return _globalID;
+            }
+            set {
+                _globalID = value;
+            }
+        }
+
+        public LLUUID GroupID {
+            get {
+                return _groupID;
+            }
+            set {
+                _groupID = value;
+            }
+        }
+
+        public int GroupPrims {
+            get {
+                return _groupPrims;
+            }
+            set {
+                _groupPrims = value;
+            }
+        }
+
+        public bool IsGroupOwned {
+            get {
+                return _isGroupOwned;
+            }
+            set {
+                _isGroupOwned = value;
+            }
+        }
+
+        public byte[] Bitmap {
+            get {
+                return _bitmap;
+            }
+            set {
+                _bitmap = value;
+            }
+        }
+
+        public string Description {
+            get {
+                return _description;
+            }
+            set {
+                _description = value;
+            }
+        }
+
+        public uint Flags {
+            get {
+                return _flags;
+            }
+            set {
+                _flags = value;
+            }
+        }
+
+        public byte LandingType {
+            get {
+                return _landingType;
+            }
+            set {
+                _landingType = value;
+            }
+        }
+
+        public string Name {
+            get {
+                return _name;
+            }
+            set {
+                _name = value;
+            }
+        }
+
+        public libsecondlife.Parcel.ParcelStatus Status {
+            get {
+                return _status;
+            }
+            set {
+                _status = value;
+            }
+        }
+
+        public int LocalID {
+            get {
+                return _localID;
+            }
+            set {
+                _localID = value;
+            }
+        }
+
+        public byte MediaAutoScale {
+            get {
+                return _mediaAutoScale;
+            }
+            set {
+                _mediaAutoScale = value;
+            }
+        }
+
+        public LLUUID MediaID {
+            get {
+                return _mediaID;
+            }
+            set {
+                _mediaID = value;
+            }
+        }
+
+        public string MediaURL {
+            get {
+                return _mediaURL;
+            }
+            set {
+                _mediaURL = value;
+            }
+        }
+
+        public string MusicURL {
+            get {
+                return _musicURL;
+            }
+            set {
+                _musicURL = value;
+            }
+        }
+
+        public int OtherPrims {
+            get {
+                return _otherPrims;
+            }
+            set {
+                _otherPrims = value;
+            }
+        }
+
+        public LLUUID OwnerID {
+            get {
+                return _ownerID;
+            }
+            set {
+                _ownerID = value;
+            }
+        }
+
+        public int OwnerPrims {
+            get {
+                return _ownerPrims;
+            }
+            set {
+                _ownerPrims = value;
+            }
+        }
+
+        public List<libsecondlife.ParcelManager.ParcelAccessEntry> ParcelAccessList {
+            get {
+                return _parcelAccessList;
+            }
+            set {
+                _parcelAccessList = value;
+            }
+        }
+
+        public float PassHours {
+            get {
+                return _passHours;
+            }
+            set {
+                _passHours = value;
+            }
+        }
+
+        public int PassPrice {
+            get {
+                return _passPrice;
+            }
+            set {
+                _passPrice = value;
+            }
+        }
+
+        public int SalePrice {
+            get {
+                return _salePrice;
+            }
+            set {
+                _salePrice = value;
+            }
+        }
+
+        public int SelectedPrims {
+            get {
+                return _selectedPrims;
+            }
+            set {
+                _selectedPrims = value;
+            }
+        }
+
+        public int SimwideArea {
+            get {
+                return _simwideArea;
+            }
+            set {
+                _simwideArea = value;
+            }
+        }
+
+        public int SimwidePrims {
+            get {
+                return _simwidePrims;
+            }
+            set {
+                _simwidePrims = value;
+            }
+        }
+
+        public LLUUID SnapshotID {
+            get {
+                return _snapshotID;
+            }
+            set {
+                _snapshotID = value;
+            }
+        }
+
+        public LLVector3 UserLocation {
+            get {
+                return _userLocation;
+            }
+            set {
+                _userLocation = value;
+            }
+        }
+
+        public LLVector3 UserLookAt {
+            get {
+                return _userLookAt;
+            }
+            set {
+                _userLookAt = value;
+            }
+        }
 
         public LandData()
         {
-            globalID = LLUUID.Random();
+            _globalID = LLUUID.Random();
         }
 
         public LandData Copy()
         {
             LandData landData = new LandData();
 
-            landData.AABBMax = AABBMax;
-            landData.AABBMin = AABBMin;
-            landData.area = area;
-            landData.auctionID = auctionID;
-            landData.authBuyerID = authBuyerID;
-            landData.category = category;
-            landData.claimDate = claimDate;
-            landData.claimPrice = claimPrice;
-            landData.globalID = globalID;
-            landData.groupID = groupID;
-            landData.groupPrims = groupPrims;
-            landData.otherPrims = otherPrims;
-            landData.ownerPrims = ownerPrims;
-            landData.selectedPrims = selectedPrims;
-            landData.isGroupOwned = isGroupOwned;
-            landData.localID = localID;
-            landData.landingType = landingType;
-            landData.mediaAutoScale = mediaAutoScale;
-            landData.mediaID = mediaID;
-            landData.mediaURL = mediaURL;
-            landData.musicURL = musicURL;
-            landData.ownerID = ownerID;
-            landData.landBitmapByteArray = (byte[]) landBitmapByteArray.Clone();
-            landData.landDesc = landDesc;
-            landData.landFlags = landFlags;
-            landData.landName = landName;
-            landData.landStatus = landStatus;
-            landData.passHours = passHours;
-            landData.passPrice = passPrice;
-            landData.salePrice = salePrice;
-            landData.snapshotID = snapshotID;
-            landData.userLocation = userLocation;
-            landData.userLookAt = userLookAt;
+            landData._AABBMax = _AABBMax;
+            landData._AABBMin = _AABBMin;
+            landData._area = _area;
+            landData._auctionID = _auctionID;
+            landData._authBuyerID = _authBuyerID;
+            landData._category = _category;
+            landData._claimDate = _claimDate;
+            landData._claimPrice = _claimPrice;
+            landData._globalID = _globalID;
+            landData._groupID = _groupID;
+            landData._groupPrims = _groupPrims;
+            landData._otherPrims = _otherPrims;
+            landData._ownerPrims = _ownerPrims;
+            landData._selectedPrims = _selectedPrims;
+            landData._isGroupOwned = _isGroupOwned;
+            landData._localID = _localID;
+            landData._landingType = _landingType;
+            landData._mediaAutoScale = _mediaAutoScale;
+            landData._mediaID = _mediaID;
+            landData._mediaURL = _mediaURL;
+            landData._musicURL = _musicURL;
+            landData._ownerID = _ownerID;
+            landData._bitmap = (byte[]) _bitmap.Clone();
+            landData._description = _description;
+            landData._flags = _flags;
+            landData._name = _name;
+            landData._status = _status;
+            landData._passHours = _passHours;
+            landData._passPrice = _passPrice;
+            landData._salePrice = _salePrice;
+            landData._snapshotID = _snapshotID;
+            landData._userLocation = _userLocation;
+            landData._userLookAt = _userLookAt;
 
-            landData.parcelAccessList.Clear();
-            foreach (ParcelManager.ParcelAccessEntry entry in parcelAccessList)
+            landData._parcelAccessList.Clear();
+            foreach (ParcelManager.ParcelAccessEntry entry in _parcelAccessList)
             {
                 ParcelManager.ParcelAccessEntry newEntry = new ParcelManager.ParcelAccessEntry();
                 newEntry.AgentID = entry.AgentID;
                 newEntry.Flags = entry.Flags;
                 newEntry.Time = entry.Time;
 
-                landData.parcelAccessList.Add(newEntry);
+                landData._parcelAccessList.Add(newEntry);
             }
 
             return landData;

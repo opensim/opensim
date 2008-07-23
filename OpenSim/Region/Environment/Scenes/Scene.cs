@@ -2444,9 +2444,9 @@ namespace OpenSim.Region.Environment.Scenes
                     ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
                     if (land != null)
                     {
-                        if (land.landData.landingType == (byte)1 && land.landData.userLocation != LLVector3.Zero)
+                        if (land.landData.LandingType == (byte)1 && land.landData.UserLocation != LLVector3.Zero)
                         {
-                            agent.startpos = land.landData.userLocation;
+                            agent.startpos = land.landData.UserLocation;
                         }
                     }
                 }
@@ -3311,7 +3311,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                return land.landData.ownerID;
+                return land.landData.OwnerID;
             }
         }
 
@@ -3329,7 +3329,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                land.landData.musicURL = url;
+                land.landData.MusicURL = url;
                 return;
             }
         }
@@ -3345,7 +3345,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             else
             {
-                land.landData.mediaURL = url;
+                land.landData.MediaURL = url;
                 return;
             }
         }
@@ -3394,13 +3394,13 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (parcel != null)
                 {
-                    if ((parcel.landData.landFlags & (uint)Parcel.ParcelFlags.AllowOtherScripts) != 0)
+                    if ((parcel.landData.Flags & (uint)Parcel.ParcelFlags.AllowOtherScripts) != 0)
                     {
                         return true;
                     }
-                    else if ((parcel.landData.landFlags & (uint)Parcel.ParcelFlags.AllowGroupScripts) != 0)
+                    else if ((parcel.landData.Flags & (uint)Parcel.ParcelFlags.AllowGroupScripts) != 0)
                     {
-                        if (part.OwnerID == parcel.landData.ownerID || (parcel.landData.isGroupOwned && part.GroupID == parcel.landData.groupID) || ExternalChecks.ExternalChecksCanBeGodLike(part.OwnerID))
+                        if (part.OwnerID == parcel.landData.OwnerID || (parcel.landData.IsGroupOwned && part.GroupID == parcel.landData.GroupID) || ExternalChecks.ExternalChecksCanBeGodLike(part.OwnerID))
                         {
                             return true;
                         }
@@ -3411,7 +3411,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        if (part.OwnerID == parcel.landData.ownerID)
+                        if (part.OwnerID == parcel.landData.OwnerID)
                         {
                             return true;
                         }
