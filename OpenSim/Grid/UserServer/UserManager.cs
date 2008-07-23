@@ -457,6 +457,45 @@ namespace OpenSim.Grid.UserServer
             return response;
         }
 
+        public XmlRpcResponse XmlRPCCheckAuthSession(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            UserProfileData userProfile;
+
+            string authed = "FALSE";
+            if (requestData.Contains("avatar_uuid") && requestData.Contains("session_id"))
+            {
+                LLUUID guess_aid = LLUUID.Zero;
+                LLUUID guess_sid = LLUUID.Zero;
+
+                Helpers.TryParse((string)requestData["avatar_uuid"], out guess_aid);
+                if (guess_aid == LLUUID.Zero)
+                {
+                    return CreateUnknownUserErrorResponse();
+                }
+                Helpers.TryParse((string)requestData["session_id"], out guess_sid);
+                if (guess_sid == LLUUID.Zero)
+                {
+                    return CreateUnknownUserErrorResponse();
+                }
+                userProfile = GetUserProfile(guess_aid);
+                if (userProfile != null && userProfile.CurrentAgent != null && userProfile.CurrentAgent.SessionID == guess_sid)
+                {
+                    authed = "TRUE";
+                }
+                m_log.InfoFormat("[UserManager]: CheckAuthSession TRUE for user {0}", guess_aid);
+            }
+            else
+            {
+                m_log.InfoFormat("[UserManager]: CheckAuthSession FALSE");
+                return CreateUnknownUserErrorResponse();
+            }
+            Hashtable responseData = new Hashtable();
+            responseData["auth_session"] = authed;
+            response.Value = responseData;
+            return response;
+        }
 
         public XmlRpcResponse XmlRpcResponseXmlRPCUpdateUserProfile(XmlRpcRequest request)
         {

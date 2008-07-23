@@ -112,7 +112,13 @@ namespace OpenSim.Framework.Communications
 
         protected List<IInventoryServices> m_inventoryServices = new List<IInventoryServices>();
         // protected IInventoryServices m_inventoryService;
+        protected ISecureInventoryService m_secureinventoryServices;
 
+        public ISecureInventoryService SecureInventoryService
+        {
+            get { return m_secureinventoryServices; }
+        }
+        
         public IInventoryServices InventoryService
         {
             get

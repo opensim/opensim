@@ -2019,7 +2019,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_log.Info("[REGION]: Add New Scene Presence");
 
-                CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
+                //CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
+                CommsManager.UserProfileCacheService.AddNewUser(client);
 
                 CreateAndAddScenePresence(client, child);
             }

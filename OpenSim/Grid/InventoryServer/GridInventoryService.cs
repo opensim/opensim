@@ -26,12 +26,15 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using System.Net;
 
 using libsecondlife;
 using log4net;
+using Nwc.XmlRpc;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -45,6 +48,44 @@ namespace OpenSim.Grid.InventoryServer
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private string m_userserver_url;
+
+        public GridInventoryService(string userserver_url)
+        {
+            m_userserver_url = userserver_url;
+        }
+
+        public bool CheckTrustSource(IPEndPoint peer)
+        {
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: checking trusted source {0}", peer.ToString());
+            UriBuilder ub = new UriBuilder(m_userserver_url);
+            if (ub.Host == peer.Address.ToString())
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public bool CheckAuthSession(string session_id, string avatar_id)
+        {
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: checking authed session {0} {1}", session_id, avatar_id);
+            Hashtable requestData = new Hashtable();
+            requestData["avatar_uuid"] = avatar_id;
+            requestData["session_id"] = session_id;
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(requestData);
+            XmlRpcRequest UserReq = new XmlRpcRequest("check_auth_session", SendParams);
+            XmlRpcResponse UserResp = UserReq.Send(m_userserver_url, 3000);
+
+            Hashtable responseData = (Hashtable)UserResp.Value;
+
+            if (responseData.ContainsKey("auth_session") && responseData["auth_session"].ToString() == "TRUE")
+            {
+                return true;
+            }
+            return false;
+        }
 
         public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
         {

@@ -1772,6 +1772,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="log4net.dll"/>
+      <Reference name="XMLRPC.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

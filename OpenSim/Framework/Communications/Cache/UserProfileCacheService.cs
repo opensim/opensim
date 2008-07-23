@@ -63,6 +63,33 @@ namespace OpenSim.Framework.Communications.Cache
         /// A new user has moved into a region in this instance so retrieve their profile from the user service.
         /// </summary>
         /// <param name="userID"></param>
+        public void AddNewUser(IClientAPI remoteClient)
+        {
+            // Potential fix - Multithreading issue.
+            lock (m_userProfiles)
+            {
+                if (!m_userProfiles.ContainsKey(remoteClient.AgentId))
+                {
+                    UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(remoteClient.AgentId);
+                    CachedUserInfo userInfo = new CachedUserInfo(m_commsManager, userProfile, remoteClient);
+
+                    if (userInfo.UserProfile != null)
+                    {
+                        // The inventory for the user will be populated when they actually enter the scene
+                        m_userProfiles.Add(remoteClient.AgentId, userInfo);
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat("[USER CACHE]: User profile for user {0} not found.", remoteClient.AgentId);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// A new user has moved into a region in this instance so retrieve their profile from the user service.
+        /// </summary>
+        /// <param name="userID"></param>
         public void AddNewUser(LLUUID userID)
         {
             // Potential fix - Multithreading issue.
@@ -119,7 +146,7 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo userInfo = GetUserDetails(userID);
             if (userInfo != null)
             {
-                m_commsManager.InventoryService.RequestInventoryForUser(userID, userInfo.InventoryReceive);
+                m_commsManager.SecureInventoryService.RequestInventoryForUser(userID, userInfo.SessionID, userInfo.InventoryReceive);
                 //IInventoryServices invService = userInfo.GetInventoryService();
                 //if (invService != null)
                 //{

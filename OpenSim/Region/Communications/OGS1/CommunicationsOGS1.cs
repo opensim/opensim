@@ -41,6 +41,7 @@ namespace OpenSim.Region.Communications.OGS1
             m_gridService = gridInterComms;
             m_interRegion = gridInterComms;
 
+            m_secureinventoryServices = new OGS1SecureInventoryService(serversInfo.InventoryURL);
             OGS1InventoryService invService = new OGS1InventoryService(serversInfo.InventoryURL);
             AddInventoryService(invService);
             m_defaultInventoryHost = invService.Host;

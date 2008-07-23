@@ -142,6 +142,7 @@ namespace OpenSim.Grid.UserServer
             m_httpServer.AddXmlRPCHandler("update_user_current_region", m_userManager.XmlRPCAtRegion);
             m_httpServer.AddXmlRPCHandler("logout_of_simulator", m_userManager.XmlRPCLogOffUserMethodUUID);
             m_httpServer.AddXmlRPCHandler("get_agent_by_uuid", m_userManager.XmlRPCGetAgentMethodUUID);
+            m_httpServer.AddXmlRPCHandler("check_auth_session", m_userManager.XmlRPCCheckAuthSession);
             // Message Server ---> User Server
             m_httpServer.AddXmlRPCHandler("register_messageserver", m_messagesService.XmlRPCRegisterMessageServer);
             m_httpServer.AddXmlRPCHandler("agent_change_region", m_messagesService.XmlRPCUserMovedtoRegion);
