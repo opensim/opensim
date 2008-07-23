@@ -265,7 +265,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     packet.Header.AckList[i] = ack;
                     i++;
                     m_PendingAcks.Remove(ack);
-                    if (i >= 10) // That is how much space there is
+                    if (i >= count) // That is how much space there is
                         break;
                 }
             }
