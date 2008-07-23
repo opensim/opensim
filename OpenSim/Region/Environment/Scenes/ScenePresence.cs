@@ -1618,15 +1618,8 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_appearance.Texture == null)
                 return;
 
-            LLQuaternion rot;
-            if (m_bodyRot != null)
-            {
-                rot = new LLQuaternion(m_bodyRot.x, m_bodyRot.y, m_bodyRot.z, m_bodyRot.w);
-            }
-            else
-            {
-                rot = LLQuaternion.Identity;
-            }
+            // Note: because LLQuaternion is a struct, it can't be null
+            LLQuaternion rot = new LLQuaternion(m_bodyRot.x, m_bodyRot.y, m_bodyRot.z, m_bodyRot.w);
 
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
                                                             LocalId, m_pos, m_appearance.Texture.ToBytes(),
@@ -1682,15 +1675,8 @@ namespace OpenSim.Region.Environment.Scenes
             // Needed for standalone
             m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
 
-            LLQuaternion rot;
-            if (m_bodyRot != null)
-            {
-                rot = new LLQuaternion(m_bodyRot.x, m_bodyRot.y, m_bodyRot.z, m_bodyRot.w);
-            }
-            else
-            {
-                rot = LLQuaternion.Identity;
-            }
+            // Note: because LLQuaternion is a struct, it can't be null
+            LLQuaternion rot = new LLQuaternion(m_bodyRot.x, m_bodyRot.y, m_bodyRot.z, m_bodyRot.w);
 
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
                                                m_pos, m_appearance.Texture.ToBytes(), m_parentID, rot);
