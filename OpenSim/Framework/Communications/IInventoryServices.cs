@@ -40,12 +40,8 @@ namespace OpenSim.Framework.Communications
     /// <summary>
     /// Defines all the operations one can perform on a user's inventory.
     /// </summary>
-    public interface IInventoryServices
-    {
-        string Host
-        {
-            get;
-        }
+    public interface IInventoryServices : IInterGridInventoryServices
+    {        
         /// <summary>
         /// Request the inventory for a user.  This is an asynchronous operation that will call the callback when the
         /// inventory has been received
@@ -104,12 +100,10 @@ namespace OpenSim.Framework.Communications
         bool DeleteItem(InventoryItemBase item);
 
         /// <summary>
-        /// Create a new inventory for the given user.
+        /// Does the given user have an inventory structure?
         /// </summary>
-        /// <param name="user"></param>
-        /// <returns>true if the inventory was successfully created, false otherwise</returns>
-        bool CreateNewUserInventory(LLUUID user);
-
+        /// <param name="userID"></param>
+        /// <returns></returns>
         bool HasInventoryForUser(LLUUID userID);
 
         /// <summary>
@@ -118,13 +112,5 @@ namespace OpenSim.Framework.Communications
         /// <param name="userID"></param>
         /// <returns>null if no root folder was found</returns>
         InventoryFolderBase RequestRootFolder(LLUUID userID);
-
-        /// <summary>
-        /// Returns a list of all the folders in a given user's inventory.
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns>A flat list of the user's inventory folder tree,
-        /// null if there is no inventory for this user</returns>
-        List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId);
     }
 }
