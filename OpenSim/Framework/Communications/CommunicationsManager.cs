@@ -112,11 +112,23 @@ namespace OpenSim.Framework.Communications
 
         protected List<IInventoryServices> m_inventoryServices = new List<IInventoryServices>();
         // protected IInventoryServices m_inventoryService;
-        protected ISecureInventoryService m_secureinventoryServices;
+        protected List<ISecureInventoryService> m_secureinventoryServices = new List<ISecureInventoryService>();
 
         public ISecureInventoryService SecureInventoryService
         {
-            get { return m_secureinventoryServices; }
+            get
+            {
+                if (m_secureinventoryServices.Count > 0)
+                {
+                    // return m_inventoryServices[0];
+                    ISecureInventoryService invService;
+                    if (TryGetSecureInventoryService(m_defaultInventoryHost, out invService))
+                    {
+                        return invService;
+                    }
+                }
+                return null;
+            }
         }
         
         public IInventoryServices InventoryService
@@ -134,6 +146,29 @@ namespace OpenSim.Framework.Communications
                 }
                 return null;
             }
+        }
+
+        public bool TryGetSecureInventoryService(string host, out ISecureInventoryService inventoryService)
+        {
+            if ((host == string.Empty) || (host == "default"))
+            {
+                host = m_defaultInventoryHost;
+            }
+
+            lock (m_secureinventoryServices)
+            {
+                foreach (ISecureInventoryService service in m_secureinventoryServices)
+                {
+                    if (service.Host == host)
+                    {
+                        inventoryService = service;
+                        return true;
+                    }
+                }
+            }
+
+            inventoryService = null;
+            return false;
         }
 
         public bool TryGetInventoryService(string host, out IInventoryServices inventoryService)
@@ -162,6 +197,19 @@ namespace OpenSim.Framework.Communications
         public virtual void AddInventoryService(string hostUrl)
         {
 
+        }
+
+        public virtual void AddSecureInventoryService(string hostUrl)
+        {
+
+        }
+
+        public virtual void AddSecureInventoryService(ISecureInventoryService service)
+        {
+            lock (m_secureinventoryServices)
+            {
+                m_secureinventoryServices.Add(service);
+            }
         }
 
         public virtual void AddInventoryService(IInventoryServices service)

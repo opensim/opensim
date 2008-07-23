@@ -41,10 +41,18 @@ namespace OpenSim.Region.Communications.OGS1
             m_gridService = gridInterComms;
             m_interRegion = gridInterComms;
 
-            m_secureinventoryServices = new OGS1SecureInventoryService(serversInfo.InventoryURL);
-            OGS1InventoryService invService = new OGS1InventoryService(serversInfo.InventoryURL);
-            AddInventoryService(invService);
-            m_defaultInventoryHost = invService.Host;
+            if (serversInfo.secureInventoryServer)
+            {
+                OGS1SecureInventoryService invService = new OGS1SecureInventoryService(serversInfo.InventoryURL);
+                AddSecureInventoryService(invService);
+                m_defaultInventoryHost = invService.Host;
+            }
+            else
+            {
+                OGS1InventoryService invService = new OGS1InventoryService(serversInfo.InventoryURL);
+                AddInventoryService(invService);
+                m_defaultInventoryHost = invService.Host;
+            }
 
             m_userService = new OGS1UserServices(this);
             m_avatarService = (IAvatarService)m_userService;
@@ -54,6 +62,12 @@ namespace OpenSim.Region.Communications.OGS1
         {
             OGS1InventoryService invService = new OGS1InventoryService(hostUrl);
             AddInventoryService(invService);
+        }
+
+        public override void AddSecureInventoryService(string hostUrl)
+        {
+            OGS1SecureInventoryService invService = new OGS1SecureInventoryService(hostUrl);
+            AddSecureInventoryService(invService);
         }
     }
 }

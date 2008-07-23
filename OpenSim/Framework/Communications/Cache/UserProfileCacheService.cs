@@ -146,7 +146,14 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo userInfo = GetUserDetails(userID);
             if (userInfo != null)
             {
-                m_commsManager.SecureInventoryService.RequestInventoryForUser(userID, userInfo.SessionID, userInfo.InventoryReceive);
+                if (m_commsManager.SecureInventoryService != null)
+                {
+                    m_commsManager.SecureInventoryService.RequestInventoryForUser(userID, userInfo.SessionID, userInfo.InventoryReceive);
+                }
+                else
+                {
+                    m_commsManager.InventoryService.RequestInventoryForUser(userID, userInfo.InventoryReceive);
+                }
                 //IInventoryServices invService = userInfo.GetInventoryService();
                 //if (invService != null)
                 //{

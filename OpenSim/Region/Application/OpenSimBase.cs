@@ -254,6 +254,7 @@ namespace OpenSim
                 config.Set("user_recv_key", "null");
                 config.Set("asset_server_url", "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString());
                 config.Set("inventory_server_url", "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString());
+                config.Set("secure_inventory_server", "true");
             }
 
             if (DefaultConfig.Configs["RemoteAdmin"] == null)

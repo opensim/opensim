@@ -42,6 +42,7 @@ namespace OpenSim.Framework
         public string GridURL = String.Empty;
         public uint HttpListenerPort = DefaultHttpListenerPort;
         public string InventoryURL = String.Empty;
+        public bool secureInventoryServer = false;
         public bool isSandbox;
         private uint? m_defaultHomeLocX;
         private uint? m_defaultHomeLocY;
@@ -93,6 +94,7 @@ namespace OpenSim.Framework
             InventoryURL = config.Configs["Network"].GetString("inventory_server_url",
                                                                "http://127.0.0.1:" +
                                                                InventoryConfig.DefaultHttpPort.ToString());
+            secureInventoryServer = config.Configs["Network"].GetBoolean("secure_inventory_server", true);
         }
     }
 }
