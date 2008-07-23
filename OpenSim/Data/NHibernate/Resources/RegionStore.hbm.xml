@@ -126,5 +126,11 @@
       <property name="EveryonePermissions" type="System.UInt32" />
       <property name="GroupPermissions" type="System.UInt32" />
       <property name="NextPermissions" type="System.UInt32" />
+      <property name="Name" type="String" length="255" />
+      <property name="Description" type="String" length="255" />
+      <property name="CreationDate" type="System.UInt32" />
+      <property name="Flags" type="System.UInt32" />
+      <property name="InvType" type="System.Int32" />
+      <property name="AssetType" type="System.Int32" />
     </class>
 </hibernate-mapping>
