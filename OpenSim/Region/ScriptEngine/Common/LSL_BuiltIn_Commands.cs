@@ -5286,30 +5286,17 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetPrimitiveParams(LSL_Types.list rules)
         {
-            llSetLinkPrimitiveParams(m_host.LinkNum+1, rules);
+            llSetLinkPrimitiveParams(m_host.LinkNum, rules);
         }
 
         public void llSetLinkPrimitiveParams(int linknumber, LSL_Types.list rules)
         {
             m_host.AddScriptLPS(1);
 
-            SceneObjectPart part=null;
+			if(m_host.ParentGroup == null)
+				return;
 
-            if (m_host.LinkNum+1 != linknumber)
-            {
-                foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
-                {
-                    if ((partInst.LinkNum) == linknumber)
-                    {
-                        part = partInst;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                part = m_host;
-            }
+            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
 
             if (part == null)
                 return;
