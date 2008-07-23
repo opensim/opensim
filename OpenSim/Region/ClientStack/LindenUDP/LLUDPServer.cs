@@ -380,6 +380,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //Slave regions don't accept new clients
             if (m_localScene.Region_Status != RegionStatus.SlaveScene)
             {
+				if (!(packet is UseCircuitCodePacket))
+					return;
                 UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
                 lock (clientCircuits)
                 {
