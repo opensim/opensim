@@ -2770,7 +2770,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     break;
                 }
             }
-            
+
+            if (!found)
+            {
+                llSay(0, String.Format("Could not find object '{0}'", inventory));
+                throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
+            }
+
             // check if destination is an avatar
             if (World.GetScenePresence(destId) != null)
             {
@@ -2782,9 +2788,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // destination is an object
                 World.MoveTaskInventoryItem(destId, m_host, objId);
             }
-
-            if (!found)
-                llSay(0, "Could not find object " + inventory);
         }
 
         public void llRemoveInventory(string item)
