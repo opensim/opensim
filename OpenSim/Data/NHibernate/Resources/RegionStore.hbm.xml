@@ -114,7 +114,7 @@
       <id name="ItemID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
         <generator class="assigned" /> 
       </id>
-      <property name="PrimID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="ParentPartID" column="PrimID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
       <property name="AssetID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
       <property name="ParentFolderID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
       <property name="CreatorID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
