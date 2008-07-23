@@ -1645,6 +1645,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         avatar.SendFullUpdateToOtherClient(this);
                         avatar.SendAppearanceToOtherAgent(this);
+                        avatar.SendAnimPackToClient(this.ControllingClient);
                     }
                 }
             }
@@ -1771,6 +1772,18 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_scene.Broadcast(
                 delegate(IClientAPI client) { client.SendAnimations(animations, seqs, m_controllingClient.AgentId); });
+        }
+
+        public void SendAnimPackToClient(IClientAPI client)
+        {
+            if (m_isChildAgent)
+                return;
+            LLUUID[] animIDs;
+            int[] sequenceNums;
+
+            m_animations.GetArrays(out animIDs, out sequenceNums);
+
+            client.SendAnimations(animIDs, sequenceNums, m_controllingClient.AgentId);
         }
 
         /// <summary>
