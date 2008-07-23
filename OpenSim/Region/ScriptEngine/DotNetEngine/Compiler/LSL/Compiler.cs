@@ -74,6 +74,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         private static LSL2CSConverter LSL_Converter = new LSL2CSConverter();
         //private static CSCodeGenerator LSL_Converter = new CSCodeGenerator();
+        //private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; // mapping between LSL and C# line/column numbers
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
         private static JScriptCodeProvider JScodeProvider = new JScriptCodeProvider();
@@ -277,6 +278,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 // Its LSL, convert it to C#
                 compileScript = LSL_Converter.Convert(Script);
                 //compileScript = LSL_Converter.Convert(Script);
+                //m_positionMap = LSL_Converter.PositionMap;
                 l = enumCompileType.cs;
             }
 
@@ -481,6 +483,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 string errtext = String.Empty;
                 foreach (CompilerError CompErr in results.Errors)
                 {
+                    //KeyValuePair<int, int> lslPos;
+
+                    //try
+                    //{
+                    //    lslPos = m_positionMap[new KeyValuePair<int, int>(CompErr.Line, CompErr.Column)];
+                    //}
+                    //catch (KeyNotFoundException)  // we don't have this line/column mapped
+                    //{
+                    //    lslPos = new KeyValuePair<int, int>(-1, -1);
+                    //}
+
+                    // The Second Life viewer's script editor begins
+                    // countingn lines and columns at 0, so we subtract 1.
+                    //errtext += String.Format("Line {0}, column {1}, Error Number: {2}, '{3}'\r\n", lslPos.Key - 1, lslPos.Value - 1, CompErr.ErrorNumber, CompErr.ErrorText);
                     errtext += "Line number " + (CompErr.Line - LinesToRemoveOnError) +
                                ", Error Number: " + CompErr.ErrorNumber +
                                ", '" + CompErr.ErrorText + "'\r\n";

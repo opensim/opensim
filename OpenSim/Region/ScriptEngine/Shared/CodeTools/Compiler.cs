@@ -73,6 +73,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private string ScriptEnginesPath = "ScriptEngines";
 
         private static ICodeConverter LSL_Converter;
+        private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; // mapping between LSL and C# line/column numbers
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
         private static JScriptCodeProvider JScodeProvider = new JScriptCodeProvider();
@@ -331,6 +332,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 else
                     LSL_Converter = (ICodeConverter)new LSL2CSConverter();
                 compileScript = LSL_Converter.Convert(Script);
+
+                if (m_UseCompiler)
+                    m_positionMap = ((CSCodeGenerator) LSL_Converter).PositionMap;
+
                 l = enumCompileType.cs;
             }
 
@@ -540,9 +545,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 string errtext = String.Empty;
                 foreach (CompilerError CompErr in results.Errors)
                 {
-                    errtext += "Line number " + (CompErr.Line - LinesToRemoveOnError) +
-                        ", Error Number: " + CompErr.ErrorNumber +
-                        ", '" + CompErr.ErrorText + "'\r\n";
+                    if (m_UseCompiler)
+                    {
+                        KeyValuePair<int, int> lslPos;
+
+                        try
+                        {
+                            lslPos = m_positionMap[new KeyValuePair<int, int>(CompErr.Line, CompErr.Column)];
+                        }
+                        catch (KeyNotFoundException)  // we don't have this line/column mapped
+                        {
+                            lslPos = new KeyValuePair<int, int>(-1, -1);
+                        }
+
+                        // The Second Life viewer's script editor begins
+                        // countingn lines and columns at 0, so we subtract 1.
+                        errtext += String.Format("Line {0}, column {1}, Error Number: {2}, '{3}'\r\n", lslPos.Key - 1, lslPos.Value - 1, CompErr.ErrorNumber, CompErr.ErrorText);
+                    }
+                    else
+                    {
+                        errtext += "Line number " + (CompErr.Line - LinesToRemoveOnError) +
+                            ", Error Number: " + CompErr.ErrorNumber +
+                            ", '" + CompErr.ErrorText + "'\r\n";
+                    }
                 }
                 Console.WriteLine("[COMPILER ERROR]:" + errtext);
                 if (!File.Exists(OutFile))
