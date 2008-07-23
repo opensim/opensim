@@ -919,22 +919,22 @@ namespace OpenSim.Region.Environment.Scenes
 
             if ((destAgent != taskItem.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
             {
-                agentItem.BasePermissions = taskItem.NextOwnerMask;
-                agentItem.CurrentPermissions = taskItem.NextOwnerMask;
-                agentItem.NextPermissions = taskItem.NextOwnerMask;
-                agentItem.EveryOnePermissions = taskItem.EveryoneMask & taskItem.NextOwnerMask;
+                agentItem.BasePermissions = taskItem.NextPermissions;
+                agentItem.CurrentPermissions = taskItem.NextPermissions;
+                agentItem.NextPermissions = taskItem.NextPermissions;
+                agentItem.EveryOnePermissions = taskItem.EveryonePermissions & taskItem.NextPermissions;
             }
             else
             {
-                agentItem.BasePermissions = taskItem.BaseMask;
-                agentItem.CurrentPermissions = taskItem.OwnerMask;
-                agentItem.NextPermissions = taskItem.NextOwnerMask;
-                agentItem.EveryOnePermissions = taskItem.EveryoneMask;
+                agentItem.BasePermissions = taskItem.BasePermissions;
+                agentItem.CurrentPermissions = taskItem.CurrentPermissions;
+                agentItem.NextPermissions = taskItem.NextPermissions;
+                agentItem.EveryOnePermissions = taskItem.EveryonePermissions;
             }
 
             if (!ExternalChecks.ExternalChecksBypassPermissions())
             {
-                if ((taskItem.OwnerMask & (uint)PermissionMask.Copy) == 0)
+                if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     part.RemoveInventoryItem(itemId);
             }
 
@@ -1083,26 +1083,26 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.ParentID = destPart.UUID;
             destTaskItem.ParentPartID = destPart.UUID;
 
-            destTaskItem.BaseMask = srcTaskItem.BaseMask;
-            destTaskItem.EveryoneMask = srcTaskItem.EveryoneMask;
-            destTaskItem.GroupMask = srcTaskItem.GroupMask;
-            destTaskItem.OwnerMask = srcTaskItem.OwnerMask;
-            destTaskItem.NextOwnerMask = srcTaskItem.NextOwnerMask;
+            destTaskItem.BasePermissions = srcTaskItem.BasePermissions;
+            destTaskItem.EveryonePermissions = srcTaskItem.EveryonePermissions;
+            destTaskItem.GroupPermissions = srcTaskItem.GroupPermissions;
+            destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions;
+            destTaskItem.NextPermissions = srcTaskItem.NextPermissions;
             destTaskItem.Flags = srcTaskItem.Flags;
             
             if (destPart.OwnerID != part.OwnerID)
             {
                 if (ExternalChecks.ExternalChecksPropagatePermissions())
                 {
-                    destTaskItem.OwnerMask = srcTaskItem.OwnerMask &
-                            srcTaskItem.NextOwnerMask;
-                    destTaskItem.GroupMask = srcTaskItem.GroupMask &
-                            srcTaskItem.NextOwnerMask;
-                    destTaskItem.EveryoneMask = srcTaskItem.EveryoneMask &
-                            srcTaskItem.NextOwnerMask;
-                    destTaskItem.BaseMask = srcTaskItem.BaseMask &
-                            srcTaskItem.NextOwnerMask;
-                    destTaskItem.OwnerMask |= 8; // Slam!
+                    destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions &
+                            srcTaskItem.NextPermissions;
+                    destTaskItem.GroupPermissions = srcTaskItem.GroupPermissions &
+                            srcTaskItem.NextPermissions;
+                    destTaskItem.EveryonePermissions = srcTaskItem.EveryonePermissions &
+                            srcTaskItem.NextPermissions;
+                    destTaskItem.BasePermissions = srcTaskItem.BasePermissions &
+                            srcTaskItem.NextPermissions;
+                    destTaskItem.CurrentPermissions |= 8; // Slam!
                 }
             }
 
@@ -1113,7 +1113,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             destPart.AddInventoryItem(destTaskItem);
 
-            if ((srcTaskItem.OwnerMask & (uint)PermissionMask.Copy) == 0)
+            if ((srcTaskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                 part.RemoveInventoryItem(itemId);
 
             ScenePresence avatar;
@@ -1331,12 +1331,12 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.InvType = itemBase.InvType;
                 taskItem.OwnerID = itemBase.Owner;
                 taskItem.CreatorID = itemBase.Creator;
-                taskItem.BaseMask = itemBase.BasePermissions;
-                taskItem.OwnerMask = itemBase.CurrentPermissions;
-                taskItem.EveryoneMask = itemBase.EveryOnePermissions;
-                taskItem.NextOwnerMask = itemBase.NextPermissions;
+                taskItem.BasePermissions = itemBase.BasePermissions;
+                taskItem.CurrentPermissions = itemBase.CurrentPermissions;
+                taskItem.EveryonePermissions = itemBase.EveryOnePermissions;
+                taskItem.NextPermissions = itemBase.NextPermissions;
                 taskItem.GroupID = itemBase.GroupID;
-                taskItem.GroupMask = 0;
+                taskItem.GroupPermissions = 0;
                 taskItem.Flags = itemBase.Flags;
                 taskItem.PermsGranter = LLUUID.Zero;
                 taskItem.PermsMask = 0;
@@ -1409,26 +1409,26 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.ParentID = destPart.UUID;
             destTaskItem.ParentPartID = destPart.UUID;
 
-            destTaskItem.BaseMask = srcTaskItem.BaseMask;
-            destTaskItem.EveryoneMask = srcTaskItem.EveryoneMask;
-            destTaskItem.GroupMask = srcTaskItem.GroupMask;
-            destTaskItem.OwnerMask = srcTaskItem.OwnerMask;
-            destTaskItem.NextOwnerMask = srcTaskItem.NextOwnerMask;
+            destTaskItem.BasePermissions = srcTaskItem.BasePermissions;
+            destTaskItem.EveryonePermissions = srcTaskItem.EveryonePermissions;
+            destTaskItem.GroupPermissions = srcTaskItem.GroupPermissions;
+            destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions;
+            destTaskItem.NextPermissions = srcTaskItem.NextPermissions;
             destTaskItem.Flags = srcTaskItem.Flags;
             
             if (destPart.OwnerID != srcPart.OwnerID)
             {
                 if (ExternalChecks.ExternalChecksPropagatePermissions())
                 {
-                    destTaskItem.OwnerMask = srcTaskItem.OwnerMask &
-                            srcTaskItem.NextOwnerMask;
-                    destTaskItem.GroupMask = srcTaskItem.GroupMask &
-                            srcTaskItem.NextOwnerMask;
-                    destTaskItem.EveryoneMask = srcTaskItem.EveryoneMask &
-                            srcTaskItem.NextOwnerMask;
-                    destTaskItem.BaseMask = srcTaskItem.BaseMask &
-                            srcTaskItem.NextOwnerMask;
-                    destTaskItem.OwnerMask |= 8; // Slam!
+                    destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions &
+                            srcTaskItem.NextPermissions;
+                    destTaskItem.GroupPermissions = srcTaskItem.GroupPermissions &
+                            srcTaskItem.NextPermissions;
+                    destTaskItem.EveryonePermissions = srcTaskItem.EveryonePermissions &
+                            srcTaskItem.NextPermissions;
+                    destTaskItem.BasePermissions = srcTaskItem.BasePermissions &
+                            srcTaskItem.NextPermissions;
+                    destTaskItem.CurrentPermissions |= 8; // Slam!
                 }
             }
 
@@ -2088,12 +2088,12 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         if (ExternalChecks.ExternalChecksPropagatePermissions())
                         {
-                            if ((item.OwnerMask & 8) != 0)
+                            if ((item.CurrentPermissions & 8) != 0)
                             {
                                 foreach (SceneObjectPart part in partList)
                                 {
-                                    part.EveryoneMask = item.EveryoneMask;
-                                    part.NextOwnerMask = item.NextOwnerMask;
+                                    part.EveryoneMask = item.EveryonePermissions;
+                                    part.NextOwnerMask = item.NextPermissions;
                                 }
                             }
                             group.ApplyNextOwnerPermissions();
@@ -2108,10 +2108,10 @@ namespace OpenSim.Region.Environment.Scenes
                             part.OwnerID = item.OwnerID;
                             part.ChangeInventoryOwner(item.OwnerID);
                         }
-                        else if ((item.OwnerMask & 8) != 0) // Slam!
+                        else if ((item.CurrentPermissions & 8) != 0) // Slam!
                         {
-                            part.EveryoneMask = item.EveryoneMask;
-                            part.NextOwnerMask = item.NextOwnerMask;
+                            part.EveryoneMask = item.EveryonePermissions;
+                            part.NextOwnerMask = item.NextPermissions;
                         }
                     }
                     rootPart.TrimPermissions();
@@ -2127,7 +2127,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (!ExternalChecks.ExternalChecksBypassPermissions())
                     {
-                        if ((item.OwnerMask & (uint)PermissionMask.Copy) == 0)
+                        if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                             sourcePart.RemoveInventoryItem(item.ItemID);
                     }
                     return rootPart.ParentGroup;

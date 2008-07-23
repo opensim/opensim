@@ -3302,7 +3302,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (inv.Value.Name == name)
                 {
-                    if ((inv.Value.OwnerMask & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify)) == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                    if ((inv.Value.CurrentPermissions & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify)) == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
                     {
                         return inv.Value.AssetID.ToString();
                     }
@@ -6287,15 +6287,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     switch (mask)
                     {
                         case 0:
-                            return (int)inv.Value.BaseMask;
+                            return (int)inv.Value.BasePermissions;
                         case 1:
-                            return (int)inv.Value.OwnerMask;
+                            return (int)inv.Value.CurrentPermissions;
                         case 2:
-                            return (int)inv.Value.GroupMask;
+                            return (int)inv.Value.GroupPermissions;
                         case 3:
-                            return (int)inv.Value.EveryoneMask;
+                            return (int)inv.Value.EveryonePermissions;
                         case 4:
-                            return (int)inv.Value.NextOwnerMask;
+                            return (int)inv.Value.NextPermissions;
                     }
                 }
             }

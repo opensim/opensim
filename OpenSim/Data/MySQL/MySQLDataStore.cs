@@ -1258,11 +1258,11 @@ namespace OpenSim.Data.MySQL
             taskItem.LastOwnerID   = new LLUUID((String)row["lastOwnerID"]);
             taskItem.GroupID       = new LLUUID((String)row["groupID"]);
 
-            taskItem.NextOwnerMask = Convert.ToUInt32(row["nextPermissions"]);
-            taskItem.OwnerMask     = Convert.ToUInt32(row["currentPermissions"]);
-            taskItem.BaseMask      = Convert.ToUInt32(row["basePermissions"]);
-            taskItem.EveryoneMask  = Convert.ToUInt32(row["everyonePermissions"]);
-            taskItem.GroupMask     = Convert.ToUInt32(row["groupPermissions"]);
+            taskItem.NextPermissions = Convert.ToUInt32(row["nextPermissions"]);
+            taskItem.CurrentPermissions     = Convert.ToUInt32(row["currentPermissions"]);
+            taskItem.BasePermissions      = Convert.ToUInt32(row["basePermissions"]);
+            taskItem.EveryonePermissions  = Convert.ToUInt32(row["everyonePermissions"]);
+            taskItem.GroupPermissions     = Convert.ToUInt32(row["groupPermissions"]);
             taskItem.Flags         = Convert.ToUInt32(row["flags"]);
 
             return taskItem;
@@ -1519,11 +1519,11 @@ namespace OpenSim.Data.MySQL
             row["ownerID"] = taskItem.OwnerID;
             row["lastOwnerID"] = taskItem.LastOwnerID;
             row["groupID"] = taskItem.GroupID;
-            row["nextPermissions"] = taskItem.NextOwnerMask;
-            row["currentPermissions"] = taskItem.OwnerMask;
-            row["basePermissions"] = taskItem.BaseMask;
-            row["everyonePermissions"] = taskItem.EveryoneMask;
-            row["groupPermissions"] = taskItem.GroupMask;
+            row["nextPermissions"] = taskItem.NextPermissions;
+            row["currentPermissions"] = taskItem.CurrentPermissions;
+            row["basePermissions"] = taskItem.BasePermissions;
+            row["everyonePermissions"] = taskItem.EveryonePermissions;
+            row["groupPermissions"] = taskItem.GroupPermissions;
             row["flags"] = taskItem.Flags;
         }
 

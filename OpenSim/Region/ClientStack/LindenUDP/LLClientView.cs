@@ -4756,7 +4756,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     if (ti.OwnerID != AgentId)
                                         break;
 
-                                    if ((ti.OwnerMask & ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
+                                    if ((ti.CurrentPermissions & ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
                                         break;
 
                                     if (ti.AssetID != requestID)
@@ -5103,11 +5103,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     newTaskItem.CreatorID = updatetask.InventoryData.CreatorID;
                                     newTaskItem.OwnerID = updatetask.InventoryData.OwnerID;
                                     newTaskItem.GroupID = updatetask.InventoryData.GroupID;
-                                    newTaskItem.BaseMask = updatetask.InventoryData.BaseMask;
-                                    newTaskItem.OwnerMask = updatetask.InventoryData.OwnerMask;
-                                    newTaskItem.GroupMask = updatetask.InventoryData.GroupMask;
-                                    newTaskItem.EveryoneMask = updatetask.InventoryData.EveryoneMask;
-                                    newTaskItem.NextOwnerMask = updatetask.InventoryData.NextOwnerMask;
+                                    newTaskItem.BasePermissions = updatetask.InventoryData.BaseMask;
+                                    newTaskItem.CurrentPermissions = updatetask.InventoryData.OwnerMask;
+                                    newTaskItem.GroupPermissions = updatetask.InventoryData.GroupMask;
+                                    newTaskItem.EveryonePermissions = updatetask.InventoryData.EveryoneMask;
+                                    newTaskItem.NextPermissions = updatetask.InventoryData.NextOwnerMask;
                                     //newTaskItem.GroupOwned=updatetask.InventoryData.GroupOwned;
                                     newTaskItem.Type = updatetask.InventoryData.Type;
                                     newTaskItem.InvType = updatetask.InventoryData.InvType;

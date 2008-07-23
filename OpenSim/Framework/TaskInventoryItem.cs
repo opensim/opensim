@@ -236,7 +236,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public uint BaseMask {
+        public uint BasePermissions {
             get {
                 return _baseMask;
             }
@@ -272,7 +272,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public uint EveryoneMask {
+        public uint EveryonePermissions {
             get {
                 return _everyoneMask;
             }
@@ -299,7 +299,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public uint GroupMask {
+        public uint GroupPermissions {
             get {
                 return _groupMask;
             }
@@ -344,7 +344,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public uint NextOwnerMask {
+        public uint NextPermissions {
             get {
                 return _nextOwnerMask;
             }
@@ -362,7 +362,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public uint OwnerMask {
+        public uint CurrentPermissions {
             get {
                 return _ownerMask;
             }

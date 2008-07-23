@@ -526,8 +526,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     LLUUID ownerID = item.OwnerID;
                     uint everyoneMask = 0;
-                    uint baseMask = item.BaseMask;
-                    uint ownerMask = item.OwnerMask;
+                    uint baseMask = item.BasePermissions;
+                    uint ownerMask = item.CurrentPermissions;
 
                     if (item.InvType == 10) // Script
                     {
@@ -557,7 +557,7 @@ namespace OpenSim.Region.Environment.Scenes
                     invString.AddNameValueLine("owner_mask", Helpers.UIntToHexString(ownerMask));
                     invString.AddNameValueLine("group_mask", Helpers.UIntToHexString(0));
                     invString.AddNameValueLine("everyone_mask", Helpers.UIntToHexString(everyoneMask));
-                    invString.AddNameValueLine("next_owner_mask", Helpers.UIntToHexString(item.NextOwnerMask));
+                    invString.AddNameValueLine("next_owner_mask", Helpers.UIntToHexString(item.NextPermissions));
 
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
                     invString.AddNameValueLine("owner_id", ownerID.ToString());
@@ -680,28 +680,28 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (item.InvType != 6)
                 {
-                    if ((item.OwnerMask & item.NextOwnerMask & (uint)PermissionMask.Copy) == 0)
+                    if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Copy) == 0)
                         mask &= ~((uint)PermissionMask.Copy >> 13);
-                    if ((item.OwnerMask & item.NextOwnerMask & (uint)PermissionMask.Transfer) == 0)
+                    if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Transfer) == 0)
                         mask &= ~((uint)PermissionMask.Transfer >> 13);
-                    if ((item.OwnerMask & item.NextOwnerMask & (uint)PermissionMask.Modify) == 0)
+                    if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Modify) == 0)
                         mask &= ~((uint)PermissionMask.Modify >> 13);
                 }
                 else
                 {
-                    if ((item.OwnerMask & ((uint)PermissionMask.Copy >> 13)) == 0)
+                    if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
                         mask &= ~((uint)PermissionMask.Copy >> 13);
-                    if ((item.OwnerMask & ((uint)PermissionMask.Transfer >> 13)) == 0)
+                    if ((item.CurrentPermissions & ((uint)PermissionMask.Transfer >> 13)) == 0)
                         mask &= ~((uint)PermissionMask.Transfer >> 13);
-                    if ((item.OwnerMask & ((uint)PermissionMask.Modify >> 13)) == 0)
+                    if ((item.CurrentPermissions & ((uint)PermissionMask.Modify >> 13)) == 0)
                         mask &= ~((uint)PermissionMask.Modify >> 13);
                 }
 
-                if ((item.OwnerMask & (uint)PermissionMask.Copy) == 0)
+                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     mask &= ~(uint)PermissionMask.Copy;
-                if ((item.OwnerMask & (uint)PermissionMask.Transfer) == 0)
+                if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
                     mask &= ~(uint)PermissionMask.Transfer;
-                if ((item.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
                     mask &= ~(uint)PermissionMask.Modify;
             }
             return mask;
@@ -717,16 +717,16 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (item.InvType == 6)
                 {
-                    if ((item.OwnerMask & ((uint)PermissionMask.Copy >> 13)) == 0)
-                        item.OwnerMask &= ~(uint)PermissionMask.Copy;
-                    if ((item.OwnerMask & ((uint)PermissionMask.Transfer >> 13)) == 0)
-                        item.OwnerMask &= ~(uint)PermissionMask.Transfer;
-                    if ((item.OwnerMask & ((uint)PermissionMask.Modify >> 13)) == 0)
-                        item.OwnerMask &= ~(uint)PermissionMask.Modify;
+                    if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
+                        item.CurrentPermissions &= ~(uint)PermissionMask.Copy;
+                    if ((item.CurrentPermissions & ((uint)PermissionMask.Transfer >> 13)) == 0)
+                        item.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
+                    if ((item.CurrentPermissions & ((uint)PermissionMask.Modify >> 13)) == 0)
+                        item.CurrentPermissions &= ~(uint)PermissionMask.Modify;
                 }
-                item.OwnerMask &= item.NextOwnerMask;
-                item.BaseMask &= item.NextOwnerMask;
-                item.EveryoneMask &= item.NextOwnerMask;
+                item.CurrentPermissions &= item.NextPermissions;
+                item.BasePermissions &= item.NextPermissions;
+                item.EveryonePermissions &= item.NextPermissions;
             }
 
             TriggerScriptChangedEvent(Changed.OWNER);

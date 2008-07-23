@@ -151,11 +151,11 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.Type = item.AssetType;
                 taskItem.InvType = item.InvType;
 
-                taskItem.BaseMask = item.BasePermissions;
-                taskItem.OwnerMask = item.CurrentPermissions;
+                taskItem.BasePermissions = item.BasePermissions;
+                taskItem.CurrentPermissions = item.CurrentPermissions;
                 // FIXME: ignoring group permissions for now as they aren't stored in item
-                taskItem.EveryoneMask = item.EveryOnePermissions;
-                taskItem.NextOwnerMask = item.NextPermissions;
+                taskItem.EveryonePermissions = item.EveryOnePermissions;
+                taskItem.NextPermissions = item.NextPermissions;
                 taskItem.Flags = item.Flags;
                 // TODO: These are pending addition of those fields to TaskInventoryItem
 //                taskItem.SalePrice = item.SalePrice;

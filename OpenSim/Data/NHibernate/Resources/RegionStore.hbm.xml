@@ -110,4 +110,21 @@
         </id>
         <property name="Map" type="System.Byte[]" />
     </class>
+    <class name="OpenSim.Framework.TaskInventoryItem, OpenSim.Framework" table="PrimItems" lazy="false">
+      <id name="ItemID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+        <generator class="assigned" /> 
+      </id>
+      <property name="PrimID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="AssetID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="ParentFolderID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="CreatorID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="OwnerID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="GroupID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="LastOwnerID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="CurrentPermissions" type="System.UInt32" />
+      <property name="BasePermissions" type="System.UInt32" />
+      <property name="EveryonePermissions" type="System.UInt32" />
+      <property name="GroupPermissions" type="System.UInt32" />
+      <property name="NextPermissions" type="System.UInt32" />
+    </class>
 </hibernate-mapping>
