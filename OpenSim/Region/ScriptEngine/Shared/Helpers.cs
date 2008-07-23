@@ -106,7 +106,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 Owner = Key;
                 Position = new LSL_Types.Vector3(
                         presence.AbsolutePosition.X,
-                        presence.AbsolutePosition.X,
+                        presence.AbsolutePosition.Y,
                         presence.AbsolutePosition.Z);
                 Rotation = new LSL_Types.Quaternion(
                         presence.Rotation.x,
@@ -115,7 +115,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         presence.Rotation.w);
                 Velocity = new LSL_Types.Vector3(
                         presence.Velocity.X,
-                        presence.Velocity.X,
+                        presence.Velocity.Y,
                         presence.Velocity.Z);
 
                 Type = 0x01; // Avatar
