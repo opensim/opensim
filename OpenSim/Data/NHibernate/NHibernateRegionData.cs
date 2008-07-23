@@ -250,6 +250,16 @@ namespace OpenSim.Data.NHibernate
                 {
                     SOG[p.ParentUUID].AddPart(p);
                 }
+                // get the inventory
+                
+                ICriteria InvCriteria = session.CreateCriteria(typeof(TaskInventoryItem));
+                InvCriteria.Add(Expression.Eq("ParentPartID", p.UUID));
+                IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
+                foreach (TaskInventoryItem i in InvCriteria.List())
+                {
+                    inventory.Add(i);
+                }
+                p.RestoreInventoryItems(inventory);
             }
             foreach (SceneObjectGroup g in SOG.Values) 
             {
@@ -385,7 +395,26 @@ namespace OpenSim.Data.NHibernate
         /// <param name="items"></param>
         public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
-
+             ICriteria criteria = session.CreateCriteria(typeof(TaskInventoryItem));
+             criteria.Add(Expression.Eq("ParentPartID", primID));
+             try 
+             {
+                 foreach (TaskInventoryItem i in criteria.List())
+                 {
+                     session.Delete(i);
+                 }
+                 
+                 foreach (TaskInventoryItem i in items)
+                 {
+                     session.Save(i);
+                     
+                 }
+                 session.Flush();
+             }
+             catch (Exception e)
+             {
+                 m_log.Error("[NHIBERNATE] StoreInvetory", e);
+             }
         }
     }
 }
