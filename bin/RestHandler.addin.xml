@@ -1,4 +1,4 @@
-<Addin>
+<Addin id="OpenSim.ApplicationPlugins.Rest.Inventory" version="0.1">
     <Runtime>
         <Import assembly="OpenSim.ApplicationPlugins.Rest.Inventory.dll"/>
     </Runtime>

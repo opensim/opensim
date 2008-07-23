@@ -1,0 +1,14 @@
+<Addin id="OpenSim.Data.MSSQL" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.Data.MSSQL.dll"/>
+    </Runtime>
+    <Dependencies>
+        <Addin id="OpenSim.Data" version="0.5" />
+    </Dependencies>
+    <Extension path = "/OpenSim/GridData">
+        <Type id="OpenSim.Data.MSSQL.dll" type="OpenSim.Data.MSSQL.MSSQLGridData" />
+    </Extension>
+    <Extension path = "/OpenSim/LogData">
+        <Type id="OpenSim.Data.MSSQL.dll" type="OpenSim.Data.MSSQL.MSSQLLogData" />
+    </Extension>
+</Addin>

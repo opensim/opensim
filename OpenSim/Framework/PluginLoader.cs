@@ -284,6 +284,11 @@ namespace OpenSim.Framework
 
         public bool Apply (ExtensionNode plugin)
         {
+            System.Console.WriteLine ("[WTF]: " + plugin.Path);
+
+            if (plugin.HasId == false)
+                return false;
+            
             return (plugin.Id == id);
         }
     }

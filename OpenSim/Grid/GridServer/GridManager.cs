@@ -61,17 +61,6 @@ namespace OpenSim.Grid.GridServer
         /// <param name="provider">The name of the grid server plugin DLL</param>
         public void AddPlugin(string provider, string connect)
         {
-            // FIXME: convert "provider" DLL file name to Mono.Addins "id", 
-            // which unless it is changed in the source code, is the .NET namespace.
-            // In the future, the "provider" should be changed to "id" in the 
-            // config files, and is independent of filenames or namespaces.
-            string[] s = provider.Split ('.');
-            int len = s.Length;
-            if ((len >= 2) && (s [len-1] == "dll"))
-                s [len-1] = s [len-2];
-
-            provider = String.Join (".", s); 
-
             PluginLoader<IGridDataPlugin> gridloader = 
                 new PluginLoader<IGridDataPlugin> (new GridDataInitialiser (connect));
 
@@ -83,8 +72,8 @@ namespace OpenSim.Grid.GridServer
             
             // loader will try to load all providers (MySQL, MSSQL, etc) 
             // unless it is constrainted to the correct "id"
-            //gridloader.AddFilter ("/OpenSim/GridData", new PluginIdFilter (provider + "GridData"));
-            //logloader.AddFilter ("/OpenSim/LogData", new PluginIdFilter (provider + "LogData"));
+            gridloader.AddFilter ("/OpenSim/GridData", new PluginIdFilter (provider));
+            logloader.AddFilter ("/OpenSim/LogData", new PluginIdFilter (provider));
             
             gridloader.Load();
             logloader.Load();

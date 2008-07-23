@@ -1,4 +1,4 @@
-<Addin>
+<Addin id="OpenSim.ApplicationPlugins.RemoteController" version="0.1">
     <Runtime>
         <Import assembly="OpenSim.ApplicationPlugins.RemoteController.dll"/>
     </Runtime>

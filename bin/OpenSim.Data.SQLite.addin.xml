@@ -1,0 +1,11 @@
+<Addin id="OpenSim.Data.SQLite" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.Data.SQLite.dll"/>
+    </Runtime>
+    <Dependencies>
+        <Addin id="OpenSim.Data" version="0.5" />
+    </Dependencies>
+    <Extension path = "/OpenSim/GridData">
+        <Type id="OpenSim.Data.SQLite.dll" type="OpenSim.Data.SQLite.SQLiteGridData" />
+    </Extension>
+</Addin>

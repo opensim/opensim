@@ -1,4 +1,4 @@
-<Addin>
+<Addin id="OpenSim.Data.MySQL" version="0.1">
     <Runtime>
         <Import assembly="OpenSim.Data.MySQL.dll"/>
     </Runtime>
@@ -6,9 +6,9 @@
         <Addin id="OpenSim.Data" version="0.5" />
     </Dependencies>
     <Extension path = "/OpenSim/GridData">
-        <Type type="OpenSim.Data.MySQL.MySQLGridData" />
+        <Type id="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLGridData" />
     </Extension>
     <Extension path = "/OpenSim/LogData">
-        <Type type="OpenSim.Data.MySQL.MySQLLogData" />
+        <Type id="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLLogData" />
     </Extension>
 </Addin>
