@@ -2,7 +2,6 @@ BEGIN;
 
 CREATE TABLE `PrimItems` (
   `InvType` int(11) default NULL,
-  `AssetType` int(11) default NULL,
   `Name` varchar(255) default NULL,
   `Description` varchar(255) default NULL,
   `CreationDate` bigint(20) default NULL,

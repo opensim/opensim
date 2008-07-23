@@ -116,7 +116,7 @@
       </id>
       <property name="ParentPartID" column="PrimID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
       <property name="AssetID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
-      <property name="ParentFolderID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="ParentID" column="ParentFolderID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
       <property name="CreatorID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
       <property name="OwnerID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
       <property name="GroupID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
@@ -131,6 +131,5 @@
       <property name="CreationDate" type="System.UInt32" />
       <property name="Flags" type="System.UInt32" />
       <property name="InvType" type="System.Int32" />
-      <property name="AssetType" type="System.Int32" />
     </class>
 </hibernate-mapping>
