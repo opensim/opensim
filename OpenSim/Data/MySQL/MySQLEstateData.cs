@@ -101,8 +101,10 @@ namespace OpenSim.Data.MySQL
                                    BindingFlags.DeclaredOnly);
 
             foreach (FieldInfo f in m_Fields)
-                if(f.Name.Substring(0, 2) == "m_")
+            {
+                if (f.Name.Substring(0, 2) == "m_")
                     m_FieldMap[f.Name.Substring(2)] = f;
+            }
         }
         
         private string[] FieldList
@@ -171,14 +173,14 @@ namespace OpenSim.Data.MySQL
 
             IDataReader r = cmd.ExecuteReader();
 
-            if(r.Read())
+            if (r.Read())
             {
                 foreach (string name in FieldList)
                 {
-                    if(m_FieldMap[name].GetValue(es) is bool)
+                    if (m_FieldMap[name].GetValue(es) is bool)
                     {
                         int v = Convert.ToInt32(r[name]);
-                        if(v != 0)
+                        if (v != 0)
                             m_FieldMap[name].SetValue(es, true);
                         else
                             m_FieldMap[name].SetValue(es, false);
@@ -207,9 +209,9 @@ namespace OpenSim.Data.MySQL
 
                 foreach (string name in FieldList)
                 {
-                    if(m_FieldMap[name].GetValue(es) is bool)
+                    if (m_FieldMap[name].GetValue(es) is bool)
                     {
-                        if((bool)m_FieldMap[name].GetValue(es))
+                        if ((bool)m_FieldMap[name].GetValue(es))
                             cmd.Parameters.AddWithValue("?"+name, "1");
                         else
                             cmd.Parameters.AddWithValue("?"+name, "0");
@@ -283,9 +285,9 @@ namespace OpenSim.Data.MySQL
 
             foreach (string name in FieldList)
             {
-                if(m_FieldMap[name].GetValue(es) is bool)
+                if (m_FieldMap[name].GetValue(es) is bool)
                 {
-                    if((bool)m_FieldMap[name].GetValue(es))
+                    if ((bool)m_FieldMap[name].GetValue(es))
                         cmd.Parameters.AddWithValue("?"+name, "1");
                     else
                         cmd.Parameters.AddWithValue("?"+name, "0");
@@ -317,7 +319,7 @@ namespace OpenSim.Data.MySQL
 
             IDataReader r = cmd.ExecuteReader();
 
-            while(r.Read())
+            while (r.Read())
             {
                 EstateBan eb = new EstateBan();
 
@@ -347,7 +349,7 @@ namespace OpenSim.Data.MySQL
 
             cmd.CommandText = "insert into estateban (EstateID, bannedUUID) values ( ?EstateID, ?bannedUUID )";
             
-            foreach(EstateBan b in es.EstateBans)
+            foreach (EstateBan b in es.EstateBans)
             {
                 cmd.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
                 cmd.Parameters.AddWithValue("?bannedUUID", b.bannedUUID.ToString());
@@ -372,7 +374,7 @@ namespace OpenSim.Data.MySQL
 
             cmd.CommandText = "insert into "+table+" (EstateID, uuid) values ( ?EstateID, ?uuid )";
             
-            foreach(LLUUID uuid in data)
+            foreach (LLUUID uuid in data)
             {
                 cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
                 cmd.Parameters.AddWithValue("?uuid", uuid.ToString());
@@ -395,7 +397,7 @@ namespace OpenSim.Data.MySQL
 
             IDataReader r = cmd.ExecuteReader();
 
-            while(r.Read())
+            while (r.Read())
             {
                 // EstateBan eb = new EstateBan();
 

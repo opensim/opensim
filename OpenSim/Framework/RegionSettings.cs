@@ -233,7 +233,7 @@ namespace OpenSim.Framework
 
         public void Save()
         {
-            if(OnSave != null)
+            if (OnSave != null)
                 OnSave(this);
         }
 

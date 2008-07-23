@@ -52,7 +52,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         //SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant)
 
             uint sun = 0;
-            if(!m_scene.RegionInfo.EstateSettings.UseGlobalTime)
+            if (!m_scene.RegionInfo.EstateSettings.UseGlobalTime)
                 sun=(uint)(m_scene.RegionInfo.EstateSettings.SunPosition*1024.0) + 0x1800;
             remote_client.SendDetailedEstateData(invoice,
                     m_scene.RegionInfo.EstateSettings.EstateName,
@@ -98,7 +98,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
             m_scene.RegionInfo.RegionSettings.ObjectBonus = objectBonusFactor;
 
-            if(matureLevel <= 13)
+            if (matureLevel <= 13)
                 m_scene.RegionInfo.RegionSettings.Maturity = 0;
             else
                 m_scene.RegionInfo.RegionSettings.Maturity = 1;
@@ -245,7 +245,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                             ScenePresence s = m_scene.GetScenePresence(user);
                             if (s != null)
                             {
-                                if(!s.IsChildAgent)
+                                if (!s.IsChildAgent)
                                     m_scene.TeleportClientHome(user, s.ControllingClient);
                             }
 
@@ -395,7 +395,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
            args.redirectGridY = m_scene.RegionInfo.EstateSettings.RedirectGridY;
            args.regionFlags = GetRegionFlags();
            byte mature = 13;
-           if(m_scene.RegionInfo.RegionSettings.Maturity == 1)
+           if (m_scene.RegionInfo.RegionSettings.Maturity == 1)
               mature = 21;
            args.simAccess = mature;
 
@@ -550,7 +550,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             args.terrainStartHeight3 = (float)m_scene.RegionInfo.RegionSettings.Elevation1NE;
             args.terrainHeightRange3 = (float)m_scene.RegionInfo.RegionSettings.Elevation2NE;
             byte mature = 13;
-            if(m_scene.RegionInfo.RegionSettings.Maturity == 1)
+            if (m_scene.RegionInfo.RegionSettings.Maturity == 1)
                 mature = 21;
             args.simAccess = mature;
             args.waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
@@ -579,7 +579,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         public void handleEstateChangeInfo(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, UInt32 parms1, UInt32 parms2)
         {
-            if(parms2 == 0)
+            if (parms2 == 0)
             {
                 m_scene.RegionInfo.EstateSettings.UseGlobalTime = true;
                 m_scene.RegionInfo.EstateSettings.SunPosition = 0.0;
@@ -590,37 +590,37 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 m_scene.RegionInfo.EstateSettings.SunPosition = (double)(parms2 - 0x1800)/1024.0;
             }
 
-            if((parms1 & 0x00000010) != 0)
+            if ((parms1 & 0x00000010) != 0)
                 m_scene.RegionInfo.EstateSettings.FixedSun = true;
             else
                 m_scene.RegionInfo.EstateSettings.FixedSun = false;
 
-            if((parms1 & 0x00008000) != 0)
+            if ((parms1 & 0x00008000) != 0)
                 m_scene.RegionInfo.EstateSettings.PublicAccess = true;
             else
                 m_scene.RegionInfo.EstateSettings.PublicAccess = false;
 
-            if((parms1 & 0x10000000) != 0)
+            if ((parms1 & 0x10000000) != 0)
                 m_scene.RegionInfo.EstateSettings.AllowVoice = true;
             else
                 m_scene.RegionInfo.EstateSettings.AllowVoice = false;
 
-            if((parms1 & 0x00100000) != 0)
+            if ((parms1 & 0x00100000) != 0)
                 m_scene.RegionInfo.EstateSettings.AllowDirectTeleport = true;
             else
                 m_scene.RegionInfo.EstateSettings.AllowDirectTeleport = false;
 
-            if((parms1 & 0x00800000) != 0)
+            if ((parms1 & 0x00800000) != 0)
                 m_scene.RegionInfo.EstateSettings.DenyAnonymous = true;
             else
                 m_scene.RegionInfo.EstateSettings.DenyAnonymous = false;
 
-            if((parms1 & 0x01000000) != 0)
+            if ((parms1 & 0x01000000) != 0)
                 m_scene.RegionInfo.EstateSettings.DenyIdentified = true;
             else
                 m_scene.RegionInfo.EstateSettings.DenyIdentified = false;
 
-            if((parms1 & 0x02000000) != 0)
+            if ((parms1 & 0x02000000) != 0)
                 m_scene.RegionInfo.EstateSettings.DenyTransacted = true;
             else
                 m_scene.RegionInfo.EstateSettings.DenyTransacted = false;
@@ -628,10 +628,10 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             m_scene.RegionInfo.EstateSettings.Save();
 
             float sun = (float)m_scene.RegionInfo.RegionSettings.SunPosition;
-            if(m_scene.RegionInfo.RegionSettings.UseEstateSun)
+            if (m_scene.RegionInfo.RegionSettings.UseEstateSun)
             {
                 sun = (float)m_scene.RegionInfo.EstateSettings.SunPosition;
-                if(m_scene.RegionInfo.EstateSettings.UseGlobalTime)
+                if (m_scene.RegionInfo.EstateSettings.UseGlobalTime)
                     sun  = m_scene.EventManager.GetSunLindenHour();
             }
 
@@ -726,30 +726,30 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             
             // Fully implemented
             //
-            if(m_scene.RegionInfo.RegionSettings.AllowDamage)
+            if (m_scene.RegionInfo.RegionSettings.AllowDamage)
                 flags |= Simulator.RegionFlags.AllowDamage;
-            if(m_scene.RegionInfo.RegionSettings.BlockTerraform)
+            if (m_scene.RegionInfo.RegionSettings.BlockTerraform)
                 flags |= Simulator.RegionFlags.BlockTerraform;
-            if(!m_scene.RegionInfo.RegionSettings.AllowLandResell)
+            if (!m_scene.RegionInfo.RegionSettings.AllowLandResell)
                 flags |= Simulator.RegionFlags.BlockLandResell;
-            if(m_scene.RegionInfo.RegionSettings.DisableCollisions)
+            if (m_scene.RegionInfo.RegionSettings.DisableCollisions)
                 flags |= Simulator.RegionFlags.SkipCollisions;
-            if(m_scene.RegionInfo.RegionSettings.DisableScripts)
+            if (m_scene.RegionInfo.RegionSettings.DisableScripts)
                 flags |= Simulator.RegionFlags.SkipScripts;
-            if(m_scene.RegionInfo.RegionSettings.DisablePhysics)
+            if (m_scene.RegionInfo.RegionSettings.DisablePhysics)
                 flags |= Simulator.RegionFlags.SkipPhysics;
-            if(m_scene.RegionInfo.RegionSettings.BlockFly)
+            if (m_scene.RegionInfo.RegionSettings.BlockFly)
                 flags |= Simulator.RegionFlags.NoFly;
-            if(m_scene.RegionInfo.RegionSettings.RestrictPushing)
+            if (m_scene.RegionInfo.RegionSettings.RestrictPushing)
                 flags |= Simulator.RegionFlags.RestrictPushObject;
-            if(m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
+            if (m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
                 flags |= Simulator.RegionFlags.AllowParcelChanges;
-            if(m_scene.RegionInfo.RegionSettings.BlockShowInSearch)
+            if (m_scene.RegionInfo.RegionSettings.BlockShowInSearch)
                 flags |= (Simulator.RegionFlags)(1 << 29);
 
-            if(m_scene.RegionInfo.RegionSettings.FixedSun)
+            if (m_scene.RegionInfo.RegionSettings.FixedSun)
                 flags |= Simulator.RegionFlags.SunFixed;
-            if(m_scene.RegionInfo.RegionSettings.Sandbox)
+            if (m_scene.RegionInfo.RegionSettings.Sandbox)
                 flags |= Simulator.RegionFlags.Sandbox;
 
             // Handled in LandObject.cs: AllowLandmark
@@ -769,30 +769,30 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         {
             Simulator.RegionFlags flags = Simulator.RegionFlags.None;
 
-            if(m_scene.RegionInfo.EstateSettings.FixedSun)
+            if (m_scene.RegionInfo.EstateSettings.FixedSun)
                 flags |= Simulator.RegionFlags.SunFixed;
-            if(m_scene.RegionInfo.EstateSettings.PublicAccess)
+            if (m_scene.RegionInfo.EstateSettings.PublicAccess)
                 flags |= (Simulator.RegionFlags.PublicAllowed |
                           Simulator.RegionFlags.ExternallyVisible);
-            if(m_scene.RegionInfo.EstateSettings.AllowVoice)
+            if (m_scene.RegionInfo.EstateSettings.AllowVoice)
                 flags |= Simulator.RegionFlags.AllowVoice;
-            if(m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
+            if (m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
                 flags |= Simulator.RegionFlags.AllowDirectTeleport;
-            if(m_scene.RegionInfo.EstateSettings.DenyAnonymous)
+            if (m_scene.RegionInfo.EstateSettings.DenyAnonymous)
                 flags |= Simulator.RegionFlags.DenyAnonymous;
-            if(m_scene.RegionInfo.EstateSettings.DenyIdentified)
+            if (m_scene.RegionInfo.EstateSettings.DenyIdentified)
                 flags |= Simulator.RegionFlags.DenyIdentified;
-            if(m_scene.RegionInfo.EstateSettings.DenyTransacted)
+            if (m_scene.RegionInfo.EstateSettings.DenyTransacted)
                 flags |= Simulator.RegionFlags.DenyTransacted;
-            if(m_scene.RegionInfo.EstateSettings.AbuseEmailToEstateOwner)
+            if (m_scene.RegionInfo.EstateSettings.AbuseEmailToEstateOwner)
                 flags |= Simulator.RegionFlags.AbuseEmailToEstateOwner;
-            if(m_scene.RegionInfo.EstateSettings.BlockDwell)
+            if (m_scene.RegionInfo.EstateSettings.BlockDwell)
                 flags |= Simulator.RegionFlags.BlockDwell;
-            if(m_scene.RegionInfo.EstateSettings.EstateSkipScripts)
+            if (m_scene.RegionInfo.EstateSettings.EstateSkipScripts)
                 flags |= Simulator.RegionFlags.EstateSkipScripts;
-            if(m_scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
+            if (m_scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
                 flags |= Simulator.RegionFlags.ResetHomeOnTeleport;
-            if(m_scene.RegionInfo.EstateSettings.TaxFree)
+            if (m_scene.RegionInfo.EstateSettings.TaxFree)
                 flags |= Simulator.RegionFlags.TaxFree;
 
             return (uint)flags;
@@ -804,7 +804,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 return true;
 
             List<LLUUID> ems = new List<LLUUID>(m_scene.RegionInfo.EstateSettings.EstateManagers);
-            if(ems.Contains(avatarID))
+            if (ems.Contains(avatarID))
                 return true;
 
             return false;

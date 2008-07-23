@@ -88,8 +88,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// Are we applying physics to any of the prims in this scene?
         /// </summary>
         public bool m_physicalPrim;
-		public float m_maxNonphys = 65536;
-		public float m_maxPhys = 10;
+        public float m_maxNonphys = 65536;
+        public float m_maxPhys = 10;
 
         public bool m_seeIntoRegionFromNeighbor;
         public int MaxUndoCount = 5;
@@ -272,7 +272,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Load region settings
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
-            if(m_storageManager.EstateDataStore != null)
+            if (m_storageManager.EstateDataStore != null)
                 m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID);
 
 
@@ -311,16 +311,16 @@ namespace OpenSim.Region.Environment.Scenes
                 + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString()
                 + " PhysPrim:" + m_physicalPrim.ToString();
 
-			try
-			{
-				IConfig startupConfig = m_config.Configs["Startup"];
-				m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", 65536.0f);
-				m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
-			}
-			catch (Exception)
-			{
-				m_log.Warn("Failed to load StartupConfig");
-			}
+            try
+            {
+                IConfig startupConfig = m_config.Configs["Startup"];
+                m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", 65536.0f);
+                m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
+            }
+            catch (Exception)
+            {
+                m_log.Warn("Failed to load StartupConfig");
+            }
 
         }
 
@@ -2505,8 +2505,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="capsObjectPath"></param>
         public void AddCapsHandler(LLUUID agentId)
         {
-			if(RegionInfo.EstateSettings.IsBanned(agentId))
-				return;
+            if (RegionInfo.EstateSettings.IsBanned(agentId))
+                return;
             String capsObjectPath = GetCapsPath(agentId);
 
             m_log.DebugFormat(

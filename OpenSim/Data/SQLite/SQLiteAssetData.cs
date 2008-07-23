@@ -94,7 +94,7 @@ namespace OpenSim.Data.SQLite
         /// <returns>Asset base</returns>
         override public AssetBase FetchAsset(LLUUID uuid)
         {
-            lock(this)
+            lock (this)
             {
                 using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
                 {
@@ -130,7 +130,8 @@ namespace OpenSim.Data.SQLite
             }
             else
             {
-                lock(this) {
+                lock (this)
+                {
                     using (SqliteCommand cmd = new SqliteCommand(InsertAssetSQL, m_conn))
                     {
                         cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));
@@ -155,7 +156,8 @@ namespace OpenSim.Data.SQLite
         {
             LogAssetLoad(asset);
             
-            lock(this) {
+            lock (this)
+            {
                 using (SqliteCommand cmd = new SqliteCommand(UpdateAssetSQL, m_conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));

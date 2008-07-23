@@ -1365,7 +1365,7 @@ namespace OpenSim.Region.Environment.Scenes
             // We need to explicitly resend the newly link prim's object properties since no other actions
             // occur on link to invoke this elsewhere (such as object selection)
             parenPrim.TriggerScriptChangedEvent(Changed.LINK);
-            if(client != null)
+            if (client != null)
                 parenPrim.GetProperties(client);
             else
             {
@@ -1426,13 +1426,13 @@ namespace OpenSim.Region.Environment.Scenes
                     parenPrim.DelinkFromGroup(childPrimId, sendEvents);
                 }
 
-                if(parenPrim.Children.Count == 1)
+                if (parenPrim.Children.Count == 1)
                 {
                     // The link set has been completely torn down
                     // This is the case if you select a link set and delink
                     //
                     parenPrim.RootPart.LinkNum = 1;
-                    if(sendEvents)
+                    if (sendEvents)
                         parenPrim.TriggerScriptChangedEvent(Changed.LINK);
                 }
                 else 
@@ -1449,7 +1449,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     // Tear down the remaining link set
                     //
-                    if(unlink_ids.Count == 2)
+                    if (unlink_ids.Count == 2)
                     {
                         DelinkObjects(unlink_ids, true);
                         return;
@@ -1494,7 +1494,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             grp.DelinkFromGroup(primIds[i]);
                             delinkedSomething = true;
-                            if(!parents.Contains(grp))
+                            if (!parents.Contains(grp))
                                 parents.Add(grp);
                         }
 

@@ -63,7 +63,7 @@ namespace OpenSim.Framework
                     Monitor.Wait(m_queueSync);
                 }
 
-                if(m_pqueue.Count > 0)
+                if (m_pqueue.Count > 0)
                     return m_pqueue.Dequeue();
                 return m_queue.Dequeue();
             }
@@ -73,7 +73,7 @@ namespace OpenSim.Framework
         {
             lock (m_queueSync)
             {
-                if(m_pqueue.Contains(item))
+                if (m_pqueue.Contains(item))
                     return true;
                 return m_queue.Contains(item);
             }

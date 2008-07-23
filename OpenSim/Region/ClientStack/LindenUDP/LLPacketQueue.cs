@@ -338,7 +338,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (TaskThrottle.UnderLimit() && (TaskOutgoingPacketQueue.Count > 0 || TaskLowpriorityPacketQueue.Count > 0))
                     {
                         LLQueItem qpack;
-                        if(TaskOutgoingPacketQueue.Count > 0)
+                        if (TaskOutgoingPacketQueue.Count > 0)
                         {
                             qpack = TaskOutgoingPacketQueue.Dequeue();
                             SendQueue.PriorityEnqueue(qpack);

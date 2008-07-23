@@ -327,7 +327,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             {
                 // Its LSL, convert it to C#
                 //compileScript = LSL_Converter.Convert(Script);
-                if(m_UseCompiler)
+                if (m_UseCompiler)
                     LSL_Converter = (ICodeConverter)new CSCodeGenerator();
                 else
                     LSL_Converter = (ICodeConverter)new LSL2CSConverter();

@@ -4737,51 +4737,51 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             requestID = new LLUUID(transfer.TransferInfo.Params, 80);
                             if (!(((Scene)m_scene).ExternalChecks.ExternalChecksBypassPermissions()))
                             {
-                                if(taskID != LLUUID.Zero) // Prim
+                                if (taskID != LLUUID.Zero) // Prim
                                 {
                                     SceneObjectPart part = ((Scene)m_scene).GetSceneObjectPart(taskID);
-                                    if(part == null)
+                                    if (part == null)
                                         break;
 
-                                    if(part.OwnerID != AgentId)
+                                    if (part.OwnerID != AgentId)
                                         break;
 
-                                    if((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                                         break;
 
                                     TaskInventoryItem ti = part.GetInventoryItem(itemID);
-                                    if(ti == null)
+                                    if (ti == null)
                                         break;
 
-                                    if(ti.OwnerID != AgentId)
+                                    if (ti.OwnerID != AgentId)
                                         break;
 
-                                    if((ti.OwnerMask & ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
+                                    if ((ti.OwnerMask & ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
                                         break;
 
-                                    if(ti.AssetID != requestID)
+                                    if (ti.AssetID != requestID)
                                         break;
                                 }
                                 else // Agent
                                 {
                                     CachedUserInfo userInfo = ((Scene)m_scene).CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
-                                    if(userInfo == null)
+                                    if (userInfo == null)
                                         break;
 
-                                    if(userInfo.RootFolder == null)
+                                    if (userInfo.RootFolder == null)
                                         break;
 
                                     InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(itemID);
-                                    if(assetRequestItem == null)
+                                    if (assetRequestItem == null)
                                     {
                                         assetRequestItem = ((Scene)m_scene).CommsManager.UserProfileCacheService.libraryRoot.FindItem(itemID);
-                                        if(assetRequestItem == null)
+                                        if (assetRequestItem == null)
                                             return;
                                     }
 
-                                    if((assetRequestItem.CurrentPermissions & ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
+                                    if ((assetRequestItem.CurrentPermissions & ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
                                         break;
-                                    if(assetRequestItem.AssetID != requestID)
+                                    if (assetRequestItem.AssetID != requestID)
                                         break;
                                 }
                             }

@@ -30,8 +30,8 @@ using System;
 
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 {
-	public interface ICodeConverter
-	{
-		string Convert(string script);
-	}
+    public interface ICodeConverter
+    {
+        string Convert(string script);
+    }
 }

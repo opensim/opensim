@@ -79,7 +79,7 @@ namespace OpenSim.Region.Environment
 
                     typeInterface = pluginType.GetInterface("IEstateDataStore", true);
 
-                    if(typeInterface != null)
+                    if (typeInterface != null)
                     {
                         IEstateDataStore estPlug =
                             (IEstateDataStore) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));

@@ -427,7 +427,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (reader.Name == "SceneObjectPart")
                         {
                             SceneObjectPart Part = SceneObjectPart.FromXml(reader);
-                            if(m_rootPart.LinkNum == 0)
+                            if (m_rootPart.LinkNum == 0)
                                 m_rootPart.LinkNum++;
                             AddPart(Part);
                             Part.LinkNum = m_parts.Count;
@@ -833,7 +833,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 part.LinkNum = m_parts.Count;
 
-                if(part.LinkNum == 2 && RootPart != null)
+                if (part.LinkNum == 2 && RootPart != null)
                     RootPart.LinkNum = 1;
             }
         }
@@ -1745,7 +1745,7 @@ namespace OpenSim.Region.Environment.Scenes
             linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
 
             linkPart.ParentID = m_rootPart.LocalId;
-            if(m_rootPart.LinkNum == 0)
+            if (m_rootPart.LinkNum == 0)
                 m_rootPart.LinkNum = 1;
 
             lock (m_parts)
@@ -1815,13 +1815,15 @@ namespace OpenSim.Region.Environment.Scenes
                     m_parts.Remove(linkPart.UUID);
                 }
 
-                if(m_parts.Count == 1 && RootPart != null) //Single prim is left
+                if (m_parts.Count == 1 && RootPart != null) //Single prim is left
                     RootPart.LinkNum = 0;
                 else
                 {
                     foreach (SceneObjectPart p in m_parts.Values)
-                        if(p.LinkNum > linkPart.LinkNum)
+                    {
+                        if (p.LinkNum > linkPart.LinkNum)
                             p.LinkNum--;
+                    }
                 }
 
                 linkPart.ParentID = 0;
@@ -1858,7 +1860,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 m_scene.AddNewSceneObject(objectGroup, true);
 
-                if(sendEvents)
+                if (sendEvents)
                     linkPart.TriggerScriptChangedEvent(Changed.LINK);
 
                 HasGroupChanged = true;
@@ -2131,11 +2133,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void Resize(LLVector3 scale, uint localID)
         {
-            if(scale.X > m_scene.m_maxNonphys)
+            if (scale.X > m_scene.m_maxNonphys)
                 scale.X = m_scene.m_maxNonphys;
-            if(scale.Y > m_scene.m_maxNonphys)
+            if (scale.Y > m_scene.m_maxNonphys)
                 scale.Y = m_scene.m_maxNonphys;
-            if(scale.Z > m_scene.m_maxNonphys)
+            if (scale.Z > m_scene.m_maxNonphys)
                 scale.Z = m_scene.m_maxNonphys;
 
             SceneObjectPart part = GetChildPart(localID);
@@ -2144,13 +2146,13 @@ namespace OpenSim.Region.Environment.Scenes
                 part.Resize(scale);
                 if (part.PhysActor != null)
                 {
-                    if(part.PhysActor.IsPhysical)
+                    if (part.PhysActor.IsPhysical)
                     {
-                        if(scale.X > m_scene.m_maxPhys)
+                        if (scale.X > m_scene.m_maxPhys)
                             scale.X = m_scene.m_maxPhys;
-                        if(scale.Y > m_scene.m_maxPhys)
+                        if (scale.Y > m_scene.m_maxPhys)
                             scale.Y = m_scene.m_maxPhys;
-                        if(scale.Z > m_scene.m_maxPhys)
+                        if (scale.Z > m_scene.m_maxPhys)
                             scale.Z = m_scene.m_maxPhys;
                     }
                     part.PhysActor.Size =
@@ -2179,19 +2181,19 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                if(scale.X > m_scene.m_maxNonphys)
+                if (scale.X > m_scene.m_maxNonphys)
                     scale.X = m_scene.m_maxNonphys;
-                if(scale.Y > m_scene.m_maxNonphys)
+                if (scale.Y > m_scene.m_maxNonphys)
                     scale.Y = m_scene.m_maxNonphys;
-                if(scale.Z > m_scene.m_maxNonphys)
+                if (scale.Z > m_scene.m_maxNonphys)
                     scale.Z = m_scene.m_maxNonphys;
-                if(part.PhysActor != null && part.PhysActor.IsPhysical)
+                if (part.PhysActor != null && part.PhysActor.IsPhysical)
                 {
-                    if(scale.X > m_scene.m_maxPhys)
+                    if (scale.X > m_scene.m_maxPhys)
                         scale.X = m_scene.m_maxPhys;
-                    if(scale.Y > m_scene.m_maxPhys)
+                    if (scale.Y > m_scene.m_maxPhys)
                         scale.Y = m_scene.m_maxPhys;
-                    if(scale.Z > m_scene.m_maxPhys)
+                    if (scale.Z > m_scene.m_maxPhys)
                         scale.Z = m_scene.m_maxPhys;
                 }
                 float x = (scale.X / part.Scale.X);
@@ -2200,7 +2202,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 lock (m_parts)
                 {
-                    if(x > 1.0f || y > 1.0f || z > 1.0f)
+                    if (x > 1.0f || y > 1.0f || z > 1.0f)
                     {
                         foreach (SceneObjectPart obPart in m_parts.Values)
                         {
@@ -2211,9 +2213,9 @@ namespace OpenSim.Region.Environment.Scenes
                                 float f = 1.0f;
                                 float a = 1.0f;
 
-                                if(part.PhysActor != null && part.PhysActor.IsPhysical)
+                                if (part.PhysActor != null && part.PhysActor.IsPhysical)
                                 {
-                                    if(oldSize.X*x > m_scene.m_maxPhys)
+                                    if (oldSize.X*x > m_scene.m_maxPhys)
                                     {
                                         f = m_scene.m_maxPhys / oldSize.X;
                                         a = f / x;
@@ -2221,7 +2223,7 @@ namespace OpenSim.Region.Environment.Scenes
                                         y *= a;
                                         z *= a;
                                     }
-                                    if(oldSize.Y*y > m_scene.m_maxPhys)
+                                    if (oldSize.Y*y > m_scene.m_maxPhys)
                                     {
                                         f = m_scene.m_maxPhys / oldSize.Y;
                                         a = f / y;
@@ -2229,7 +2231,7 @@ namespace OpenSim.Region.Environment.Scenes
                                         y *= a;
                                         z *= a;
                                     }
-                                    if(oldSize.Z*z > m_scene.m_maxPhys)
+                                    if (oldSize.Z*z > m_scene.m_maxPhys)
                                     {
                                         f = m_scene.m_maxPhys / oldSize.Z;
                                         a = f / z;
@@ -2240,7 +2242,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 }
                                 else
                                 {
-                                    if(oldSize.X*x > m_scene.m_maxNonphys)
+                                    if (oldSize.X*x > m_scene.m_maxNonphys)
                                     {
                                         f = m_scene.m_maxNonphys / oldSize.X;
                                         a = f / x;
@@ -2248,7 +2250,7 @@ namespace OpenSim.Region.Environment.Scenes
                                         y *= a;
                                         z *= a;
                                     }
-                                    if(oldSize.Y*y > m_scene.m_maxNonphys)
+                                    if (oldSize.Y*y > m_scene.m_maxNonphys)
                                     {
                                         f = m_scene.m_maxNonphys / oldSize.Y;
                                         a = f / y;
@@ -2256,7 +2258,7 @@ namespace OpenSim.Region.Environment.Scenes
                                         y *= a;
                                         z *= a;
                                     }
-                                    if(oldSize.Z*z > m_scene.m_maxNonphys)
+                                    if (oldSize.Z*z > m_scene.m_maxNonphys)
                                     {
                                         f = m_scene.m_maxNonphys / oldSize.Z;
                                         a = f / z;

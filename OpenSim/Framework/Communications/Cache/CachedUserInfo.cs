@@ -728,7 +728,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void Execute()
         {
-            if(m_delegate != null)
+            if (m_delegate != null)
                 m_delegate.DynamicInvoke(m_args);
         }
     }

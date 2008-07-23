@@ -2245,7 +2245,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetAvatarOnSitTarget(LLUUID avatarID)
         {
             m_sitTargetAvatar = avatarID;
-            if(ParentGroup != null)
+            if (ParentGroup != null)
                 ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
         }
 

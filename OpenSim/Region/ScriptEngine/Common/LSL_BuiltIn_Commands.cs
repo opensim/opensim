@@ -425,8 +425,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             double x,y,z,s;
             int f=0;
-			// Important Note: q1=<x,y,z,s> is equal to q2=<-x,-y,-z,-s>
-			// Computing quaternion x,y,z,s values        
+            // Important Note: q1=<x,y,z,s> is equal to q2=<-x,-y,-z,-s>
+            // Computing quaternion x,y,z,s values        
             x = ((fwd.x - left.y - up.z + 1) / 4);
             x *= x;
             x = Math.Sqrt(Math.Sqrt(x));
@@ -440,11 +440,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             s *= s;
             s = Math.Sqrt(Math.Sqrt(s));
 
-			// Set f for signs detection         
-        	if (fwd.y+left.x >= 0){f+=1;}
-        	if (fwd.z+up.x >= 0){f+=2;}
-        	if (left.z-up.y >= 0){f+=4;}
-			// Set correct quaternion signs based on f value
+            // Set f for signs detection         
+            if (fwd.y+left.x >= 0){f+=1;}
+            if (fwd.z+up.x >= 0){f+=2;}
+            if (left.z-up.y >= 0){f+=4;}
+            // Set correct quaternion signs based on f value
             if (f == 0) { x = -x; }
             if (f == 1) { x = -x; y = -y; }
             if (f == 2) { x = -x; z = -z; }
@@ -459,7 +459,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (llVecDist(llRot2Fwd(result), fwd) > 0.001 || llVecDist(llRot2Left(result), left) > 0.001)
                 result.s = -s;
 
-        	return result;
+            return result;
         }
 
         public LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r)
@@ -950,19 +950,19 @@ namespace OpenSim.Region.ScriptEngine.Common
                 if (value == 1)
                 {
                     SceneObjectGroup group = m_host.ParentGroup;
-                    if(group == null)
+                    if (group == null)
                         return;
                     bool allow = true;
-                    foreach(SceneObjectPart part in group.Children.Values)
+                    foreach (SceneObjectPart part in group.Children.Values)
                     {
-                        if(part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
+                        if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
                         {
                             allow = false;
                             break;
                         }
                     }
 
-                    if(!allow)
+                    if (!allow)
                         return;
                     m_host.ScriptSetPhysicsStatus(true);
                 }
@@ -1083,23 +1083,23 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             // TODO: this needs to trigger a persistance save as well
 
-            if(part == null || part.ParentGroup == null || part.ParentGroup.RootPart == null)
+            if (part == null || part.ParentGroup == null || part.ParentGroup.RootPart == null)
                 return;
 
-            if(part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
+            if (part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
             {
-                if(scale.x > World.m_maxPhys)
+                if (scale.x > World.m_maxPhys)
                     scale.x = World.m_maxPhys;
-                if(scale.y > World.m_maxPhys)
+                if (scale.y > World.m_maxPhys)
                     scale.y = World.m_maxPhys;
-                if(scale.z > World.m_maxPhys)
+                if (scale.z > World.m_maxPhys)
                     scale.z = World.m_maxPhys;
             }
-            if(scale.x > World.m_maxNonphys)
+            if (scale.x > World.m_maxNonphys)
                 scale.x = World.m_maxNonphys;
-            if(scale.y > World.m_maxNonphys)
+            if (scale.y > World.m_maxNonphys)
                 scale.y = World.m_maxNonphys;
-            if(scale.z > World.m_maxNonphys)
+            if (scale.z > World.m_maxNonphys)
                 scale.z = World.m_maxNonphys;
             LLVector3 tmp = part.Scale;
             tmp.X = (float)scale.x;
@@ -6776,7 +6776,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llGetCameraPos()
         {
-			m_host.AddScriptLPS(1);
+            m_host.AddScriptLPS(1);
             LLUUID invItemID=InventorySelf();
             if (invItemID == LLUUID.Zero) 
                 return new LSL_Types.Vector3();
@@ -6784,16 +6784,16 @@ namespace OpenSim.Region.ScriptEngine.Common
                return new LSL_Types.Vector3();
             if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
-				ShoutError("No permissions to track the camera");
+                ShoutError("No permissions to track the camera");
                 return new LSL_Types.Vector3();
             }
-			ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-			if(presence != null) 
-			{
-				LSL_Types.Vector3 pos = new LSL_Types.Vector3(presence.CameraPosition.x,presence.CameraPosition.y,presence.CameraPosition.z);
-				return pos;
-			}
-			return new LSL_Types.Vector3();
+            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+            if (presence != null) 
+            {
+                LSL_Types.Vector3 pos = new LSL_Types.Vector3(presence.CameraPosition.x,presence.CameraPosition.y,presence.CameraPosition.z);
+                return pos;
+            }
+            return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Quaternion llGetCameraRot()
@@ -6968,7 +6968,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
-            if(estate == null)
+            if (estate == null)
                 return 67108864;
             return estate.GetRegionFlags();
         }

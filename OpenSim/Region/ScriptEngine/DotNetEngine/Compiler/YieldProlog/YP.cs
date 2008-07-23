@@ -2108,7 +2108,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             string results = "";
             for (Match m = Regex.Match(inData,inPattern); m.Success; m=m.NextMatch())
             {
-            	//Console.WriteLine( m );	
+                //Console.WriteLine( m );    
                 results += presep+ m + postsep;
             }
             return results;

@@ -790,19 +790,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (value == 1)
                 {
                     SceneObjectGroup group = m_host.ParentGroup;
-                    if(group == null)
+                    if (group == null)
                         return;
                     bool allow = true;
-                    foreach(SceneObjectPart part in group.Children.Values)
+                    foreach (SceneObjectPart part in group.Children.Values)
                     {
-                        if(part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
+                        if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
                         {
                             allow = false;
                             break;
                         }
                     }
 
-                    if(!allow)
+                    if (!allow)
                         return;
                     m_host.ScriptSetPhysicsStatus(true);
                 }
@@ -937,23 +937,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // TODO: this needs to trigger a persistance save as well
 
-            if(part == null || part.ParentGroup == null || part.ParentGroup.RootPart == null)
+            if (part == null || part.ParentGroup == null || part.ParentGroup.RootPart == null)
                 return;
 
-            if(part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
+            if (part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
             {
-                if(scale.x > World.m_maxPhys)
+                if (scale.x > World.m_maxPhys)
                     scale.x = World.m_maxPhys;
-                if(scale.y > World.m_maxPhys)
+                if (scale.y > World.m_maxPhys)
                     scale.y = World.m_maxPhys;
-                if(scale.z > World.m_maxPhys)
+                if (scale.z > World.m_maxPhys)
                     scale.z = World.m_maxPhys;
             }
-            if(scale.x > World.m_maxNonphys)
+            if (scale.x > World.m_maxNonphys)
                 scale.x = World.m_maxNonphys;
-            if(scale.y > World.m_maxNonphys)
+            if (scale.y > World.m_maxNonphys)
                 scale.y = World.m_maxNonphys;
-            if(scale.z > World.m_maxNonphys)
+            if (scale.z > World.m_maxNonphys)
                 scale.z = World.m_maxNonphys;
             LLVector3 tmp = part.Scale;
             tmp.X = (float)scale.x;
@@ -6748,7 +6748,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
-            if(estate == null)
+            if (estate == null)
                 return 67108864;
             return (int)estate.GetRegionFlags();
         }

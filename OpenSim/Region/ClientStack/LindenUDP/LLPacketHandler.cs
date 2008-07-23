@@ -57,9 +57,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         void InPacket(Packet packet);
         void ProcessInPacket(Packet packet);
         void OutPacket(Packet NewPack,
-                ThrottleOutPacketType throttlePacketType);
+                       ThrottleOutPacketType throttlePacketType);
         void OutPacket(Packet NewPack,
-                ThrottleOutPacketType throttlePacketType, Object id);
+                       ThrottleOutPacketType throttlePacketType, Object id);
         LLPacketQueue PacketQueue { get; }
         void Stop();
         void Flush();
@@ -136,7 +136,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // time for a linear scan.
         //
         private Dictionary<uint, int> m_DupeTracker =
-                new Dictionary<uint, int>();
+            new Dictionary<uint, int>();
         private uint m_DupeTrackerWindow = 30;
 
         // Values for the SimStatsReporter
@@ -207,14 +207,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // notifier.
         //
         public void OutPacket(
-                Packet packet, ThrottleOutPacketType throttlePacketType)
+            Packet packet, ThrottleOutPacketType throttlePacketType)
         {
             OutPacket(packet, throttlePacketType, null);
         }
 
         public void OutPacket(
-                Packet packet, ThrottleOutPacketType throttlePacketType,
-                Object id)
+            Packet packet, ThrottleOutPacketType throttlePacketType,
+            Object id)
         {
             // Call the load balancer's hook. If this is not active here
             // we defer to the sim server this client is actually connected
@@ -224,20 +224,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if ((m_SynchronizeClient != null) && (!m_Client.IsActive))
             {
                 if (m_SynchronizeClient(m_Client.Scene, packet,
-                        m_Client.AgentId, throttlePacketType))
+                                        m_Client.AgentId, throttlePacketType))
                     return;
             }
 
             packet.Header.Sequence = NextPacketSequenceNumber();
 
-            lock(m_NeedAck)
+            lock (m_NeedAck)
             {
                 DropResend(id);
 
                 QueuePacket(packet, throttlePacketType, id);
 
                 // We want to see that packet arrive if it's reliable
-                if(packet.Header.Reliable)
+                if (packet.Header.Reliable)
                 {
                     m_UnackedBytes += packet.ToBytes().Length;
                     m_NeedAck[packet.Header.Sequence] = new AckData(packet, id);
@@ -251,24 +251,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Add acks to outgoing packets
             //
-			if(m_PendingAcks.Count > 0)
-			{
-				int count = m_PendingAcks.Count;
-				if(count > 10)
-					count = 10;
-				packet.Header.AckList = new uint[count];
+            if (m_PendingAcks.Count > 0)
+            {
+                int count = m_PendingAcks.Count;
+                if (count > 10)
+                    count = 10;
+                packet.Header.AckList = new uint[count];
 
-				int i = 0;
+                int i = 0;
 
-				foreach (uint ack in new List<uint>(m_PendingAcks.Keys))
-				{
-					packet.Header.AckList[i] = ack;
-					i++;
-					m_PendingAcks.Remove(ack);
-					if (i >= 10) // That is how much space there is
-						break;
-				}
-			}
+                foreach (uint ack in new List<uint>(m_PendingAcks.Keys))
+                {
+                    packet.Header.AckList[i] = ack;
+                    i++;
+                    m_PendingAcks.Remove(ack);
+                    if (i >= 10) // That is how much space there is
+                        break;
+                }
+            }
 
             packet.TickCount = System.Environment.TickCount;
 
@@ -291,14 +291,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // anything. There may not be a client there, don't clog up the
             // pipes.
             //
-            if(lastAck == 0)
+            if (lastAck == 0)
                 return;
 
             lock (m_NeedAck)
             {
                 // Nothing to do
                 //
-                if(m_NeedAck.Count == 0)
+                if (m_NeedAck.Count == 0)
                     return;
 
                 // If we have seen no acks in <SilenceLimit> s but are
@@ -307,7 +307,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // then it will be dropped.
                 //
                 if ((((now - lastAck) > m_SilenceLimit) &&
-                        m_NeedAck.Count > 0) || m_NeedAck.Count == 0)
+                     m_NeedAck.Count > 0) || m_NeedAck.Count == 0)
                 {
                     return;
                 }
@@ -336,7 +336,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //
                     if ((now - packet.TickCount) > m_DiscardTimeout)
                     {
-                        if(!m_ImportantPackets.Contains(packet.Type))
+                        if (!m_ImportantPackets.Contains(packet.Type))
                             m_NeedAck.Remove(packet.Header.Sequence);
 
                         TriggerOnPacketDrop(packet, data.Identifier);
@@ -364,8 +364,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // the counter reaches 250. So there is a good chance another
                 // packet with 250 blocks exists.
                 //
-                if(acks.Packets == null ||
-                        acks.Packets.Length != m_PendingAcks.Count)
+                if (acks.Packets == null ||
+                    acks.Packets.Length != m_PendingAcks.Count)
                     acks.Packets = new PacketAckPacket.PacketsBlock[m_PendingAcks.Count];
                 int i = 0;
                 foreach (uint ack in new List<uint>(m_PendingAcks.Keys))
@@ -389,11 +389,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             lock (m_PendingAcks)
             {
-                if(m_PendingAcks.Count < 250)
+                if (m_PendingAcks.Count < 250)
                 {
-					if(!m_PendingAcks.ContainsKey(packet.Header.Sequence))
-						m_PendingAcks.Add(packet.Header.Sequence,
-								packet.Header.Sequence);
+                    if (!m_PendingAcks.ContainsKey(packet.Header.Sequence))
+                        m_PendingAcks.Add(packet.Header.Sequence,
+                                          packet.Header.Sequence);
                     return;
                 }
             }
@@ -405,11 +405,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // If this is still full we have a truly exceptional
                 // condition (means, can't happen)
                 //
-                if(m_PendingAcks.Count < 250)
+                if (m_PendingAcks.Count < 250)
                 {
-					if(!m_PendingAcks.ContainsKey(packet.Header.Sequence))
-						m_PendingAcks.Add(packet.Header.Sequence,
-								packet.Header.Sequence);
+                    if (!m_PendingAcks.ContainsKey(packet.Header.Sequence))
+                        m_PendingAcks.Add(packet.Header.Sequence,
+                                          packet.Header.Sequence);
                     return;
                 }
             }
@@ -433,9 +433,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (handlerPacketStats != null)
             {
                 handlerPacketStats(
-                        m_PacketsReceived - m_PacketsReceivedReported,
-                        m_PacketsSent - m_PacketsSentReported,
-                        m_UnackedBytes);
+                    m_PacketsReceived - m_PacketsReceivedReported,
+                    m_PacketsSent - m_PacketsSentReported,
+                    m_UnackedBytes);
 
                 m_PacketsReceivedReported = m_PacketsReceived;
                 m_PacketsSentReported = m_PacketsSent;
@@ -450,12 +450,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             lock (m_DupeTracker)
             {
                 Dictionary<uint, int> packs =
-                        new Dictionary<uint, int>(m_DupeTracker);
+                    new Dictionary<uint, int>(m_DupeTracker);
 
                 foreach (uint pack in packs.Keys)
                 {
-                    if(Util.UnixTimeSinceEpoch() - m_DupeTracker[pack] >
-                            m_DupeTrackerWindow)
+                    if (Util.UnixTimeSinceEpoch() - m_DupeTracker[pack] >
+                        m_DupeTrackerWindow)
                         m_DupeTracker.Remove(pack);
                 }
             }
@@ -463,13 +463,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void InPacket(Packet packet)
         {
-            if(packet == null)
+            if (packet == null)
                 return;
 
             // If this client is on another partial instance, no need
             // to handle packets
             //
-            if(!m_Client.IsActive && packet.Type != PacketType.LogoutRequest)
+            if (!m_Client.IsActive && packet.Type != PacketType.LogoutRequest)
             {
                 PacketPool.Instance.ReturnPacket(packet);
                 return;
@@ -478,9 +478,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Any packet can have some packet acks in the header.
             // Process them here
             //
-            if(packet.Header.AppendedAcks)
+            if (packet.Header.AppendedAcks)
             {
-                foreach(uint id in packet.Header.AckList)
+                foreach (uint id in packet.Header.AckList)
                 {
                     ProcessAck(id);
                 }
@@ -489,12 +489,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // When too many acks are needed to be sent, the client sends
             // a packet consisting of acks only
             //
-            if(packet.Type == PacketType.PacketAck)
+            if (packet.Type == PacketType.PacketAck)
             {
                 PacketAckPacket ackPacket = (PacketAckPacket)packet;
 
                 foreach (PacketAckPacket.PacketsBlock block in
-                        ackPacket.Packets)
+                         ackPacket.Packets)
                 {
                     ProcessAck(block.ID);
                 }
@@ -502,7 +502,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 PacketPool.Instance.ReturnPacket(packet);
                 return;
             }
-            else if(packet.Type == PacketType.StartPingCheck)
+            else if (packet.Type == PacketType.StartPingCheck)
             {
                 StartPingCheckPacket startPing = (StartPingCheckPacket)packet;
                 CompletePingCheckPacket endPing = (CompletePingCheckPacket)PacketPool.Instance.GetPacket(PacketType.CompletePingCheck);
@@ -537,7 +537,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return;
 
                 m_DupeTracker.Add(packet.Header.Sequence,
-                        Util.UnixTimeSinceEpoch());
+                                  Util.UnixTimeSinceEpoch());
             }
 
             m_Client.ProcessInPacket(packet);
@@ -560,9 +560,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AckData data;
             Packet packet;
 
-            lock(m_NeedAck)
+            lock (m_NeedAck)
             {
-                if(!m_NeedAck.TryGetValue(id, out data))
+                if (!m_NeedAck.TryGetValue(id, out data))
                     return;
 
                 packet = data.Packet;
@@ -650,7 +650,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         
         public void AddImportantPacket(PacketType type)
         {
-            if(m_ImportantPackets.Contains(type))
+            if (m_ImportantPackets.Contains(type))
                 return;
 
             m_ImportantPackets.Add(type);
@@ -658,7 +658,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void RemoveImportantPacket(PacketType type)
         {
-            if(!m_ImportantPackets.Contains(type))
+            if (!m_ImportantPackets.Contains(type))
                 return;
 
             m_ImportantPackets.Remove(type);
@@ -668,7 +668,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             foreach (AckData data in new List<AckData>(m_NeedAck.Values))
             {
-                if(data.Identifier != null && data.Identifier == id)
+                if (data.Identifier != null && data.Identifier == id)
                 {
                     m_NeedAck.Remove(data.Packet.Header.Sequence);
                     return;
@@ -680,7 +680,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             PacketDrop handlerPacketDrop = OnPacketDrop;
 
-            if(handlerPacketDrop == null)
+            if (handlerPacketDrop == null)
                 return;
 
             handlerPacketDrop(packet, id);

@@ -447,7 +447,7 @@ namespace OpenSim.Framework.Communications.Cache
                         RequestedAssets.Remove(assetInf.FullID);
                         // If it's a direct request for a script, drop it
                         // because it's a hacked client
-                        if(req.AssetRequestSource != 2 || assetInf.Type != 10)
+                        if (req.AssetRequestSource != 2 || assetInf.Type != 10)
                             AssetRequests.Add(req);
                     }
                 }

@@ -78,33 +78,33 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
                         
             //Load SMTP SERVER config
             try
-	            {
-	            	if ((SMTPConfig = m_Config.Configs["SMTP"]) == null)
-	                {
-	                    m_log.InfoFormat("[SMTP] SMTP server not configured");
-	                    m_Enabled = false;
-	                    return;
-	                }
-            	
-            		if (!SMTPConfig.GetBoolean("enabled", false))
-	                {
-	                    m_log.InfoFormat("[SMTP] module disabled in configuration");
-	                    m_Enabled = false;
-	                    return;
-	                }
-            		
-            		m_HostName = SMTPConfig.GetString("host_domain_header_from", m_HostName);
-            		SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME",SMTP_SERVER_HOSTNAME);	
-            		SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
-            		SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
-            		SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
-	            }
-	          	catch (Exception e)
-	        	{
-	              m_log.Error("[EMAIL] DefaultEmailModule not configured: "+ e.Message);
-	              m_Enabled = false;
-	              return;
-	          	}
+            {
+                if ((SMTPConfig = m_Config.Configs["SMTP"]) == null)
+                {
+                    m_log.InfoFormat("[SMTP] SMTP server not configured");
+                    m_Enabled = false;
+                    return;
+                }
+                
+                if (!SMTPConfig.GetBoolean("enabled", false))
+                {
+                    m_log.InfoFormat("[SMTP] module disabled in configuration");
+                    m_Enabled = false;
+                    return;
+                }
+                    
+                m_HostName = SMTPConfig.GetString("host_domain_header_from", m_HostName);
+                SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME",SMTP_SERVER_HOSTNAME);    
+                SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
+                SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
+                SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[EMAIL] DefaultEmailModule not configured: "+ e.Message);
+                m_Enabled = false;
+                return;
+            }
 
             // It's a go!
             if (m_Enabled)
@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
                         m_Scenes.Add(scene.RegionInfo.RegionHandle, scene);
                     }
                 }
-				                             
+                                             
                 m_log.Info("[EMAIL] Activated DefaultEmailModule");
             }
         }
@@ -152,14 +152,14 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
         /// </summary>
         /// <param name="seconds"></param>
         private void DelayInSeconds(int seconds)
-		{
-			TimeSpan DiffDelay = new TimeSpan(0, 0, seconds);
-			DateTime EndDelay = DateTime.Now.Add(DiffDelay);
-			while (DateTime.Now < EndDelay)
-			{	
-			;//Do nothing!!
-			}
-		}
+        {
+            TimeSpan DiffDelay = new TimeSpan(0, 0, seconds);
+            DateTime EndDelay = DateTime.Now.Add(DiffDelay);
+            while (DateTime.Now < EndDelay)
+            {    
+                ;//Do nothing!!
+            }
+        }
         
         private SceneObjectPart findPrim(LLUUID objectID, out string ObjectRegionName)
         {
@@ -171,7 +171,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
                     if (part != null)
                     {
                         ObjectRegionName = s.RegionInfo.RegionName;
-                    	return part;
+                        return part;
                     }
                 }
             }
@@ -181,108 +181,108 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
 
         private void resolveNamePositionRegionName(LLUUID objectID, out string ObjectName, out string ObjectAbsolutePosition, out string ObjectRegionName)
         {
-        	string m_ObjectRegionName;
-        	SceneObjectPart part = findPrim(objectID, out m_ObjectRegionName);
+            string m_ObjectRegionName;
+            SceneObjectPart part = findPrim(objectID, out m_ObjectRegionName);
             if (part != null)
             {
-            	 ObjectAbsolutePosition = part.AbsolutePosition.ToString();
-            	 ObjectName = part.Name;
-            	 ObjectRegionName = m_ObjectRegionName; 
-            	 return;
+                 ObjectAbsolutePosition = part.AbsolutePosition.ToString();
+                 ObjectName = part.Name;
+                 ObjectRegionName = m_ObjectRegionName; 
+                 return;
             }
             ObjectAbsolutePosition = part.AbsolutePosition.ToString();
             ObjectName = part.Name;
             ObjectRegionName = m_ObjectRegionName;
             return;
         }
-        	
-		/// <summary>
-		/// SendMail function utilized by llEMail
-		/// </summary>
-		/// <param name="objectID"></param>
-		/// <param name="address"></param>
-		/// <param name="subject"></param>
-		/// <param name="body"></param>
-	 	public void SendEmail(LLUUID objectID, string address, string subject, string body)
-		{
-	        	//Check if address is empty
-	        	if (address == string.Empty) 
-	        		return;
-	        	
-	        	//FIXED:Check the email is correct form in REGEX
-	        	string EMailpatternStrict = @"^(([^<>()[\]\\.,;:\s@\""]+" 
-			      + @"(\.[^<>()[\]\\.,;:\s@\""]+)*)|(\"".+\""))@" 
-			      + @"((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" 
-			      + @"\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+" 
-			      + @"[a-zA-Z]{2,}))$";
-				Regex EMailreStrict = new Regex(EMailpatternStrict);
-				bool isEMailStrictMatch = EMailreStrict.IsMatch(address);
-	      		if (!isEMailStrictMatch)
-	      		{
-	      			m_log.Error("[EMAIL] REGEX Problem in EMail Address: "+address);
-	      			return;
-	      		}
-	        	//FIXME:Check if subject + body = 4096 Byte
-	        	if ((subject.Length + body.Length) > 1024)
-	        	{
-	        	    m_log.Error("[EMAIL] subject + body > 1024 Byte");
-	      			return; 	
-	        	}
-	        		  	    	
-	        	try
-	        	{
-					string LastObjectName = string.Empty;
-					string LastObjectPosition = string.Empty;
-					string LastObjectRegionName = string.Empty;
-	        		//DONE: Message as Second Life style
-					//20 second delay - AntiSpam System - for now only 10 seconds
-					DelayInSeconds(10);
-					//Creation EmailMessage
-					EmailMessage emailMessage = new EmailMessage();
-					//From
-					emailMessage.FromAddress = new EmailAddress(objectID.UUID.ToString()+"@"+m_HostName);
-					//To - Only One
-					emailMessage.AddToAddress(new EmailAddress(address));	
-					//Subject
-					emailMessage.Subject = subject;
-					//TEXT Body
-					resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName);
-					emailMessage.TextPart = new TextAttachment("Object-Name: " + LastObjectName +
-					"\r\nRegion: " + LastObjectRegionName + "\r\nLocal-Position: " +
-					LastObjectPosition+"\r\n\r\n\r\n" + body);				
-					//HTML Body
-					emailMessage.HtmlPart = new HtmlAttachment("<html><body><p>" + 
-		                "<BR>Object-Name: " + LastObjectName +
-		                "<BR>Region: " + LastObjectRegionName +
-		                "<BR>Local-Position: " + LastObjectPosition + "<BR><BR><BR>"
-						+body+"\r\n</p></body><html>");
-					
-					//Set SMTP SERVER config
-					SmtpServer smtpServer=new SmtpServer(SMTP_SERVER_HOSTNAME,SMTP_SERVER_PORT);
-					//Authentication
-					smtpServer.SmtpAuthToken=new SmtpAuthToken(SMTP_SERVER_LOGIN, SMTP_SERVER_PASSWORD);
-					//Send Email Message
-					emailMessage.Send(smtpServer);
-					//Log
-					m_log.Info("[EMAIL] EMail sent to: " + address + " from object: " + objectID.UUID.ToString());
-	        	}
-	        	catch (Exception e)
-	            {
-	        		m_log.Error("[EMAIL] DefaultEmailModule Exception: "+e.Message);
-	        		return;
-	        	}
-			}
-			
-	        /// <summary>
-	        /// 
-	        /// </summary>
-	        /// <param name="objectID"></param>
-	        /// <param name="sender"></param>
-	        /// <param name="subject"></param>
-	        /// <returns></returns>
-	        public Email GetNextEmail(LLUUID objectID, string sender, string subject)
-	        {
-	            return null;
-	        }
-	    }
+            
+        /// <summary>
+        /// SendMail function utilized by llEMail
+        /// </summary>
+        /// <param name="objectID"></param>
+        /// <param name="address"></param>
+        /// <param name="subject"></param>
+        /// <param name="body"></param>
+        public void SendEmail(LLUUID objectID, string address, string subject, string body)
+        {
+            //Check if address is empty
+            if (address == string.Empty) 
+                return;
+                
+            //FIXED:Check the email is correct form in REGEX
+            string EMailpatternStrict = @"^(([^<>()[\]\\.,;:\s@\""]+" 
+                + @"(\.[^<>()[\]\\.,;:\s@\""]+)*)|(\"".+\""))@" 
+                + @"((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" 
+                + @"\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+" 
+                + @"[a-zA-Z]{2,}))$";
+            Regex EMailreStrict = new Regex(EMailpatternStrict);
+            bool isEMailStrictMatch = EMailreStrict.IsMatch(address);
+            if (!isEMailStrictMatch)
+            {
+                m_log.Error("[EMAIL] REGEX Problem in EMail Address: "+address);
+                return;
+            }
+            //FIXME:Check if subject + body = 4096 Byte
+            if ((subject.Length + body.Length) > 1024)
+            {
+                m_log.Error("[EMAIL] subject + body > 1024 Byte");
+                return;     
+            }
+                                  
+            try
+            {
+                string LastObjectName = string.Empty;
+                string LastObjectPosition = string.Empty;
+                string LastObjectRegionName = string.Empty;
+                //DONE: Message as Second Life style
+                //20 second delay - AntiSpam System - for now only 10 seconds
+                DelayInSeconds(10);
+                //Creation EmailMessage
+                EmailMessage emailMessage = new EmailMessage();
+                //From
+                emailMessage.FromAddress = new EmailAddress(objectID.UUID.ToString()+"@"+m_HostName);
+                //To - Only One
+                emailMessage.AddToAddress(new EmailAddress(address));    
+                //Subject
+                emailMessage.Subject = subject;
+                //TEXT Body
+                resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName);
+                emailMessage.TextPart = new TextAttachment("Object-Name: " + LastObjectName +
+                                                           "\r\nRegion: " + LastObjectRegionName + "\r\nLocal-Position: " +
+                                                           LastObjectPosition+"\r\n\r\n\r\n" + body);                
+                //HTML Body
+                emailMessage.HtmlPart = new HtmlAttachment("<html><body><p>" + 
+                                                           "<BR>Object-Name: " + LastObjectName +
+                                                           "<BR>Region: " + LastObjectRegionName +
+                                                           "<BR>Local-Position: " + LastObjectPosition + "<BR><BR><BR>"
+                                                           +body+"\r\n</p></body><html>");
+                    
+                //Set SMTP SERVER config
+                SmtpServer smtpServer=new SmtpServer(SMTP_SERVER_HOSTNAME,SMTP_SERVER_PORT);
+                //Authentication
+                smtpServer.SmtpAuthToken=new SmtpAuthToken(SMTP_SERVER_LOGIN, SMTP_SERVER_PASSWORD);
+                //Send Email Message
+                emailMessage.Send(smtpServer);
+                //Log
+                m_log.Info("[EMAIL] EMail sent to: " + address + " from object: " + objectID.UUID.ToString());
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[EMAIL] DefaultEmailModule Exception: "+e.Message);
+                return;
+            }
+        }
+            
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="objectID"></param>
+        /// <param name="sender"></param>
+        /// <param name="subject"></param>
+        /// <returns></returns>
+        public Email GetNextEmail(LLUUID objectID, string sender, string subject)
+        {
+            return null;
+        }
+    }
 }
