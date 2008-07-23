@@ -33,50 +33,50 @@ namespace OpenSim.Framework
 {
     public class LandData
     {
-        public LLVector3 _AABBMax = new LLVector3();
-        public LLVector3 _AABBMin = new LLVector3();
-        public int _area = 0;
-        public uint _auctionID = 0; //Unemplemented. If set to 0, not being auctioned
-        public LLUUID _authBuyerID = LLUUID.Zero; //Unemplemented. Authorized Buyer's UUID
-        public Parcel.ParcelCategory _category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
-        public int _claimDate = 0; 
-        public int _claimPrice = 0; //Unemplemented
-        public LLUUID _globalID = LLUUID.Zero;
-        public LLUUID _groupID = LLUUID.Zero; //Unemplemented
-        public int _groupPrims = 0;
-        public bool _isGroupOwned = false;
-        public byte[] _bitmap = new byte[512];
-        public string _description = String.Empty;
+        private LLVector3 _AABBMax = new LLVector3();
+        private LLVector3 _AABBMin = new LLVector3();
+        private int _area = 0;
+        private uint _auctionID = 0; //Unemplemented. If set to 0, not being auctioned
+        private LLUUID _authBuyerID = LLUUID.Zero; //Unemplemented. Authorized Buyer's UUID
+        private Parcel.ParcelCategory _category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
+        private int _claimDate = 0; 
+        private int _claimPrice = 0; //Unemplemented
+        private LLUUID _globalID = LLUUID.Zero;
+        private LLUUID _groupID = LLUUID.Zero; //Unemplemented
+        private int _groupPrims = 0;
+        private bool _isGroupOwned = false;
+        private byte[] _bitmap = new byte[512];
+        private string _description = String.Empty;
 
 
-        public uint _flags = (uint) Parcel.ParcelFlags.AllowFly | (uint) Parcel.ParcelFlags.AllowLandmark |
+        private uint _flags = (uint) Parcel.ParcelFlags.AllowFly | (uint) Parcel.ParcelFlags.AllowLandmark |
                                 (uint) Parcel.ParcelFlags.AllowAllObjectEntry |
                                 (uint) Parcel.ParcelFlags.AllowDeedToGroup | (uint) Parcel.ParcelFlags.AllowTerraform |
                                 (uint) Parcel.ParcelFlags.CreateObjects | (uint) Parcel.ParcelFlags.AllowOtherScripts |
                                 (uint) Parcel.ParcelFlags.SoundLocal;
 
-        public byte _landingType = 0;
-        public string _name = "Your Parcel";
-        public Parcel.ParcelStatus _status = Parcel.ParcelStatus.Leased;
-        public int _localID = 0;
-        public byte _mediaAutoScale = 0;
-        public LLUUID _mediaID = LLUUID.Zero;
+        private byte _landingType = 0;
+        private string _name = "Your Parcel";
+        private Parcel.ParcelStatus _status = Parcel.ParcelStatus.Leased;
+        private int _localID = 0;
+        private byte _mediaAutoScale = 0;
+        private LLUUID _mediaID = LLUUID.Zero;
 
-        public string _mediaURL = String.Empty;
-        public string _musicURL = String.Empty;
-        public int _otherPrims = 0;
-        public LLUUID _ownerID = LLUUID.Zero;
-        public int _ownerPrims = 0;
-        public List<ParcelManager.ParcelAccessEntry> _parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
-        public float _passHours = 0;
-        public int _passPrice = 0;
-        public int _salePrice = 0; //Unemeplemented. Parcels price.
-        public int _selectedPrims = 0;
-        public int _simwideArea = 0;
-        public int _simwidePrims = 0;
-        public LLUUID _snapshotID = LLUUID.Zero;
-        public LLVector3 _userLocation = new LLVector3();
-        public LLVector3 _userLookAt = new LLVector3();
+        private string _mediaURL = String.Empty;
+        private string _musicURL = String.Empty;
+        private int _otherPrims = 0;
+        private LLUUID _ownerID = LLUUID.Zero;
+        private int _ownerPrims = 0;
+        private List<ParcelManager.ParcelAccessEntry> _parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+        private float _passHours = 0;
+        private int _passPrice = 0;
+        private int _salePrice = 0; //Unemeplemented. Parcels price.
+        private int _selectedPrims = 0;
+        private int _simwideArea = 0;
+        private int _simwidePrims = 0;
+        private LLUUID _snapshotID = LLUUID.Zero;
+        private LLVector3 _userLocation = new LLVector3();
+        private LLVector3 _userLookAt = new LLVector3();
         
         public LLVector3 AABBMax {
             get {
