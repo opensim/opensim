@@ -73,7 +73,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private string ScriptEnginesPath = "ScriptEngines";
 
         private static LSL2CSConverter LSL_Converter = new LSL2CSConverter();
-        //private static CSCodeGenerator LSL_Converter;
+        //private static CSCodeGenerator LSL_Converter = new CSCodeGenerator();
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
         private static JScriptCodeProvider JScodeProvider = new JScriptCodeProvider();
@@ -276,8 +276,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             {
                 // Its LSL, convert it to C#
                 compileScript = LSL_Converter.Convert(Script);
-                //LSL_Converter = new CSCodeGenerator(Script);
-                //compileScript = LSL_Converter.Generate();
+                //compileScript = LSL_Converter.Convert(Script);
                 l = enumCompileType.cs;
             }
 

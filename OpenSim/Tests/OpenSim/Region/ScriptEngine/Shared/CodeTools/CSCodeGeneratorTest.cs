@@ -38,7 +38,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
     /// The generated C# code is compared against the expected C# code.
     /// </summary>
     [TestFixture]
-    public class LSLCompilerTest
+    public class CSCodeGeneratorTest
     {
         [Test]
         public void TestDefaultState()
@@ -685,7 +685,7 @@ default
         integer x = 1;
 
         if(x) llSay(0, ""Hello"");
-        if(1) 
+        if(1)
         {
             llSay(0, ""Hi"");
             integer r = 3;
@@ -791,7 +791,7 @@ default
         integer y = 0;
 
         if(x && y) llSay(0, ""Hello"");
-        if(x || y) 
+        if(x || y)
         {
             llSay(0, ""Hi"");
             integer r = 3;

@@ -35,56 +35,89 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
     public class CSCodeGenerator
     {
         private SYMBOL m_astRoot = null;
-        private int m_braceCount;   // for indentation
+        private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap;
+        private int m_indentWidth = 4;  // for indentation
+        private int m_braceCount;       // for indentation
+        private int m_CSharpLine;       // the current line of generated C# code
+        private int m_CSharpCol;        // the current column of generated C# code
 
         /// <summary>
-        /// Pass the new CodeGenerator a string containing the LSL source.
+        /// Creates an 'empty' CSCodeGenerator instance.
         /// </summary>
-        /// <param name="script">String containing LSL source.</param>
-        public CSCodeGenerator(string script)
+        public CSCodeGenerator()
         {
-            Parser p = new LSLSyntax(new yyLSLSyntax(), new ErrorHandler(true));
-            // Obviously this needs to be in a try/except block.
-            LSL2CSCodeTransformer codeTransformer = new LSL2CSCodeTransformer(p.Parse(script));
-            m_astRoot = codeTransformer.Transform();
+            ResetCounters();
         }
 
         /// <summary>
-        /// Pass the new CodeGenerator an abstract syntax tree.
+        /// Get the mapping between LSL and C# line/column number.
         /// </summary>
-        /// <param name="astRoot">The root node of the AST.</param>
-        public CSCodeGenerator(SYMBOL astRoot)
+        /// <returns>Dictionary\<KeyValuePair\<int, int\>, KeyValuePair\<int, int\>\>.</returns>
+        public Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> PositionMap
+        {
+            get { return m_positionMap; }
+        }
+
+        /// <summary>
+        /// Get the mapping between LSL and C# line/column number.
+        /// </summary>
+        /// <returns>SYMBOL pointing to root of the abstract syntax tree.</returns>
+        public SYMBOL ASTRoot
+        {
+            get { return m_astRoot; }
+        }
+
+        /// <summary>
+        /// Resets various counters and metadata.
+        /// </summary>
+        private void ResetCounters()
         {
             m_braceCount = 0;
-            m_astRoot = astRoot;
+            m_CSharpLine = 0;
+            m_CSharpCol = 1;
+            m_positionMap = new Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>();
+            m_astRoot = null;
         }
 
         /// <summary>
         /// Generate the code from the AST we have.
         /// </summary>
+        /// <param name="script">The LSL source as a string.</param>
         /// <returns>String containing the generated C# code.</returns>
-        public string Generate()
+        public string Convert(string script)
         {
+            ResetCounters();
+            Parser p = new LSLSyntax(new yyLSLSyntax(), new ErrorHandler(true));
+            // Obviously this needs to be in a try/except block.
+            LSL2CSCodeTransformer codeTransformer = new LSL2CSCodeTransformer(p.Parse(script));
+            m_astRoot = codeTransformer.Transform();
+
             string retstr = String.Empty;
 
             // standard preamble
-            //retstr = "using OpenSim.Region.ScriptEngine.Common;\n";
-            //retstr += "using System.Collections.Generic;\n\n";
-            //retstr += "namespace SecondLife\n";
-            //retstr += "{\n";
-            //retstr += "    public class Script : OpenSim.Region.ScriptEngine.Common\n";
-            //retstr += "    {\n";
+            //retstr = GenerateLine("using OpenSim.Region.ScriptEngine.Common;");
+            //retstr += GenerateLine("using System.Collections.Generic;");
+            //retstr += GenerateLine("");
+            //retstr += GenerateLine("namespace SecondLife");
+            //retstr += GenerateLine("{");
+            m_braceCount++;
+            //retstr += GenerateIndentedLine("public class Script : OpenSim.Region.ScriptEngine.Common");
+            //retstr += GenerateIndentedLine("{");
+            m_braceCount++;
+
+            // line number
+            m_CSharpLine += 3;
 
             // here's the payload
-            m_braceCount += 2;
-            retstr += "\n";
+            retstr += GenerateLine();
             foreach (SYMBOL s in m_astRoot.kids)
                 retstr += GenerateNode(s);
 
             // close braces!
-            //retstr += "    }\n";
-            //retstr += "}\n";
-            m_braceCount -= 2;
+            m_braceCount--;
+            //retstr += GenerateIndentedLine("}");
+            m_braceCount--;
+            //retstr += GenerateLine("}");
 
             return retstr;
         }
@@ -155,11 +188,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             else if (s is Constant)
                 retstr += GenerateConstant((Constant) s);
             else if (s is IdentDotExpression)
-                retstr += ((IdentDotExpression) s).Name + "." + ((IdentDotExpression) s).Member;
+                retstr += Generate(((IdentDotExpression) s).Name + "." + ((IdentDotExpression) s).Member, s);
             else if (s is IdentExpression)
-                retstr += ((IdentExpression) s).Name;
+                retstr += Generate(((IdentExpression) s).Name, s);
             else if (s is IDENT)
-                retstr += ((TOKEN) s).yytext;
+                retstr += Generate(((TOKEN) s).yytext, s);
             else
             {
                 foreach (SYMBOL kid in s.kids)
@@ -188,13 +221,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 else
                     remainingKids.Add(kid);
 
-            retstr += WriteIndented(String.Format("{0} {1}(", gf.ReturnType, gf.Name));
+            retstr += GenerateIndented(String.Format("{0} {1}(", gf.ReturnType, gf.Name), gf);
 
             // print the state arguments, if any
             foreach (SYMBOL kid in argumentDeclarationListKids)
                 retstr += GenerateArgumentDeclarationList((ArgumentDeclarationList) kid);
 
-            retstr += ")\n";
+            retstr += GenerateLine(")");
 
             foreach (SYMBOL kid in remainingKids)
                 retstr += GenerateNode(kid);
@@ -215,7 +248,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             {
                 retstr += Indent();
                 retstr += GenerateNode(s);
-                retstr += ";\n";
+                retstr += GenerateLine(";");
             }
 
             return retstr;
@@ -233,8 +266,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             foreach (SYMBOL kid in s.kids)
                 if (kid is StateEvent)
                     retstr += GenerateStateEvent((StateEvent) kid, s.Name);
-                else
-                    retstr += String.Format("ERROR: State '{0}' contains a '{1}\n", s.Name, kid.GetType());
 
             return retstr;
         }
@@ -260,13 +291,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     remainingKids.Add(kid);
 
             // "state" (function) declaration
-            retstr += WriteIndented(String.Format("public void {0}_event_{1}(", parentStateName, se.Name));
+            retstr += GenerateIndented(String.Format("public void {0}_event_{1}(", parentStateName, se.Name), se);
 
             // print the state arguments, if any
             foreach (SYMBOL kid in argumentDeclarationListKids)
                 retstr += GenerateArgumentDeclarationList((ArgumentDeclarationList) kid);
 
-            retstr += ")\n";
+            retstr += GenerateLine(")");
 
             foreach (SYMBOL kid in remainingKids)
                 retstr += GenerateNode(kid);
@@ -278,7 +309,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for an ArgumentDeclarationList node.
         /// </summary>
         /// <param name="adl">The ArgumentDeclarationList node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for ArgumentDeclarationList adl.</returns>
         private string GenerateArgumentDeclarationList(ArgumentDeclarationList adl)
         {
             string retstr = String.Empty;
@@ -287,9 +318,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             foreach (Declaration d in adl.kids)
             {
-                retstr += String.Format("{0} {1}", d.Datatype, d.Id);
+                retstr += Generate(String.Format("{0} {1}", d.Datatype, d.Id), d);
                 if (0 < comma--)
-                    retstr += ", ";
+                    retstr += Generate(", ");
             }
 
             return retstr;
@@ -299,7 +330,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for an ArgumentList node.
         /// </summary>
         /// <param name="al">The ArgumentList node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for ArgumentList al.</returns>
         private string GenerateArgumentList(ArgumentList al)
         {
             string retstr = String.Empty;
@@ -310,7 +341,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             {
                 retstr += GenerateNode(s);
                 if (0 < comma--)
-                    retstr += ", ";
+                    retstr += Generate(", ");
             }
 
             return retstr;
@@ -320,13 +351,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a CompoundStatement node.
         /// </summary>
         /// <param name="cs">The CompoundStatement node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for CompoundStatement cs.</returns>
         private string GenerateCompoundStatement(CompoundStatement cs)
         {
             string retstr = String.Empty;
 
             // opening brace
-            retstr += WriteIndentedLine("{");
+            retstr += GenerateIndentedLine("{");
             m_braceCount++;
 
             foreach (SYMBOL kid in cs.kids)
@@ -334,7 +365,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // closing brace
             m_braceCount--;
-            retstr += WriteIndentedLine("}");
+            retstr += GenerateIndentedLine("}");
 
             return retstr;
         }
@@ -343,17 +374,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a Declaration node.
         /// </summary>
         /// <param name="d">The Declaration node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for Declaration d.</returns>
         private string GenerateDeclaration(Declaration d)
         {
-            return String.Format("{0} {1}", d.Datatype, d.Id);
+            return Generate(String.Format("{0} {1}", d.Datatype, d.Id), d);
         }
 
         /// <summary>
         /// Generates the code for a Statement node.
         /// </summary>
         /// <param name="s">The Statement node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for Statement s.</returns>
         private string GenerateStatement(Statement s)
         {
             string retstr = String.Empty;
@@ -367,7 +398,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 retstr += GenerateNode(kid);
 
             if (printSemicolon)
-                retstr += ";\n";
+                retstr += GenerateLine(";");
 
             return retstr;
         }
@@ -376,13 +407,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for an Assignment node.
         /// </summary>
         /// <param name="a">The Assignment node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for Assignment a.</returns>
         private string GenerateAssignment(Assignment a)
         {
             string retstr = String.Empty;
 
             retstr += GenerateNode((SYMBOL) a.kids.Pop());
-            retstr +=String.Format(" {0} ", a.AssignmentType);
+            retstr += Generate(String.Format(" {0} ", a.AssignmentType), a);
             foreach (SYMBOL kid in a.kids)
                 retstr += GenerateNode(kid);
 
@@ -393,12 +424,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a ReturnStatement node.
         /// </summary>
         /// <param name="rs">The ReturnStatement node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for ReturnStatement rs.</returns>
         private string GenerateReturnStatement(ReturnStatement rs)
         {
             string retstr = String.Empty;
 
-            retstr += "return ";
+            retstr += Generate("return ", rs);
 
             foreach (SYMBOL kid in rs.kids)
                 retstr += GenerateNode(kid);
@@ -410,34 +441,34 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a JumpLabel node.
         /// </summary>
         /// <param name="jl">The JumpLabel node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for JumpLabel jl.</returns>
         private string GenerateJumpLabel(JumpLabel jl)
         {
-            return String.Format("{0}:\n", jl.LabelName);
+            return Generate(String.Format("{0}:\n", jl.LabelName), jl);
         }
 
         /// <summary>
         /// Generates the code for a JumpStatement node.
         /// </summary>
         /// <param name="js">The JumpStatement node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for JumpStatement js.</returns>
         private string GenerateJumpStatement(JumpStatement js)
         {
-            return String.Format("goto {0}", js.TargetName);
+            return Generate(String.Format("goto {0}", js.TargetName), js);
         }
 
         /// <summary>
-        /// Generates the code for a IfStatement node.
+        /// Generates the code for an IfStatement node.
         /// </summary>
         /// <param name="ifs">The IfStatement node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for IfStatement ifs.</returns>
         private string GenerateIfStatement(IfStatement ifs)
         {
             string retstr = String.Empty;
 
-            retstr += WriteIndented("if (");
+            retstr += GenerateIndented("if (", ifs);
             retstr += GenerateNode((SYMBOL) ifs.kids.Pop());
-            retstr += ")\n";
+            retstr += GenerateLine(")");
 
             // CompoundStatement handles indentation itself but we need to do it
             // otherwise.
@@ -448,7 +479,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             if (0 < ifs.kids.Count) // do it again for an else
             {
-                retstr += WriteIndentedLine("else");
+                retstr += GenerateIndentedLine("else", ifs);
 
                 indentHere = ifs.kids.Top is Statement;
                 if (indentHere) m_braceCount++;
@@ -463,24 +494,24 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a StateChange node.
         /// </summary>
         /// <param name="sc">The StateChange node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for StateChange sc.</returns>
         private string GenerateStateChange(StateChange sc)
         {
-            return String.Format("state(\"{0}\")", sc.NewState);
+            return Generate(String.Format("state(\"{0}\")", sc.NewState), sc);
         }
 
         /// <summary>
         /// Generates the code for a WhileStatement node.
         /// </summary>
         /// <param name="ws">The WhileStatement node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for WhileStatement ws.</returns>
         private string GenerateWhileStatement(WhileStatement ws)
         {
             string retstr = String.Empty;
 
-            retstr += WriteIndented("while (");
+            retstr += GenerateIndented("while (", ws);
             retstr += GenerateNode((SYMBOL) ws.kids.Pop());
-            retstr += ")\n";
+            retstr += GenerateLine(")");
 
             // CompoundStatement handles indentation itself but we need to do it
             // otherwise.
@@ -496,12 +527,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a DoWhileStatement node.
         /// </summary>
         /// <param name="dws">The DoWhileStatement node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for DoWhileStatement dws.</returns>
         private string GenerateDoWhileStatement(DoWhileStatement dws)
         {
             string retstr = String.Empty;
 
-            retstr += WriteIndentedLine("do");
+            retstr += GenerateIndentedLine("do", dws);
 
             // CompoundStatement handles indentation itself but we need to do it
             // otherwise.
@@ -510,9 +541,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             retstr += GenerateNode((SYMBOL) dws.kids.Pop());
             if (indentHere) m_braceCount--;
 
-            retstr += WriteIndented("while (");
+            retstr += GenerateIndented("while (", dws);
             retstr += GenerateNode((SYMBOL) dws.kids.Pop());
-            retstr += ");\n";
+            retstr += GenerateLine(");");
 
             return retstr;
         }
@@ -521,25 +552,25 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a ForLoop node.
         /// </summary>
         /// <param name="fl">The ForLoop node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for ForLoop fl.</returns>
         private string GenerateForLoop(ForLoop fl)
         {
             string retstr = String.Empty;
 
-            retstr += WriteIndented("for (");
+            retstr += GenerateIndented("for (", fl);
 
             // for ( x = 0 ; x < 10 ; x++ )
             //       ^^^^^^^
             retstr += GenerateForLoopStatement((ForLoopStatement) fl.kids.Pop());
-            retstr += "; ";
+            retstr += Generate("; ");
             // for ( x = 0 ; x < 10 ; x++ )
             //               ^^^^^^^^
             retstr += GenerateNode((SYMBOL) fl.kids.Pop());
-            retstr += "; ";
+            retstr += Generate("; ");
             // for ( x = 0 ; x < 10 ; x++ )
             //                        ^^^^^
             retstr += GenerateForLoopStatement((ForLoopStatement) fl.kids.Pop());
-            retstr += ")\n";
+            retstr += GenerateLine(")");
 
             // CompoundStatement handles indentation itself but we need to do it
             // otherwise.
@@ -555,7 +586,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a ForLoopStatement node.
         /// </summary>
         /// <param name="fls">The ForLoopStatement node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for ForLoopStatement fls.</returns>
         private string GenerateForLoopStatement(ForLoopStatement fls)
         {
             string retstr = String.Empty;
@@ -566,7 +597,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             {
                 retstr += GenerateNode(s);
                 if (0 < comma--)
-                    retstr += ", ";
+                    retstr += Generate(", ");
             }
 
             return retstr;
@@ -576,13 +607,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a BinaryExpression node.
         /// </summary>
         /// <param name="be">The BinaryExpression node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for BinaryExpression be.</returns>
         private string GenerateBinaryExpression(BinaryExpression be)
         {
             string retstr = String.Empty;
 
             retstr += GenerateNode((SYMBOL) be.kids.Pop());
-            retstr += String.Format(" {0} ", be.ExpressionSymbol);
+            retstr += Generate(String.Format(" {0} ", be.ExpressionSymbol), be);
             foreach (SYMBOL kid in be.kids)
                 retstr += GenerateNode(kid);
 
@@ -593,12 +624,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a UnaryExpression node.
         /// </summary>
         /// <param name="ue">The UnaryExpression node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for UnaryExpression ue.</returns>
         private string GenerateUnaryExpression(UnaryExpression ue)
         {
             string retstr = String.Empty;
 
-            retstr += ue.UnarySymbol;
+            retstr += Generate(ue.UnarySymbol, ue);
             retstr += GenerateNode((SYMBOL) ue.kids.Pop());
 
             return retstr;
@@ -608,15 +639,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a ParenthesisExpression node.
         /// </summary>
         /// <param name="pe">The ParenthesisExpression node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for ParenthesisExpression pe.</returns>
         private string GenerateParenthesisExpression(ParenthesisExpression pe)
         {
             string retstr = String.Empty;
 
-            retstr += "(";
+            retstr += Generate("(");
             foreach (SYMBOL kid in pe.kids)
                 retstr += GenerateNode(kid);
-            retstr += ")";
+            retstr += Generate(")");
 
             return retstr;
         }
@@ -625,7 +656,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a IncrementDecrementExpression node.
         /// </summary>
         /// <param name="ide">The IncrementDecrementExpression node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for IncrementDecrementExpression ide.</returns>
         private string GenerateIncrementDecrementExpression(IncrementDecrementExpression ide)
         {
             string retstr = String.Empty;
@@ -633,10 +664,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             if (0 < ide.kids.Count)
             {
                 IdentDotExpression dot = (IdentDotExpression) ide.kids.Top;
-                retstr += String.Format("{0}", ide.PostOperation ? dot.Name + "." + dot.Member + ide.Operation : ide.Operation + dot.Name + "." + dot.Member);
+                retstr += Generate(String.Format("{0}", ide.PostOperation ? dot.Name + "." + dot.Member + ide.Operation : ide.Operation + dot.Name + "." + dot.Member), ide);
             }
             else
-                retstr += String.Format("{0}", ide.PostOperation ? ide.Name + ide.Operation : ide.Operation + ide.Name);
+                retstr += Generate(String.Format("{0}", ide.PostOperation ? ide.Name + ide.Operation : ide.Operation + ide.Name), ide);
 
             return retstr;
         }
@@ -645,15 +676,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a TypecastExpression node.
         /// </summary>
         /// <param name="te">The TypecastExpression node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for TypecastExpression te.</returns>
         private string GenerateTypecastExpression(TypecastExpression te)
         {
             string retstr = String.Empty;
 
             // we wrap all typecasted statements in parentheses 
-            retstr += String.Format("({0}) (", te.TypecastType);
+            retstr += Generate(String.Format("({0}) (", te.TypecastType), te);
             retstr += GenerateNode((SYMBOL) te.kids.Pop());
-            retstr += ")";
+            retstr += Generate(")");
 
             return retstr;
         }
@@ -662,17 +693,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a FunctionCall node.
         /// </summary>
         /// <param name="fc">The FunctionCall node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for FunctionCall fc.</returns>
         private string GenerateFunctionCall(FunctionCall fc)
         {
             string retstr = String.Empty;
 
-            retstr += String.Format("{0}(", fc.Id);
+            retstr += Generate(String.Format("{0}(", fc.Id), fc);
 
             foreach (SYMBOL kid in fc.kids)
                 retstr += GenerateNode(kid);
 
-            retstr += ")";
+            retstr += Generate(")");
 
             return retstr;
         }
@@ -681,7 +712,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a Constant node.
         /// </summary>
         /// <param name="c">The Constant node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for Constant c.</returns>
         private string GenerateConstant(Constant c)
         {
             string retstr = String.Empty;
@@ -697,10 +728,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // need to quote strings
             if ("LSL_Types.LSLString" == c.Type)
-                retstr += "\"";
-            retstr += c.Value;
+                retstr += Generate("\"");
+            retstr += Generate(c.Value, c);
             if ("LSL_Types.LSLString" == c.Type)
-                retstr += "\"";
+                retstr += Generate("\"");
 
             return retstr;
         }
@@ -709,18 +740,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a VectorConstant node.
         /// </summary>
         /// <param name="vc">The VectorConstant node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for VectorConstant vc.</returns>
         private string GenerateVectorConstant(VectorConstant vc)
         {
             string retstr = String.Empty;
 
-            retstr += String.Format("new {0}(", vc.Type);
+            retstr += Generate(String.Format("new {0}(", vc.Type), vc);
             retstr += GenerateNode((SYMBOL) vc.kids.Pop());
-            retstr += ", ";
+            retstr += Generate(", ");
             retstr += GenerateNode((SYMBOL) vc.kids.Pop());
-            retstr += ", ";
+            retstr += Generate(", ");
             retstr += GenerateNode((SYMBOL) vc.kids.Pop());
-            retstr += ")";
+            retstr += Generate(")");
 
             return retstr;
         }
@@ -729,20 +760,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a RotationConstant node.
         /// </summary>
         /// <param name="rc">The RotationConstant node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for RotationConstant rc.</returns>
         private string GenerateRotationConstant(RotationConstant rc)
         {
             string retstr = String.Empty;
 
-            retstr += String.Format("new {0}(", rc.Type);
+            retstr += Generate(String.Format("new {0}(", rc.Type), rc);
             retstr += GenerateNode((SYMBOL) rc.kids.Pop());
-            retstr += ", ";
+            retstr += Generate(", ");
             retstr += GenerateNode((SYMBOL) rc.kids.Pop());
-            retstr += ", ";
+            retstr += Generate(", ");
             retstr += GenerateNode((SYMBOL) rc.kids.Pop());
-            retstr += ", ";
+            retstr += Generate(", ");
             retstr += GenerateNode((SYMBOL) rc.kids.Pop());
-            retstr += ")";
+            retstr += Generate(")");
 
             return retstr;
         }
@@ -751,51 +782,155 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// Generates the code for a ListConstant node.
         /// </summary>
         /// <param name="lc">The ListConstant node.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>String containing C# code for ListConstant lc.</returns>
         private string GenerateListConstant(ListConstant lc)
         {
             string retstr = String.Empty;
 
-            retstr += String.Format("new {0}(", lc.Type);
+            retstr += Generate(String.Format("new {0}(", lc.Type), lc);
 
             foreach (SYMBOL kid in lc.kids)
                 retstr += GenerateNode(kid);
 
-            retstr += ")";
+            retstr += Generate(")");
 
             return retstr;
+        }
+
+        /// <summary>
+        /// Prints a newline.
+        /// </summary>
+        /// <returns>A newline.</returns>
+        private string GenerateLine()
+        {
+            return GenerateLine("");
+        }
+
+        /// <summary>
+        /// Prints text, followed by a newline.
+        /// </summary>
+        /// <param name="s">String of text to print.</param>
+        /// <returns>String s followed by newline.</returns>
+        private string GenerateLine(string s)
+        {
+            return GenerateLine(s, null);
+        }
+
+        /// <summary>
+        /// Prints text, followed by a newline.
+        /// </summary>
+        /// <param name="s">String of text to print.</param>
+        /// <param name="sym">Symbol being generated to extract original line
+        /// number and column from.</param>
+        /// <returns>String s followed by newline.</returns>
+        private string GenerateLine(string s, SYMBOL sym)
+        {
+            string retstr = Generate(s, sym) + "\n";
+
+            m_CSharpLine++;
+            m_CSharpCol = 1;
+
+            return retstr;
+        }
+
+        /// <summary>
+        /// Prints text.
+        /// </summary>
+        /// <param name="s">String of text to print.</param>
+        /// <returns>String s.</returns>
+        private string Generate(string s)
+        {
+            return Generate(s, null);
+        }
+
+        /// <summary>
+        /// Prints text.
+        /// </summary>
+        /// <param name="s">String of text to print.</param>
+        /// <param name="sym">Symbol being generated to extract original line
+        /// number and column from.</param>
+        /// <returns>String s.</returns>
+        private string Generate(string s, SYMBOL sym)
+        {
+            if (null != sym)
+                m_positionMap.Add(new KeyValuePair<int, int>(m_CSharpLine, m_CSharpCol), new KeyValuePair<int, int>(sym.Line, sym.Position));
+
+            m_CSharpCol += s.Length;
+
+            return s;
         }
 
         /// <summary>
         /// Prints text correctly indented, followed by a newline.
         /// </summary>
         /// <param name="s">String of text to print.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
-        private string WriteIndentedLine(string s)
+        /// <returns>Properly indented string s followed by newline.</returns>
+        private string GenerateIndentedLine(string s)
         {
-            return WriteIndented(s) + "\n";
+            return GenerateIndentedLine(s, null);
+        }
+
+        /// <summary>
+        /// Prints text correctly indented, followed by a newline.
+        /// </summary>
+        /// <param name="s">String of text to print.</param>
+        /// <param name="sym">Symbol being generated to extract original line
+        /// number and column from.</param>
+        /// <returns>Properly indented string s followed by newline.</returns>
+        private string GenerateIndentedLine(string s, SYMBOL sym)
+        {
+            string retstr = GenerateIndented(s, sym) + "\n";
+
+            m_CSharpLine++;
+            m_CSharpCol = 1;
+
+            return retstr;
         }
 
         /// <summary>
         /// Prints text correctly indented.
         /// </summary>
         /// <param name="s">String of text to print.</param>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
-        private string WriteIndented(string s)
+        /// <returns>Properly indented string s.</returns>
+        //private string GenerateIndented(string s)
+        //{
+        //    return GenerateIndented(s, null);
+        //}
+        // THIS FUNCTION IS COMMENTED OUT TO SUPPRESS WARNINGS
+
+        /// <summary>
+        /// Prints text correctly indented.
+        /// </summary>
+        /// <param name="s">String of text to print.</param>
+        /// <param name="sym">Symbol being generated to extract original line
+        /// number and column from.</param>
+        /// <returns>Properly indented string s.</returns>
+        private string GenerateIndented(string s, SYMBOL sym)
         {
-            return Indent() + s;
+            string retstr = Indent() + s;
+
+            if (null != sym)
+                m_positionMap.Add(new KeyValuePair<int, int>(m_CSharpLine, m_CSharpCol), new KeyValuePair<int, int>(sym.Line, sym.Position));
+
+            m_CSharpCol += s.Length;
+
+            return retstr;
         }
 
         /// <summary>
         /// Prints correct indentation.
         /// </summary>
-        /// <returns>String containing C# code for SYMBOL s.</returns>
+        /// <returns>Indentation based on brace count.</returns>
         private string Indent()
         {
             string retstr = String.Empty;
 
             for (int i = 0; i < m_braceCount; i++)
-                retstr += "    ";
+                for (int j = 0; j < m_indentWidth; j++)
+                {
+                     retstr += " ";
+                     m_CSharpCol++;
+                }
 
             return retstr;
         }
