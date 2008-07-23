@@ -413,7 +413,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID,
-                                           uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID)
+                                           uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID, LLQuaternion rotation)
         {
         }
 

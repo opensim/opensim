@@ -2132,7 +2132,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="avatarLocalID"></param>
         /// <param name="Pos"></param>
         public void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID,
-                                   uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID)
+                                   uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID, LLQuaternion rotation)
         {
             ObjectUpdatePacket objupdate = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
@@ -2147,9 +2147,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objupdate.ObjectData[0].ParentID = parentID;
             objupdate.ObjectData[0].NameValue =
                 Helpers.StringToField("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName);
+
             LLVector3 pos2 = new LLVector3((float)Pos.X, (float)Pos.Y, (float)Pos.Z);
             byte[] pb = pos2.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
+
+            byte[] rot = rotation.GetBytes();
+            Array.Copy(rot, 0, objupdate.ObjectData[0].ObjectData, 52, rot.Length);
+
             objupdate.Header.Zerocoded = true;
             OutPacket(objupdate, ThrottleOutPacketType.Task);
         }

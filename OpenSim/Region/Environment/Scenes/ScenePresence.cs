@@ -118,7 +118,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private bool m_setAlwaysRun = false;
 
-        private Quaternion m_bodyRot;
+        private Quaternion m_bodyRot= Quaternion.Identity;
 
         public bool IsRestrictedToRegion = false;
 
@@ -1266,7 +1266,8 @@ namespace OpenSim.Region.Environment.Scenes
             SendFullUpdateToAllClients();
             // This may seem stupid, but Our Full updates don't send avatar rotation :P
             // So we're also sending a terse update (which has avatar rotation)
-            SendTerseUpdateToAllClients();
+            // [Update] We do now.
+            //SendTerseUpdateToAllClients();
         }
 
         /// <summary>
@@ -1617,9 +1618,19 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_appearance.Texture == null)
                 return;
 
+            LLQuaternion rot;
+            if (m_bodyRot != null)
+            {
+                rot = new LLQuaternion(m_bodyRot.x, m_bodyRot.y, m_bodyRot.z, m_bodyRot.w);
+            }
+            else
+            {
+                rot = LLQuaternion.Identity;
+            }
+
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
                                                             LocalId, m_pos, m_appearance.Texture.ToBytes(),
-                                                            m_parentID);
+                                                            m_parentID, rot);
             m_scene.AddAgentUpdates(1);
         }
 
@@ -1671,8 +1682,18 @@ namespace OpenSim.Region.Environment.Scenes
             // Needed for standalone
             m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
 
+            LLQuaternion rot;
+            if (m_bodyRot != null)
+            {
+                rot = new LLQuaternion(m_bodyRot.x, m_bodyRot.y, m_bodyRot.z, m_bodyRot.w);
+            }
+            else
+            {
+                rot = LLQuaternion.Identity;
+            }
+
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
-                                               m_pos, m_appearance.Texture.ToBytes(), m_parentID);
+                                               m_pos, m_appearance.Texture.ToBytes(), m_parentID, rot);
 
             if (!m_isChildAgent)
             {
