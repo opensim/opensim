@@ -763,7 +763,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-	    <Reference name="System.Runtime.Remoting"/>
+      <Reference name="System.Runtime.Remoting"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -936,18 +936,18 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
-	  <Reference name="IronPython.dll"/>
-	  <Reference name="IronMath.dll"/>
+      <Reference name="IronPython.dll"/>
+      <Reference name="IronMath.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data.Base" />
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="Nini.dll" />
-	  <Reference name="log4net.dll"/>
+      <Reference name="log4net.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-	
+
     <Project name="OpenSim.Region.Modules.Terrain.Extensions.DefaultEffects" path="OpenSim/Region/Modules/Terrain/Extensions/DefaultEffects" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1105,7 +1105,7 @@
 
     <!-- REST plugins -->
     <Project name="OpenSim.ApplicationPlugins.Rest" 
-	     path="OpenSim/ApplicationPlugins/Rest" type="Library">
+             path="OpenSim/ApplicationPlugins/Rest" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1139,7 +1139,7 @@
     </Project>
 
     <Project name="OpenSim.ApplicationPlugins.Rest.Regions" 
-	     path="OpenSim/ApplicationPlugins/Rest/Regions" type="Library">
+             path="OpenSim/ApplicationPlugins/Rest/Regions" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>
@@ -1174,7 +1174,7 @@
     </Project>
 
     <Project name="OpenSim.ApplicationPlugins.Rest.Inventory" 
-	     path="OpenSim/ApplicationPlugins/Rest/Inventory" type="Library">
+             path="OpenSim/ApplicationPlugins/Rest/Inventory" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>
