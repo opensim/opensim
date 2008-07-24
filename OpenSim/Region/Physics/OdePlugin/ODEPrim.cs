@@ -750,7 +750,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     changeshape(timestep);
                 //
 
-                if (m_taintforce || m_force != new PhysicsVector(0.0f, 0.0f, 0.0f))
+                if (m_taintforce)
                     changeAddForce(timestep);
 
                 if (m_taintdisable)
@@ -1193,6 +1193,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 fx *= m_mass;
                 fy *= m_mass;
                 //fz *= m_mass;
+
+                fx += m_force.X;
+                fy += m_force.Y;
+                fz += m_force.Z;
 
                 //m_log.Info("[OBJPID]: X:" + fx.ToString() + " Y:" + fy.ToString() + " Z:" + fz.ToString());
                 if (fx != 0 || fy != 0 || fz != 0)
@@ -1752,8 +1756,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //m_log.Info("[PHYSICS]: dequeing forcelist");
                     if (IsPhysical)
                     {
-                        //PhysicsVector iforce = new PhysicsVector();
-                        PhysicsVector iforce = m_force * 100.0f;
+                        PhysicsVector iforce = new PhysicsVector();
                         for (int i = 0; i < m_forcelist.Count; i++)
                         {
                             iforce = iforce + (m_forcelist[i] * 100);
@@ -1767,6 +1770,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_collisionscore = 0;
                 m_interpenetrationcount = 0;
             }
+
             m_taintforce = false;
 
         }
