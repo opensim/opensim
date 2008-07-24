@@ -79,7 +79,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool m_clientBlocked = false;
 
         private int m_probesWithNoIngressPackets = 0;
-        private int m_lastPacketsReceived = 0;
+        //private int m_lastPacketsReceived = 0;
         private byte[] ZeroOutBuffer = new byte[4096];
 
         private readonly LLUUID m_agentId;
@@ -245,7 +245,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private SetScriptRunning handlerSetScriptRunning = null;
         private UpdateVector handlerAutoPilotGo = null;
 
-        private TerrainUnacked handlerUnackedTerrain = null;
+        //private TerrainUnacked handlerUnackedTerrain = null;
 
         //**
 

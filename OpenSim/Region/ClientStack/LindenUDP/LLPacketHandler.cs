@@ -137,7 +137,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //
         private Dictionary<uint, int> m_DupeTracker =
             new Dictionary<uint, int>();
-        private uint m_DupeTrackerWindow = 30;
+        //private uint m_DupeTrackerWindow = 30;
 
         // Values for the SimStatsReporter
         //
@@ -450,21 +450,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // We can't keep an unlimited record of dupes. This will prune the
         // dictionary by age.
         //
-        private void PruneDupeTracker()
-        {
-            lock (m_DupeTracker)
-            {
-                Dictionary<uint, int> packs =
-                    new Dictionary<uint, int>(m_DupeTracker);
-
-                foreach (uint pack in packs.Keys)
-                {
-                    if (Util.UnixTimeSinceEpoch() - m_DupeTracker[pack] >
-                        m_DupeTrackerWindow)
-                        m_DupeTracker.Remove(pack);
-                }
-            }
-        }
+//        private void PruneDupeTracker()
+//        {
+//            lock (m_DupeTracker)
+//            {
+//                Dictionary<uint, int> packs =
+//                    new Dictionary<uint, int>(m_DupeTracker);
+//
+//                foreach (uint pack in packs.Keys)
+//                {
+//                    if (Util.UnixTimeSinceEpoch() - m_DupeTracker[pack] >
+//                        m_DupeTrackerWindow)
+//                        m_DupeTracker.Remove(pack);
+//                }
+//            }
+//        }
 
         public void InPacket(Packet packet)
         {
