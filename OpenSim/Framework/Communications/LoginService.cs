@@ -94,7 +94,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="userID"></param>
         /// <returns></returns>
         /// <exception cref='System.Exception'>This will be thrown if there is a problem with the inventory service</exception>
-        protected abstract InventoryData GetInventorySkeleton(LLUUID userID, string inventoryServerUrl);
+        protected abstract InventoryData GetInventorySkeleton(LLUUID userID);
 
         /// <summary>
         /// Called when we receive the client's initial XMLRPC login_to_simulator request message
@@ -230,12 +230,7 @@ namespace OpenSim.Framework.Communications
 
                         try
                         {
-                            string inventoryServerUrl = "";
-                            //if (!String.IsNullOrEmpty(userProfile.UserInventoryURI))
-                            //{
-                            //    inventoryServerUrl = userProfile.UserInventoryURI;
-                            //}
-                            inventData = GetInventorySkeleton(agentID, inventoryServerUrl);
+                            inventData = GetInventorySkeleton(agentID);
                         }
                         catch (Exception e)
                         {
@@ -390,15 +385,7 @@ namespace OpenSim.Framework.Communications
                     {
                         LLUUID agentID = userProfile.ID;
 
-                        // Inventory Library Section
-
-                        string inventoryServerUrl = "";
-                        //if (!String.IsNullOrEmpty(userProfile.UserInventoryURI))
-                        //{
-                        //    inventoryServerUrl = userProfile.UserInventoryURI;
-                        //}
-
-                        InventoryData inventData = GetInventorySkeleton(agentID, inventoryServerUrl);
+                        InventoryData inventData = GetInventorySkeleton(agentID);
                         ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                         Hashtable InventoryRootHash = new Hashtable();

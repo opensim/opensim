@@ -402,17 +402,12 @@ namespace OpenSim.Grid.UserServer
                         else
                         {
                             response.CreateDeadRegionResponse();
-
                         }
-
-
                     }
                     else
                     {
                         response.CreateDeadRegionResponse();
-
-                    }
-                    
+                    }                    
                 }
 
                 catch (Exception e)
@@ -424,7 +419,7 @@ namespace OpenSim.Grid.UserServer
         }
 
         // See LoginService
-        protected override InventoryData GetInventorySkeleton(LLUUID userID, string serverUrl)
+        protected override InventoryData GetInventorySkeleton(LLUUID userID)
         {           
             m_log.DebugFormat(
                  "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of user {1}",

@@ -258,7 +258,7 @@ namespace OpenSim.Region.Communications.Local
         }
 
         // See LoginService
-        protected override InventoryData GetInventorySkeleton(LLUUID userID, string serverUrl)
+        protected override InventoryData GetInventorySkeleton(LLUUID userID)
         {
             List<InventoryFolderBase> folders = m_Parent.InterServiceInventoryService.GetInventorySkeleton(userID);
 
