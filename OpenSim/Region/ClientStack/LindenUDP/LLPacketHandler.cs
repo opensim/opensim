@@ -234,6 +234,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 DropResend(id);
 
+				AddAcks(ref packet);
                 QueuePacket(packet, throttlePacketType, id);
 
                 // We want to see that packet arrive if it's reliable
@@ -245,10 +246,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void QueuePacket(
-                Packet packet, ThrottleOutPacketType throttlePacketType,
-                Object id)
-        {
+		private void AddAcks(ref Packet packet)
+		{
             // Add acks to outgoing packets
             //
             if (m_PendingAcks.Count > 0)
@@ -269,7 +268,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
                 }
             }
-
+		}
+		
+        private void QueuePacket(
+                Packet packet, ThrottleOutPacketType throttlePacketType,
+                Object id)
+        {
             packet.TickCount = System.Environment.TickCount;
 
             LLQueItem item = new LLQueItem();
@@ -352,7 +356,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //
         private void SendAcks()
         {
-            lock (m_PendingAcks)
+            lock (m_NeedAck)
             {
                 if (m_PendingAcks.Count == 0)
                     return;
@@ -387,7 +391,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //
         private void AckPacket(Packet packet)
         {
-            lock (m_PendingAcks)
+            lock (m_NeedAck)
             {
                 if (m_PendingAcks.Count < 250)
                 {
@@ -400,7 +404,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             SendAcks();
 
-            lock (m_PendingAcks)
+            lock (m_NeedAck)
             {
                 // If this is still full we have a truly exceptional
                 // condition (means, can't happen)
