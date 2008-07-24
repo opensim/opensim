@@ -60,9 +60,11 @@ namespace OpenSim.Grid.InventoryServer
         {
             m_log.InfoFormat("[GRID AGENT INVENTORY]: checking trusted source {0}", peer.ToString());
             UriBuilder ub = new UriBuilder(m_userserver_url);
-            if (ub.Host == peer.Address.ToString())
-            {
-                return true;
+            IPAddress[] uaddrs = Dns.GetHostAddresses(ub.Host);
+            foreach (IPAddress uaddr in uaddrs) {
+                if (uaddr.Equals(peer.Address)) {
+                    return true;
+                }
             }
             return false;
         }
