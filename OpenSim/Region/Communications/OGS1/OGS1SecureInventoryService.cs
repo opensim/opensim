@@ -39,7 +39,7 @@ using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Region.Communications.OGS1
 {
-    public class OGS1SecureInventoryService : ISecureInventoryService, IInterServiceInventoryServices
+    public class OGS1SecureInventoryService : ISecureInventoryService
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -304,19 +304,6 @@ namespace OpenSim.Region.Communications.OGS1
         public InventoryFolderBase RequestRootFolder(LLUUID userID)
         {
             return null;
-        }
-
-        public bool CreateNewUserInventory(LLUUID user)
-        {
-            return false;
-        }
-
-        // See IInventoryServices
-        public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
-        {
-            m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: The GetInventorySkeleton() method here should never be called!");
-
-            return new List<InventoryFolderBase>();
         }
 
         #endregion

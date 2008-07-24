@@ -39,7 +39,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
-using OpenSim.Region.Communications.OGS1;
+using OpenSim.Grid.Communications.OGS1;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -103,7 +103,7 @@ namespace OpenSim.Grid.UserServer
             m_loginService = new UserLoginService(
                  m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
 
-            m_interServiceInventoryService = new OGS1InventoryService(m_userManager._config.InventoryUrl);
+            m_interServiceInventoryService = new OGS1InterServiceInventoryService(m_userManager._config.InventoryUrl);
             
             m_messagesService = new MessageServersConnector();
 

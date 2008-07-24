@@ -99,17 +99,17 @@ namespace OpenSim.Framework.Communications
         bool DeleteItem(InventoryItemBase item, LLUUID session_id);
 
         /// <summary>
-        /// Create a new inventory for the given user.
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns>true if the inventory was successfully created, false otherwise</returns>
-        bool CreateNewUserInventory(LLUUID user);
-
-        /// <summary>
         /// Does the given user have an inventory structure?
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>        
         bool HasInventoryForUser(LLUUID userID);
+        
+        /// <summary>
+        /// Retrieve the root inventory folder for the given user.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns>null if no root folder was found</returns>
+        InventoryFolderBase RequestRootFolder(LLUUID userID);        
     }
 }
