@@ -46,6 +46,8 @@ namespace OpenSim.Grid.UserServer
     public class UserLoginService : LoginService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        protected IInterServiceInventoryServices m_inventoryService;
 
         public event UserLoggedInAtLocation OnUserLoggedInAtLocation;
 
@@ -54,12 +56,14 @@ namespace OpenSim.Grid.UserServer
         public UserConfig m_config;
 
         public UserLoginService(
-            UserManagerBase userManager, LibraryRootFolder libraryRootFolder,
+            UserManagerBase userManager, IInterServiceInventoryServices inventoryService, LibraryRootFolder libraryRootFolder,
             UserConfig config, string welcomeMess)
             : base(userManager, libraryRootFolder, welcomeMess)
         {
             m_config = config;
+            m_inventoryService = inventoryService;
         }
+        
         public override void LogOffUser(UserProfileData theUser, string message)
         {
             RegionProfileData SimInfo = null;
@@ -96,6 +100,7 @@ namespace OpenSim.Grid.UserServer
             m_log.InfoFormat(
                 "[ASSUMED CRASH]: Telling region {0} @ {1},{2} ({3}) that their agent is dead: {4}",
                 SimInfo.regionName, SimInfo.regionLocX, SimInfo.regionLocY, SimInfo.httpServerURI, theUser.FirstName + " " + theUser.SurName);
+            
             try
             {
                 XmlRpcRequest GridReq = new XmlRpcRequest("logoff_user", SendParams);
@@ -420,20 +425,12 @@ namespace OpenSim.Grid.UserServer
 
         // See LoginService
         protected override InventoryData GetInventorySkeleton(LLUUID userID, string serverUrl)
-        {
-            string invUrl = m_config.InventoryUrl;
-            //if (!String.IsNullOrEmpty(serverUrl))
-            //{
-            //    invUrl = serverUrl+"/";
-            //}
-            
+        {           
             m_log.DebugFormat(
                  "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of user {1}",
                  m_config.InventoryUrl, userID);
-
-            List<InventoryFolderBase> folders
-                = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
-                    "POST", invUrl + "RootFolders/", userID.UUID);
+            
+            List<InventoryFolderBase> folders = m_inventoryService.GetInventorySkeleton(userID);
 
             if (null == folders || folders.Count == 0)
             {
@@ -444,11 +441,7 @@ namespace OpenSim.Grid.UserServer
                 // tools are creating the user profile directly in the database without creating the inventory.  At
                 // this time we'll accomodate them by lazily creating the user inventory now if it doesn't already
                 // exist.
-                bool created =
-                    SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
-                        "POST", invUrl + "CreateInventory/", userID.UUID);
-
-                if (!created)
+                if (!m_inventoryService.CreateNewUserInventory(userID))
                 {
                     throw new Exception(
                         String.Format(
@@ -461,8 +454,7 @@ namespace OpenSim.Grid.UserServer
                     m_log.InfoFormat("[LOGIN]: A new inventory skeleton was successfully created for user {0}", userID);
                 }
 
-                folders = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
-                    "POST", invUrl + "RootFolders/", userID.UUID);
+                folders = m_inventoryService.GetInventorySkeleton(userID);
             }
 
             if (folders != null && folders.Count > 0)

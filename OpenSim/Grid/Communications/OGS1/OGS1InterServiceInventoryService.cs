@@ -46,6 +46,11 @@ namespace OpenSim.Grid.Communications.OGS1
             m_inventoryServerUrl = inventoryServerUrl;
         }
         
+        /// <summary>
+        /// <see cref="OpenSim.Framework.Communications.IInterServiceInventoryServices"/>
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>        
         public bool CreateNewUserInventory(LLUUID userId)
         {
             return SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
@@ -59,9 +64,8 @@ namespace OpenSim.Grid.Communications.OGS1
         /// <returns></returns>
         public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
         {
-            //m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: The GetInventorySkeleton() method here should never be called!");
-
-            return new List<InventoryFolderBase>();
+            return SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
+                "POST", m_inventoryServerUrl + "RootFolders/", userId.UUID);
         }
     }
 }

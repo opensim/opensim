@@ -100,10 +100,10 @@ namespace OpenSim.Grid.UserServer
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
 
-            m_loginService = new UserLoginService(
-                 m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
+            m_interServiceInventoryService = new OGS1InterServiceInventoryService(m_userManager._config.InventoryUrl);            
 
-            m_interServiceInventoryService = new OGS1InterServiceInventoryService(m_userManager._config.InventoryUrl);
+            m_loginService = new UserLoginService(
+                 m_userManager, m_interServiceInventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);            
             
             m_messagesService = new MessageServersConnector();
 
