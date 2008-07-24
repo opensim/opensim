@@ -256,6 +256,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (count > 10)
                     count = 10;
                 packet.Header.AckList = new uint[count];
+                packet.Header.AppendedAcks = true;
 
                 int i = 0;
 
@@ -527,7 +528,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Always ack the packet!
             //
-            AckPacket(packet);
+            if (packet.Header.Reliable)
+                AckPacket(packet);
 
             if (packet.Type != PacketType.AgentUpdate)
                 m_PacketsReceived++;
