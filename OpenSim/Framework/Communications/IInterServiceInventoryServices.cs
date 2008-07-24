@@ -33,7 +33,7 @@ namespace OpenSim.Framework.Communications
     /// <summary>
     /// Inventory operations used between grid services.
     /// </summary>    
-    public interface IInterGridInventoryServices
+    public interface IInterServiceInventoryServices
     {        
         /// <summary>
         /// Create a new inventory for the given user.

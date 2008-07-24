@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Communications
     /// <summary>
     /// Defines all the operations one can perform on a user's inventory.
     /// </summary>
-    public interface IInventoryServices : IInterGridInventoryServices
+    public interface IInventoryServices
     {        
         string Host
         {

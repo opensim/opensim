@@ -54,7 +54,7 @@ namespace OpenSim.Grid.UserServer
         public UserManager m_userManager;
         public UserLoginService m_loginService;
         public MessageServersConnector m_messagesService;
-        protected IInventoryServices m_inventoryService;
+        protected IInterServiceInventoryServices m_interServiceInventoryService;
 
         private LLUUID m_lastCreatedUser = LLUUID.Random();
 
@@ -103,7 +103,7 @@ namespace OpenSim.Grid.UserServer
             m_loginService = new UserLoginService(
                  m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
 
-            m_inventoryService = new OGS1InventoryService(m_userManager._config.InventoryUrl);
+            m_interServiceInventoryService = new OGS1InventoryService(m_userManager._config.InventoryUrl);
             
             m_messagesService = new MessageServersConnector();
 
@@ -196,7 +196,7 @@ namespace OpenSim.Grid.UserServer
 
                     try
                     {                        
-                        if (!m_inventoryService.CreateNewUserInventory(userID))
+                        if (!m_interServiceInventoryService.CreateNewUserInventory(userID))
                         {
                             throw new Exception(
                                 String.Format(

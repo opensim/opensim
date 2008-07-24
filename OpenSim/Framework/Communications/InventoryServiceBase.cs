@@ -38,7 +38,7 @@ namespace OpenSim.Framework.Communications
     /// <summary>
     /// Abstract base class used by local and grid implementations of an inventory service.
     /// </summary>
-    public abstract class InventoryServiceBase : IInventoryServices, IInterGridInventoryServices
+    public abstract class InventoryServiceBase : IInventoryServices, IInterServiceInventoryServices
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

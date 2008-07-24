@@ -39,7 +39,7 @@ using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Region.Communications.OGS1
 {
-    public class OGS1SecureInventoryService : ISecureInventoryService, IInterGridInventoryServices
+    public class OGS1SecureInventoryService : ISecureInventoryService, IInterServiceInventoryServices
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

@@ -85,7 +85,7 @@ namespace OpenSim.Region.Communications.Local
                 profile = m_userManager.GetUserProfile(firstname, lastname);
                 if (profile != null)
                 {
-                    m_Parent.InterGridInventoryService.CreateNewUserInventory(profile.ID);
+                    m_Parent.InterServiceInventoryService.CreateNewUserInventory(profile.ID);
                 }
 
                 return profile;
@@ -260,13 +260,13 @@ namespace OpenSim.Region.Communications.Local
         // See LoginService
         protected override InventoryData GetInventorySkeleton(LLUUID userID, string serverUrl)
         {
-            List<InventoryFolderBase> folders = m_Parent.InterGridInventoryService.GetInventorySkeleton(userID);
+            List<InventoryFolderBase> folders = m_Parent.InterServiceInventoryService.GetInventorySkeleton(userID);
 
             // If we have user auth but no inventory folders for some reason, create a new set of folders.
             if (null == folders || 0 == folders.Count)
             {
-                m_Parent.InterGridInventoryService.CreateNewUserInventory(userID);
-                folders = m_Parent.InterGridInventoryService.GetInventorySkeleton(userID);
+                m_Parent.InterServiceInventoryService.CreateNewUserInventory(userID);
+                folders = m_Parent.InterServiceInventoryService.GetInventorySkeleton(userID);
             }
 
             LLUUID rootID = LLUUID.Zero;

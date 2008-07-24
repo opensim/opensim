@@ -88,11 +88,11 @@ namespace OpenSim.Framework.Communications
         }
         protected AssetCache m_assetCache;                
         
-        public IInterGridInventoryServices InterGridInventoryService
+        public IInterServiceInventoryServices InterServiceInventoryService
         {
-            get { return m_interGridInventoryService; }
+            get { return m_interServiceInventoryService; }
         }        
-        protected IInterGridInventoryServices m_interGridInventoryService;
+        protected IInterServiceInventoryServices m_interServiceInventoryService;
 
         public NetworkServersInfo NetworkServersInfo
         {
@@ -296,7 +296,7 @@ namespace OpenSim.Framework.Communications
             }
             else
             {
-                InventoryService.CreateNewUserInventory(userProf.ID);
+                InterServiceInventoryService.CreateNewUserInventory(userProf.ID);
                 m_log.Info("[USERS]: Created new inventory set for " + firstName + " " + lastName);
                 return userProf.ID;
             }
