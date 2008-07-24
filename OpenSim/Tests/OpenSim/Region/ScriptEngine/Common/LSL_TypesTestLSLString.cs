@@ -35,37 +35,45 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
     [TestFixture]
     public class LSL_TypesTestLSLString
     {
+        private Dictionary<double, string> m_doubleStringSet;
+
+        /// <summary>
+        /// Sets up dictionaries and arrays used in the tests.
+        /// </summary>
+        [TestFixtureSetUp]
+        public void SetUpDataSets()
+        {
+            m_doubleStringSet = new Dictionary<double, string>();
+            m_doubleStringSet.Add(2, "2.000000");
+            m_doubleStringSet.Add(-2, "-2.000000");
+            m_doubleStringSet.Add(0, "0.000000");
+            m_doubleStringSet.Add(1, "1.000000");
+            m_doubleStringSet.Add(-1, "-1.000000");
+            m_doubleStringSet.Add(999999999, "999999999.000000");
+            m_doubleStringSet.Add(-99999999, "-99999999.000000");
+            m_doubleStringSet.Add(0.5, "0.500000");
+            m_doubleStringSet.Add(0.0005, "0.000500");
+            m_doubleStringSet.Add(0.6805, "0.680500");
+            m_doubleStringSet.Add(-0.5, "-0.500000");
+            m_doubleStringSet.Add(-0.0005, "-0.000500");
+            m_doubleStringSet.Add(-0.6805, "-0.680500");
+            m_doubleStringSet.Add(548.5, "548.500000");
+            m_doubleStringSet.Add(2.0005, "2.000500");
+            m_doubleStringSet.Add(349485435.6805, "349485435.680500");
+            m_doubleStringSet.Add(-548.5, "-548.500000");
+            m_doubleStringSet.Add(-2.0005, "-2.000500");
+            m_doubleStringSet.Add(-349485435.6805, "-349485435.680500");
+        }
+
         /// <summary>
         /// Tests constructing a LSLString from an LSLFloat.
         /// </summary>
         [Test]
         public void TestConstructFromLSLFloat()
         {
-            // The numbers we test for.
-            Dictionary<double, string> numberSet = new Dictionary<double, string>();
-            numberSet.Add(2, "2.000000");
-            numberSet.Add(-2, "-2.000000");
-            numberSet.Add(0, "0.000000");
-            numberSet.Add(1, "1.000000");
-            numberSet.Add(-1, "-1.000000");
-            numberSet.Add(999999999, "999999999.000000");
-            numberSet.Add(-99999999, "-99999999.000000");
-            numberSet.Add(0.5, "0.500000");
-            numberSet.Add(0.0005, "0.000500");
-            numberSet.Add(0.6805, "0.680500");
-            numberSet.Add(-0.5, "-0.500000");
-            numberSet.Add(-0.0005, "-0.000500");
-            numberSet.Add(-0.6805, "-0.680500");
-            numberSet.Add(548.5, "548.500000");
-            numberSet.Add(2.0005, "2.000500");
-            numberSet.Add(349485435.6805, "349485435.680500");
-            numberSet.Add(-548.5, "-548.500000");
-            numberSet.Add(-2.0005, "-2.000500");
-            numberSet.Add(-349485435.6805, "-349485435.680500");
-
             LSL_Types.LSLString testString;
 
-            foreach (KeyValuePair<double, string> number in numberSet)
+            foreach (KeyValuePair<double, string> number in m_doubleStringSet)
             {
                 testString = new LSL_Types.LSLString(new LSL_Types.LSLFloat(number.Key));
                 Assert.AreEqual(number.Value, testString.m_string);
@@ -78,31 +86,9 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestExplicitCastLSLFloatToLSLString()
         {
-            // The numbers we test for.
-            Dictionary<double, string> numberSet = new Dictionary<double, string>();
-            numberSet.Add(2, "2.000000");
-            numberSet.Add(-2, "-2.000000");
-            numberSet.Add(0, "0.000000");
-            numberSet.Add(1, "1.000000");
-            numberSet.Add(-1, "-1.000000");
-            numberSet.Add(999999999, "999999999.000000");
-            numberSet.Add(-99999999, "-99999999.000000");
-            numberSet.Add(0.5, "0.500000");
-            numberSet.Add(0.0005, "0.000500");
-            numberSet.Add(0.6805, "0.680500");
-            numberSet.Add(-0.5, "-0.500000");
-            numberSet.Add(-0.0005, "-0.000500");
-            numberSet.Add(-0.6805, "-0.680500");
-            numberSet.Add(548.5, "548.500000");
-            numberSet.Add(2.0005, "2.000500");
-            numberSet.Add(349485435.6805, "349485435.680500");
-            numberSet.Add(-548.5, "-548.500000");
-            numberSet.Add(-2.0005, "-2.000500");
-            numberSet.Add(-349485435.6805, "-349485435.680500");
-
             LSL_Types.LSLString testString;
 
-            foreach (KeyValuePair<double, string> number in numberSet)
+            foreach (KeyValuePair<double, string> number in m_doubleStringSet)
             {
                 testString = (LSL_Types.LSLString) new LSL_Types.LSLFloat(number.Key);
                 Assert.AreEqual(number.Value, testString.m_string);

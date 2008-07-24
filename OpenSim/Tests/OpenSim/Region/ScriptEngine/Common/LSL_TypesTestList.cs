@@ -79,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         }
 
         /// <summary>
-        /// Tests concatenating an integer to a list.
+        /// Tests concatenating a double to a list.
         /// </summary>
         [Test]
         public void TestConcatenateDouble()

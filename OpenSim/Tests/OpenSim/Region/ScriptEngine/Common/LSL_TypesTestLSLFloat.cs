@@ -39,25 +39,174 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         // Used for testing equality of two floats.
         private double _lowPrecisionTolerance = 0.000001;
 
+        private Dictionary<int, double> m_intDoubleSet;
+        private Dictionary<double, double> m_doubleDoubleSet;
+        private Dictionary<double, int> m_doubleIntSet;
+        private Dictionary<double, int> m_doubleUintSet;
+        private Dictionary<string, double> m_stringDoubleSet;
+        private Dictionary<double, string> m_doubleStringSet;
+        private List<int> m_intList;
+        private List<double> m_doubleList;
+
+        /// <summary>
+        /// Sets up dictionaries and arrays used in the tests.
+        /// </summary>
+        [TestFixtureSetUp]
+        public void SetUpDataSets()
+        {
+            m_intDoubleSet = new Dictionary<int, double>();
+            m_intDoubleSet.Add(2, 2.0);
+            m_intDoubleSet.Add(-2, -2.0);
+            m_intDoubleSet.Add(0, 0.0);
+            m_intDoubleSet.Add(1, 1.0);
+            m_intDoubleSet.Add(-1, -1.0);
+            m_intDoubleSet.Add(999999999, 999999999.0);
+            m_intDoubleSet.Add(-99999999, -99999999.0);
+
+            m_doubleDoubleSet = new Dictionary<double, double>();
+            m_doubleDoubleSet.Add(2.0, 2.0);
+            m_doubleDoubleSet.Add(-2.0, -2.0);
+            m_doubleDoubleSet.Add(0.0, 0.0);
+            m_doubleDoubleSet.Add(1.0, 1.0);
+            m_doubleDoubleSet.Add(-1.0, -1.0);
+            m_doubleDoubleSet.Add(999999999.0, 999999999.0);
+            m_doubleDoubleSet.Add(-99999999.0, -99999999.0);
+            m_doubleDoubleSet.Add(0.5, 0.5);
+            m_doubleDoubleSet.Add(0.0005, 0.0005);
+            m_doubleDoubleSet.Add(0.6805, 0.6805);
+            m_doubleDoubleSet.Add(-0.5, -0.5);
+            m_doubleDoubleSet.Add(-0.0005, -0.0005);
+            m_doubleDoubleSet.Add(-0.6805, -0.6805);
+            m_doubleDoubleSet.Add(548.5, 548.5);
+            m_doubleDoubleSet.Add(2.0005, 2.0005);
+            m_doubleDoubleSet.Add(349485435.6805, 349485435.6805);
+            m_doubleDoubleSet.Add(-548.5, -548.5);
+            m_doubleDoubleSet.Add(-2.0005, -2.0005);
+            m_doubleDoubleSet.Add(-349485435.6805, -349485435.6805);
+
+            m_doubleIntSet = new Dictionary<double, int>();
+            m_doubleIntSet.Add(2.0, 2);
+            m_doubleIntSet.Add(-2.0, -2);
+            m_doubleIntSet.Add(0.0, 0);
+            m_doubleIntSet.Add(1.0, 1);
+            m_doubleIntSet.Add(-1.0, -1);
+            m_doubleIntSet.Add(999999999.0, 999999999);
+            m_doubleIntSet.Add(-99999999.0, -99999999);
+            m_doubleIntSet.Add(0.5, 0);
+            m_doubleIntSet.Add(0.0005, 0);
+            m_doubleIntSet.Add(0.6805, 0);
+            m_doubleIntSet.Add(-0.5, 0);
+            m_doubleIntSet.Add(-0.0005, 0);
+            m_doubleIntSet.Add(-0.6805, 0);
+            m_doubleIntSet.Add(548.5, 548);
+            m_doubleIntSet.Add(2.0005, 2);
+            m_doubleIntSet.Add(349485435.6805, 349485435);
+            m_doubleIntSet.Add(-548.5, -548);
+            m_doubleIntSet.Add(-2.0005, -2);
+            m_doubleIntSet.Add(-349485435.6805, -349485435);
+
+            m_doubleUintSet = new Dictionary<double, int>();
+            m_doubleUintSet.Add(2.0, 2);
+            m_doubleUintSet.Add(-2.0, 2);
+            m_doubleUintSet.Add(0.0, 0);
+            m_doubleUintSet.Add(1.0, 1);
+            m_doubleUintSet.Add(-1.0, 1);
+            m_doubleUintSet.Add(999999999.0, 999999999);
+            m_doubleUintSet.Add(-99999999.0, 99999999);
+            m_doubleUintSet.Add(0.5, 0);
+            m_doubleUintSet.Add(0.0005, 0);
+            m_doubleUintSet.Add(0.6805, 0);
+            m_doubleUintSet.Add(-0.5, 0);
+            m_doubleUintSet.Add(-0.0005, 0);
+            m_doubleUintSet.Add(-0.6805, 0);
+            m_doubleUintSet.Add(548.5, 548);
+            m_doubleUintSet.Add(2.0005, 2);
+            m_doubleUintSet.Add(349485435.6805, 349485435);
+            m_doubleUintSet.Add(-548.5, 548);
+            m_doubleUintSet.Add(-2.0005, 2);
+            m_doubleUintSet.Add(-349485435.6805, 349485435);
+
+            m_stringDoubleSet = new Dictionary<string, double>();
+            m_stringDoubleSet.Add("2", 2.0);
+            m_stringDoubleSet.Add("-2", -2.0);
+            m_stringDoubleSet.Add("1", 1.0);
+            m_stringDoubleSet.Add("-1", -1.0);
+            m_stringDoubleSet.Add("0", 0.0);
+            m_stringDoubleSet.Add("999999999.0", 999999999.0);
+            m_stringDoubleSet.Add("-99999999.0", -99999999.0);
+            m_stringDoubleSet.Add("0.5", 0.5);
+            m_stringDoubleSet.Add("0.0005", 0.0005);
+            m_stringDoubleSet.Add("0.6805", 0.6805);
+            m_stringDoubleSet.Add("-0.5", -0.5);
+            m_stringDoubleSet.Add("-0.0005", -0.0005);
+            m_stringDoubleSet.Add("-0.6805", -0.6805);
+            m_stringDoubleSet.Add("548.5", 548.5);
+            m_stringDoubleSet.Add("2.0005", 2.0005);
+            m_stringDoubleSet.Add("349485435.6805", 349485435.6805);
+            m_stringDoubleSet.Add("-548.5", -548.5);
+            m_stringDoubleSet.Add("-2.0005", -2.0005);
+            m_stringDoubleSet.Add("-349485435.6805", -349485435.6805);
+
+            m_doubleStringSet = new Dictionary<double, string>();
+            m_doubleStringSet.Add(2.0, "2.000000");
+            m_doubleStringSet.Add(-2.0, "-2.000000");
+            m_doubleStringSet.Add(1.0, "1.000000");
+            m_doubleStringSet.Add(-1.0, "-1.000000");
+            m_doubleStringSet.Add(0.0, "0.000000");
+            m_doubleStringSet.Add(999999999.0, "999999999.000000");
+            m_doubleStringSet.Add(-99999999.0, "-99999999.000000");
+            m_doubleStringSet.Add(0.5, "0.500000");
+            m_doubleStringSet.Add(0.0005, "0.000500");
+            m_doubleStringSet.Add(0.6805, "0.680500");
+            m_doubleStringSet.Add(-0.5, "-0.500000");
+            m_doubleStringSet.Add(-0.0005, "-0.000500");
+            m_doubleStringSet.Add(-0.6805, "-0.680500");
+            m_doubleStringSet.Add(548.5, "548.500000");
+            m_doubleStringSet.Add(2.0005, "2.000500");
+            m_doubleStringSet.Add(349485435.6805, "349485435.680500");
+            m_doubleStringSet.Add(-548.5, "-548.500000");
+            m_doubleStringSet.Add(-2.0005, "-2.000500");
+            m_doubleStringSet.Add(-349485435.6805, "-349485435.680500");
+
+            m_doubleList = new List<double>();
+            m_doubleList.Add(2.0);
+            m_doubleList.Add(-2.0);
+            m_doubleList.Add(1.0);
+            m_doubleList.Add(-1.0);
+            m_doubleList.Add(999999999.0);
+            m_doubleList.Add(-99999999.0);
+            m_doubleList.Add(0.5);
+            m_doubleList.Add(0.0005);
+            m_doubleList.Add(0.6805);
+            m_doubleList.Add(-0.5);
+            m_doubleList.Add(-0.0005);
+            m_doubleList.Add(-0.6805);
+            m_doubleList.Add(548.5);
+            m_doubleList.Add(2.0005);
+            m_doubleList.Add(349485435.6805);
+            m_doubleList.Add(-548.5);
+            m_doubleList.Add(-2.0005);
+            m_doubleList.Add(-349485435.6805);
+
+            m_intList = new List<int>();
+            m_intList.Add(2);
+            m_intList.Add(-2);
+            m_intList.Add(0);
+            m_intList.Add(1);
+            m_intList.Add(-1);
+            m_intList.Add(999999999);
+            m_intList.Add(-99999999);
+        }
+
         /// <summary>
         /// Tests constructing a LSLFloat from an integer.
         /// </summary>
         [Test]
         public void TestConstructFromInt()
         {
-            // The numbers we test for.
-            Dictionary<int, double> numberSet = new Dictionary<int, double>();
-            numberSet.Add(2, 2.0);
-            numberSet.Add(-2, -2.0);
-            numberSet.Add(0, 0.0);
-            numberSet.Add(1, 1.0);
-            numberSet.Add(-1, -1.0);
-            numberSet.Add(999999999, 999999999.0);
-            numberSet.Add(-99999999, -99999999.0);
-
             LSL_Types.LSLFloat testFloat;
 
-            foreach (KeyValuePair<int, double> number in numberSet)
+            foreach (KeyValuePair<int, double> number in m_intDoubleSet)
             {
                 testFloat = new LSL_Types.LSLFloat(number.Key);
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number.Value, _lowPrecisionTolerance));
@@ -70,31 +219,9 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestConstructFromDouble()
         {
-            // The numbers we test for.
-            Dictionary<double, double> numberSet = new Dictionary<double, double>();
-            numberSet.Add(2.0, 2.0);
-            numberSet.Add(-2.0, -2.0);
-            numberSet.Add(0.0, 0.0);
-            numberSet.Add(1.0, 1.0);
-            numberSet.Add(-1.0, -1.0);
-            numberSet.Add(999999999.0, 999999999.0);
-            numberSet.Add(-99999999.0, -99999999.0);
-            numberSet.Add(0.5, 0.5);
-            numberSet.Add(0.0005, 0.0005);
-            numberSet.Add(0.6805, 0.6805);
-            numberSet.Add(-0.5, -0.5);
-            numberSet.Add(-0.0005, -0.0005);
-            numberSet.Add(-0.6805, -0.6805);
-            numberSet.Add(548.5, 548.5);
-            numberSet.Add(2.0005, 2.0005);
-            numberSet.Add(349485435.6805, 349485435.6805);
-            numberSet.Add(-548.5, -548.5);
-            numberSet.Add(-2.0005, -2.0005);
-            numberSet.Add(-349485435.6805, -349485435.6805);
-
             LSL_Types.LSLFloat testFloat;
 
-            foreach (KeyValuePair<double, double> number in numberSet)
+            foreach (KeyValuePair<double, double> number in m_doubleDoubleSet)
             {
                 testFloat = new LSL_Types.LSLFloat(number.Key);
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number.Value, _lowPrecisionTolerance));
@@ -107,31 +234,9 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestImplicitCastLSLFloatToInt()
         {
-            // The numbers we test for.
-            Dictionary<double, int> numberSet = new Dictionary<double, int>();
-            numberSet.Add(2.0, 2);
-            numberSet.Add(-2.0, -2);
-            numberSet.Add(0.0, 0);
-            numberSet.Add(1.0, 1);
-            numberSet.Add(-1.0, -1);
-            numberSet.Add(999999999.0, 999999999);
-            numberSet.Add(-99999999.0, -99999999);
-            numberSet.Add(0.5, 0);
-            numberSet.Add(0.0005, 0);
-            numberSet.Add(0.6805, 0);
-            numberSet.Add(-0.5, 0);
-            numberSet.Add(-0.0005, 0);
-            numberSet.Add(-0.6805, 0);
-            numberSet.Add(548.5, 548);
-            numberSet.Add(2.0005, 2);
-            numberSet.Add(349485435.6805, 349485435);
-            numberSet.Add(-548.5, -548);
-            numberSet.Add(-2.0005, -2);
-            numberSet.Add(-349485435.6805, -349485435);
-
             int testNumber;
 
-            foreach (KeyValuePair<double, int> number in numberSet)
+            foreach (KeyValuePair<double, int> number in m_doubleIntSet)
             {
                 testNumber = new LSL_Types.LSLFloat(number.Key);
                 Assert.AreEqual(number.Value, testNumber, "Converting double " + number.Key + ", expecting int " + number.Value);
@@ -144,31 +249,9 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestImplicitCastLSLFloatToUint()
         {
-            // The numbers we test for.
-            Dictionary<double, int> numberSet = new Dictionary<double, int>();
-            numberSet.Add(2.0, 2);
-            numberSet.Add(-2.0, 2);
-            numberSet.Add(0.0, 0);
-            numberSet.Add(1.0, 1);
-            numberSet.Add(-1.0, 1);
-            numberSet.Add(999999999.0, 999999999);
-            numberSet.Add(-99999999.0, 99999999);
-            numberSet.Add(0.5, 0);
-            numberSet.Add(0.0005, 0);
-            numberSet.Add(0.6805, 0);
-            numberSet.Add(-0.5, 0);
-            numberSet.Add(-0.0005, 0);
-            numberSet.Add(-0.6805, 0);
-            numberSet.Add(548.5, 548);
-            numberSet.Add(2.0005, 2);
-            numberSet.Add(349485435.6805, 349485435);
-            numberSet.Add(-548.5, 548);
-            numberSet.Add(-2.0005, 2);
-            numberSet.Add(-349485435.6805, 349485435);
-
             uint testNumber;
 
-            foreach (KeyValuePair<double, int> number in numberSet)
+            foreach (KeyValuePair<double, int> number in m_doubleUintSet)
             {
                 testNumber = new LSL_Types.LSLFloat(number.Key);
                 Assert.AreEqual(number.Value, testNumber, "Converting double " + number.Key + ", expecting uint " + number.Value);
@@ -181,31 +264,10 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestImplicitCastLSLFloatToBooleanTrue()
         {
-            // A bunch of numbers to test with.
-            List<double> numberList = new List<double>();
-            numberList.Add(2.0);
-            numberList.Add(-2.0);
-            numberList.Add(1.0);
-            numberList.Add(-1.0);
-            numberList.Add(999999999.0);
-            numberList.Add(-99999999.0);
-            numberList.Add(0.5);
-            numberList.Add(0.0005);
-            numberList.Add(0.6805);
-            numberList.Add(-0.5);
-            numberList.Add(-0.0005);
-            numberList.Add(-0.6805);
-            numberList.Add(548.5);
-            numberList.Add(2.0005);
-            numberList.Add(349485435.6805);
-            numberList.Add(-548.5);
-            numberList.Add(-2.0005);
-            numberList.Add(-349485435.6805);
-
             LSL_Types.LSLFloat testFloat;
             bool testBool;
 
-            foreach (double number in numberList)
+            foreach (double number in m_doubleList)
             {
                 testFloat = new LSL_Types.LSLFloat(number);
                 testBool = testFloat;
@@ -232,19 +294,9 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestImplicitCastIntToLSLFloat()
         {
-            // A bunch of numbers to test with.
-            List<int> numberList = new List<int>();
-            numberList.Add(2);
-            numberList.Add(-2);
-            numberList.Add(0);
-            numberList.Add(1);
-            numberList.Add(-1);
-            numberList.Add(999999999);
-            numberList.Add(-99999999);
-
             LSL_Types.LSLFloat testFloat;
 
-            foreach (int number in numberList)
+            foreach (int number in m_intList)
             {
                 testFloat = number;
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number, _lowPrecisionTolerance));
@@ -257,31 +309,9 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestImplicitCastStringToLSLFloat()
         {
-            // A bunch of numbers to test with.
-            Dictionary<string, double> numberSet = new Dictionary<string, double>();
-            numberSet.Add("2", 2.0);
-            numberSet.Add("-2", -2.0);
-            numberSet.Add("1", 1.0);
-            numberSet.Add("-1", -1.0);
-            numberSet.Add("0", 0.0);
-            numberSet.Add("999999999.0", 999999999.0);
-            numberSet.Add("-99999999.0", -99999999.0);
-            numberSet.Add("0.5", 0.5);
-            numberSet.Add("0.0005", 0.0005);
-            numberSet.Add("0.6805", 0.6805);
-            numberSet.Add("-0.5", -0.5);
-            numberSet.Add("-0.0005", -0.0005);
-            numberSet.Add("-0.6805", -0.6805);
-            numberSet.Add("548.5", 548.5);
-            numberSet.Add("2.0005", 2.0005);
-            numberSet.Add("349485435.6805", 349485435.6805);
-            numberSet.Add("-548.5", -548.5);
-            numberSet.Add("-2.0005", -2.0005);
-            numberSet.Add("-349485435.6805", -349485435.6805);
-
             LSL_Types.LSLFloat testFloat;
 
-            foreach (KeyValuePair<string, double> number in numberSet)
+            foreach (KeyValuePair<string, double> number in m_stringDoubleSet)
             {
                 testFloat = number.Key;
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number.Value, _lowPrecisionTolerance));
@@ -294,31 +324,9 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestImplicitCastDoubleToLSLFloat()
         {
-            // A bunch of numbers to test with.
-            List<double> numberList = new List<double>();
-            numberList.Add(2.0);
-            numberList.Add(-2.0);
-            numberList.Add(1.0);
-            numberList.Add(-1.0);
-            numberList.Add(0.0);
-            numberList.Add(999999999.0);
-            numberList.Add(-99999999.0);
-            numberList.Add(0.5);
-            numberList.Add(0.0005);
-            numberList.Add(0.6805);
-            numberList.Add(-0.5);
-            numberList.Add(-0.0005);
-            numberList.Add(-0.6805);
-            numberList.Add(548.5);
-            numberList.Add(2.0005);
-            numberList.Add(349485435.6805);
-            numberList.Add(-548.5);
-            numberList.Add(-2.0005);
-            numberList.Add(-349485435.6805);
-
             LSL_Types.LSLFloat testFloat;
 
-            foreach (double number in numberList)
+            foreach (double number in m_doubleList)
             {
                 testFloat = number;
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number, _lowPrecisionTolerance));
@@ -331,31 +339,9 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestEqualsOperator()
         {
-            // A bunch of numbers to test with.
-            List<double> numberList = new List<double>();
-            numberList.Add(2.0);
-            numberList.Add(-2.0);
-            numberList.Add(1.0);
-            numberList.Add(-1.0);
-            numberList.Add(0.0);
-            numberList.Add(999999999.0);
-            numberList.Add(-99999999.0);
-            numberList.Add(0.5);
-            numberList.Add(0.0005);
-            numberList.Add(0.6805);
-            numberList.Add(-0.5);
-            numberList.Add(-0.0005);
-            numberList.Add(-0.6805);
-            numberList.Add(548.5);
-            numberList.Add(2.0005);
-            numberList.Add(349485435.6805);
-            numberList.Add(-548.5);
-            numberList.Add(-2.0005);
-            numberList.Add(-349485435.6805);
-
             LSL_Types.LSLFloat testFloatA, testFloatB;
 
-            foreach (double number in numberList)
+            foreach (double number in m_doubleList)
             {
                 testFloatA = new LSL_Types.LSLFloat(number);
                 testFloatB = new LSL_Types.LSLFloat(number);
@@ -372,31 +358,9 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestNotEqualOperator()
         {
-            // A bunch of numbers to test with.
-            List<double> numberList = new List<double>();
-            numberList.Add(2.0);
-            numberList.Add(-2.0);
-            numberList.Add(1.0);
-            numberList.Add(-1.0);
-            numberList.Add(0.0);
-            numberList.Add(999999999.0);
-            numberList.Add(-99999999.0);
-            numberList.Add(0.5);
-            numberList.Add(0.0005);
-            numberList.Add(0.6805);
-            numberList.Add(-0.5);
-            numberList.Add(-0.0005);
-            numberList.Add(-0.6805);
-            numberList.Add(548.5);
-            numberList.Add(2.0005);
-            numberList.Add(349485435.6805);
-            numberList.Add(-548.5);
-            numberList.Add(-2.0005);
-            numberList.Add(-349485435.6805);
-
             LSL_Types.LSLFloat testFloatA, testFloatB;
 
-            foreach (double number in numberList)
+            foreach (double number in m_doubleList)
             {
                 testFloatA = new LSL_Types.LSLFloat(number);
                 testFloatB = new LSL_Types.LSLFloat(number + 1.0);
@@ -413,32 +377,10 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestIncrementOperator()
         {
-            // A bunch of numbers to test with.
-            List<double> numberList = new List<double>();
-            numberList.Add(2.0);
-            numberList.Add(-2.0);
-            numberList.Add(1.0);
-            numberList.Add(-1.0);
-            numberList.Add(0.0);
-            numberList.Add(999999999.0);
-            numberList.Add(-99999999.0);
-            numberList.Add(0.5);
-            numberList.Add(0.0005);
-            numberList.Add(0.6805);
-            numberList.Add(-0.5);
-            numberList.Add(-0.0005);
-            numberList.Add(-0.6805);
-            numberList.Add(548.5);
-            numberList.Add(2.0005);
-            numberList.Add(349485435.6805);
-            numberList.Add(-548.5);
-            numberList.Add(-2.0005);
-            numberList.Add(-349485435.6805);
-
             LSL_Types.LSLFloat testFloat;
             double testNumber;
 
-            foreach (double number in numberList)
+            foreach (double number in m_doubleList)
             {
                 testFloat = new LSL_Types.LSLFloat(number);
 
@@ -459,32 +401,10 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestDecrementOperator()
         {
-            // A bunch of numbers to test with.
-            List<double> numberList = new List<double>();
-            numberList.Add(2.0);
-            numberList.Add(-2.0);
-            numberList.Add(1.0);
-            numberList.Add(-1.0);
-            numberList.Add(0.0);
-            numberList.Add(999999999.0);
-            numberList.Add(-99999999.0);
-            numberList.Add(0.5);
-            numberList.Add(0.0005);
-            numberList.Add(0.6805);
-            numberList.Add(-0.5);
-            numberList.Add(-0.0005);
-            numberList.Add(-0.6805);
-            numberList.Add(548.5);
-            numberList.Add(2.0005);
-            numberList.Add(349485435.6805);
-            numberList.Add(-548.5);
-            numberList.Add(-2.0005);
-            numberList.Add(-349485435.6805);
-
             LSL_Types.LSLFloat testFloat;
             double testNumber;
 
-            foreach (double number in numberList)
+            foreach (double number in m_doubleList)
             {
                 testFloat = new LSL_Types.LSLFloat(number);
 
@@ -505,32 +425,10 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestImplicitCastLSLFloatToDouble()
         {
-            // A bunch of numbers to test with.
-            List<double> numberList = new List<double>();
-            numberList.Add(2.0);
-            numberList.Add(-2.0);
-            numberList.Add(1.0);
-            numberList.Add(-1.0);
-            numberList.Add(0.0);
-            numberList.Add(999999999.0);
-            numberList.Add(-99999999.0);
-            numberList.Add(0.5);
-            numberList.Add(0.0005);
-            numberList.Add(0.6805);
-            numberList.Add(-0.5);
-            numberList.Add(-0.0005);
-            numberList.Add(-0.6805);
-            numberList.Add(548.5);
-            numberList.Add(2.0005);
-            numberList.Add(349485435.6805);
-            numberList.Add(-548.5);
-            numberList.Add(-2.0005);
-            numberList.Add(-349485435.6805);
-
             double testNumber;
             LSL_Types.LSLFloat testFloat;
 
-            foreach (double number in numberList)
+            foreach (double number in m_doubleList)
             {
                 testFloat = new LSL_Types.LSLFloat(number);
                 testNumber = testFloat;
@@ -545,31 +443,9 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         [Test]
         public void TestToString()
         {
-            // A bunch of numbers to test with.
-            Dictionary<double, string> numberSet = new Dictionary<double, string>();
-            numberSet.Add(2.0, "2.000000");
-            numberSet.Add(-2.0, "-2.000000");
-            numberSet.Add(1.0, "1.000000");
-            numberSet.Add(-1.0, "-1.000000");
-            numberSet.Add(0.0, "0.000000");
-            numberSet.Add(999999999.0, "999999999.000000");
-            numberSet.Add(-99999999.0, "-99999999.000000");
-            numberSet.Add(0.5, "0.500000");
-            numberSet.Add(0.0005, "0.000500");
-            numberSet.Add(0.6805, "0.680500");
-            numberSet.Add(-0.5, "-0.500000");
-            numberSet.Add(-0.0005, "-0.000500");
-            numberSet.Add(-0.6805, "-0.680500");
-            numberSet.Add(548.5, "548.500000");
-            numberSet.Add(2.0005, "2.000500");
-            numberSet.Add(349485435.6805, "349485435.680500");
-            numberSet.Add(-548.5, "-548.500000");
-            numberSet.Add(-2.0005, "-2.000500");
-            numberSet.Add(-349485435.6805, "-349485435.680500");
-
             LSL_Types.LSLFloat testFloat;
 
-            foreach (KeyValuePair<double, string> number in numberSet)
+            foreach (KeyValuePair<double, string> number in m_doubleStringSet)
             {
                 testFloat = new LSL_Types.LSLFloat(number.Key);
                 Assert.AreEqual(number.Value, testFloat.ToString());
