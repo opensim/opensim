@@ -21,7 +21,19 @@
     
     <touch file="../${projectdir}/bin/startup_commands.txt" />
 
+    <delete dir="../test-results" />
     <mkdir dir="../test-results" />
+    <nunit2>
+      <formatter type="Xml" usefile="true" extension=".xml" outputdir="../test-results" />
+      <test>
+        <assemblies>
+          <include name="../bin/OpenSim.Framework.Tests.dll" />
+          <include name="../bin/OpenSim.Region.ScriptEngine.Common.Tests.dll" />
+          <include name="../bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
+          <include name="../bin/OpenSim.Region.Environment.dll" />
+        </assemblies>
+      </test>
+    </nunit2>
 
     <zip zipfile="../${projectdir}.zip">
       <fileset basedir="${projectdir}/">
