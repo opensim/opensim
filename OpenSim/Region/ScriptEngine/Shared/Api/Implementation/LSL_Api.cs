@@ -5118,9 +5118,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetLinkPrimitiveParams(int linknumber, LSL_Types.list rules)
         {
             m_host.AddScriptLPS(1);
-			
-			if(m_host.ParentGroup == null)
-				return;
+            
+            if (m_host.ParentGroup == null)
+                return;
 
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
 

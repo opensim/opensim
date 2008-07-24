@@ -684,8 +684,8 @@ default
     {
         integer x = 1;
 
-        if(x) llSay(0, ""Hello"");
-        if(1)
+        if (x) llSay(0, ""Hello"");
+        if (1)
         {
             llSay(0, ""Hi"");
             integer r = 3;
@@ -790,8 +790,8 @@ default
         integer x = 1;
         integer y = 0;
 
-        if(x && y) llSay(0, ""Hello"");
-        if(x || y)
+        if (x && y) llSay(0, ""Hello"");
+        if (x || y)
         {
             llSay(0, ""Hi"");
             integer r = 3;
@@ -983,14 +983,14 @@ default
         integer x = 1;
         integer y = 0;
 
-        for(x = 10; x >= 0; x--)
+        for (x = 10; x >= 0; x--)
         {
             llOwnerSay(""Launch in T minus "" + x);
             IncreaseRocketPower();
         }
 
-        for(x = 0, y = 6; y > 0 && x != y; x++, y--) llOwnerSay(""Hi "" + x + "", "" + y);
-        for(x = 0, y = 6; ! y; x++,y--) llOwnerSay(""Hi "" + x + "", "" + y);
+        for (x = 0, y = 6; y > 0 && x != y; x++, y--) llOwnerSay(""Hi "" + x + "", "" + y);
+        for (x = 0, y = 6; ! y; x++,y--) llOwnerSay(""Hi "" + x + "", "" + y);
     }
 }
 ";

@@ -234,7 +234,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 DropResend(id);
 
-				AddAcks(ref packet);
+                AddAcks(ref packet);
                 QueuePacket(packet, throttlePacketType, id);
 
                 // We want to see that packet arrive if it's reliable
@@ -246,8 +246,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-		private void AddAcks(ref Packet packet)
-		{
+        private void AddAcks(ref Packet packet)
+        {
             // Add acks to outgoing packets
             //
             if (m_PendingAcks.Count > 0)
@@ -268,8 +268,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
                 }
             }
-		}
-		
+        }
+        
         private void QueuePacket(
                 Packet packet, ThrottleOutPacketType throttlePacketType,
                 Object id)
