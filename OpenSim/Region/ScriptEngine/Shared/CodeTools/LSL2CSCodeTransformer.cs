@@ -34,7 +34,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
     public class LSL2CSCodeTransformer
     {
         private SYMBOL m_astRoot = null;
-        private static Dictionary<string, string> m_datatypeLSL2OpenSim = new Dictionary<string, string>();
+        private static Dictionary<string, string> m_datatypeLSL2OpenSim = null;
 
         /// <summary>
         /// Pass the new CodeTranformer an abstract syntax tree.
@@ -45,8 +45,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             m_astRoot = astRoot;
 
             // let's populate the dictionary
-            try
+            if (null == m_datatypeLSL2OpenSim)
             {
+                m_datatypeLSL2OpenSim = new Dictionary<string, string>();
                 m_datatypeLSL2OpenSim.Add("integer", "LSL_Types.LSLInteger");
                 m_datatypeLSL2OpenSim.Add("float", "LSL_Types.LSLFloat");
                 //m_datatypeLSL2OpenSim.Add("key", "LSL_Types.key"); // key doesn't seem to be used
@@ -55,10 +56,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 m_datatypeLSL2OpenSim.Add("vector", "LSL_Types.Vector3");
                 m_datatypeLSL2OpenSim.Add("rotation", "LSL_Types.Quaternion");
                 m_datatypeLSL2OpenSim.Add("list", "LSL_Types.list");
-            }
-            catch
-            {
-                // temporary workaround since we are adding to a static datatype
             }
         }
 
