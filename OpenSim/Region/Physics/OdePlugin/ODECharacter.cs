@@ -534,6 +534,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsVector Force
         {
             get { return new PhysicsVector(_target_velocity.X, _target_velocity.Y, _target_velocity.Z); }
+            set { return; }
         }
 
         public override PhysicsVector CenterOfMass

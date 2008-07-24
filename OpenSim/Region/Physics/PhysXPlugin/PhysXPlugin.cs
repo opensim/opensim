@@ -340,6 +340,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override PhysicsVector Force
         {
             get { return PhysicsVector.Zero; }
+            set { return; }
         }
 
         public override PhysicsVector CenterOfMass
@@ -669,6 +670,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override PhysicsVector Force
         {
             get { return PhysicsVector.Zero; }
+            set { return; }
         }
 
         public override PhysicsVector CenterOfMass

@@ -43,6 +43,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
 using OpenSim.Region.Environment.Modules.World.Land;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
@@ -1430,14 +1431,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetForce(LSL_Types.Vector3 force, int local)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetForce");
+            //NotImplemented("llSetForce");
+
+            if (m_host.ParentGroup != null)
+            {
+                if (m_host.ParentGroup.RootPart != null)
+                {
+                    if (local != 0)
+                        force *= llGetRot();
+
+                    m_host.ParentGroup.RootPart.SetForce(new PhysicsVector((float)force.x, (float)force.y, (float)force.z));
+                }
+            }
         }
 
         public LSL_Types.Vector3 llGetForce()
         {
+            LSL_Types.Vector3 force = new LSL_Types.Vector3(0.0, 0.0, 0.0);
+
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetForce");
-            return new LSL_Types.Vector3();
+            //NotImplemented("llGetForce");
+            //return new LSL_Types.Vector3();
+
+            if (m_host.ParentGroup != null)
+            {
+                if (m_host.ParentGroup.RootPart != null)
+                {
+                    PhysicsVector tmpForce = m_host.ParentGroup.RootPart.GetForce();
+                    force.x = tmpForce.X;
+                    force.y = tmpForce.Y;
+                    force.z = tmpForce.Z;
+                }
+            }
+
+            return force;
         }
 
         public LSL_Types.LSLInteger llTarget(LSL_Types.Vector3 position, double range)

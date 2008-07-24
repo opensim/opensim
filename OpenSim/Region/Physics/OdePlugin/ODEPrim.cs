@@ -103,6 +103,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private CollisionLocker ode;
 
         private bool m_taintforce = false;
+        private PhysicsVector m_force = new PhysicsVector(0.0f, 0.0f, 0.0f);
         private List<PhysicsVector> m_forcelist = new List<PhysicsVector>();
 
         private IMesh _mesh;
@@ -749,7 +750,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     changeshape(timestep);
                 //
 
-                if (m_taintforce)
+                if (m_taintforce || m_force != new PhysicsVector(0.0f, 0.0f, 0.0f))
                     changeAddForce(timestep);
 
                 if (m_taintdisable)
@@ -1751,7 +1752,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //m_log.Info("[PHYSICS]: dequeing forcelist");
                     if (IsPhysical)
                     {
-                        PhysicsVector iforce = new PhysicsVector();
+                        //PhysicsVector iforce = new PhysicsVector();
+                        PhysicsVector iforce = m_force * 100.0f;
                         for (int i = 0; i < m_forcelist.Count; i++)
                         {
                             iforce = iforce + (m_forcelist[i] * 100);
@@ -1856,7 +1858,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector Force
         {
-            get { return PhysicsVector.Zero; }
+            //get { return PhysicsVector.Zero; }
+            get { return m_force; }
+            set { m_force = value; }
         }
 
         public override PhysicsVector CenterOfMass

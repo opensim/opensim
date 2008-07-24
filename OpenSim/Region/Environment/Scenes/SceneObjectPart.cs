@@ -1374,6 +1374,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public PhysicsVector GetForce()
+        {
+            if (PhysActor != null)
+                return PhysActor.Force;
+            else
+                return new PhysicsVector();
+        }
+
         [SecurityPermission(SecurityAction.LinkDemand,
             Flags = SecurityPermissionFlag.SerializationFormatter)]
         public virtual void GetObjectData(
@@ -2293,6 +2301,14 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     PhysActor.FloatOnWater = false;
                 }
+            }
+        }
+
+        public void SetForce(PhysicsVector force)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.Force = force;
             }
         }
 

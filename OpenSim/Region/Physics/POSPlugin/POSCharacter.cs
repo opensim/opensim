@@ -156,6 +156,7 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override PhysicsVector Force
         {
             get { return PhysicsVector.Zero; }
+            set { return; }
         }
 
         public override PhysicsVector CenterOfMass
