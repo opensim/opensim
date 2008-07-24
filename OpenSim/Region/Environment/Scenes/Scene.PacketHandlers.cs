@@ -119,6 +119,22 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         break;
                     }
+                   else 
+                   {
+                       // We also need to check the children of this prim as they
+                       // can be selected as well and send property information
+                       bool foundPrim = false;
+                       foreach (KeyValuePair<LLUUID, SceneObjectPart> child in ((SceneObjectGroup) ent).Children)
+                       {
+                           if (child.Value.LocalId == primLocalID) 
+                           {
+                               child.Value.GetProperties(remoteClient);
+                               foundPrim = true;
+                               break;
+                           }
+                       }
+                       if (foundPrim) break;
+                   }
                 }
             }
         }
