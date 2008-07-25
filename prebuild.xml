@@ -1103,6 +1103,39 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.ApplicationPlugins.GridInfo" path="OpenSim/ApplicationPlugins/GridInfo" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="Mono.Addins.dll" />
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="libsecondlife.dll" />
+      <Reference name="Nini.dll" />
+      <Reference name="XMLRPC.dll" />
+      <Reference name="OpenSim"/>
+      <Reference name="OpenSim.Region.ClientStack"/>
+      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <!-- REST plugins -->
     <Project name="OpenSim.ApplicationPlugins.Rest" 
              path="OpenSim/ApplicationPlugins/Rest" type="Library">

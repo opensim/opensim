@@ -1,3 +1,23 @@
+[GridInfo]
+; login uri
+login = http://127.0.0.1:9000/
+; login page
+welcome = http://127.0.0.1/welcome
+; helper uri
+economy = http://127.0.0.1:9000/
+; web page of grid 
+about = http://127.0.0.1/about/
+; account creation
+register = http://127.0.0.1/register
+; help
+help = http://127.0.0.1/help
+; password help
+password = http://127.0.0.1/password
+; long grid name
+gridname = "the lost continent of hippo"
+; short grid name
+gridnick = "hippogrid"
+
 [Startup]
 
 ; Set this to true if you are connecting your OpenSimulator regions to a grid
