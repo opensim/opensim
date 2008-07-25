@@ -44,35 +44,31 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
     public class RestAssetServices : IRest
     {
 
-        private string      key = "assets";
         private bool    enabled = false;
         private string  qPrefix = "assets";
 
         // A simple constructor is used to handle any once-only
         // initialization of working classes.
 
-        public RestAssetServices(RestHandler p_rest)
+        public RestAssetServices()
         {
 
             Rest.Log.InfoFormat("{0} Asset services initializing", MsgId);
             Rest.Log.InfoFormat("{0} Using REST Implementation Version {1}", MsgId, Rest.Version);
 
-            // Integrate domain
+            // If the handler specifies a relative path for its domain
+            // then we must add the standard absolute prefix, e.g. /admin
 
             if (!qPrefix.StartsWith(Rest.UrlPathSeparator))
             {
                 qPrefix = Rest.Prefix + Rest.UrlPathSeparator + qPrefix;
             }
 
-            // Authentication domain
-
-            Rest.Domains.Add(key,Rest.Config.GetString("asset-domain",qPrefix));
-
-            // Register interface
+            // Register interface using the fully-qualified prefix
 
             Rest.Plugin.AddPathHandler(DoAsset, qPrefix, Allocate);
 
-            // Activate
+            // Activate if all went OK
 
             enabled = true;
 

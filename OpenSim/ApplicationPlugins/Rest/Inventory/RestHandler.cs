@@ -38,10 +38,33 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
     public class RestHandler : RestPlugin, IHttpAgentHandler
     {
 
+        /// <remarks>
+        /// The handler delegates are not noteworthy. The allocator allows
+        /// a given handler to optionally subclass the base RequestData
+        /// structure to carry any locally required per-request state
+        /// needed.
+        /// </remarks>
+
+        internal delegate void        RestMethodHandler(RequestData rdata);
+        internal delegate RequestData RestMethodAllocator(OSHttpRequest request, OSHttpResponse response);
+
+        // Handler tables: both stream and REST are supported. The path handlers and their
+        // respective allocators are stored in separate tables.
+
+        internal Dictionary<string,RestMethodHandler>   pathHandlers   = new Dictionary<string,RestMethodHandler>();
+        internal Dictionary<string,RestMethodAllocator> pathAllocators = new Dictionary<string,RestMethodAllocator>();
+        internal Dictionary<string,RestStreamHandler>   streamHandlers = new Dictionary<string,RestStreamHandler>();
+
         #region local static state
 
+        private static bool  handlersLoaded = false;
+        private static List<Type>  classes  = new List<Type>();
+        private static List<IRest> handlers = new List<IRest>();
+        private static Type[]         parms = new Type[0];
+        private static Object[]       args  = new Object[0];
+
         /// <summary>
-        /// This static initializer scans the assembly for classes that
+        /// This static initializer scans the ASSEMBLY for classes that
         /// export the IRest interface and builds a list of them. These
         /// are later activated by the handler. To add a new handler it 
         /// is only necessary to create a new services class that implements
@@ -49,73 +72,78 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// all of the build-time flexibility of a modular approach 
         /// while not introducing yet-another module loader. Note that
         /// multiple assembles can still be built, each with its own set
-        /// of handlers.
+        /// of handlers. Examples of services classes are RestInventoryServices
+        /// and RestSkeleton.
         /// </summary>
-
-        private static bool  handlersLoaded = false;
-        private static List<Type>  classes  = new List<Type>();
-        private static List<IRest> handlers = new List<IRest>();
-        private static Type[]         parms = new Type[1];
-        private static Object[]       args  = new Object[1];
 
         static RestHandler()
         {
+
             Module[] mods = Assembly.GetExecutingAssembly().GetModules();
+
             foreach (Module m in mods)
             {
                 Type[] types = m.GetTypes();
                 foreach (Type t in types) 
                 {
-                    if (t.GetInterface("IRest") != null)
+                    try
                     {
-                        classes.Add(t);
+                        if (t.GetInterface("IRest") != null)
+                        {
+                            classes.Add(t);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        Rest.Log.WarnFormat("[STATIC-HANDLER]: #0 Error scanning {1}", t);
+                        Rest.Log.InfoFormat("[STATIC-HANDLER]: #0 {1} is not included", t);
                     }
                 }
             }
+
         }
 
         #endregion local static state
 
         #region local instance state
 
-        /// <remarks>
-        /// The handler delegate is not noteworthy. The allocator allows
-        /// a given handler to optionally subclass the base RequestData
-        /// structure to carry any locally required per-request state
-        /// needed.
-        /// </remarks>
-        internal delegate void RestMethodHandler(RequestData rdata);
-        internal delegate RequestData RestMethodAllocator(OSHttpRequest request, OSHttpResponse response);
-
-        // Handler tables: both stream and REST are supported
-
-        internal Dictionary<string,RestMethodHandler>   pathHandlers   = new Dictionary<string,RestMethodHandler>();
-        internal Dictionary<string,RestMethodAllocator> pathAllocators = new Dictionary<string,RestMethodAllocator>();
-        internal Dictionary<string,RestStreamHandler>   streamHandlers = new Dictionary<string,RestStreamHandler>();
-
         /// <summary>
         /// This routine loads all of the handlers discovered during
-        /// instance initialization. Each handler is responsible for
-        /// registering itself with this handler.
-        /// I was not able to make this code work in a constructor.
+        /// instance initialization. 
+        /// A table of all loaded and successfully constructed handlers
+        /// is built, and this table is then used by the constructor to
+        /// initialize each of the handlers in turn.
+        /// NOTE: The loading process does not automatically imply that
+        /// the handler has registered any kind of an interface, that 
+        /// may be (optionally) done by the handler either during 
+        /// construction, or during initialization.
+        ///
+        /// I was not able to make this code work within a constructor
+        /// so it is islated within this method.
         /// </summary>
+
         private void LoadHandlers()
         {
             lock (handlers)
             {
                 if (!handlersLoaded)
                 {
-                    parms[0]       = this.GetType();
-                    args[0]        = this;
 
                     ConstructorInfo ci;
                     Object          ht;
 
                     foreach (Type t in classes)
                     {
-                        ci = t.GetConstructor(parms);
-                        ht = ci.Invoke(args);
-                        handlers.Add((IRest)ht);
+                        try
+                        {
+                            ci = t.GetConstructor(parms);
+                            ht = ci.Invoke(args);
+                            handlers.Add((IRest)ht);
+                        }
+                        catch (Exception e)
+                        {
+                            Rest.Log.WarnFormat("{0} Unable to load {1} : {2}", MsgId, t, e.Message);
+                        }
                     }
                     handlersLoaded = true;
                 }
@@ -126,14 +154,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         #region overriding properties
 
-        // Used to differentiate the message header.
+        // These properties override definitions
+        // in the base class.
+
+        // Name is used to differentiate the message header.
 
         public override string Name 
         { 
             get { return "HANDLER"; }
         }
 
-        // Used to partition the configuration space.
+        // Used to partition the .ini configuration space.
 
         public override string ConfigName
         {
@@ -167,32 +198,32 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// Note that entries MUST be added to the active configuration files before
         /// the plugin can be enabled.
         /// </remarks>
+
         public override void Initialise(OpenSimBase openSim)
         {
             try
             {
 
-                /// <remarks>
-                /// This plugin will only be enabled if the broader
-                /// REST plugin mechanism is enabled.
-                /// </remarks>
+                // This plugin will only be enabled if the broader
+                // REST plugin mechanism is enabled.
 
-                Rest.Log.InfoFormat("{0}  Plugin is initializing", MsgID);
+                Rest.Log.InfoFormat("{0}  Plugin is initializing", MsgId);
 
                 base.Initialise(openSim);
 
+                // IsEnabled is implemented by the base class and
+                // reflects an overall RestPlugin status
+
                 if (!IsEnabled)                     
                 {
-                    Rest.Log.WarnFormat("{0} Plugins are disabled", MsgID);
+                    Rest.Log.WarnFormat("{0} Plugins are disabled", MsgId);
                     return;
                 }
 
-                Rest.Log.InfoFormat("{0} Plugin will be enabled", MsgID);
+                Rest.Log.InfoFormat("{0} Plugin will be enabled", MsgId);
 
-                /// <remarks>
-                /// These are stored in static variables to make
-                /// them easy to reach from anywhere in the assembly.
-                /// </remarks>
+                // These are stored in static variables to make
+                // them easy to reach from anywhere in the assembly.
 
                 Rest.main              = openSim;
                 Rest.Plugin            = this;
@@ -223,6 +254,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.InfoFormat("{0} Dumping of asset data is {1}enabled", MsgId,
                                     (Rest.DumpAsset ? "" : "not "));
 
+                // If data dumping is requested, report on the chosen line
+                // length.
+
                 if (Rest.DumpAsset)
                 {
                     Rest.Log.InfoFormat("{0} Dump {1} bytes per line", MsgId,
@@ -247,22 +281,24 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 LoadHandlers();
 
-                /// <remarks>
-                /// The intention of a post construction initializer
-                /// is to allow for setup that is dependent upon other
-                /// activities outside of the agency. We don't currently
-                /// have any, but the design allows for it.
-                /// </remarks>
+                // The intention of a post construction initializer
+                // is to allow for setup that is dependent upon other
+                // activities outside of the agency.
 
                 foreach (IRest handler in handlers)
                 {
-                    handler.Initialize();
+                    try
+                    {
+                        handler.Initialize();
+                    }
+                    catch (Exception e)
+                    {
+                        Rest.Log.ErrorFormat("{0} initialization error: {1}", MsgId, e.Message);
+                    }
                 }
 
-                /// <remarks>
-                /// Now that everything is setup we can proceed and
-                /// add this agent to the HTTP server's handler list
-                /// </remarks>
+                // Now that everything is setup we can proceed to
+                // add THIS agent to the HTTP server's handler list
 
                 if (!AddAgentHandler(Rest.Name,this))
                 {
@@ -276,7 +312,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
             catch (Exception e)
             {
-                Rest.Log.ErrorFormat("{0} Plugin initialization has failed: {1}", MsgID, e.Message);
+                Rest.Log.ErrorFormat("{0} Plugin initialization has failed: {1}", MsgId, e.Message);
             }
 
         }
@@ -290,10 +326,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// To make sure everything is copacetic we make sure the primary interface
         /// is disabled by deleting the handler from the HTTP server tables.
         /// </summary>
+
         public override void Close()
         {
 
-            Rest.Log.InfoFormat("{0} Plugin is terminating", MsgID);
+            Rest.Log.InfoFormat("{0} Plugin is terminating", MsgId);
 
             try
             {
@@ -313,44 +350,61 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         #region interface methods
 
         /// <summary>
-        /// This method is called by the server to match the client, it could
-        /// just return true if we only want one such handler. For now we
-        /// match any explicitly specified client.
+        /// This method is called by the HTTP server to match an incoming
+        /// request. It scans all of the strings registered by the
+        /// underlying handlers and looks for the best match. It returns
+        /// true if a match is found.
+        /// The matching process could be made arbitrarily complex.
         /// </summary>
+
         public bool Match(OSHttpRequest request, OSHttpResponse response)
         {
             string path = request.RawUrl;
-            foreach (string key in pathHandlers.Keys)
-            {
-                if (path.StartsWith(key))
-                {
-                    return ( path.Length == key.Length ||
-                             path.Substring(key.Length,1) == Rest.UrlPathSeparator);
-                }
-            }
 
-            path = String.Format("{0}{1}{2}", request.HttpMethod, Rest.UrlMethodSeparator, path);
-            foreach (string key in streamHandlers.Keys)
+            try
             {
-                if (path.StartsWith(key))
+                foreach (string key in pathHandlers.Keys)
                 {
-                    return true;
+                    if (path.StartsWith(key))
+                    {
+                        return ( path.Length == key.Length ||
+                                 path.Substring(key.Length,1) == Rest.UrlPathSeparator);
+                    }
                 }
+
+                path = String.Format("{0}{1}{2}", request.HttpMethod, Rest.UrlMethodSeparator, path);
+                foreach (string key in streamHandlers.Keys)
+                {
+                    if (path.StartsWith(key))
+                    {
+                        return true;
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                Rest.Log.ErrorFormat("{0} matching exception for path <{1}> : {2}", MsgId, path, e.Message);
             }
 
             return false;
         }
 
         /// <summary>
+        /// This is called by the HTTP server once the handler has indicated
+        /// that t is able to handle the request.
         /// Preconditions:
         ///  [1] request  != null and is a valid request object
         ///  [2] response != null and is a valid response object
         /// Behavior is undefined if preconditions are not satisfied.
         /// </summary>
+
         public bool Handle(OSHttpRequest request, OSHttpResponse response)
         {
             bool handled;
             base.MsgID = base.RequestID;
+
+            // Debug only
 
             if (Rest.DEBUG)
             {
@@ -371,8 +425,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             try
             {
-                handled = FindPathHandler(request, response) ||
-                    FindStreamHandler(request, response);
+                handled = ( FindPathHandler(request, response) ||
+                    FindStreamHandler(request, response) );
             }
             catch (Exception e)
             {
@@ -406,6 +460,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             Rest.Log.DebugFormat("{0} Checking for stream handler for <{1}>", MsgId, path);
 
+            if (!IsEnabled)
+            {
+                return false;
+            }
+
             foreach (string pattern in streamHandlers.Keys)
             {
                 if (path.StartsWith(pattern))
@@ -432,7 +491,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         }
 
-        // Preserves the original handler's semantics
+        /// <summary>
+        /// Add a stream handler for the designated HTTP method and path prefix.
+        /// If the handler is not enabled, the request is ignored. If the path
+        /// does not start with the REST prefix, it is added. If method-qualified
+        /// path has not already been registered, the method is added to the active
+        /// handler table.
+        /// </summary>
 
         public void AddStreamHandler(string httpMethod, string path, RestMethod method)
         {
@@ -454,17 +519,26 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             if (!streamHandlers.ContainsKey(path))
             {
                 streamHandlers.Add(path, new RestStreamHandler(httpMethod, path, method));
-                Rest.Log.DebugFormat("{0} Added handler for {1}", MsgID, path);
+                Rest.Log.DebugFormat("{0} Added handler for {1}", MsgId, path);
             }
             else
             {
-                Rest.Log.WarnFormat("{0} Ignoring duplicate handler for {1}", MsgID, path);
+                Rest.Log.WarnFormat("{0} Ignoring duplicate handler for {1}", MsgId, path);
             }
 
         }
 
+        /// <summary>
+        /// Given the supplied request/response, if the handler is enabled, the inbound
+        /// information is used to match an entry in the active path handler tables, using
+        /// the method-qualified path information. If a match is found, then the handler is
+        /// invoked. The result is the boolean result of the handler, or false if no
+        /// handler was located. The boolean indicates whether or not the request has been
+        /// handled, not whether or not the request was successful - that information is in
+        /// the response.
+        /// </summary>
 
-            internal bool FindPathHandler(OSHttpRequest request, OSHttpResponse response)
+        internal bool FindPathHandler(OSHttpRequest request, OSHttpResponse response)
         {
 
             RequestData rdata = null;
@@ -516,8 +590,19 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         }
 
+        /// <summary>
+        /// A method handler and a request allocator are stored using the designated
+        /// path as a key. If an entry already exists, it is replaced by the new one.
+        /// </summary>
+
         internal void AddPathHandler(RestMethodHandler mh, string path, RestMethodAllocator ra)
         {
+
+            if (!IsEnabled)
+            {
+                return;
+            }
+
             if (pathHandlers.ContainsKey(path))
             {
                 Rest.Log.DebugFormat("{0} Replacing handler for <${1}>", MsgId, path);
@@ -537,4 +622,5 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         }
     }
+
 }

@@ -171,18 +171,20 @@ namespace OpenSim.Framework.Servers
                 OSHttpRequest  request  = new OSHttpRequest(context.Request);
                 OSHttpResponse response = new OSHttpResponse(context.Response);
 
-                // user agent based requests?  not sure where this actually gets used from
-                if (request.UserAgent != null)
-                {
-                    IHttpAgentHandler agentHandler;
+                //  This is the REST agent interface. We require an agent to properly identify
+                //  itself. If the REST handler recognizes the prefix it will attempt to 
+                //  satisfy the request. If it is not recognizable, and no damage has occurred
+                //  the request can be passed through to the other handlers. This is a low
+                //  probability event; if a request is matched it is normally expected to be
+                //  handled
 
-                    if (TryGetAgentHandler(request, response, out agentHandler))
+                IHttpAgentHandler agentHandler;
+
+                if (TryGetAgentHandler(request, response, out agentHandler))
+                {
+                    if (HandleAgentRequest(agentHandler, request, response))
                     {
-                        if (HandleAgentRequest(agentHandler, request, response))
-                        {
-                            m_log.DebugFormat("[HTTP-AGENT] Handler located for {0}", request.UserAgent);
-                            return;
-                        }
+                        return;
                     }
                 }
 
@@ -508,7 +510,7 @@ namespace OpenSim.Framework.Servers
             catch (Exception e)
             {
                 // If the handler did in fact close the stream, then this will blow
-                // chunks, so that that doesn;t disturb anybody we throw away any
+                // chunks. So that that doesn't disturb anybody we throw away any
                 // and all exceptions raised. We've done our best to release the
                 // client.
                 try
@@ -524,7 +526,10 @@ namespace OpenSim.Framework.Servers
                 }
             }
 
+            // Indicate that the request has been "handled"
+
             return true;
+
         }
 
         public void HandleHTTPRequest(OSHttpRequest request, OSHttpResponse response)

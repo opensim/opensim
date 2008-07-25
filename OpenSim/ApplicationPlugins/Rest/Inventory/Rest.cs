@@ -69,7 +69,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal static bool                      ExtendedEscape    = true;
         internal static bool                      DumpAsset         = false;
         internal static string                    Realm             = "REST";
-        internal static Dictionary<string,string> Domains           = new Dictionary<string,string>();
         internal static int                       CreationDate      = (int) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
         internal static int                       DumpLineSize      = 32; // Should be a multiple of 16 or (possibly) 4
 

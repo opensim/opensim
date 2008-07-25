@@ -34,6 +34,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using libsecondlife;
 using System.Xml;
@@ -50,7 +51,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
     /// This structure is created on entry to the Handler
     /// method and is disposed of upon return. It is part of
     /// the plug-in infrastructure, rather than the functionally
-    /// specifici REST handler, and fundamental changes to 
+    /// specific REST handler, and fundamental changes to 
     /// this should be reflected in the Rest HandlerVersion. The
     /// object is instantiated, and may be extended by, any
     /// given handler. See the inventory handler for an example
@@ -71,11 +72,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal OSHttpRequest        request = null;
         internal OSHttpResponse       response = null;
+        internal string               qprefix = null;
 
         // Request lifetime values
 
-        internal NameValueCollection  headers = null;
-        internal List<string>         removed_headers = null;
         internal byte[]               buffer = null;
         internal string               body = null;
         internal string               html = null;
@@ -96,11 +96,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal string               hostname = "localhost";
         internal int                  port = 80;
         internal string               prefix = Rest.UrlPathSeparator;
+        internal bool                 keepAlive = false;
+        internal bool                 chunked = false;
 
         // Authentication related state
  
         internal bool                 authenticated = false;
-        internal string               scheme = Rest.AS_DIGEST;
+        // internal string               scheme = Rest.AS_DIGEST;
+        // internal string               scheme = Rest.AS_BASIC;
+        internal string               scheme = null;
         internal string               realm = Rest.Realm;
         internal string               domain = null;
         internal string               nonce = null;
@@ -148,13 +152,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         private static Regex basicParms  = new Regex("^\\s*(?:\\w+)\\s+(?<pval>\\S+)\\s*",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
         
-        private static Regex digestParm1 = new Regex("\\s*(?<parm>\\w+)\\s*=\\s*\"(?<pval>\\S+)\"",
+        private static Regex digestParm1 = new Regex("\\s*(?<parm>\\w+)\\s*=\\s*\"(?<pval>[^\"]+)\"",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
         
         private static Regex digestParm2 = new Regex("\\s*(?<parm>\\w+)\\s*=\\s*(?<pval>[^\\p{P}\\s]+)",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
         
-        private static Regex reuserPass  = new Regex("\\s*(?<user>\\w+)\\s*:\\s*(?<pass>\\S*)",
+        private static Regex reuserPass  = new Regex("\\s*(?<user>[^:]+)\\s*:\\s*(?<pass>\\S*)",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
         
         // For efficiency, we create static instances of these objects
@@ -165,11 +169,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         // Constructor
         
-        internal RequestData(OSHttpRequest p_request, OSHttpResponse p_response, string qprefix)
+        internal RequestData(OSHttpRequest p_request, OSHttpResponse p_response, string p_qprefix)
         {
 
             request  = p_request;
             response = p_response;
+            qprefix = p_qprefix;
 
             sbuilder.Length = 0;
 
@@ -182,7 +187,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             method = request.HttpMethod.ToLower();
             initUrl();
 
-            initParameters(qprefix.Length);
+            initParameters(p_qprefix.Length);
 
         }
 
@@ -254,11 +259,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             // If we want a specific authentication mechanism, make sure
-            // we get it.
+            // we get it. null indicates we don't care. non-null indicates
+            // a specific scheme requirement.
 
             if (scheme != null && scheme.ToLower() != reqscheme)
             {
-                Rest.Log.DebugFormat("{0} Challenge reason: Required scheme not accepted", MsgId);
+                Rest.Log.DebugFormat("{0} Challenge reason: Requested scheme not acceptable", MsgId);
                 DoChallenge();
             }
 
@@ -268,15 +274,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             switch (reqscheme)
             {
-            case "digest" :
-                Rest.Log.DebugFormat("{0} Digest authentication offered", MsgId);
-                DoDigest(authdata);
-                break;
+                case "digest" :
+                    Rest.Log.DebugFormat("{0} Digest authentication offered", MsgId);
+                    DoDigest(authdata);
+                    break;
 
-            case "basic" :
-                Rest.Log.DebugFormat("{0} Basic authentication offered", MsgId);
-                DoBasic(authdata);
-                break;
+                case "basic" :
+                    Rest.Log.DebugFormat("{0} Basic authentication offered", MsgId);
+                    DoBasic(authdata);
+                    break;
             }
 
             // If the current header is invalid, then a challenge is still needed.
@@ -406,10 +412,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     authparms.TryGetValue("uri", out authPrefix);
 
                     // There MUST be a nonce string present. We're not preserving any server
-                    // side state and we can;t validate the MD5 unless the lcient returns it
+                    // side state and we can't validate the MD5 unless the client returns it
                     // to us, as it should.
 
-                    if (!authparms.TryGetValue("nonce", out nonce))
+                    if (!authparms.TryGetValue("nonce", out nonce) || nonce == null)
                     {
                         Rest.Log.WarnFormat("{0} Authentication failed: nonce missing", MsgId); 
                         break;
@@ -457,26 +463,28 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                         cnonce = authparms["cnonce"];
 
-                        if (!authparms.ContainsKey("nc"))
+                        if (!authparms.TryGetValue("nc", out nck) || nck == null)
                         {
                             Rest.Log.WarnFormat("{0} Authentication failed: cnonce counter missing", MsgId); 
                             break;
                         }
 
-                        nck = authparms["nc"];
+                        Rest.Log.DebugFormat("{0} Comparing nonce indices", MsgId);
 
-                        if (cntable.TryGetValue(cnonce, out ncl))
+                        if (cntable.TryGetValue(nonce, out ncl))
                         {
-                            if (Rest.Hex2Int(ncl) <= Rest.Hex2Int(nck))
+                            Rest.Log.DebugFormat("{0} nonce values: Verify that request({1}) > Reference({2})", MsgId, nck, ncl);
+
+                            if (Rest.Hex2Int(ncl) >= Rest.Hex2Int(nck))
                             {
                                 Rest.Log.WarnFormat("{0} Authentication failed: bad cnonce counter", MsgId); 
                                 break;
                             }
-                            cntable[cnonce] = nck;
+                            cntable[nonce] = nck;
                         }
                         else
                         {
-                            lock (cntable) cntable.Add(cnonce, nck);
+                            lock (cntable) cntable.Add(nonce, nck);
                         }
 
                     }
@@ -516,6 +524,22 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                 string opaque, string stale, string alg,
                                 string qop, string auth)
         {
+
+            sbuilder.Length = 0;
+
+            if (scheme == null || scheme == Rest.AS_BASIC)
+            {
+
+                sbuilder.Append(Rest.AS_BASIC);
+
+                if (realm != null)
+                {
+                    sbuilder.Append(" realm=\"");
+                    sbuilder.Append(realm);
+                    sbuilder.Append("\"");
+                }
+                AddHeader(Rest.HttpHeaderWWWAuthenticate,sbuilder.ToString());
+            }
 
             sbuilder.Length = 0;
 
@@ -583,57 +607,135 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     sbuilder.Append(Rest.CS_COMMA);
                 }
 
-                if (Rest.Domains.Count != 0)
-                {
-                    sbuilder.Append("domain=");
-                    sbuilder.Append(Rest.CS_DQUOTE);
-                    foreach (string dom in Rest.Domains.Values)
-                    {
-                        sbuilder.Append(dom);
-                        sbuilder.Append(Rest.CS_SPACE);
-                    }
-                    if (sbuilder[sbuilder.Length-1] == Rest.C_SPACE)
-                    {
-                        sbuilder.Length = sbuilder.Length-1;
-                    }
-                    sbuilder.Append(Rest.CS_DQUOTE);
-                    sbuilder.Append(Rest.CS_COMMA);
-                }
+                // We don;t know the userid that will be used
+                // so we cannot make any authentication domain 
+                // assumptions. So the prefix will determine
+                // this.
 
-                if (sbuilder[sbuilder.Length-1] == Rest.C_COMMA)
-                {
-                    sbuilder.Length = sbuilder.Length-1;
-                }
+                sbuilder.Append("domain=");
+                sbuilder.Append(Rest.CS_DQUOTE);
+                sbuilder.Append(qprefix);
+                sbuilder.Append(Rest.CS_DQUOTE);
 
                 AddHeader(Rest.HttpHeaderWWWAuthenticate,sbuilder.ToString());
 
-            }
-
-            if (scheme == null || scheme == Rest.AS_BASIC)
-            {
-
-                sbuilder.Append(Rest.AS_BASIC);
-
-                if (realm != null)
-                {
-                    sbuilder.Append(" realm=\"");
-                    sbuilder.Append(realm);
-                    sbuilder.Append("\"");
-                }
-                AddHeader(Rest.HttpHeaderWWWAuthenticate,sbuilder.ToString());
             }
 
         }
+
+        /// <summary>
+        /// This method provides validation in support of the BASIC 
+        /// authentication method. This is not normaly expected to be
+        /// used, but is included for completeness (and because I tried
+        /// it first).
+        /// </summary>
 
         private bool Validate(string user, string pass)
         {
-            Rest.Log.DebugFormat("{0} Validating {1}:{2}", MsgId, user, pass);
-            return user == "awebb" && pass == getPassword(user);
+
+            Rest.Log.DebugFormat("{0} Simple User Validation", MsgId);
+
+            // Both values are required
+
+            if (user == null || pass == null)
+                return false;
+
+            // Eliminate any leading or trailing spaces
+            user = user.Trim();
+
+            return vetPassword(user, pass);
+
         }
+
+        /// <summary>
+        /// This mechanism is used by the digest authetnication mechanism
+        /// to return the user's password. In fact, because the OpenSim
+        /// user's passwords are already hashed, and the HTTP mechanism 
+        /// does not supply an open password, the hashed passwords cannot 
+        /// be used unless the cliemt has used the same salting mechanism
+        /// to has the password before using it in the authentication 
+        /// algorithn. This is not inconceivable...
+        /// </summary>
 
         private string getPassword(string user)
         {
-            return Rest.GodKey;
+
+            int x;
+            string first;
+            string last;
+
+            // Distinguish the parts, if necessary
+ 
+            if ((x=user.IndexOf(Rest.C_SPACE)) != -1)
+            {
+                first = user.Substring(0,x);
+                last  = user.Substring(x+1);
+            } 
+            else
+            {
+                first = user;
+                last  = String.Empty;
+            }
+
+            UserProfileData udata = Rest.UserServices.GetUserProfile(first, last);
+
+            // If we don;t recognize the user id, perhaps it is god?
+
+            if (udata == null)
+            {
+                Rest.Log.DebugFormat("{0} Administrator", MsgId);
+                return Rest.GodKey;
+            }
+            else
+            {
+                Rest.Log.DebugFormat("{0} Normal User {1}", MsgId, user);
+                return udata.PasswordHash;
+            }
+
+        }
+
+        /// <summary>
+        /// This is used by the BASIC authentication scheme to calculate
+        /// the double hash used by OpenSim to encode user's passwords.
+        /// It returns true, if the supplied password is actually correct.
+        /// If the specified user-id is not recognized, but the password
+        /// matches the God password, then this is accepted as an admin
+        /// session.
+        /// </summary>
+
+        private bool vetPassword(string user, string pass)
+        {
+
+            int x;
+            string HA1;
+            string first;
+            string last;
+
+            // Distinguish the parts, if necessary
+ 
+            if ((x=user.IndexOf(Rest.C_SPACE)) != -1)
+            {
+                first = user.Substring(0,x);
+                last  = user.Substring(x+1);
+            } 
+            else
+            {
+                first = user;
+                last  = String.Empty;
+            }
+
+            UserProfileData udata = Rest.UserServices.GetUserProfile(first, last);
+
+            // If we don;t recognize the user id, perhaps it is god?
+
+            if (udata == null)
+                return pass == Rest.GodKey;
+
+            HA1 = HashToString(pass);
+            HA1 = HashToString(String.Format("{0}:{1}",HA1,udata.PasswordSalt));
+            
+            return (0 == sc.Compare(HA1, udata.PasswordHash));
+            
         }
 
         // Validate the request-digest
@@ -773,11 +875,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             if (reset)
             {
                 buffer            = null;
-                body              = null;
+                SendHtml(message);
+                body              = html;
             }
 
             if (Rest.DEBUG)
             {
+                Rest.Log.DebugFormat("{0} Request Failure State Dump", MsgId);
                 Rest.Log.DebugFormat("{0}     Scheme = {1}", MsgId, scheme);
                 Rest.Log.DebugFormat("{0}      Realm = {1}", MsgId, realm);
                 Rest.Log.DebugFormat("{0}     Domain = {1}", MsgId, domain);
@@ -828,16 +932,19 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
 
                 Rest.Log.DebugFormat("{0} Generating Response", MsgId);
-
-                // Process any arbitrary headers collected
-
-                BuildHeaders();
+                Rest.Log.DebugFormat("{0} Method is {1}", MsgId, method);
 
                 // A Head request can NOT have a body!
                 if (method != Rest.HEAD)
                 {
 
                     Rest.Log.DebugFormat("{0} Response is not abbreviated", MsgId);
+
+                    // If the writer is non-null then we know that an XML
+                    // data component exists. Flush and close the writer and
+                    // then convert the result to the expected buffer format
+                    // unless the request has already been failed for some
+                    // reason.
 
                     if (writer != null)
                     {
@@ -869,41 +976,57 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         }
                     }
 
+                    // OK, if the buffer contains something, regardless of how
+                    // it got there, set various response headers accordingly.
+
                     if (buffer != null)
                     {
                         Rest.Log.DebugFormat("{0} Buffer-based entity", MsgId);
-                        if (response.Headers.Get("Content-Encoding") == null)
-                            response.ContentEncoding = encoding;
                         response.ContentLength64 = buffer.Length;
-                        response.SendChunked     = false;
-                        response.KeepAlive       = false;
                     }
+                    else
+                    {
+                        response.ContentLength64 = 0;
+                    }
+
+                    if (response.Headers.Get("Content-Encoding") == null)
+                        response.ContentEncoding = encoding;
+
+                    response.SendChunked     = chunked;
+                    response.KeepAlive       = keepAlive;
 
                 }
 
-                // Set the status code & description. If nothing
-                // has been stored, we consider that a success
+                // Set the status code & description. If nothing has been stored, 
+                // we consider that a success.
 
                 if (statusCode == 0)
                 {
                     Complete();
                 }
 
+                // Set the response code in the actual carrier
+
                 response.StatusCode = statusCode;
 
-                if (response.StatusCode == (int)OSHttpStatusCode.RedirectMovedTemporarily || 
-                    response.StatusCode == (int)OSHttpStatusCode.RedirectMovedPermanently)
+                // For a redirect we need to set the relocation header accordingly
+
+                if (response.StatusCode == (int) Rest.HttpStatusCodeTemporaryRedirect || 
+                    response.StatusCode == (int) Rest.HttpStatusCodePermanentRedirect)
                 {
+                    Rest.Log.DebugFormat("{0} Re-direct location is {1}", MsgId, redirectLocation);
                     response.RedirectLocation = redirectLocation;
                 }
 
+                // And include the status description if provided.
+
                 if (statusDescription != null)
                 {
+                    Rest.Log.DebugFormat("{0} Status description is {1}", MsgId, statusDescription);
                     response.StatusDescription = statusDescription;
                 }
 
-                // Finally we send back our response, consuming
-                // any exceptions that doing so might produce.
+                // Finally we send back our response.
 
                 // We've left the setting of handled' until the
                 // last minute because the header settings included
@@ -913,6 +1036,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 handled = true;
 
+                DumpHeaders();
+
+                // if (request.InputStream != null)
+                // {
+                //     Rest.Log.DebugFormat("{0} Closing input stream", MsgId);
+                //     request.InputStream.Close();
+                // }
+
                 if (buffer != null && buffer.Length != 0)
                 {
                     Rest.Log.DebugFormat("{0} Entity buffer, length = {1} : <{2}>", 
@@ -920,12 +1051,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     response.OutputStream.Write(buffer, 0, buffer.Length);
                 }
 
-                response.OutputStream.Close();
+                // Closing the outputstream should complete the transmission process
 
-                if (request.InputStream != null)
-                {
-                    request.InputStream.Close();
-                }
+                Rest.Log.DebugFormat("{0} Closing output stream", MsgId);
+                response.OutputStream.Close();
 
             }
 
@@ -935,19 +1064,23 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         }
 
-        // Add a header to the table. If the header 
-        // already exists, it is replaced.
+        // Add a header to the table. We need to allow
+        // multiple instances of many of the headers.
+        // If the 
 
         internal void AddHeader(string hdr, string data)
         {
-
-            if (headers == null)
+            if (Rest.DEBUG)
             {
-                headers = new NameValueCollection();
+                Rest.Log.DebugFormat("{0}   Adding header: <{1}: {2}>", 
+                         MsgId, hdr, data);
+                if (response.Headers.Get(hdr) != null)
+                {
+                    Rest.Log.DebugFormat("{0} Multipe {1} headers will be generated>", 
+                             MsgId, hdr);
+                }
             }
-
-            headers[hdr] = data;
-
+            response.Headers.Add(hdr, data);
         }
 
         // Keep explicit track of any headers which
@@ -955,43 +1088,30 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal void RemoveHeader(string hdr)
         {
-
-            if (removed_headers == null)
+            if (Rest.DEBUG)
             {
-                removed_headers = new List<string>();
-            }
-
-            removed_headers.Add(hdr);
-
-            if (headers != null)
-            {
-                headers.Remove(hdr);
-            }
-
-        }
-
-        // Should it prove necessary, we could always
-        // restore the header collection from a cloned
-        // copy, but for now we'll assume that that is
-        // not necessary.
-
-        private void BuildHeaders()
-        {
-            if (removed_headers != null)
-            {
-                foreach (string h in removed_headers)
+                Rest.Log.DebugFormat("{0} Removing header: <{1}>", MsgId, hdr);
+                if (response.Headers.Get(hdr) == null)
                 {
-                    Rest.Log.DebugFormat("{0} Removing header: <{1}>", MsgId, h);
-                    response.Headers.Remove(h);
+                    Rest.Log.DebugFormat("{0} No such header existed", 
+                             MsgId, hdr);
                 }
             }
-            if (headers!= null)
+            response.Headers.Remove(hdr);
+        }
+
+        /// <summary>
+        /// Dump headers that will be generated in the response
+        /// </summary>
+
+        internal void DumpHeaders()
+        {
+            if (Rest.DEBUG)
             {
-                for (int i = 0; i < headers.Count; i++)
+                for (int i=0;i<response.Headers.Count;i++)
                 {
-                    Rest.Log.DebugFormat("{0}   Adding header: <{1}: {2}>", 
-                                         MsgId, headers.GetKey(i), headers.Get(i));
-                    response.Headers.Add(headers.GetKey(i), headers.Get(i));
+                    Rest.Log.DebugFormat("{0} Header[{1}] : {2}", MsgId, i, 
+                             response.Headers.Get(i));
                 }
             }
         }
@@ -1019,7 +1139,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 path = uri.AbsolutePath;
                 if (path.EndsWith(Rest.UrlPathSeparator))
                     path = path.Substring(0,path.Length-1);
-                path = Uri.UnescapeDataString(path);
             }
 
             // If we succeeded in getting a path, perform any
@@ -1039,6 +1158,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 pathNodes = EmptyPath;
             }
+
+            // Elimiate any %-escaped values. This is left until here
+            // so that escaped "+' are not mistakenly replaced.
+
+            path = Uri.UnescapeDataString(path);
 
             // Request server context info
 
@@ -1149,14 +1273,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal void initXmlReader()
         {
+
             XmlReaderSettings        settings = new XmlReaderSettings();
+
             settings.ConformanceLevel             = ConformanceLevel.Fragment;
             settings.IgnoreComments               = true;
             settings.IgnoreWhitespace             = true;
             settings.IgnoreProcessingInstructions = true;
             settings.ValidationType               = ValidationType.None;
-            // reader = XmlReader.Create(new StringReader(entity),settings);
+
             reader = XmlReader.Create(request.InputStream,settings);
+
         }
 
         private void Flush()
