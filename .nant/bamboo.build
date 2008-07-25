@@ -21,8 +21,13 @@
     
     <touch file="../${projectdir}/bin/startup_commands.txt" />
 
+    <!-- Re-create the directory containig test results. -->
     <delete dir="../test-results" />
     <mkdir dir="../test-results" />
+    <!-- Copy the OdePlugin dll to bin/ for testing. -->
+    <copy file="../bin/Physics/OpenSim.Region.Physics.OdePlugin.dll" tofile="../bin/OpenSim.Region.Physics.OdePlugin.dll" />
+
+    <!-- Run the tests. -->
     <nunit2 failonerror="false">
       <formatter type="Xml" usefile="true" extension=".xml" outputdir="../test-results" />
       <test>
@@ -31,6 +36,7 @@
           <include name="../bin/OpenSim.Region.ScriptEngine.Common.Tests.dll" />
           <include name="../bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
           <include name="../bin/OpenSim.Region.Environment.dll" />
+          <include name="../bin/OpenSim.Region.Physics.OdePlugin.dll" />
         </assemblies>
       </test>
     </nunit2>
