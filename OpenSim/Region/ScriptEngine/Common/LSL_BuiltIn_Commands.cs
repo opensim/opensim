@@ -1659,21 +1659,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             //No energy force yet
 
             if (force.x > 20000)
-                    force.x = 20000;
+                force.x = 20000;
             if (force.y > 20000)
-                    force.y = 20000;
+                force.y = 20000;
             if (force.z > 20000)
-                    force.z = 20000;
+                force.z = 20000;
 
-            if (local == 1)
-            {
-                m_host.ApplyImpulse(new LLVector3((float)force.x, (float)force.y, (float)force.z), true);
-            }
-            else
-            {
-
-                m_host.ApplyImpulse(new LLVector3((float)force.x,(float)force.y,(float)force.z), false);
-            }
+            m_host.ApplyImpulse(new LLVector3((float)force.x, (float)force.y, (float)force.z), local != 0);
         }
 
         public void llApplyRotationalImpulse(LSL_Types.Vector3 force, int local)
