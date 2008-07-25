@@ -1364,6 +1364,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             // We need to explicitly resend the newly link prim's object properties since no other actions
             // occur on link to invoke this elsewhere (such as object selection)
+           parenPrim.RootPart.AddFlag(LLObject.ObjectFlags.CreateSelected);
             parenPrim.TriggerScriptChangedEvent(Changed.LINK);
             if (client != null)
                 parenPrim.GetProperties(client);

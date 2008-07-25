@@ -1756,6 +1756,7 @@ namespace OpenSim.Region.Environment.Scenes
             linkPart.LinkNum = m_parts.Count;
 
             linkPart.SetParent(this);
+           linkPart.AddFlag(LLObject.ObjectFlags.CreateSelected);
 
             //if (linkPart.PhysActor != null)
             //{
