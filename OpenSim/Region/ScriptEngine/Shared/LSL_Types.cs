@@ -1509,6 +1509,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLFloat(i);
             }
 
+            static public implicit operator LSLFloat(LSLInteger i)
+            {
+                return new LSLFloat(i.value);
+            }
+
             static public implicit operator LSLFloat(string s)
             {
                 return new LSLFloat(double.Parse(s));

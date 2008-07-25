@@ -304,6 +304,36 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         }
 
         /// <summary>
+        /// Tests LSLInteger is correctly cast implicitly to LSLFloat.
+        /// </summary>
+        [Test]
+        public void TestImplicitCastLSLIntegerToLSLFloat()
+        {
+            LSL_Types.LSLFloat testFloat;
+
+            foreach (int number in m_intList)
+            {
+                testFloat = new LSL_Types.LSLInteger(number);
+                Assert.That(testFloat.value, new DoubleToleranceConstraint(number, _lowPrecisionTolerance));
+            }
+        }
+
+        /// <summary>
+        /// Tests LSLInteger is correctly cast explicitly to LSLFloat.
+        /// </summary>
+        [Test]
+        public void TestExplicitCastLSLIntegerToLSLFloat()
+        {
+            LSL_Types.LSLFloat testFloat;
+
+            foreach (int number in m_intList)
+            {
+                testFloat = (LSL_Types.LSLFloat) new LSL_Types.LSLInteger(number);
+                Assert.That(testFloat.value, new DoubleToleranceConstraint(number, _lowPrecisionTolerance));
+            }
+        }
+
+        /// <summary>
         /// Tests string is correctly cast implicitly to LSLFloat.
         /// </summary>
         [Test]
@@ -319,7 +349,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         }
 
         /// <summary>
-        /// Tests string is correctly cast implicitly to LSLFloat.
+        /// Tests LSLString is correctly cast implicitly to LSLFloat.
         /// </summary>
         [Test]
         public void TestExplicitCastLSLStringToLSLFloat()
