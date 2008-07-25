@@ -2003,10 +2003,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ScriptSetPhysicsStatus(bool UsePhysics)
         {
-            if (m_parentGroup != null)
-            {
+            if (m_parentGroup == null)
+                DoPhysicsPropertyUpdate(UsePhysics, false);
+            else
                 m_parentGroup.ScriptSetPhysicsStatus(UsePhysics);
-            }
         }
 
         public void SculptTextureCallback(LLUUID textureID, AssetBase texture)
@@ -2407,6 +2407,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void StopMoveToTarget()
         {
             m_parentGroup.stopMoveToTarget();
+
+            m_parentGroup.ScheduleGroupForTerseUpdate();
+            //m_parentGroup.ScheduleGroupForFullUpdate();
         }
 
         public void StoreUndoState()
