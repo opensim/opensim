@@ -735,6 +735,7 @@ namespace OpenSim.Data.MySQL
                 {
                     RegionSettings rs = new RegionSettings();
                     rs.RegionUUID = regionUUID;
+                    rs.OnSave += StoreRegionSettings;
 
                     StoreRegionSettings(rs);
 
