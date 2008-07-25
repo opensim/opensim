@@ -23,7 +23,7 @@
 
     <delete dir="../test-results" />
     <mkdir dir="../test-results" />
-    <!--nunit2>
+    <nunit2>
       <formatter type="Xml" usefile="true" extension=".xml" outputdir="../test-results" />
       <test>
         <assemblies>
@@ -33,7 +33,7 @@
           <include name="../bin/OpenSim.Region.Environment.dll" />
         </assemblies>
       </test>
-    </nunit2-->
+    </nunit2>
 
     <zip zipfile="../${projectdir}.zip">
       <fileset basedir="${projectdir}/">
