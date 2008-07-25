@@ -1189,6 +1189,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return new Vector3(s.m_string);
             }
+
             public static implicit operator LSLFloat(LSLString s)
             {
                 return new LSLFloat(Convert.ToDouble(s.m_string));

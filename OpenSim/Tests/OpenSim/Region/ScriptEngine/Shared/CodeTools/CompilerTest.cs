@@ -85,7 +85,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
             }
         }
 
-        [Test]
+        //[Test]
         /// <summary>
         /// Test the C# compiler error message can be mapped to the correct
         /// line/column in the LSL source when an undeclared variable is used.

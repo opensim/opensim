@@ -319,6 +319,21 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         }
 
         /// <summary>
+        /// Tests string is correctly cast implicitly to LSLFloat.
+        /// </summary>
+        [Test]
+        public void TestExplicitCastLSLStringToLSLFloat()
+        {
+            LSL_Types.LSLFloat testFloat;
+
+            foreach (KeyValuePair<string, double> number in m_stringDoubleSet)
+            {
+                testFloat = (LSL_Types.LSLFloat) new LSL_Types.LSLString(number.Key);
+                Assert.That(testFloat.value, new DoubleToleranceConstraint(number.Value, _lowPrecisionTolerance));
+            }
+        }
+
+        /// <summary>
         /// Tests double is correctly cast implicitly to LSLFloat.
         /// </summary>
         [Test]
