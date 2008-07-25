@@ -82,13 +82,14 @@ namespace OpenSim.ApplicationPlugins.GridInfo
                 }
                 _info["platform"] = "OpenSim";
                 
+                _httpd.AddXmlRPCHandler("get_grid_info", XmlRpcGridInfoMethod);
+
                 IConfig gridInfoConfig = _app.ConfigSource.Source.Configs["GridInfo"];
                 foreach (string k in gridInfoConfig.GetKeys())
                 {
                     _info[k] = gridInfoConfig.GetString(k);
                 }
                 
-                _httpd.AddXmlRPCHandler("get_grid_info", XmlRpcGridInfoMethod);
             }
             catch (NullReferenceException)
             {
