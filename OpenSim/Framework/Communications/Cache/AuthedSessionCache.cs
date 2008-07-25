@@ -57,16 +57,16 @@ namespace OpenSim.Framework.Communications.Cache
 
         private static readonly int DEFAULT_LIFETIME = 30;
         private Dictionary<string, CacheData> m_authed_sessions = new Dictionary<string,CacheData>();
-        private int m_session_lifetime = DEFAULT_LIFETIME;
+        // private int m_session_lifetime = DEFAULT_LIFETIME;
 
         public AuthedSessionCache()
         {
-            m_session_lifetime = DEFAULT_LIFETIME;
+            // m_session_lifetime = DEFAULT_LIFETIME;
         }
 
         public AuthedSessionCache(int timeout)
         {
-            m_session_lifetime = timeout;
+            // m_session_lifetime = timeout;
         }
 
         public CacheData getCachedSession(string session_id, string agent_id)
