@@ -261,8 +261,8 @@ namespace OpenSim.Region.Environment.Scenes
                     Entities.Add(sceneObject.UUID, sceneObject);
                     m_numPrim += sceneObject.Children.Count;
 
-                    if (attachToBackup)
-                        sceneObject.AttachToBackup();
+                    if (attachToBackup)                        
+                        sceneObject.AttachToBackup();                                        
 
                     return true;
                 }

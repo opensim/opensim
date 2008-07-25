@@ -491,16 +491,16 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 StoreUndoState();
                 m_offsetPosition = value;
-                try
-                {
+                //try
+                //{
                     // Hack to get the child prim to update world positions in the physics engine
-                    ParentGroup.ResetChildPrimPhysicsPositions();
+                //    ParentGroup.ResetChildPrimPhysicsPositions();
 
-                }
-                catch (NullReferenceException)
-                {
+                //}
+                //catch (NullReferenceException)
+                //{
                     // Ignore, and skip over.
-                }
+                //}
                 //m_log.Info("[PART]: OFFSET:" + m_offsetPosition.ToString());
             }
         }

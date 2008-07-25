@@ -512,8 +512,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (InSceneBackup)
             {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT GROUP]: Attaching object {0} to scene presistence sweep", UUID);
+                //m_log.DebugFormat(
+                //    "[SCENE OBJECT GROUP]: Attaching object {0} {1} to scene presistence sweep", Name, UUID);
 
                 m_scene.EventManager.OnBackup += ProcessBackup;
             }
@@ -873,11 +873,15 @@ namespace OpenSim.Region.Environment.Scenes
                 return m_scene.MaxUndoCount;
             return 5;
         }
-        public void ResetChildPrimPhysicsPositions()
-        {
-            AbsolutePosition = AbsolutePosition;
-            HasGroupChanged = false;
-        }
+        
+        // justincc: I don't believe this hack is needed any longer, especially since the physics 
+        // parts of set AbsolutePosition were already commented out.  By changing HasGroupChanged to false
+        // this method was preventing proper reload of scene objects.
+        //public void ResetChildPrimPhysicsPositions()
+        //{
+        //    AbsolutePosition = AbsolutePosition;
+        //   HasGroupChanged = false;
+        //}
 
         public LLUUID GetPartsFullID(uint localID)
         {
@@ -1061,8 +1065,9 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_physicalPrim);
                         }
+                        
                         // Hack to get the physics scene geometries in the right spot
-                        ResetChildPrimPhysicsPositions();
+                        //ResetChildPrimPhysicsPositions();
                     }
                 }
                 else
@@ -1095,15 +1100,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="datastore"></param>
         public void ProcessBackup(IRegionDataStore datastore)
-        {
-            // don't backup while it's selected or you're asking for changes mid stream.
+        {            
             if (HasGroupChanged)
             {
+                // don't backup while it's selected or you're asking for changes mid stream.
                 if ((!IsSelected) && (RootPart != null))
                 {
                     m_log.InfoFormat(
                         "[SCENE]: Storing object {0}, {1} in {2}", 
-                        m_rootPart.Name, UUID, m_scene.RegionInfo.RegionName);
+                        Name, UUID, m_scene.RegionInfo.RegionName);
 
                     SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
 
@@ -1117,14 +1122,10 @@ namespace OpenSim.Region.Environment.Scenes
 //                else
 //                {
 //                    m_log.DebugFormat(
-//                        "[SCENE OBJECT GROUP]: Did not update persistence of object {0} since it was still selected by an avatar during the backup sweep", UUID);
+//                        "[SCENE]: Did not update persistence of object {0} {1}, selected = {2}",
+//                        Name, UUID, IsSelected);
 //                }
             }
-
-            // Why is storing the inventory outside of HasGroupChanged?
-
-
-            //ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
         }
 
         #endregion
