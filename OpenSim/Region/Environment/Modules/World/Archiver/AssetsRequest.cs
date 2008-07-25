@@ -30,8 +30,10 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
+//using System.Reflection;
 using System.Threading;
 using libsecondlife;
+//using log4net;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
@@ -40,6 +42,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// </summary>
     class AssetsRequest
     {
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         /// <summary>
         /// uuids to request
         /// </summary>
@@ -101,8 +105,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 m_assets[assetID] = asset;
             else
                 m_notFoundAssetUuids.Add(assetID);
+            
+            //m_log.DebugFormat(
+            //    "[ARCHIVER]: Received {0} assets and notification of {1} missing assets", m_assets.Count, m_notFoundAssetUuids.Count);
 
-            if (m_assets.Count == m_repliesRequired)
+            if (m_assets.Count + m_notFoundAssetUuids.Count == m_repliesRequired)
             {
                 // We want to stop using the asset cache thread asap as we now need to do the actual work of producing the archive
                 Thread newThread = new Thread(PerformAssetsRequestCallback);

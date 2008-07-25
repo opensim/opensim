@@ -199,7 +199,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         protected void GetSceneObjectAssetUuids(SceneObjectGroup sceneObject, IDictionary<LLUUID, int> assetUuids)
         {
             m_log.DebugFormat(
-                "[ARCHIVER]: Getting assets for object {0}, {1}", sceneObject.RootPart.Name, sceneObject.UUID);
+                "[ARCHIVER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
 
             foreach (SceneObjectPart part in sceneObject.GetParts())
             {
@@ -255,6 +255,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 catch (Exception e)
                 {
                     m_log.ErrorFormat("[ARCHIVER]: Failed to get part - {0}", e);
+                    m_log.DebugFormat("[ARCHIVER]: Texture entry length for prim was {0} (min is 46)", part.Shape.TextureEntry.Length);
                 }
             }
         }

@@ -169,9 +169,6 @@ namespace OpenSim.Framework
             }
         }
 
-
-
-
         static PrimitiveBaseShape()
         {
             m_defaultTexture =
@@ -188,7 +185,11 @@ namespace OpenSim.Framework
         [XmlIgnore]
         public LLObject.TextureEntry Textures
         {
-            get { return new LLObject.TextureEntry(m_textureEntry, 0, m_textureEntry.Length); }
+            get 
+            { 
+                //m_log.DebugFormat("[PRIMITIVE BASE SHAPE]: get m_textureEntry length {0}", m_textureEntry.Length);
+                return new LLObject.TextureEntry(m_textureEntry, 0, m_textureEntry.Length); 
+            }
 
             set { m_textureEntry = value.ToBytes(); }
         }
@@ -205,8 +206,6 @@ namespace OpenSim.Framework
                     m_textureEntry = value; 
             }
         }
-
-
 
         public static PrimitiveBaseShape Default
         {

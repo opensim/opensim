@@ -828,7 +828,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("Failed to add scened object part", e);
+                    m_log.Error("Failed to add scene object part", e);
                 }
 
                 part.LinkNum = m_parts.Count;

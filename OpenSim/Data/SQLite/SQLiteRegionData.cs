@@ -261,7 +261,7 @@ namespace OpenSim.Data.SQLite
                         shapeRow.Delete();
                     }
 
-                        RemoveItems(uuid);
+                    RemoveItems(uuid);
 
                     // Remove prim row
                     row.Delete();
