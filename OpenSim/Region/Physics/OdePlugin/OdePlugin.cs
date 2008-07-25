@@ -1174,16 +1174,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             //switch (pbs.ProfileShape)
             //{
             //    case ProfileShape.Square:
-                    /// support simple box & hollow box now; later, more shapes
-                    //if (needsMeshing(pbs))
-                    //{
-                    //    mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
-                    //}
+            //         //support simple box & hollow box now; later, more shapes
+            //        if (needsMeshing(pbs))
+            //        {
+            //            mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
+            //        }
 
             //        break;
             //}
 
-            mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
+            if (needsMeshing(pbs))
+                mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
 
             result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
 
@@ -1523,14 +1524,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         /// <param name="pbs"></param>
         /// <returns></returns>
-        //public bool needsMeshing(PrimitiveBaseShape pbs)
-        //{
+        public bool needsMeshing(PrimitiveBaseShape pbs)
+        {
+            // most of this is redundant now as the mesher will return null if it cant mesh a prim
+            // but we still need to check for sculptie meshing being enabled so this is the most
+            // convenient place to do it for now...
+
         //    //if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle && pbs.ProfileCurve == (byte)LLObject.ProfileCurve.Circle && pbs.PathScaleY <= 0.75f)
         //    //Console.WriteLine("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + LLObject.UnpackPathScale(pbs.PathScaleY).ToString());
-        //    if (pbs.SculptEntry && !meshSculptedPrim)
-        //    {
-        //        return false;
-        //    }
+            if (pbs.SculptEntry && !meshSculptedPrim)
+            {
+                return false;
+            }
 
         //    if (pbs.ProfileHollow != 0)
         //        return true;
@@ -1577,7 +1582,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             
 
         //    return false;
-        //}
+
+            return true; // assume the mesher will return a default shape or null and later code can deal with this
+        }
 
         /// <summary>
         /// Called after our prim properties are set Scale, position etc.
@@ -1763,7 +1770,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 lock (_activeprims)
                 {
-                    if (timeStep < 0.2f)
+                    //if (timeStep < 0.2f)
                     {
                         foreach (OdePrim actor in _activeprims)
                         {

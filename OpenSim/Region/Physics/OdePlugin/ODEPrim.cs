@@ -759,7 +759,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_taintselected != m_isSelected)
                     changeSelectedStatus(timestep);
 
-                if (!m_taintVelocity.IsIdentical(PhysicsVector.Zero,0))
+                if (!m_taintVelocity.IsIdentical(PhysicsVector.Zero, 0.001f))
                     changevelocity(timestep);
 
                 if (m_taintparent != _parent)
@@ -918,18 +918,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_targetSpace = targetspace;
 
-            //if (_mesh == null)
-            //{
-            //    if (_parent_scene.needsMeshing(_pbs))
-            //    {
-            //        // Don't need to re-enable body..   it's done in SetMesh
-            //        _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
-            //        // createmesh returns null when it's a shape that isn't a cube.
-            //    }
-            //}
+            if (_mesh == null)
+            {
+                if (_parent_scene.needsMeshing(_pbs))
+                {
+                    // Don't need to re-enable body..   it's done in SetMesh
+                    _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
+                    // createmesh returns null when it's a shape that isn't a cube.
+                }
+            }
 
-            if (_mesh == null )
-                _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
+            //if (_mesh == null )
+            //    _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
 
 
             lock (OdeScene.OdeLock)
@@ -1323,7 +1323,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // we don't need to do space calculation because the client sends a position update also.
 
             // Construction of new prim
-            //if (_parent_scene.needsMeshing(_pbs))
+            if (_parent_scene.needsMeshing(_pbs))
             {
                 float meshlod = _parent_scene.meshSculptLOD;
 
@@ -1609,7 +1609,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (_size.Z <= 0) _size.Z = 0.01f;
             // Construction of new prim
 
-            //if (_parent_scene.needsMeshing(_pbs))
+            if (_parent_scene.needsMeshing(_pbs))
             {
                 // Don't need to re-enable body..   it's done in SetMesh
                 float meshlod = _parent_scene.meshSculptLOD;
