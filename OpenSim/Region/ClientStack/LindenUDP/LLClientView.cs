@@ -115,6 +115,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected LLUUID m_activeGroupID = LLUUID.Zero;
         protected string m_activeGroupName = String.Empty;
         protected ulong m_activeGroupPowers = 0;
+		protected Dictionary<LLUUID,ulong> m_groupPowers = new Dictionary<LLUUID, ulong>();
 
         /* Instantiated Designated Event Delegates */
         //- used so we don't create new objects for each incoming packet and then toss it out later */
@@ -291,6 +292,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             get { return m_activeGroupPowers; }
         }
+
+		public ulong GetGroupPowers(LLUUID groupID)
+		{
+			if(m_groupPowers.ContainsKey(groupID))
+			return m_groupPowers[groupID];
+			return 0;
+		}
 
         /// <summary>
         /// This is a utility method used by single states to not duplicate kicks and blue card of death messages.

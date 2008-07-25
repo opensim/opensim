@@ -317,6 +317,8 @@ namespace OpenSim.Framework
         string ActiveGroupName { get; }
 
         ulong ActiveGroupPowers { get; }
+
+		ulong GetGroupPowers(LLUUID groupID);
         
         string FirstName { get; }
         

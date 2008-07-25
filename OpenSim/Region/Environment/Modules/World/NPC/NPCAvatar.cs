@@ -365,6 +365,11 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             get { return 0; }
         }
         
+		public ulong GetGroupPowers(LLUUID groupID)
+		{
+			return 0;
+		}
+
         public virtual int NextAnimationSequenceNumber
         {
             get { return 1; }
