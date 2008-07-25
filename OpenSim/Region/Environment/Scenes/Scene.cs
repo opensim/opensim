@@ -1749,7 +1749,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SavePrimsToXml(string fileName)
         {
-            m_log.InfoFormat("[SCENE]: Saving prims in xml2 format for region {0} to {1}", RegionInfo.RegionName, fileName);
+            m_log.InfoFormat("[SCENE]: Saving prims in xml format for region {0} to {1}", RegionInfo.RegionName, fileName);
 
             m_serialiser.SavePrimsToXml(this, fileName);
         }
@@ -1763,11 +1763,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SavePrimsToXml2(string fileName)
         {
-            m_log.InfoFormat("[SCENE]: Saving prims in xml format for region {0} to {1}", RegionInfo.RegionName, fileName);
+            m_log.InfoFormat("[SCENE]: Saving prims in xml2 format for region {0} to {1}", RegionInfo.RegionName, fileName);
             
             m_serialiser.SavePrimsToXml2(this, fileName);
         }
-
 
         public void SaveNamedPrimsToXml2(string primName, string fileName)
         {
@@ -1790,7 +1789,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_serialiser.SavePrimListToXml2(primList, fileName);
         }
-
 
         /// <summary>
         /// Load a prim archive into the scene.  This loads both prims and their assets.
