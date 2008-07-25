@@ -128,7 +128,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         private void SendOnChatFromViewer(string message, ChatTypeEnum chatType)
         {
-            ChatFromViewerArgs chatFromViewer = new ChatFromViewerArgs();
+            OSChatMessage chatFromViewer = new OSChatMessage();
             chatFromViewer.Channel = 0;
             chatFromViewer.From = Name;
             chatFromViewer.Message = message;
@@ -155,7 +155,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event Action<IClientAPI> OnConnectionClosed;
 
         public event ImprovedInstantMessage OnInstantMessage;
-        public event ChatFromViewer OnChatFromViewer;
+        public event ChatMessage OnChatFromViewer;
         public event TextureRequest OnRequestTexture;
         public event RezObject OnRezObject;
         public event ModifyTerrain OnModifyTerrain;

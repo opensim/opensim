@@ -37,7 +37,7 @@ namespace OpenSim.Framework
 
     public delegate void ViewerEffectEventHandler(IClientAPI sender, List<ViewerEffectEventHandlerArg> args);
 
-    public delegate void ChatFromViewer(Object sender, ChatFromViewerArgs e);
+    public delegate void ChatMessage(Object sender, OSChatMessage e);
 
     public delegate void TextureRequest(Object sender, TextureRequestArgs e);
 
@@ -347,7 +347,7 @@ namespace OpenSim.Framework
         // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
         event ImprovedInstantMessage OnInstantMessage;
         // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments. Rename OnChat.")]
-        event ChatFromViewer OnChatFromViewer;
+        event ChatMessage OnChatFromViewer;
         // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
         event TextureRequest OnRequestTexture;
         // [Obsolete("LLClientView Specific - Remove bitbuckets. Adam, can you be more specific here..  as I don't see any bit buckets.")]

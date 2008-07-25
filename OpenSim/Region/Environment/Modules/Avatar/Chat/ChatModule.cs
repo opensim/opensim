@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         #endregion
 
         #region ISimChat Members
-        public void SimBroadcast(Object sender, ChatFromViewerArgs c)
+        public void SimBroadcast(Object sender, OSChatMessage c)
         {
             // We only want to relay stuff on channel 0 and on the debug channel
             if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL) return;
@@ -140,7 +140,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                                   });
         }
 
-        public void SimChat(Object sender, ChatFromViewerArgs e)
+        public void SimChat(Object sender, OSChatMessage e)
         {
             // early return if not on public or debug channel
             if (e.Channel != 0 && e.Channel != DEBUG_CHANNEL) return;

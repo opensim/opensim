@@ -171,7 +171,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         #region ISimChat Members
 
-        public void SimChat(Object sender, ChatFromViewerArgs e)
+        public void SimChat(Object sender, OSChatMessage e)
         {
             // We only want to relay stuff on channel 0
             if (e.Channel != 0) return;
@@ -631,7 +631,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                             // Any chat ???
                             if (data != null)
                             {
-                                ChatFromViewerArgs c = new ChatFromViewerArgs();
+                                OSChatMessage c = new OSChatMessage();
                                 c.Message = data["msg"];
                                 c.Type = ChatTypeEnum.Say;
                                 c.Channel = 0;
@@ -679,7 +679,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
             try
             {
-                ChatFromViewerArgs c = new ChatFromViewerArgs();
+                OSChatMessage c = new OSChatMessage();
                 c.From = sender;
                 c.Message = String.Format(format, args);
                 c.Type = ChatTypeEnum.Say;

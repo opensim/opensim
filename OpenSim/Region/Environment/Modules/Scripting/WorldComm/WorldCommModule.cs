@@ -322,7 +322,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
          *
          * *****************************************************************/
 
-        private void DeliverClientMessage(Object sender, ChatFromViewerArgs e)
+        private void DeliverClientMessage(Object sender, OSChatMessage e)
         {
             DeliverMessage(e.Type,
                            e.Channel,

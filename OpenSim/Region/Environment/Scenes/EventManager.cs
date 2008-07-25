@@ -235,13 +235,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// from world comes in (chat from viewer is available via
         /// client.OnChatFromViewer).
         /// </summary>
-        public delegate void ChatFromWorldEvent(Object sender, ChatFromViewerArgs chat);
+        public delegate void ChatFromWorldEvent(Object sender, OSChatMessage chat);
         public event ChatFromWorldEvent OnChatFromWorld;
         /// <summary>
         /// ChatBroadcastEvent is called via Scene when a broadcast chat message
         /// from world comes in (chat from viewer is available via client.OnChatFromViewer).
         /// </summary>
-        public delegate void ChatBroadcastEvent(Object sender, ChatFromViewerArgs chat);
+        public delegate void ChatBroadcastEvent(Object sender, OSChatMessage chat);
         public event ChatBroadcastEvent OnChatBroadcast;
 
         public delegate float SunLindenHour();
@@ -760,7 +760,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerOnChatFromWorld(Object sender, ChatFromViewerArgs chat)
+        public void TriggerOnChatFromWorld(Object sender, OSChatMessage chat)
         {
             handlerChatFromWorld = OnChatFromWorld;
             if (handlerChatFromWorld != null)
@@ -769,7 +769,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerOnChatBroadcast(Object sender, ChatFromViewerArgs chat)
+        public void TriggerOnChatBroadcast(Object sender, OSChatMessage chat)
         {
             handlerChatBroadcast = OnChatBroadcast;
             if (handlerChatBroadcast != null)

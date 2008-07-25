@@ -12,7 +12,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// ChatFromViewer Arguments
     /// </summary>
-    public class ChatFromViewerArgs : EventArgs, IEventArgs
+    public class OSChatMessage : EventArgs, IEventArgs
     {
         protected int m_channel;
         protected string m_from;
@@ -25,7 +25,7 @@ namespace OpenSim.Framework
         protected ChatTypeEnum m_type;
         protected LLUUID m_fromID;
 
-        public ChatFromViewerArgs()
+        public OSChatMessage()
         {
             m_position = new LLVector3();
         }

@@ -122,8 +122,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private RequestAvatarProperties handlerRequestAvatarProperties = null; //OnRequestAvatarProperties;
         private UpdateAvatarProperties handlerUpdateAvatarProperties = null; // OnUpdateAvatarProperties;
-        private ChatFromViewer handlerChatFromViewer = null; //OnChatFromViewer;
-        private ChatFromViewer handlerChatFromViewer2 = null; //OnChatFromViewer;
+        private ChatMessage handlerChatFromViewer = null; //OnChatFromViewer;
+        private ChatMessage handlerChatFromViewer2 = null; //OnChatFromViewer;
         private ImprovedInstantMessage handlerInstantMessage = null; //OnInstantMessage;
         private FriendActionDelegate handlerApproveFriendRequest = null; //OnApproveFriendRequest;
         private FriendshipTermination handlerTerminateFriendship = null; //OnTerminateFriendship;
@@ -770,7 +770,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event Action<IClientAPI> OnConnectionClosed;
         public event ViewerEffectEventHandler OnViewerEffect;
         public event ImprovedInstantMessage OnInstantMessage;
-        public event ChatFromViewer OnChatFromViewer;
+        public event ChatMessage OnChatFromViewer;
         public event TextureRequest OnRequestTexture;
         public event RezObject OnRezObject;
         public event GenericCall4 OnDeRezObject;
@@ -3859,7 +3859,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         if (OnChatFromViewer != null)
                         {
-                            ChatFromViewerArgs args = new ChatFromViewerArgs();
+                            OSChatMessage args = new OSChatMessage();
                             args.Channel = channel;
                             args.From = fromName;
                             args.Message = Helpers.FieldToUTF8String(message);
@@ -3898,7 +3898,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         byte[] msg = rdialog.Data.ButtonLabel;
                         if (OnChatFromViewer != null)
                         {
-                            ChatFromViewerArgs args = new ChatFromViewerArgs();
+                            OSChatMessage args = new OSChatMessage();
                             args.Channel = ch;
                             args.From = String.Empty;
                             args.Message = Helpers.FieldToUTF8String(msg);

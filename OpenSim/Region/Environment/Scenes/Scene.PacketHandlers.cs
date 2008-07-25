@@ -37,7 +37,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected void SimChat(byte[] message, ChatTypeEnum type, int channel, LLVector3 fromPos, string fromName,
                                LLUUID fromID, bool fromAgent, bool broadcast)
         {
-            ChatFromViewerArgs args = new ChatFromViewerArgs();
+            OSChatMessage args = new OSChatMessage();
 
             args.Message = Helpers.FieldToUTF8String(message);
             args.Channel = channel;
@@ -113,7 +113,8 @@ namespace OpenSim.Region.Environment.Scenes
                         ((SceneObjectGroup) ent).GetProperties(remoteClient);
                         ((SceneObjectGroup) ent).IsSelected = true;
                         // A prim is only tainted if it's allowed to be edited by the person clicking it.
-                        if (ExternalChecks.ExternalChecksCanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) || ExternalChecks.ExternalChecksCanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
+                        if (ExternalChecks.ExternalChecksCanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) 
+                            || ExternalChecks.ExternalChecksCanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
                         {
                             EventManager.TriggerParcelPrimCountTainted();
                         }
@@ -156,7 +157,8 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         ((SceneObjectGroup) ent).IsSelected = false;
                         ((SceneObjectGroup)ent).ScheduleGroupForFullUpdate();
-                        if (ExternalChecks.ExternalChecksCanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) || ExternalChecks.ExternalChecksCanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
+                        if (ExternalChecks.ExternalChecksCanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) 
+                            || ExternalChecks.ExternalChecksCanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
                         {
                             EventManager.TriggerParcelPrimCountTainted();
                             break;
@@ -166,10 +168,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public virtual void ProcessMoneyTransferRequest(LLUUID source, LLUUID destination, int amount, int transactiontype, string description)
+        public virtual void ProcessMoneyTransferRequest(LLUUID source, LLUUID destination, int amount, 
+                                                        int transactiontype, string description)
         {
-            EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(
-                source, destination, amount, transactiontype, description);
+            EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(source, destination, amount, 
+                                                                                     transactiontype, description);
 
             EventManager.TriggerMoneyTransfer(this, args);
         }
@@ -177,8 +180,9 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void ProcessParcelBuy(LLUUID agentId, LLUUID groupId, bool final, bool groupOwned,
                 bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated)
         {
-            EventManager.LandBuyArgs args = new EventManager.LandBuyArgs(
-               agentId, groupId, final, groupOwned, removeContribution, parcelLocalID, parcelArea, parcelPrice, authenticated);
+            EventManager.LandBuyArgs args = new EventManager.LandBuyArgs(agentId, groupId, final, groupOwned, 
+                                                                         removeContribution, parcelLocalID, parcelArea, 
+                                                                         parcelPrice, authenticated);
 
             // First, allow all validators a stab at it
             m_eventManager.TriggerValidateLandBuy(this, args);
