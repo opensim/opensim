@@ -23,7 +23,7 @@
 
     <delete dir="../test-results" />
     <mkdir dir="../test-results" />
-    <nunit2>
+    <nunit2 failonerror="false">
       <formatter type="Xml" usefile="true" extension=".xml" outputdir="../test-results" />
       <test>
         <assemblies>
