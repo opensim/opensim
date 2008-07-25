@@ -47,6 +47,13 @@ namespace OpenSim.Grid.InventoryServer
     /// </summary>
     public class GridInventoryService : InventoryServiceBase
     {
+        private bool m_doLookup = false;
+
+        public bool DoLookup
+        {
+            get { return m_doLookup; }
+            set { m_doLookup = value; }
+        }
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly int INVENTORY_DEFAULT_SESSION_TIME = 30; // secs
@@ -61,48 +68,64 @@ namespace OpenSim.Grid.InventoryServer
 
         public bool CheckTrustSource(IPEndPoint peer)
         {
-            m_log.InfoFormat("[GRID AGENT INVENTORY]: checking trusted source {0}", peer.ToString());
-            UriBuilder ub = new UriBuilder(m_userserver_url);
-            IPAddress[] uaddrs = Dns.GetHostAddresses(ub.Host);
-            foreach (IPAddress uaddr in uaddrs) {
-                if (uaddr.Equals(peer.Address)) {
-                    return true;
+            if (m_doLookup)
+            {
+                m_log.InfoFormat("[GRID AGENT INVENTORY]: checking trusted source {0}", peer.ToString());
+                UriBuilder ub = new UriBuilder(m_userserver_url);
+                IPAddress[] uaddrs = Dns.GetHostAddresses(ub.Host);
+                foreach (IPAddress uaddr in uaddrs)
+                {
+                    if (uaddr.Equals(peer.Address))
+                    {
+                        return true;
+                    }
                 }
+                return false;
             }
-            return false;
+            else
+            {
+                return true;
+            }
         }
 
         public bool CheckAuthSession(string session_id, string avatar_id)
         {
-            m_log.InfoFormat("[GRID AGENT INVENTORY]: checking authed session {0} {1}", session_id, avatar_id);
-            if (m_session_cache.getCachedSession(session_id, avatar_id) == null)
+            if (m_doLookup)
             {
-                // cache miss, ask userserver
-                Hashtable requestData = new Hashtable();
-                requestData["avatar_uuid"] = avatar_id;
-                requestData["session_id"] = session_id;
-                ArrayList SendParams = new ArrayList();
-                SendParams.Add(requestData);
-                XmlRpcRequest UserReq = new XmlRpcRequest("check_auth_session", SendParams);
-                XmlRpcResponse UserResp = UserReq.Send(m_userserver_url, 3000);
-
-                Hashtable responseData = (Hashtable)UserResp.Value;
-                if (responseData.ContainsKey("auth_session") && responseData["auth_session"].ToString() == "TRUE")
+                m_log.InfoFormat("[GRID AGENT INVENTORY]: checking authed session {0} {1}", session_id, avatar_id);
+                if (m_session_cache.getCachedSession(session_id, avatar_id) == null)
                 {
-                    m_log.Info("[GRID AGENT INVENTORY]: got authed session from userserver");
-                    // add to cache; the session time will be automatically renewed
-                    m_session_cache.Add(session_id, avatar_id);
+                    // cache miss, ask userserver
+                    Hashtable requestData = new Hashtable();
+                    requestData["avatar_uuid"] = avatar_id;
+                    requestData["session_id"] = session_id;
+                    ArrayList SendParams = new ArrayList();
+                    SendParams.Add(requestData);
+                    XmlRpcRequest UserReq = new XmlRpcRequest("check_auth_session", SendParams);
+                    XmlRpcResponse UserResp = UserReq.Send(m_userserver_url, 3000);
+
+                    Hashtable responseData = (Hashtable)UserResp.Value;
+                    if (responseData.ContainsKey("auth_session") && responseData["auth_session"].ToString() == "TRUE")
+                    {
+                        m_log.Info("[GRID AGENT INVENTORY]: got authed session from userserver");
+                        // add to cache; the session time will be automatically renewed
+                        m_session_cache.Add(session_id, avatar_id);
+                        return true;
+                    }
+                }
+                else
+                {
+                    // cache hits
+                    m_log.Info("[GRID AGENT INVENTORY]: got authed session from cache");
                     return true;
                 }
+                m_log.Info("[GRID AGENT INVENTORY]: unknown session_id, request rejected");
+                return false;
             }
             else
             {
-                // cache hits
-                m_log.Info("[GRID AGENT INVENTORY]: got authed session from cache");
                 return true;
             }
-            m_log.Info("[GRID AGENT INVENTORY]: unknown session_id, request rejected");
-            return false;
         }
 
         public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)

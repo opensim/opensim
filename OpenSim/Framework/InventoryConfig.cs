@@ -44,6 +44,7 @@ namespace OpenSim.Framework
         public string UserRecvKey = String.Empty;
         public string UserSendKey = String.Empty;
         public string UserServerURL = String.Empty;
+        public bool SessionLookUp = true;
 
         public InventoryConfig(string description, string filename)
         {
@@ -71,6 +72,8 @@ namespace OpenSim.Framework
                                                 "Database Connect String", "", false);
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
+            configMember.addConfigurationOption("session_lookup", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+                                               "Enable Session lookup security", "True", false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -97,6 +100,9 @@ namespace OpenSim.Framework
                     break;
                 case "http_port":
                     HttpPort = (uint) configuration_result;
+                    break;
+                case "session_lookup":
+                    SessionLookUp = (bool)configuration_result;
                     break;
             }
 
