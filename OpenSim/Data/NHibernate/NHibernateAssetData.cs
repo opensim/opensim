@@ -123,7 +123,9 @@ namespace OpenSim.Data.NHibernate
         {
             try 
             {
-                AssetBase a = session.Load(typeof(AssetBase), asset.FullID) as AssetBase;
+                // a is not used anywhere?
+                // AssetBase a = session.Load(typeof(AssetBase), asset.FullID) as AssetBase;
+                session.Load(typeof(AssetBase), asset.FullID);
             }
             catch (ObjectNotFoundException)
             {
