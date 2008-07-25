@@ -804,19 +804,19 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 supportedFileExtensions += " " + loader.Key + " (" + loader.Value + ")";
 
             Command loadFromFileCommand =
-                new Command("load", InterfaceLoadFile, "Loads a terrain from a specified file.");
+                new Command("load", CommandIntentions.COMMAND_HAZARDOUS, InterfaceLoadFile, "Loads a terrain from a specified file.");
             loadFromFileCommand.AddArgument("filename",
                                             "The file you wish to load from, the file extension determines the loader to be used. Supported extensions include: " +
                                             supportedFileExtensions, "String");
 
             Command saveToFileCommand =
-                new Command("save", InterfaceSaveFile, "Saves the current heightmap to a specified file.");
+                new Command("save", CommandIntentions.COMMAND_NON_HAZARDOUS, InterfaceSaveFile, "Saves the current heightmap to a specified file.");
             saveToFileCommand.AddArgument("filename",
                                           "The destination filename for your heightmap, the file extension determines the format to save in. Supported extensions include: " +
                                           supportedFileExtensions, "String");
 
             Command loadFromTileCommand =
-                new Command("load-tile", InterfaceLoadTileFile, "Loads a terrain from a section of a larger file.");
+                new Command("load-tile", CommandIntentions.COMMAND_HAZARDOUS, InterfaceLoadTileFile, "Loads a terrain from a section of a larger file.");
             loadFromTileCommand.AddArgument("filename",
                                             "The file you wish to load from, the file extension determines the loader to be used. Supported extensions include: " +
                                             supportedFileExtensions, "String");
@@ -829,40 +829,40 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
 
             // Terrain adjustments
             Command fillRegionCommand =
-                new Command("fill", InterfaceFillTerrain, "Fills the current heightmap with a specified value.");
+                new Command("fill", CommandIntentions.COMMAND_HAZARDOUS, InterfaceFillTerrain, "Fills the current heightmap with a specified value.");
             fillRegionCommand.AddArgument("value", "The numeric value of the height you wish to set your region to.",
                                           "Double");
 
             Command elevateCommand =
-                new Command("elevate", InterfaceElevateTerrain, "Raises the current heightmap by the specified amount.");
+                new Command("elevate", CommandIntentions.COMMAND_HAZARDOUS, InterfaceElevateTerrain, "Raises the current heightmap by the specified amount.");
             elevateCommand.AddArgument("amount", "The amount of height to add to the terrain in meters.", "Double");
 
             Command lowerCommand =
-                new Command("lower", InterfaceLowerTerrain, "Lowers the current heightmap by the specified amount.");
+                new Command("lower", CommandIntentions.COMMAND_HAZARDOUS, InterfaceLowerTerrain, "Lowers the current heightmap by the specified amount.");
             lowerCommand.AddArgument("amount", "The amount of height to remove from the terrain in meters.", "Double");
 
             Command multiplyCommand =
-                new Command("multiply", InterfaceMultiplyTerrain, "Multiplies the heightmap by the value specified.");
+                new Command("multiply", CommandIntentions.COMMAND_HAZARDOUS, InterfaceMultiplyTerrain, "Multiplies the heightmap by the value specified.");
             multiplyCommand.AddArgument("value", "The value to multiply the heightmap by.", "Double");
 
             Command bakeRegionCommand =
-                new Command("bake", InterfaceBakeTerrain, "Saves the current terrain into the regions revert map.");
+                new Command("bake", CommandIntentions.COMMAND_HAZARDOUS, InterfaceBakeTerrain, "Saves the current terrain into the regions revert map.");
             Command revertRegionCommand =
-                new Command("revert", InterfaceRevertTerrain, "Loads the revert map terrain into the regions heightmap.");
+                new Command("revert", CommandIntentions.COMMAND_HAZARDOUS, InterfaceRevertTerrain, "Loads the revert map terrain into the regions heightmap.");
 
             // Debug
             Command showDebugStatsCommand =
-                new Command("stats", InterfaceShowDebugStats,
+                new Command("stats", CommandIntentions.COMMAND_STATISTICAL, InterfaceShowDebugStats,
                             "Shows some information about the regions heightmap for debugging purposes.");
 
             Command experimentalBrushesCommand =
-                new Command("newbrushes", InterfaceEnableExperimentalBrushes,
+                new Command("newbrushes", CommandIntentions.COMMAND_HAZARDOUS, InterfaceEnableExperimentalBrushes,
                             "Enables experimental brushes which replace the standard terrain brushes. WARNING: This is a debug setting and may be removed at any time.");
             experimentalBrushesCommand.AddArgument("Enabled?", "true / false - Enable new brushes", "Boolean");
 
             //Plugins
             Command pluginRunCommand =
-                new Command("effect", InterfaceRunPluginEffect, "Runs a specified plugin effect");
+                new Command("effect", CommandIntentions.COMMAND_HAZARDOUS, InterfaceRunPluginEffect, "Runs a specified plugin effect");
             pluginRunCommand.AddArgument("name", "The plugin effect you wish to run, or 'list' to see all plugins", "String");
 
             m_commander.RegisterCommand("load", loadFromFileCommand);

@@ -56,7 +56,7 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
 
         public void PostInitialise()
         {
-            Command testCommand = new Command("hello", InterfaceHelloWorld, "Says a simple debugging test string");
+            Command testCommand = new Command("hello", CommandIntentions.COMMAND_STATISTICAL, InterfaceHelloWorld, "Says a simple debugging test string");
             testCommand.AddArgument("world", "Write world here", "string");
 
             m_commander.RegisterCommand("hello", testCommand);

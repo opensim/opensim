@@ -47,12 +47,14 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
         private Action<object[]> m_command;
         private string m_help;
         private string m_name;
+        private CommandIntentions m_intentions; //A permission type system could implement this and know what a command intends on doing.
 
-        public Command(string name, Action<Object[]> command, string help)
+        public Command(string name, CommandIntentions intention, Action<Object[]> command, string help)
         {
             m_name = name;
             m_command = command;
             m_help = help;
+            m_intentions = intention;
         }
 
         #region ICommand Members
@@ -65,6 +67,11 @@ namespace OpenSim.Region.Environment.Modules.Framework.InterfaceCommander
         public string Name
         {
             get { return m_name; }
+        }
+
+        public CommandIntentions Intentions
+        {
+            get { return m_intentions; }
         }
 
         public string Help

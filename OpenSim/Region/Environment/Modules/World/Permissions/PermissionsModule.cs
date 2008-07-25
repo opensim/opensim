@@ -182,13 +182,13 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
 
             //Register Debug Commands
-            Command bypassCommand = new Command("bypass", InterfaceBypassPermissions, "Force the permissions a specific way to test permissions");
+            Command bypassCommand = new Command("bypass", CommandIntentions.COMMAND_HAZARDOUS, InterfaceBypassPermissions, "Force the permissions a specific way to test permissions");
             bypassCommand.AddArgument("enable_bypass_perms", "true to enable bypassing all perms", "Boolean");
             bypassCommand.AddArgument("bypass_perms_value", "true/false: true will ignore all perms; false will restrict everything", "Boolean");
 
             m_commander.RegisterCommand("bypass", bypassCommand);
 
-            Command debugCommand = new Command("debug", InterfaceDebugPermissions, "Force the permissions a specific way to test permissions");
+            Command debugCommand = new Command("debug", CommandIntentions.COMMAND_STATISTICAL, InterfaceDebugPermissions, "Force the permissions a specific way to test permissions");
             debugCommand.AddArgument("enable_debug_perms", "true to enable debugging to console all perms", "Boolean");
 
             m_commander.RegisterCommand("debug", debugCommand);

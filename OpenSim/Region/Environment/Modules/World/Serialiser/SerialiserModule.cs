@@ -199,10 +199,10 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
 
         private void LoadCommanderCommands()
         {
-            Command serialiseSceneCommand = new Command("save", InterfaceSaveRegion, "Saves the named region into the exports directory.");
+            Command serialiseSceneCommand = new Command("save", CommandIntentions.COMMAND_NON_HAZARDOUS, InterfaceSaveRegion, "Saves the named region into the exports directory.");
             serialiseSceneCommand.AddArgument("region-name", "The name of the region you wish to export", "String");
 
-            Command serialiseAllScenesCommand = new Command("save-all", InterfaceSaveAllRegions, "Saves all regions into the exports directory.");
+            Command serialiseAllScenesCommand = new Command("save-all",CommandIntentions.COMMAND_NON_HAZARDOUS,  InterfaceSaveAllRegions, "Saves all regions into the exports directory.");
 
             m_commander.RegisterCommand("save", serialiseSceneCommand);
             m_commander.RegisterCommand("save-all", serialiseAllScenesCommand);

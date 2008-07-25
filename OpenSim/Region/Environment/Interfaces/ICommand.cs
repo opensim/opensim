@@ -29,12 +29,21 @@ using System.Collections.Generic;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
+    public enum CommandIntentions
+    {
+        COMMAND_STATISTICAL,
+        COMMAND_NON_HAZARDOUS,
+        COMMAND_HAZARDOUS
+    };
+
     public interface ICommand
     {
         void AddArgument(string name, string helptext, string type);
         Dictionary<string, string> Arguments { get; }
         string Help { get; }
         string Name { get; }
+        CommandIntentions Intentions { get; }
+
         void Run(object[] args);
         void ShowConsoleHelp();
     }
