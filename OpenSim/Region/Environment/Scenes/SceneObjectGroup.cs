@@ -877,11 +877,13 @@ namespace OpenSim.Region.Environment.Scenes
         // justincc: I don't believe this hack is needed any longer, especially since the physics 
         // parts of set AbsolutePosition were already commented out.  By changing HasGroupChanged to false
         // this method was preventing proper reload of scene objects.
-        //public void ResetChildPrimPhysicsPositions()
-        //{
-        //    AbsolutePosition = AbsolutePosition;
-        //   HasGroupChanged = false;
-        //}
+        // dahlia: I had to uncomment it, without it meshing was failing on some prims and objects 
+        // at region startup
+        public void ResetChildPrimPhysicsPositions()
+        {
+            AbsolutePosition = AbsolutePosition;
+            HasGroupChanged = false;
+        }
 
         public LLUUID GetPartsFullID(uint localID)
         {
@@ -1067,7 +1069,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         
                         // Hack to get the physics scene geometries in the right spot
-                        //ResetChildPrimPhysicsPositions();
+                        ResetChildPrimPhysicsPositions();
                     }
                 }
                 else
