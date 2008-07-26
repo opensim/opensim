@@ -1272,6 +1272,7 @@ namespace OpenSim.Data.MySQL
         private static RegionSettings buildRegionSettings(DataRow row)
         {
             RegionSettings newSettings = new RegionSettings();
+            rs.OnSave += StoreRegionSettings;
 
             newSettings.RegionUUID = new LLUUID((string) row["regionUUID"]);
             newSettings.BlockTerraform = Convert.ToBoolean(row["block_terraform"]);
