@@ -881,8 +881,8 @@ namespace OpenSim.Region.Environment.Scenes
         // at region startup
         public void ResetChildPrimPhysicsPositions()
         {
-            AbsolutePosition = AbsolutePosition;
-            HasGroupChanged = false;
+            AbsolutePosition = AbsolutePosition; // could someone in the know please explain how this works?
+            //HasGroupChanged = false;
         }
 
         public LLUUID GetPartsFullID(uint localID)
