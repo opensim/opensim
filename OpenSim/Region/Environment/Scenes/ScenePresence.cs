@@ -2293,8 +2293,8 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         // Set the parent localID to 0 so it transfers over properly.
                         gobj.RootPart.SetParentLocalId(0);
-                        gobj.RootPart.m_IsAttachment = false;
-                        gobj.AbsolutePosition = gobj.RootPart.m_attachedPos;
+                        gobj.RootPart.IsAttachment = false;
+                        gobj.AbsolutePosition = gobj.RootPart.AttachedPos;
                         gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
                         m_scene.CrossPrimGroupIntoNewRegion(regionHandle, gobj);
                     }

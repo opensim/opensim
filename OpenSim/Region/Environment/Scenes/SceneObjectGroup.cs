@@ -196,7 +196,7 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 LLVector3 val = value;
-                if ((val.X > 257f || val.X < -1f || val.Y > 257f || val.Y < -1f) && !m_rootPart.m_IsAttachment)
+                if ((val.X > 257f || val.X < -1f || val.Y > 257f || val.Y < -1f) && !m_rootPart.IsAttachment)
                 {
                     m_scene.CrossPrimGroupIntoNewRegion(val, this);
                 }
@@ -491,7 +491,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.fromAssetID = AssetId;
+                    part.FromAssetID = AssetId;
                 }
             }
         }
@@ -500,7 +500,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_rootPart != null)
             {
-                return m_rootPart.fromAssetID;
+                return m_rootPart.FromAssetID;
             }
             return LLUUID.Zero;
         }
@@ -690,7 +690,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (avatar != null)
             {
                 DetachFromBackup(this);
-                m_rootPart.m_attachedAvatar = agentID;
+                m_rootPart.AttachedAvatar = agentID;
 
 
                 if (m_rootPart.PhysActor != null)
@@ -701,8 +701,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 AbsolutePosition = AttachOffset;
-                m_rootPart.m_attachedPos = AttachOffset;
-                m_rootPart.m_IsAttachment = true;
+                m_rootPart.AttachedPos = AttachOffset;
+                m_rootPart.IsAttachment = true;
 
                 m_rootPart.SetParentLocalId(avatar.LocalId);
                 lock (m_parts)
@@ -736,7 +736,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void DetachToGround()
         {
-            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.m_attachedAvatar);
+            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
             LLVector3 detachedpos = new LLVector3(127f,127f,127f);
             if (avatar != null)
             {
@@ -744,10 +744,10 @@ namespace OpenSim.Region.Environment.Scenes
                 avatar.RemoveAttachment(this);
             }
             AbsolutePosition = detachedpos;
-            m_rootPart.m_attachedAvatar = LLUUID.Zero;
+            m_rootPart.AttachedAvatar = LLUUID.Zero;
             m_rootPart.SetParentLocalId(0);
             m_rootPart.SetAttachmentPoint((byte)0);
-            m_rootPart.m_IsAttachment = false;
+            m_rootPart.IsAttachment = false;
             m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             HasGroupChanged = true;
             AttachToBackup();
@@ -757,7 +757,7 @@ namespace OpenSim.Region.Environment.Scenes
         
         public void DetachToInventoryPrep()
         {
-            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.m_attachedAvatar);
+            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
             //LLVector3 detachedpos = new LLVector3(127f, 127f, 127f);
             if (avatar != null)
             {
@@ -765,11 +765,11 @@ namespace OpenSim.Region.Environment.Scenes
                 avatar.RemoveAttachment(this);
             }
 
-            m_rootPart.m_attachedAvatar = LLUUID.Zero;
+            m_rootPart.AttachedAvatar = LLUUID.Zero;
             m_rootPart.SetParentLocalId(0);
             //m_rootPart.SetAttachmentPoint((byte)0);
-            m_rootPart.m_IsAttachment = false;
-            AbsolutePosition = m_rootPart.m_attachedPos;
+            m_rootPart.IsAttachment = false;
+            AbsolutePosition = m_rootPart.AttachedPos;
             //m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             //AttachToBackup();
             //m_rootPart.ScheduleFullUpdate();
@@ -1004,7 +1004,7 @@ namespace OpenSim.Region.Environment.Scenes
                         continue;
                     if (part != RootPart)
                         part.ObjectFlags = objectflagupdate;
-                    aggregateScriptEvents |= part.m_aggregateScriptEvents;
+                    aggregateScriptEvents |= part.AggregateScriptEvents;
                 }
             }
 
@@ -1154,9 +1154,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_rootPart.UUID == part.UUID)
             {
-                if (m_rootPart.m_IsAttachment)
+                if (m_rootPart.IsAttachment)
                 {
-                    part.SendFullUpdateToClient(remoteClient, m_rootPart.m_attachedPos, clientFlags);
+                    part.SendFullUpdateToClient(remoteClient, m_rootPart.AttachedPos, clientFlags);
                 }
                 else
                 {
@@ -1178,9 +1178,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_rootPart.UUID == part.UUID)
             {
-                if (m_rootPart.m_IsAttachment)
+                if (m_rootPart.IsAttachment)
                 {
-                    part.SendTerseUpdateToClient(remoteClient, m_rootPart.m_attachedPos);
+                    part.SendTerseUpdateToClient(remoteClient, m_rootPart.AttachedPos);
                 }
                 else
                 {
@@ -1349,9 +1349,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (rootpart.PhysActor != null)
                 {
-                    if (rootpart.m_IsAttachment)
+                    if (rootpart.IsAttachment)
                     {
-                        ScenePresence avatar = m_scene.GetScenePresence(rootpart.m_attachedAvatar);
+                        ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
                         if (avatar != null)
                         {
                             avatar.PushForce(impulse);
@@ -2326,9 +2326,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
-                if (m_rootPart.m_IsAttachment)
+                if (m_rootPart.IsAttachment)
                 {
-                    m_rootPart.m_attachedPos = pos;
+                    m_rootPart.AttachedPos = pos;
                 }
 
                 AbsolutePosition = pos;
@@ -2538,11 +2538,11 @@ namespace OpenSim.Region.Environment.Scenes
                 float setval = (rotate10 > 0) ? 1f : 0f;
 
                 if (setX)
-                    m_rootPart.m_rotationAxis.X = setval;
+                    m_rootPart.RotationAxis.X = setval;
                 if (setY)
-                    m_rootPart.m_rotationAxis.Y = setval;
+                    m_rootPart.RotationAxis.Y = setval;
                 if (setZ)
-                    m_rootPart.m_rotationAxis.Z = setval;
+                    m_rootPart.RotationAxis.Z = setval;
 
                 if (setX || setY || setZ)
                 {

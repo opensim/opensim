@@ -2432,7 +2432,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.RootPart.m_IsAttachment && agent == m_host.ParentGroup.RootPart.m_attachedAvatar)
+            if (m_host.ParentGroup.RootPart.IsAttachment && agent == m_host.ParentGroup.RootPart.AttachedAvatar)
             {
                 // When attached, certain permissions are implicit if requested from owner
                 int implicitPerms = ScriptBaseClass.PERMISSION_TAKE_CONTROLS |

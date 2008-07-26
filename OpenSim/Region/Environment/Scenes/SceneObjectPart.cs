@@ -128,22 +128,22 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore]
         public uint TimeStampTerse = 0;
         [XmlIgnore]
-        public LLUUID fromAssetID = LLUUID.Zero;
+        public LLUUID FromAssetID = LLUUID.Zero;
         [XmlIgnore]
-        public bool m_IsAttachment = false;
+        public bool IsAttachment = false;
         [XmlIgnore]
-        public scriptEvents m_aggregateScriptEvents = 0;
+        public scriptEvents AggregateScriptEvents = 0;
         [XmlIgnore]
-        public LLUUID m_attachedAvatar = LLUUID.Zero;
+        public LLUUID AttachedAvatar = LLUUID.Zero;
         [XmlIgnore]
-        public LLVector3 m_attachedPos = LLVector3.Zero;
+        public LLVector3 AttachedPos = LLVector3.Zero;
         [XmlIgnore]
-        public uint m_attachmentPoint = (byte)0;
+        public uint AttachmentPoint = (byte)0;
         [XmlIgnore]
-        public PhysicsVector m_rotationAxis = new PhysicsVector(1f,1f,1f);
+        public PhysicsVector RotationAxis = new PhysicsVector(1f,1f,1f);
         
         [XmlIgnore]
-        public bool m_undoing = false;
+        public bool Undoing = false;
 
         [XmlIgnore]
         private LLObject.ObjectFlags LocalFlags = LLObject.ObjectFlags.None;
@@ -151,19 +151,19 @@ namespace OpenSim.Region.Environment.Scenes
         private byte m_clickAction = 0;
         private Color m_color = Color.Black;
         private string m_description = String.Empty;
-        private List<uint> m_lastColliders = new List<uint>();
+        private readonly List<uint> m_lastColliders = new List<uint>();
         // private PhysicsVector m_lastRotationalVelocity = PhysicsVector.Zero;
         private int m_linkNum = 0;
         [XmlIgnore]
         private int m_scriptAccessPin = 0;
         [XmlIgnore]
-        private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
+        private readonly Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
         private string m_sitName = String.Empty;
         private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
         private Vector3 m_sitTargetPosition = new Vector3(0, 0, 0);
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
-        private UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
+        private readonly UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
         private LLUUID _creatorID;
 
         /// <summary>
@@ -433,9 +433,9 @@ namespace OpenSim.Region.Environment.Scenes
                     m_groupPosition.Y = PhysActor.Position.Y;
                     m_groupPosition.Z = PhysActor.Position.Z;
                 }
-                if (m_IsAttachment)
+                if (IsAttachment)
                 {
-                    ScenePresence sp = m_parentGroup.Scene.GetScenePresence(m_attachedAvatar);
+                    ScenePresence sp = m_parentGroup.Scene.GetScenePresence(AttachedAvatar);
                     if (sp != null)
                     {
                         return sp.AbsolutePosition;
@@ -744,7 +744,7 @@ namespace OpenSim.Region.Environment.Scenes
         public LLVector3 AbsolutePosition
         {
             get {
-                if (m_IsAttachment)
+                if (IsAttachment)
                     return GroupPosition;
 
                 return m_offsetPosition + m_groupPosition; }
@@ -769,7 +769,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public scriptEvents ScriptEvents
         {
-            get { return m_aggregateScriptEvents; }
+            get { return AggregateScriptEvents; }
         }
 
 
@@ -1907,7 +1907,7 @@ namespace OpenSim.Region.Environment.Scenes
                     oldparts = (scriptEvents) m_scriptEvents[scriptid];
 
                     // remove values from aggregated script events
-                    m_aggregateScriptEvents &= ~oldparts;
+                    AggregateScriptEvents &= ~oldparts;
                     m_scriptEvents.Remove(scriptid);
                 }
             }
@@ -2098,8 +2098,8 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
             remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
                                                lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, _ownerID,
-                                               m_text, color, _parentID, m_particleSystem, m_clickAction, m_TextureAnimation, m_IsAttachment,
-                                               m_attachmentPoint,fromAssetID, Sound, SoundGain, SoundFlags, SoundRadius);
+                                               m_text, color, _parentID, m_particleSystem, m_clickAction, m_TextureAnimation, IsAttachment,
+                                               AttachmentPoint,FromAssetID, Sound, SoundGain, SoundFlags, SoundRadius);
         }
 
         /// <summary>
@@ -2213,7 +2213,7 @@ namespace OpenSim.Region.Environment.Scenes
             // TODO: I have no idea why we are making this check.  This should be sorted out
             if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, Shape.State, fromAssetID);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, Shape.State, FromAssetID);
             }
             else
             {
@@ -2226,15 +2226,15 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendTerseUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
         {
             LLQuaternion mRot = RotationOffset;
-            if (m_IsAttachment)
+            if (IsAttachment)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, (byte)((m_attachmentPoint % 16) * 16 + (m_attachmentPoint / 16)),fromAssetID);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, (byte)((AttachmentPoint % 16) * 16 + (AttachmentPoint / 16)),FromAssetID);
             }
             else
             {
                 if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
                 {
-                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, Shape.State, fromAssetID);
+                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, Shape.State, FromAssetID);
                 }
                 else
                 {
@@ -2247,7 +2247,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetAttachmentPoint(uint AttachmentPoint)
         {
-            m_attachmentPoint = AttachmentPoint;
+            this.AttachmentPoint = AttachmentPoint;
 
             // save the attachment point.
             //if (AttachmentPoint != 0)
@@ -2335,7 +2335,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetPhysicsAxisRotation()
         {
-            PhysActor.LockAngularMotion(m_rotationAxis);
+            PhysActor.LockAngularMotion(RotationAxis);
             m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
         }
 
@@ -2414,7 +2414,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void StoreUndoState()
         {
-            if (!m_undoing)
+            if (!Undoing)
             {
                 if (m_parentGroup != null)
                 {
@@ -3232,22 +3232,22 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (scriptEvents s in m_scriptEvents.Values)
                 {
-                    m_aggregateScriptEvents |= s;
+                    AggregateScriptEvents |= s;
                 }
             }
 
             uint objectflagupdate = 0;
 
             if (
-                ((m_aggregateScriptEvents & scriptEvents.touch) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.touch_end) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.touch_start) != 0)
+                ((AggregateScriptEvents & scriptEvents.touch) != 0) ||
+                ((AggregateScriptEvents & scriptEvents.touch_end) != 0) ||
+                ((AggregateScriptEvents & scriptEvents.touch_start) != 0)
                 )
             {
                 objectflagupdate |= (uint) LLObject.ObjectFlags.Touch;
             }
 
-            if ((m_aggregateScriptEvents & scriptEvents.money) != 0)
+            if ((AggregateScriptEvents & scriptEvents.money) != 0)
             {
                 objectflagupdate |= (uint) LLObject.ObjectFlags.Money;
             }
@@ -3258,9 +3258,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             if (
-                ((m_aggregateScriptEvents & scriptEvents.collision) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.collision_start) != 0)
+                ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
+                ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+                ((AggregateScriptEvents & scriptEvents.collision_start) != 0)
                 )
             {
                 // subscribe to physics updates.

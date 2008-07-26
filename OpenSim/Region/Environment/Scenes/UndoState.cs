@@ -89,7 +89,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (part != null)
             {
-                part.m_undoing = true;
+                part.Undoing = true;
                 
                 if (part.ParentID == 0)
                 {
@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Scenes
                     part.Resize(Scale);
                     part.ScheduleTerseUpdate();
                 }
-                part.m_undoing = false;
+                part.Undoing = false;
                 
             }
         }

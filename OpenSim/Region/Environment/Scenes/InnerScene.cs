@@ -1125,13 +1125,13 @@ namespace OpenSim.Region.Environment.Scenes
             if (group != null)
             {
                 // LLVector3 oldPos = group.AbsolutePosition;
-                if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.m_IsAttachment)
+                if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.IsAttachment)
                 {
                     group.SendGroupTerseUpdate();
                     return;
                 }
                 
-                if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.m_IsAttachment)
+                if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.IsAttachment)
                 {
                     group.UpdateSinglePosition(pos, localID);
                 }
@@ -1151,19 +1151,19 @@ namespace OpenSim.Region.Environment.Scenes
             {
 
                 // LLVector3 oldPos = group.AbsolutePosition;
-                if (group.RootPart.m_IsAttachment)
+                if (group.RootPart.IsAttachment)
                 {
                     group.UpdateGroupPosition(pos);
                 }
                 else
                 {
-                    if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.m_IsAttachment)
+                    if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.IsAttachment)
                     {
                         group.SendGroupTerseUpdate();
                         
                         return;
                     }
-                        if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.m_IsAttachment)
+                        if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.IsAttachment)
                     {
                         group.UpdateGroupPosition(pos);
                     }
