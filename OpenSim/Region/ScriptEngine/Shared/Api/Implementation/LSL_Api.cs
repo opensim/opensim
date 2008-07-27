@@ -3736,15 +3736,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Types.list llListRandomize(LSL_Types.list src, int stride)
         {
-
             LSL_Types.list result;
             Random rand           = new Random();
 
             int   chunkk;
             int[] chunks;
-            int   index1;
-            int   index2;
-            int   tmp;
 
             m_host.AddScriptLPS(1);
 
@@ -3764,18 +3760,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 for (int i = 0; i < chunkk; i++)
                     chunks[i] = i;
 
-                for (int i = 0; i < chunkk - 1; i++)
+                // Knuth shuffle the chunkk index
+                for (int i = chunkk-1; i >= 1; i--)
                 {
-                    //  randomly select 2 chunks
-                    index1 = rand.Next(rand.Next(65536));
-                    index1 = index1%chunkk;
-                    index2 = rand.Next(rand.Next(65536));
-                    index2 = index2%chunkk;
+                    // Elect an unrandomized chunk to swap
+                    int index = rand.Next(i+1);
+                    int tmp;
 
-                    //  and swap their relative positions
-                    tmp = chunks[index1];
-                    chunks[index1] = chunks[index2];
-                    chunks[index2] = tmp;
+                    // and swap position with first unrandomized chunk
+                    tmp = chunks[i];
+                    chunks[i] = chunks[index];
+                    chunks[index] = tmp;
                 }
 
                 // Construct the randomized list
@@ -3797,7 +3792,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             return result;
-
         }
 
         /// <summary>
