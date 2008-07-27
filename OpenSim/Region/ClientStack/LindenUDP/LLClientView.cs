@@ -5644,6 +5644,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             case "instantmessage":
                                 if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(this.AgentId))
                                 {
+                                    if (messagePacket.ParamList.Length < 5)
+                                        break;
                                     LLUUID invoice = messagePacket.MethodData.Invoice;
                                     LLUUID SenderID = new LLUUID(Helpers.FieldToUTF8String(messagePacket.ParamList[2].Parameter));
                                     string SenderName = Helpers.FieldToUTF8String(messagePacket.ParamList[3].Parameter);
