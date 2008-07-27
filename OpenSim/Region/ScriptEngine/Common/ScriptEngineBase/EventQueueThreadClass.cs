@@ -153,6 +153,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         private void EventQueueThreadLoop()
         {
+			CultureInfo USCulture = new CultureInfo("en-US");
+			Thread.CurrentThread.CurrentCulture = USCulture;
+
             //myScriptEngine.Log.Info("[" + ScriptEngineName + "]: EventQueueManager Worker thread spawned");
             try
             {
