@@ -47,7 +47,20 @@ namespace OpenSim.Framework
         public string GridServerURL = String.Empty;
         public uint HttpPort = DefaultHttpPort;
         public bool HttpSSL = DefaultHttpSSL;
-        public string InventoryUrl = String.Empty;
+
+        private Uri m_inventoryUrl;
+
+        public string InventoryUrl
+        {
+            get
+            {
+                return m_inventoryUrl.ToString();
+            }
+            set
+            {
+                m_inventoryUrl = new Uri(value);
+            }
+        }
 
         public bool EnableLLSDLogin = true;
 
@@ -71,7 +84,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("default_grid_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Grid Server URI",
-                                                "http://127.0.0.1:" + GridConfig.DefaultHttpPort.ToString() + "/", false);
+                                                "http://127.0.0.1:" + GridConfig.DefaultHttpPort + "/", false);
             configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to grid server", "null", false);
             configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
@@ -80,7 +93,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("default_inventory_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Inventory Server URI",
-                                                "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString() + "/",
+                                                "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort + "/",
                                                 false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
