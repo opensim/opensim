@@ -1432,7 +1432,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // The link set has been completely torn down
                     // This is the case if you select a link set and delink
                     //
-                    parenPrim.RootPart.LinkNum = 1;
+                    parenPrim.RootPart.LinkNum = 0;
                     if (sendEvents)
                         parenPrim.TriggerScriptChangedEvent(Changed.LINK);
                 }

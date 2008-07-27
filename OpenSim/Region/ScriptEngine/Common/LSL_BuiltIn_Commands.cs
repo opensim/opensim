@@ -2813,7 +2813,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             else
             {
-                return LLUUID.Zero.ToString();
+                return "";
             }
         }
 

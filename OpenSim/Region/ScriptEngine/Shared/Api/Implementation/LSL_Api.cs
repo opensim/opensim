@@ -2699,7 +2699,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                return LLUUID.Zero.ToString();
+                return "";
             }
         }
 
