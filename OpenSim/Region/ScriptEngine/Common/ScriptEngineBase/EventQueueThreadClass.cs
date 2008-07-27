@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Threading;
+using System.Globalization;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes.Scripting;
