@@ -68,14 +68,22 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         {
             FileInfo fInfo = new FileInfo(path);
             long numBytes = fInfo.Length;
-            FileStream fStream = new FileStream(path, FileMode.Open, FileAccess.Read);
-            byte[] idata = new byte[numBytes];
-            BinaryReader br = new BinaryReader(fStream);
-            idata = br.ReadBytes((int) numBytes);
-            br.Close();
-            fStream.Close();
-            info.Data = idata;
-            //info.loaded=true;
+            if (fInfo.Exists)
+            {
+
+                FileStream fStream = new FileStream(path, FileMode.Open, FileAccess.Read);
+                byte[] idata = new byte[numBytes];
+                BinaryReader br = new BinaryReader(fStream);
+                idata = br.ReadBytes((int)numBytes);
+                br.Close();
+                fStream.Close();
+                info.Data = idata;
+                //info.loaded=true;
+            }
+            else
+            {
+                m_log.ErrorFormat("[ASSETS]: file: [{0}] not found !", path);
+            }
         }
 
         public void ForEachDefaultXmlAsset(Action<AssetBase> action)
