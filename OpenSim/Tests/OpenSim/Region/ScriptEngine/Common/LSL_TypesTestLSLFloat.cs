@@ -496,5 +496,68 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
                 Assert.AreEqual(number.Value, testFloat.ToString());
             }
         }
+
+        /// <summary>
+        /// Tests addition of two LSLFloats.
+        /// </summary>
+        [Test]
+        public void TestAddTwoLSLFloats()
+        {
+            LSL_Types.LSLFloat testResult;
+
+            foreach (KeyValuePair<double, double> number in m_doubleDoubleSet)
+            {
+                testResult = new LSL_Types.LSLFloat(number.Key) + new LSL_Types.LSLFloat(number.Value);
+                Assert.That(testResult.value, new DoubleToleranceConstraint(number.Key + number.Value, _lowPrecisionTolerance));
+            }
+        }
+
+        /// <summary>
+        /// Tests subtraction of two LSLFloats.
+        /// </summary>
+        [Test]
+        public void TestSubtractTwoLSLFloats()
+        {
+            LSL_Types.LSLFloat testResult;
+
+            foreach (KeyValuePair<double, double> number in m_doubleDoubleSet)
+            {
+                testResult = new LSL_Types.LSLFloat(number.Key) - new LSL_Types.LSLFloat(number.Value);
+                Assert.That(testResult.value, new DoubleToleranceConstraint(number.Key - number.Value, _lowPrecisionTolerance));
+            }
+        }
+
+        /// <summary>
+        /// Tests multiplication of two LSLFloats.
+        /// </summary>
+        [Test]
+        public void TestMultiplyTwoLSLFloats()
+        {
+            LSL_Types.LSLFloat testResult;
+
+            foreach (KeyValuePair<double, double> number in m_doubleDoubleSet)
+            {
+                testResult = new LSL_Types.LSLFloat(number.Key) * new LSL_Types.LSLFloat(number.Value);
+                Assert.That(testResult.value, new DoubleToleranceConstraint(number.Key * number.Value, _lowPrecisionTolerance));
+            }
+        }
+
+        /// <summary>
+        /// Tests division of two LSLFloats.
+        /// </summary>
+        [Test]
+        public void TestDivideTwoLSLFloats()
+        {
+            LSL_Types.LSLFloat testResult;
+
+            foreach (KeyValuePair<double, double> number in m_doubleDoubleSet)
+            {
+                if (number.Value != 0.0) // Let's avoid divide by zero.
+                {
+                    testResult = new LSL_Types.LSLFloat(number.Key) / new LSL_Types.LSLFloat(number.Value);
+                    Assert.That(testResult.value, new DoubleToleranceConstraint(number.Key / number.Value, _lowPrecisionTolerance));
+                }
+            }
+        }
     }
 }

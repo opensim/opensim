@@ -1511,6 +1511,26 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSLFloat(f.value / (double)i);
             }
             
+            static public LSLFloat operator +(LSLFloat lhs, LSLFloat rhs)
+            {
+                return new LSLFloat(lhs.value + rhs.value);
+            }
+
+            static public LSLFloat operator -(LSLFloat lhs, LSLFloat rhs)
+            {
+                return new LSLFloat(lhs.value - rhs.value);
+            }
+
+            static public LSLFloat operator *(LSLFloat lhs, LSLFloat rhs)
+            {
+                return new LSLFloat(lhs.value * rhs.value);
+            }
+
+            static public LSLFloat operator /(LSLFloat lhs, LSLFloat rhs)
+            {
+                return new LSLFloat(lhs.value / rhs.value);
+            }
+
             static public LSLFloat operator -(LSLFloat f)
             {
                 return new LSLFloat(-f.value);
