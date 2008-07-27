@@ -82,7 +82,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
         // private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
-        private bool m_UseCompiler = false;
+        private bool m_UseCompiler = true;
 
         public IScriptEngine m_scriptEngine;
         public Compiler(IScriptEngine scriptEngine)
@@ -93,9 +93,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         public bool in_startup = true;
         public void ReadConfig()
         {
+            // Turning on the compiler by default so hardcoding this option to
+            // true. Once it's clear we won't be going back to the old
+            // "compiler" this code will be removed completely.
+            // Mike, 2008.07.28
+            //m_UseCompiler = m_scriptEngine.Config.GetBoolean("UseNewCompiler", true);
 
             // Get some config
-            m_UseCompiler = m_scriptEngine.Config.GetBoolean("UseNewCompiler", true);
             WriteScriptSourceToDebugFile = m_scriptEngine.Config.GetBoolean("WriteScriptSourceToDebugFile", true);
             CompileWithDebugInformation = m_scriptEngine.Config.GetBoolean("CompileWithDebugInformation", true);
 
