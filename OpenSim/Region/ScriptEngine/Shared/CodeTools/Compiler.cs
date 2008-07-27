@@ -555,7 +555,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                         }
                         catch (KeyNotFoundException)  // we don't have this line/column mapped
                         {
-                            lslPos = new KeyValuePair<int, int>(-1, -1);
+                            m_scriptEngine.Log.Debug(String.Format("[Compiler]: Lookup of C# line {0}, column {1} failed.", CompErr.Line, CompErr.Column));
+                            lslPos = new KeyValuePair<int, int>(-CompErr.Line, -CompErr.Column);
                         }
 
                         // The Second Life viewer's script editor begins
