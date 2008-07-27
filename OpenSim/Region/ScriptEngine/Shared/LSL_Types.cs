@@ -1314,7 +1314,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLInteger(u);
             }
 
-            static public implicit operator LSLInteger(double d)
+            static public explicit operator LSLInteger(double d)
             {
                 return new LSLInteger(d);
             }
