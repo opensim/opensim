@@ -3,6 +3,6 @@
         <Import assembly="OpenSim.exe"/>
     </Runtime>
     <ExtensionPoint path = "/OpenSim/Startup">
-        <ExtensionNode objectType="OpenSim.Region.Application.IApplicationPlugin"/>
+        <ExtensionNode objectType="OpenSim.IApplicationPlugin"/>
     </ExtensionPoint>
 </Addin>
