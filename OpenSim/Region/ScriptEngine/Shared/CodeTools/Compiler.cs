@@ -93,11 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         public bool in_startup = true;
         public void ReadConfig()
         {
-            // Turning on the compiler by default so hardcoding this option to
-            // true. Once it's clear we won't be going back to the old
-            // "compiler" this code will be removed completely.
-            // Mike, 2008.07.28
-            //m_UseCompiler = m_scriptEngine.Config.GetBoolean("UseNewCompiler", true);
+            m_UseCompiler = m_scriptEngine.Config.GetBoolean("UseNewCompiler", true);
 
             // Get some config
             WriteScriptSourceToDebugFile = m_scriptEngine.Config.GetBoolean("WriteScriptSourceToDebugFile", true);

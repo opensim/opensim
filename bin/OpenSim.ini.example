@@ -617,7 +617,7 @@ AutoSavePeriod = 15 ; Number of minutes between autosave backups
 
 [XEngine]
 ; Use the newer LSL to CS compiler (experimental)
-UseNewCompiler = false
+UseNewCompiler = true
 ; How many threads to keep alive even if nothing is happening
 MinThreads = 2
 ; How many threads to start at maximum load
