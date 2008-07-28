@@ -39,6 +39,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
+using OpenSim.Common.Communications;
 using OpenSim.Grid.Communications.OGS1;
 
 namespace OpenSim.Grid.UserServer
@@ -53,6 +54,7 @@ namespace OpenSim.Grid.UserServer
 
         public UserManager m_userManager;
         public UserLoginService m_loginService;
+        public GridInfoService m_gridInfoService;
         public MessageServersConnector m_messagesService;
         protected IInterServiceInventoryServices m_interServiceInventoryService;
 
@@ -99,6 +101,8 @@ namespace OpenSim.Grid.UserServer
             m_userManager = new UserManager();
             m_userManager._config = Cfg;
             m_userManager.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
+
+            m_gridInfoService = new GridInfoService();
 
             m_interServiceInventoryService = new OGS1InterServiceInventoryService(m_userManager._config.InventoryUrl);            
 
@@ -148,6 +152,9 @@ namespace OpenSim.Grid.UserServer
             m_httpServer.AddXmlRPCHandler("agent_change_region", m_messagesService.XmlRPCUserMovedtoRegion);
             m_httpServer.AddXmlRPCHandler("deregister_messageserver", m_messagesService.XmlRPCDeRegisterMessageServer);
 
+            m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
+            m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
+            
 
             m_httpServer.AddStreamHandler(
                 new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));

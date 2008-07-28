@@ -40,6 +40,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
+using OpenSim.Common.Communications;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
@@ -79,6 +80,7 @@ namespace OpenSim
         public bool m_see_into_region_from_neighbor;
 
         protected LocalLoginService m_loginService;
+        protected GridInfoService m_gridInfoService;
 
         protected string m_storageDll;
         protected string m_clientstackDll;
@@ -381,6 +383,11 @@ namespace OpenSim
 
                 // Provides the LLSD login
                 m_httpServer.SetLLSDHandler(m_loginService.LLSDLoginMethod);
+
+                // provide grid info
+                m_gridInfoService = new GridInfoService();
+                m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
+                m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
 
                 CreateAccount = localComms.doCreate;
             }
