@@ -36,6 +36,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     public class LSL_TypesTestLSLInteger
     {
         private Dictionary<double, int> m_doubleIntSet;
+        private Dictionary<string, int> m_stringIntSet;
 
         /// <summary>
         /// Sets up dictionaries and arrays used in the tests.
@@ -51,10 +52,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_doubleIntSet.Add(-1.0, -1);
             m_doubleIntSet.Add(999999999.0, 999999999);
             m_doubleIntSet.Add(-99999999.0, -99999999);
+
+            m_stringIntSet = new Dictionary<string, int>();
+            m_stringIntSet.Add("2", 2);
+            m_stringIntSet.Add("-2", -2);
+            m_stringIntSet.Add("0", 0);
+            m_stringIntSet.Add("1", 1);
+            m_stringIntSet.Add("-1", -1);
+            m_stringIntSet.Add("123.9", 123);
+            m_stringIntSet.Add("999999999", 999999999);
+            m_stringIntSet.Add("-99999999", -99999999);
         }
 
         /// <summary>
-        /// Tests LSLInteger is correctly cast explicitly to LSLFloat.
+        /// Tests LSLFloat is correctly cast explicitly to LSLInteger.
         /// </summary>
         [Test]
         public void TestExplicitCastLSLFloatToLSLInteger()
@@ -64,6 +75,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             foreach (KeyValuePair<double, int> number in m_doubleIntSet)
             {
                 testInteger = (LSL_Types.LSLInteger) new LSL_Types.LSLFloat(number.Key);
+                Assert.AreEqual(testInteger.value, number.Value);
+            }
+        }
+
+        /// <summary>
+        /// Tests string is correctly cast explicitly to LSLInteger.
+        /// </summary>
+        [Test]
+        public void TestExplicitCastStringToLSLInteger()
+        {
+            LSL_Types.LSLInteger testInteger;
+
+            foreach (KeyValuePair<string, int> number in m_stringIntSet)
+            {
+                testInteger = (LSL_Types.LSLInteger) number.Key;
+                Assert.AreEqual(testInteger.value, number.Value);
+            }
+        }
+
+        /// <summary>
+        /// Tests LSLString is correctly cast explicitly to LSLInteger.
+        /// </summary>
+        [Test]
+        public void TestExplicitCastLSLStringToLSLInteger()
+        {
+            LSL_Types.LSLInteger testInteger;
+
+            foreach (KeyValuePair<string, int> number in m_stringIntSet)
+            {
+                testInteger = (LSL_Types.LSLInteger) new LSL_Types.LSLString(number.Key);
                 Assert.AreEqual(testInteger.value, number.Value);
             }
         }

@@ -1172,7 +1172,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static explicit operator LSLInteger(LSLString s)
             {
-                return new LSLInteger(Convert.ToInt32(s.m_string));
+                // double.Parse() used because s could be "123.9" for example.
+                return new LSLInteger(double.Parse(s.m_string));
             }
 
             public static explicit operator LSLString(double d)
@@ -1283,7 +1284,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public explicit operator LSLInteger(string s)
             {
-                return new LSLInteger(int.Parse(s));
+                // double.Parse() used because s could be "123.9" for example.
+                return new LSLInteger(double.Parse(s));
             }
 
             static public implicit operator LSLInteger(uint u)
