@@ -28,9 +28,9 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using OpenSim.Tests.Common;
-using OpenSim.Region.ScriptEngine.Common;
+using OpenSim.Region.ScriptEngine.Shared;
 
-namespace OpenSim.Region.ScriptEngine.Common.Tests
+namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
     [TestFixture]
     public class LSL_TypesTestLSLFloat

@@ -1280,7 +1280,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 return new LSLInteger(int.Parse(s));
             }
-            
+
             static public implicit operator LSLInteger(uint u)
             {
                 return new LSLInteger(u);
@@ -1347,7 +1347,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 return new LSLInteger(-i.value);
             }
-            
+
             public override bool Equals(Object o)
             {
                 if (!(o is LSLInteger))
@@ -1362,7 +1362,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public LSLInteger operator &(LSLInteger i1, LSLInteger i2)
             {
-            int ret = i1.value & i2.value;
+                int ret = i1.value & i2.value;
                 return ret;
             }
 
@@ -1505,7 +1505,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 return new LSLFloat(f.value * (double)i);
             }
-            
+
             static public LSLFloat operator /(LSLFloat f, int i)
             {
                 return new LSLFloat(f.value / (double)i);
@@ -1535,12 +1535,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 return new LSLFloat(-f.value);
             }
-            
+
             static public implicit operator System.Double(LSLFloat f)
             {
                 return f.value;
             }
-            
+
             #endregion
 
             #region Overriders

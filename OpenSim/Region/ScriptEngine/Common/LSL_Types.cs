@@ -1285,7 +1285,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return new LSLInteger(u);
             }
-            
+
             static public explicit operator LSLInteger(double d)
             {
                 return new LSLInteger(d);
@@ -1322,7 +1322,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return new LSLInteger(i1.value / i2);
             }
-            
+
             static public LSLFloat operator +(LSLInteger i1, double f)
             {
                 return new LSLFloat((double)i1.value + f);
@@ -1510,7 +1510,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return new LSLFloat(f.value / (double)i);
             }
-            
+
             static public LSLFloat operator +(LSLFloat lhs, LSLFloat rhs)
             {
                 return new LSLFloat(lhs.value + rhs.value);
