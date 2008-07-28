@@ -65,15 +65,35 @@ namespace OpenSim.Common.Communications
                     IConfigSource _configSource = new IniConfigSource(configPath);
                     IConfig startupCfg = _configSource.Configs["Startup"];
                     IConfig gridCfg = _configSource.Configs["GridInfo"];
-                    
-                    if (!startupCfg.GetBoolean("gridmode", false)) 
-                        _info["mode"] = "standalone";
-                    else 
+                    IConfig netCfg = _configSource.Configs["Network"];
+
+                    bool grid = startupCfg.GetBoolean("gridmode", false);
+
+                    if (grid)
                         _info["mode"] = "grid";
-                    
-                    foreach (string k in gridCfg.GetKeys())
+                    else 
+                        _info["mode"] = "standalone";
+
+
+                    if (null != gridCfg)
                     {
-                        _info[k] = gridCfg.GetString(k);
+                        foreach (string k in gridCfg.GetKeys())
+                        {
+                            _info[k] = gridCfg.GetString(k);
+                        }
+                    }
+                    else if (null != netCfg)
+                    {
+                        if (grid)
+                            _info["login"] = netCfg.GetString("user_server_url");
+                        else
+                            _info["login"] = String.Format("http://127.0.0.1:{0}/", netCfg.GetString("http_listener_port"));
+                        IssueWarning();
+                    }
+                    else
+                    {
+                        _info["login"] = "http://127.0.0.1:9000/";
+                        IssueWarning();
                     }
                 }
                 catch (Exception)
@@ -89,6 +109,16 @@ namespace OpenSim.Common.Communications
         /// </summary>
         public GridInfoService() : this(Path.Combine(Util.configDir(), "OpenSim.ini"))
         {
+        }
+
+        private void IssueWarning()
+        {
+            _log.Warn("[GridInfoService] found no [GridInfo] section in your OpenSim.ini");
+            _log.Warn("[GridInfoService] trying to guess sensible defaults, you might want to provide better ones:");
+            foreach (string k in _info.Keys)
+            {
+                _log.WarnFormat("[GridInfoService] {0}: {1}", k, _info[k]);
+            }
         }
 
         public XmlRpcResponse XmlRpcGridInfoMethod(XmlRpcRequest request)
