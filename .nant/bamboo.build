@@ -38,6 +38,7 @@
         <assemblies>
           <include name="../bin/OpenSim.Framework.Tests.dll" />
           <include name="../bin/OpenSim.Region.ScriptEngine.Common.Tests.dll" />
+          <include name="../bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
           <include name="../bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
           <include name="../bin/OpenSim.Region.Environment.dll" />
         </assemblies>
