@@ -141,9 +141,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new Vector3(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
             }
 
-            public static Vector3 operator *(Vector3 lhs, Vector3 rhs)
+            public static LSLFloat operator *(Vector3 lhs, Vector3 rhs)
             {
-                return new Vector3(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z);
+                return Dot(lhs, rhs);
             }
 
             public static Vector3 operator %(Vector3 v1, Vector3 v2)
@@ -989,22 +989,22 @@ namespace OpenSim.Region.ScriptEngine.Shared
         // BELOW IS WORK IN PROGRESS... IT WILL CHANGE, SO DON'T USE YET! :)
         //
 
-//        public struct StringTest
-//        {
-//            // Our own little string
-//            internal string actualString;
-//            public static implicit operator bool(StringTest mString)
-//            {
-//                if (mString.actualString.Length == 0)
-//                    return true;
-//                return false;
-//            }
-//            public override string ToString()
-//            {
-//                return actualString;
-//            }
-//
-//        }
+        public struct StringTest
+        {
+            // Our own little string
+            internal string actualString;
+            public static implicit operator bool(StringTest mString)
+            {
+                if (mString.actualString.Length == 0)
+                    return true;
+                return false;
+            }
+            public override string ToString()
+            {
+                return actualString;
+            }
+
+        }
 
         [Serializable]
         public struct key
@@ -1106,11 +1106,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 m_string = s;
             }
 
-            public LSLString(int i)
-            {
-                m_string=i.ToString();
-            }
-
             public LSLString(double d)
             {
                 string s=String.Format("{0:0.000000}", d);
@@ -1180,11 +1175,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLInteger(Convert.ToInt32(s.m_string));
             }
 
-            public static explicit operator LSLString(int i)
-            {
-                return new LSLString(i);
-            }
-
             public static explicit operator LSLString(double d)
             {
                 return new LSLString(d);
@@ -1250,19 +1240,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 value = (int)d;
             }
 
-            public LSLInteger(Object o)
-            {
-                if (!(o is Int32))
-                    value = 0;
-                else
-                    value = (int)o;
-            }
-
-            public LSLInteger(string s)
-            {
-                value = int.Parse(s);
-            }
-
             #endregion
 
             #region Operators
@@ -1280,11 +1257,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
             static public explicit operator LSLString(LSLInteger i)
             {
                 return new LSLString(i.ToString());
-            }
-
-            static public explicit operator string(LSLInteger i)
-            {
-                return i.ToString();
             }
 
             static public implicit operator Boolean(LSLInteger i)
@@ -1376,6 +1348,18 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLInteger(-i.value);
             }
             
+            public override bool Equals(Object o)
+            {
+                if (!(o is LSLInteger))
+                    return false;
+                return value == ((LSLInteger)o).value;
+            }
+
+            public override int GetHashCode()
+            {
+                return value;
+            }
+
             static public LSLInteger operator &(LSLInteger i1, LSLInteger i2)
             {
             int ret = i1.value & i2.value;
@@ -1400,11 +1384,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return (double)i.value;
             }
 
-            static public implicit operator LSLFloat(LSLInteger i)
-            {
-                return new LSLFloat((double)i.value);
-            }
-
             public static bool operator true(LSLInteger i)
             {
                 return i.value != 0;
@@ -1424,24 +1403,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return this.value.ToString();
             }
 
-            public override bool Equals(object o)
-            {
-                if (o is Int32)
-                {
-                    return value == (Int32)o;
-                }
-                if (o is LSLInteger)
-                {
-                    return value == ((LSLInteger)o).value;
-                }
-                return false;
-            }
-
-            public override int GetHashCode()
-            {
-                return value.GetHashCode();
-            }
-
             #endregion
         }
 
@@ -1454,28 +1415,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLFloat(int i)
             {
-                value = (double)i;
+                this.value = (double)i;
             }
 
             public LSLFloat(double d)
             {
-                value = d;
-            }
-
-            public LSLFloat(string s)
-            {
-                value = double.Parse(s);
-            }
-
-            public LSLFloat(Object o)
-            {
-                if (!((o is double) || (o is float)))
-                {
-                    value = 0.0;
-                    return;
-                }
-
-                value = (double)o;
+                this.value = d;
             }
 
             #endregion
@@ -1532,19 +1477,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
             static public bool operator !=(LSLFloat f1, LSLFloat f2)
             {
                 return f1.value != f2.value;
-            }
-
-            public override bool Equals(Object o)
-            {
-                if (!(o is LSLFloat))
-                    return false;
-
-                return value == ((LSLFloat)o).value;
-            }
-
-            public override int GetHashCode()
-            {
-                return (int)value;
             }
 
             static public LSLFloat operator ++(LSLFloat f)
@@ -1617,6 +1549,19 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 return String.Format("{0:0.000000}", this.value);
             }
+
+            public override bool Equals(Object o)
+            {
+                if (!(o is LSLFloat))
+                    return false;
+                return value == ((LSLFloat)o).value;
+            }
+
+            public override int GetHashCode()
+            {
+                return Convert.ToInt32(value);
+            }
+
 
             #endregion
         }
