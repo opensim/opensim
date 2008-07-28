@@ -129,6 +129,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             get { return map[x, y]; }
             set
             {
+                // Will "fix" terrain hole problems. Although not fantastically.
+                if(Double.IsNaN(value) || Double.IsInfinity(value))
+                    return;
+
                 if (map[x, y] != value)
                 {
                     taint[x / 16, y / 16] = true;
