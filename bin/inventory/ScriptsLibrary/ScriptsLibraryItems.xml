@@ -288,8 +288,8 @@
 <!-- .Other testing scripts == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba025"/> -->
 <!-- OpenSim Specific Scripts == <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853"/> -->
   <Section Name="osTextBoard">
-    <Key Name="inventoryID" Value="3e4f2be4-4697-4697-15c8-5920140208c5"/>
-    <Key Name="assetID" Value="3e4f2be4-4697-4697-15c8-5920140208c5"/>
+    <Key Name="inventoryID" Value="2ddcb059-20c5-d169-4c42-673f16d3284b" />
+    <Key Name="assetID" Value="2ddcb059-20c5-d169-4c42-673f16d3284b" />
     <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853"/>
     <Key Name="description" Value="A dynamic text board - contributed by Neas Bade" />
     <Key Name="name" Value="osTextBoard" />
@@ -301,8 +301,8 @@
     <Key Name="basePermissions" Value="257487132" />
   </Section>
   <Section Name="osWeatherMap">
-    <Key Name="inventoryID" Value="b102e3a7-c907-e63e-b9f5-b3fd63e6851b" />
-    <Key Name="assetID" Value="b102e3a7-c907-e63e-b9f5-b3fd63e6851b" />
+    <Key Name="inventoryID" Value="d63ad3ec-b687-6c38-410d-31ba3e50ce4d" />
+    <Key Name="assetID" Value="d63ad3ec-b687-6c38-410d-31ba3e50ce4d" />
     <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853" />
     <Key Name="description" Value="A cycling US Weather Map - contributed by Neas Bade" />
     <Key Name="name" Value="osWeatherMap" />
@@ -314,8 +314,8 @@
     <Key Name="basePermissions" Value="257487132" />
   </Section>
   <Section Name="GrafittiBoard">
-    <Key Name="inventoryID" Value="fdb637ae-e4fe-f220-62f0-9f9b5c0c2cdb" />
-    <Key Name="assetID" Value="fdb637ae-e4fe-f220-62f0-9f9b5c0c2cdb" />
+    <Key Name="inventoryID" Value="81305ee4-8caa-9e0a-69a4-76ed57df0c8f" />
+    <Key Name="assetID" Value="81305ee4-8caa-9e0a-69a4-76ed57df0c8f" />
     <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853" />
     <Key Name="description" Value="A text board that records what you say - contributed by Justin Clarke Casey" />
     <Key Name="name" Value="GrafittiBoard" />

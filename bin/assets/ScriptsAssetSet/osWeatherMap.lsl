@@ -6,7 +6,7 @@ string URL3 = "http://icons.wunderground.com/data/640x480/2xus_st.gif";
 string dynamicID="";
 string contentType="image";
     
-void refresh_texture()
+refresh_texture()
 {
     count++;
     string url = "";

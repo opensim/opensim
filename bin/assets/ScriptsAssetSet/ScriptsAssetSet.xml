@@ -108,19 +108,19 @@
     <Key Name="fileName" Value="llSetRot.lsl" />
   </Section>
   <Section Name="osTextBoard">
-    <Key Name="assetID" Value="3e4f2be4-4697-4697-15c8-5920140208c5" />
+    <Key Name="assetID" Value="2ddcb059-20c5-d169-4c42-673f16d3284b" />
     <Key Name="name" Value="osTextBoard" />
     <Key Name="assetType" Value="10" />
     <Key Name="fileName" Value="osTextBoard.lsl" />
   </Section>
   <Section Name="osWeatherMap">
-    <Key Name="assetID" Value="b102e3a7-c907-e63e-b9f5-b3fd63e6851b" />
+    <Key Name="assetID" Value="d63ad3ec-b687-6c38-410d-31ba3e50ce4d" />
     <Key Name="name" Value="osWeatherMap" />
     <Key Name="assetType" Value="10" />
     <Key Name="fileName" Value="osWeatherMap.lsl" />
   </Section>
   <Section Name="GrafittiBoard">
-    <Key Name="assetID" Value="fdb637ae-e4fe-f220-62f0-9f9b5c0c2cdb" />
+    <Key Name="assetID" Value="81305ee4-8caa-9e0a-69a4-76ed57df0c8f" />
     <Key Name="name" Value="GrafittiBoard" />
     <Key Name="assetType" Value="10" />
     <Key Name="fileName" Value="GrafittiBoard.lsl" />
