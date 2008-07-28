@@ -1190,6 +1190,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new Vector3(s.m_string);
             }
 
+            public static implicit operator Quaternion(LSLString s)
+            {
+                return new Quaternion(s.m_string);
+            }
+
             public static implicit operator LSLFloat(LSLString s)
             {
                 return new LSLFloat(Convert.ToDouble(s.m_string));
@@ -1289,6 +1294,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             static public explicit operator LSLInteger(double d)
             {
                 return new LSLInteger(d);
+            }
+
+            static public explicit operator LSLInteger(LSLFloat f)
+            {
+                return new LSLInteger(f.value);
             }
 
             static public bool operator ==(LSLInteger i1, LSLInteger i2)

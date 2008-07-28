@@ -94,5 +94,22 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
                 Assert.AreEqual(number.Value, testString.m_string);
             }
         }
+
+        /// <summary>
+        /// Test constructing a Quaternion from a string.
+        /// </summary>
+        [Test]
+        public void TestExplicitCastLSLStringToQuaternion()
+        {
+            string quaternionString = "<0.00000, 0.70711, 0.00000, 0.70711>";
+            LSL_Types.LSLString quaternionLSLString = new LSL_Types.LSLString(quaternionString);
+
+            LSL_Types.Quaternion expectedQuaternion = new LSL_Types.Quaternion(0.0, 0.70711, 0.0, 0.70711);
+            LSL_Types.Quaternion stringQuaternion = (LSL_Types.Quaternion) quaternionString;
+            LSL_Types.Quaternion LSLStringQuaternion = (LSL_Types.Quaternion) quaternionLSLString;
+
+            Assert.AreEqual(expectedQuaternion, stringQuaternion);
+            Assert.AreEqual(expectedQuaternion, LSLStringQuaternion);
+        }
     }
 }
