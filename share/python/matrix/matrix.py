@@ -1,5 +1,30 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
+# Copyright (c) Contributors, http://opensimulator.org/
+# See CONTRIBUTORS.TXT for a full list of copyright holders.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the OpenSim Project nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import xml.etree.ElementTree as ET
 import re
@@ -9,6 +34,32 @@ import ConfigParser
 import optparse
 import os
 import sys
+
+def longHelp():
+    print '''
+matrix.py is a little launcher tool that knows about the GridInfo
+protocol. it expects the grid coordinates to be passed as a
+command line argument either as a "matrix:" or as an "opensim:" style
+URI:
+
+	matrix://osgrid.org:8002/
+
+you can also provide region/X/Y/Z coordinates:
+
+        matrix://osgrid.org:8002/Wright%20Plaza/128/50/75
+
+and, it also understands avatar names and passwords:
+
+        matrix://mr%20smart:secretpassword@osgrid.org:8002/Wright%20Plaza/128/50/75
+
+when you run it the first time, it will complain about a missing
+.matrixcfg file --- this is needed so that it can remember where your
+secondlife client lives on your box. to generate that file, simply run 
+
+        matrix.py --secondlife path-to-your-secondlife-client-executable
+
+          '''
+
 
 reURI = re.compile(r'''^(?P<scheme>[a-zA-Z0-9]+)://                         # scheme
                         ((?P<avatar>[^:@]+)(:(?P<password>[^@]+))?@)?       # avatar name and password (optional)
@@ -25,10 +76,16 @@ if __name__ == '__main__':
     parser = optparse.OptionParser()
     parser.add_option('-c', '--config', dest = 'config', help = 'config file', metavar = 'CONFIG')
     parser.add_option('-s', '--secondlife', dest = 'client', help = 'location of secondlife client', metavar = 'SL-CLIENT')
+    parser.add_option('-l', '--longhelp', action='store_true', dest = 'longhelp', help = 'longhelp')
     (options, args) = parser.parse_args()
 
+    if options.longhelp:
+        parser.print_help()
+        longHelp()
+        sys.exit(0)
+
     # 
-    # we using ~/.matrixcfg to store the location of the secondlife client
+    # we are using ~/.matrixcfg to store the location of the secondlife client
     #
     if not options.config:
         options.config = '~/.matrixcfg'
