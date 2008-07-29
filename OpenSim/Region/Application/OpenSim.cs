@@ -701,7 +701,7 @@ namespace OpenSim
 
             if (null == m_commsManager.UserService.GetUserProfile(firstName, lastName))
             {
-                m_commsManager.AddUser(firstName, lastName, password, regX, regY);
+                CreateUser(firstName, lastName, password, regX, regY);
             }
             else
             {

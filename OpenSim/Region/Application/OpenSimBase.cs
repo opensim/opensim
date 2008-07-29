@@ -437,7 +437,7 @@ namespace OpenSim
 
         public LLUUID CreateUser(string tempfirstname, string templastname, string tempPasswd, uint regX, uint regY)
         {
-            return m_commsManager.AddUser(tempfirstname,templastname,tempPasswd,regX,regY);
+            return m_commsManager.AddUser(tempfirstname, templastname, tempPasswd, regX, regY);
         }
 
         /// <summary>
@@ -584,7 +584,6 @@ namespace OpenSim
                           storageManager, m_httpServer,
                           m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor, m_config.Source,
                           m_version);
-
         }
 
         public void handleRestartRegion(RegionInfo whichRegion)
@@ -735,7 +734,3 @@ namespace OpenSim
         }
     }
 }
-
-
-
-
