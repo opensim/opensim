@@ -130,7 +130,7 @@ namespace OpenSim.Framework.Communications
                     lastname = (string) requestData["last"];
 
                     m_log.InfoFormat(
-                        "[LOGIN BEGIN]: Received login request message from user {0} {1}",
+                        "[LOGIN BEGIN]: XMLRPC Received login request message from user '{0}' '{1}'",
                         firstname, lastname);
 
                     string clientVersion = "Unknown";
@@ -146,12 +146,12 @@ namespace OpenSim.Framework.Communications
                     }
 
                     m_log.DebugFormat(
-                        "[LOGIN]: Client is {0}, start location is {1}", clientVersion, startLocationRequest);
+                        "[LOGIN]: XMLRPC Client is {0}, start location is {1}", clientVersion, startLocationRequest);
 
                     userProfile = GetTheUser(firstname, lastname);
                     if (userProfile == null)
                     {
-                        m_log.Info("[LOGIN END]: Could not find a profile for " + firstname + " " + lastname);
+                        m_log.Info("[LOGIN END]: XMLRPC Could not find a profile for " + firstname + " " + lastname);
 
                         return logResponse.CreateLoginFailedResponse();
                     }
@@ -171,7 +171,7 @@ namespace OpenSim.Framework.Communications
                         catch (Exception e)
                         {
                             m_log.InfoFormat(
-                                "[LOGIN END]: Bad web_login_key: {0} for user {1} {2}, exception {3}",
+                                "[LOGIN END]: XMLRPC  Bad web_login_key: {0} for user {1} {2}, exception {3}",
                                 requestData["web_login_key"], firstname, lastname, e);
 
                             return logResponse.CreateFailedResponse();
@@ -183,14 +183,14 @@ namespace OpenSim.Framework.Communications
                 else
                 {
                     m_log.Info(
-                        "[LOGIN END]: login_to_simulator login message did not contain all the required data");
+                        "[LOGIN END]: XMLRPC  login_to_simulator login message did not contain all the required data");
 
                     return logResponse.CreateGridErrorResponse();
                 }
 
                 if (!GoodLogin)
                 {
-                    m_log.InfoFormat("[LOGIN END]: User {0} {1} failed authentication", firstname, lastname);
+                    m_log.InfoFormat("[LOGIN END]: XMLRPC  User {0} {1} failed authentication", firstname, lastname);
 
                     return logResponse.CreateLoginFailedResponse();
                 }
@@ -208,13 +208,13 @@ namespace OpenSim.Framework.Communications
                         m_userManager.CommitAgent(ref userProfile);
                             
                         // try to tell the region that their user is dead.
-                        LogOffUser(userProfile, "You were logged off because you logged in from another location");
+                        LogOffUser(userProfile, " XMLRPC You were logged off because you logged in from another location");
                         
                         // Reject the login
                         
 
                         m_log.InfoFormat(
-                            "[LOGIN END]: Notifying user {0} {1} that they are already logged in",
+                            "[LOGIN END]:  XMLRPC Notifying user {0} {1} that they are already logged in",
                             firstname, lastname);
 
                         return logResponse.CreateAlreadyLoggedInResponse();
@@ -235,7 +235,7 @@ namespace OpenSim.Framework.Communications
                         catch (Exception e)
                         {
                             m_log.ErrorFormat(
-                                "[LOGIN END]: Error retrieving inventory skeleton of agent {0}, {1} - {2}",
+                                "[LOGIN END]:  XMLRPC Error retrieving inventory skeleton of agent {0}, {1} - {2}",
                                 agentID, e.GetType(), e.Message);
 
                             return logResponse.CreateLoginInventoryFailedResponse();
@@ -288,7 +288,7 @@ namespace OpenSim.Framework.Communications
                         }
                         catch (Exception e)
                         {
-                            m_log.Info("[LOGIN END]: " + e.ToString());
+                            m_log.Info("[LOGIN END]:  XMLRPC " + e.ToString());
                             return logResponse.CreateDeadRegionResponse();
                             //return logResponse.ToXmlRpcResponse();
                         }
@@ -299,18 +299,18 @@ namespace OpenSim.Framework.Communications
                             StatsManager.UserStats.AddSuccessfulLogin();
 
                         m_log.DebugFormat(
-                            "[LOGIN END]: Authentication of user {0} {1} successful.  Sending response to client.",
+                            "[LOGIN END]:  XMLRPC Authentication of user {0} {1} successful.  Sending response to client.",
                             firstname, lastname);
 
                         return logResponse.ToXmlRpcResponse();
                     }
                     catch (Exception e)
                     {
-                        m_log.Info("[LOGIN END]: Login failed, " + e.ToString());
+                        m_log.Info("[LOGIN END]:  XMLRPC Login failed, " + e.ToString());
                     }
                 }
 
-                m_log.Info("[LOGIN END]: Login failed.  Sending back blank XMLRPC response");
+                m_log.Info("[LOGIN END]:  XMLRPC Login failed.  Sending back blank XMLRPC response");
                 return response;
             }
             finally
@@ -345,14 +345,15 @@ namespace OpenSim.Framework.Communications
 
                         if (map.ContainsKey("start"))
                         {
-                            m_log.Info("[LOGIN]: StartLocation Requested: " + map["start"].AsString());
+                            m_log.Info("[LOGIN]: LLSD StartLocation Requested: " + map["start"].AsString());
                             startLocationRequest = map["start"].AsString();
                         }
+                        m_log.Info("[LOGIN]: LLSD Login Requested for: '" + firstname+"' '"+lastname+"' / "+passwd);
 
                         userProfile = GetTheUser(firstname, lastname);
                         if (userProfile == null)
                         {
-                            m_log.Info("[LOGIN]: Could not find a profile for " + firstname + " " + lastname);
+                            m_log.Info("[LOGIN]:  LLSD Could not find a profile for " + firstname + " " + lastname);
 
                             return logResponse.CreateLoginFailedResponseLLSD();
                         }
@@ -370,10 +371,19 @@ namespace OpenSim.Framework.Communications
                     // If we already have a session...
                     if (userProfile.CurrentAgent != null && userProfile.CurrentAgent.AgentOnline)
                     {
-                        userProfile.CurrentAgent = null;
+                        userProfile.CurrentAgent.AgentOnline = false;
+
                         m_userManager.CommitAgent(ref userProfile);
+                        // try to tell the region that their user is dead.
+                        LogOffUser(userProfile, " LLSD You were logged off because you logged in from another location");
 
                         // Reject the login
+
+                        m_log.InfoFormat(
+                            "[LOGIN END]:  LLSD Notifying user {0} {1} that they are already logged in",
+                            userProfile.FirstName, userProfile.SurName);
+
+                        userProfile.CurrentAgent = null;
                         return logResponse.CreateAlreadyLoggedInResponseLLSD();
                     }
 
@@ -385,7 +395,23 @@ namespace OpenSim.Framework.Communications
                     {
                         LLUUID agentID = userProfile.ID;
 
-                        InventoryData inventData = GetInventorySkeleton(agentID);
+                        //InventoryData inventData = GetInventorySkeleton(agentID);
+                        InventoryData inventData = null;
+
+                        try
+                        {
+                            inventData = GetInventorySkeleton(agentID);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat(
+                                "[LOGIN END]:  LLSD Error retrieving inventory skeleton of agent {0}, {1} - {2}",
+                                agentID, e.GetType(), e.Message);
+
+                            return logResponse.CreateLoginFailedResponseLLSD();//  .CreateLoginInventoryFailedResponseLLSD ();
+                        }
+
+
                         ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                         Hashtable InventoryRootHash = new Hashtable();
@@ -393,6 +419,20 @@ namespace OpenSim.Framework.Communications
                         ArrayList InventoryRoot = new ArrayList();
                         InventoryRoot.Add(InventoryRootHash);
                         userProfile.RootInventoryFolderID = inventData.RootFolderID;
+
+
+                        // Inventory Library Section
+                        Hashtable InventoryLibRootHash = new Hashtable();
+                        InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
+                        ArrayList InventoryLibRoot = new ArrayList();
+                        InventoryLibRoot.Add(InventoryLibRootHash);
+                        logResponse.InventoryLibRoot = InventoryLibRoot;
+
+                        logResponse.InventoryLibraryOwner = GetLibraryOwner();
+
+                        logResponse.InventoryRoot = InventoryRoot;
+                        logResponse.InventorySkeleton = AgentInventoryArray;
+                        logResponse.InventoryLibrary = GetInventoryLibrary();
 
                         // Circuit Code
                         uint circode = (uint)(Util.RandomClass.Next());
@@ -402,17 +442,7 @@ namespace OpenSim.Framework.Communications
                         logResponse.AgentID = agentID.ToString();
                         logResponse.SessionID = userProfile.CurrentAgent.SessionID.ToString();
                         logResponse.SecureSessionID = userProfile.CurrentAgent.SecureSessionID.ToString();
-                        logResponse.InventoryRoot = InventoryRoot;
-                        logResponse.InventorySkeleton = AgentInventoryArray;
-                        logResponse.InventoryLibrary = GetInventoryLibrary();
 
-                        Hashtable InventoryLibRootHash = new Hashtable();
-                        InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
-                        ArrayList InventoryLibRoot = new ArrayList();
-                        InventoryLibRoot.Add(InventoryLibRootHash);
-                        logResponse.InventoryLibRoot = InventoryLibRoot;
-
-                        logResponse.InventoryLibraryOwner = GetLibraryOwner();
                         logResponse.CircuitCode = (Int32)circode;
                         //logResponse.RegionX = 0; //overwritten
                         //logResponse.RegionY = 0; //overwritten
@@ -422,6 +452,7 @@ namespace OpenSim.Framework.Communications
                         //logResponse.SimPort = 0; //overwritten
                         logResponse.Message = GetMessage();
                         logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
+                        logResponse.StartLocation = startLocationRequest;
 
                         try
                         {
@@ -429,7 +460,7 @@ namespace OpenSim.Framework.Communications
                         }
                         catch (Exception ex)
                         {
-                            m_log.Info("[LOGIN]: " + ex.ToString());
+                            m_log.Info("[LOGIN]:  LLSD " + ex.ToString());
                             return logResponse.CreateDeadRegionResponseLLSD();
                         }
 
@@ -439,11 +470,15 @@ namespace OpenSim.Framework.Communications
                         if (StatsManager.UserStats != null)
                             StatsManager.UserStats.AddSuccessfulLogin();
 
+                        m_log.DebugFormat(
+                            "[LOGIN END]:  LLSD Authentication of user {0} {1} successful.  Sending response to client.",
+                            userProfile.FirstName, userProfile.SurName);
+
                         return logResponse.ToLLSDResponse();
                     }
                     catch (Exception ex)
                     {
-                        m_log.Info("[LOGIN]: " + ex.ToString());
+                        m_log.Info("[LOGIN]:  LLSD " + ex.ToString());
                         return logResponse.CreateFailedResponseLLSD();
                     }
                 }

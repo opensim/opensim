@@ -475,7 +475,7 @@ namespace OpenSim.Framework.Communications
             }
             catch (Exception e)
             {
-                m_log.Warn("[CLIENT]: LoginResponse: Error creating XML-RPC Response: " + e.Message);
+                m_log.Warn("[CLIENT]: LoginResponse: Error creating LLSD Response: " + e.Message);
 
                 return GenerateFailureResponseLLSD("Internal Error", "Error generating Login Response", "false");
             }
