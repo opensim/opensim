@@ -323,6 +323,10 @@ namespace OpenSim
                 case "save-oar":
                     SaveOar(cmdparams);
                     break;
+                    
+                case "save-inv":
+                    SaveInv(cmdparams);
+                    break;
 
                 case "plugin":
                     m_sceneManager.SendCommandToPluginModules(cmdparams);
@@ -724,9 +728,13 @@ namespace OpenSim
             }
         }           
         
+        /// <summary>
+        /// Load a whole region from an opensim archive.
+        /// </summary>
+        /// <param name="cmdparams"></param>
         protected void LoadOar(string[] cmdparams)
         {
-            m_log.Warn("[CONSOLE]: Experimental functionality.  Please don't rely on this.");
+            m_log.Warn("[CONSOLE]: Experimental functionality.  Please don't rely on this yet.");
             m_log.Warn("[CONSOLE]: See http://opensimulator.org/wiki/OpenSim_Archives for more details.");
 
             if (cmdparams.Length > 0)
@@ -739,9 +747,13 @@ namespace OpenSim
             }            
         }
         
+        /// <summary>
+        /// Save a region to a file, including all the assets needed to restore it.
+        /// </summary>
+        /// <param name="cmdparams"></param>
         protected void SaveOar(string[] cmdparams)
         {
-            m_log.Warn("[CONSOLE]: Experimental functionality.  Please don't rely on this.");
+            m_log.Warn("[CONSOLE]: Experimental functionality.  Please don't rely on this yet.");
             m_log.Warn("[CONSOLE]: See http://opensimulator.org/wiki/OpenSim_Archives for more details.");
 
             if (cmdparams.Length > 0)
@@ -752,7 +764,16 @@ namespace OpenSim
             {
                 m_sceneManager.SaveCurrentSceneToArchive(DEFAULT_OAR_BACKUP_FILENAME);
             }           
-        }        
+        }      
+        
+        /// <summary>
+        /// Save inventory to a file.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        protected void SaveInv(string[] cmdparams)
+        {
+            m_log.Error("[CONSOLE]: This has not been implemented yet!");
+        }
 
         private static string CombineParams(string[] commandParams, int pos)
         {

@@ -1784,6 +1784,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        
         public LLUUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID AgentId)
         {
             SceneObjectGroup objectGroup = grp;

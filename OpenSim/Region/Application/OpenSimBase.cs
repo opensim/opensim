@@ -62,14 +62,19 @@ namespace OpenSim
         protected int proxyOffset = 0;
 
         /// <summary>
-        /// The file used to load and save prim backup xml if none has been specified
+        /// The file used to load and save prim backup xml if no filename has been specified
         /// </summary>
         protected const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
 
         /// <summary>
-        /// The file use to load and save an opensim archive if none has been specified
+        /// The file used to load and save an opensim archive if no filename has been specified
         /// </summary>
         protected const string DEFAULT_OAR_BACKUP_FILENAME = "scene_oar.tar.gz";
+        
+        /// <summary>
+        /// The file to load and save inventory if no filename has been specified
+        /// </summary>
+        protected const string DEFAULT_INV_BACKUP_FILENAME = "opensim_inv.tar.gz";
 
         public string m_physicsEngine;
         public string m_meshEngineName;
