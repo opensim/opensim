@@ -663,6 +663,32 @@ namespace OpenSim
         }
 
         #endregion
+        
+        /// <summary>
+        /// Save inventory to a file.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        protected void SaveInv(string[] cmdparams)
+        {
+            m_log.Error("[CONSOLE]: This has not been implemented yet!");
+            
+            if (cmdparams.Length < 3)
+            {
+                m_log.Error("[CONSOLE]: usage is save-inv <first name> <last name> <inventory path>");
+                return;
+            }
+            
+            string firstName = cmdparams[0];            
+            string lastName = cmdparams[1];
+            string invPath = cmdparams[2];
+            
+            UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(firstName, lastName);
+            if (null == userProfile)
+            {
+                m_log.ErrorFormat("[CONSOLE]: Failed to find user {0} {1}", firstName, lastName);
+                return;
+            }            
+        }        
 
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server

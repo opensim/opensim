@@ -820,23 +820,7 @@ namespace OpenSim
             {
                 m_sceneManager.SaveCurrentSceneToArchive(DEFAULT_OAR_BACKUP_FILENAME);
             }           
-        }      
-        
-        /// <summary>
-        /// Save inventory to a file.
-        /// </summary>
-        /// <param name="cmdparams"></param>
-        protected void SaveInv(string[] cmdparams)
-        {
-            m_log.Error("[CONSOLE]: This has not been implemented yet!");
-            
-//            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails();
-//                if (userInfo == null)
-//                {
-//                    m_log.Error("[AGENT INVENTORY]: Failed to find user " + oldAgentID.ToString());
-//                    return;
-//                }            
-        }
+        }              
 
         private static string CombineParams(string[] commandParams, int pos)
         {
