@@ -680,8 +680,8 @@ namespace OpenSim
             
             string firstName = cmdparams[0];            
             string lastName = cmdparams[1];
-            string invPath = cmdparams[2];
-            string savePath = (cmdparams.Length > 3 ? cmdparams[3] : DEFAULT_INV_BACKUP_FILENAME);
+            //string invPath = cmdparams[2];
+            //string savePath = (cmdparams.Length > 3 ? cmdparams[3] : DEFAULT_INV_BACKUP_FILENAME);
             
             UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(firstName, lastName);
             if (null == userProfile)
