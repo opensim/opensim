@@ -44,21 +44,34 @@ namespace OpenSim.Framework
         public uint DefaultY = 1000;
         public string GridRecvKey = String.Empty;
         public string GridSendKey = String.Empty;
-        public string GridServerURL = String.Empty;
         public uint HttpPort = DefaultHttpPort;
         public bool HttpSSL = DefaultHttpSSL;
 
         private Uri m_inventoryUrl;
 
-        public string InventoryUrl
+        public Uri InventoryUrl
         {
             get
             {
-                return m_inventoryUrl.ToString();
+                return m_inventoryUrl;
             }
             set
             {
-                m_inventoryUrl = new Uri(value);
+                m_inventoryUrl = value;
+            }
+        }
+
+        private Uri m_gridServerURL;
+
+        public Uri GridServerURL
+        {
+            get
+            {
+                return m_gridServerURL;
+            }
+            set
+            {
+                m_gridServerURL = value;
             }
         }
 
@@ -120,7 +133,7 @@ namespace OpenSim.Framework
                     DefaultStartupMsg = (string) configuration_result;
                     break;
                 case "default_grid_server":
-                    GridServerURL = (string) configuration_result;
+                    GridServerURL = new Uri( (string) configuration_result );
                     break;
                 case "grid_send_key":
                     GridSendKey = (string) configuration_result;
@@ -129,7 +142,7 @@ namespace OpenSim.Framework
                     GridRecvKey = (string) configuration_result;
                     break;
                 case "default_inventory_server":
-                    InventoryUrl = (string) configuration_result;
+                    InventoryUrl = new Uri((string) configuration_result);
                     break;
                 case "database_provider":
                     DatabaseProvider = (string) configuration_result;

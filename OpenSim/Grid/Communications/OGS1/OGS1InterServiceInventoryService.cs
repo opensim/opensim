@@ -39,9 +39,9 @@ namespace OpenSim.Grid.Communications.OGS1
     /// </summary>
     public class OGS1InterServiceInventoryService : IInterServiceInventoryServices
     {
-        protected string m_inventoryServerUrl;
+        protected Uri m_inventoryServerUrl;
         
-        public OGS1InterServiceInventoryService(string inventoryServerUrl)
+        public OGS1InterServiceInventoryService(Uri inventoryServerUrl)
         {
             m_inventoryServerUrl = inventoryServerUrl;
         }
