@@ -670,17 +670,18 @@ namespace OpenSim
         /// <param name="cmdparams"></param>
         protected void SaveInv(string[] cmdparams)
         {
-            m_log.Error("[CONSOLE]: This has not been implemented yet!");
+            m_log.Error("[CONSOLE]: This command has not yet been implemented!");
             
             if (cmdparams.Length < 3)
             {
-                m_log.Error("[CONSOLE]: usage is save-inv <first name> <last name> <inventory path>");
+                m_log.Error("[CONSOLE]: usage is save-inv <first name> <last name> <inventory path> [<save file path>]");
                 return;
             }
             
             string firstName = cmdparams[0];            
             string lastName = cmdparams[1];
             string invPath = cmdparams[2];
+            string savePath = (cmdparams.Length > 3 ? cmdparams[3] : DEFAULT_INV_BACKUP_FILENAME);
             
             UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(firstName, lastName);
             if (null == userProfile)
