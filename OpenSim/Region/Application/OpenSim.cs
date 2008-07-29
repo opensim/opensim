@@ -208,7 +208,6 @@ namespace OpenSim
             }
         }
 
-
         /// <summary>
         /// Runs commands issued by the server console from the operator
         /// </summary>
@@ -348,9 +347,7 @@ namespace OpenSim
                     break;
 
                 case "create":
-                    if (m_sandbox)
-                        CreateAccount(cmdparams);
-                    
+                    Create(cmdparams);                    
                     break;
 
                 case "create-region":
@@ -524,6 +521,23 @@ namespace OpenSim
                     break;
             }
         }
+        
+        /// <summary>
+        /// Execute switch for some of the create commands
+        /// </summary>
+        /// <param name="args"></param>
+        protected void Create(string[] args)
+        {
+            if (args.Length == 0)
+                return;
+            
+            switch (args[0])
+            {
+                case "user":
+                    CreateUser(args);
+                    break;
+            }
+        }
 
         /// <summary>
         /// Turn on some debugging values for OpenSim.
@@ -653,6 +667,48 @@ namespace OpenSim
             }
         }
         
+        /// <summary>
+        /// Create a new user
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        protected void CreateUser(string[] cmdparams)
+        {
+            string firstName;
+            string lastName;
+            string password;
+            uint regX = 1000;
+            uint regY = 1000;
+
+            if (cmdparams.Length < 2)
+                firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
+            else firstName = cmdparams[1];
+
+            if ( cmdparams.Length < 3 )
+                lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
+            else lastName = cmdparams[2];
+
+            if ( cmdparams.Length < 4 )
+                password = MainConsole.Instance.PasswdPrompt("Password");
+            else password = cmdparams[3];
+
+            if ( cmdparams.Length < 5 )
+                regX = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region X", regX.ToString()));
+            else regX = Convert.ToUInt32(cmdparams[4]);
+
+            if ( cmdparams.Length < 6 )
+                regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", regY.ToString()));
+            else regY = Convert.ToUInt32(cmdparams[5]);        
+
+            if (null == m_commsManager.UserService.GetUserProfile(firstName, lastName))
+            {
+                m_commsManager.AddUser(firstName, lastName, password, regX, regY);
+            }
+            else
+            {
+                m_log.ErrorFormat("[CONSOLE]: A user with the name {0} {1} already exists!", firstName, lastName);
+            }            
+        }
+        
         protected void SaveXml(string[] cmdparams)
         {
             m_log.Error("[CONSOLE]: PLEASE NOTE, save-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use save-xml2, please file a mantis detailing the reason.");
@@ -773,6 +829,13 @@ namespace OpenSim
         protected void SaveInv(string[] cmdparams)
         {
             m_log.Error("[CONSOLE]: This has not been implemented yet!");
+            
+//            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails();
+//                if (userInfo == null)
+//                {
+//                    m_log.Error("[AGENT INVENTORY]: Failed to find user " + oldAgentID.ToString());
+//                    return;
+//                }            
         }
 
         private static string CombineParams(string[] commandParams, int pos)

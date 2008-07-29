@@ -31,7 +31,6 @@ using System.Reflection;
 using libsecondlife;
 using log4net;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Framework.Communications
@@ -231,50 +230,6 @@ namespace OpenSim.Framework.Communications
 
         #endregion
 
-        public void doCreate(string[] cmmdParams)
-        {
-            switch (cmmdParams[0])
-            {
-                case "user":
-                    string firstName;
-                    string lastName;
-                    string password;
-                    uint regX = 1000;
-                    uint regY = 1000;
-
-                    if (cmmdParams.Length < 2)
-                        firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
-                    else firstName = cmmdParams[1];
-
-                    if ( cmmdParams.Length < 3 )
-                        lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
-                    else lastName = cmmdParams[2];
-
-                    if ( cmmdParams.Length < 4 )
-                        password = MainConsole.Instance.PasswdPrompt("Password");
-                    else password = cmmdParams[3];
-
-                    if ( cmmdParams.Length < 5 )
-                        regX = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region X", regX.ToString()));
-                    else regX = Convert.ToUInt32(cmmdParams[4]);
-
-                    if ( cmmdParams.Length < 6 )
-                        regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", regY.ToString()));
-                    else regY = Convert.ToUInt32(cmmdParams[5]);        
-
-
-                    if (null == m_userService.GetUserProfile(firstName, lastName))
-                    {
-                        AddUser(firstName, lastName, password, regX, regY);
-                    }
-                    else
-                    {
-                        m_log.ErrorFormat("[USERS]: A user with the name {0} {1} already exists!", firstName, lastName);
-                    }
-                    break;
-            }
-        }
-
         /// <summary>
         /// Persistently adds a user to OpenSim.
         /// </summary>
@@ -283,7 +238,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="password"></param>
         /// <param name="regX"></param>
         /// <param name="regY"></param>
-        /// <returns>The UUID of the added user.  Returns null if the add was unsuccessful</returns>
+        /// <returns>The UUID of the added user.  Returns LLUUID.Zero if the add was unsuccessful</returns>
         public LLUUID AddUser(string firstName, string lastName, string password, uint regX, uint regY)
         {
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);

@@ -393,8 +393,6 @@ namespace OpenSim
                 m_gridInfoService = new GridInfoService();
                 m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
                 m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
-
-                CreateAccount = localComms.doCreate;
             }
             else
             {
