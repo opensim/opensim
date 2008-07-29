@@ -327,6 +327,14 @@
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000010"/>
     <Key Name="name" Value="Female Body Texture"/>
     <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="fileName" Value="femalebody.jp2"/>
+  </Section>
+  <Section Name="Female Bottom Texture">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000011"/>
+    <Key Name="name" Value="Female Bottom Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
     <Key Name="fileName" Value="femalebottom.jp2"/>
   </Section>
   <Section Name="Female Face Texture">
