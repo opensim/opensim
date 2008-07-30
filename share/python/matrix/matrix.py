@@ -60,19 +60,10 @@ secondlife client lives on your box. to generate that file, simply run
 
           '''
 
+def ParseOptions():
+    '''Parse the command line options and setup options.
+       '''
 
-reURI = re.compile(r'''^(?P<scheme>[a-zA-Z0-9]+)://                         # scheme
-                        ((?P<avatar>[^:@]+)(:(?P<password>[^@]+))?@)?       # avatar name and password (optional)
-                        (?P<host>[^:/]+)(:(?P<port>\d+))?                   # host, port (optional)
-                        (?P<path>/.*)                                       # path
-                       $''', re.IGNORECASE | re.VERBOSE)
-reLOC = re.compile(r'''^/(?P<region>[^/]+)/          # region name
-                         (?P<x>\d+)/                 # X position
-                         (?P<y>\d+)/                 # Y position
-                         (?P<z>\d+)                  # Z position
-                    ''', re.IGNORECASE | re.VERBOSE)
-
-if __name__ == '__main__':
     parser = optparse.OptionParser()
     parser.add_option('-c', '--config', dest = 'config', help = 'config file', metavar = 'CONFIG')
     parser.add_option('-s', '--secondlife', dest = 'client', help = 'location of secondlife client', metavar = 'SL-CLIENT')
@@ -84,13 +75,20 @@ if __name__ == '__main__':
         longHelp()
         sys.exit(0)
 
+    return options
+
+def ParseConfig(options):
+    '''Ensure configuration exists and parse it.
+       '''
     # 
-    # we are using ~/.matrixcfg to store the location of the secondlife client
+    # we are using ~/.matrixcfg to store the location of the
+    # secondlife client, os.path.normpath and os.path.expanduser
+    # should make sure that we are fine cross-platform
     #
     if not options.config:
         options.config = '~/.matrixcfg'
 
-    cfgPath = os.path.expanduser(options.config)
+    cfgPath = os.path.normpath(os.path.expanduser(options.config))
 
     # 
     # if ~/.matrixcfg does not exist we are in trouble...
@@ -118,20 +116,31 @@ if __name__ == '__main__':
         config.write(cfg)
         cfg.close()
 
-    client = config.get('secondlife', 'client')
+    return config.get('secondlife', 'client')
 
 
-    #
-    # sanity check: URI supplied?
-    #
-    if not sys.argv:
-        print 'missing opensim/matrix URI'
-        sys.exit(1)
+#
+# regex: parse a URI
+#
+reURI = re.compile(r'''^(?P<scheme>[a-zA-Z0-9]+)://                         # scheme
+                        ((?P<avatar>[^:@]+)(:(?P<password>[^@]+))?@)?       # avatar name and password (optional)
+                        (?P<host>[^:/]+)(:(?P<port>\d+))?                   # host, port (optional)
+                        (?P<path>/.*)                                       # path
+                       $''', re.IGNORECASE | re.VERBOSE)
 
-    # 
-    # parse URI and extract scheme. host, port?, avatar?, password?
-    #
-    uri = sys.argv.pop()
+# 
+# regex: parse path as location 
+#
+reLOC = re.compile(r'''^/(?P<region>[^/]+)/          # region name
+                         (?P<x>\d+)/                 # X position
+                         (?P<y>\d+)/                 # Y position
+                         (?P<z>\d+)                  # Z position
+                    ''', re.IGNORECASE | re.VERBOSE)
+
+def ParseUri(uri):
+    '''Parse a URI and return its constituent parts.
+       '''
+
     match = reURI.match(uri)
     if not match or not match.group('scheme') or not match.group('host'):
         print 'hmm... cannot parse URI %s, giving up' % uri
@@ -144,21 +153,32 @@ if __name__ == '__main__':
     password = match.group('password')
     path = match.group('path')
 
-    #
-    # sanity check: matrix: or opensim: scheme?
-    #
-    if scheme != 'matrix' and scheme != 'opensim':
-        print 'hmm...unknown scheme %s, calling it a day' % scheme
+    return (scheme, host, port, avatar, password, path)
 
-    #
-    # get grid info from OpenSim server
-    #
+def ParsePath(path):
+    '''Try and parse path as /region/X/Y/Z.
+       '''
+
+    loc = None
+    match = reLOC.match(path)
+    if match:
+        loc = 'secondlife:///%s/%d/%d/%d' % (match.group('region'),
+                                             int(match.group('x')), 
+                                             int(match.group('y')),
+                                             int(match.group('z')))
+    return loc
+
+
+def GetGridInfo(host, port):
+    '''Invoke /get_grid_info on target grid and obtain additional parameters
+       '''
+
     gridname = None
     gridnick = None
     login = None
     welcome = None
     economy = None
-    
+
     #
     # construct GridInfo URL
     #
@@ -178,19 +198,16 @@ if __name__ == '__main__':
         login = gridInfoXml.findtext('/login')
         welcome = gridInfoXml.findtext('/welcome')
         economy = gridInfoXml.findtext('/economy')
+        authenticator = gridInfoXml.findtext('/authenticator')
 
     except urllib2.URLError:
         print 'oops, failed to retrieve grid info, proceeding with guestimates...'
 
-    #
-    # fallback: use supplied uri in case GridInfo drew a blank
-    #
-    if not login: login = uri
+    return (gridname, gridnick, login, welcome, economy)
 
-    # 
-    # ok, got everything, now construct the command line
-    #
-    clientArgs = ['matrix: %s' % gridnick]
+
+def StartClient(client, nick, login, welcome, economy, avatar, password, location):
+    clientArgs = [ client ]
     clientArgs += ['-loginuri', login]
 
     if welcome: clientArgs += ['-loginpage', welcome]
@@ -201,19 +218,55 @@ if __name__ == '__main__':
         clientArgs += urllib.unquote(avatar).split()
         clientArgs += [password]
 
-    # 
-    # take a closer look at path: if it's a /region/X/Y/Z pattern, use
-    # it as the "SLURL
-    #
-    match = reLOC.match(path)
-    if match:
-        loc = 'secondlife:///%s/%d/%d/%d' % (match.group('region'),
-                                             int(match.group('x')), 
-                                             int(match.group('y')),
-                                             int(match.group('z')))
-        clientArgs += [loc]
+    if location:
+        clientArgs += [location]
 
     # 
     # all systems go
     #
     os.execv(client, clientArgs)
+
+
+if __name__ == '__main__':
+    #
+    # parse command line options and deal with help requests
+    #
+    options = ParseOptions()
+    client = ParseConfig(options)
+
+    #
+    # sanity check: URI supplied?
+    #
+    if not sys.argv:
+        print 'missing opensim/matrix URI'
+        sys.exit(1)
+
+    # 
+    # parse URI and extract scheme. host, port?, avatar?, password?
+    #
+    uri = sys.argv.pop()
+    (scheme, host, port, avatar, password, path) = ParseUri(uri)
+
+    #
+    # sanity check: matrix: or opensim: scheme?
+    #
+    if scheme != 'matrix' and scheme != 'opensim':
+        print 'hmm...unknown scheme %s, calling it a day' % scheme
+
+    #
+    # get grid info from OpenSim server
+    #
+    (gridname, gridnick, login, welcome, economy) = GetGridInfo(host, port)
+
+    #
+    # fallback: use supplied uri in case GridInfo drew a blank
+    #
+    if not login: login = uri
+
+    # 
+    # take a closer look at path: if it's a /region/X/Y/Z pattern, use
+    # it as the "SLURL
+    #
+    location = ParsePath(path)
+    StartClient(client, gridnick, login, welcome, economy, avatar, password, location)
+
