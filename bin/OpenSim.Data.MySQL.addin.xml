@@ -6,9 +6,9 @@
         <Addin id="OpenSim.Data" version="0.5" />
     </Dependencies>
     <Extension path = "/OpenSim/GridData">
-        <Type id="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLGridData" />
+        <Plugin provider="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLGridData" />
     </Extension>
     <Extension path = "/OpenSim/LogData">
-        <Type id="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLLogData" />
+        <Plugin provider="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLLogData" />
     </Extension>
 </Addin>

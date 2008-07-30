@@ -1,8 +1,9 @@
 <Addin id="OpenSim" isroot="true" version="0.5">
     <Runtime>
         <Import assembly="OpenSim.exe"/>
+        <Import assembly="OpenSim.Framework.dll"/>
     </Runtime>
     <ExtensionPoint path = "/OpenSim/Startup">
-        <ExtensionNode objectType="OpenSim.IApplicationPlugin"/>
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.IApplicationPlugin"/>
     </ExtensionPoint>
 </Addin>

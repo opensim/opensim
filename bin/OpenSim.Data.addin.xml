@@ -2,11 +2,12 @@
     <Runtime>
         <Import assembly="OpenSim.Grid.GridServer.exe"/>
         <Import assembly="OpenSim.Data.dll"/>
+        <Import assembly="OpenSim.Framework.dll"/>
     </Runtime>
     <ExtensionPoint path = "/OpenSim/GridData">
-        <ExtensionNode objectType="OpenSim.Data.IGridDataPlugin"/>
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.IGridDataPlugin"/>
     </ExtensionPoint>
     <ExtensionPoint path = "/OpenSim/LogData">
-        <ExtensionNode objectType="OpenSim.Data.ILogDataPlugin"/>
+        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Data.ILogDataPlugin"/>
     </ExtensionPoint>
 </Addin>

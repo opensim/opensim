@@ -6,6 +6,6 @@
         <Addin id="OpenSim" version="0.5" />
     </Dependencies>
     <Extension path = "/OpenSim/Startup">
-        <Type type="OpenSim.ApplicationPlugins.GridInfo.GridInfoPlugin" />
+        <Plugin type="OpenSim.ApplicationPlugins.GridInfo.GridInfoPlugin" />
     </Extension>
 </Addin>

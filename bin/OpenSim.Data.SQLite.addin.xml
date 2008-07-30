@@ -6,6 +6,6 @@
         <Addin id="OpenSim.Data" version="0.5" />
     </Dependencies>
     <Extension path = "/OpenSim/GridData">
-        <Type id="OpenSim.Data.SQLite.dll" type="OpenSim.Data.SQLite.SQLiteGridData" />
+        <Plugin provider="OpenSim.Data.SQLite.dll" type="OpenSim.Data.SQLite.SQLiteGridData" />
     </Extension>
 </Addin>

@@ -6,6 +6,6 @@
         <Addin id="OpenSim" version="0.5" />
     </Dependencies>
     <Extension path = "/OpenSim/Startup">
-        <Type type="OpenSim.ApplicationPlugins.Rest.Inventory.RestHandler" />
+        <Plugin type="OpenSim.ApplicationPlugins.Rest.Inventory.RestHandler" />
     </Extension>
 </Addin>

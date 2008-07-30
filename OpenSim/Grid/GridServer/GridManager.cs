@@ -71,9 +71,9 @@ namespace OpenSim.Grid.GridServer
             logloader.AddExtensionPoint ("/OpenSim/LogData");
             
             // loader will try to load all providers (MySQL, MSSQL, etc) 
-            // unless it is constrainted to the correct "id"
-            gridloader.AddFilter ("/OpenSim/GridData", new PluginIdFilter (provider));
-            logloader.AddFilter ("/OpenSim/LogData", new PluginIdFilter (provider));
+            // unless it is constrainted to the correct "Provider" entry in the addin.xml
+            gridloader.AddFilter ("/OpenSim/GridData", new PluginProviderFilter (provider));
+            logloader.AddFilter ("/OpenSim/LogData", new PluginProviderFilter (provider));
             
             gridloader.Load();
             logloader.Load();

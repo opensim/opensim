@@ -27,6 +27,7 @@
 
 using System;
 using System.IO;
+using System.Xml;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -61,7 +62,7 @@ namespace OpenSim.Framework
     /// </summary>
     public interface IPluginFilter
     {
-        bool Apply (ExtensionNode plugin);
+        bool Apply (PluginExtensionNode plugin);
     }
 
     /// <summary>
@@ -152,7 +153,7 @@ namespace OpenSim.Framework
                 if (filters.ContainsKey (ext))
                     filter = filters [ext];
 
-                foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes (ext))
+                foreach (PluginExtensionNode node in AddinManager.GetExtensionNodes (ext))
                 {
                     log.Info("[PLUGINS]: Trying plugin " + node.Path);
                     
@@ -197,9 +198,13 @@ namespace OpenSim.Framework
 
         private void on_addinloaderror_(object sender, AddinErrorEventArgs args)
         {
-            log.Error ("[PLUGINS]: Plugin Error: " + args.Message 
-                    + ": " + args.Exception.Message 
-                    + "\n"+ args.Exception.StackTrace);
+            if (args.Exception == null)
+                log.Error ("[PLUGINS]: Plugin Error: " 
+                        + args.Message);
+            else
+                log.Error ("[PLUGINS]: Plugin Error: "
+                        + args.Exception.Message + "\n"
+                        + args.Exception.StackTrace);
         }
 
         private void clear_registry_ ()
@@ -227,6 +232,39 @@ namespace OpenSim.Framework
                 if (prev_console_ != null) 
                     System.Console.SetOut(prev_console_);
             }
+        }
+    }
+
+    public class PluginExtensionNode : ExtensionNode
+    {
+        [NodeAttribute]
+        string provider;
+
+        [NodeAttribute]
+        string type;
+
+        Type typeobj;
+
+        public string Provider { get { return provider; } }
+        public string TypeName { get { return type; } }
+
+        public Type TypeObject
+        {
+            get 
+            {
+                if (typeobj != null)
+                    return typeobj;
+
+                if (type.Length == 0)
+                    throw new InvalidOperationException ("Type name not specified.");
+
+                return typeobj = Addin.GetType (type, true);
+            }
+        }
+
+        public object CreateInstance () 
+        { 
+            return Activator.CreateInstance (TypeObject); 
         }
     }
 
@@ -271,25 +309,20 @@ namespace OpenSim.Framework
     }
     
     /// <summary>
-    /// Filters out which plugin to load based on its "Id", which is name given by the namespace or by Mono.Addins.
+    /// Filters out which plugin to load based on its "Provider", which is name given by in the addin.xml
     /// </summary>
-    public class PluginIdFilter : IPluginFilter
+    public class PluginProviderFilter : IPluginFilter
     {
-        private string id;
+        private string provider;
 
-        public PluginIdFilter (string id) 
+        public PluginProviderFilter (string p) 
         {
-            this.id = id;
+            provider = p;
         }
 
-        public bool Apply (ExtensionNode plugin)
+        public bool Apply (PluginExtensionNode plugin)
         {
-            System.Console.WriteLine ("[WTF]: " + plugin.Path);
-
-            if (plugin.HasId == false)
-                return false;
-            
-            return (plugin.Id == id);
+            return (plugin.Provider == provider);
         }
     }
 }
