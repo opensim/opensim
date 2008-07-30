@@ -7008,7 +7008,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetLinkTexture(int linknumber, string texture, int face)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetLinkTexture");
+
+            if (m_host.ParentGroup == null)
+                return;
+
+            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
+
+            if (part == null)
+                return;
+
+            SetTexture(part, texture, face);
         }
 
         public string llStringTrim(string src, int type)
