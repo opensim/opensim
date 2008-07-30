@@ -362,6 +362,11 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
                 finished = true;
                 return;
             }
+            finally
+            {
+                if (response != null)
+                    response.Close();
+            }
 
             status = (int)OSHttpStatusCode.SuccessOk;
             finished = true;
