@@ -357,8 +357,18 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             }
             catch (Exception e)
             {
-                status = (int)OSHttpStatusCode.ClientErrorJoker;
-                response_body = e.Message;
+                if (e is WebException && ((WebException)e).Status == WebExceptionStatus.ProtocolError)
+                {
+                    HttpWebResponse webRsp = (HttpWebResponse)((WebException)e).Response;
+                    status = (int)webRsp.StatusCode;
+                    response_body = webRsp.StatusDescription;
+                }
+                else
+                {
+                    status = (int)OSHttpStatusCode.ClientErrorJoker;
+                    response_body = e.Message;
+                }
+
                 finished = true;
                 return;
             }
