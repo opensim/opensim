@@ -222,7 +222,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             if (presence.IsChildAgent) return;
 
             LLVector3 fromRegionPos = fromPos + regionPos;
-            LLVector3 toRegionPos = presence.AbsolutePosition + regionPos;
+            LLVector3 toRegionPos = presence.AbsolutePosition +
+                    new LLVector3(presence.Scene.RegionInfo.RegionLocX * Constants.RegionSize,
+                                  presence.Scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+
             int dis = Math.Abs((int) Util.GetDistanceTo(toRegionPos, fromRegionPos));
 
             if (type == ChatTypeEnum.Whisper && dis > m_whisperdistance ||
