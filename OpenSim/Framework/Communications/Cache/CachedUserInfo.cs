@@ -66,7 +66,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Has we received the user's inventory from the inventory service?
         /// </summary>
-        private bool m_hasInventory;
+        public bool HasReceivedInventory { get { return m_hasReceivedInventory; } }
+        private bool m_hasReceivedInventory;
 
         /// <summary>
         /// Inventory requests waiting for receipt of this user's inventory from the inventory service.
@@ -74,12 +75,10 @@ namespace OpenSim.Framework.Communications.Cache
         private readonly IList<IInventoryRequest> m_pendingRequests = new List<IInventoryRequest>();
 
         /// <summary>
-        /// Has this user info object yet received its inventory information from the invetnroy service?
+        /// The root folder of this user's inventory.  Returns null if the inventory has not yet been received.
         /// </summary>
-        public bool HasInventory { get { return m_hasInventory; } }
-
-        private InventoryFolderImpl m_rootFolder;
         public InventoryFolderImpl RootFolder { get { return m_rootFolder; } }
+        private InventoryFolderImpl m_rootFolder;
 
         /// <summary>
         /// FIXME: This could be contained within a local variable - it doesn't need to be a field
@@ -126,7 +125,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             lock (m_pendingRequests)
             {
-                if (m_hasInventory)
+                if (HasReceivedInventory)
                 {
                     request.Execute();
                 }
@@ -216,7 +215,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 // We're going to change inventory status within the lock to avoid a race condition
                 // where requests are processed after the AddRequest() method has been called.
-                m_hasInventory = true;
+                m_hasReceivedInventory = true;
 
                 foreach (IInventoryRequest request in m_pendingRequests)
                 {
@@ -318,7 +317,7 @@ namespace OpenSim.Framework.Communications.Cache
             //            m_log.DebugFormat(
             //                "[AGENT INVENTORY]: Creating inventory folder {0} {1} for {2} {3}", folderID, folderName, remoteClient.Name, remoteClient.AgentId);
 
-            if (HasInventory)
+            if (m_hasReceivedInventory)
             {
                 InventoryFolderImpl parentFolder = RootFolder.FindFolder(parentID);
 
@@ -393,7 +392,7 @@ namespace OpenSim.Framework.Communications.Cache
             //            m_log.DebugFormat(
             //                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
 
-            if (HasInventory)
+            if (m_hasReceivedInventory)
             {
                 InventoryFolderBase baseFolder = new InventoryFolderBase();
                 baseFolder.Owner = m_userProfile.ID;
@@ -445,7 +444,7 @@ namespace OpenSim.Framework.Communications.Cache
             //                "[AGENT INVENTORY]: Moving inventory folder {0} into folder {1} for {2} {3}",
             //                parentID, remoteClient.Name, remoteClient.Name, remoteClient.AgentId);
 
-            if (HasInventory)
+            if (m_hasReceivedInventory)
             {
                 InventoryFolderBase baseFolder = new InventoryFolderBase();
                 baseFolder.Owner = m_userProfile.ID;
@@ -491,7 +490,7 @@ namespace OpenSim.Framework.Communications.Cache
             //            m_log.InfoFormat("[AGENT INVENTORY]: Purging folder {0} for {1} uuid {2}",
             //                folderID, remoteClient.Name, remoteClient.AgentId);
 
-            if (HasInventory)
+            if (m_hasReceivedInventory)
             {
                 InventoryFolderImpl purgedFolder = RootFolder.FindFolder(folderID);
 
@@ -539,7 +538,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="itemInfo"></param>
         public void AddItem(InventoryItemBase item)
         {
-            if (HasInventory)
+            if (m_hasReceivedInventory)
             {
                 if (item.Folder == LLUUID.Zero)
                 {
@@ -575,7 +574,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="itemInfo"></param>
         public void UpdateItem(InventoryItemBase item)
         {
-            if (HasInventory)
+            if (m_hasReceivedInventory)
             {
                 if (m_commsManager.SecureInventoryService != null)
                 {
@@ -608,7 +607,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </returns>
         public bool DeleteItem(LLUUID itemID)
         {
-            if (HasInventory)
+            if (m_hasReceivedInventory)
             {
                 // XXX For historical reasons (grid comms), we need to retrieve the whole item in order to delete, even though
                 // really only the item id is required.
@@ -656,7 +655,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <returns>true if the request was queued or successfully processed, false otherwise</returns>
         public bool SendInventoryDecendents(IClientAPI client, LLUUID folderID, bool fetchFolders, bool fetchItems)
         {
-            if (HasInventory)
+            if (m_hasReceivedInventory)
             {
                 InventoryFolderImpl folder;
 

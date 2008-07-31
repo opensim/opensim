@@ -348,7 +348,7 @@ namespace OpenSim.Framework.Communications.Cache
                 // This is a crude way of dealing with that by retrying the lookup.  It's not quite as bad
                 // in CAPS as doing this with the udp request, since here it won't hold up other packets.
                 // In fact, here we'll be generous and try for longer.
-                if (!userProfile.HasInventory)
+                if (!userProfile.HasReceivedInventory)
                 {
                     int attempts = 0;
                     while (attempts++ < 30)
@@ -359,14 +359,14 @@ namespace OpenSim.Framework.Communications.Cache
 
                         Thread.Sleep(2000);
 
-                        if (userProfile.HasInventory)
+                        if (userProfile.HasReceivedInventory)
                         {
                             break;
                         }
                     }
                 }
 
-                if (userProfile.HasInventory)
+                if (userProfile.HasReceivedInventory)
                 {
                     if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
                     {
@@ -434,7 +434,7 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo userProfile;
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (userProfile.HasInventory)
+                if (userProfile.HasReceivedInventory)
                 {
                     InventoryItemBase item = userProfile.RootFolder.FindItem(itemID);
                     if (item != null)

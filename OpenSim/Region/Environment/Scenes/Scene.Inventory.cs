@@ -2168,7 +2168,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 if (userInfo != null)
                 {
-                    if (userInfo.HasInventory)
+                    if (userInfo.HasReceivedInventory)
                     {
                         LLUUID folderID = LLUUID.Zero;
 
