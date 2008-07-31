@@ -33,29 +33,12 @@ namespace OpenSim.Framework
     /// <summary>
     /// An interface for accessing inventory data from a storage server
     /// </summary>
-    public interface IInventoryData
+    public interface IInventoryDataPlugin : IPlugin
     {
         /// <summary>
         /// Initialises the interface
         /// </summary>
         void Initialise(string connect);
-
-        /// <summary>
-        /// Closes the interface
-        /// </summary>
-        void Close();
-
-        /// <summary>
-        /// The plugin being loaded
-        /// </summary>
-        /// <returns>A string containing the plugin name</returns>
-        string getName();
-
-        /// <summary>
-        /// The plugins version
-        /// </summary>
-        /// <returns>A string containing the plugin version</returns>
-        string getVersion();
 
         /// <summary>
         /// Returns all child folders in the hierarchy from the parent folder and down.
@@ -148,5 +131,16 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="folder">The id of the folder</param>
         void deleteInventoryFolder(LLUUID folder);
+    }
+    
+    public class InventoryDataInitialiser : PluginInitialiserBase
+    {
+        private string connect;
+        public InventoryDataInitialiser (string s) { connect = s; }
+        public override void Initialise (IPlugin plugin)
+        {
+            IInventoryDataPlugin p = plugin as IInventoryDataPlugin;
+            p.Initialise (connect);
+        }
     }
 }

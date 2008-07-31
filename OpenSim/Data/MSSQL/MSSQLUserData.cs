@@ -52,6 +52,12 @@ namespace OpenSim.Data.MSSQL
         private string m_usersTableName;
         private string m_userFriendsTableName;
 
+        public override void Initialise() 
+        { 
+            m_log.Info("[MSSQLUserData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
+
         /// <summary>
         /// Loads and initialises the MSSQL storage plugin
         /// </summary>
@@ -93,6 +99,8 @@ namespace OpenSim.Data.MSSQL
 
             TestTables();
         }
+        
+        public override void Dispose () {} 
 
         /// <summary>
         /// 

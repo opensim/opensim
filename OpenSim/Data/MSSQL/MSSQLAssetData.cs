@@ -45,7 +45,7 @@ namespace OpenSim.Data.MSSQL
 
         private MSSQLManager database;
 
-        #region IAssetProvider Members
+        #region IAssetProviderPlugin Members
 
         /// <summary>
         /// Migration method

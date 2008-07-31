@@ -51,7 +51,7 @@ namespace OpenSim.Data.MySQL
 
         override public void Initialise() 
         { 
-            m_log.Info("[MySQLLogData]: " + Name + " cannot be default-initialized!");
+            m_log.Info("[MySQLGridData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
 

@@ -29,12 +29,23 @@ using libsecondlife;
 
 namespace OpenSim.Framework
 {
-    public interface IAssetProvider : IPlugin
+    public interface IAssetProviderPlugin : IPlugin
     {
         AssetBase FetchAsset(LLUUID uuid);
         void CreateAsset(AssetBase asset);
         void UpdateAsset(AssetBase asset);
         bool ExistsAsset(LLUUID uuid);
         void Initialise(string connect);
+    }
+    
+    public class AssetDataInitialiser : PluginInitialiserBase
+    {
+        private string connect;
+        public AssetDataInitialiser (string s) { connect = s; }
+        public override void Initialise (IPlugin plugin)
+        {
+            IAssetProviderPlugin p = plugin as IAssetProviderPlugin;
+            p.Initialise (connect);
+        }
     }
 }

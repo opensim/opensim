@@ -6,6 +6,6 @@
         <Addin id="OpenSim" version="0.5" />
     </Dependencies>
     <Extension path = "/OpenSim/Startup">
-        <Plugin type="OpenSim.ApplicationPlugins.Rest.Regions.RestRegionPlugin" />
+        <Plugin id="RestRegions" type="OpenSim.ApplicationPlugins.Rest.Regions.RestRegionPlugin" />
     </Extension>
 </Addin>

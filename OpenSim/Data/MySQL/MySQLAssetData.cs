@@ -112,7 +112,7 @@ namespace OpenSim.Data.MySQL
 
         override public void Dispose() { }
 
-        #region IAssetProvider Members
+        #region IAssetProviderPlugin Members
 
         /// <summary>
         /// <list type="bullet">

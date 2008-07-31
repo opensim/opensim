@@ -43,38 +43,25 @@ namespace OpenSim.Framework.Communications
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected Dictionary<string, IInventoryData> m_plugins = new Dictionary<string, IInventoryData>();
+        protected List<IInventoryDataPlugin> m_plugins = new List<IInventoryDataPlugin>();
 
         #region Plugin methods
 
         /// <summary>
         /// Adds a new user server plugin - plugins will be requested in the order they were loaded.
         /// </summary>
-        /// <param name="FileName">The filename to the user server plugin DLL</param>
-        public void AddPlugin(string FileName, string connect)
+        /// <param name="provider">The filename to the user server plugin DLL</param>
+        public void AddPlugin(string provider, string connect)
         {
-            if (!String.IsNullOrEmpty(FileName))
-            {
-                m_log.Info("[AGENT INVENTORY]: Inventory storage: Attempting to load " + FileName);
-                Assembly pluginAssembly = Assembly.LoadFrom(FileName);
+            PluginLoader<IInventoryDataPlugin> loader = 
+                new PluginLoader<IInventoryDataPlugin> (new InventoryDataInitialiser (connect));
 
-                foreach (Type pluginType in pluginAssembly.GetTypes())
-                {
-                    if (!pluginType.IsAbstract)
-                    {
-                        Type typeInterface = pluginType.GetInterface("IInventoryData", true);
-
-                        if (typeInterface != null)
-                        {
-                            IInventoryData plug =
-                                (IInventoryData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            plug.Initialise(connect);
-                            m_plugins.Add(plug.getName(), plug);
-                            m_log.Info("[AGENTINVENTORY]: Added IInventoryData Interface");
-                        }
-                    }
-                }
-            }
+            // loader will try to load all providers (MySQL, MSSQL, etc) 
+            // unless it is constrainted to the correct "Provider" entry in the addin.xml
+            loader.Add ("/OpenSim/InventoryData", new PluginProviderFilter (provider));
+            loader.Load();
+            
+            m_plugins = loader.Plugins;
         }
 
         #endregion
@@ -103,9 +90,9 @@ namespace OpenSim.Framework.Communications
 
             userFolders.Add(rootFolder);
 
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                IList<InventoryFolderBase> folders = plugin.Value.getFolderHierarchy(rootFolder.ID);
+                IList<InventoryFolderBase> folders = plugin.getFolderHierarchy(rootFolder.ID);
                 userFolders.AddRange(folders);
             }
 
@@ -127,9 +114,9 @@ namespace OpenSim.Framework.Communications
         public InventoryFolderBase RequestRootFolder(LLUUID userID)
         {
             // FIXME: Probably doesn't do what was originally intended - only ever queries the first plugin
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                return plugin.Value.getUserRootFolder(userID);
+                return plugin.getUserRootFolder(userID);
             }
             return null;
         }
@@ -168,9 +155,9 @@ namespace OpenSim.Framework.Communications
         public List<InventoryFolderBase> RequestSubFolders(LLUUID parentFolderID)
         {
             List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                return plugin.Value.getInventoryFolders(parentFolderID);
+                return plugin.getInventoryFolders(parentFolderID);
             }
             return inventoryList;
         }
@@ -178,9 +165,9 @@ namespace OpenSim.Framework.Communications
         public List<InventoryItemBase> RequestFolderItems(LLUUID folderID)
         {
             List<InventoryItemBase> itemsList = new List<InventoryItemBase>();
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                itemsList = plugin.Value.getInventoryInFolder(folderID);
+                itemsList = plugin.getInventoryInFolder(folderID);
                 return itemsList;
             }
             return itemsList;
@@ -194,9 +181,9 @@ namespace OpenSim.Framework.Communications
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Adding folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
 
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                plugin.Value.addInventoryFolder(folder);
+                plugin.addInventoryFolder(folder);
             }
 
             // FIXME: Should return false on failure
@@ -209,9 +196,9 @@ namespace OpenSim.Framework.Communications
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Updating folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
 
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                plugin.Value.updateInventoryFolder(folder);
+                plugin.updateInventoryFolder(folder);
             }
 
             // FIXME: Should return false on failure
@@ -224,9 +211,9 @@ namespace OpenSim.Framework.Communications
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Moving folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
 
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                plugin.Value.moveInventoryFolder(folder);
+                plugin.moveInventoryFolder(folder);
             }
 
             // FIXME: Should return false on failure
@@ -239,9 +226,9 @@ namespace OpenSim.Framework.Communications
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Adding item {0} {1} to folder {2}", item.Name, item.ID, item.Folder);
 
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                plugin.Value.addInventoryItem(item);
+                plugin.addInventoryItem(item);
             }
 
             // FIXME: Should return false on failure
@@ -254,9 +241,9 @@ namespace OpenSim.Framework.Communications
             m_log.InfoFormat(
                 "[AGENT INVENTORY]: Updating item {0} {1} in folder {2}", item.Name, item.ID, item.Folder);
 
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                plugin.Value.updateInventoryItem(item);
+                plugin.updateInventoryItem(item);
             }
 
             // FIXME: Should return false on failure
@@ -269,9 +256,9 @@ namespace OpenSim.Framework.Communications
             m_log.InfoFormat(
                 "[AGENT INVENTORY]: Deleting item {0} {1} from folder {2}", item.Name, item.ID, item.Folder);
 
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            foreach (IInventoryDataPlugin plugin in m_plugins)
             {
-                plugin.Value.deleteInventoryItem(item.ID);
+                plugin.deleteInventoryItem(item.ID);
             }
 
             // FIXME: Should return false on failure
@@ -296,9 +283,9 @@ namespace OpenSim.Framework.Communications
             {
 //                m_log.DebugFormat("[AGENT INVENTORY]: Deleting folder {0} {1}", subFolder.Name, subFolder.ID);
 
-                foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+                foreach (IInventoryDataPlugin plugin in m_plugins)
                 {
-                    plugin.Value.deleteInventoryFolder(subFolder.ID);
+                    plugin.deleteInventoryFolder(subFolder.ID);
                 }
             }
 

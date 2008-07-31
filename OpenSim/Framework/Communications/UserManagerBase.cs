@@ -47,42 +47,23 @@ namespace OpenSim.Framework.Communications
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public UserConfig _config;
-        private Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();
+        private List<IUserData> _plugins = new List<IUserData>();
 
         /// <summary>
         /// Adds a new user server plugin - user servers will be requested in the order they were loaded.
         /// </summary>
-        /// <param name="FileName">The filename to the user server plugin DLL</param>
-        public void AddPlugin(string FileName, string connect)
+        /// <param name="provider">The filename to the user server plugin DLL</param>
+        public void AddPlugin(string provider, string connect)
         {
-            if (!String.IsNullOrEmpty(FileName))
-            {
-                m_log.Info("[USERSTORAGE]: Attempting to load " + FileName);
-                Assembly pluginAssembly = Assembly.LoadFrom(FileName);
+            PluginLoader<IUserData> loader = 
+                new PluginLoader<IUserData> (new UserDataInitialiser (connect));
 
-                m_log.Info("[USERSTORAGE]: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
-                foreach (Type pluginType in pluginAssembly.GetTypes())
-                {
-                    if (!pluginType.IsAbstract)
-                    {
-                        Type typeInterface = pluginType.GetInterface("IUserData", true);
-
-                        if (typeInterface != null)
-                        {
-                            IUserData plug =
-                                (IUserData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            AddPlugin(plug, connect);
-                        }
-                    }
-                }
-            }
-        }
-
-        public void AddPlugin(IUserData plug, string connect)
-        {
-            plug.Initialise(connect);
-            _plugins.Add(plug.Name, plug);
-            m_log.Info("[USERSTORAGE]: Added IUserData Interface");
+            // loader will try to load all providers (MySQL, MSSQL, etc) 
+            // unless it is constrainted to the correct "Provider" entry in the addin.xml
+            loader.Add ("/OpenSim/UserData", new PluginProviderFilter (provider));
+            loader.Load();
+            
+            _plugins = loader.Plugins;
         }
 
         #region Get UserProfile
@@ -90,9 +71,9 @@ namespace OpenSim.Framework.Communications
         // see IUserService
         public UserProfileData GetUserProfile(string fname, string lname)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
-                UserProfileData profile = plugin.Value.GetUserByName(fname, lname);
+                UserProfileData profile = plugin.GetUserByName(fname, lname);
 
                 if (profile != null)
                 {
@@ -105,9 +86,9 @@ namespace OpenSim.Framework.Communications
         }
         public UserAgentData GetAgentByUUID(LLUUID userId)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
-                UserAgentData agent = plugin.Value.GetAgentByUUID(userId);
+                UserAgentData agent = plugin.GetAgentByUUID(userId);
 
                 if (agent != null)
                 {
@@ -120,9 +101,9 @@ namespace OpenSim.Framework.Communications
         // see IUserService
         public UserProfileData GetUserProfile(LLUUID uuid)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
-                UserProfileData profile = plugin.Value.GetUserByUUID(uuid);
+                UserProfileData profile = plugin.GetUserByUUID(uuid);
 
                 if (null != profile)
                 {
@@ -137,15 +118,15 @@ namespace OpenSim.Framework.Communications
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    pickerlist = plugin.Value.GeneratePickerResults(queryID, query);
+                    pickerlist = plugin.GeneratePickerResults(queryID, query);
                 }
                 catch (Exception)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to generate AgentPickerData via  " + plugin.Key + "(" + query + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to generate AgentPickerData via  " + plugin.Name + "(" + query + ")");
                     return new List<AvatarPickerAvatar>();
                 }
             }
@@ -159,17 +140,17 @@ namespace OpenSim.Framework.Communications
         /// <returns></returns>
         public bool UpdateUserProfile(UserProfileData data)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.UpdateUserProfile(data);
+                    plugin.UpdateUserProfile(data);
                     return true;
                 }
                 catch (Exception e)
                 {
                     m_log.InfoFormat("[USERSTORAGE]: Unable to set user {0} {1} via {2}: {3}", data.FirstName, data.SurName,
-                                     plugin.Key, e.ToString());
+                                     plugin.Name, e.ToString());
                 }
             }
             return false;
@@ -186,15 +167,15 @@ namespace OpenSim.Framework.Communications
         /// <returns>Agent profiles</returns>
         public UserAgentData GetUserAgent(LLUUID uuid)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    return plugin.Value.GetAgentByUUID(uuid);
+                    return plugin.GetAgentByUUID(uuid);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
 
@@ -208,15 +189,15 @@ namespace OpenSim.Framework.Communications
         /// <returns>A user agent</returns>
         public UserAgentData GetUserAgent(string name)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    return plugin.Value.GetAgentByName(name);
+                    return plugin.GetAgentByName(name);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
 
@@ -231,15 +212,15 @@ namespace OpenSim.Framework.Communications
         /// <returns>A user agent</returns>
         public UserAgentData GetUserAgent(string fname, string lname)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    return plugin.Value.GetAgentByName(fname, lname);
+                    return plugin.GetAgentByName(fname, lname);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
 
@@ -248,15 +229,15 @@ namespace OpenSim.Framework.Communications
 
         public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.UpdateUserCurrentRegion(avatarid, regionuuid, regionhandle);
+                    plugin.UpdateUserCurrentRegion(avatarid, regionuuid, regionhandle);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to updateuser location via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to updateuser location via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
         }
@@ -268,15 +249,15 @@ namespace OpenSim.Framework.Communications
         /// <returns>A List of FriendListItems that contains info about the user's friends</returns>
         public List<FriendListItem> GetUserFriendList(LLUUID ownerID)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    return plugin.Value.GetUserFriendList(ownerID);
+                    return plugin.GetUserFriendList(ownerID);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to GetUserFriendList via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to GetUserFriendList via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
 
@@ -285,60 +266,60 @@ namespace OpenSim.Framework.Communications
 
         public void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.StoreWebLoginKey(agentID, webLoginKey);
+                    plugin.StoreWebLoginKey(agentID, webLoginKey);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to Store WebLoginKey via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to Store WebLoginKey via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
         }
 
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.AddNewUserFriend(friendlistowner,friend,perms);
+                    plugin.AddNewUserFriend(friendlistowner,friend,perms);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to AddNewUserFriend via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to AddNewUserFriend via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
         }
 
         public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.RemoveUserFriend(friendlistowner, friend);
+                    plugin.RemoveUserFriend(friendlistowner, friend);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to RemoveUserFriend via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to RemoveUserFriend via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
         }
 
         public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.UpdateUserFriendPerms(friendlistowner, friend, perms);
+                    plugin.UpdateUserFriendPerms(friendlistowner, friend, perms);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to UpdateUserFriendPerms via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to UpdateUserFriendPerms via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
         }
@@ -564,15 +545,15 @@ namespace OpenSim.Framework.Communications
             user.HomeRegionX = regX;
             user.HomeRegionY = regY;
 
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.AddNewUserProfile(user);
+                    plugin.AddNewUserProfile(user);
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to add user via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to add user via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
 
@@ -586,16 +567,16 @@ namespace OpenSim.Framework.Communications
                 m_log.Info("[USERSTORAGE]: Failed to find User by UUID " + UserProfile.ID.ToString());
                 return false;
             }
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.UpdateUserProfile(UserProfile);
+                    plugin.UpdateUserProfile(UserProfile);
                 }
                 catch (Exception e)
                 {
                     m_log.Info("[USERSTORAGE]: Unable to update user " + UserProfile.ID.ToString()
-                               + " via " + plugin.Key + "(" + e.ToString() + ")");
+                               + " via " + plugin.Name + "(" + e.ToString() + ")");
                     return false;
                 }
             }
@@ -612,16 +593,16 @@ namespace OpenSim.Framework.Communications
         /// <param name="agentdata">The agent data to be added</param>
         public bool AddUserAgent(UserAgentData agentdata)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.AddNewUserAgent(agentdata);
+                    plugin.AddNewUserAgent(agentdata);
                     return true;
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to add agent via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.Info("[USERSTORAGE]: Unable to add agent via " + plugin.Name + "(" + e.ToString() + ")");
                 }
             }
             return false;
@@ -631,15 +612,15 @@ namespace OpenSim.Framework.Communications
         /// TODO: stubs for now to get us to a compiling state gently
         public AvatarAppearance GetUserAppearance(LLUUID user)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    return plugin.Value.GetUserAppearance(user);
+                    return plugin.GetUserAppearance(user);
                 }
                 catch (Exception e)
                 {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to find user appearance {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString());
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to find user appearance {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
                 }
             }
             return null;
@@ -647,60 +628,60 @@ namespace OpenSim.Framework.Communications
 
         public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.UpdateUserAppearance(user, appearance);
+                    plugin.UpdateUserAppearance(user, appearance);
                 }
                 catch (Exception e)
                 {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to update user appearance {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString());
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to update user appearance {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
                 }
             }
         }
 
         public void AddAttachment(LLUUID user, LLUUID item)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.AddAttachment(user, item);
+                    plugin.AddAttachment(user, item);
                 }
                 catch (Exception e)
                 {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to attach {3} => {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString(), item.ToString());
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to attach {3} => {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString(), item.ToString());
                 }
             }
         }
 
         public void RemoveAttachment(LLUUID user, LLUUID item)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    plugin.Value.RemoveAttachment(user, item);
+                    plugin.RemoveAttachment(user, item);
                 }
                 catch (Exception e)
                 {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to remove attachment {3} => {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString(), item.ToString());
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to remove attachment {3} => {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString(), item.ToString());
                 }
             }
         }
 
         public List<LLUUID> GetAttachments(LLUUID user)
         {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            foreach (IUserData plugin in _plugins)
             {
                 try
                 {
-                    return plugin.Value.GetAttachments(user);
+                    return plugin.GetAttachments(user);
                 }
                 catch (Exception e)
                 {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to get attachments for {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString());
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to get attachments for {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
                 }
             }
             return new List<LLUUID>();

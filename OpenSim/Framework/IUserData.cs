@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// An interface for connecting to user storage servers.
     /// </summary>
-    public interface IUserData
+    public interface IUserData : IPlugin
     {
         /// <summary>
         /// Returns a user profile from a database via their UUID
@@ -154,18 +154,6 @@ namespace OpenSim.Framework
         bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory);
 
         /// <summary>
-        /// Returns the plugin version
-        /// </summary>
-        /// <returns>Plugin version in MAJOR.MINOR.REVISION.BUILD format</returns>
-        string Version {get;}
-
-        /// <summary>
-        /// Returns the plugin name
-        /// </summary>
-        /// <returns>Plugin name, eg MySQL User Provider</returns>
-        string Name {get;}
-
-        /// <summary>
         /// Initialises the plugin (artificial constructor)
         /// </summary>
         void Initialise(string connect);
@@ -181,5 +169,16 @@ namespace OpenSim.Framework
         void AddAttachment(LLUUID user, LLUUID item);
         void RemoveAttachment(LLUUID user, LLUUID item);
         List<LLUUID> GetAttachments(LLUUID user);
+    }
+    
+    public class UserDataInitialiser : PluginInitialiserBase
+    {
+        private string connect;
+        public UserDataInitialiser (string s) { connect = s; }
+        public override void Initialise (IPlugin plugin)
+        {
+            IUserData p = plugin as IUserData;
+            p.Initialise (connect);
+        }
     }
 }

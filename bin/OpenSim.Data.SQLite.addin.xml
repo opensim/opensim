@@ -6,6 +6,15 @@
         <Addin id="OpenSim.Data" version="0.5" />
     </Dependencies>
     <Extension path = "/OpenSim/GridData">
-        <Plugin provider="OpenSim.Data.SQLite.dll" type="OpenSim.Data.SQLite.SQLiteGridData" />
+        <Plugin id="SQLiteGridData" provider="OpenSim.Data.SQLite.dll" type="OpenSim.Data.SQLite.SQLiteGridData" />
+    </Extension>
+    <Extension path = "/OpenSim/AssetData">
+        <Plugin id="SQLiteAssetData" provider="OpenSim.Data.SQLite.dll" type="OpenSim.Data.SQLite.SQLiteAssetData" />
+    </Extension>
+    <Extension path = "/OpenSim/InventoryData">
+        <Plugin id="SQLiteInventoryData" provider="OpenSim.Data.SQLite.dll" type="OpenSim.Data.SQLite.SQLiteInventoryStore" />
+    </Extension>
+    <Extension path = "/OpenSim/UserData">
+        <Plugin id="SQLiteUserData" provider="OpenSim.Data.SQLite.dll" type="OpenSim.Data.SQLite.SQLiteUserData" />
     </Extension>
 </Addin>

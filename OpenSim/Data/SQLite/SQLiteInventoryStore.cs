@@ -39,7 +39,7 @@ namespace OpenSim.Data.SQLite
     /// <summary>
     /// An Inventory Interface to the SQLite database
     /// </summary>
-    public class SQLiteInventoryStore : SQLiteUtil, IInventoryData
+    public class SQLiteInventoryStore : SQLiteUtil, IInventoryDataPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -49,6 +49,12 @@ namespace OpenSim.Data.SQLite
         private DataSet ds;
         private SqliteDataAdapter invItemsDa;
         private SqliteDataAdapter invFoldersDa;
+
+        public void Initialise() 
+        { 
+            m_log.Info("[SQLiteInventoryData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
 
         /// <summary>
         /// <list type="bullet">
@@ -277,7 +283,7 @@ namespace OpenSim.Data.SQLite
         /// <summary>
         /// Closes the inventory interface
         /// </summary>
-        public void Close()
+        public void Dispose()
         {
         }
 
@@ -285,25 +291,28 @@ namespace OpenSim.Data.SQLite
         /// The name of this DB provider
         /// </summary>
         /// <returns>Name of DB provider</returns>
-        public string getName()
+        public string Name
         {
-            return "SQLite Inventory Data Interface";
+            get { return "SQLite Inventory Data Interface"; }
         }
 
         /// <summary>
         /// Returns the version of this DB provider
         /// </summary>
         /// <returns>A string containing the DB provider version</returns>
-        public string getVersion()
+        public string Version
         {
-            Module module = GetType().Module;
-            // string dllName = module.Assembly.ManifestModule.Name;
-            Version dllVersion = module.Assembly.GetName().Version;
+            get 
+            {
+                Module module = GetType().Module;
+                // string dllName = module.Assembly.ManifestModule.Name;
+                Version dllVersion = module.Assembly.GetName().Version;
 
 
-            return
-                string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
-                              dllVersion.Revision);
+                return
+                    string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
+                            dllVersion.Revision);
+            }
         }
 
         /// <summary>
@@ -399,7 +408,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// See IInventoryData
+        /// See IInventoryDataPlugin
         /// </summary>
         /// <param name="parentID"></param>
         /// <returns></returns>

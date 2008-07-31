@@ -39,7 +39,7 @@ namespace OpenSim.Data.MSSQL
     /// <summary>
     /// A MSSQL interface for the inventory server
     /// </summary>
-    public class MSSQLInventoryData : IInventoryData
+    public class MSSQLInventoryData : IInventoryDataPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -58,6 +58,12 @@ namespace OpenSim.Data.MSSQL
         /// The database manager
         /// </summary>
         private MSSQLManager database;
+
+        public void Initialise() 
+        { 
+            m_log.Info("[MSSQLInventoryData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
 
         /// <summary>
         /// Loads and initialises the MSSQL inventory storage interface
@@ -134,15 +140,15 @@ namespace OpenSim.Data.MSSQL
         /// The name of this DB provider
         /// </summary>
         /// <returns>A string containing the name of the DB provider</returns>
-        public string getName()
+        public string Name
         {
-            return "MSSQL Inventory Data Interface";
+            get { return "MSSQL Inventory Data Interface"; }
         }
 
         /// <summary>
         /// Closes this DB provider
         /// </summary>
-        public void Close()
+        public void Dispose()
         {
             // Do nothing.
         }
@@ -151,9 +157,9 @@ namespace OpenSim.Data.MSSQL
         /// Returns the version of this DB provider
         /// </summary>
         /// <returns>A string containing the DB provider</returns>
-        public string getVersion()
+        public string Version
         {
-            return database.getVersion();
+            get { return database.getVersion(); }
         }
 
         /// <summary>
@@ -681,7 +687,7 @@ namespace OpenSim.Data.MSSQL
                 folders.Add(f);
         }
 
-        // See IInventoryData
+        // See IInventoryDataPlugin
         public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();

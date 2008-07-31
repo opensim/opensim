@@ -96,6 +96,11 @@ namespace OpenSim.Framework
             get { return loaded; } 
         }
 
+        public T Plugin
+        { 
+            get { return (loaded.Count == 1)? loaded [0] : default (T); } 
+        }
+
         public PluginLoader () 
         {
             Initialiser = new PluginInitialiserBase();
@@ -114,9 +119,24 @@ namespace OpenSim.Framework
             initialise_plugin_dir_ (dir);
         }
 
-        public void AddExtensionPoint (string extpoint)
+        public void Add (string extpoint)
         {
+            if (extpoints.Contains (extpoint))
+                return;
+            
             extpoints.Add (extpoint);
+        }
+
+        public void Add (string extpoint, IPluginConstraint cons)
+        {
+            Add (extpoint);
+            AddConstraint (extpoint, cons);
+        }
+
+        public void Add (string extpoint, IPluginFilter filter)
+        {
+            Add (extpoint);
+            AddFilter (extpoint, filter);
         }
 
         public void AddConstraint (string extpoint, IPluginConstraint cons)
@@ -131,7 +151,7 @@ namespace OpenSim.Framework
 
         public void Load (string extpoint)
         {
-            AddExtensionPoint (extpoint);
+            Add (extpoint);
             Load();
         }
 

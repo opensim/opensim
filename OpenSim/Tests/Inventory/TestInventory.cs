@@ -42,7 +42,7 @@ namespace OpenSim.Test.Inventory
     [TestFixture]
     public class TestInventory
     {
-        IInventoryData _dbPlugin;
+        IInventoryDataPlugin _dbPlugin;
         LLUUID _agent_1_id;
         public static LLUUID LibraryFolderRootUuid = new LLUUID("5926de2a-c2d7-4c11-ac4e-74512ffeb6d1");
 

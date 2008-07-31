@@ -38,7 +38,7 @@ namespace OpenSim.Data.MySQL
     /// <summary>
     /// A MySQL interface for the inventory server
     /// </summary>
-    public class MySQLInventoryData : IInventoryData
+    public class MySQLInventoryData : IInventoryDataPlugin
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -47,6 +47,12 @@ namespace OpenSim.Data.MySQL
         /// The database manager
         /// </summary>
         private MySQLManager database;
+
+        public void Initialise() 
+        { 
+            m_log.Info("[MySQLInventoryData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
 
         /// <summary>
         /// <para>Initialises Inventory interface</para>
@@ -183,16 +189,16 @@ namespace OpenSim.Data.MySQL
         /// The name of this DB provider
         /// </summary>
         /// <returns>Name of DB provider</returns>
-        public string getName()
+        public string Name
         {
-            return "MySQL Inventory Data Interface";
+            get { return "MySQL Inventory Data Interface"; }
         }
 
         /// <summary>
         /// Closes this DB provider
         /// </summary>
         /// <remarks>do nothing</remarks>
-        public void Close()
+        public void Dispose()
         {
             // Do nothing.
         }
@@ -201,9 +207,9 @@ namespace OpenSim.Data.MySQL
         /// Returns the version of this DB provider
         /// </summary>
         /// <returns>A string containing the DB provider version</returns>
-        public string getVersion()
+        public string Version
         {
-            return database.getVersion();
+            get { return database.getVersion(); }
         }
 
         /// <summary>
@@ -692,7 +698,7 @@ namespace OpenSim.Data.MySQL
 
 
         /// <summary>
-        /// See IInventoryData
+        /// See IInventoryDataPlugin
         /// </summary>
         /// <param name="parentID"></param>
         /// <returns></returns>

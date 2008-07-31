@@ -53,6 +53,12 @@ namespace OpenSim.Data.NHibernate
         private ISessionFactory factory;
         private ISession session;
 
+        public override void Initialise() 
+        { 
+            m_log.Info("[NHibernateUserData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
+
         public override void Initialise(string connect)
         {
             char[] split = {';'};
@@ -320,7 +326,7 @@ namespace OpenSim.Data.NHibernate
             get { return "0.1"; }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
 
         }

@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Communications.Cache
             AddPlugin(pluginName, connect);
         }
 
-        public SQLAssetServer(IAssetProvider assetProvider)
+        public SQLAssetServer(IAssetProviderPlugin assetProvider)
         {
             m_assetProvider = assetProvider;
         }
@@ -54,12 +54,12 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (!pluginType.IsAbstract)
                 {
-                    Type typeInterface = pluginType.GetInterface("IAssetProvider", true);
+                    Type typeInterface = pluginType.GetInterface("IAssetProviderPlugin", true);
 
                     if (typeInterface != null)
                     {
-                        IAssetProvider plug =
-                            (IAssetProvider) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        IAssetProviderPlugin plug =
+                            (IAssetProviderPlugin) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         m_assetProvider = plug;
                         m_assetProvider.Initialise(connect);
 

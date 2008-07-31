@@ -55,6 +55,12 @@ namespace OpenSim.Data.MySQL
         private string m_appearanceTableName = "avatarappearance";
         private string m_connectString;
 
+        public override void Initialise() 
+        { 
+            m_log.Info("[MySQLUserData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
+
         /// <summary>
         /// Initialise User Interface
         /// Loads and initialises the MySQL storage plugin
@@ -119,6 +125,9 @@ namespace OpenSim.Data.MySQL
 
             m.Update();
         }
+
+        public override void Dispose () { }
+
 
         #region Test and initialization code
 
@@ -252,7 +261,7 @@ namespace OpenSim.Data.MySQL
 
                     UserProfileData row = database.readUserRow(reader);
 
-                    reader.Close();
+                    reader.Dispose();
                     result.Dispose();
                     return row;
                 }
@@ -398,7 +407,7 @@ namespace OpenSim.Data.MySQL
 
                         Lfli.Add(fli);
                     }
-                    reader.Close();
+                    reader.Dispose();
                     result.Dispose();
                 }
             }
@@ -450,7 +459,7 @@ namespace OpenSim.Data.MySQL
                             user.lastName = (string) reader["lastname"];
                             returnlist.Add(user);
                         }
-                        reader.Close();
+                        reader.Dispose();
                         result.Dispose();
                     }
                 }
@@ -484,7 +493,7 @@ namespace OpenSim.Data.MySQL
                             user.lastName = (string) reader["lastname"];
                             returnlist.Add(user);
                         }
-                        reader.Close();
+                        reader.Dispose();
                         result.Dispose();
                     }
                 }
@@ -517,7 +526,7 @@ namespace OpenSim.Data.MySQL
 
                     UserProfileData row = database.readUserRow(reader);
 
-                    reader.Close();
+                    reader.Dispose();
                     result.Dispose();
 
                     return row;
@@ -603,7 +612,7 @@ namespace OpenSim.Data.MySQL
 
                     UserAgentData row = database.readAgentRow(reader);
 
-                    reader.Close();
+                    reader.Dispose();
                     result.Dispose();
 
                     return row;
@@ -725,7 +734,7 @@ namespace OpenSim.Data.MySQL
 
                     AvatarAppearance appearance = database.readAppearanceRow(reader);
 
-                    reader.Close();
+                    reader.Dispose();
                     result.Dispose();
 
                     return appearance;

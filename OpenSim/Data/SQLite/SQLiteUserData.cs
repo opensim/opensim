@@ -65,6 +65,12 @@ namespace OpenSim.Data.SQLite
         private SqliteDataAdapter daf;
         SqliteConnection g_conn;
 
+        public override void Initialise() 
+        { 
+            m_log.Info("[SQLiteUserData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
+
         /// <summary>
         /// <list type="bullet">
         /// <item>Initialises User Interface</item>
@@ -123,6 +129,8 @@ namespace OpenSim.Data.SQLite
 
             return;
         }
+
+        public override void Dispose () {} 
 
         /// <summary>
         /// see IUserData, 

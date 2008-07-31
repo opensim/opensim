@@ -30,7 +30,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Data
 {
-    public abstract class AssetDataBase : IAssetProvider
+    public abstract class AssetDataBase : IAssetProviderPlugin
     {
         public abstract AssetBase FetchAsset(LLUUID uuid);
         public abstract void CreateAsset(AssetBase asset);

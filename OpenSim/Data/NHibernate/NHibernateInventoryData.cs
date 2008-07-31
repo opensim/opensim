@@ -42,13 +42,19 @@ using Environment=NHibernate.Cfg.Environment;
 
 namespace OpenSim.Data.NHibernate
 {
-    public class NHibernateInventoryData: IInventoryData
+    public class NHibernateInventoryData: IInventoryDataPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Configuration cfg;
         private ISessionFactory factory;
         private ISession session;
+
+        public void Initialise() 
+        { 
+            m_log.Info("[NHibernateInventoryData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
 
         /// <summary>
         /// Initialises the interface
@@ -257,7 +263,7 @@ namespace OpenSim.Data.NHibernate
         /// <summary>
         /// Closes the interface
         /// </summary>
-        public void Close()
+        public void Dispose()
         {
         }
 
@@ -265,25 +271,28 @@ namespace OpenSim.Data.NHibernate
         /// The plugin being loaded
         /// </summary>
         /// <returns>A string containing the plugin name</returns>
-        public string getName()
+        public string Name
         {
-            return "NHibernate Inventory Data Interface";
+            get { return "NHibernate Inventory Data Interface"; }
         }
 
         /// <summary>
         /// The plugins version
         /// </summary>
         /// <returns>A string containing the plugin version</returns>
-        public string getVersion()
+        public string Version
         {
-            Module module = GetType().Module;
-            // string dllName = module.Assembly.ManifestModule.Name;
-            Version dllVersion = module.Assembly.GetName().Version;
+            get
+            {
+                Module module = GetType().Module;
+                // string dllName = module.Assembly.ManifestModule.Name;
+                Version dllVersion = module.Assembly.GetName().Version;
 
 
-            return
-                string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
-                              dllVersion.Revision);
+                return
+                    string.Format("{0}.{1}.{2}.{3}", dllVersion.Major, dllVersion.Minor, dllVersion.Build,
+                            dllVersion.Revision);
+            }
         }
 
         // Move seems to be just update
@@ -369,7 +378,7 @@ namespace OpenSim.Data.NHibernate
             return folders;
         }
 
-        // See IInventoryData
+        // See IInventoryDataPlugin
         public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();

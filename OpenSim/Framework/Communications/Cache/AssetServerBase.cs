@@ -43,7 +43,7 @@ namespace OpenSim.Framework.Communications.Cache
         protected IAssetReceiver m_receiver;
         protected BlockingQueue<AssetRequest> m_assetRequests;
         protected Thread m_localAssetServerThread;
-        protected IAssetProvider m_assetProvider;
+        protected IAssetProviderPlugin m_assetProvider;
 
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();

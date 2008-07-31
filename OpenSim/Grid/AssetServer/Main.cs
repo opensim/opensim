@@ -53,7 +53,7 @@ namespace OpenSim.Grid.AssetServer
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
 
-        private IAssetProvider m_assetProvider;
+        private IAssetProviderPlugin m_assetProvider;
 
         [STAThread]
         public static void Main(string[] args)
@@ -116,36 +116,19 @@ namespace OpenSim.Grid.AssetServer
             return null;
         }
 
-        public IAssetProvider LoadDatabasePlugin(string FileName, string connect)
+        public IAssetProviderPlugin LoadDatabasePlugin(string provider, string connect)
         {
-            m_log.Info("[ASSET SERVER]: LoadDatabasePlugin: Attempting to load " + FileName);
-            Assembly pluginAssembly = Assembly.LoadFrom(FileName);
-            IAssetProvider assetPlugin = null;
-            foreach (Type pluginType in pluginAssembly.GetTypes())
-            {
-                if (!pluginType.IsAbstract)
-                {
-                    Type typeInterface = pluginType.GetInterface("IAssetProvider", true);
+            PluginLoader<IAssetProviderPlugin> loader = 
+                new PluginLoader<IAssetProviderPlugin> (new AssetDataInitialiser (connect));
 
-                    if (typeInterface != null)
-                    {
-                        IAssetProvider plug =
-                            (IAssetProvider) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        assetPlugin = plug;
-                        assetPlugin.Initialise(connect);
+            // loader will try to load all providers (MySQL, MSSQL, etc) 
+            // unless it is constrainted to the correct "Provider" entry in the addin.xml
+            loader.Add ("/OpenSim/AssetData", new PluginProviderFilter (provider));
+            loader.Load();
 
-                        m_log.Info("[ASSET SERVER]: Added " + assetPlugin.Name + " " + assetPlugin.Version);
-                        break;
-                    }
-
-                    typeInterface = null;
-                }
-            }
-
-            pluginAssembly = null;
-            return assetPlugin;
+            return loader.Plugin;
         }
-
+        
         public void setupDB(AssetConfig config)
         {
             try
