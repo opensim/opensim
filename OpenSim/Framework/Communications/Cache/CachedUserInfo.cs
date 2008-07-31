@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Communications.Cache
         private readonly UserProfileData m_userProfile;
 
         /// <summary>
-        /// Has we received the user's inventory from the inventory service?
+        /// Have we received the user's inventory from the inventory service?
         /// </summary>
         public bool HasReceivedInventory { get { return m_hasReceivedInventory; } }
         private bool m_hasReceivedInventory;
@@ -85,9 +85,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         private IDictionary<LLUUID, IList<InventoryFolderImpl>> pendingCategorizationFolders
             = new Dictionary<LLUUID, IList<InventoryFolderImpl>>();
-
-        private LLUUID m_session_id = LLUUID.Zero;
+        
         public LLUUID SessionID { get { return m_session_id; } }
+        private LLUUID m_session_id = LLUUID.Zero;        
         
         /// <summary>
         /// Constructor

@@ -680,7 +680,7 @@ namespace OpenSim
             
             string firstName = cmdparams[0];            
             string lastName = cmdparams[1];
-            //string invPath = cmdparams[2];
+            string invPath = cmdparams[2];
             //string savePath = (cmdparams.Length > 3 ? cmdparams[3] : DEFAULT_INV_BACKUP_FILENAME);
             
             UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(firstName, lastName);
@@ -695,7 +695,46 @@ namespace OpenSim
             {
                 m_log.ErrorFormat("[CONSOLE]: Failed to find user info for {0} {1} {2}", firstName, lastName, userProfile.ID);
                 return;
-            }                                                
+            }       
+            
+            InventoryFolderImpl inventoryFolder = null;
+            
+            if (userInfo.HasReceivedInventory)
+            {
+                if (invPath == InventoryFolderImpl.PATH_DELIMITER)
+                {
+                    inventoryFolder = userInfo.RootFolder;
+                }
+                else
+                {
+                    // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
+                    // itself (possibly at a small loss in efficiency).
+                    string[] components 
+                        = invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
+                    invPath = String.Empty;
+                    foreach (string c in components)
+                    {
+                        invPath += c + InventoryFolderImpl.PATH_DELIMITER;
+                    }                    
+                
+                    inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);
+                }                   
+            }
+            else
+            {
+                m_log.ErrorFormat("[CONSOLE]: Have not yet received inventory info for user {0} {1} {2}", firstName, lastName, userProfile.ID);
+                return;
+            }
+            
+            if (null == inventoryFolder)
+            {
+                m_log.ErrorFormat("[CONSOLE]: Could not find folder with path {0}", invPath);
+                return;
+            }
+            else
+            {
+                m_log.InfoFormat("[CONSOLE]: Found folder {0} {1} at {2}", inventoryFolder.Name, inventoryFolder.ID, invPath);
+            }
         }        
 
         /// <summary>

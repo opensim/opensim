@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using libsecondlife;
 //using System.Reflection;
@@ -36,12 +37,22 @@ namespace OpenSim.Framework.Communications.Cache
     public class InventoryFolderImpl : InventoryFolderBase
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        public static readonly string PATH_DELIMITER = "/";
 
-        // Fields
+        /// <summary>
+        /// Items that are contained in this folder
+        /// </summary>
         public Dictionary<LLUUID, InventoryItemBase> Items = new Dictionary<LLUUID, InventoryItemBase>();
+        
+        /// <summary>
+        /// Child folders that are contained in this folder
+        /// </summary>
         public Dictionary<LLUUID, InventoryFolderImpl> SubFolders = new Dictionary<LLUUID, InventoryFolderImpl>();
 
-        // Accessors
+        /// <summary>
+        /// The number of child folders
+        /// </summary>
         public int SubFoldersCount
         {
             get { return SubFolders.Count; }
@@ -177,9 +188,7 @@ namespace OpenSim.Framework.Communications.Cache
         public InventoryFolderImpl FindFolder(LLUUID folderID)
         {
             if (folderID == ID)
-            {
                 return this;
-            }
 
             lock (SubFolders)
             {
@@ -188,12 +197,49 @@ namespace OpenSim.Framework.Communications.Cache
                     InventoryFolderImpl returnFolder = folder.FindFolder(folderID);
 
                     if (returnFolder != null)
-                    {
                         return returnFolder;
-                    }
                 }
             }
 
+            return null;
+        }
+        
+        /// <summary>
+        /// Find a folder given a PATH_DELIMITOR delimited path.
+        /// 
+        /// This method does not handle paths that contain multiple delimitors
+        /// 
+        /// FIXME: We do not yet handle situations where folders have the same name.  We could handle this by some
+        /// XPath like expression
+        /// 
+        /// FIXME: Delimitors which occur in names themselves are not currently escapable.
+        /// </summary>
+        /// <param name="path">
+        /// The path to the required folder.  It this is empty then this folder itself is returned.
+        /// If a folder for the given path is not found, then null is returned.
+        /// </param>
+        /// <returns></returns>
+        public InventoryFolderImpl FindFolderByPath(string path)
+        {
+            if (path == string.Empty)
+                return this;
+            
+            int delimitorIndex = path.IndexOf(PATH_DELIMITER);
+            string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
+
+            lock (SubFolders)
+            {
+                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                {
+                    if (folder.Name == components[0])
+                        if (components.Length > 1)
+                            return folder.FindFolderByPath(components[1]);
+                        else
+                            return folder;
+                }
+            }
+            
+            // We didn't find a folder with the given name
             return null;
         }
 
