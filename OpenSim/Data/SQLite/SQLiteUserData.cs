@@ -133,7 +133,7 @@ namespace OpenSim.Data.SQLite
         public override void Dispose () {} 
 
         /// <summary>
-        /// see IUserData, 
+        /// see IUserDataPlugin,
         /// Get user data profile by UUID
         /// </summary>
         /// <param name="uuid">User UUID</param>
@@ -161,7 +161,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// see IUserData, 
+        /// see IUserDataPlugin,
         /// Get user data profile by name
         /// </summary>
         /// <param name="fname">first name</param>

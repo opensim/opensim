@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Communications
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public UserConfig _config;
-        private List<IUserData> _plugins = new List<IUserData>();
+        private List<IUserDataPlugin> _plugins = new List<IUserDataPlugin>();
 
         /// <summary>
         /// Adds a new user server plugin - user servers will be requested in the order they were loaded.
@@ -55,8 +55,8 @@ namespace OpenSim.Framework.Communications
         /// <param name="provider">The filename to the user server plugin DLL</param>
         public void AddPlugin(string provider, string connect)
         {
-            PluginLoader<IUserData> loader = 
-                new PluginLoader<IUserData> (new UserDataInitialiser (connect));
+            PluginLoader<IUserDataPlugin> loader =
+                new PluginLoader<IUserDataPlugin> (new UserDataInitialiser (connect));
 
             // loader will try to load all providers (MySQL, MSSQL, etc) 
             // unless it is constrainted to the correct "Provider" entry in the addin.xml
@@ -71,7 +71,7 @@ namespace OpenSim.Framework.Communications
         // see IUserService
         public UserProfileData GetUserProfile(string fname, string lname)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 UserProfileData profile = plugin.GetUserByName(fname, lname);
 
@@ -86,7 +86,7 @@ namespace OpenSim.Framework.Communications
         }
         public UserAgentData GetAgentByUUID(LLUUID userId)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 UserAgentData agent = plugin.GetAgentByUUID(userId);
 
@@ -101,7 +101,7 @@ namespace OpenSim.Framework.Communications
         // see IUserService
         public UserProfileData GetUserProfile(LLUUID uuid)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 UserProfileData profile = plugin.GetUserByUUID(uuid);
 
@@ -118,7 +118,7 @@ namespace OpenSim.Framework.Communications
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -140,7 +140,7 @@ namespace OpenSim.Framework.Communications
         /// <returns></returns>
         public bool UpdateUserProfile(UserProfileData data)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -167,7 +167,7 @@ namespace OpenSim.Framework.Communications
         /// <returns>Agent profiles</returns>
         public UserAgentData GetUserAgent(LLUUID uuid)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -189,7 +189,7 @@ namespace OpenSim.Framework.Communications
         /// <returns>A user agent</returns>
         public UserAgentData GetUserAgent(string name)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -212,7 +212,7 @@ namespace OpenSim.Framework.Communications
         /// <returns>A user agent</returns>
         public UserAgentData GetUserAgent(string fname, string lname)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -229,7 +229,7 @@ namespace OpenSim.Framework.Communications
 
         public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -249,7 +249,7 @@ namespace OpenSim.Framework.Communications
         /// <returns>A List of FriendListItems that contains info about the user's friends</returns>
         public List<FriendListItem> GetUserFriendList(LLUUID ownerID)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -266,7 +266,7 @@ namespace OpenSim.Framework.Communications
 
         public void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -281,7 +281,7 @@ namespace OpenSim.Framework.Communications
 
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -296,7 +296,7 @@ namespace OpenSim.Framework.Communications
 
         public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -311,7 +311,7 @@ namespace OpenSim.Framework.Communications
 
         public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -545,7 +545,7 @@ namespace OpenSim.Framework.Communications
             user.HomeRegionX = regX;
             user.HomeRegionY = regY;
 
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -567,7 +567,7 @@ namespace OpenSim.Framework.Communications
                 m_log.Info("[USERSTORAGE]: Failed to find User by UUID " + UserProfile.ID.ToString());
                 return false;
             }
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -593,7 +593,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="agentdata">The agent data to be added</param>
         public bool AddUserAgent(UserAgentData agentdata)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -612,7 +612,7 @@ namespace OpenSim.Framework.Communications
         /// TODO: stubs for now to get us to a compiling state gently
         public AvatarAppearance GetUserAppearance(LLUUID user)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -628,7 +628,7 @@ namespace OpenSim.Framework.Communications
 
         public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -643,7 +643,7 @@ namespace OpenSim.Framework.Communications
 
         public void AddAttachment(LLUUID user, LLUUID item)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -658,7 +658,7 @@ namespace OpenSim.Framework.Communications
 
         public void RemoveAttachment(LLUUID user, LLUUID item)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {
@@ -673,7 +673,7 @@ namespace OpenSim.Framework.Communications
 
         public List<LLUUID> GetAttachments(LLUUID user)
         {
-            foreach (IUserData plugin in _plugins)
+            foreach (IUserDataPlugin plugin in _plugins)
             {
                 try
                 {

@@ -52,6 +52,7 @@ using OpenSim.Region.Environment.Scenes;
 namespace OpenSim.ApplicationPlugins.LoadBalancer
 {
     [Extension("/OpenSim/Startup")]
+    [ExtensionNode ("Plugin")]
     public class LoadBalancerPlugin : IApplicationPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

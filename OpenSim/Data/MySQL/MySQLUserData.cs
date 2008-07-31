@@ -244,7 +244,7 @@ namespace OpenSim.Data.MySQL
 
         #endregion
 
-        // see IUserData
+        // see IUserDataPlugin
         override public UserProfileData GetUserByName(string user, string last)
         {
             try
@@ -508,7 +508,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// See IUserData
+        /// See IUserDataPlugin
         /// </summary>
         /// <param name="uuid">User UUID</param>
         /// <returns>User profile data</returns>

@@ -33,7 +33,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Data
 {
-    public abstract class UserDataBase : IUserData
+    public abstract class UserDataBase : IUserDataPlugin
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

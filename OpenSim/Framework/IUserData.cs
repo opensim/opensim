@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// An interface for connecting to user storage servers.
     /// </summary>
-    public interface IUserData : IPlugin
+    public interface IUserDataPlugin : IPlugin
     {
         /// <summary>
         /// Returns a user profile from a database via their UUID
@@ -177,7 +177,7 @@ namespace OpenSim.Framework
         public UserDataInitialiser (string s) { connect = s; }
         public override void Initialise (IPlugin plugin)
         {
-            IUserData p = plugin as IUserData;
+            IUserDataPlugin p = plugin as IUserDataPlugin;
             p.Initialise (connect);
         }
     }

@@ -416,7 +416,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// See IUserData
+        /// See IUserDataPlugin
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
