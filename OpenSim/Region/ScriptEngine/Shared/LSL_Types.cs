@@ -1439,12 +1439,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             #region Operators
 
-            static public implicit operator int(LSLFloat f)
+            static public explicit operator int(LSLFloat f)
             {
                 return (int)f.value;
             }
 
-            static public implicit operator uint(LSLFloat f)
+            static public explicit operator uint(LSLFloat f)
             {
                 return (uint) Math.Abs(f.value);
             }
@@ -1471,7 +1471,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLFloat(i.value);
             }
 
-            static public implicit operator LSLFloat(string s)
+            static public explicit operator LSLFloat(string s)
             {
                 return new LSLFloat(double.Parse(s));
             }

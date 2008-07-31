@@ -228,31 +228,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         }
 
         /// <summary>
-        /// Tests LSLFloat is correctly cast implicitly to integer.
+        /// Tests LSLFloat is correctly cast explicitly to integer.
         /// </summary>
         [Test]
-        public void TestImplicitCastLSLFloatToInt()
+        public void TestExplicitCastLSLFloatToInt()
         {
             int testNumber;
 
             foreach (KeyValuePair<double, int> number in m_doubleIntSet)
             {
-                testNumber = new LSL_Types.LSLFloat(number.Key);
+                testNumber = (int) new LSL_Types.LSLFloat(number.Key);
                 Assert.AreEqual(number.Value, testNumber, "Converting double " + number.Key + ", expecting int " + number.Value);
             }
         }
 
         /// <summary>
-        /// Tests LSLFloat is correctly cast implicitly to unsigned integer.
+        /// Tests LSLFloat is correctly cast explicitly to unsigned integer.
         /// </summary>
         [Test]
-        public void TestImplicitCastLSLFloatToUint()
+        public void TestExplicitCastLSLFloatToUint()
         {
             uint testNumber;
 
             foreach (KeyValuePair<double, int> number in m_doubleUintSet)
             {
-                testNumber = new LSL_Types.LSLFloat(number.Key);
+                testNumber = (uint) new LSL_Types.LSLFloat(number.Key);
                 Assert.AreEqual(number.Value, testNumber, "Converting double " + number.Key + ", expecting uint " + number.Value);
             }
         }
@@ -333,16 +333,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         }
 
         /// <summary>
-        /// Tests string is correctly cast implicitly to LSLFloat.
+        /// Tests string is correctly cast explicitly to LSLFloat.
         /// </summary>
         [Test]
-        public void TestImplicitCastStringToLSLFloat()
+        public void TestExplicitCastStringToLSLFloat()
         {
             LSL_Types.LSLFloat testFloat;
 
             foreach (KeyValuePair<string, double> number in m_stringDoubleSet)
             {
-                testFloat = number.Key;
+                testFloat = (LSL_Types.LSLFloat) number.Key;
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number.Value, _lowPrecisionTolerance));
             }
         }
@@ -374,6 +374,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             {
                 testFloat = number;
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number, _lowPrecisionTolerance));
+            }
+        }
+
+        /// <summary>
+        /// Tests LSLFloat is correctly cast implicitly to double.
+        /// </summary>
+        [Test]
+        public void TestImplicitCastLSLFloatToDouble()
+        {
+            double testNumber;
+            LSL_Types.LSLFloat testFloat;
+
+            foreach (double number in m_doubleList)
+            {
+                testFloat = new LSL_Types.LSLFloat(number);
+                testNumber = testFloat;
+
+                Assert.That(testNumber, new DoubleToleranceConstraint(number, _lowPrecisionTolerance));
             }
         }
 
@@ -460,24 +478,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
                 testNumber = --testFloat;
                 Assert.That(testNumber, new DoubleToleranceConstraint(number - 2.0, _lowPrecisionTolerance));
-            }
-        }
-
-        /// <summary>
-        /// Tests LSLFloat is correctly cast implicitly to double.
-        /// </summary>
-        [Test]
-        public void TestImplicitCastLSLFloatToDouble()
-        {
-            double testNumber;
-            LSL_Types.LSLFloat testFloat;
-
-            foreach (double number in m_doubleList)
-            {
-                testFloat = new LSL_Types.LSLFloat(number);
-                testNumber = testFloat;
-
-                Assert.That(testNumber, new DoubleToleranceConstraint(number, _lowPrecisionTolerance));
             }
         }
 
