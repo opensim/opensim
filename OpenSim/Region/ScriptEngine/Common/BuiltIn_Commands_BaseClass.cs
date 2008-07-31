@@ -2239,6 +2239,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int DATA_SIM_POS = 5;
         public const int DATA_SIM_STATUS = 6;
         public const int DATA_SIM_RATING = 7;
+        public const int DATA_SIM_RELEASE = 128;
 
         public const int ANIM_ON = 1;
         public const int LOOP = 2;

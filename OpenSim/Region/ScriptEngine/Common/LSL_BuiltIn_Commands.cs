@@ -6604,6 +6604,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                 else
                     reply = "UNKNOWN";
                 break;
+             case 128: // SIM_RELEASE
+                reply = m_ScriptEngine.World.GetSimulatorVersion();
+             break;
             default:
                 return LLUUID.Zero.ToString(); // Raise no event
             }
