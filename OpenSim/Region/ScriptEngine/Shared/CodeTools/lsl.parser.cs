@@ -359,7 +359,7 @@ public override int yynum { get { return 114; }}
 public StateChange(Parser yyp):base(yyp){}}
 //%+IfStatement+115
 public class IfStatement : SYMBOL{
- private  void  AddStatement ( Statement  s ){ if ( s . kids . Top  is  CompoundStatement ) kids . Add ( s . kids . Pop ());
+ private  void  AddStatement ( Statement  s ){ if (0< s . kids . Count && s . kids . Top  is  CompoundStatement ) kids . Add ( s . kids . Pop ());
  else  kids . Add ( s );
 }
  public  IfStatement (Parser yyp, Expression  e , Statement  ifs ):base(((LSLSyntax
@@ -369,7 +369,7 @@ public class IfStatement : SYMBOL{
  public  IfStatement (Parser yyp, Expression  e , Statement  ifs , Statement  es ):base(((LSLSyntax
 )yyp)){ kids . Add ( e );
  AddStatement ( ifs );
- if ( es . kids . Top  is  IfStatement ) kids . Add ( es . kids . Pop ());
+ if (0< es . kids . Count && es . kids . Top  is  IfStatement ) kids . Add ( es . kids . Pop ());
  else  AddStatement ( es );
 }
 
@@ -380,7 +380,7 @@ public IfStatement(Parser yyp):base(yyp){}}
 public class WhileStatement : SYMBOL{
  public  WhileStatement (Parser yyp, Expression  e , Statement  s ):base(((LSLSyntax
 )yyp)){ kids . Add ( e );
- if ( s . kids . Top  is  CompoundStatement ) kids . Add ( s . kids . Pop ());
+ if (0< s . kids . Count && s . kids . Top  is  CompoundStatement ) kids . Add ( s . kids . Pop ());
  else  kids . Add ( s );
 }
 
@@ -390,7 +390,7 @@ public WhileStatement(Parser yyp):base(yyp){}}
 //%+DoWhileStatement+117
 public class DoWhileStatement : SYMBOL{
  public  DoWhileStatement (Parser yyp, Expression  e , Statement  s ):base(((LSLSyntax
-)yyp)){ if ( s . kids . Top  is  CompoundStatement ) kids . Add ( s . kids . Pop ());
+)yyp)){ if (0< s . kids . Count && s . kids . Top  is  CompoundStatement ) kids . Add ( s . kids . Pop ());
  else  kids . Add ( s );
  kids . Add ( e );
 }
@@ -404,7 +404,7 @@ public class ForLoop : SYMBOL{
 )yyp)){ kids . Add ( flsa );
  kids . Add ( e );
  kids . Add ( flsb );
- if ( s . kids . Top  is  CompoundStatement ) kids . Add ( s . kids . Pop ());
+ if (0< s . kids . Count && s . kids . Top  is  CompoundStatement ) kids . Add ( s . kids . Pop ());
  else  kids . Add ( s );
 }
 

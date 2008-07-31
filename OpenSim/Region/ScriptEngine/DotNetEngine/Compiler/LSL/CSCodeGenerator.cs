@@ -388,14 +388,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private string GenerateStatement(Statement s)
         {
             string retstr = String.Empty;
-
-            // Jump label prints its own colon, we don't need a semicolon.
-            bool printSemicolon = !(s.kids.Top is JumpLabel);
+            bool printSemicolon = true;
 
             retstr += Indent();
 
-            foreach (SYMBOL kid in s.kids)
-                retstr += GenerateNode(kid);
+            if (0 < s.kids.Count)
+            {
+                // Jump label prints its own colon, we don't need a semicolon.
+                printSemicolon = !(s.kids.Top is JumpLabel);
+
+                foreach (SYMBOL kid in s.kids)
+                    retstr += GenerateNode(kid);
+            }
 
             if (printSemicolon)
                 retstr += GenerateLine(";");

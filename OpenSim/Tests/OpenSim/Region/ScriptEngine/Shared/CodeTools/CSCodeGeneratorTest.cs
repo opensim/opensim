@@ -1395,6 +1395,131 @@ default
         }
 
         [Test]
+        public void TestWhileLoopWithNoBody()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        while(1<0);
+    }
+}";
+
+            string expected = @"
+        public void default_event_state_entry()
+        {
+            while (1 < 0)
+                ;
+        }
+";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
+        public void TestDoWhileLoopWithNoBody()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        do;
+        while(1<0);
+    }
+}";
+
+            string expected = @"
+        public void default_event_state_entry()
+        {
+            do
+                ;
+            while (1 < 0);
+        }
+";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
+        public void TestIfWithNoBody()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        if(1<0);
+    }
+}";
+
+            string expected = @"
+        public void default_event_state_entry()
+        {
+            if (1 < 0)
+                ;
+        }
+";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
+        public void TestIfElseWithNoBody()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        if(1<0);
+        else;
+    }
+}";
+
+            string expected = @"
+        public void default_event_state_entry()
+        {
+            if (1 < 0)
+                ;
+            else
+                ;
+        }
+";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
+        public void TestForLoopWithNoBody()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        for(x = 4; 1<0; x += 2);
+    }
+}";
+
+            string expected = @"
+        public void default_event_state_entry()
+        {
+            for (x = 4; 1 < 0; x += 2)
+                ;
+        }
+";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
         [ExpectedException("Tools.CSToolsException")]
         public void TestSyntaxError()
         {
