@@ -49,15 +49,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// Child folders that are contained in this folder
         /// </summary>
         public Dictionary<LLUUID, InventoryFolderImpl> SubFolders = new Dictionary<LLUUID, InventoryFolderImpl>();
-
-        /// <summary>
-        /// The number of child folders
-        /// </summary>
-        public int SubFoldersCount
-        {
-            get { return SubFolders.Count; }
-        }
-
+        
         // Constructors
         public InventoryFolderImpl(InventoryFolderBase folderbase)
         {
@@ -244,7 +236,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Return the list of child items in this folder
+        /// Return a copy of the list of child items in this folder
         /// </summary>
         public List<InventoryItemBase> RequestListOfItems()
         {
@@ -264,7 +256,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Return the list of immediate child folders in this folder.
+        /// Return a copy of the list of immediate child folders in this folder.
         /// </summary>
         public List<InventoryFolderBase> RequestListOfFolders()
         {
