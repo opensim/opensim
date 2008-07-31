@@ -6281,5 +6281,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #endregion
+        
+        
+        #region Camera
+        
+        public void SendSetFollowCamProperties (LLUUID objectID, SortedDictionary<int, float> parameters)
+        {
+            SetFollowCamPropertiesPacket packet = (SetFollowCamPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.SetFollowCamProperties);
+            packet.ObjectData.ObjectID = objectID;
+            SetFollowCamPropertiesPacket.CameraPropertyBlock[] camPropBlock = new SetFollowCamPropertiesPacket.CameraPropertyBlock[parameters.Count];
+            uint idx = 0;
+            foreach(KeyValuePair<int, float> pair in parameters)
+            {
+                SetFollowCamPropertiesPacket.CameraPropertyBlock block = new SetFollowCamPropertiesPacket.CameraPropertyBlock();
+                block.Type = pair.Key;
+                block.Value = pair.Value;
+                
+                camPropBlock[idx++] = block;
+            }
+            packet.CameraProperty = camPropBlock;
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        public void SendClearFollowCamProperties (LLUUID objectID)
+        {
+            ClearFollowCamPropertiesPacket packet = (ClearFollowCamPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ClearFollowCamProperties);
+            packet.ObjectData.ObjectID = objectID;
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        #endregion
     }
 }

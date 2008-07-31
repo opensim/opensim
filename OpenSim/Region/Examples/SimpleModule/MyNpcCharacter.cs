@@ -824,5 +824,13 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
 
         }
+
+        public void SendSetFollowCamProperties (LLUUID objectID, SortedDictionary<int, float> parameters)
+        {
+        }
+
+        public void SendClearFollowCamProperties (LLUUID objectID)
+        {
+        }
     }
 }

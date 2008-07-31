@@ -6917,13 +6917,77 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetCameraParams(LSL_Types.list rules)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetCameraParams");
+            
+            // our key in the object we are in 
+            LLUUID invItemID=InventorySelf();
+            if (invItemID == LLUUID.Zero) return;
+
+            // the object we are in
+            LLUUID objectID = m_host.ParentUUID;
+            if(objectID == LLUUID.Zero) return;
+
+            // we need the permission first, to know which avatar we want to set the camera for
+            LLUUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
+            if (agentID == LLUUID.Zero) return;
+            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_CONTROL_CAMERA) == 0) return;
+
+            ScenePresence presence = World.GetScenePresence(agentID);
+            
+            // we are not interested in child-agents
+            if(presence.IsChildAgent) return;
+            
+            SortedDictionary<int, float> parameters = new SortedDictionary<int, float>();
+            object[] data = rules.Data;
+            for(int i = 0; i < data.Length; ++i) {
+                int type = Convert.ToInt32(data[i++]);
+                if(i >= data.Length) break; // odd number of entries => ignore the last
+
+                // some special cases: Vector parameters are split into 3 float parameters (with type+1, type+2, type+3)
+                switch(type) {
+                case BuiltIn_Commands_BaseClass.CAMERA_FOCUS:
+                case BuiltIn_Commands_BaseClass.CAMERA_FOCUS_OFFSET:
+                case BuiltIn_Commands_BaseClass.CAMERA_POSITION:
+                    LSL_Types.Vector3 v = (LSL_Types.Vector3)data[i];
+                    parameters.Add(type + 1, (float)v.x); 
+                    parameters.Add(type + 2, (float)v.y); 
+                    parameters.Add(type + 3, (float)v.z);
+                    break;
+                default:
+                    // TODO: clean that up as soon as the implicit casts are in
+                    if(data[i] is LSL_Types.LSLFloat)
+                        parameters.Add(type, (float)((LSL_Types.LSLFloat)data[i]).value);
+                    else if(data[i] is LSL_Types.LSLInteger)
+                        parameters.Add(type, (float)((LSL_Types.LSLInteger)data[i]).value);
+                    else parameters.Add(type, Convert.ToSingle(data[i]));
+                    break;
+                }
+            }
+            if(parameters.Count > 0) presence.ControllingClient.SendSetFollowCamProperties(objectID, parameters);
         }
 
         public void llClearCameraParams()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llClearCameraParams");
+
+            // our key in the object we are in 
+            LLUUID invItemID=InventorySelf();
+            if (invItemID == LLUUID.Zero) return;
+
+            // the object we are in
+            LLUUID objectID = m_host.ParentUUID;
+            if(objectID == LLUUID.Zero) return;
+
+            // we need the permission first, to know which avatar we want to clear the camera for
+            LLUUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
+            if (agentID == LLUUID.Zero) return;
+            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_CONTROL_CAMERA) == 0) return;
+
+            ScenePresence presence = World.GetScenePresence(agentID);
+            
+            // we are not interested in child-agents
+            if(presence.IsChildAgent) return;
+            
+            presence.ControllingClient.SendClearFollowCamProperties(objectID);
         }
 
         public double llListStatistics(int operation, LSL_Types.list src)

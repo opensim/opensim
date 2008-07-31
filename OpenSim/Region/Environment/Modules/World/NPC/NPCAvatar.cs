@@ -824,5 +824,13 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
                                    byte mediaLoop)
         {  
         }
+
+        public void SendSetFollowCamProperties (LLUUID objectID, SortedDictionary<int, float> parameters)
+        {
+        }
+
+        public void SendClearFollowCamProperties (LLUUID objectID)
+        {
+        }
     }
 }

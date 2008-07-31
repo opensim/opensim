@@ -2425,5 +2425,30 @@ namespace OpenSim.Region.ScriptEngine.Common
         // Can not be public const?
         public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
         public static readonly rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);
+
+		// constants for llSetCameraParams
+        public const int CAMERA_PITCH = 0;
+        public const int CAMERA_FOCUS_OFFSET = 1;
+        public const int CAMERA_FOCUS_OFFSET_X = 2;
+        public const int CAMERA_FOCUS_OFFSET_Y = 3;
+        public const int CAMERA_FOCUS_OFFSET_Z = 4;
+        public const int CAMERA_POSITION_LAG = 5;
+        public const int CAMERA_FOCUS_LAG = 6;
+        public const int CAMERA_DISTANCE = 7;
+        public const int CAMERA_BEHINDNESS_ANGLE = 8;
+        public const int CAMERA_BEHINDNESS_LAG = 9;
+        public const int CAMERA_POSITION_THRESHOLD = 10;
+        public const int CAMERA_FOCUS_THRESHOLD = 11;
+        public const int CAMERA_ACTIVE = 12;
+        public const int CAMERA_POSITION = 13;
+        public const int CAMERA_POSITION_X = 14;
+        public const int CAMERA_POSITION_Y = 15;
+        public const int CAMERA_POSITION_Z = 16;
+        public const int CAMERA_FOCUS = 17;
+        public const int CAMERA_FOCUS_X = 18;
+        public const int CAMERA_FOCUS_Y = 19;
+        public const int CAMERA_FOCUS_Z = 20;
+        public const int CAMERA_POSITION_LOCKED = 21;
+        public const int CAMERA_FOCUS_LOCKED = 22;
     }
 }
