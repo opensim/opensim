@@ -2437,6 +2437,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // When attached, certain permissions are implicit if requested from owner
                 int implicitPerms = ScriptBaseClass.PERMISSION_TAKE_CONTROLS |
                         ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
+                        ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
                         ScriptBaseClass.PERMISSION_ATTACH;
 
                 if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
@@ -2456,6 +2457,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 // When agent is sitting, certain permissions are implicit if requested from sitting agent
                 int implicitPerms = ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
+                        ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
                         ScriptBaseClass.PERMISSION_TRACK_CAMERA;
 
                 if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
