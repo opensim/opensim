@@ -1520,6 +1520,44 @@ default
         }
 
         [Test]
+        public void TestAssignmentInIfWhileDoWhile()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        integer x;
+
+        while(x = 14) llOwnerSay(""x is: "" + (string) x);
+
+        if(x = 24) llOwnerSay(""x is: "" + (string) x);
+
+        do
+            llOwnerSay(""x is: "" + (string) x);
+        while(x = 44);
+    }
+}";
+
+            string expected = @"
+        public void default_event_state_entry()
+        {
+            LSL_Types.LSLInteger x = 0;
+            while (x = 14)
+                llOwnerSay(""x is: "" + (LSL_Types.LSLString) (x));
+            if (x = 24)
+                llOwnerSay(""x is: "" + (LSL_Types.LSLString) (x));
+            do
+                llOwnerSay(""x is: "" + (LSL_Types.LSLString) (x));
+            while (x = 44);
+        }
+";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
         [ExpectedException("Tools.CSToolsException")]
         public void TestSyntaxError()
         {
@@ -1544,6 +1582,36 @@ default
                 Match m = r.Match(e.Message);
                 Assert.AreEqual("6", m.Groups[1].Value);
                 Assert.AreEqual("5", m.Groups[2].Value);
+
+                throw;
+            }
+        }
+
+        [Test]
+        [ExpectedException("Tools.CSToolsException")]
+        public void TestSyntaxErrorDeclaringVariableInForLoop()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        for (integer x = 0; x < 10; x++) llOwnerSay(""x is: "" + (string) x);
+    }
+}
+";
+            try
+            {
+                CSCodeGenerator cg = new CSCodeGenerator();
+                cg.Convert(input);
+            }
+            catch (Tools.CSToolsException e)
+            {
+                // The syntax error is on line 6, char 5 (expected ';', found
+                // '}').
+                Regex r = new Regex("Line ([0-9]+), char ([0-9]+)");
+                Match m = r.Match(e.Message);
+                Assert.AreEqual("5", m.Groups[1].Value);
+                Assert.AreEqual("14", m.Groups[2].Value);
 
                 throw;
             }
