@@ -126,6 +126,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return (x == vector.x && x == vector.x && z == vector.z);
             }
 
+            public static Vector3 operator -(Vector3 vector)
+            {
+                return new Vector3(-vector.x, -vector.y, -vector.z);
+            }
+
             #endregion
 
             #region Vector & Vector Math

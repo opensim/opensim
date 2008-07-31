@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using OpenSim.Tests.Common;
 using OpenSim.Region.ScriptEngine.Common;
+using vector = OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Common.Tests
 {
@@ -39,7 +40,6 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
         /// Tests for Vector3
         /// </summary>
         [Test]
-
         public void TestDotProduct()
         {
             // The numbers we test for.
@@ -54,9 +54,16 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
             foreach (KeyValuePair<string, double> ex in expectsSet)
             {
                 parts = ex.Key.Split(delim, System.StringSplitOptions.None);
-                result = new LSL_Types.Vector3(parts[0]) * new LSL_Types.Vector3(parts[1]);
+                result = new vector(parts[0]) * new vector(parts[1]);
                 Assert.AreEqual(ex.Value, result);
             }
+        }
+
+        [Test]
+        public void TestUnaryMinusOperator()
+        {
+            Assert.AreEqual(new vector(-1, -1, -1), - (new vector(1, 1, 1)));
+            Assert.AreEqual(new vector(0, 0, 0), - (new vector(0, 0, 0)));
         }
     }
 }
