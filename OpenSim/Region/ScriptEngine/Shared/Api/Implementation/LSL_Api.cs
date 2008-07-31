@@ -6834,7 +6834,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ret += src1[i] ^ src2[c];
 
                 c++;
-                if (c > src2.Length)
+                if (c >= src2.Length)
                     c = 0;
             }
             return llStringToBase64(ret);
