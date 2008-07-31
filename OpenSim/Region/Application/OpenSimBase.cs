@@ -698,7 +698,7 @@ namespace OpenSim
             }       
             
             InventoryFolderImpl inventoryFolder = null;
-            //InventoryItemBase inventoryItem = null;
+            InventoryItemBase inventoryItem = null;
             
             if (userInfo.HasReceivedInventory)
             {
@@ -725,10 +725,11 @@ namespace OpenSim
                     inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);   
                 }
                 
-//                if (inventoryFolder == null)
-//                {
-//                    
-//                }
+                // The path may point to an item instead
+                if (inventoryFolder == null)
+                {
+                    inventoryItem = userInfo.RootFolder.FindItemByPath(invPath);
+                }
             }
             else
             {
@@ -736,15 +737,19 @@ namespace OpenSim
                 return;
             }
             
-            if (null == inventoryFolder)
-            {
-                m_log.ErrorFormat("[CONSOLE]: Could not find folder with path {0}", invPath);
-                return;
-            }
-            else
+            if (null != inventoryFolder)
             {
                 m_log.InfoFormat("[CONSOLE]: Found folder {0} {1} at {2}", inventoryFolder.Name, inventoryFolder.ID, invPath);
             }
+            else if (null != inventoryItem)
+            {
+                m_log.InfoFormat("[CONSOLE]: Found item {0} {1} at {2}", inventoryItem.Name, inventoryItem.ID, invPath);
+            }
+            else
+            {
+                m_log.ErrorFormat("[CONSOLE]: Could not find inventory entry at path {0}", invPath);
+                return;
+            }            
         }        
 
         /// <summary>
