@@ -108,7 +108,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Returns the item if it exists in this folder or any of this folder's subfolders?
+        /// Returns the item if it exists in this folder or in any of this folder's descendant folders
         /// </summary>
         /// <param name="itemID"></param>
         /// <returns>null if the item is not found</returns>
@@ -197,7 +197,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
         
         /// <summary>
-        /// Find a folder given a PATH_DELIMITOR delimited path.
+        /// Find a folder given a PATH_DELIMITOR delimited path starting from this folder
         /// 
         /// This method does not handle paths that contain multiple delimitors
         /// 
@@ -208,9 +208,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="path">
         /// The path to the required folder.  It this is empty then this folder itself is returned.
-        /// If a folder for the given path is not found, then null is returned.
         /// </param>
-        /// <returns></returns>
+        /// <returns>null if the folder is not found</returns>
         public InventoryFolderImpl FindFolderByPath(string path)
         {
             if (path == string.Empty)
@@ -234,6 +233,52 @@ namespace OpenSim.Framework.Communications.Cache
             // We didn't find a folder with the given name
             return null;
         }
+        
+        /// <summary>
+        /// Find an item given a PATH_DELIMITOR delimited path starting from this folder.
+        /// 
+        /// This method does not handle paths that contain multiple delimitors
+        /// 
+        /// FIXME: We do not yet handle situations where folders or items have the same name.  We could handle this by some
+        /// XPath like expression
+        /// 
+        /// FIXME: Delimitors which occur in names themselves are not currently escapable.
+        /// </summary>
+        /// <param name="path">
+        /// The path to the required item.
+        /// </param>
+        /// <returns>null if the item is not found</returns>
+        public InventoryItemBase FindItemByPath(string path)
+        {            
+            int delimitorIndex = path.IndexOf(PATH_DELIMITER);
+            string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
+
+            if (components.Length == 1)
+            {
+                lock (Items)
+                {
+                    foreach (InventoryItemBase item in Items.Values)
+                    {
+                        if (item.Name == components[0])
+                            return item;
+                    }
+                }
+            }
+            else
+            {                
+                lock (SubFolders)
+                {
+                    foreach (InventoryFolderImpl folder in SubFolders.Values)
+                    {
+                        if (folder.Name == components[0])
+                            return folder.FindItemByPath(components[1]);
+                    }
+                }
+            }
+            
+            // We didn't find an item or intermediate folder with the given name
+            return null;
+        }        
 
         /// <summary>
         /// Return a copy of the list of child items in this folder
@@ -256,7 +301,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Return a copy of the list of immediate child folders in this folder.
+        /// Return a copy of the list of child folders in this folder.
         /// </summary>
         public List<InventoryFolderBase> RequestListOfFolders()
         {

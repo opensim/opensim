@@ -698,27 +698,37 @@ namespace OpenSim
             }       
             
             InventoryFolderImpl inventoryFolder = null;
+            //InventoryItemBase inventoryItem = null;
             
             if (userInfo.HasReceivedInventory)
             {
-                if (invPath == InventoryFolderImpl.PATH_DELIMITER)
+                // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
+                // itself (possibly at a small loss in efficiency).
+                string[] components 
+                    = invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
+                invPath = String.Empty;
+                foreach (string c in components)
+                {
+                    invPath += c + InventoryFolderImpl.PATH_DELIMITER;
+                }                    
+                
+                invPath = invPath.Remove(invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
+                
+                // Annoyingly Split actually returns the original string if the input string consists only of delimiters
+                // Therefore if we still start with a / after the split, then we need the root folder
+                if (invPath.StartsWith(InventoryFolderImpl.PATH_DELIMITER))
                 {
                     inventoryFolder = userInfo.RootFolder;
                 }
                 else
-                {
-                    // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
-                    // itself (possibly at a small loss in efficiency).
-                    string[] components 
-                        = invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
-                    invPath = String.Empty;
-                    foreach (string c in components)
-                    {
-                        invPath += c + InventoryFolderImpl.PATH_DELIMITER;
-                    }                    
+                {                        
+                    inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);   
+                }
                 
-                    inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);
-                }                   
+//                if (inventoryFolder == null)
+//                {
+//                    
+//                }
             }
             else
             {
