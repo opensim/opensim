@@ -1558,6 +1558,31 @@ default
         }
 
         [Test]
+        public void TestLSLListHack()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        list l = [""hello""];
+        l = (l=[]) + l + ""world"";
+    }
+}";
+
+            string expected = @"
+        public void default_event_state_entry()
+        {
+            LSL_Types.list l = new LSL_Types.list(""hello"");
+            l = (l = new LSL_Types.list()) + l + ""world"";
+        }
+";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
         [ExpectedException("Tools.CSToolsException")]
         public void TestSyntaxError()
         {
