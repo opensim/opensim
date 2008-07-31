@@ -108,5 +108,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 Assert.AreEqual(testInteger.value, number.Value);
             }
         }
+
+        /// <summary>
+        /// Tests boolean correctly cast implicitly to LSLInteger.
+        /// </summary>
+        [Test]
+        public void TestImplicitCastBooleanToLSLInteger()
+        {
+            LSL_Types.LSLInteger testInteger;
+
+            testInteger = (1 == 0);
+            Assert.AreEqual(0, testInteger.value);
+
+            testInteger = (1 == 1);
+            Assert.AreEqual(1, testInteger.value);
+
+            testInteger = false;
+            Assert.AreEqual(0, testInteger.value);
+
+            testInteger = true;
+            Assert.AreEqual(1, testInteger.value);
+        }
     }
 }

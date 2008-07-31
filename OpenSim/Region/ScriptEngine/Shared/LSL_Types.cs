@@ -1186,6 +1186,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLString(f);
             }
 
+            static public explicit operator LSLString(bool b)
+            {
+                if (b)
+                    return new LSLString("1");
+                else
+                    return new LSLString("0");
+            }
+
             public static implicit operator Vector3(LSLString s)
             {
                 return new Vector3(s.m_string);
@@ -1301,6 +1309,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
             static public explicit operator LSLInteger(LSLFloat f)
             {
                 return new LSLInteger(f.value);
+            }
+
+            static public implicit operator LSLInteger(bool b)
+            {
+                if (b)
+                    return new LSLInteger(1);
+                else
+                    return new LSLInteger(0);
             }
 
             static public bool operator ==(LSLInteger i1, LSLInteger i2)
@@ -1479,6 +1495,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
             static public implicit operator LSLFloat(double d)
             {
                 return new LSLFloat(d);
+            }
+
+            static public implicit operator LSLFloat(bool b)
+            {
+                if (b)
+                    return new LSLFloat(1.0);
+                else
+                    return new LSLFloat(0.0);
             }
 
             static public bool operator ==(LSLFloat f1, LSLFloat f2)

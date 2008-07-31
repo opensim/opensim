@@ -558,5 +558,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 }
             }
         }
+
+        /// <summary>
+        /// Tests boolean correctly cast implicitly to LSLFloat.
+        /// </summary>
+        [Test]
+        public void TestImplicitCastBooleanToLSLFloat()
+        {
+            LSL_Types.LSLFloat testFloat;
+
+            testFloat = (1 == 0);
+            Assert.That(testFloat.value, new DoubleToleranceConstraint(0.0, _lowPrecisionTolerance));
+
+            testFloat = (1 == 1);
+            Assert.That(testFloat.value, new DoubleToleranceConstraint(1.0, _lowPrecisionTolerance));
+
+            testFloat = false;
+            Assert.That(testFloat.value, new DoubleToleranceConstraint(0.0, _lowPrecisionTolerance));
+
+            testFloat = true;
+            Assert.That(testFloat.value, new DoubleToleranceConstraint(1.0, _lowPrecisionTolerance));
+        }
     }
 }

@@ -111,5 +111,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             Assert.AreEqual(expectedQuaternion, stringQuaternion);
             Assert.AreEqual(expectedQuaternion, LSLStringQuaternion);
         }
+
+        /// <summary>
+        /// Tests boolean correctly cast explicitly to LSLString.
+        /// </summary>
+        [Test]
+        public void TestImplicitCastBooleanToLSLFloat()
+        {
+            LSL_Types.LSLString testString;
+
+            testString = (LSL_Types.LSLString) (1 == 0);
+            Assert.AreEqual("0", testString.m_string);
+
+            testString = (LSL_Types.LSLString) (1 == 1);
+            Assert.AreEqual("1", testString.m_string);
+
+            testString = (LSL_Types.LSLString) false;
+            Assert.AreEqual("0", testString.m_string);
+
+            testString = (LSL_Types.LSLString) true;
+            Assert.AreEqual("1", testString.m_string);
+        }
     }
 }

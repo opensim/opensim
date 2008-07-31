@@ -416,8 +416,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_CREATOR = 8;
 
         // Can not be public const?
-        public vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
-        public rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);
+        public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
+        public static readonly rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);
 
     }
 }

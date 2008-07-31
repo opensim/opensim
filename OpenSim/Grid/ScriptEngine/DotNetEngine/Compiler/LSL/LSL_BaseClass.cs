@@ -2118,7 +2118,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
         public const int PUBLIC_CHANNEL 0x00000000
 
         // Can not be public const?
-        public vector ZERO_VECTOR = new vector(0, 0, 0);
-        public rotation ZERO_ROTATION = new rotation(0, 0, 0, 0);
+        public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
+        public static readonly rotation ZERO_ROTATION = new rotation(0.0, 0.0, 0.0, 1.0);
     }
 }
