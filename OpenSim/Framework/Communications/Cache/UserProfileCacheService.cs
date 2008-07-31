@@ -71,7 +71,7 @@ namespace OpenSim.Framework.Communications.Cache
                 if (!m_userProfiles.ContainsKey(remoteClient.AgentId))
                 {
                     UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(remoteClient.AgentId);
-                    CachedUserInfo userInfo = new CachedUserInfo(m_commsManager, userProfile, remoteClient);
+                    CachedUserInfo userInfo = new CachedUserInfo(m_commsManager, userProfile, remoteClient.SessionId);
 
                     if (userInfo.UserProfile != null)
                     {

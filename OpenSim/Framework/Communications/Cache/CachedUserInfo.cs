@@ -101,11 +101,19 @@ namespace OpenSim.Framework.Communications.Cache
             m_userProfile = userProfile;
         }
 
-        public CachedUserInfo(CommunicationsManager commsManager, UserProfileData userProfile, IClientAPI remoteClient)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="commsManager"></param>
+        /// <param name="userProfile"></param>
+        /// <param name="sessionId">
+        /// Session id of the user.  This is used in subsequent security checks.
+        /// </param>
+        public CachedUserInfo(CommunicationsManager commsManager, UserProfileData userProfile, LLUUID sessionId)
         {
             m_commsManager = commsManager;
             m_userProfile = userProfile;
-            m_session_id = remoteClient.SessionId;
+            m_session_id = sessionId;
         }
 
         /// <summary>

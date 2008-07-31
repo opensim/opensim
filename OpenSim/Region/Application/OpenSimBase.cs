@@ -689,6 +689,13 @@ namespace OpenSim
                 m_log.ErrorFormat("[CONSOLE]: Failed to find user {0} {1}", firstName, lastName);
                 return;
             }            
+            
+            CachedUserInfo userInfo = m_commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
+            if (null == userInfo)
+            {
+                m_log.ErrorFormat("[CONSOLE]: Failed to find user info for {0} {1} {2}", firstName, lastName, userProfile.ID);
+                return;
+            }                                                
         }        
 
         /// <summary>
