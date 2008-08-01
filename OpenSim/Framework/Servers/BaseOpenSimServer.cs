@@ -86,6 +86,10 @@ namespace OpenSim.Framework.Servers
 
             m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
             m_periodicDiagnosticsTimer.Enabled = true;
+            
+            // Add ourselves to thread monitoring.  This thread will go on to become the console listening thread
+            Thread.CurrentThread.Name = "ConsoleThread";
+            ThreadTracker.Add(Thread.CurrentThread);
         }
 
         /// <summary>
