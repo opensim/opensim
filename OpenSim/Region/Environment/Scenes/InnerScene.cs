@@ -555,18 +555,14 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal void AddScenePresence(ScenePresence presence)
         {
             bool child = presence.IsChildAgent;
-
+            
             if (child)
             {
                 m_numChildAgents++;
-                m_log.Info("[SCENE]" + m_regInfo.RegionName + ": Creating new child agent.");
             }
             else
             {
                 m_numRootAgents++;
-                m_log.Info("[SCENE] " + m_regInfo.RegionName + ": Creating new root agent.");
-                m_log.Info("[SCENE] " + m_regInfo.RegionName + ": Adding Physical agent.");
-
                 presence.AddToPhysicalScene();
             }
 

@@ -382,6 +382,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (!(packet is UseCircuitCodePacket))
                     return;
+                
                 UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
                 lock (clientCircuits)
                 {

@@ -365,6 +365,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public LLClientView(EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
                           AgentCircuitManager authenSessions, LLUUID agentId, LLUUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
+            m_log.Info("[CLIENT]: Started up new client thread to handle incoming request");            
+            
             m_moneyBalance = 1000;
 
             m_channelVersion = Helpers.StringToField(scene.GetSimulatorVersion());
@@ -376,9 +378,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_networkServer = packServer;
             // m_inventoryCache = inventoryCache;
-            m_authenticateSessionsHandler = authenSessions;
-
-            m_log.Info("[CLIENT]: Started up new client thread to handle incoming request");
+            m_authenticateSessionsHandler = authenSessions;            
 
             m_agentId = agentId;
             m_sessionId = sessionId;
@@ -398,7 +398,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler.SynchronizeClient = SynchronizeClient;
 
             RegisterLocalPacketHandlers();
-
 
             m_clientThread = new Thread(new ThreadStart(AuthUser));
             m_clientThread.Name = "ClientThread";
@@ -677,8 +676,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientPingTimer = new Timer(5000);
             m_clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
             m_clientPingTimer.Enabled = true;
-
-            m_log.Info("[CLIENT]: Adding viewer agent to scene");
+            
             m_scene.AddNewClient(this, true);
         }
 

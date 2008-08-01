@@ -1982,16 +1982,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="child"></param>
         public override void AddNewClient(IClientAPI client, bool child)
         {
-            m_log.DebugFormat(
-                "[CONNECTION DEBUGGING]: Creating new client for {0} at {1}",
-                client.AgentId, RegionInfo.RegionName);
-
             SubscribeToClientEvents(client);
             ScenePresence presence;
 
             if (m_restorePresences.ContainsKey(client.AgentId))
             {
-                m_log.Info("[REGION]: Restoring Scene Presence");
+                m_log.DebugFormat("[SCENE]: Restoring agent {0} {1} in {2}", client.Name, client.AgentId, RegionInfo.RegionName);
 
                 presence = m_restorePresences[client.AgentId];
                 m_restorePresences.Remove(client.AgentId);
@@ -2015,7 +2011,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.Info("[REGION]: Adding New Scene Presence");
+                m_log.DebugFormat(
+                    "[SCENE]: Adding new {0} agent {1} {2} in {3}", 
+                    (child ? "child" : "root"), client.Name, client.AgentId, RegionInfo.RegionName);
 
                 CommsManager.UserProfileCacheService.AddNewUser(client);
 
@@ -2263,6 +2261,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
             try
             {
+                m_log.DebugFormat(
+                    "[SCENE]: Removing {0} agent {1} from region {2}", 
+                    (childagentYN ? "child" : "root"), agentID, RegionInfo.RegionName);
+                
                 if (avatar.IsChildAgent)
                 {
                     m_innerScene.removeUserCount(false);

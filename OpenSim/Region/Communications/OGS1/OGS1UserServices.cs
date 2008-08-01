@@ -289,15 +289,11 @@ namespace OpenSim.Region.Communications.OGS1
 
             if (respData == null || !respData.ContainsKey("returnString"))
             {
-                m_log.Warn("[OSG1 USER SERVICES]: Error updating user record, Grid server may not be updated.");
+                m_log.Error("[OSG1 USER SERVICES]: Error updating user record, Grid server may not be updated.");
             }
             else
             {
-                if ((string) respData["returnString"] == "TRUE")
-                {
-                    m_log.Info("[OSG1 USER SERVICES]: Successfully updated user record");
-                }
-                else
+                if ((string) respData["returnString"] != "TRUE")
                 {
                     m_log.Error("[OSG1 USER SERVICES]: Error updating user record");
                 }

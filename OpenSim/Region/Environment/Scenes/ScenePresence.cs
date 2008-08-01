@@ -654,7 +654,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_animations.Clear();
 
 //            m_log.DebugFormat(
-//                 "[SCENEPRESENCE]: Downgrading child agent {0}, {1} to a root agent in {2}",
+//                 "[SCENEPRESENCE]: Downgrading root agent {0}, {1} to a child agent in {2}",
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
 
             Velocity = new LLVector3(0, 0, 0);
