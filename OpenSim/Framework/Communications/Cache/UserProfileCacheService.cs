@@ -65,6 +65,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="userID"></param>
         public void AddNewUser(IClientAPI remoteClient)
         {
+            m_log.DebugFormat("[USER CACHE]: Adding user profile for {0} {1}", remoteClient.Name, remoteClient.AgentId);
+            
             // Potential fix - Multithreading issue.
             lock (m_userProfiles)
             {
@@ -92,6 +94,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="userID"></param>
         public void AddNewUser(LLUUID userID)
         {
+            m_log.DebugFormat("[USER CACHE]: Adding user profile for {0}", userID);            
+            
             // Potential fix - Multithreading issue.
             lock (m_userProfiles)
             {

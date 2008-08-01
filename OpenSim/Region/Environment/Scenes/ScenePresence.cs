@@ -1948,26 +1948,17 @@ namespace OpenSim.Region.Environment.Scenes
                 // This means we need to remove the current caps handler here and possibly compensate later,
                 // in case both scenes are being hosted on the same region server.  Messy
                 m_scene.RemoveCapsHandler(UUID);
-                newpos = newpos + (vel);
-                
-                bool crossingToRemoteRegion = neighbourRegion.ExternalHostName != m_scene.RegionInfo.ExternalHostName;
-                if (crossingToRemoteRegion)
+                newpos = newpos + (vel);                
+
+                CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(UUID);                
+                if (userInfo != null)
                 {
-                    m_scene.CommsManager.UserProfileCacheService.RemoveUser(UUID);
+                    userInfo.DropInventory();
                 }
                 else
                 {
-                    CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(UUID);
-
-                    if (userInfo != null)
-                    {
-                        userInfo.DropInventory();
-                    }
-                    else
-                    {
-                        m_log.WarnFormat("[SCENE PRESENCE]: No cached user info found for {0} {1} on leaving region", Name, UUID);
-                    }   
-                }
+                    m_log.WarnFormat("[SCENE PRESENCE]: No cached user info found for {0} {1} on leaving region", Name, UUID);
+                }   
                 
                 bool crossingSuccessful =
                     m_scene.InformNeighbourOfCrossing(neighbourHandle, m_controllingClient.AgentId, newpos,
@@ -1995,11 +1986,7 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     // Restore the user structures that we needed to delete before asking the receiving region to complete the crossing
-                    if (crossingToRemoteRegion)
-                        m_scene.CommsManager.UserProfileCacheService.AddNewUser(m_controllingClient);                    
-                    
-                    m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(UUID);
-                    
+                    m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(UUID);                    
                     m_scene.AddCapsHandler(UUID);
                 }
             }
