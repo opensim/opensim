@@ -364,9 +364,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public LLClientView(EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
                           AgentCircuitManager authenSessions, LLUUID agentId, LLUUID sessionId, uint circuitCode, EndPoint proxyEP)
-        {
-            m_log.Info("[CLIENT]: Started up new client thread to handle incoming request");            
-            
+        {                        
             m_moneyBalance = 1000;
 
             m_channelVersion = Helpers.StringToField(scene.GetSimulatorVersion());
@@ -403,6 +401,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientThread.Name = "ClientThread";
             m_clientThread.IsBackground = true;
             m_clientThread.Start();
+            ThreadTracker.Add(m_clientThread);
+            
+            m_log.Info("[CLIENT]: Started up new thread to handle client UDP session");                        
         }
 
         public void SetDebug(int newDebug)
