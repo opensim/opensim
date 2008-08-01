@@ -70,11 +70,6 @@ public class Quaternion
         return c;
     }
 
-
-    public Matrix4 computeMatrix()
-    {
-        return new Matrix4(this);
-    }
     public void normalize()
     {
         //float mag = length();
@@ -95,77 +90,8 @@ public class Quaternion
         return (float)Math.Sqrt(w * w + x * x + y * y + z * z);
     }
 }
-public class Matrix4
-{
-    public float m00 = 0;
-    public float m01 = 0;
-    public float m02 = 0;
-    public float m03 = 0;
-    public float m10 = 0;
-    public float m11 = 0;
-    public float m12 = 0;
-    public float m13 = 0;
-    public float m20 = 0;
-    public float m21 = 0;
-    public float m22 = 0;
-    public float m23 = 0;
-    public float m30 = 0;
-    public float m31 = 0;
-    public float m32 = 0;
-    public float m33 = 1;
 
-    public Matrix4(float m001, float m011, float m021, float m031, float m101, float m111, float m121, float m131, float m201, float m211, float m221, float m231, float m301, float m311, float m321, float m331)
-    {
-        m00 = m001;
-        m01 = m011;
-        m02 = m021;
-        m03 = m031;
-        m10 = m101;
-        m11 = m111;
-        m12 = m121;
-        m13 = m131;
-        m20 = m201;
-        m21 = m211;
-        m22 = m221;
-        m23 = m231;
-        m30 = m301;
-        m31 = m311;
-        m32 = m321;
-        m33 = m331;
-    }
-    public Matrix4()
-    {
-    }
-    public Matrix4(Quaternion r)
-    {
-        m00 = 1 - (2 * (r.y * r.y)) - (2 * (r.z * r.z));
-        m01 = (r.x * r.y * 2) - (r.w * r.z * 2);
-        m02 = (r.x * r.z * 2) + (r.w * r.y * 2);
-        m03 = 0f;
-        m10 = (r.x * r.y * 2) + (r.w * r.z * 2);
-        m11 = 1 - (2 * (r.x * r.x)) - (2 * (r.z * r.z));
-        m12 = (r.y * r.z * 2) - (r.w * r.x * 2);
-        m13 = 0f;
-        m20 = (r.x * r.z * 2) - (r.w * r.y * 2);
-        m21 = (r.y * r.z * 2) - (r.w * r.x * 2);
-        m22 = 1 - (2 * (r.x * r.x)) - (2 * (r.y * r.y));
-        m23 = 0f;
-        m30 = 0f;
-        m31 = 0f;
-        m32 = 0f;
-        m33 = 1f;
-    }
-    public Vertex transform(Vertex o)
-    {
-        Vertex r = new Vertex(0,0,0);
-        // w value implicitly 1 therefore the last + m3x actually represents (m3x * o.W) = m3x
-        // in calculating the dot product.
-        r.X = (m00 * o.X) + (m10 * o.Y) + (m20 * o.Z) + m30;
-        r.Y = (m01 * o.X) + (m11 * o.Y) + (m21 * o.Z) + m31;
-        r.Z = (m02 * o.X) + (m12 * o.Y) + (m22 * o.Z) + m32;
-        return r;
-    }
-}
+
 
 public class Vertex : PhysicsVector, IComparable<Vertex>
 {
@@ -199,8 +125,40 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
 #pragma warning disable 0108
     public static Vertex operator *(Vertex v, Quaternion q)
     {
-        Matrix4 tm = q.computeMatrix();
-        return tm.transform(v);
+        // From http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/transforms/
+
+        Vertex v2 = new Vertex(0f, 0f, 0f);
+
+        v2.X =   q.w * q.w * v.X +
+            2f * q.y * q.w * v.Z -
+            2f * q.z * q.w * v.Y +
+                 q.x * q.x * v.X +
+            2f * q.y * q.x * v.Y +
+            2f * q.z * q.x * v.Z -
+                 q.z * q.z * v.X -
+                 q.y * q.y * v.X;
+
+        v2.Y =
+            2f * q.x * q.y * v.X +
+                 q.y * q.y * v.Y +
+            2f * q.z * q.y * v.Z +
+            2f * q.w * q.z * v.X -
+                 q.z * q.z * v.Y +
+                 q.w * q.w * v.Y -
+            2f * q.x * q.w * v.Z -
+                 q.x * q.x * v.Y;
+
+        v2.Z =
+            2f * q.x * q.z * v.X +
+            2f * q.y * q.z * v.Y +
+                 q.z * q.z * v.Z -
+            2f * q.w * q.y * v.X -
+                 q.y * q.y * v.Z +
+            2f * q.w * q.x * v.Y -
+                 q.x * q.x * v.Z +
+                 q.w * q.w * v.Z;
+
+        return v2;
     }
 
     public static Vertex operator +(Vertex v1, Vertex v2)

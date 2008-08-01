@@ -64,193 +64,6 @@ namespace OpenSim.Region.Physics.Meshing
         public float pathTaperY = 0.0f;
 
         /// <summary>
-        /// (deprecated) creates a 3 layer extruded mesh of a profile hull
-        /// </summary>
-        /// <param name="m"></param>
-        /// <returns></returns>
-        public Mesh Extrude(Mesh m)
-        {
-            startParameter = float.MinValue;
-            stopParameter = float.MaxValue;
-            // Currently only works for iSteps=1;
-            Mesh result = new Mesh();
-
-            Mesh workingPlus = m.Clone();
-            Mesh workingMiddle = m.Clone();
-            Mesh workingMinus = m.Clone();
-
-            Quaternion tt = new Quaternion();
-            Vertex v2 = new Vertex(0, 0, 0);
-
-            foreach (Vertex v in workingPlus.vertices)
-            {
-                if (v == null)
-                    continue;
-
-                // This is the top
-                // Set the Z + .5 to match the rest of the scale of the mesh
-                // Scale it by Size, and Taper the scaling
-                v.Z = +.5f;
-                v.X *= (size.X * taperTopFactorX);
-                v.Y *= (size.Y * taperTopFactorY);
-                v.Z *= size.Z;
-
-                //Push the top of the object over by the Top Shear amount
-                v.X += pushX * size.X;
-                v.Y += pushY * size.Y;
-
-                if (twistTop != 0)
-                {
-                    // twist and shout
-                    tt = new Quaternion(new Vertex(0, 0, 1), twistTop);
-                    v2 = v * tt;
-                    v.X = v2.X;
-                    v.Y = v2.Y;
-                    v.Z = v2.Z;
-                }
-            }
-
-            foreach (Vertex v in workingMiddle.vertices)
-            {
-                if (v == null)
-                    continue;
-
-                // This is the top
-                // Set the Z + .5 to match the rest of the scale of the mesh
-                // Scale it by Size, and Taper the scaling
-                v.Z *= size.Z;
-                v.X *= (size.X * ((taperTopFactorX + taperBotFactorX) /2));
-                v.Y *= (size.Y * ((taperTopFactorY + taperBotFactorY) / 2));
-
-                v.X += (pushX / 2) * size.X;
-                v.Y += (pushY / 2) * size.Y;
-                //Push the top of the object over by the Top Shear amount
-                if (twistMid != 0)
-                {
-                    // twist and shout
-                    tt = new Quaternion(new Vertex(0, 0, 1), twistMid);
-                    v2 = v * tt;
-                    v.X = v2.X;
-                    v.Y = v2.Y;
-                    v.Z = v2.Z;
-                }
-            }
-
-            foreach (Vertex v in workingMinus.vertices)
-            {
-                if (v == null)
-                    continue;
-
-                // This is the bottom
-                v.Z = -.5f;
-                v.X *= (size.X * taperBotFactorX);
-                v.Y *= (size.Y * taperBotFactorY);
-                v.Z *= size.Z;
-
-                if (twistBot != 0)
-                {
-                    // twist and shout
-                    tt = new Quaternion(new Vertex(0, 0, 1), twistBot);
-                    v2 = v * tt;
-                    v.X = v2.X;
-                    v.Y = v2.Y;
-                    v.Z = v2.Z;
-                }
-            }
-
-            foreach (Triangle t in workingMinus.triangles)
-            {
-                t.invertNormal();
-            }
-
-            result.Append(workingMinus);
-            result.Append(workingMiddle);
-
-            int iLastNull = 0;
-
-            for (int i = 0; i < workingMiddle.vertices.Count; i++)
-            {
-                int iNext = i + 1;
-
-                if (workingMiddle.vertices[i] == null) // Can't make a simplex here
-                {
-                    iLastNull = i + 1;
-                    continue;
-                }
-
-                if (i == workingMiddle.vertices.Count - 1) // End of list
-                {
-                    iNext = iLastNull;
-                }
-
-                if (workingMiddle.vertices[iNext] == null) // Null means wrap to begin of last segment
-                {
-                    iNext = iLastNull;
-                }
-
-                Triangle tSide;
-                tSide = new Triangle(workingMiddle.vertices[i], workingMinus.vertices[i], workingMiddle.vertices[iNext]);
-                result.Add(tSide);
-
-                tSide =
-                    new Triangle(workingMiddle.vertices[iNext], workingMinus.vertices[i], workingMinus.vertices[iNext]);
-                result.Add(tSide);
-            }
-            //foreach (Triangle t in workingPlus.triangles)
-            //{
-                //t.invertNormal();
-           // }
-            result.Append(workingPlus);
-
-            iLastNull = 0;
-            for (int i = 0; i < workingPlus.vertices.Count; i++)
-            {
-                int iNext = i + 1;
-
-                if (workingPlus.vertices[i] == null) // Can't make a simplex here
-                {
-                    iLastNull = i + 1;
-                    continue;
-                }
-
-                if (i == workingPlus.vertices.Count - 1) // End of list
-                {
-                    iNext = iLastNull;
-                }
-
-                if (workingPlus.vertices[iNext] == null) // Null means wrap to begin of last segment
-                {
-                    iNext = iLastNull;
-                }
-
-                Triangle tSide;
-                tSide = new Triangle(workingPlus.vertices[i], workingMiddle.vertices[i], workingPlus.vertices[iNext]);
-                result.Add(tSide);
-
-                tSide =
-                    new Triangle(workingPlus.vertices[iNext], workingMiddle.vertices[i], workingMiddle.vertices[iNext]);
-                result.Add(tSide);
-            }
-
-            if (twistMid != 0)
-            {
-                foreach (Vertex v in result.vertices)
-                {
-                    // twist and shout
-                    if (v != null)
-                    {
-                        tt = new Quaternion(new Vertex(0, 0, -1), twistMid*2);
-                        v2 = v * tt;
-                        v.X = v2.X;
-                        v.Y = v2.Y;
-                        v.Z = v2.Z;
-                    }
-                }
-            }
-            return result;
-        }
-
-        /// <summary>
         /// Creates an extrusion of a profile along a linear path. Used to create prim types box, cylinder, and prism.
         /// </summary>
         /// <param name="m"></param>
@@ -350,7 +163,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                 // apply twist rotation to the profile layer and position the layer in the prim
 
-                Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, -1.0f), twist);
+                Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), twist);
                 foreach (Vertex v in newLayer.vertices)
                 {
                     if (v != null)
@@ -566,7 +379,7 @@ namespace OpenSim.Region.Physics.Meshing
                     // next apply twist rotation to the profile layer
                     if (twistTotal != 0.0f || twistBot != 0.0f)
                     {
-                        Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, -1.0f), twist);
+                        Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), twist);
                         foreach (Vertex v in newLayer.vertices)
                         {
                             if (v != null)
@@ -581,7 +394,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                 // now orient the rotation of the profile layer relative to it's position on the path
                 // adding pushY to the angle used to generate the quat appears to approximate the viewer
-                Quaternion layerRot = new Quaternion(new Vertex(-1.0f, 0.0f, 0.0f), (float)angle + pushY * 0.9f);
+                Quaternion layerRot = new Quaternion(new Vertex(1.0f, 0.0f, 0.0f), (float)angle + pushY * 0.9f);
                 foreach (Vertex v in newLayer.vertices)
                 {
                     if (v != null)
