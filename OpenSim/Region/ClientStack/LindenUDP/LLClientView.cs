@@ -2657,15 +2657,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(einfopack, ThrottleOutPacketType.Task);
         }
 
-        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant)
+        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant, string abuseEmail)
         {
             EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
             packet.MethodData.Invoice = invoice;
             packet.AgentData.TransactionID = LLUUID.Random();
             packet.MethodData.Method = Helpers.StringToField("estateupdateinfo");
-            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[9];
+            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[10];
 
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 10; i++)
             {
                 returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
             }
@@ -2681,6 +2681,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             returnblock[6].Parameter = Helpers.StringToField(covenant.ToString());
             returnblock[7].Parameter = Helpers.StringToField("1160895077"); // what is this?
             returnblock[8].Parameter = Helpers.StringToField("1"); // what is this?
+            returnblock[9].Parameter = Helpers.StringToField(abuseEmail);
 
             packet.ParamList = returnblock;
             packet.Header.Reliable = false;

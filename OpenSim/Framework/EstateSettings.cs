@@ -231,6 +231,14 @@ namespace OpenSim.Framework
             set { m_EstateOwner = value; }
         }
 
+        private bool m_DenyMinors = false;
+
+        public bool DenyMinors
+        {
+            get { return m_DenyMinors; }
+            set { m_DenyMinors = value; }
+        }
+
         // All those lists...
         //
         private List<LLUUID> l_EstateManagers = new List<LLUUID>();

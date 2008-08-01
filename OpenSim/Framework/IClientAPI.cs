@@ -642,7 +642,7 @@ namespace OpenSim.Framework
 
         void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args);
         void SendEstateCovenantInformation(LLUUID covenant);
-        void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant);
+        void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant, string abuseEmail);
 
         void SendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags);
         void SendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID);

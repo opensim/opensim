@@ -60,7 +60,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     m_scene.RegionInfo.EstateSettings.ParentEstateID,
                     GetEstateFlags(),
                     sun,
-                    m_scene.RegionInfo.RegionSettings.Covenant);
+                    m_scene.RegionInfo.RegionSettings.Covenant,
+                    m_scene.RegionInfo.EstateSettings.AbuseEmail);
 
             remote_client.SendEstateManagersList(invoice,
                     m_scene.RegionInfo.EstateSettings.EstateManagers,
@@ -628,6 +629,11 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             else
                 m_scene.RegionInfo.EstateSettings.DenyTransacted = false;
 
+            if ((parms1 & 0x40000000) != 0)
+                m_scene.RegionInfo.EstateSettings.DenyMinors = true;
+            else
+                m_scene.RegionInfo.EstateSettings.DenyMinors = false;
+
             m_scene.RegionInfo.EstateSettings.Save();
 
             float sun = (float)m_scene.RegionInfo.RegionSettings.SunPosition;
@@ -797,6 +803,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 flags |= Simulator.RegionFlags.ResetHomeOnTeleport;
             if (m_scene.RegionInfo.EstateSettings.TaxFree)
                 flags |= Simulator.RegionFlags.TaxFree;
+            if (m_scene.RegionInfo.EstateSettings.DenyMinors)
+                flags |= (Simulator.RegionFlags)(1 << 30);
 
             return (uint)flags;
         }

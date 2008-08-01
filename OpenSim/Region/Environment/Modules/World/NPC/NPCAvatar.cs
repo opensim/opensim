@@ -781,7 +781,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public void SendEstateCovenantInformation(LLUUID covenant)
         {
         }
-        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant)
+        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant, string abuseEmail)
         {
         }
 
