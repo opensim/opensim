@@ -198,7 +198,7 @@ namespace OpenSim.Framework
             if (AddinManager.IsInitialized == true)
                 return;
 
-            log.Info("[PLUGINS]: Initialzing");
+            log.Info("[PLUGINS]: Initializing");
 
             AddinManager.AddinLoadError += on_addinloaderror_;
             AddinManager.AddinLoaded += on_addinloaded_;
@@ -240,7 +240,7 @@ namespace OpenSim.Framework
                 if (Directory.Exists("addin-db-001"))
                     Directory.Delete("addin-db-001", true);
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 // If multiple services are started simultaneously, they may
                 // each test whether the directory exists at the same time, and
