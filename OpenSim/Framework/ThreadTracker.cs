@@ -47,6 +47,7 @@ namespace OpenSim.Framework
             ThreadTrackerThread.IsBackground = true;
             ThreadTrackerThread.Priority = ThreadPriority.BelowNormal;
             ThreadTrackerThread.Start();
+            Add(ThreadTrackerThread);
 #endif
         }
 
