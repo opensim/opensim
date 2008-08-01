@@ -639,6 +639,8 @@ AllowosConsoleCommand = false
 ; These settings are used to return information on a get_grid_info call
 ; Don't worry about this section if you don't know what it means - "wrong"
 ; settings here will have no effect upon the OpenSimulator runtime
+; 
+; See http://opensimulator.org/wiki/GridInfo
 
 ; login uri
 login = http://127.0.0.1:9000/
