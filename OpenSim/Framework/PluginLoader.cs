@@ -232,11 +232,24 @@ namespace OpenSim.Framework
             // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0) 
             // occasionally seems to corrupt its addin cache
             // Hence, as a temporary solution we'll remove it before each startup
-            if (Directory.Exists("addin-db-000"))
-                Directory.Delete("addin-db-000", true);
+            try
+            {
+                if (Directory.Exists("addin-db-000"))
+                    Directory.Delete("addin-db-000", true);
 
-            if (Directory.Exists("addin-db-001"))
-                Directory.Delete("addin-db-001", true);
+                if (Directory.Exists("addin-db-001"))
+                    Directory.Delete("addin-db-001", true);
+            }
+            catch (IOException e)
+            {
+                // If multiple services are started simultaneously, they may
+                // each test whether the directory exists at the same time, and
+                // attempt to delete the directory at the same time. However,
+                // one of the services will likely succeed first, causing the
+                // second service to throw an IOException. We catch it here and
+                // continue on our merry way.
+                // Mike 2008.08.01, patch from Zaki
+            }
         }
 
         private static TextWriter prev_console_;        
