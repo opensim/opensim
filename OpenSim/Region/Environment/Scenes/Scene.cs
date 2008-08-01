@@ -1976,7 +1976,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Add/Remove Avatar Methods
 
         /// <summary>
-        ///
+        /// Register the new client with the scene
         /// </summary>
         /// <param name="client"></param
         /// <param name="child"></param>
@@ -1991,7 +1991,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (m_restorePresences.ContainsKey(client.AgentId))
             {
-                m_log.Info("[REGION]: Restore Scene Presence");
+                m_log.Info("[REGION]: Restoring Scene Presence");
 
                 presence = m_restorePresences[client.AgentId];
                 m_restorePresences.Remove(client.AgentId);
@@ -2015,9 +2015,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.Info("[REGION]: Add New Scene Presence");
+                m_log.Info("[REGION]: Adding New Scene Presence");
 
-                //CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
                 CommsManager.UserProfileCacheService.AddNewUser(client);
 
                 CreateAndAddScenePresence(client, child);

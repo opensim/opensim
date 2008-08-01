@@ -75,7 +75,7 @@ namespace OpenSim.Framework.Communications.Cache
         private readonly IList<IInventoryRequest> m_pendingRequests = new List<IInventoryRequest>();
 
         /// <summary>
-        /// The root folder of this user's inventory.  Returns null if the inventory has not yet been received.
+        /// The root folder of this user's inventory.  Returns null if the root folder has not yet been received.
         /// </summary>
         public InventoryFolderImpl RootFolder { get { return m_rootFolder; } }
         private InventoryFolderImpl m_rootFolder;
@@ -181,6 +181,21 @@ namespace OpenSim.Framework.Communications.Cache
                         }
                     }
                 }
+            }
+        }
+        
+        /// <summary>
+        /// Drop all cached inventory.
+        /// </summary>
+        public void DropInventory()
+        {
+            // Make sure there aren't pending requests around when we do this
+            // FIXME: There is still a race condition where an inventory operation can be requested (since these aren't being locked).
+            // Will have to extend locking to exclude this very soon.
+            lock (m_pendingRequests)
+            {
+                m_hasReceivedInventory = false;
+                m_rootFolder = null;
             }
         }
 

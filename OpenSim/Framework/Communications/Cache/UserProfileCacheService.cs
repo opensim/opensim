@@ -118,21 +118,19 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>true if the user was successfully removed, false otherwise</returns>
-        public bool RemoveUser(LLUUID userID)
+        public bool RemoveUser(LLUUID userId)
         {
             lock (m_userProfiles)
             {
-                if (m_userProfiles.ContainsKey(userID))
+                if (m_userProfiles.ContainsKey(userId))
                 {
-                    m_userProfiles.Remove(userID);
+                    m_log.DebugFormat("[USER CACHE]: Removing user {0}", userId);
+                    m_userProfiles.Remove(userId);
                     return true;
-                }
-                else
-                {
-                    m_log.ErrorFormat("[USER CACHE]: Tried to remove the profile of user {0}, but this was not in the scene", userID);
                 }
             }
 
+            m_log.ErrorFormat("[USER CACHE]: Tried to remove the profile of user {0}, but this was not in the scene", userId);
             return false;
         }
 

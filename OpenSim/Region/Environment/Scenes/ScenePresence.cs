@@ -35,6 +35,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
 
@@ -646,7 +647,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// when an agent departs this region for a neighbor, this gets called.
         ///
         /// It doesn't get called for a teleport.  Reason being, an agent that
-        /// teleports out may not be anywhere near this region
+        /// teleports out may not end up anywhere near this region
         /// </summary>
         public void MakeChildAgent()
         {
@@ -1877,6 +1878,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (IsChildAgent)
                 return;
+            
             LLVector3 pos2 = AbsolutePosition;
             LLVector3 vel = Velocity;
 
@@ -1947,10 +1949,30 @@ namespace OpenSim.Region.Environment.Scenes
                 // in case both scenes are being hosted on the same region server.  Messy
                 m_scene.RemoveCapsHandler(UUID);
                 newpos = newpos + (vel);
-                bool res =
+                
+                bool crossingToRemoteRegion = neighbourRegion.ExternalHostName != m_scene.RegionInfo.ExternalHostName;
+                if (crossingToRemoteRegion)
+                {
+                    m_scene.CommsManager.UserProfileCacheService.RemoveUser(UUID);
+                }
+                else
+                {
+                    CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(UUID);
+
+                    if (userInfo != null)
+                    {
+                        userInfo.DropInventory();
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[SCENE PRESENCE]: No cached user info found for {0} {1} on leaving region", Name, UUID);
+                    }   
+                }
+                
+                bool crossingSuccessful =
                     m_scene.InformNeighbourOfCrossing(neighbourHandle, m_controllingClient.AgentId, newpos,
-                                                      m_physicsActor.Flying);
-                if (res)
+                                                      m_physicsActor.Flying);                
+                if (crossingSuccessful)
                 {
                     AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
 
@@ -1965,12 +1987,19 @@ namespace OpenSim.Region.Environment.Scenes
                     m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath);
                     MakeChildAgent();
-                    CrossAttachmentsIntoNewRegion(neighbourHandle);
+                    CrossAttachmentsIntoNewRegion(neighbourHandle);                                                                                   
+                        
                     m_scene.SendKillObject(m_localId);
                     m_scene.NotifyMyCoarseLocationChange();
                 }
                 else
                 {
+                    // Restore the user structures that we needed to delete before asking the receiving region to complete the crossing
+                    if (crossingToRemoteRegion)
+                        m_scene.CommsManager.UserProfileCacheService.AddNewUser(m_controllingClient);                    
+                    
+                    m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(UUID);
+                    
                     m_scene.AddCapsHandler(UUID);
                 }
             }

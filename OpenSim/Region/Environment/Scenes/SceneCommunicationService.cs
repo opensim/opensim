@@ -557,8 +557,10 @@ namespace OpenSim.Region.Environment.Scenes
                                                       LLVector3 lookAt, uint flags)
         {
             bool destRegionUp = false;
+            
             if (regionHandle == m_regionInfo.RegionHandle)
             {
+                // Teleport within the same region
                 avatar.ControllingClient.SendTeleportLocationStart();
                 avatar.ControllingClient.SendLocalTeleport(position, lookAt, flags);
                 avatar.Teleport(position);

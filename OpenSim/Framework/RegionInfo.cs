@@ -41,20 +41,34 @@ namespace OpenSim.Framework
         // private static readonly log4net.ILog m_log
         //     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
+        /// </summary>
+        public uint HttpPort
+        {
+            get { return m_httpPort; }
+            set { m_httpPort = value; }
+        }
+        protected uint m_httpPort;
+        
+        /// <summary>
+        /// A well-formed URI for the host region server (namely "http://" + ExternalHostName)
+        /// </summary>
+        public string ServerURI
+        {
+            get { return m_serverURI; }
+            set { m_serverURI = value; }
+        }        
+        protected string m_serverURI;
+
         protected bool Allow_Alternate_Ports;
         public bool m_allow_alternate_ports;
         protected string m_externalHostName;
-
-        /// <value>
-        /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
-        /// </value>
-        protected uint m_httpPort;
-
+        
         protected IPEndPoint m_internalEndPoint;
         protected uint? m_regionLocX;
         protected uint? m_regionLocY;
-        protected uint m_remotingPort;
-        protected string m_serverURI;
+        protected uint m_remotingPort;        
         public LLUUID RegionID = LLUUID.Zero;
         public string RemotingAddress;
 
@@ -99,18 +113,6 @@ namespace OpenSim.Framework
         {
             get { return m_remotingPort; }
             set { m_remotingPort = value; }
-        }
-
-        public uint HttpPort
-        {
-            get { return m_httpPort; }
-            set { m_httpPort = value; }
-        }
-
-        public string ServerURI
-        {
-            get { return m_serverURI; }
-            set { m_serverURI = value; }
         }
 
         /// <value>
