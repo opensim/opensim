@@ -215,7 +215,6 @@ namespace OpenSim.Framework.Communications.Cache
             if (path == string.Empty)
                 return this;
             
-            int delimitorIndex = path.IndexOf(PATH_DELIMITER);
             string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
 
             lock (SubFolders)
@@ -250,7 +249,6 @@ namespace OpenSim.Framework.Communications.Cache
         /// <returns>null if the item is not found</returns>
         public InventoryItemBase FindItemByPath(string path)
         {            
-            int delimitorIndex = path.IndexOf(PATH_DELIMITER);
             string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
 
             if (components.Length == 1)
