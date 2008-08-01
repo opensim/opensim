@@ -199,15 +199,6 @@ namespace OpenSim.Framework.Servers
                     break;
                     
                 case "threads":
-//                     m_console.Notice("THREAD", Process.GetCurrentProcess().Threads.Count + " threads running:");
-//                     int _tc = 0;
-
-//                     foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
-//                     {
-//                         _tc++;
-//                         m_console.Notice("THREAD", _tc + ": ID: " + pt.Id + ", Started: " + pt.StartTime.ToString() + ", CPU time: " + pt.TotalProcessorTime + ", Pri: " + pt.BasePriority.ToString() + ", State: " + pt.ThreadState.ToString());
-//                     }
-
                     List<Thread> threads = ThreadTracker.GetThreads();
                     if (threads == null)
                     {
@@ -215,12 +206,10 @@ namespace OpenSim.Framework.Servers
                     }
                     else
                     {
-                        int tc = 0;
                         Notice(threads.Count + " threads are being tracked:");
                         foreach (Thread t in threads)
                         {
-                            tc++;
-                            Notice(tc + ": ID: " + t.ManagedThreadId.ToString() + ", Name: " + t.Name + ", Alive: " + t.IsAlive.ToString() + ", Pri: " + t.Priority.ToString() + ", State: " + t.ThreadState.ToString());
+                            Notice("ID: " + t.ManagedThreadId.ToString() + ", Name: " + t.Name + ", Alive: " + t.IsAlive.ToString() + ", Pri: " + t.Priority.ToString() + ", State: " + t.ThreadState.ToString());
                         }
                     }
                     break;                    
