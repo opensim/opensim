@@ -1556,6 +1556,20 @@ namespace OpenSim.Region.Physics.Meshing
                 // m_log.DebugFormat("Starting cutting of the hollow shape from the prim {1}", 0, primName);
                 SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
 
+                if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
+                {
+                    Quaternion zFlip = new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), (float)Math.PI);
+                    Vertex vTmp = new Vertex(0.0f, 0.0f, 0.0f);
+                    foreach (Vertex v in cuttedHull.getVertices())
+                        if (v != null)
+                        {
+                            vTmp = v * zFlip;
+                            v.X = vTmp.X;
+                            v.Y = vTmp.Y;
+                            v.Z = vTmp.Z;
+                        }
+                }
+
                 outerHull = cuttedHull;
             }
 
