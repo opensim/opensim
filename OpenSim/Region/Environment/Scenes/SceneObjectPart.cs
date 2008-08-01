@@ -195,6 +195,12 @@ namespace OpenSim.Region.Environment.Scenes
         protected LLUUID m_uuid;
         protected LLVector3 m_velocity;
 
+        // TODO: Those have to be changed into persistent properties at some later point,
+        // or sit-camera on vehicles will break on sim-crossing. 
+        private LLVector3 m_cameraEyeOffset = new LLVector3(0.0f, 0.0f, 0.0f);
+        private LLVector3 m_cameraAtOffset = new LLVector3(0.0f, 0.0f, 0.0f);
+        private bool m_forceMouselook = false;
+        
         #endregion Fields
 
         #region Constructors
@@ -3313,6 +3319,30 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void SetCameraAtOffset(LLVector3 v) {
+            m_cameraAtOffset = v;
+        }
+        
+        public void SetCameraEyeOffset(LLVector3 v) {
+            m_cameraEyeOffset = v;
+        }
+        
+        public void SetForceMouselook(bool force) {
+            m_forceMouselook = force;
+        }
+        
+        public LLVector3 GetCameraAtOffset() {
+            return m_cameraAtOffset;
+        }
+        
+        public LLVector3 GetCameraEyeOffset() {
+            return m_cameraEyeOffset;
+        }
+        
+        public bool GetForceMouselook() {
+            return m_forceMouselook;
+        }
+        
         #endregion Public Methods
     }
 }

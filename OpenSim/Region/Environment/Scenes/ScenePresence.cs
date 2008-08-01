@@ -1129,6 +1129,9 @@ namespace OpenSim.Region.Environment.Scenes
             bool autopilot = true;
             LLVector3 pos = new LLVector3();
             LLQuaternion sitOrientation = new LLQuaternion(0, 0, 0, 1);
+            LLVector3 cameraEyeOffset = LLVector3.Zero;
+            LLVector3 cameraAtOffset = LLVector3.Zero;
+            bool forceMouselook = false;
 
             //SceneObjectPart part =  m_scene.GetSceneObjectPart(targetID);
             SceneObjectPart part =  FindNextAvailableSitTarget(targetID);
@@ -1183,9 +1186,13 @@ namespace OpenSim.Region.Environment.Scenes
                         RemoveFromPhysicalScene();
                     }
                 }
+                
+                cameraAtOffset = part.GetCameraAtOffset();
+                cameraEyeOffset = part.GetCameraEyeOffset();
+                forceMouselook = part.GetForceMouselook();
             }
 
-            ControllingClient.SendSitResponse(targetID, offset, sitOrientation, autopilot, LLVector3.Zero, LLVector3.Zero, false);
+            ControllingClient.SendSitResponse(targetID, offset, sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
             m_requestedSitTargetUUID = targetID;
             // This calls HandleAgentSit twice, once from here, and the client calls
             // HandleAgentSit itself after it gets to the location

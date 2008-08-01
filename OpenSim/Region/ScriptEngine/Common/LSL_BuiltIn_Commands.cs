@@ -4747,13 +4747,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetCameraEyeOffset(LSL_Types.Vector3 offset)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetCameraEyeOffset");
+            m_host.SetCameraEyeOffset(new LLVector3((float)offset.x, (float)offset.y, (float)offset.z));
         }
 
         public void llSetCameraAtOffset(LSL_Types.Vector3 offset)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetCameraAtOffset");
+            m_host.SetCameraAtOffset(new LLVector3((float)offset.x, (float)offset.y, (float)offset.z));
         }
 
         public string llDumpList2String(LSL_Types.list src, string seperator)
@@ -6627,7 +6627,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llForceMouselook(int mouselook)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llForceMouselook");
+            m_host.SetForceMouselook(mouselook != 0);
         }
 
         public double llGetObjectMass(string id)
