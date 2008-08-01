@@ -215,6 +215,22 @@ namespace OpenSim.Framework
             set { m_PublicAccess = value; }
         }
 
+        private string m_AbuseEmail = String.Empty;
+
+        public string AbuseEmail
+        {
+            get { return m_AbuseEmail; }
+            set { m_AbuseEmail= value; }
+        }
+
+        private LLUUID m_EstateOwner = LLUUID.Zero;
+
+        public LLUUID EstateOwner
+        {
+            get { return m_EstateOwner; }
+            set { m_EstateOwner = value; }
+        }
+
         // All those lists...
         //
         private List<LLUUID> l_EstateManagers = new List<LLUUID>();

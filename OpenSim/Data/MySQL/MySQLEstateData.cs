@@ -185,6 +185,13 @@ namespace OpenSim.Data.MySQL
                         else
                             m_FieldMap[name].SetValue(es, false);
                     }
+                    else if(m_FieldMap[name].GetValue(es) is libsecondlife.LLUUID)
+                    {
+                        LLUUID uuid = LLUUID.Zero;
+
+                        LLUUID.TryParse(r[name].ToString(), out uuid);
+                        m_FieldMap[name].SetValue(es, uuid);
+                    }
                     else
                     {
                         m_FieldMap[name].SetValue(es, r[name]);
