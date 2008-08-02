@@ -132,6 +132,13 @@ namespace OpenSim
             }
         }
 
+        private string GetActualSimName()
+        {
+            if (m_sceneManager.CurrentScene == null) return "Root";
+            return m_sceneManager.CurrentScene.RegionInfo.RegionName;
+        }
+
+
         #region Console Commands
 
         private void RunEchoTest(string[] cmdparams)
@@ -284,8 +291,10 @@ namespace OpenSim
                         m_console.Notice("create user - adds a new user.");
                     }
                     
+
                     m_console.Notice("");
-                    
+                    m_console.Notice("Serving region " + GetActualSimName());
+                    m_console.Notice("");
                     break;
 
                 case "save-xml":
@@ -665,6 +674,9 @@ namespace OpenSim
                         });
                     break;
             }
+                     m_console.Notice("");
+                    m_console.Notice("Serving region " + GetActualSimName());
+                    m_console.Notice("");
         }
         
         /// <summary>
