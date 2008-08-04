@@ -761,8 +761,10 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             if (m_scene.RegionInfo.RegionSettings.Sandbox)
                 flags |= Simulator.RegionFlags.Sandbox;
 
-            // Handled in LandObject.cs: AllowLandmark
-            // Handled in LandObject.cs: AllowSetHome
+			// Fudge these to always on, so the menu options activate
+			//
+			flags |= Simulator.RegionFlags.AllowLandmark;
+			flags |= Simulator.RegionFlags.AllowSetHome;
 
             // TODO: SkipUpdateInterestList
 

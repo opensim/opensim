@@ -165,10 +165,13 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             uint regionFlags = 336723974 & ~((uint)(Simulator.RegionFlags.AllowLandmark | Simulator.RegionFlags.AllowSetHome));
             if (estateModule != null)
                 regionFlags = estateModule.GetRegionFlags();
-            if ((landData.Flags & (uint)Parcel.ParcelFlags.AllowLandmark) != 0)
-                regionFlags |=  (uint)Simulator.RegionFlags.AllowLandmark;
-            if (landData.OwnerID == remote_client.AgentId)
-                regionFlags |=  (uint)Simulator.RegionFlags.AllowSetHome;
+
+			// In a perfect world, this would have worked.
+			//
+//            if ((landData.Flags & (uint)Parcel.ParcelFlags.AllowLandmark) != 0)
+//                regionFlags |=  (uint)Simulator.RegionFlags.AllowLandmark;
+//            if (landData.OwnerID == remote_client.AgentId)
+//                regionFlags |=  (uint)Simulator.RegionFlags.AllowSetHome;
             remote_client.SendLandProperties(remote_client, sequence_id,
                     snap_selection, request_result, landData,
                     (float)m_scene.RegionInfo.RegionSettings.ObjectBonus,
