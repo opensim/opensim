@@ -69,7 +69,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             None = 0,
             attach = 1,
-            collision = 15,
+            collision = 16,
             collision_end = 32,
             collision_start = 64,
             control = 128,
