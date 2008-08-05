@@ -382,7 +382,7 @@ namespace OpenSim
                     break;
 
                 case "change-region":
-                    ChangeWorkingRegion(cmdparams);
+                    ChangeSelectedRegion(cmdparams);
                     break;
 
                 case "export-map":
@@ -509,10 +509,10 @@ namespace OpenSim
         }
         
         /// <summary>
-        /// Change the current working region.  The working region is that operated upon by single region commands.
+        /// Change the currently selected region.  The selected region is that operated upon by single region commands.
         /// </summary>
         /// <param name="cmdParams"></param>
-        protected void ChangeWorkingRegion(string[] cmdparams)
+        protected void ChangeSelectedRegion(string[] cmdparams)
         {
             if (cmdparams.Length > 0)
             {
