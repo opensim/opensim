@@ -138,9 +138,6 @@ namespace OpenSim
             get { return m_httpServer; }
         }
 
-// 6/28 Cfk: Commented out the new in this next line. It used to be
-// 6/28 cfk: public new uint HttpServerPort and it was causing a warning indicating there should not be a new
-// 6/28 cfk: There is still a new in the declaration above and it is unclear if it should be there or not.
         public uint HttpServerPort
         {
             get { return m_httpServerPort; }

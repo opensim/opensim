@@ -92,6 +92,9 @@ namespace OpenSim
             m_console = new ConsoleBase("Region", this);
             MainConsole.Instance = m_console;
             
+            // For now, start at the 'root' level by default
+            ChangeSelectedRegion(new string[] {"root"});
+            
             base.Startup();
 
             //Run Startup Commands
@@ -520,11 +523,11 @@ namespace OpenSim
 
                 if (!m_sceneManager.TrySetCurrentScene(regionName))
                 {
-                    m_console.Error("Couldn't set current region to: " + regionName);
+                    m_console.Error("CONSOLE", "Couldn't set current region to: " + regionName);
                 }
             }
-
-            m_console.Notice("CONSOLE", "Selected region: " + GetSelectedRegionName());       
+            
+            m_console.DefaultPrompt = String.Format("Region ({0}) ", GetSelectedRegionName());     
         }
         
         /// <summary>

@@ -46,7 +46,12 @@ namespace OpenSim.Framework.Console
         /// <summary>
         /// The default prompt text.
         /// </summary>
-        public string m_defaultPrompt;
+        public string DefaultPrompt
+        {
+            set { m_defaultPrompt = value + "# "; }
+            get { return m_defaultPrompt; }
+        }
+        protected string m_defaultPrompt;
 
         /// <summary>
         /// Constructor.
@@ -55,7 +60,7 @@ namespace OpenSim.Framework.Console
         /// <param name="cmdparser"></param>
         public ConsoleBase(string defaultPrompt, conscmd_callback cmdparser)
         {
-            m_defaultPrompt = defaultPrompt + "# ";
+            DefaultPrompt = defaultPrompt;
             m_cmdParser = cmdparser;
         }
 
