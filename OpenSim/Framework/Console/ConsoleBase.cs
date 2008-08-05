@@ -42,11 +42,20 @@ namespace OpenSim.Framework.Console
         private readonly object m_syncRoot = new object();
 
         public conscmd_callback m_cmdParser;
-        public string m_componentName;
+        
+        /// <summary>
+        /// The default prompt text.
+        /// </summary>
+        public string m_defaultPrompt;
 
-        public ConsoleBase(string componentname, conscmd_callback cmdparser)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="defaultPrompt"></param>
+        /// <param name="cmdparser"></param>
+        public ConsoleBase(string defaultPrompt, conscmd_callback cmdparser)
         {
-            m_componentName = componentname;
+            m_defaultPrompt = defaultPrompt + "# ";
             m_cmdParser = cmdparser;
         }
 
@@ -362,7 +371,7 @@ namespace OpenSim.Framework.Console
 
         public void Prompt()
         {
-            string tempstr = CmdPrompt(m_componentName + "# ");
+            string tempstr = CmdPrompt(m_defaultPrompt);
             RunCommand(tempstr);
         }
 
