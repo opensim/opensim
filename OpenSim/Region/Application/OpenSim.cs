@@ -89,7 +89,7 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (m_sandbox ? "sandbox" : "grid"));
 
-            m_console = CreateConsole();
+            m_console = new ConsoleBase("Region", this);
             MainConsole.Instance = m_console;
             
             base.Startup();
@@ -116,12 +116,6 @@ namespace OpenSim
             PrintFileToConsole("startuplogo.txt");
             RegisterCmd("echoTest", RunEchoTest, "this echos your command args to see how they are parsed");
             RegisterCmd("kickuser", KickUserCommand, "kickuser [first] [last] - attempts to log off a user from any region we are serving");
-
-        }
-
-        protected ConsoleBase CreateConsole()
-        {
-            return new ConsoleBase("Region", this);
         }
 
         private void RunAutoTimerScript(object sender, EventArgs e)
@@ -132,12 +126,15 @@ namespace OpenSim
             }
         }
 
-        private string GetActualSimName()
+        /// <summary>
+        /// Get the name of the region which is currently selected for single region operations
+        /// </summary>
+        /// <returns></returns>
+        private string GetSelectedRegionName()
         {
             if (m_sceneManager.CurrentScene == null) return "Root";
             return m_sceneManager.CurrentScene.RegionInfo.RegionName;
         }
-
 
         #region Console Commands
 
@@ -289,11 +286,10 @@ namespace OpenSim
                     {
                         m_console.Notice("");
                         m_console.Notice("create user - adds a new user.");
-                    }
-                    
+                    }                    
 
                     m_console.Notice("");
-                    m_console.Notice("Serving region " + GetActualSimName());
+                    m_console.Notice("Selected region: " + GetSelectedRegionName());
                     m_console.Notice("");
                     break;
 
@@ -386,26 +382,7 @@ namespace OpenSim
                     break;
 
                 case "change-region":
-                    if (cmdparams.Length > 0)
-                    {
-                        string regionName = CombineParams(cmdparams, 0);
-
-                        if (!m_sceneManager.TrySetCurrentScene(regionName))
-                        {
-                            m_console.Error("Couldn't set current region to: " + regionName);
-                        }
-                    }
-
-                    if (m_sceneManager.CurrentScene == null)
-                    {
-                        m_console.Error("CONSOLE", "Currently at Root level. To change region please use 'change-region <regioname>'");
-                    }
-                    else
-                    {
-                        m_console.Error("CONSOLE", "Current Region: " + m_sceneManager.CurrentScene.RegionInfo.RegionName +
-                                        ". To change region please use 'change-region <region name>'");
-                    }
-
+                    ChangeWorkingRegion(cmdparams);
                     break;
 
                 case "export-map":
@@ -529,6 +506,25 @@ namespace OpenSim
                     m_sceneManager.SendCommandToPluginModules(tmpPluginArgs);
                     break;
             }
+        }
+        
+        /// <summary>
+        /// Change the current working region.  The working region is that operated upon by single region commands.
+        /// </summary>
+        /// <param name="cmdParams"></param>
+        protected void ChangeWorkingRegion(string[] cmdparams)
+        {
+            if (cmdparams.Length > 0)
+            {
+                string regionName = CombineParams(cmdparams, 0);
+
+                if (!m_sceneManager.TrySetCurrentScene(regionName))
+                {
+                    m_console.Error("Couldn't set current region to: " + regionName);
+                }
+            }
+
+            m_console.Notice("CONSOLE", "Selected region: " + GetSelectedRegionName());       
         }
         
         /// <summary>
@@ -674,9 +670,10 @@ namespace OpenSim
                         });
                     break;
             }
-                     m_console.Notice("");
-                    m_console.Notice("Serving region " + GetActualSimName());
-                    m_console.Notice("");
+            
+            m_console.Notice("");
+            m_console.Notice("Selected region: " + GetSelectedRegionName());
+            m_console.Notice("");
         }
         
         /// <summary>
