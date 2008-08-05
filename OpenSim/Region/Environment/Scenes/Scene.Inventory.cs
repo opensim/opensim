@@ -1563,7 +1563,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         private bool InventoryDeQueueAndDelete()
         {
-            DeleteToInventoryHolder x;
+            DeleteToInventoryHolder x = null;
+            
             try
             {
                 lock (m_inventoryDeletes)
@@ -1577,9 +1578,14 @@ namespace OpenSim.Region.Environment.Scenes
                         return true;
                     }
                 }
-            } catch(Exception e)
+            } 
+            catch(Exception e)
             {
-                m_log.Error(e.ToString());
+                // We can't put the object group details in here since the root part may have disappeared (which is where these sit).
+                // FIXME: This needs to be fixed.
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Queued deletion of scene object to agent {0} {1} failed: {2}", 
+                    (x != null ? x.remoteClient.Name : "unavailable"), (x != null ? x.remoteClient.AgentId : "unavailable"), e.ToString());
             }
 
             m_log.Info("No objects left in inventory delete queue.");
