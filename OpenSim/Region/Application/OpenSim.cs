@@ -90,10 +90,7 @@ namespace OpenSim
             m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (m_sandbox ? "sandbox" : "grid"));
 
             m_console = new ConsoleBase("Region", this);
-            MainConsole.Instance = m_console;
-            
-            // For now, start at the 'root' level by default
-            ChangeSelectedRegion(new string[] {"root"});
+            MainConsole.Instance = m_console;            
             
             base.Startup();
 
@@ -119,6 +116,9 @@ namespace OpenSim
             PrintFileToConsole("startuplogo.txt");
             RegisterCmd("echoTest", RunEchoTest, "this echos your command args to see how they are parsed");
             RegisterCmd("kickuser", KickUserCommand, "kickuser [first] [last] - attempts to log off a user from any region we are serving");
+            
+            // For now, start at the 'root' level by default
+            ChangeSelectedRegion(new string[] {"root"});            
         }
 
         private void RunAutoTimerScript(object sender, EventArgs e)
@@ -127,16 +127,6 @@ namespace OpenSim
             {
                 RunCommandScript(m_timedScript);
             }
-        }
-
-        /// <summary>
-        /// Get the name of the region which is currently selected for single region operations
-        /// </summary>
-        /// <returns></returns>
-        private string GetSelectedRegionName()
-        {
-            if (m_sceneManager.CurrentScene == null) return "Root";
-            return m_sceneManager.CurrentScene.RegionInfo.RegionName;
         }
 
         #region Console Commands
@@ -255,9 +245,9 @@ namespace OpenSim
                     m_console.Notice("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
                     m_console.Notice("  alert general [Message] - send an alert to all users.");
                     m_console.Notice("backup - persist simulator objects to the database ahead of the normal schedule.");
-                    m_console.Notice("clear-assets - clear asset cache");
-                    m_console.Notice("create-region <name> <regionfile.xml> - creates a new region");
-                    m_console.Notice("change-region [name] - sets the region that many of these commands affect.");
+                    m_console.Notice("clear-assets - clear the asset cache");
+                    m_console.Notice("create-region <name> <regionfile.xml> - create a new region");
+                    m_console.Notice("change-region <name> - select the region that single region commands operate upon.");
                     m_console.Notice("command-script [filename] - Execute command in a file.");
                     m_console.Notice("debug - debugging commands");
                     m_console.Notice("  debug packet 0..255 - print incoming/outgoing packets (0=off)");
@@ -291,9 +281,6 @@ namespace OpenSim
                         m_console.Notice("create user - adds a new user.");
                     }                    
 
-                    m_console.Notice("");
-                    m_console.Notice("Selected region: " + GetSelectedRegionName());
-                    m_console.Notice("");
                     break;
 
                 case "save-xml":
@@ -519,15 +506,19 @@ namespace OpenSim
         {
             if (cmdparams.Length > 0)
             {
-                string regionName = CombineParams(cmdparams, 0);
+                string newRegionName = CombineParams(cmdparams, 0);
 
-                if (!m_sceneManager.TrySetCurrentScene(regionName))
-                {
-                    m_console.Error("CONSOLE", "Couldn't set current region to: " + regionName);
-                }
+                if (!m_sceneManager.TrySetCurrentScene(newRegionName))
+                    m_console.Error("Couldn't select region " + newRegionName);
             }
-            
-            m_console.DefaultPrompt = String.Format("Region ({0}) ", GetSelectedRegionName());     
+            else
+            {
+                m_console.Error("Usage: change-region <region name>");
+            }   
+
+            string regionName = (m_sceneManager.CurrentScene == null ? "root" : m_sceneManager.CurrentScene.RegionInfo.RegionName);                               
+            m_console.Notice(String.Format("Currently selected region is {0}", regionName));
+            m_console.DefaultPrompt = String.Format("Region ({0}) ", regionName);                                 
         }
         
         /// <summary>
@@ -673,10 +664,6 @@ namespace OpenSim
                         });
                     break;
             }
-            
-            m_console.Notice("");
-            m_console.Notice("Selected region: " + GetSelectedRegionName());
-            m_console.Notice("");
         }
         
         /// <summary>
