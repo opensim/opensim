@@ -321,12 +321,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                                 {
                                                     line = " at line " + Convert.ToInt32(t.Substring(colon + 6)).ToString();
                                                 }
-                                                catch (ArgumentOutOfRangeException e)
+                                                catch (ArgumentOutOfRangeException e2)
                                                 {
                                                     // FIXME: Big fat temporary patch to stop the Substring above throwing an exception
                                                     // and stopping a proper kill of the script.  We're making an unwarranted assumption
                                                     // about the size of t.  This needs to be fixed properly.                                                    
-                                                    m_log.ErrorFormat("[SCRIPT ENGINE]: Line number conversion exception {0}", e);                                                    
+                                                    m_log.ErrorFormat("[SCRIPT ENGINE]: Error line number conversion exception {0}", e2);                                                    
                                                     line = " at line (unavailable)";
                                                 }
                                                 
