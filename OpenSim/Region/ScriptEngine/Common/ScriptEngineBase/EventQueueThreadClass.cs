@@ -27,9 +27,11 @@
 
 using System;
 using System.Collections;
+using System.Reflection;
 using System.Threading;
 using System.Globalization;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes.Scripting;
 
@@ -40,6 +42,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// </summary>
     public class EventQueueThreadClass : iScriptEngineFunctionModule
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         /// <summary>
         /// How many ms to sleep if queue is empty
         /// </summary>
@@ -313,7 +317,19 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                             {
                                                 // Not sure why this is converted to an int then back to a string, either
                                                 // way, need to skip the word "line " in the substring
-                                                line = " at line " + Convert.ToInt32(t.Substring(colon + 6)).ToString();
+                                                try
+                                                {
+                                                    line = " at line " + Convert.ToInt32(t.Substring(colon + 6)).ToString();
+                                                }
+                                                catch (ArgumentOutOfRangeException e)
+                                                {
+                                                    // FIXME: Big fat temporary patch to stop the Substring above throwing an exception
+                                                    // and stopping a proper kill of the script.  We're making an unwarranted assumption
+                                                    // about the size of t.  This needs to be fixed properly.                                                    
+                                                    m_log.ErrorFormat("[SCRIPT ENGINE]: Line number conversion exception {0}", e);                                                    
+                                                    line = " at line (unavailable)";
+                                                }
+                                                
                                                 break;
                                             }
                                         }
