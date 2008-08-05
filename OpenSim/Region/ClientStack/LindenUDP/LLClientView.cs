@@ -2287,10 +2287,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
 
-            // Anything more than 255 will cause libsecondlife to barf
-            if (text.Length > 255)
+            // Anything more than 254 will cause libsecondlife to barf
+            // (libsl 1550) adds an \0 on the Helpers.StringToField conversion if it isn't present
+            if (text.Length > 254)
             {
-                text = text.Remove(255);
+                text = text.Remove(254);
             }
 
             outPacket.ObjectData[0].Text = Helpers.StringToField(text);
