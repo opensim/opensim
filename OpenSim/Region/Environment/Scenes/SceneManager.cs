@@ -298,15 +298,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool TrySetCurrentScene(string regionName)
         {
-            if ((String.Compare(regionName, "root") == 0) || (String.Compare(regionName, "..") == 0))
+            if ((String.Compare(regionName, "root") == 0) 
+                || (String.Compare(regionName, "..") == 0)
+                || (String.Compare(regionName, "/") == 0))
             {
                 m_currentScene = null;
                 return true;
             }
             else
             {
-                // Console.WriteLine("Searching for Region: '" + regionName + "'");
-
                 foreach (Scene scene in m_localScenes)
                 {
                     if (String.Compare(scene.RegionInfo.RegionName, regionName, true) == 0)
