@@ -1,0 +1,23 @@
+<Addin id="OpenSim.Data.MySQL" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.Data.MySQL.dll"/>
+    </Runtime>
+    <Dependencies>
+        <Addin id="OpenSim.Data" version="0.5" />
+    </Dependencies>
+    <Extension path = "/OpenSim/GridData">
+        <Plugin id="MySQLGridData" provider="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLGridData" />
+    </Extension>
+    <Extension path = "/OpenSim/LogData">
+        <Plugin id="MySQLLogData" provider="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLLogData" />
+    </Extension>
+    <Extension path = "/OpenSim/AssetData">
+        <Plugin id="MySQLAssetData" provider="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLAssetData" />
+    </Extension>
+    <Extension path = "/OpenSim/InventoryData">
+        <Plugin id="MySQLInventoryData" provider="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLInventoryData" />
+    </Extension>
+    <Extension path = "/OpenSim/UserData">
+        <Plugin id="MySQLUserData" provider="OpenSim.Data.MySQL.dll" type="OpenSim.Data.MySQL.MySQLUserData" />
+    </Extension>
+</Addin>

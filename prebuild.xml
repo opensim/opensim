@@ -1093,6 +1093,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
@@ -1126,6 +1127,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
@@ -1196,6 +1198,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
@@ -1231,6 +1234,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
@@ -1323,6 +1327,7 @@
       <Files>
         <Match pattern="*.cs" recurse="true"/>
         <Match path="Resources" pattern="*.sql" buildAction="EmbeddedResource"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
@@ -1353,6 +1358,7 @@
       <Files>
         <Match pattern="*.cs" recurse="true"/>
         <Match path="Resources" pattern="*.sql" buildAction="EmbeddedResource"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
@@ -1385,6 +1391,7 @@
       <Files>
         <Match pattern="*.cs" recurse="true"/>
         <Match path="Resources" pattern="*.sql" buildAction="EmbeddedResource"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
