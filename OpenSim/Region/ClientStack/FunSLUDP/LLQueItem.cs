@@ -29,7 +29,7 @@ using System;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.FunSLUDP
 {
     public class LLQueItem
     {

@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.FunSLUDP
 {
     public class LLPacketThrottle
     {

@@ -36,7 +36,7 @@ using libsecondlife.Packets;
 using Timer = System.Timers.Timer;
 using OpenSim.Framework;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.FunSLUDP
 {
     public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
     public delegate void PacketDrop(Packet pack, Object id);

@@ -35,10 +35,10 @@ using libsecondlife.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.ClientStack.LindenUDP;
+using OpenSim.Region.ClientStack.FunSLUDP;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.FunSLUDP
 {
     public class LLUDPServer : LLClientStackNetworkHandler, IClientNetworkServer
     {

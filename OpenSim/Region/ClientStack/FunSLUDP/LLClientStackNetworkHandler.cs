@@ -27,7 +27,7 @@
 
 using System.Net.Sockets;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.FunSLUDP
 {
     public interface LLClientStackNetworkHandler
     {

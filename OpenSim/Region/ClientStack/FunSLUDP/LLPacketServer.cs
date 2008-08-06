@@ -31,9 +31,9 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.ClientStack.LindenUDP;
+using OpenSim.Region.ClientStack.FunSLUDP;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.FunSLUDP
 {
     public class LLPacketServer
     {

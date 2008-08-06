@@ -40,11 +40,11 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
-using OpenSim.Region.ClientStack.LindenUDP;
+using OpenSim.Region.ClientStack.FunSLUDP;
 using OpenSim.Region.Environment.Scenes;
 using Timer = System.Timers.Timer;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.FunSLUDP
 {
     public delegate bool PacketMethod(IClientAPI simClient, Packet packet);
 

@@ -36,7 +36,7 @@ using OpenSim.Framework.Statistics;
 using OpenSim.Framework.Statistics.Interfaces;
 using Timer=System.Timers.Timer;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.FunSLUDP
 {
     public class LLPacketQueue : IPullStatsProvider
     {
