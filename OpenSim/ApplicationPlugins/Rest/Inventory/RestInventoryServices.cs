@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Xml;
+using System.Drawing;
 using OpenJPEGNet;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
@@ -1931,8 +1932,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             if (ic.Item.AssetType == (int) AssetType.TextureTGA ||
                ic.Item.AssetType == (int) AssetType.ImageTGA)
             {
-                // TODO: DO we need to convert it? Or is it enough to flag
-                // it appropriately?
+                Bitmap temp;
+                Stream tgadata = new MemoryStream(ic.Asset.Data);
+
+                temp = OpenJPEGNet.LoadTGAClass.LoadTGA(tgadata);
+                ic.Asset.Data = OpenJPEGNet.OpenJPEG.EncodeFromImage(temp, true);
             }
  
             ic.reset();
