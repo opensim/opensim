@@ -30,6 +30,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using System;
+using Axiom.Math;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -135,6 +136,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     part.CreatorID = masterAvatarId;
                     part.OwnerID = masterAvatarId;
                     part.LastOwnerID = masterAvatarId;                    
+                    // And zap any troublesome sit target information
+                    part.SitTargetOrientation = new Quaternion(0,0,0,1);
+                    part.SitTargetPosition    = new Vector3(0,0,0);
                 }                 
                 
                 if (m_scene.AddRestoredSceneObject(sceneObject, true, false))
