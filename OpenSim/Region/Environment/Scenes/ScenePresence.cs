@@ -1156,7 +1156,7 @@ namespace OpenSim.Region.Environment.Scenes
                     part.SetAvatarOnSitTarget(UUID);
                     offset = new LLVector3(avSitOffSet.x, avSitOffSet.y, avSitOffSet.z);
                     sitOrientation =
-                        new LLQuaternion(avSitOrientation.w, avSitOrientation.x, avSitOrientation.y, avSitOrientation.z);
+                        new LLQuaternion(avSitOrientation.x, avSitOrientation.y, avSitOrientation.z, avSitOrientation.w);
                     autopilot = false;
                 }
 

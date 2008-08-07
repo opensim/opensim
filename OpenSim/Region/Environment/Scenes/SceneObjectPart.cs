@@ -812,7 +812,7 @@ namespace OpenSim.Region.Environment.Scenes
                                         );
             }
 
-            set { m_sitTargetOrientation = new Quaternion(value.X, value.Y, value.Z, value.W); }
+            set { m_sitTargetOrientation = new Quaternion(value.W, value.X, value.Y, value.Z); }
         }
 
 
