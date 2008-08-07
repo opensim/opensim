@@ -392,7 +392,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // in it to process.  It's an on-purpose threadlock though because
             // without it, the clientloop will suck up all sim resources.
 
-            m_PacketHandler = new LLPacketHandler(this);
+            m_PacketHandler = new LLPacketHandler(this, m_networkServer);
             m_PacketHandler.SynchronizeClient = SynchronizeClient;
 
             RegisterLocalPacketHandlers();
@@ -616,12 +616,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (nextPacket.Incoming)
                 {
                     DebugPacket("IN", nextPacket.Packet);
-                    m_PacketHandler.ProcessInPacket(nextPacket.Packet);
+                    m_PacketHandler.ProcessInPacket(nextPacket);
                 }
                 else
                 {
                     DebugPacket("OUT", nextPacket.Packet);
-                    ProcessOutPacket(nextPacket.Packet);
+                    m_PacketHandler.ProcessOutPacket(nextPacket);
                 }
             }
         }
@@ -745,7 +745,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 + "Any further actions taken will not be processed.\n"
                                 + "Please relog", true);
 
-                    ProcessOutPacket(packet);
+                    LLQueItem item = new LLQueItem();
+                    item.Packet = packet;
+                    
+                    m_PacketHandler.ProcessOutPacket(item);
 
                     // There may be a better way to do this.  Perhaps kick?  Not sure this propogates notifications to
                     // listeners yet, though.
@@ -3685,47 +3688,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler.PacketQueue.SetThrottleFromClient(throttles);
         }
 
-        // Previously ClientView.m_packetQueue
-
-        /// <summary>
-        /// Helper routine to prepare the packet for sending to UDP client
-        /// This converts it to bytes and puts it on the outgoing buffer
-        /// </summary>
-        /// <param name="Pack"></param>
-        protected virtual void ProcessOutPacket(Packet Pack)
-        {
-            // Keep track of when this packet was sent out
-            Pack.TickCount = System.Environment.TickCount;
-
-            // Actually make the byte array and send it
-            try
-            {
-                byte[] sendbuffer = Pack.ToBytes();
-                PacketPool.Instance.ReturnPacket(Pack);
-
-                if (Pack.Header.Zerocoded)
-                {
-                    int packetsize = Helpers.ZeroEncode(sendbuffer, sendbuffer.Length, ZeroOutBuffer);
-                    m_networkServer.SendPacketTo(ZeroOutBuffer, packetsize, SocketFlags.None, m_circuitCode);
-                }
-                else
-                {
-                    //Need some extra space in case we need to add proxy information to the message later
-                    Buffer.BlockCopy(sendbuffer, 0, ZeroOutBuffer, 0, sendbuffer.Length);
-                    m_networkServer.SendPacketTo(ZeroOutBuffer, sendbuffer.Length, SocketFlags.None, m_circuitCode);
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[client]: " +
-                           "ClientView.m_packetQueue.cs:ProcessOutPacket() - WARNING: Socket exception occurred on connection " +
-                           m_userEndPoint.ToString() + " - killing thread");
-                m_log.Error(e.ToString());
-                Close(true);
-            }
-        }
-
-        /// <summary>
         /// method gets called when a new packet has arrived from the UDP server.  This happens after it's been decoded into a libsl object
         /// </summary>
         /// <param name="NewPack"></param>

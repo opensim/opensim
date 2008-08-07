@@ -31,10 +31,13 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Timers;
+using System.Reflection;
 using libsecondlife;
 using libsecondlife.Packets;
 using Timer = System.Timers.Timer;
 using OpenSim.Framework;
+using OpenSim.Region.ClientStack.LindenUDP;
+using log4net;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -55,7 +58,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         uint ResendTimeout { get; set; }
 
         void InPacket(Packet packet);
-        void ProcessInPacket(Packet packet);
+        void ProcessInPacket(LLQueItem item);
+        void ProcessOutPacket(LLQueItem item);
         void OutPacket(Packet NewPack,
                        ThrottleOutPacketType throttlePacketType);
         void OutPacket(Packet NewPack,
@@ -72,6 +76,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
     public class LLPacketHandler : IPacketHandler
     {
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         // Packet queues
         //
         LLPacketQueue m_PacketQueue;
@@ -181,13 +188,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         List<PacketType> m_ImportantPackets = new List<PacketType>();
 
+        LLPacketServer m_PacketServer;
+        private byte[] m_ZeroOutBuffer = new byte[4096];
+
         ////////////////////////////////////////////////////////////////////
 
         // Constructors
         //
-        public LLPacketHandler(IClientAPI client)
+        public LLPacketHandler(IClientAPI client, LLPacketServer server)
         {
             m_Client = client;
+            m_PacketServer = server;
 
             m_PacketQueue = new LLPacketQueue(client.AgentId);
 
@@ -228,21 +239,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return;
             }
 
-            packet.Header.Sequence = NextPacketSequenceNumber();
-
             lock (m_NeedAck)
             {
                 DropResend(id);
 
                 AddAcks(ref packet);
                 QueuePacket(packet, throttlePacketType, id);
-
-                // We want to see that packet arrive if it's reliable
-                if (packet.Header.Reliable)
-                {
-                    m_UnackedBytes += packet.ToBytes().Length;
-                    m_NeedAck[packet.Header.Sequence] = new AckData(packet, id);
-                }
             }
         }
 
@@ -531,8 +533,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void ProcessInPacket(Packet packet)
+        public void ProcessInPacket(LLQueItem item)
         {
+            Packet packet = item.Packet;
+
             // Always ack the packet!
             //
             if (packet.Header.Reliable)
@@ -697,6 +701,63 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             handlerPacketDrop(packet, id);
+        }
+
+        // Convert the packet to bytes and stuff it onto the send queue
+        //
+        public void ProcessOutPacket(LLQueItem item)
+        {
+            Packet packet = item.Packet;
+
+            // Keep track of when this packet was sent out
+            packet.TickCount = System.Environment.TickCount;
+
+            // Assign sequence number here to prevent out of order packets
+            packet.Header.Sequence = NextPacketSequenceNumber();
+
+            lock(m_NeedAck)
+            {
+                // We want to see that packet arrive if it's reliable
+                if (packet.Header.Reliable)
+                {
+                    m_UnackedBytes += packet.ToBytes().Length;
+                    m_NeedAck[packet.Header.Sequence] = new AckData(packet, 
+                            item.Identifier);
+                }
+            }
+
+            // Actually make the byte array and send it
+            try
+            {
+                byte[] sendbuffer = packet.ToBytes();
+
+                if (packet.Header.Zerocoded)
+                {
+                    int packetsize = Helpers.ZeroEncode(sendbuffer,
+                            sendbuffer.Length, m_ZeroOutBuffer);
+                    m_PacketServer.SendPacketTo(m_ZeroOutBuffer, packetsize,
+                            SocketFlags.None, m_Client.CircuitCode);
+                }
+                else
+                {
+                    // Need some extra space in case we need to add proxy
+                    // information to the message later
+                    Buffer.BlockCopy(sendbuffer, 0, m_ZeroOutBuffer, 0,
+                            sendbuffer.Length);
+                    m_PacketServer.SendPacketTo(m_ZeroOutBuffer,
+                            sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
+                }
+
+                PacketPool.Instance.ReturnPacket(packet);
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[client]: " +
+                       "PacketHandler:ProcessOutPacket() - WARNING: Socket "+
+                       "exception occurred  - killing thread");
+                m_log.Error(e.ToString());
+                m_Client.Close(true);
+            }
         }
     }
 }
