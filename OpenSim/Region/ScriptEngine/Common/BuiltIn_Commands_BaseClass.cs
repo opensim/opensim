@@ -2376,6 +2376,33 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int PARCEL_MEDIA_COMMAND_UNLOAD = 8;
         public const int PARCEL_MEDIA_COMMAND_AUTO_ALIGN = 9;
 
+        public const int PARCEL_FLAG_ALLOW_FLY = 0x1;                           // parcel allows flying
+        public const int PARCEL_FLAG_ALLOW_SCRIPTS = 0x2;                       // parcel allows outside scripts
+        public const int PARCEL_FLAG_ALLOW_LANDMARK = 0x8;                      // parcel allows landmarks to be created
+        public const int PARCEL_FLAG_ALLOW_TERRAFORM = 0x10;                    // parcel allows anyone to terraform the land
+        public const int PARCEL_FLAG_ALLOW_DAMAGE = 0x20;                       // parcel allows damage
+        public const int PARCEL_FLAG_ALLOW_CREATE_OBJECTS = 0x40;               // parcel allows anyone to create objects
+        public const int PARCEL_FLAG_USE_ACCESS_GROUP = 0x100;                  // parcel limits access to a group
+        public const int PARCEL_FLAG_USE_ACCESS_LIST = 0x200;                   // parcel limits access to a list of residents
+        public const int PARCEL_FLAG_USE_BAN_LIST = 0x400;                      // parcel uses a ban list, including restricting access based on payment info
+        public const int PARCEL_FLAG_USE_LAND_PASS_LIST = 0x800;                // parcel allows passes to be purchased
+        public const int PARCEL_FLAG_LOCAL_SOUND_ONLY = 0x8000;                 // parcel restricts spatialized sound to the parcel
+        public const int PARCEL_FLAG_RESTRICT_PUSHOBJECT = 0x200000;            // parcel restricts llPushObject
+        public const int PARCEL_FLAG_ALLOW_GROUP_SCRIPTS = 0x2000000;           // parcel allows scripts owned by group
+        public const int PARCEL_FLAG_ALLOW_CREATE_GROUP_OBJECTS = 0x4000000;    // parcel allows group object creation
+        public const int PARCEL_FLAG_ALLOW_ALL_OBJECT_ENTRY = 0x8000000;        // parcel allows objects owned by any user to enter
+        public const int PARCEL_FLAG_ALLOW_GROUP_OBJECT_ENTRY = 0x10000000;     // parcel allows with the same group to enter
+
+        public const int REGION_FLAG_ALLOW_DAMAGE = 0x1;                        // region is entirely damage enabled
+        public const int REGION_FLAG_FIXED_SUN = 0x10;                          // region has a fixed sun position
+        public const int REGION_FLAG_BLOCK_TERRAFORM = 0x40;                    // region terraforming disabled
+        public const int REGION_FLAG_SANDBOX = 0x100;                           // region is a sandbox
+        public const int REGION_FLAG_DISABLE_COLLISIONS = 0x1000;               // region has disabled collisions
+        public const int REGION_FLAG_DISABLE_PHYSICS = 0x4000;                  // region has disabled physics
+        public const int REGION_FLAG_BLOCK_FLY = 0x80000;                       // region blocks flying
+        public const int REGION_FLAG_ALLOW_DIRECT_TELEPORT = 0x100000;          // region allows direct teleports
+        public const int REGION_FLAG_RESTRICT_PUSHOBJECT = 0x400000;            // region restricts llPushObject
+
         public const int PAY_HIDE = -1;
         public const int PAY_DEFAULT = -2;
 
