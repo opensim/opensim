@@ -144,7 +144,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //
         private Dictionary<uint, int> m_DupeTracker =
             new Dictionary<uint, int>();
-        //private uint m_DupeTrackerWindow = 30;
+        private uint m_DupeTrackerWindow = 30;
+        private int m_DupeTrackerLastCheck = System.Environment.TickCount;
 
         // Values for the SimStatsReporter
         //
@@ -459,21 +460,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // We can't keep an unlimited record of dupes. This will prune the
         // dictionary by age.
         //
-//        private void PruneDupeTracker()
-//        {
-//            lock (m_DupeTracker)
-//            {
-//                Dictionary<uint, int> packs =
-//                    new Dictionary<uint, int>(m_DupeTracker);
-//
-//                foreach (uint pack in packs.Keys)
-//                {
-//                    if (Util.UnixTimeSinceEpoch() - m_DupeTracker[pack] >
-//                        m_DupeTrackerWindow)
-//                        m_DupeTracker.Remove(pack);
-//                }
-//            }
-//        }
+        private void PruneDupeTracker()
+        {
+            lock (m_DupeTracker)
+            {
+                if(m_DupeTracker.Count < 1024)
+                    return;
+
+                if(System.Environment.TickCount - m_DupeTrackerLastCheck < 2000)
+                    return;
+
+                m_DupeTrackerLastCheck = System.Environment.TickCount;
+
+                Dictionary<uint, int> packs =
+                    new Dictionary<uint, int>(m_DupeTracker);
+
+                foreach (uint pack in packs.Keys)
+                {
+                    if (Util.UnixTimeSinceEpoch() - m_DupeTracker[pack] >
+                        m_DupeTrackerWindow)
+                        m_DupeTracker.Remove(pack);
+                }
+            }
+        }
 
         public void InPacket(Packet packet)
         {
@@ -544,6 +553,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (packet.Type != PacketType.AgentUpdate)
                 m_PacketsReceived++;
+
+            PruneDupeTracker();
 
             // Check for duplicate packets..    packets that the client is 
             // resending because it didn't receive our ack
