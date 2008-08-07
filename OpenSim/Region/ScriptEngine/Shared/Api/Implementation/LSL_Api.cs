@@ -6702,7 +6702,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // the object we are in
             LLUUID objectID = m_host.ParentUUID;
-            if(objectID == LLUUID.Zero) return;
+            if (objectID == LLUUID.Zero) return;
 
             // we need the permission first, to know which avatar we want to set the camera for
             LLUUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
@@ -6712,16 +6712,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence presence = World.GetScenePresence(agentID);
             
             // we are not interested in child-agents
-            if(presence.IsChildAgent) return;
+            if (presence.IsChildAgent) return;
             
             SortedDictionary<int, float> parameters = new SortedDictionary<int, float>();
             object[] data = rules.Data;
-            for(int i = 0; i < data.Length; ++i) {
+            for (int i = 0; i < data.Length; ++i) {
                 int type = Convert.ToInt32(data[i++]);
-                if(i >= data.Length) break; // odd number of entries => ignore the last
+                if (i >= data.Length) break; // odd number of entries => ignore the last
 
                 // some special cases: Vector parameters are split into 3 float parameters (with type+1, type+2, type+3)
-                switch(type) {
+                switch (type) {
                 case ScriptBaseClass.CAMERA_FOCUS:
                 case ScriptBaseClass.CAMERA_FOCUS_OFFSET:
                 case ScriptBaseClass.CAMERA_POSITION:
@@ -6732,15 +6732,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     break;
                 default:
                     // TODO: clean that up as soon as the implicit casts are in
-                    if(data[i] is LSL_Types.LSLFloat)
+                    if (data[i] is LSL_Types.LSLFloat)
                         parameters.Add(type, (float)((LSL_Types.LSLFloat)data[i]).value);
-                    else if(data[i] is LSL_Types.LSLInteger)
+                    else if (data[i] is LSL_Types.LSLInteger)
                         parameters.Add(type, (float)((LSL_Types.LSLInteger)data[i]).value);
                     else parameters.Add(type, Convert.ToSingle(data[i]));
                     break;
                 }
             }
-            if(parameters.Count > 0) presence.ControllingClient.SendSetFollowCamProperties(objectID, parameters);
+            if (parameters.Count > 0) presence.ControllingClient.SendSetFollowCamProperties(objectID, parameters);
         }
 
         public void llClearCameraParams()
@@ -6753,7 +6753,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // the object we are in
             LLUUID objectID = m_host.ParentUUID;
-            if(objectID == LLUUID.Zero) return;
+            if (objectID == LLUUID.Zero) return;
 
             // we need the permission first, to know which avatar we want to clear the camera for
             LLUUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
@@ -6763,7 +6763,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence presence = World.GetScenePresence(agentID);
             
             // we are not interested in child-agents
-            if(presence.IsChildAgent) return;
+            if (presence.IsChildAgent) return;
             
             presence.ControllingClient.SendClearFollowCamProperties(objectID);
         }

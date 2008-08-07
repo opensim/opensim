@@ -277,10 +277,10 @@ namespace OpenSim.Region.Examples.SimpleModule
             get { return 0; }
         }
 
-		public ulong GetGroupPowers(LLUUID groupID)
-		{
-			return 0;
-		}
+        public ulong GetGroupPowers(LLUUID groupID)
+        {
+            return 0;
+        }
 
         public virtual int NextAnimationSequenceNumber
         {

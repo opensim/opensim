@@ -166,8 +166,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             if (estateModule != null)
                 regionFlags = estateModule.GetRegionFlags();
 
-			// In a perfect world, this would have worked.
-			//
+            // In a perfect world, this would have worked.
+            //
 //            if ((landData.Flags & (uint)Parcel.ParcelFlags.AllowLandmark) != 0)
 //                regionFlags |=  (uint)Simulator.RegionFlags.AllowLandmark;
 //            if (landData.OwnerID == remote_client.AgentId)

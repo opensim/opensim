@@ -212,7 +212,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// </summary>
         private void loadTests()
         {
-            lock(tests)
+            lock (tests)
             {
                 if (!testsLoaded)
                 {

@@ -130,7 +130,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             set
             {
                 // Will "fix" terrain hole problems. Although not fantastically.
-                if(Double.IsNaN(value) || Double.IsInfinity(value))
+                if (Double.IsNaN(value) || Double.IsInfinity(value))
                     return;
 
                 if (map[x, y] != value)

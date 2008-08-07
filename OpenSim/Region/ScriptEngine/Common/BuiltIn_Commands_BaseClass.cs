@@ -2426,7 +2426,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
         public static readonly rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);
 
-		// constants for llSetCameraParams
+        // constants for llSetCameraParams
         public const int CAMERA_PITCH = 0;
         public const int CAMERA_FOCUS_OFFSET = 1;
         public const int CAMERA_FOCUS_OFFSET_X = 2;

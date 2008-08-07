@@ -1401,7 +1401,7 @@ default
 {
     state_entry()
     {
-        while(1<0);
+        while (1<0);
     }
 }";
 
@@ -1426,7 +1426,7 @@ default
     state_entry()
     {
         do;
-        while(1<0);
+        while (1<0);
     }
 }";
 
@@ -1451,7 +1451,7 @@ default
 {
     state_entry()
     {
-        if(1<0);
+        if (1<0);
     }
 }";
 
@@ -1475,7 +1475,7 @@ default
 {
     state_entry()
     {
-        if(1<0);
+        if (1<0);
         else;
     }
 }";
@@ -1502,7 +1502,7 @@ default
 {
     state_entry()
     {
-        for(x = 4; 1<0; x += 2);
+        for (x = 4; 1<0; x += 2);
     }
 }";
 
@@ -1528,13 +1528,13 @@ default
     {
         integer x;
 
-        while(x = 14) llOwnerSay(""x is: "" + (string) x);
+        while (x = 14) llOwnerSay(""x is: "" + (string) x);
 
-        if(x = 24) llOwnerSay(""x is: "" + (string) x);
+        if (x = 24) llOwnerSay(""x is: "" + (string) x);
 
         do
             llOwnerSay(""x is: "" + (string) x);
-        while(x = 44);
+        while (x = 44);
     }
 }";
 

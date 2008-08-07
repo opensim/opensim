@@ -121,7 +121,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         public void setEstateTerrainBaseTexture(IClientAPI remoteClient, int corner, LLUUID texture)
         {
-            if(texture == LLUUID.Zero)
+            if (texture == LLUUID.Zero)
                 return;
 
             switch (corner)
@@ -761,10 +761,10 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             if (m_scene.RegionInfo.RegionSettings.Sandbox)
                 flags |= Simulator.RegionFlags.Sandbox;
 
-			// Fudge these to always on, so the menu options activate
-			//
-			flags |= Simulator.RegionFlags.AllowLandmark;
-			flags |= Simulator.RegionFlags.AllowSetHome;
+            // Fudge these to always on, so the menu options activate
+            //
+            flags |= Simulator.RegionFlags.AllowLandmark;
+            flags |= Simulator.RegionFlags.AllowSetHome;
 
             // TODO: SkipUpdateInterestList
 

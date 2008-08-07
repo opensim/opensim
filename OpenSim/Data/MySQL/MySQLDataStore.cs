@@ -744,9 +744,9 @@ namespace OpenSim.Data.MySQL
                 DataRow row = rawsettings[0];
 
                 RegionSettings newSettings =  buildRegionSettings(row);
-				newSettings.OnSave += StoreRegionSettings;
+                newSettings.OnSave += StoreRegionSettings;
 
-				return newSettings;
+                return newSettings;
             }
         }
 
