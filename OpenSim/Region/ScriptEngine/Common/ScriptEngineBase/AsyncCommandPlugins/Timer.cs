@@ -59,7 +59,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
 
         public void SetTimerEvent(uint m_localID, LLUUID m_itemID, double sec)
         {
-            Console.WriteLine("SetTimerEvent");
+            // Console.WriteLine("SetTimerEvent");
 
             // Always remove first, in case this is a re-set
             UnSetTimerEvents(m_localID, m_itemID);

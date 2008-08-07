@@ -125,19 +125,19 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             // Get this AppDomain's settings and display some of them.
             AppDomainSetup ads = AppDomain.CurrentDomain.SetupInformation;
-            Console.WriteLine("AppName={0}, AppBase={1}, ConfigFile={2}",
-                              ads.ApplicationName,
-                              ads.ApplicationBase,
-                              ads.ConfigurationFile
-                );
+            // Console.WriteLine("AppName={0}, AppBase={1}, ConfigFile={2}",
+            //                  ads.ApplicationName,
+            //                  ads.ApplicationBase,
+            //                  ads.ConfigurationFile
+            //    );
 
             // Display the name of the calling AppDomain and the name
             // of the second domain.
             // NOTE: The application's thread has transitioned between
             // AppDomains.
-            Console.WriteLine("Calling to '{0}'.",
-                              Thread.GetDomain().FriendlyName
-                );
+            // Console.WriteLine("Calling to '{0}'.",
+            //                  Thread.GetDomain().FriendlyName
+            //    );
 
             return;
         }

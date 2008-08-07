@@ -188,14 +188,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez)
         {
-            Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +
+            myScriptEngine.Log.Debug("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +
                               script.Length);
             myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script, startParam, postOnRez);
         }
 
         public void OnRemoveScript(uint localID, LLUUID itemID)
         {
-            Console.WriteLine("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());
+            myScriptEngine.Log.Debug("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());
             myScriptEngine.m_ScriptManager.StopScript(
                 localID,
                 itemID
