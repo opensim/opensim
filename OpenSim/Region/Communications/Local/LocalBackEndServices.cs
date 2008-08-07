@@ -109,7 +109,8 @@ namespace OpenSim.Region.Communications.Local
             else
             {
                 // Already in our list, so the region went dead and restarted.
-                m_regions.Remove(regionInfo.RegionHandle);
+                // replace the old regioninfo
+                m_regions[regionInfo.RegionHandle] = regionInfo;
                 m_log.Warn("[INTERREGION STANDALONE]: Region registered twice. Region went down and came back up.");
 
                 RegionCommsListener regionHost = new RegionCommsListener();
