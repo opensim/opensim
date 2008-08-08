@@ -1056,6 +1056,11 @@ namespace OpenSim.Region.Environment.Scenes
             m_particleSystem = pSystem.GetBytes();
         }
 
+        public void RemoveParticleSystem()
+        {
+            m_particleSystem = new byte[0];
+        }
+
         /// Terse updates
         public void AddTerseUpdateToAllAvatars()
         {
