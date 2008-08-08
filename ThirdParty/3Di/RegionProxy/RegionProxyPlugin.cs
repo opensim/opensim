@@ -404,7 +404,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             {
                 try
                 {
-                    client = PacketPool.DecodeProxyMessage(buffer, ref numBytes);
+                    client = ProxyCodec.DecodeProxyMessage(buffer, ref numBytes);
                     try
                     {
                         // This message comes from a region object, forward it to the its client
@@ -432,7 +432,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             else
             {
                 // This message comes from a client object, forward it to the the region(s)
-                PacketPool.EncodeProxyMessage(buffer, ref numBytes, senderEP);
+                ProxyCodec.EncodeProxyMessage(buffer, ref numBytes, senderEP);
                 ProxyMap.RegionData rd = proxy_map.GetRegionData(sd.clientEP);
                 foreach (EndPoint region in rd.regions)
                 {

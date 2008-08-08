@@ -48,45 +48,6 @@ namespace OpenSim.Framework
             get { return instance; }
         }
 
-        public static void EncodeProxyMessage(byte[] bytes, ref int numBytes, EndPoint trueEP)
-        {
-            if (numBytes > 4090) // max UPD size = 4096
-            {
-                throw new Exception("ERROR: No space to encode the proxy EP");
-            }
-
-            ushort port = (ushort) ((IPEndPoint) trueEP).Port;
-            bytes[numBytes++] = (byte) (port % 256);
-            bytes[numBytes++] = (byte) (port / 256);
-
-            foreach (byte b in ((IPEndPoint) trueEP).Address.GetAddressBytes())
-            {
-                bytes[numBytes++] = b;
-            }
-
-            int x = numBytes;
-
-            DecodeProxyMessage(bytes, ref numBytes);
-
-            numBytes = x;
-        }
-
-        public static EndPoint DecodeProxyMessage(byte[] bytes, ref int numBytes)
-        {
-            // IPv4 Only
-            byte[] addr = new byte[4];
-
-            addr[3] = bytes[--numBytes];
-            addr[2] = bytes[--numBytes];
-            addr[1] = bytes[--numBytes];
-            addr[0] = bytes[--numBytes];
-
-            ushort port = (ushort) (bytes[--numBytes] * 256);
-            port += (ushort) bytes[--numBytes];
-
-            return (EndPoint) new IPEndPoint(new IPAddress(addr), (int) port);
-        }
-
         public Packet GetPacket(PacketType type)
         {
             Packet packet;

@@ -259,7 +259,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             epProxy = epSender;
             if (proxyPortOffset != 0)
             {
-                epSender = PacketPool.DecodeProxyMessage(RecvBuffer, ref numBytes);
+                epSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
             }
 
             int packetEnd = numBytes - 1;
@@ -463,7 +463,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (proxyPortOffset != 0)
                 {
                     //MainLog.Instance.Verbose("UDPSERVER", "SendPacketTo proxy " + proxyCircuits[circuitcode].ToString() + ": client " + sendto.ToString());
-                    PacketPool.EncodeProxyMessage(buffer, ref size, sendto);
+                    ProxyCodec.EncodeProxyMessage(buffer, ref size, sendto);
                     m_socket.SendTo(buffer, size, flags, proxyCircuits[circuitcode]);
                 }
                 else
