@@ -464,10 +464,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             lock (m_DupeTracker)
             {
-                if(m_DupeTracker.Count < 1024)
+                if (m_DupeTracker.Count < 1024)
                     return;
 
-                if(System.Environment.TickCount - m_DupeTrackerLastCheck < 2000)
+                if (System.Environment.TickCount - m_DupeTrackerLastCheck < 2000)
                     return;
 
                 m_DupeTrackerLastCheck = System.Environment.TickCount;
@@ -726,7 +726,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Assign sequence number here to prevent out of order packets
             packet.Header.Sequence = NextPacketSequenceNumber();
 
-            lock(m_NeedAck)
+            lock (m_NeedAck)
             {
                 // We want to see that packet arrive if it's reliable
                 if (packet.Header.Reliable)
