@@ -4460,151 +4460,175 @@ namespace OpenSim.Region.ScriptEngine.Common
             return returnval;
         }
 
-
+        private Primitive.ParticleSystem getNewParticleSystemWithSLDefaultValues()
+        {
+            Primitive.ParticleSystem ps = new Primitive.ParticleSystem();
+            
+            // TODO find out about the other defaults and add them here
+            ps.PartStartColor = new LLColor(1.0f, 1.0f, 1.0f, 1.0f);
+            ps.PartEndColor = new LLColor(1.0f, 1.0f, 1.0f, 1.0f);
+            ps.PartStartScaleX = 1.0f;
+            ps.PartStartScaleY = 1.0f;
+            ps.PartEndScaleX = 1.0f;
+            ps.PartEndScaleY = 1.0f;
+            ps.BurstSpeedMin = 1.0f;
+            ps.BurstSpeedMax = 1.0f;
+            ps.BurstRate = 0.1f;
+            ps.PartMaxAge = 10.0f;
+            return ps;
+        }
+        
         public void llParticleSystem(LSL_Types.list rules)
         {
             m_host.AddScriptLPS(1);
-            Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
-            LSL_Types.Vector3 tempv = new LSL_Types.Vector3();
-
-            float tempf = 0;
-
-            for (int i = 0; i < rules.Length; i += 2)
+            if(rules.Length == 0)
             {
-                switch ((int)rules.Data[i])
-                {
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_FLAGS:
-                        prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)((uint)Convert.ToInt32(rules.Data[i + 1].ToString()));
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_COLOR:
-                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
-                        prules.PartStartColor.R = (float)tempv.x;
-                        prules.PartStartColor.G = (float)tempv.y;
-                        prules.PartStartColor.B = (float)tempv.z;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_ALPHA:
-                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                        prules.PartStartColor.A = (float)tempf;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_COLOR:
-                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
-                        //prules.PartEndColor = new LLColor(tempv.x,tempv.y,tempv.z,1);
-
-                        prules.PartEndColor.R = (float)tempv.x;
-                        prules.PartEndColor.G = (float)tempv.y;
-                        prules.PartEndColor.B = (float)tempv.z;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_ALPHA:
-                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                        prules.PartEndColor.A = (float)tempf;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_SCALE:
-                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
-                        prules.PartStartScaleX = (float)tempv.x;
-                        prules.PartStartScaleY = (float)tempv.y;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_SCALE:
-                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
-                        prules.PartEndScaleX = (float)tempv.x;
-                        prules.PartEndScaleY = (float)tempv.y;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_PART_MAX_AGE:
-                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                        prules.PartMaxAge = (float)tempf;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ACCEL:
-                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
-                        prules.PartAcceleration.X = (float)tempv.x;
-                        prules.PartAcceleration.Y = (float)tempv.y;
-                        prules.PartAcceleration.Z = (float)tempv.z;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_PATTERN:
-                        int tmpi = int.Parse(rules.Data[i + 1].ToString());
-                        prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
-                        break;
-
-                    // Xantor 20080503
-                    // Wiki:    PSYS_SRC_TEXTURE      string      inventory item name or key of the particle texture
-                    //          "" = default texture.
-                    // 20080530 Updated to remove code duplication
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TEXTURE:
-                        prules.Texture = KeyOrName(rules.Data[i + 1].ToString());
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RATE:
-                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                        prules.BurstRate = (float)tempf;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_PART_COUNT:
-                        prules.BurstPartCount = (byte)Convert.ToByte(rules.Data[i + 1].ToString());
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RADIUS:
-                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                        prules.BurstRadius = (float)tempf;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_SPEED_MIN:
-                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                        prules.BurstSpeedMin = (float)tempf;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_SPEED_MAX:
-                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                        prules.BurstSpeedMax = (float)tempf;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_MAX_AGE:
-                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                        prules.MaxAge = (float)tempf;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TARGET_KEY:
-                        LLUUID key = LLUUID.Zero;
-                        if (LLUUID.TryParse(rules.Data[i + 1].ToString(), out key))
-                        {
-                            prules.Target = key;
-                        }
-                        else
-                        {
-                            prules.Target = m_host.UUID;
-                        }
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_OMEGA:
-                        // AL: This is an assumption, since it is the only thing that would match.
-                        tempv = (LSL_Types.Vector3)rules.Data[i + 1];
-                        prules.AngularVelocity.X = (float)tempv.x;
-                        prules.AngularVelocity.Y = (float)tempv.y;
-                        prules.AngularVelocity.Z = (float)tempv.z;
-                        //cast??                    prules.MaxAge = (float)rules[i + 1];
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ANGLE_BEGIN:
-                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                        prules.InnerAngle = (float)tempf;
-                        break;
-
-                    case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ANGLE_END:
-                        tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                        prules.OuterAngle = (float)tempf;
-                        break;
-                }
-
+                m_host.RemoveParticleSystem();
             }
-            prules.CRC = 1;
+            else
+            {
+                Primitive.ParticleSystem prules = getNewParticleSystemWithSLDefaultValues();
+                LSL_Types.Vector3 tempv = new LSL_Types.Vector3();
 
-            m_host.AddNewParticleSystem(prules);
+                float tempf = 0;
+
+                for (int i = 0; i < rules.Length; i += 2)
+                {
+                    switch ((int)rules.Data[i])
+                    {
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_FLAGS:
+                            prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)((uint)Convert.ToInt32(rules.Data[i + 1].ToString()));
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_COLOR:
+                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            prules.PartStartColor.R = (float)tempv.x;
+                            prules.PartStartColor.G = (float)tempv.y;
+                            prules.PartStartColor.B = (float)tempv.z;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_ALPHA:
+                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            prules.PartStartColor.A = (float)tempf;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_COLOR:
+                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            //prules.PartEndColor = new LLColor(tempv.x,tempv.y,tempv.z,1);
+
+                            prules.PartEndColor.R = (float)tempv.x;
+                            prules.PartEndColor.G = (float)tempv.y;
+                            prules.PartEndColor.B = (float)tempv.z;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_ALPHA:
+                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            prules.PartEndColor.A = (float)tempf;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_SCALE:
+                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            prules.PartStartScaleX = (float)tempv.x;
+                            prules.PartStartScaleY = (float)tempv.y;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_SCALE:
+                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            prules.PartEndScaleX = (float)tempv.x;
+                            prules.PartEndScaleY = (float)tempv.y;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_MAX_AGE:
+                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            prules.PartMaxAge = (float)tempf;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ACCEL:
+                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            prules.PartAcceleration.X = (float)tempv.x;
+                            prules.PartAcceleration.Y = (float)tempv.y;
+                            prules.PartAcceleration.Z = (float)tempv.z;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_PATTERN:
+                            int tmpi = int.Parse(rules.Data[i + 1].ToString());
+                            prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
+                            break;
+
+                        // Xantor 20080503
+                        // Wiki:    PSYS_SRC_TEXTURE      string      inventory item name or key of the particle texture
+                        //          "" = default texture.
+                        // 20080530 Updated to remove code duplication
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TEXTURE:
+                            prules.Texture = KeyOrName(rules.Data[i + 1].ToString());
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RATE:
+                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            prules.BurstRate = (float)tempf;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_PART_COUNT:
+                            prules.BurstPartCount = (byte)Convert.ToByte(rules.Data[i + 1].ToString());
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RADIUS:
+                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            prules.BurstRadius = (float)tempf;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_SPEED_MIN:
+                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            prules.BurstSpeedMin = (float)tempf;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_SPEED_MAX:
+                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            prules.BurstSpeedMax = (float)tempf;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_MAX_AGE:
+                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            prules.MaxAge = (float)tempf;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TARGET_KEY:
+                            LLUUID key = LLUUID.Zero;
+                            if (LLUUID.TryParse(rules.Data[i + 1].ToString(), out key))
+                            {
+                                prules.Target = key;
+                            }
+                            else
+                            {
+                                prules.Target = m_host.UUID;
+                            }
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_OMEGA:
+                            // AL: This is an assumption, since it is the only thing that would match.
+                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            prules.AngularVelocity.X = (float)tempv.x;
+                            prules.AngularVelocity.Y = (float)tempv.y;
+                            prules.AngularVelocity.Z = (float)tempv.z;
+                            //cast??                    prules.MaxAge = (float)rules[i + 1];
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ANGLE_BEGIN:
+                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            prules.InnerAngle = (float)tempf;
+                            break;
+
+                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ANGLE_END:
+                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            prules.OuterAngle = (float)tempf;
+                            break;
+                    }
+
+                }
+                prules.CRC = 1;
+
+                m_host.AddNewParticleSystem(prules);
+            }
             m_host.SendFullUpdateToAllClients();
         }
 
