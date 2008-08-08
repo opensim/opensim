@@ -716,7 +716,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void InPacket(Packet NewPack)
+        public void InPacket(object NewPack)
         {
         }
 

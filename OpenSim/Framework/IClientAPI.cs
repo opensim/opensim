@@ -703,7 +703,7 @@ namespace OpenSim.Framework
 
 
         void SetDebug(int newDebug);
-        void InPacket(Packet NewPack);
+        void InPacket(object NewPack);
         void ProcessInPacket(Packet NewPack);
         void Close(bool ShutdownCircuit);
         void Kick(string message);

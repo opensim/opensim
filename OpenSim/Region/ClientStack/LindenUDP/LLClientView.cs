@@ -3688,12 +3688,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler.PacketQueue.SetThrottleFromClient(throttles);
         }
 
-        /// method gets called when a new packet has arrived from the UDP server.  This happens after it's been decoded into a libsl object
+        /// <summary>
+        /// Method gets called when a new packet has arrived from the UDP
+        /// server. This happens after it's been decoded into a libsl object.
         /// </summary>
-        /// <param name="NewPack"></param>
-        public virtual void InPacket(Packet NewPack)
+        /// <param name="NewPack">object containing the packet.</param>
+        public virtual void InPacket(object NewPack)
         {
-            m_PacketHandler.InPacket(NewPack);
+            // Cast NewPack to Packet.
+            m_PacketHandler.InPacket((Packet) NewPack);
         }
 
         /// <summary>

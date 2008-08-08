@@ -88,7 +88,12 @@ namespace OpenSim.Framework
             }
         }
 
-        public void InPacket(uint circuitCode, Packet packet)
+        /// <summary>
+        /// Pass incoming packet to client.
+        /// </summary>
+        /// <param name="circuitCode">uint identifying the connection/client.</param>
+        /// <param name="packet">object containing the packet.</param>
+        public void InPacket(uint circuitCode, object packet)
         {
             IClientAPI client;
             bool tryGetRet = false;

@@ -708,7 +708,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void InPacket(Packet NewPack)
+        public void InPacket(object NewPack)
         {
         }
 
