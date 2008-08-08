@@ -1555,7 +1555,7 @@ namespace OpenSim.Region.Communications.OGS1
         #endregion
 
         // helper to see if remote region is up
-        bool m_bAvailable = false;
+
         int timeOut = 10; //10 seconds
 
         public bool CheckRegion(string address, uint port, bool retry)
