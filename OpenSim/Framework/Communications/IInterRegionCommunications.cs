@@ -32,8 +32,8 @@ namespace OpenSim.Framework.Communications
     public interface IInterRegionCommunications
     {
         string rdebugRegionName { get; set; }
-        bool Available { get; }
-        void CheckRegion(string address, uint port);
+
+        bool CheckRegion(string address, uint port);
         bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
         bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData, int XMLMethod);
         bool RegionUp(SerializableRegionInfo region, ulong regionhandle);

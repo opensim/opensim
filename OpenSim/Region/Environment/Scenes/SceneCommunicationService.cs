@@ -580,8 +580,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (reg.RemotingAddress != "" && reg.RemotingPort != 0)
                     {
                         // region is remote. see if it is up
-                        m_commsProvider.InterRegion.CheckRegion(reg.RemotingAddress, reg.RemotingPort);
-                        destRegionUp = m_commsProvider.InterRegion.Available;
+                        destRegionUp = m_commsProvider.InterRegion.CheckRegion(reg.RemotingAddress, reg.RemotingPort);
                     }
                     else
                     {

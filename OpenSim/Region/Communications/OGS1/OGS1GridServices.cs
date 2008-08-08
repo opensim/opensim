@@ -1558,36 +1558,60 @@ namespace OpenSim.Region.Communications.OGS1
         bool m_bAvailable = false;
         int timeOut = 10; //10 seconds
 
-        public void CheckRegion(string address, uint port)
+        public bool CheckRegion(string address, uint port, bool retry)
         {
-            m_bAvailable = false;
-            IPAddress ia = null;
+            bool available = false;
+            bool timed_out = true;
+
+            IPAddress ia;
             IPAddress.TryParse(address, out ia);
             IPEndPoint m_EndPoint = new IPEndPoint(ia, (int)port);
-            AsyncCallback ConnectedMethodCallback = new AsyncCallback(ConnectedMethod);
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            IAsyncResult ar = socket.BeginConnect(m_EndPoint, ConnectedMethodCallback, socket);
-            ar.AsyncWaitHandle.WaitOne(timeOut*1000, false);
-            Thread.Sleep(500);
-        }
 
-        public bool Available
-        {
-            get { return m_bAvailable; }
-        }
+            AsyncCallback callback = delegate(IAsyncResult iar)
+            {
+                Socket s = (Socket)iar.AsyncState;
+                try
+                {
+                    s.EndConnect(iar);
+                    available = true;
+                    timed_out = false;
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("Callback EndConnect exception: {0}:{1}", e.Message, e.StackTrace);
+                }
 
-        void ConnectedMethod(IAsyncResult ar)
-        {
-            Socket socket = (Socket)ar.AsyncState;
+                s.Close();
+            };
+
             try
             {
-                socket.EndConnect(ar);
-                m_bAvailable = true;
+                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                IAsyncResult ar = socket.BeginConnect(m_EndPoint, callback, socket);
+                ar.AsyncWaitHandle.WaitOne(timeOut * 1000, false);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                m_log.DebugFormat("CheckRegion Socket Setup exception: {0}:{1}", e.Message, e.StackTrace);
+                return false;
             }
-            socket.Close();
+
+            if (timed_out)
+            {
+                m_log.DebugFormat("socket [{0}] timed out ({1}) waiting to obtain a connection.", m_EndPoint, timeOut * 1000);
+
+                if (retry)
+                {
+                    return CheckRegion(address, port, false);
+                }
+            }
+
+            return available;
+        }
+
+        public bool CheckRegion(string address, uint port)
+        {
+            return CheckRegion(address, port, true);
         }
 
         public void NoteDeadRegion(ulong regionhandle)
