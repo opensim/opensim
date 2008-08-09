@@ -274,8 +274,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
             }
-            catch (SocketException)
+            catch (SocketException e)
             {
+                m_log.ErrorFormat("[UDPSERVER]: BeginRecieve threw exception " + e.Message + ": " + e.StackTrace );
                 ResetEndPoint();
             }
         }
