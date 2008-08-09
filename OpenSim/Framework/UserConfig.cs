@@ -42,8 +42,6 @@ namespace OpenSim.Framework
         public string DefaultStartupMsg = String.Empty;
         public uint DefaultX = 1000;
         public uint DefaultY = 1000;
-        public string GridRecvKey = String.Empty;
-        public string GridSendKey = String.Empty;
         public uint HttpPort = DefaultHttpPort;
         public bool HttpSSL = DefaultHttpSSL;
 
@@ -98,10 +96,6 @@ namespace OpenSim.Framework
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Grid Server URI",
                                                 "http://127.0.0.1:" + GridConfig.DefaultHttpPort + "/", false);
-            configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Key to send to grid server", "null", false);
-            configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Key to expect from grid server", "null", false);
 
             configMember.addConfigurationOption("default_inventory_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
@@ -134,12 +128,6 @@ namespace OpenSim.Framework
                     break;
                 case "default_grid_server":
                     GridServerURL = new Uri( (string) configuration_result );
-                    break;
-                case "grid_send_key":
-                    GridSendKey = (string) configuration_result;
-                    break;
-                case "grid_recv_key":
-                    GridRecvKey = (string) configuration_result;
                     break;
                 case "default_inventory_server":
                     InventoryUrl = new Uri((string) configuration_result);
