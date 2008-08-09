@@ -153,9 +153,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int numBytes = 1;
 
+            bool ok = false;
+
             try
             {
                 numBytes = m_socket.EndReceiveFrom(result, ref epSender);
+ ok = true;
             }
             catch (SocketException e)
             {
@@ -165,149 +168,52 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 switch (e.SocketErrorCode)
                 {
                     case SocketError.AlreadyInProgress:
+                        return;
+
                     case SocketError.NetworkReset:
                     case SocketError.ConnectionReset:
-                        try
-                        {
-                            CloseEndPoint(epSender);
-                        }
-                        catch (Exception a)
-                        {
-                            m_log.Info("[UDPSERVER]: " + a.ToString());
-                        }
-                        try
-                        {
-                            m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
-                                                    ReceivedData, null);
-
-                            // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
-                            // so therefore..  we've got to tell the server to BeginReceiveFrom again.
-                            // This will happen over and over until we've gone through all packets
-                            // sent to and from this particular user.
-                            // Stupid I know..
-                            // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
-                        }
-                        catch (SocketException)
-                        {
-                        }
                         break;
+
                     default:
-                        try
-                        {
-                            CloseEndPoint(epSender);
-                        }
-                        catch (Exception)
-                        {
-                            //m_log.Info("[UDPSERVER]" + a.ToString());
-                        }
-                        try
-                        {
-                            m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
-                                                    ReceivedData, null);
-
-                            // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
-                            // so therefore..  we've got to tell the server to BeginReceiveFrom again.
-                            // This will happen over and over until we've gone through all packets
-                            // sent to and from this particular user.
-                            // Stupid I know..
-                            // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
-                        }
-                        catch (SocketException e2)
-                        {
-                            m_log.Error("[UDPSERVER]: " + e2.ToString());
-                        }
-
-                        // Here's some reference code!   :D
-                        // Shutdown and restart the UDP listener!  hehe
-                        // Shiny
-
-                        //Server.Shutdown(SocketShutdown.Both);
-                        //CloseEndPoint(epSender);
-                        //ServerListener();
-                        break;
+                        throw;
                 }
-
-                //return;
             }
             catch (ObjectDisposedException e)
             {
-                m_log.Debug("[UDPSERVER]: " + e.ToString());
+                m_log.DebugFormat("ObjectDisposedException: Object {0} disposed.", e.ObjectName);
+                // Uhh, what object, and why? this needs better handling.
+            }
+
+            if (ok)
+            {
+                epProxy = epSender;
+                if (proxyPortOffset != 0)
+                {
+                    epSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
+                }
+
+                int packetEnd = numBytes - 1;
+
                 try
                 {
-                    m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
-                                            ReceivedData, null);
-
-                    // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
-                    // so therefore..  we've got to tell the server to BeginReceiveFrom again.
-                    // This will happen over and over until we've gone through all packets
-                    // sent to and from this particular user.
-                    // Stupid I know..
-                    // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
+                    packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
                 }
-
-                catch (SocketException e2)
+                catch (MalformedDataException e)
                 {
-                    m_log.Error("[UDPSERVER]: " + e2.ToString());
+                    m_log.DebugFormat("Dropped Malformed Packet due to MalformedDataException: {0}", e.StackTrace);
                 }
-                catch (ObjectDisposedException)
+                catch (IndexOutOfRangeException e)
                 {
+                    m_log.DebugFormat("Dropped Malformed Packet due to IndexOutOfRangeException: {0}", e.StackTrace);
                 }
-                //return;
-            }
-
-            //System.Console.WriteLine("UDPServer : recieved message from {0}", epSender.ToString());
-            epProxy = epSender;
-            if (proxyPortOffset != 0)
-            {
-                epSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
-            }
-
-            int packetEnd = numBytes - 1;
-
-            try
-            {
-                packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
-            }
-            catch (Exception e)
-            {
-                m_log.Debug("[UDPSERVER]: " + e.ToString());
-            }
-
-            try
-            {
-                m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
-            }
-            catch (SocketException)
-            {
-                try
+                catch (Exception e)
                 {
-                    CloseEndPoint(epSender);
-                }
-                catch (Exception a)
-                {
-                    m_log.Info("[UDPSERVER]: " + a.ToString());
-                }
-                try
-                {
-                    m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
-                                            ReceivedData, null);
-
-                    // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
-                    // so therefore..  we've got to tell the server to BeginReceiveFrom again.
-                    // This will happen over and over until we've gone through all packets
-                    // sent to and from this particular user.
-                    // Stupid I know..
-                    // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
-                }
-                catch (SocketException e5)
-                {
-                    m_log.Error("[UDPSERVER]: " + e5.ToString());
+                    m_log.Debug("[UDPSERVER]: " + e.ToString());
                 }
             }
-            catch (ObjectDisposedException)
-            {
-            }
 
+            BeginReceive();
+            
             if (packet != null)
             {
                 try
@@ -360,7 +266,47 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
             }
+        }
 
+        private void BeginReceive()
+        {
+            try
+            {
+                m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+            }
+            catch (SocketException)
+            {
+                ResetEndPoint();
+            }
+        }
+
+        private void ResetEndPoint()
+        {
+            try
+            {
+                CloseEndPoint(epSender);
+            }
+            catch (Exception a)
+            {
+                m_log.Info("[UDPSERVER]: " + a.ToString());
+            }
+
+            try
+            {
+                m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
+                                        ReceivedData, null);
+
+                // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
+                // so therefore..  we've got to tell the server to BeginReceiveFrom again.
+                // This will happen over and over until we've gone through all packets 
+                // sent to and from this particular user.
+                // Stupid I know..  
+                // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
+            }
+            catch (SocketException e)
+            {
+                m_log.DebugFormat("[UDPSERVER]: Exception {0} : {1}", e.Message, e.StackTrace );
+            }
         }
 
         private void CloseEndPoint(EndPoint sender)
