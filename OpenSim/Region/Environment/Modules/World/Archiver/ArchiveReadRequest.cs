@@ -48,10 +48,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
+        private static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
 
-        protected Scene m_scene;
-        protected string m_loadPath;
+        private Scene m_scene;
+        private string m_loadPath;
+        
+        /// <summary>
+        /// Used to cache lookups for valid uuids.
+        /// </summary>
+        private IDictionary<LLUUID, bool> m_validUserUuids = new Dictionary<LLUUID, bool>();
 
         public ArchiveReadRequest(Scene scene, string loadPath)
         {
@@ -61,7 +66,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             DearchiveRegion();
         }
 
-        protected void DearchiveRegion()
+        private void DearchiveRegion()
         {                        
             TarArchiveReader archive 
                 = new TarArchiveReader(
@@ -129,13 +134,20 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 // to the same scene (when this is possible).
                 sceneObject.ResetIDs();
                 
-                // Make the master the owner/creator of everything imported for now
+                // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
+                // otherwise, use the master avatar uuid instead
                 LLUUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
-                    part.CreatorID = masterAvatarId;
-                    part.OwnerID = masterAvatarId;
-                    part.LastOwnerID = masterAvatarId;                    
+                    if (!resolveUserUuid(part.CreatorID))
+                        part.CreatorID = masterAvatarId;
+                    
+                    if (!resolveUserUuid(part.OwnerID))
+                        part.OwnerID = masterAvatarId;
+                    
+                    if (!resolveUserUuid(part.LastOwnerID))
+                        part.LastOwnerID = masterAvatarId;   
+                    
                     // And zap any troublesome sit target information
                     part.SitTargetOrientation = new Quaternion(0,0,0,1);
                     part.SitTargetPosition    = new Vector3(0,0,0);
@@ -163,6 +175,27 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 sceneObject.CreateScriptInstances(0, true);
             }            
         }
+        
+        /// <summary>
+        /// Look up the given user id to check whether it's one that is valid for this grid.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
+        private bool resolveUserUuid(LLUUID uuid)
+        {
+            if (!m_validUserUuids.ContainsKey(uuid))
+            {
+                if (m_scene.CommsManager.UserService.GetUserProfile(uuid) != null)
+                    m_validUserUuids.Add(uuid, true);
+                else
+                    m_validUserUuids.Add(uuid, false);
+            }
+            
+            if (m_validUserUuids[uuid])
+                return true;
+            else
+                return false;          
+        }
     
         /// <summary>
         /// Load an asset
@@ -170,7 +203,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <param name="assetFilename"></param>
         /// <param name="data"></param>
         /// <returns>true if asset was successfully loaded, false otherwise</returns>
-        protected bool LoadAsset(string assetPath, byte[] data)
+        private bool LoadAsset(string assetPath, byte[] data)
         {
             // Right now we're nastily obtaining the lluuid from the filename
             string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
@@ -209,7 +242,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <returns>
         /// true if terrain was resolved successfully, false otherwise.
         /// </returns>
-        protected bool LoadTerrain(string terrainPath, byte[] data)
+        private bool LoadTerrain(string terrainPath, byte[] data)
         {
             ITerrainModule terrainModule = m_scene.RequestModuleInterface<ITerrainModule>();
             
