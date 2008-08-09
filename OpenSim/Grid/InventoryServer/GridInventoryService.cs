@@ -66,11 +66,16 @@ namespace OpenSim.Grid.InventoryServer
             m_userserver_url = userserver_url;
         }
 
+        /// <summary>
+        /// Check that the source of an inventory request is one that we trust.
+        /// </summary>
+        /// <param name="peer"></param>
+        /// <returns></returns>
         public bool CheckTrustSource(IPEndPoint peer)
         {
             if (m_doLookup)
             {
-                m_log.InfoFormat("[GRID AGENT INVENTORY]: checking trusted source {0}", peer.ToString());
+                m_log.InfoFormat("[GRID AGENT INVENTORY]: Checking trusted source {0}", peer);
                 UriBuilder ub = new UriBuilder(m_userserver_url);
                 IPAddress[] uaddrs = Dns.GetHostAddresses(ub.Host);
                 foreach (IPAddress uaddr in uaddrs)
@@ -79,7 +84,12 @@ namespace OpenSim.Grid.InventoryServer
                     {
                         return true;
                     }
-                }
+                }                
+                
+                m_log.WarnFormat(
+                    "[GRID AGENT INVENTORY]: Rejecting request since source {0} was not in the list of trusted sources", 
+                    peer);    
+                
                 return false;
             }
             else
@@ -88,11 +98,19 @@ namespace OpenSim.Grid.InventoryServer
             }
         }
 
+        /// <summary>
+        /// Check that the source of an inventory request for a particular agent is a current session belonging to
+        /// that agent.
+        /// </summary>
+        /// <param name="session_id"></param>
+        /// <param name="avatar_id"></param>
+        /// <returns></returns>
         public bool CheckAuthSession(string session_id, string avatar_id)
         {
             if (m_doLookup)
             {
                 m_log.InfoFormat("[GRID AGENT INVENTORY]: checking authed session {0} {1}", session_id, avatar_id);
+                
                 if (m_session_cache.getCachedSession(session_id, avatar_id) == null)
                 {
                     // cache miss, ask userserver
@@ -119,7 +137,8 @@ namespace OpenSim.Grid.InventoryServer
                     m_log.Info("[GRID AGENT INVENTORY]: got authed session from cache");
                     return true;
                 }
-                m_log.Info("[GRID AGENT INVENTORY]: unknown session_id, request rejected");
+                
+                m_log.Warn("[GRID AGENT INVENTORY]: unknown session_id, request rejected");
                 return false;
             }
             else
