@@ -42,7 +42,6 @@ namespace OpenSim.Grid.InventoryServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private InventoryConfig m_config;
         private GridInventoryService m_inventoryService;
 
         public const string LogName = "INVENTORY";
@@ -68,15 +67,15 @@ namespace OpenSim.Grid.InventoryServer
         {
             base.Startup();
             
-            m_config = new InventoryConfig(LogName, (Path.Combine(Util.configDir(), "InventoryServer_Config.xml")));
+            InventoryConfig config = new InventoryConfig(LogName, (Path.Combine(Util.configDir(), "InventoryServer_Config.xml")));
 
-            m_inventoryService = new GridInventoryService(m_config.UserServerURL);
-            m_inventoryService.DoLookup = m_config.SessionLookUp;
-            m_inventoryService.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
+            m_inventoryService = new GridInventoryService(config.UserServerURL);
+            m_inventoryService.DoLookup = config.SessionLookUp;
+            m_inventoryService.AddPlugin(config.DatabaseProvider, config.DatabaseConnect);
 
             m_log.Info("[" + LogName + "]: Starting HTTP server ...");
 
-            m_httpServer = new BaseHttpServer(m_config.HttpPort);
+            m_httpServer = new BaseHttpServer(config.HttpPort);
             AddHttpHandlers();
             m_httpServer.Start();
 

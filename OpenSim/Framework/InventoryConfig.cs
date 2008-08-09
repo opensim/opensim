@@ -41,8 +41,6 @@ namespace OpenSim.Framework
         public string DatabaseProvider = String.Empty;
         public string DefaultStartupMsg = String.Empty;
         public uint HttpPort = DefaultHttpPort;
-        public string UserRecvKey = String.Empty;
-        public string UserSendKey = String.Empty;
         public string UserServerURL = String.Empty;
         public bool SessionLookUp = true;
 
@@ -59,10 +57,6 @@ namespace OpenSim.Framework
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
                                                 "http://127.0.0.1:" + UserConfig.DefaultHttpPort.ToString(), false);
-            configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Key to send to user server", "null", false);
-            configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Key to expect from user server", "null", false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
             configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
@@ -79,12 +73,6 @@ namespace OpenSim.Framework
             {
                 case "default_user_server":
                     UserServerURL = (string) configuration_result;
-                    break;
-                case "user_send_key":
-                    UserSendKey = (string) configuration_result;
-                    break;
-                case "user_recv_key":
-                    UserRecvKey = (string) configuration_result;
                     break;
                 case "database_provider":
                     DatabaseProvider = (string) configuration_result;
