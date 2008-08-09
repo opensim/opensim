@@ -79,7 +79,6 @@ namespace OpenSim.Region.DataSnapshot
 
         //Program objects
         private SnapshotStore m_snapStore = null;
-        // private DataRequestHandler m_requests = null;
 
         #endregion
 
@@ -141,7 +140,7 @@ namespace OpenSim.Region.DataSnapshot
                     m_passedCheck.Start();
 
                     //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
-                    // m_requests = new DataRequestHandler(scene, this);
+                    new DataRequestHandler(scene, this);
 
                     m_hostname = scene.RegionInfo.ExternalHostName;
                     m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
