@@ -46,8 +46,6 @@ namespace OpenSim.Grid.AssetServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public AssetConfig m_config;
-
         public static OpenAsset_Main assetserver;
 
         // Temporarily hardcoded - should be a plugin
@@ -87,16 +85,16 @@ namespace OpenSim.Grid.AssetServer
         {
             base.Startup();
             
-            m_config = new AssetConfig("ASSET SERVER", (Path.Combine(Util.configDir(), "AssetServer_Config.xml")));
+            AssetConfig config = new AssetConfig("ASSET SERVER", (Path.Combine(Util.configDir(), "AssetServer_Config.xml")));
 
             m_log.Info("[ASSET]: Setting up asset DB");
-            setupDB(m_config);
+            setupDB(config);
 
             m_log.Info("[ASSET]: Loading default asset set..");
             LoadDefaultAssets();
 
             m_log.Info("[ASSET]: Starting HTTP process");
-            m_httpServer = new BaseHttpServer(m_config.HttpPort);
+            m_httpServer = new BaseHttpServer(config.HttpPort);
 
             m_stats = StatsManager.StartCollectingAssetStats();
 

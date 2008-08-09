@@ -39,7 +39,6 @@ namespace OpenSim.Framework
         private ConfigurationMember configMember;
         public string DatabaseConnect = String.Empty;
         public string DatabaseProvider = String.Empty;
-        public string DefaultStartupMsg = String.Empty;
         public uint HttpPort = DefaultHttpPort;
 
         public AssetConfig(string description, string filename)
@@ -51,10 +50,6 @@ namespace OpenSim.Framework
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("default_startup_message",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Default Startup Message", "Welcome to OGS", false);
-
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
 
@@ -69,9 +64,6 @@ namespace OpenSim.Framework
         {
             switch (configuration_key)
             {
-                case "default_startup_message":
-                    DefaultStartupMsg = (string) configuration_result;
-                    break;
                 case "database_provider":
                     DatabaseProvider = (string) configuration_result;
                     break;
