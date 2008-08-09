@@ -70,7 +70,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
             configMember.addConfigurationOption("session_lookup", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Enable session lookup security", "True", false);
+                                                "Enable session lookup security", "False", false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
