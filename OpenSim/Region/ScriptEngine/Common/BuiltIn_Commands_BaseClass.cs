@@ -124,7 +124,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             //m_log.Info(ScriptEngineName, "LSL_BaseClass.Start() called.");
 
             // Get this AppDomain's settings and display some of them.
-            AppDomainSetup ads = AppDomain.CurrentDomain.SetupInformation;
+            // AppDomainSetup ads = AppDomain.CurrentDomain.SetupInformation;
             // Console.WriteLine("AppName={0}, AppBase={1}, ConfigFile={2}",
             //                  ads.ApplicationName,
             //                  ads.ApplicationBase,

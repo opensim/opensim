@@ -39,7 +39,6 @@ namespace OpenSim.Framework
         private ConfigurationMember configMember;
         public string DatabaseProvider = String.Empty;
         public string DatabaseConnect = String.Empty;
-        public string DefaultStartupMsg = String.Empty;
         public string GridCommsProvider = String.Empty;
         public string GridRecvKey = String.Empty;
         public string GridSendKey = String.Empty;
@@ -77,10 +76,8 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from grid server", "null", false);
 
-
             configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Connection String for Database", "", false);
-
 
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);

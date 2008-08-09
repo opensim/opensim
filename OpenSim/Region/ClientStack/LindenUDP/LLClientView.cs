@@ -80,7 +80,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_probesWithNoIngressPackets = 0;
         //private int m_lastPacketsReceived = 0;
-        private byte[] ZeroOutBuffer = new byte[4096];
+        //private byte[] ZeroOutBuffer = new byte[4096];
 
         private readonly LLUUID m_agentId;
         private readonly uint m_circuitCode;
