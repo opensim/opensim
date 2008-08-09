@@ -46,13 +46,13 @@ namespace OpenSim.Framework.Configuration.XML
 
         private void LoadDataToClass()
         {
-            rootNode = doc.FirstChild;
-            if (rootNode.Name != "Root")
+            rootNode = doc.SelectSingleNode("Root");            
+            if (null == rootNode)
                 throw new Exception("Error: Invalid .xml File. Missing <Root>");
 
-            configNode = rootNode.FirstChild;
-            if (configNode.Name != "Config")
-                throw new Exception("Error: Invalid .xml File. <Root> first child should be <Config>");
+            configNode = rootNode.SelectSingleNode("Config");
+            if (null == configNode)
+                throw new Exception("Error: Invalid .xml File. <Root> should contain a <Config>");
         }
 
         public void LoadData()
