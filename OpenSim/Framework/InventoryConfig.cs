@@ -30,7 +30,7 @@ using System;
 namespace OpenSim.Framework
 {
     /// <summary>
-    /// UserConfig -- For User Server Configuration
+    /// Defines and handles inventory grid server configuration
     /// </summary>
     public class InventoryConfig
     {
@@ -55,9 +55,6 @@ namespace OpenSim.Framework
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("default_startup_message",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Default Startup Message", "Welcome to OGS", false);
             configMember.addConfigurationOption("default_user_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
@@ -73,16 +70,13 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
             configMember.addConfigurationOption("session_lookup", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                               "Enable Session lookup security", "True", false);
+                                                "Enable session lookup security", "True", false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
         {
             switch (configuration_key)
             {
-                case "default_startup_message":
-                    DefaultStartupMsg = (string) configuration_result;
-                    break;
                 case "default_user_server":
                     UserServerURL = (string) configuration_result;
                     break;

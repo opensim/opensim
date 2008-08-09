@@ -70,7 +70,6 @@ namespace OpenSim.Grid.InventoryServer
             
             m_config = new InventoryConfig(LogName, (Path.Combine(Util.configDir(), "InventoryServer_Config.xml")));
 
-            //m_inventoryService = new GridInventoryService();
             m_inventoryService = new GridInventoryService(m_config.UserServerURL);
             m_inventoryService.DoLookup = m_config.SessionLookUp;
             m_inventoryService.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
