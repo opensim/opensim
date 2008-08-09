@@ -99,12 +99,11 @@ namespace OpenSim.Grid.UserServer
 
             m_log.Info("[REGION]: Establishing data connection");
             m_userManager = new UserManager();
-            m_userManager._config = Cfg;
             m_userManager.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
 
             m_gridInfoService = new GridInfoService();
 
-            m_interServiceInventoryService = new OGS1InterServiceInventoryService(m_userManager._config.InventoryUrl);            
+            m_interServiceInventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);            
 
             m_loginService = new UserLoginService(
                  m_userManager, m_interServiceInventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);            
@@ -216,7 +215,7 @@ namespace OpenSim.Grid.UserServer
                     {
                         m_log.ErrorFormat(
                             "[USERS]: Could not contact the inventory service at {0} to create an inventory for {1}",
-                            m_userManager._config.InventoryUrl + "CreateInventory/", userID.UUID);
+                            Cfg.InventoryUrl + "CreateInventory/", userID.UUID);
                     }
                     catch (Exception e)
                     {
@@ -247,13 +246,10 @@ namespace OpenSim.Grid.UserServer
                     //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
                     // requester.ReturnResponseVal = TestResponse;
                     // requester.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
-                    SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>("POST",
-                                                                                                   m_userManager.
-                                                                                                       _config.
-                                                                                                       InventoryUrl +
-                                                                                                   "RootFolders/",
-                                                                                                   m_lastCreatedUser);
-                    break;
+                    SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(
+                        "POST", Cfg.InventoryUrl + "RootFolders/", m_lastCreatedUser);                
+                    break;     
+                
                 case "logoff-user":
 
                     if (cmdparams.Length >= 3)

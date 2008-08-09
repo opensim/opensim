@@ -46,7 +46,6 @@ namespace OpenSim.Framework.Communications
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public UserConfig _config;
         private List<IUserDataPlugin> _plugins = new List<IUserDataPlugin>();
 
         /// <summary>

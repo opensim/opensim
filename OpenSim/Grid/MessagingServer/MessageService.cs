@@ -68,10 +68,8 @@ namespace OpenSim.Grid.MessagingServer
             uc.DatabaseConnect = cfg.DatabaseConnect;
             uc.DatabaseProvider = cfg.DatabaseProvider;
 
-            m_userManager._config = uc;
             m_userManager.AddPlugin(cfg.DatabaseProvider, cfg.DatabaseConnect);
         }
-
 
 
         #region FriendList Methods
