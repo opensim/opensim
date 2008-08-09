@@ -72,18 +72,19 @@ namespace OpenSim.Grid.UserServer
                 SimInfo = RegionProfileData.RequestSimProfileData(
                                 theUser.CurrentAgent.Handle, m_config.GridServerURL,
                                 m_config.GridSendKey, m_config.GridRecvKey);
+                
                 if (SimInfo == null)
                 {
                     m_log.Error("[GRID]: Region user was in isn't currently logged in");
                     return;
                 }
-
             }
             catch (Exception)
             {
                 m_log.Error("[GRID]: Unable to look up region to log user off");
                 return;
             }
+            
             // Prepare notification
             Hashtable SimParams = new Hashtable();
             SimParams["agent_id"] = theUser.ID.ToString();

@@ -42,7 +42,6 @@ namespace OpenSim.Framework
         public string DatabaseConnect = String.Empty;
         public string DefaultAssetServer = String.Empty;
         public string DefaultUserServer = String.Empty;
-        public string GridOwner = String.Empty;
         public uint HttpPort = DefaultHttpPort;
         public string SimRecvKey = String.Empty;
         public string SimSendKey = String.Empty;
@@ -58,9 +57,6 @@ namespace OpenSim.Framework
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("grid_owner",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "OGS Grid Owner", "OGS development team", false);
             configMember.addConfigurationOption("default_asset_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Asset Server URI",
@@ -101,9 +97,6 @@ namespace OpenSim.Framework
         {
             switch (configuration_key)
             {
-                case "grid_owner":
-                    GridOwner = (string) configuration_result;
-                    break;
                 case "default_asset_server":
                     DefaultAssetServer = (string) configuration_result;
                     break;

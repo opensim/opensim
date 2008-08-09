@@ -77,7 +77,7 @@ namespace OpenSim.Grid.GridServer
         {
             base.Startup();
 
-            Config();
+            m_config = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), "GridServer_Config.xml")));
 
             SetupGridManager();
 
@@ -130,11 +130,6 @@ namespace OpenSim.Grid.GridServer
             m_gridManager = new GridManager();
             m_gridManager.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
             m_gridManager.Config = m_config;
-        }
-
-        public void Config()
-        {
-            m_config = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), "GridServer_Config.xml")));
         }
 
         public void CheckSims(object sender, ElapsedEventArgs e)
