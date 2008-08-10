@@ -4343,7 +4343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llParticleSystem(LSL_Types.list rules)
         {
             m_host.AddScriptLPS(1);
-            if(rules.Length == 0)
+            if (rules.Length == 0)
             {
                 m_host.RemoveParticleSystem();
             }
