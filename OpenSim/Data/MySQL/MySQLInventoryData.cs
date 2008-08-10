@@ -704,13 +704,116 @@ namespace OpenSim.Data.MySQL
         /// <returns></returns>
         public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
         {
-            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
-            getInventoryFolders(ref folders, parentID);
+            /* Note: There are subtle changes between this implementation of getFolderHierarchy and the previous one
+                 * - We will only need to hit the database twice instead of n times.
+                 * - We assume the database is well-formed - no stranded/dangling folders, all folders in heirarchy owned
+                 *   by the same person, each user only has 1 inventory heirarchy
+                 * - The returned list is not ordered, instead of breadth-first ordered   
+               There are basically 2 usage cases for getFolderHeirarchy:
+                 1) Getting the user's entire inventory heirarchy when they log in
+                 2) Finding a subfolder heirarchy to delete when emptying the trash.                 
+               This implementation will pull all inventory folders from the database, and then prune away any folder that
+               is not part of the requested sub-heirarchy. The theory is that it is cheaper to make 1 request from the
+               database than to make n requests. This pays off only if requested heirarchy is large.
+               By making this choice, we are making the worst case better at the cost of making the best case worse.
+               This way is generally better because we don't have to rebuild the connection/sql query per subfolder,
+               even if we end up getting more data from the SQL server than we need.
+                 - Francis
+             */
+            try
+            {
+                List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+                Dictionary<LLUUID, List<InventoryFolderBase>> hashtable
+                    = new Dictionary<LLUUID, List<InventoryFolderBase>>(); ;
+                List<InventoryFolderBase> parentFolder = new List<InventoryFolderBase>();
+                lock (database)
+                {
+                    MySqlCommand result;
+                    MySqlDataReader reader;
+                    bool buildResultsFromHashTable = false;
 
-            for (int i = 0; i < folders.Count; i++)
-                getInventoryFolders(ref folders, folders[i].ID);
+                    database.CheckConnection();
 
-            return folders;
+                    /* Fetch the parent folder from the database to determine the agent ID, and if
+                     * we're querying the root of the inventory folder tree */
+                    result = new MySqlCommand("SELECT * FROM inventoryfolders WHERE folderID = ?uuid",
+                                              database.Connection);
+                    result.Parameters.AddWithValue("?uuid", parentID.ToString());
+                    reader = result.ExecuteReader();
+                    while (reader.Read())          // Should be at most 1 result
+                        parentFolder.Add(readInventoryFolder(reader));
+                    reader.Close();
+                    result.Dispose();
+
+                    if (parentFolder.Count >= 1)   // No result means parent folder does not exist
+                    {
+                        if (parentFolder[0].ParentID == LLUUID.Zero) // We are querying the root folder
+                        {
+                            /* Get all of the agent's folders from the database, put them in a list and return it */
+                            result = new MySqlCommand("SELECT * FROM inventoryfolders WHERE agentID = ?uuid",
+                                                      database.Connection);
+                            result.Parameters.AddWithValue("?uuid", parentFolder[0].Owner.ToString());
+                            reader = result.ExecuteReader();
+                            while (reader.Read())
+                            {
+                                InventoryFolderBase curFolder = readInventoryFolder(reader);
+                                if (curFolder.ID != parentID) // Do not need to add the root node of the tree to the list
+                                    folders.Add(curFolder);
+                            }
+                            reader.Close();
+                            result.Dispose();
+                        } // if we are querying the root folder
+                        else // else we are querying a subtree of the inventory folder tree
+                        {
+                            /* Get all of the agent's folders from the database, put them all in a hash table
+                             * indexed by their parent ID */
+                            result = new MySqlCommand("SELECT * FROM inventoryfolders WHERE agentID = ?uuid",
+                                                      database.Connection);
+                            result.Parameters.AddWithValue("?uuid", parentFolder[0].Owner.ToString());
+                            reader = result.ExecuteReader();
+                            while (reader.Read())
+                            {
+                                InventoryFolderBase curFolder = readInventoryFolder(reader);
+                                if (hashtable.ContainsKey(curFolder.ParentID))      // Current folder already has a sibling 
+                                    hashtable[curFolder.ParentID].Add(curFolder);   // append to sibling list
+                                else // else current folder has no known (yet) siblings
+                                {
+                                    List<InventoryFolderBase> siblingList = new List<InventoryFolderBase>();
+                                    siblingList.Add(curFolder);
+                                    // Current folder has no known (yet) siblings
+                                    hashtable.Add(curFolder.ParentID, siblingList);
+                                }
+                            } // while more items to read from the database
+                            reader.Close();
+                            result.Dispose();
+
+                            // Set flag so we know we need to build the results from the hash table after
+                            // we unlock the database
+                            buildResultsFromHashTable = true;
+
+                        } // else we are querying a subtree of the inventory folder tree
+                    } // if folder parentID exists
+
+                    if (buildResultsFromHashTable)
+                    {
+                        /* We have all of the user's folders stored in a hash table indexed by their parent ID
+                         * and we need to return the requested subtree. We will build the requested subtree
+                         * by performing a breadth-first-search on the hash table */
+                        if (hashtable.ContainsKey(parentID))
+                            folders.AddRange(hashtable[parentID]);
+                        for (int i = 0; i < folders.Count; i++) // **Note: folders.Count is *not* static
+                            if (hashtable.ContainsKey(folders[i].ID))
+                                folders.AddRange(hashtable[folders[i].ID]);
+                    }
+                } // lock(database)
+                return folders;
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                m_log.Error(e.ToString());
+                return null;
+            }
         }
 
         /// <summary>

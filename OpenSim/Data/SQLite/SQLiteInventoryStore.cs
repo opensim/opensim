@@ -392,6 +392,7 @@ namespace OpenSim.Data.SQLite
                 {
                     folders.Add(buildFolder(row));
                 }
+
             }
         }
 
@@ -414,12 +415,100 @@ namespace OpenSim.Data.SQLite
         /// <returns></returns>
         public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
         {
+            /* Note: There are subtle changes between this implementation of getFolderHierarchy and the previous one
+                 * - We will only need to hit the database twice instead of n times.
+                 * - We assume the database is well-formed - no stranded/dangling folders, all folders in heirarchy owned
+                 *   by the same person, each user only has 1 inventory heirarchy
+                 * - The returned list is not ordered, instead of breadth-first ordered   
+               There are basically 2 usage cases for getFolderHeirarchy:
+                 1) Getting the user's entire inventory heirarchy when they log in
+                 2) Finding a subfolder heirarchy to delete when emptying the trash.                 
+               This implementation will pull all inventory folders from the database, and then prune away any folder that
+               is not part of the requested sub-heirarchy. The theory is that it is cheaper to make 1 request from the
+               database than to make n requests. This pays off only if requested heirarchy is large.
+               By making this choice, we are making the worst case better at the cost of making the best case worse
+                 - Francis
+             */
+
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
-            getInventoryFolders(ref folders, Util.ToRawUuidString(parentID));
+            DataRow[] folderRows = null, parentRow;
+            InventoryFolderBase parentFolder = null;
+            lock (ds)
+            {
+                /* Fetch the parent folder from the database to determine the agent ID.
+                 * Then fetch all inventory folders for that agent from the agent ID.
+                 */
+                DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
+                string selectExp = "UUID = '" + Util.ToRawUuidString(parentID) + "'";
+                parentRow = inventoryFolderTable.Select(selectExp); // Assume at most 1 result
+                if (parentRow.GetLength(0) >= 1)                    // No result means parent folder does not exist
+                {
+                    parentFolder = buildFolder(parentRow[0]);
+                    LLUUID agentID = parentFolder.Owner;
+                    selectExp = "agentID = '" + Util.ToRawUuidString(agentID) + "'";
+                    folderRows = inventoryFolderTable.Select(selectExp);
+                }
 
-            for (int i = 0; i < folders.Count; i++)
-                getInventoryFolders(ref folders, Util.ToRawUuidString(folders[i].ID));
+                if ( folderRows!=null && folderRows.GetLength(0)>=1 )   // No result means parent folder does not exist
+                {                                                       // or has no children
+                    /* if we're querying the root folder, just return an unordered list of all folders in the user's
+                     * inventory
+                     */
+                    if (parentFolder.ParentID == LLUUID.Zero)
+                    { 
+                        foreach (DataRow row in folderRows)
+                        {
+                            InventoryFolderBase curFolder = buildFolder(row);
+                            if (curFolder.ID != parentID)   // Return all folders except the parent folder of heirarchy 
+                                folders.Add(buildFolder(row));
+                        }
+                    } // If requesting root folder
+                    /* else we are querying a non-root folder. We currently have a list of all of the user's folders,
+                     * we must construct a list of all folders in the heirarchy below parentID.
+                     * Our first step will be to construct a hash table of all folders, indexed by parent ID.
+                     * Once we have constructed the hash table, we will do a breadth-first traversal on the tree using the
+                     * hash table to find child folders.
+                     */
+                    else
+                    {                                                         // Querying a non-root folder
 
+                        // Build a hash table of all user's inventory folders, indexed by each folder's parent ID
+                        Dictionary<LLUUID, List<InventoryFolderBase>> hashtable =
+                            new Dictionary<LLUUID, List<InventoryFolderBase>>(folderRows.GetLength(0));
+
+                        foreach (DataRow row in folderRows)
+                        {
+                            InventoryFolderBase curFolder = buildFolder(row);
+                            if (curFolder.ParentID != LLUUID.Zero) // Discard root of tree - not needed
+                            {
+                                if ( hashtable.ContainsKey(curFolder.ParentID ) )
+                                {
+                                    // Current folder already has a sibling - append to sibling list
+                                    hashtable[curFolder.ParentID].Add( curFolder );
+                                }
+                                else {
+                                    List<InventoryFolderBase> siblingList = new List<InventoryFolderBase>();
+                                    siblingList.Add( curFolder );
+                                    // Current folder has no known (yet) siblings
+                                    hashtable.Add( curFolder.ParentID, siblingList );
+                                }
+                            }
+                        } // For all inventory folders
+
+                        // Note: Could release the ds lock here - we don't access folderRows or the database anymore.
+                        // This is somewhat of a moot point as the callers of this function usually lock db anyways.
+
+                        if ( hashtable.ContainsKey( parentID ) ) // if requested folder does have children
+                            folders.AddRange( hashtable[parentID] );
+
+                        // BreadthFirstSearch build inventory tree **Note: folders.Count is *not* static
+                        for ( int i = 0; i < folders.Count; i++ )         
+                            if (hashtable.ContainsKey(folders[i].ID))     
+                                folders.AddRange(hashtable[folders[i].ID]);
+
+                    } // if requesting a subfolder heirarchy
+                } // if folder parentID exists and has children
+            } // lock ds
             return folders;
         }
 
