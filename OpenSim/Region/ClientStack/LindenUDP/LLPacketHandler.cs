@@ -240,6 +240,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return;
             }
 
+			packet.Header.Sequence = 0;
+
             lock (m_NeedAck)
             {
                 DropResend(id);
@@ -724,18 +726,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.TickCount = System.Environment.TickCount;
 
             // Assign sequence number here to prevent out of order packets
-            packet.Header.Sequence = NextPacketSequenceNumber();
+			if(packet.Header.Sequence == 0)
+			{
+				packet.Header.Sequence = NextPacketSequenceNumber();
 
-            lock (m_NeedAck)
-            {
-                // We want to see that packet arrive if it's reliable
-                if (packet.Header.Reliable)
-                {
-                    m_UnackedBytes += packet.ToBytes().Length;
-                    m_NeedAck[packet.Header.Sequence] = new AckData(packet, 
-                            item.Identifier);
-                }
-            }
+				lock (m_NeedAck)
+				{
+					// We want to see that packet arrive if it's reliable
+					if (packet.Header.Reliable)
+					{
+						m_UnackedBytes += packet.ToBytes().Length;
+						m_NeedAck[packet.Header.Sequence] = new AckData(packet, 
+								item.Identifier);
+					}
+				}
+			}
 
             // Actually make the byte array and send it
             try
