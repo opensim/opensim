@@ -954,43 +954,6 @@ namespace OpenSim.Region.Environment.Scenes
                 return LLUUID.Zero;
         }
 
-        protected internal void SendAllSceneObjectsToClient(ScenePresence presence)
-        {
-            List<EntityBase> EntityList = GetEntities();
-
-            foreach (EntityBase ent in EntityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    // Only send child agents stuff in their draw distance.
-                    // This will need to be done for every agent once we figure out
-                    // what we're going to use to store prim that agents already got
-                    // the initial update for and what we'll use to limit the
-                    // space we check for new objects on movement.
-
-                    if (presence.IsChildAgent && m_parentScene.m_seeIntoRegionFromNeighbor)
-                    {
-                        LLVector3 oLoc = ((SceneObjectGroup)ent).AbsolutePosition;
-                        float distResult = (float)Util.GetDistanceTo(presence.AbsolutePosition, oLoc);
-
-                        //m_log.Info("[DISTANCE]: " + distResult.ToString());
-
-                        if (distResult < presence.DrawDistance)
-                        {
-                            // Send Only if we don't already know about it.
-                            // KnownPrim also makes the prim known when called.
-                            if (!presence.KnownPrim(((SceneObjectGroup)ent).UUID))
-                                ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
-                        }
-                    }
-                    else
-                    {
-                        ((SceneObjectGroup)ent).ScheduleFullUpdateToAvatar(presence);
-                    }
-                }
-            }
-        }
-
         protected internal void ForEachClient(Action<IClientAPI> action)
         {
             lock (ScenePresences)

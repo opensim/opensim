@@ -3498,15 +3498,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_innerScene.RemovePhysicalPrim(num);
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="presence"></param>
-        public void SendAllSceneObjectsToClient(ScenePresence presence)
-        {
-            m_innerScene.SendAllSceneObjectsToClient(presence);
-        }
-
         //The idea is to have a group of method that return a list of avatars meeting some requirement
         // ie it could be all m_scenePresences within a certain range of the calling prim/avatar.
 

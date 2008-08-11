@@ -128,7 +128,6 @@ namespace OpenSim.Region.Environment.Scenes
         // Agent moves with a PID controller causing a force to be exerted.
         private bool m_newForce = false;
         private bool m_newCoarseLocations = true;
-        private bool m_gotAllObjectsInScene = false;
         private float m_health = 100f;
 
         private LLVector3 m_lastVelocity = LLVector3.Zero;
@@ -161,8 +160,6 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 m_autoPilotTarget = LLVector3.Zero;
         private bool m_sitAtAutoTarget = false;
 
-        private List<LLUUID> m_knownPrimUUID = new List<LLUUID>();
-
         // Agent's Draw distance.
         protected float m_DrawDistance = 0f;
 
@@ -193,6 +190,8 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 posLastSignificantMove = new LLVector3();
 
         private UpdateQueue m_partsUpdateQueue = new UpdateQueue();
+        private Queue<SceneObjectGroup> m_pendingObjects = null;
+
         private Dictionary<LLUUID, ScenePartUpdate> m_updateTimes = new Dictionary<LLUUID, ScenePartUpdate>();
 
         #region Properties
@@ -210,16 +209,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             set { m_movementflag = value; }
             get { return m_movementflag; }
-        }
-
-        public bool KnownPrim(LLUUID primID)
-        {
-            if (m_knownPrimUUID.Contains(primID))
-            {
-                return true;
-            }
-            m_knownPrimUUID.Add(primID);
-            return false;
         }
 
         public bool Updated
@@ -508,72 +497,93 @@ namespace OpenSim.Region.Environment.Scenes
             //}
             m_perfMonMS = System.Environment.TickCount;
 
-            if (!m_gotAllObjectsInScene)
+            if (m_pendingObjects == null)
             {
                 if (!m_isChildAgent || m_scene.m_seeIntoRegionFromNeighbor)
                 {
-                    m_scene.SendAllSceneObjectsToClient(this);
-                    m_gotAllObjectsInScene = true;
+                    m_pendingObjects = new Queue<SceneObjectGroup>();
+
+                    foreach (EntityBase e in m_scene.Entities.Values)
+                        if(e is SceneObjectGroup)
+                            m_pendingObjects.Enqueue((SceneObjectGroup)e);
                 }
             }
 
-            if (m_partsUpdateQueue.Count > 0)
+            while(m_pendingObjects.Count > 0 && m_partsUpdateQueue.Count < 60)
             {
-                bool runUpdate = true;
-                int updateCount = 0;
-                while (runUpdate)
-                {
-                    SceneObjectPart part = m_partsUpdateQueue.Dequeue();
-                    if (m_updateTimes.ContainsKey(part.UUID))
-                    {
-                        ScenePartUpdate update = m_updateTimes[part.UUID];
+                SceneObjectGroup g = m_pendingObjects.Dequeue();
 
-                        // We deal with the possibility that two updates occur at the same unix time
-                        // at the update point itself.
-                        if (update.LastFullUpdateTime < part.TimeStampFull)
-                        {
+                // This is where we should check for draw distance
+                // do culling and stuff. Problem with that is that until
+                // we recheck in movement, that won't work right.
+                // So it's not implemented now.
+                //
+
+                // Don't even queue if we have seent this one
+                //
+                if (!m_updateTimes.ContainsKey(g.UUID))
+                    g.ScheduleFullUpdateToAvatar(this);
+            }
+
+            int updateCount = 0;
+
+            while (m_partsUpdateQueue.Count > 0)
+            {
+                SceneObjectPart part = m_partsUpdateQueue.Dequeue();
+                if (m_updateTimes.ContainsKey(part.UUID))
+                {
+                    ScenePartUpdate update = m_updateTimes[part.UUID];
+
+                    // We deal with the possibility that two updates occur at
+                    // the same unix time at the update point itself.
+
+                    if (update.LastFullUpdateTime < part.TimeStampFull)
+                    {
 //                            m_log.DebugFormat(
 //                                "[SCENE PRESENCE]: Fully   updating prim {0}, {1} - part timestamp {2}",
 //                                part.Name, part.UUID, part.TimeStampFull);
 
-                            part.SendFullUpdate(ControllingClient, GenerateClientFlags(part.UUID));
+                        part.SendFullUpdate(ControllingClient,
+                                GenerateClientFlags(part.UUID));
 
-                            // We'll update to the part's timestamp rather than the current time to
-                            // avoid the race condition whereby the next tick occurs while we are
-                            // doing this update.  If this happened, then subsequent updates which occurred
-                            // on the same tick or the next tick of the last update would be ignored.
-                            update.LastFullUpdateTime = part.TimeStampFull;
+                        // We'll update to the part's timestamp rather than
+                        // the current time to avoid the race condition
+                        // whereby the next tick occurs while we are doing
+                        // this update. If this happened, then subsequent
+                        // updates which occurred on the same tick or the
+                        // next tick of the last update would be ignored.
 
-                            updateCount++;
-                        }
-                        else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
-                        {
+                        update.LastFullUpdateTime = part.TimeStampFull;
+
+                        updateCount++;
+                    }
+                    else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
+                    {
 //                            m_log.DebugFormat(
 //                                "[SCENE PRESENCE]: Tersely updating prim {0}, {1} - part timestamp {2}",
 //                                part.Name, part.UUID, part.TimeStampTerse);
 
-                            part.SendTerseUpdate(ControllingClient);
+                        part.SendTerseUpdate(ControllingClient);
 
-                            update.LastTerseUpdateTime = part.TimeStampTerse;
-                            updateCount++;
-                        }
-                    }
-                    else
-                    {
-                        //never been sent to client before so do full update
-                        part.SendFullUpdate(ControllingClient, GenerateClientFlags(part.UUID));
-                        ScenePartUpdate update = new ScenePartUpdate();
-                        update.FullID = part.UUID;
-                        update.LastFullUpdateTime = part.TimeStampFull;
-                        m_updateTimes.Add(part.UUID, update);
+                        update.LastTerseUpdateTime = part.TimeStampTerse;
                         updateCount++;
                     }
-
-                    if (m_partsUpdateQueue.Count < 1 || updateCount > 60)
-                    {
-                        runUpdate = false;
-                    }
                 }
+                else
+                {
+                    //never been sent to client before so do full update
+
+                    part.SendFullUpdate(ControllingClient,
+                            GenerateClientFlags(part.UUID));
+                    ScenePartUpdate update = new ScenePartUpdate();
+                    update.FullID = part.UUID;
+                    update.LastFullUpdateTime = part.TimeStampFull;
+                    m_updateTimes.Add(part.UUID, update);
+                    updateCount++;
+                }
+
+                if (updateCount > 60)
+                    break;
             }
 
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
@@ -631,15 +641,13 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.SwapRootAgentCount(false);
             m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(m_uuid);
             m_scene.AddCapsHandler(m_uuid);
-            //if (!m_gotAllObjectsInScene)
-            //{
-            m_scene.SendAllSceneObjectsToClient(this);
+
+            // On the next prim update, all objects will be sent
+            //
+            m_pendingObjects = null;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
             m_scene.CommsManager.UserService.UpdateUserCurrentRegion(UUID, m_scene.RegionInfo.RegionID, m_scene.RegionInfo.RegionHandle);
-
-            //m_gotAllObjectsInScene = true;
-            //}
         }
 
         /// <summary>
@@ -776,7 +784,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_isChildAgent = false;
 
-                //this.m_scene.SendAllSceneObjectsToClient(this.ControllingClient);
                 MakeRootAgent(AbsolutePosition, false);
             }
         }
@@ -2043,7 +2050,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
             if (m_scene.m_seeIntoRegionFromNeighbor)
-                m_scene.SendAllSceneObjectsToClient(this);
+                m_pendingObjects = null;
+
             //cAgentData.AVHeight;
             //cAgentData.regionHandle;
             //m_velocity = cAgentData.Velocity;
@@ -2248,10 +2256,6 @@ namespace OpenSim.Region.Environment.Scenes
                     m_attachments.Clear();
                 }
             }
-            lock (m_knownPrimUUID)
-            {
-                m_knownPrimUUID.Clear();
-            }
             lock (m_knownChildRegions)
             {
                 m_knownChildRegions.Clear();
@@ -2398,7 +2402,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_newForce = (bool)info.GetValue("m_newForce", typeof(bool));
             //m_newAvatar = (bool)info.GetValue("m_newAvatar", typeof(bool));
             m_newCoarseLocations = (bool)info.GetValue("m_newCoarseLocations", typeof(bool));
-            m_gotAllObjectsInScene = (bool)info.GetValue("m_gotAllObjectsInScene", typeof(bool));
             m_avHeight = (float)info.GetValue("m_avHeight", typeof(float));
             crossingFromRegion = (ulong)info.GetValue("crossingFromRegion", typeof(ulong));
 
@@ -2503,13 +2506,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_state = (byte)info.GetValue("m_state", typeof(byte));
 
-            List<Guid> knownPrimUUID_work = (List<Guid>)info.GetValue("m_knownPrimUUID", typeof(List<Guid>));
-
-            foreach (Guid id in knownPrimUUID_work)
-            {
-                m_knownPrimUUID.Add(new LLUUID(id));
-            }
-
             //System.Console.WriteLine("ScenePresence Deserialize END");
         }
 
@@ -2551,7 +2547,7 @@ namespace OpenSim.Region.Environment.Scenes
             info.AddValue("m_newForce", m_newForce);
             //info.AddValue("m_newAvatar", m_newAvatar);
             info.AddValue("m_newCoarseLocations", m_newCoarseLocations);
-            info.AddValue("m_gotAllObjectsInScene", m_gotAllObjectsInScene);
+            info.AddValue("m_gotAllObjectsInScene", false);
             info.AddValue("m_avHeight", m_avHeight);
 
             // info.AddValue("m_regionInfo", m_regionInfo);
@@ -2649,11 +2645,6 @@ namespace OpenSim.Region.Environment.Scenes
             info.AddValue("m_state", m_state);
 
             List<Guid> knownPrimUUID_work = new List<Guid>();
-
-            foreach (LLUUID id in m_knownPrimUUID)
-            {
-                knownPrimUUID_work.Add(id.UUID);
-            }
 
             info.AddValue("m_knownPrimUUID", knownPrimUUID_work);
         }
