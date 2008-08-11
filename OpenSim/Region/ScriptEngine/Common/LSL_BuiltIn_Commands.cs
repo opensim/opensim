@@ -2192,8 +2192,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
         {
-			// This just calls llRezAtRoot for now....  Lol.
-			llRezAtRoot( inventory, pos, vel, rot, param );
+            llRezAtRoot(inventory, pos, vel, rot, param);
         }
 
         public void llLookAt(LSL_Types.Vector3 target, double strength, double damping)
@@ -3214,10 +3213,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local)
         {
             m_host.AddScriptLPS(1);
-			SceneObjectPart targ = World.GetSceneObjectPart(target);
-			if( targ == null )
-				return;
-			targ.ApplyImpulse(new LLVector3((float)impulse.x, (float)impulse.y, (float)impulse.z), local != 0);
+            SceneObjectPart targ = World.GetSceneObjectPart(target);
+            if( targ == null )
+                return;
+            targ.ApplyImpulse(new LLVector3((float)impulse.x, (float)impulse.y, (float)impulse.z), local != 0);
         }
 
         public void llPassCollisions(int pass)
