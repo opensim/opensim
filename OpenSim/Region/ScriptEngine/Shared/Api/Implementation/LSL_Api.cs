@@ -1985,7 +1985,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             NotImplemented("llMakeFire");
         }
 
-        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
+        public void llRezAtRoot(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
         {
             m_host.AddScriptLPS(1);
             //NotImplemented("llRezObject");
@@ -2046,6 +2046,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (!found)
                 llSay(0, "Could not find object " + inventory);
+        }
+
+        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
+        {
+			// This just calls llRezAtRoot for now....  Lol.
+            llRezAtRoot( inventory, pos, vel, rot, param );
         }
 
         public void llLookAt(LSL_Types.Vector3 target, double strength, double damping)
@@ -3150,7 +3156,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llPushObject");
+			SceneObjectPart targ = World.GetSceneObjectPart(target);
+			if( targ == null )
+				return;
+			targ.ApplyImpulse(new LLVector3((float)impulse.x, (float)impulse.y, (float)impulse.z), local != 0);
         }
 
         public void llPassCollisions(int pass)
@@ -6234,13 +6243,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             return tokens;
-        }
-
-        public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity,
-                                LSL_Types.Quaternion rot, int param)
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llRezAtRoot");
         }
 
         public LSL_Types.LSLInteger llGetObjectPermMask(int mask)

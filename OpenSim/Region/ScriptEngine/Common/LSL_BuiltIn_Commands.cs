@@ -2133,10 +2133,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             Deprecated("llMakeFire");
         }
 
-        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
+        public void llRezAtRoot(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
         {
             m_host.AddScriptLPS(1);
-            //NotImplemented("llRezObject");
             bool found = false;
 
             // Instead of using return;, I'm using continue; because in our TaskInventory implementation
@@ -2189,6 +2188,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             if (!found)
                 llSay(0, "Could not find object " + inventory);
+        }
+
+        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
+        {
+			// This just calls llRezAtRoot for now....  Lol.
+			llRezAtRoot( inventory, pos, vel, rot, param );
         }
 
         public void llLookAt(LSL_Types.Vector3 target, double strength, double damping)
@@ -3209,7 +3214,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llPushObject");
+			SceneObjectPart targ = World.GetSceneObjectPart(target);
+			if( targ == null )
+				return;
+			targ.ApplyImpulse(new LLVector3((float)impulse.x, (float)impulse.y, (float)impulse.z), local != 0);
         }
 
         public void llPassCollisions(int pass)
@@ -6457,13 +6465,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
             return tokens;
-        }
-
-        public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity,
-                                LSL_Types.Quaternion rot, int param)
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llRezAtRoot");
         }
 
         public LSL_Types.LSLInteger llGetObjectPermMask(int mask)
