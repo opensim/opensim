@@ -504,12 +504,12 @@ namespace OpenSim.Region.Environment.Scenes
                     m_pendingObjects = new Queue<SceneObjectGroup>();
 
                     foreach (EntityBase e in m_scene.Entities.Values)
-                        if(e is SceneObjectGroup)
+                        if (e is SceneObjectGroup)
                             m_pendingObjects.Enqueue((SceneObjectGroup)e);
                 }
             }
 
-            while(m_pendingObjects.Count > 0 && m_partsUpdateQueue.Count < 60)
+            while (m_pendingObjects.Count > 0 && m_partsUpdateQueue.Count < 60)
             {
                 SceneObjectGroup g = m_pendingObjects.Dequeue();
 

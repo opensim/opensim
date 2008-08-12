@@ -805,7 +805,7 @@ namespace OpenSim.Data.MySQL
                             if (hashtable.ContainsKey(folders[i].ID))
                                 folders.AddRange(hashtable[folders[i].ID]);
                     }
-                } // lock(database)
+                } // lock (database)
                 return folders;
             }
             catch (Exception e)

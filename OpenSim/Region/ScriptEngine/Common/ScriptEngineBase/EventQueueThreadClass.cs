@@ -321,7 +321,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                                 {
                                                     // ...if it is there. With mono --debug OpenSim.exe,
                                                     // you'll get the error in the format filename:linenumber
-                                                    if(colon + 6 < t.Length && t.Substring(colon + 1, 5).Equals("line ")) colon += 6;
+                                                    if (colon + 6 < t.Length && t.Substring(colon + 1, 5).Equals("line ")) colon += 6;
                                                     else ++colon; // else only skip the colon
                                                     line = " at line " + Convert.ToInt32(t.Substring(colon)).ToString();
                                                 }

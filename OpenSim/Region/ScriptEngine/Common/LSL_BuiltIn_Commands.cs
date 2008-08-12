@@ -3214,7 +3214,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             SceneObjectPart targ = World.GetSceneObjectPart(target);
-            if( targ == null )
+            if (targ == null)
                 return;
             targ.ApplyImpulse(new LLVector3((float)impulse.x, (float)impulse.y, (float)impulse.z), local != 0);
         }
