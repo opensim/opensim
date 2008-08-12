@@ -85,8 +85,12 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         private IDictionary<LLUUID, IList<InventoryFolderImpl>> pendingCategorizationFolders
             = new Dictionary<LLUUID, IList<InventoryFolderImpl>>();
-        
-        public LLUUID SessionID { get { return m_session_id; } }
+
+        public LLUUID SessionID
+        {
+            get { return m_session_id; }
+            set { m_session_id = value; }
+        }
         private LLUUID m_session_id = LLUUID.Zero;        
         
         /// <summary>
@@ -98,21 +102,6 @@ namespace OpenSim.Framework.Communications.Cache
         {
             m_commsManager = commsManager;
             m_userProfile = userProfile;
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="commsManager"></param>
-        /// <param name="userProfile"></param>
-        /// <param name="sessionId">
-        /// Session id of the user.  This is used in subsequent security checks.
-        /// </param>
-        public CachedUserInfo(CommunicationsManager commsManager, UserProfileData userProfile, LLUUID sessionId)
-        {
-            m_commsManager = commsManager;
-            m_userProfile = userProfile;
-            m_session_id = sessionId;
         }
 
         /// <summary>

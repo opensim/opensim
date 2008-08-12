@@ -63,58 +63,10 @@ namespace OpenSim.Framework.Communications.Cache
         /// A new user has moved into a region in this instance so retrieve their profile from the user service.
         /// </summary>
         /// <param name="userID"></param>
-        public void AddNewUser(IClientAPI remoteClient)
-        {
-            m_log.DebugFormat("[USER CACHE]: Adding user profile for {0} {1}", remoteClient.Name, remoteClient.AgentId);
-            
-            // Potential fix - Multithreading issue.
-            lock (m_userProfiles)
-            {
-                if (!m_userProfiles.ContainsKey(remoteClient.AgentId))
-                {
-                    UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(remoteClient.AgentId);
-                    CachedUserInfo userInfo = new CachedUserInfo(m_commsManager, userProfile, remoteClient.SessionId);
-
-                    if (userInfo.UserProfile != null)
-                    {
-                        // The inventory for the user will be populated when they actually enter the scene
-                        m_userProfiles.Add(remoteClient.AgentId, userInfo);
-                    }
-                    else
-                    {
-                        m_log.ErrorFormat("[USER CACHE]: User profile for user {0} not found.", remoteClient.AgentId);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// A new user has moved into a region in this instance so retrieve their profile from the user service.
-        /// </summary>
-        /// <param name="userID"></param>
         public void AddNewUser(LLUUID userID)
         {
-            m_log.DebugFormat("[USER CACHE]: Adding user profile for {0}", userID);            
-            
-            // Potential fix - Multithreading issue.
-            lock (m_userProfiles)
-            {
-                if (!m_userProfiles.ContainsKey(userID))
-                {
-                    UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(userID);
-                    CachedUserInfo userInfo = new CachedUserInfo(m_commsManager, userProfile);
-
-                    if (userInfo.UserProfile != null)
-                    {
-                        // The inventory for the user will be populated when they actually enter the scene
-                        m_userProfiles.Add(userID, userInfo);
-                    }
-                    else
-                    {
-                        m_log.ErrorFormat("[USER CACHE]: User profile for user {0} not found.", userID);
-                    }
-                }
-            }
+            m_log.DebugFormat("[USER CACHE]: Adding user profile for {0}", userID);
+            GetUserDetails(userID);
         }
 
         /// <summary>
@@ -176,10 +128,28 @@ namespace OpenSim.Framework.Communications.Cache
         /// <returns>null if no user details are found</returns>
         public CachedUserInfo GetUserDetails(LLUUID userID)
         {
-            if (m_userProfiles.ContainsKey(userID))
-                return m_userProfiles[userID];
-            else
-                return null;
+            lock (m_userProfiles)
+            {
+                if (m_userProfiles.ContainsKey(userID))
+                {
+                    return m_userProfiles[userID];
+                }
+                else
+                {
+                    UserProfileData userprofile = m_commsManager.UserService.GetUserProfile(userID);
+                    if (userprofile != null)
+                    {
+                        CachedUserInfo userinfo = new CachedUserInfo(m_commsManager, userprofile);
+                        m_userProfiles.Add(userID, userinfo);
+                        return userinfo;
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat("[USER CACHE]: User profile for user {0} not found.", userID);
+                        return null;
+                    }
+                }
+            }
         }
 
         /// <summary>

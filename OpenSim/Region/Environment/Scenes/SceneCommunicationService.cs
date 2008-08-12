@@ -627,6 +627,11 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             SendCloseChildAgentConnections(avatar.UUID,avatar.GetKnownRegionList());
                         }
+                        // if (teleport success) // seems to be always success here
+                        // the user may change thier profile information in other region,
+                        // so the userinfo in UserProfileCache is not reliable any more, delete it
+                        m_commsProvider.UserProfileCacheService.RemoveUser(avatar.UUID);
+                        m_log.InfoFormat("User {0} is going to another region, profile cache removed", avatar.UUID);
                     }
                     else
                     {

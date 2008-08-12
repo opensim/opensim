@@ -2015,7 +2015,7 @@ namespace OpenSim.Region.Environment.Scenes
                     "[SCENE]: Adding new {0} agent {1} {2} in {3}", 
                     (child ? "child" : "root"), client.Name, client.AgentId, RegionInfo.RegionName);
 
-                CommsManager.UserProfileCacheService.AddNewUser(client);
+                CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
 
                 CreateAndAddScenePresence(client, child);
             }
@@ -2455,6 +2455,9 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.circuitcode, agent.AgentID, RegionInfo.RegionName);
 
                 m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+                // rewrite session_id
+                CachedUserInfo userinfo = CommsManager.UserProfileCacheService.GetUserDetails(agent.AgentID);
+                userinfo.SessionID = agent.SessionID;
             }
             else
             {
