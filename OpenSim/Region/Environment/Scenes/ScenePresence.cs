@@ -887,9 +887,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             if ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
             {
-                // TODO: This doesn't enable the "stand up" button on the viewer yet (probably a parent ID problem)
-                // m_parentID = ???
-                TrySetMovementAnimation("SIT_GROUND");
+                // TODO: This doesn't prevent the user from walking yet.
+                // Setting parent ID would fix this, if we knew what value
+                // to use.  Or we could add a m_isSitting variable.
+
+                TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
             }
             // In the future, these values might need to go global.
             // Here's where you get them.
