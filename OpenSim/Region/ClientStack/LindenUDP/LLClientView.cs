@@ -2666,7 +2666,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 edata.EstateOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             else
                 edata.EstateOwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-            edata.EstateName = m_scene.RegionInfo.EstateSettings.EstateName;
+            edata.EstateName = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.EstateName);
             einfopack.Data = edata;
             this.OutPacket(einfopack, ThrottleOutPacketType.Task);
         }
