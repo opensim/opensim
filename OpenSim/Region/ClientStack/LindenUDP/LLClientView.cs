@@ -454,17 +454,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="shutdownCircuit"></param>
         public void Close(bool shutdownCircuit)
         {
-            // Pull Client out of Region
-            m_log.Info("[CLIENT]: Close has been called");
+            m_log.DebugFormat(
+                "[CLIENT]: Close has been called with shutdownCircuit = {0} on scene {1}", 
+                shutdownCircuit, m_scene.RegionInfo.RegionName);
+            
             m_PacketHandler.Flush();
 
-            //raiseevent on the packet server to Shutdown the circuit
+            // raise an event on the packet server to Shutdown the circuit
+            // Now, if we raise the event then the packet server will call this method itself, so don't try cleanup
+            // here otherwise we'll end up calling it twice.
+            // FIXME: In truth, I might be wrong but this whole business of calling this method twice (with different args) looks
+            // horribly tangly.  Hopefully it should be possible to greatly simplify it.
             if (shutdownCircuit)
             {
                 OnConnectionClosed(this);
             }
-
-            CloseCleanup(shutdownCircuit);
+            else
+            {
+                CloseCleanup(shutdownCircuit);
+            }
         }
 
         public void Kick(string message)

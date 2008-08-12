@@ -2259,6 +2259,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 childagentYN = avatar.IsChildAgent;
             }
+            
             try
             {
                 m_log.DebugFormat(
@@ -2295,6 +2296,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // We don't know which count to remove it from
                 // Avatar is already disposed :/
             }
+            
             m_eventManager.TriggerOnRemovePresence(agentID);
             Broadcast(delegate(IClientAPI client)
                       {
@@ -2631,6 +2633,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         m_innerScene.removeUserCount(true);
                     }
+                    
                     // Tell a single agent to disconnect from the region.
                     presence.ControllingClient.SendShutdownConnectionNotice();
 

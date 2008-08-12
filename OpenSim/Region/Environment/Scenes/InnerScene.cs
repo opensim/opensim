@@ -584,26 +584,26 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (Entities)
             {
-                if (Entities.Remove(agentID))
-                {
-                    //m_log.InfoFormat("[SCENE] Removed scene presence {0} from entities list", agentID);
-                }
-                else
+                if (!Entities.Remove(agentID))
                 {
                     m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene Entities list", agentID);
                 }
+//                else
+//                {
+//                    m_log.InfoFormat("[SCENE] Removed scene presence {0} from entities list", agentID);
+//                }
             }
 
             lock (ScenePresences)
             {
-                if (ScenePresences.Remove(agentID))
+                if (!ScenePresences.Remove(agentID))
                 {
-                    //m_log.InfoFormat("[SCENE] Removed scene presence {0}", agentID);
+                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);                                        
                 }
-                else
-                {
-                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
-                }
+//                else
+//                {
+//                    m_log.InfoFormat("[SCENE] Removed scene presence {0} from scene presences list", agentID);
+//                }
             }
         }
 
