@@ -64,7 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal uint m_localID;
         internal LLUUID m_itemID;
         internal bool throwErrorOnNotImplemented = true;
-        internal static AsyncCommandManager AsyncCommands = null;
+        internal AsyncCommandManager AsyncCommands = null;
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
         {
