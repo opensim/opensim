@@ -4241,26 +4241,25 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.LSLInteger llOverMyLand(string id)
         {
-
             m_host.AddScriptLPS(1);
             LLUUID key = new LLUUID();
             if (LLUUID.TryParse(id,out key))
             {
-                SceneObjectPart obj = new SceneObjectPart();
-                obj = World.GetSceneObjectPart(World.Entities[key].LocalId);
-                if (obj.OwnerID == World.GetLandOwner(obj.AbsolutePosition.X, obj.AbsolutePosition.Y))
+                ScenePresence presence = World.GetScenePresence(key);
+                if (presence != null) // object is an avatar
                 {
-                    return 1;
+                    if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
+                        return 1;
                 }
-                else
+                else // object is not an avatar
                 {
-                    return 0;
+                    SceneObjectPart obj = World.GetSceneObjectPart(key);
+                    if (obj != null)
+                        if (m_host.OwnerID == World.GetLandOwner(obj.AbsolutePosition.X, obj.AbsolutePosition.Y))
+                            return 1;
                 }
             }
-            else
-            {
-                return 0;
-            }
+            return 0;
         }
 
         public string llGetLandOwnerAt(LSL_Types.Vector3 pos)
