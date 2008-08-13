@@ -107,10 +107,10 @@ physical_prim = true
 ; Example:
 ;script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll,OpenSim.Region.ScriptEngine.RemoteServer.dll
 ;
-; This is the current and most stable ScriptEngine:
+; This is the current ScriptEngine:
 script_engine = "OpenSim.Region.ScriptEngine.DotNetEngine.dll"
 
-; This is the new XEngine (experimental)
+; This is the new XEngine
 ;script_engine = "OpenSim.Region.ScriptEngine.XEngine.dll"
 
 ;Experimental remote ScriptServer plugin (does not currently work):
@@ -596,7 +596,7 @@ AutoSavePeriod = 15 ; Number of minutes between autosave backups
 
 
 [XEngine]
-; Use the newer LSL to CS compiler (experimental)
+; Use the newer LSL to CS compiler (under test)
 UseNewCompiler = true
 ; How many threads to keep alive even if nothing is happening
 MinThreads = 2
@@ -617,7 +617,7 @@ WriteScriptSourceToDebugFile = false
 ; Default language for scripts
 DefaultCompileLanguage = lsl
 ; List of allowed languages (lsl,vb,js,cs)
-AllowedCompilers = lsl
+AllowedCompilers = lsl,vb,js,cs
 ; Compile debug info (line numbers) into the script assemblies
 CompileWithDebugInformation = true
 ; Allow the use of os* functions (some are dangerous)
