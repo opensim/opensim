@@ -113,6 +113,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             }
         }
 
+        // disable warning on l1, don't see how we can
+        // code this differently
+        #pragma warning disable 0168
+
         /// <summary>
         /// For each result, unify the _freeVariables and unify bagArrayVariable with the associated bag.
         /// </summary>
@@ -127,27 +131,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 // No unbound free variables, so we only filled one bag.  If empty, bagof fails.
                 if (_findallBagArray.Count > 0)
                 {
-// disable warning: don't see how we can code this differently short
-// of rewriting the whole thing
-#pragma warning disable 0168
                     foreach (bool l1 in bagArrayVariable.unify(_findallBagArray))
                         yield return false;
-#pragma warning restore 0168
                 }
             }
             else
             {
                 foreach (KeyValuePair<object[], List<object>> valuesAndBag in _bagForFreeVariables)
                 {
-// disable warning: don't see how we can code this differently short
-// of rewriting the whole thing
-#pragma warning disable 0168
                     foreach (bool l1 in YP.unifyArrays(_freeVariables, valuesAndBag.Key))
                     {
                         foreach (bool l2 in bagArrayVariable.unify(valuesAndBag.Value))
                             yield return false;
                     }
-#pragma warning restore 0168
                     // Debug: Should we free memory of the answers already returned?
                 }
             }
@@ -161,15 +157,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         public IEnumerable<bool> result(object Bag)
         {
             Variable bagArrayVariable = new Variable();
-// disable warning: don't see how we can code this differently short
-// of rewriting the whole thing
-#pragma warning disable 0168
             foreach (bool l1 in resultArray(bagArrayVariable))
             {
                 foreach (bool l2 in YP.unify(Bag, ListPair.make((List<object>)bagArrayVariable.getValue())))
                     yield return false;
             }
-#pragma warning restore 0168
         }
 
         /// <summary>
@@ -181,9 +173,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         public IEnumerable<bool> resultSet(object Bag)
         {
             Variable bagArrayVariable = new Variable();
-// disable warning: don't see how we can code this differently short
-// of rewriting the whole thing
-#pragma warning disable 0168
             foreach (bool l1 in resultArray(bagArrayVariable))
             {
                 List<object> bagArray = (List<object>)bagArrayVariable.getValue();
@@ -191,19 +180,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 foreach (bool l2 in YP.unify(Bag, ListPair.makeWithoutRepeatedTerms(bagArray)))
                     yield return false;
             }
-#pragma warning restore 0168
         }
 
         public static IEnumerable<bool> bagofArray
             (object Template, object Goal, IEnumerable<bool> goalIterator, Variable bagArrayVariable)
         {
             BagofAnswers bagOfAnswers = new BagofAnswers(Template, Goal);
-// disable warning: don't see how we can code this differently short
-// of rewriting the whole thing
-#pragma warning disable 0168
             foreach (bool l1 in goalIterator)
                 bagOfAnswers.add();
-#pragma warning restore 0168
             return bagOfAnswers.resultArray(bagArrayVariable);
         }
 
@@ -211,12 +195,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             (object Template, object Goal, IEnumerable<bool> goalIterator, object Bag)
         {
             BagofAnswers bagOfAnswers = new BagofAnswers(Template, Goal);
-// disable warning: don't see how we can code this differently short
-// of rewriting the whole thing
-#pragma warning disable 0168
             foreach (bool l1 in goalIterator)
                 bagOfAnswers.add();
-#pragma warning restore 0168
             return bagOfAnswers.result(Bag);
         }
 
@@ -224,14 +204,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             (object Template, object Goal, IEnumerable<bool> goalIterator, object Bag)
         {
             BagofAnswers bagOfAnswers = new BagofAnswers(Template, Goal);
-// disable warning: don't see how we can code this differently short
-// of rewriting the whole thing
-#pragma warning disable 0168
             foreach (bool l1 in goalIterator)
                 bagOfAnswers.add();
-#pragma warning restore 0168
             return bagOfAnswers.resultSet(Bag);
         }
+        #pragma warning restore 0168
 
         /// <summary>
         /// A TermArrayEqualityComparer implements IEqualityComparer to compare two object arrays using YP.termEqual.

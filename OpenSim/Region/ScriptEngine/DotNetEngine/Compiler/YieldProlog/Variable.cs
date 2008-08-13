@@ -43,6 +43,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         bool ground();
     }
 
+    /// <summary>
+    /// A Variable is passed to a function so that it can be unified with
+    /// value or another Variable. See getValue and unify for details.
+    /// </summary>
     public class Variable : IUnifiable
     {
         // Use _isBound separate from _value so that it can be bound to any value,
@@ -50,6 +54,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         private bool _isBound = false;
         private object _value;
 
+        /// <summary>
+        /// If this Variable is unbound, then just return this Variable.
+        /// Otherwise, if this has been bound to a value with unify, return the value.
+        /// If the bound value is another Variable, this follows the "variable chain"
+        /// to the end and returns the final value, or the final Variable if it is unbound.
+        /// For more details, see http://yieldprolog.sourceforge.net/tutorial1.html
+        /// </summary>
+        /// <returns></returns>
         public object getValue()
         {
             if (!_isBound)
@@ -68,6 +80,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             return result;
         }
 
+        /// <summary>
+        /// If this Variable is bound, then just call YP.unify to unify this with arg.
+        /// (Note that if arg is an unbound Variable, then YP.unify will bind it to
+        /// this Variable's value.)
+        /// Otherwise, bind this Variable to YP.getValue(arg) and yield once.  After the
+        /// yield, return this Variable to the unbound state.
+        /// For more details, see http://yieldprolog.sourceforge.net/tutorial1.html
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
         public IEnumerable<bool> unify(object arg)
         {
             if (!_isBound)
@@ -105,7 +127,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         {
             object value = getValue();
             if (value == this)
-                return "Variable";
+                return "_Variable";
             else
                 return getValue().ToString();
         }

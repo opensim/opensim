@@ -98,6 +98,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             return make(Atom.a(name), args);
         }
 
+        /// <summary>
+        /// If arg is another Functor, then succeed (yield once) if this and arg have the
+        /// same name and all functor args unify, otherwise fail (don't yield).
+        /// If arg is a Variable, then call its unify to unify with this.
+        /// Otherwise fail (don't yield).
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
         public IEnumerable<bool> unify(object arg)
         {
             arg = YP.getValue(arg);

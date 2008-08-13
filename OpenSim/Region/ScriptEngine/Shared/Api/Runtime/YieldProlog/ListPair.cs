@@ -132,6 +132,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         /// <summary>
         /// Return an array of the elements in list or null if it is not
         /// a proper list.  If list is Atom.NIL, return an array of zero elements.
+        /// If the list or one of the tails of the list is Variable, raise an instantiation_error.
         /// This does not call YP.getValue on each element.
         /// </summary>
         /// <param name="list"></param>
@@ -143,10 +144,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 return new object[0];
 
             List<object> result = new List<object>();
-            for (object element = list;
-                 element is Functor2 && ((Functor2)element)._name == Atom.DOT;
-                 element = YP.getValue(((Functor2)element)._arg2))
+            object element = list;
+            while (true) {
+                if (element == Atom.NIL)
+                    break;
+                if (element is Variable)
+                    throw new PrologException(Atom.a("instantiation_error"),
+                        "List tail is an unbound variable");
+                if (!(element is Functor2 && ((Functor2)element)._name == Atom.DOT))
+                    // Not a proper list.
+                    return null;
                 result.Add(((Functor2)element)._arg1);
+                element = YP.getValue(((Functor2)element)._arg2);
+            }
 
             if (result.Count <= 0)
                 return null;

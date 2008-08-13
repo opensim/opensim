@@ -52,6 +52,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         private static TextWriter _outputStream = System.Console.Out;
         private static TextReader _inputStream = System.Console.In;
         private static IndexedAnswers _operatorTable = null;
+        private static Dictionary<string, object> _prologFlags = new Dictionary<string, object>();
+        public const int MAX_ARITY = 255;
 
         /// <summary>
         /// An IClause is used so that dynamic predicates can call match.
@@ -62,6 +64,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             IEnumerable<bool> clause(object Head, object Body);
         }
 
+        /// <summary>
+        /// If value is a Variable, then return its getValue.  Otherwise, just
+        /// return value.  You should call YP.getValue on any object that
+        /// may be a Variable to get the value to pass to other functions in
+        /// your system that are not part of Yield Prolog, such as math functions
+        /// or file I/O.
+        /// For more details, see http://yieldprolog.sourceforge.net/tutorial1.html
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static object getValue(object value)
         {
             if (value is Variable)
@@ -70,6 +82,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 return value;
         }
 
+        /// <summary>
+        /// If arg1 or arg2 is an object with a unify method (such as Variable or
+        /// Functor) then just call its unify with the other argument.  The object's
+        /// unify method will bind the values or check for equals as needed.
+        /// Otherwise, both arguments are "normal" (atomic) values so if they
+        /// are equal then succeed (yield once), else fail (don't yield).
+        /// For more details, see http://yieldprolog.sourceforge.net/tutorial1.html
+        /// </summary>
+        /// <param name="arg1"></param>
+        /// <param name="arg2"></param>
+        /// <returns></returns>
         public static IEnumerable<bool> unify(object arg1, object arg2)
         {
             arg1 = getValue(arg1);
@@ -622,6 +645,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 if (args.Length == 0)
                     // Return the Name, even if it is not an Atom.
                     return YP.unify(Term, Name);
+                if (args.Length > MAX_ARITY)
+                    throw new PrologException
+                        (new Functor1("representation_error", Atom.a("max_arity")),
+                         "Functor arity " + args.Length + " may not be greater than " + MAX_ARITY);
                 if (!atom(Name))
                     throw new PrologException
                         (new Functor2("type_error", Atom.a("atom"), Name),
@@ -666,6 +693,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 }
                 else
                 {
+                    if ((int)Arity > MAX_ARITY)
+                        throw new PrologException
+                            (new Functor1("representation_error", Atom.a("max_arity")),
+                             "Functor arity " + Arity + " may not be greater than " + MAX_ARITY);
                     if (!(FunctorName is Atom))
                         throw new PrologException
                             (new Functor2("type_error", Atom.a("atom"), FunctorName), "FunctorName is not an atom");
@@ -903,8 +934,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 _operatorTable.addAnswer(new object[] { 20, Atom.a("xfx"), Atom.a("<--") });
             }
 
-            foreach (bool l1 in _operatorTable.match(new object[] { Priority, Specifier, Operator }))
-                yield return false;
+            return _operatorTable.match(new object[] { Priority, Specifier, Operator });
         }
 
         public static IEnumerable<bool> atom_length(object atom, object Length)
@@ -1491,9 +1521,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             return Term is Functor1 || Term is Functor2 || Term is Functor3 || Term is Functor;
         }
 
+        /// <summary>
+        /// If input is a TextReader, use it. If input is an Atom or String, create a StreamReader with the
+        /// input as the filename.  If input is a Prolog list, then read character codes from it.
+        /// </summary>
+        /// <param name="input"></param>
         public static void see(object input)
         {
             input = YP.getValue(input);
+            if (input is Variable)
+                throw new PrologException(Atom.a("instantiation_error"), "Arg is an unbound variable");
+
+            if (input == null)
+            {
+                _inputStream = null;
+                return;
+            }
             if (input is TextReader)
             {
                 _inputStream = (TextReader)input;
@@ -1509,21 +1552,48 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 _inputStream = new StreamReader((String)input);
                 return;
             }
+            else if (input is Functor2 && ((Functor2)input)._name == Atom.DOT)
+            {
+                _inputStream = new CodeListReader(input);
+                return;
+            }
             else
-                throw new InvalidOperationException("Can't open stream for " + input);
+                throw new PrologException
+                    (new Functor2("domain_error", Atom.a("stream_or_alias"), input),
+                     "Input stream specifier not recognized");
         }
 
         public static void seen()
         {
+            if (_inputStream == null)
+                return;
             if (_inputStream == Console.In)
                 return;
             _inputStream.Close();
             _inputStream = Console.In;
         }
 
+        public static IEnumerable<bool> current_input(object Stream)
+        {
+            return YP.unify(Stream, _inputStream);
+        }
+
+        /// <summary>
+        /// If output is a TextWriter, use it.  If output is an Atom or a String, create a StreamWriter
+        /// with the input as the filename.
+        /// </summary>
+        /// <param name="output"></param>
         public static void tell(object output)
         {
             output = YP.getValue(output);
+            if (output is Variable)
+                throw new PrologException(Atom.a("instantiation_error"), "Arg is an unbound variable");
+
+            if (output == null)
+            {
+                _outputStream = null;
+                return;
+            }
             if (output is TextWriter)
             {
                 _outputStream = (TextWriter)output;
@@ -1540,11 +1610,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 return;
             }
             else
-                throw new InvalidOperationException("Can't open stream for " + output);
+                throw new PrologException
+                    (new Functor2("domain_error", Atom.a("stream_or_alias"), output),
+                     "Can't open stream for " + output);
         }
 
         public static void told()
         {
+            if (_outputStream == null)
+                return;
             if (_outputStream == Console.Out)
                 return;
             _outputStream.Close();
@@ -1558,6 +1632,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
         public static void write(object x)
         {
+            if (_outputStream == null)
+                return;
             x = YP.getValue(x);
             if (x is double)
                 _outputStream.Write(doubleToString((double)x));
@@ -1591,6 +1667,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
         public static void put_code(object x)
         {
+            if (_outputStream == null)
+                return;
             if (var(x))
                 throw new PrologException(Atom.a("instantiation_error"), "Arg 1 is an unbound variable");
             int xInt;
@@ -1602,11 +1680,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
         public static void nl()
         {
+            if (_outputStream == null)
+                return;
             _outputStream.WriteLine();
         }
 
         public static IEnumerable<bool> get_code(object code)
         {
+            if (_inputStream == null)
+                return YP.unify(code, -1);
+            else
             return YP.unify(code, _inputStream.Read());
         }
 
@@ -1763,7 +1846,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         /// <summary>
         /// Match all clauses of the dynamic predicate with the name and with arity
         /// arguments.Length.
-        /// It is an error if the predicate is not defined.
+        /// If the predicate is not defined, return the result of YP.unknownPredicate.
         /// </summary>
         /// <param name="name">must be an Atom</param>
         /// <param name="arguments">an array of arity number of arguments</param>
@@ -1772,11 +1855,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         {
             List<IClause> clauses;
             if (!_predicatesStore.TryGetValue(new NameArity(name, arguments.Length), out clauses))
-                throw new PrologException
-                    (new Functor2
-                     (Atom.a("existence_error"), Atom.a("procedure"), 
-                      new Functor2(Atom.SLASH, name, arguments.Length)), 
-                     "Undefined predicate: " + name + "/" + arguments.Length);
+                return unknownPredicate(name, arguments.Length, 
+                     "Undefined dynamic predicate: " + name + "/" + arguments.Length);
 
             if (clauses.Count == 1)
                 // Usually there is only one clause, so return it without needing to wrap it in an iterator.
@@ -1806,6 +1886,34 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         yield break;
                 }
             }
+        }
+
+        /// <summary>
+        /// If _prologFlags["unknown"] is fail then return fail(), else if 
+        ///   _prologFlags["unknown"] is warning then write the message to YP.write and
+        ///   return fail(), else throw a PrologException for existence_error.  .
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="arity"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static IEnumerable<bool> unknownPredicate(Atom name, int arity, string message)
+        {
+            establishPrologFlags();
+
+            if (_prologFlags["unknown"] == Atom.a("fail"))
+                return fail();
+            else if (_prologFlags["unknown"] == Atom.a("warning"))
+            {
+                write(message);
+                nl();
+                return fail();
+            }
+            else
+                throw new PrologException
+                    (new Functor2
+                     (Atom.a("existence_error"), Atom.a("procedure"),
+                      new Functor2(Atom.SLASH, name, arity)), message);
         }
 
         /// <summary>
@@ -1951,7 +2059,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             _predicatesStore[nameArity] = new List<IClause>();
         }
 
-        public static IEnumerable<bool> current_predicate(object NameSlashArity)
+        /// <summary>
+        /// If NameSlashArity is var, match with all the dynamic predicates using the
+        /// Name/Artity form.
+        /// If NameSlashArity is not var, check if the Name/Arity exists as a static or
+        /// dynamic predicate.
+        /// </summary>
+        /// <param name="NameSlashArity"></param>
+        /// <param name="declaringClass">if not null, used to resolve references to the default 
+        /// module Atom.a("")</param>
+        /// <returns></returns>
+        public static IEnumerable<bool> current_predicate(object NameSlashArity, Type declaringClass)
         {
             NameSlashArity = YP.getValue(NameSlashArity);
             // First check if Name and Arity are nonvar so we can do a direct lookup.
@@ -1976,7 +2094,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         (new Functor2("domain_error", Atom.a("not_less_than_zero"), arity),
                          "Arity may not be less than zero");
 
-                if (_predicatesStore.ContainsKey(new NameArity((Atom)name, (int)arity)))
+                if (YPCompiler.isCurrentPredicate((Atom)name, (int)arity, declaringClass))
                     // The predicate is defined.
                     yield return false;
             }
@@ -1989,6 +2107,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         yield return false;
                 }
             }
+        }
+
+        /// <summary>
+        /// Return true if the dynamic predicate store has an entry for the predicate
+        /// with name and arity.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="arity"></param>
+        /// <returns></returns>
+        public static bool isDynamicCurrentPredicate(Atom name, int arity)
+        {
+            return _predicatesStore.ContainsKey(new NameArity(name, arity));
         }
 
         public static void abolish(object NameSlashArity)
@@ -2019,6 +2149,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 throw new PrologException
                     (new Functor2("domain_error", Atom.a("not_less_than_zero"), arity),
                      "Arity may not be less than zero");
+            if ((int)arity > MAX_ARITY)
+                throw new PrologException
+                    (new Functor1("representation_error", Atom.a("max_arity")),
+                     "Arity may not be greater than " + MAX_ARITY);
 
             if (isSystemPredicate((Atom)name, (int)arity))
                 throw new PrologException
@@ -2077,7 +2211,108 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         {
             throw new PrologException(Term);
         }
+        /// <summary>
+        /// This must be called by any function that uses YP._prologFlags to make sure
+        /// the initial defaults are loaded.
+        /// </summary>
+        private static void establishPrologFlags()
+        {
+            if (_prologFlags.Count > 0)
+                // Already established.
+                return;
 
+            // List these in the order they appear in the ISO standard.
+            _prologFlags["bounded"] = Atom.a("true");
+            _prologFlags["max_integer"] = Int32.MaxValue;
+            _prologFlags["min_integer"] = Int32.MinValue;
+            _prologFlags["integer_rounding_function"] = Atom.a("toward_zero");
+            _prologFlags["char_conversion"] = Atom.a("off");
+            _prologFlags["debug"] = Atom.a("off");
+            _prologFlags["max_arity"] = MAX_ARITY;
+            _prologFlags["unknown"] = Atom.a("error");
+            _prologFlags["double_quotes"] = Atom.a("codes");
+        }
+
+        public static IEnumerable<bool> current_prolog_flag(object Key, object Value)
+        {
+            establishPrologFlags();
+
+            Key = YP.getValue(Key);
+            Value = YP.getValue(Value);
+
+            if (Key is Variable)
+            {
+                // Bind all key values.
+                foreach (string key in _prologFlags.Keys)
+                {
+                    foreach (bool l1 in YP.unify(Key, Atom.a(key)))
+                    {
+                        foreach (bool l2 in YP.unify(Value, _prologFlags[key]))
+                            yield return false;
+                    }
+                }
+            }
+            else
+            {
+                if (!(Key is Atom))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("atom"), Key), "Arg 1 Key is not an atom");
+                if (!_prologFlags.ContainsKey(((Atom)Key)._name))
+                    throw new PrologException
+                        (new Functor2("domain_error", Atom.a("prolog_flag"), Key), 
+                        "Arg 1 Key is not a recognized flag");
+
+                foreach (bool l1 in YP.unify(Value, _prologFlags[((Atom)Key)._name]))
+                    yield return false;
+            }
+        }
+
+        public static void set_prolog_flag(object Key, object Value)
+        {
+            establishPrologFlags();
+
+            Key = YP.getValue(Key);
+            Value = YP.getValue(Value);
+
+            if (Key is Variable)
+                throw new PrologException(Atom.a("instantiation_error"),
+                    "Arg 1 Key is an unbound variable");
+            if (Value is Variable)
+                throw new PrologException(Atom.a("instantiation_error"),
+                    "Arg 1 Key is an unbound variable");
+            if (!(Key is Atom))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("atom"), Key), "Arg 1 Key is not an atom");
+
+            string keyName = ((Atom)Key)._name;
+            if (!_prologFlags.ContainsKey(keyName))
+                throw new PrologException
+                    (new Functor2("domain_error", Atom.a("prolog_flag"), Key),
+                    "Arg 1 Key " + Key + " is not a recognized flag");
+
+            bool valueIsOK = false;
+            if (keyName == "char_conversion")
+                valueIsOK = (Value == _prologFlags[keyName]);
+            else if (keyName == "debug")
+                valueIsOK = (Value == _prologFlags[keyName]);
+            else if (keyName == "unknown")
+                valueIsOK = (Value == Atom.a("fail") || Value == Atom.a("warning") ||
+                    Value == Atom.a("error"));
+            else if (keyName == "double_quotes")
+                valueIsOK = (Value == Atom.a("codes") || Value == Atom.a("chars") ||
+                    Value == Atom.a("atom"));
+            else
+                throw new PrologException
+                    (new Functor3("permission_error", Atom.a("modify"), Atom.a("flag"), Key),
+                     "May not modify Prolog flag " + Key);
+
+            if (!valueIsOK)
+                throw new PrologException
+                    (new Functor2("domain_error", Atom.a("flag_value"), new Functor2("+", Key, Value)),
+                    "May not set arg 1 Key " + Key + " to arg 2 Value " + Value);
+
+            _prologFlags[keyName] = Value;
+        }
         /// <summary>
         /// script_event calls hosting script with events as a callback method.
         /// </summary>
@@ -2303,19 +2538,35 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             private IEnumerator<bool> _enumerator;
             private PrologException _exception = null;
 
-            public Catch(IEnumerable<bool> iterator)
+            /// <summary>
+            /// Call YP.getIterator(Goal, declaringClass) and save the returned iterator.
+            /// If getIterator throws an exception, save it the same as MoveNext().
+            /// </summary>
+            /// <param name="Goal"></param>
+            /// <param name="declaringClass"></param>
+            public Catch(object Goal, Type declaringClass)
             {
-                _enumerator = iterator.GetEnumerator();
+                try
+            {
+                    _enumerator = getIterator(Goal, declaringClass).GetEnumerator();
+                }
+                catch (PrologException exception)
+                {
+                    // MoveNext() will check this.
+                    _exception = exception;
+                }
             }
 
             /// <summary>
             /// Call _enumerator.MoveNext().  If it throws a PrologException, set _exception
             /// and return false.  After this returns false, call unifyExceptionOrThrow.
-            /// Assume that, after this returns false, it will not be called again.
             /// </summary>
             /// <returns></returns>
             public bool MoveNext()
             {
+                if (_exception != null)
+                    return false;
+
                 try
                 {
                     return _enumerator.MoveNext();
@@ -2372,6 +2623,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
             public void Dispose()
             {
+                if (_enumerator != null)
                 _enumerator.Dispose();
             }
 
@@ -2408,6 +2660,41 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         yield return false;
                 }
                 #pragma warning restore 0168
+            }
+        }
+        
+        /// <summary>
+        /// CodeListReader extends TextReader and overrides Read to read the next code from
+        /// the CodeList which is a Prolog list of integer character codes.
+        /// </summary>
+        public class CodeListReader : TextReader
+        {
+            private object _CodeList;
+
+            public CodeListReader(object CodeList)
+            {
+                _CodeList = YP.getValue(CodeList);
+            }
+
+            /// <summary>
+            /// If the head of _CodeList is an integer, return it and advance the list.  Otherwise,
+            /// return -1 for end of file.
+            /// </summary>
+            /// <returns></returns>
+            public override int Read()
+            {
+                Functor2 CodeListPair = _CodeList as Functor2; 
+                int code;
+                if (!(CodeListPair != null && CodeListPair._name == Atom.DOT &&
+                    getInt(CodeListPair._arg1, out code)))
+                {
+                    _CodeList = Atom.NIL;
+                    return -1;
+                }
+
+                // Advance.
+                _CodeList = YP.getValue(CodeListPair._arg2);
+                return code;
             }
         }
     }

@@ -54,6 +54,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         // disable warning on l1, don't see how we can
         // code this differently
         #pragma warning disable 0168
+        /// If arg is another Functor2, then succeed (yield once) if this and arg have the
+        /// same name and all functor args unify, otherwise fail (don't yield).
+        /// If arg is a Variable, then call its unify to unify with this.
+        /// Otherwise fail (don't yield).
         public IEnumerable<bool> unify(object arg)
         {
             arg = YP.getValue(arg);

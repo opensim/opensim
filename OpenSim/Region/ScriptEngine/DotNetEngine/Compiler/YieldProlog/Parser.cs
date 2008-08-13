@@ -31,10 +31,86 @@
 using System;
 using System.Collections.Generic;
 
+        // disable warning on l1, don't see how we can
+        // code this differently
+        #pragma warning disable 0168, 0219, 0162
+
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 {
     public class Parser
     {
+        public static IEnumerable<bool> read_term2(object Term, object Options)
+        {
+            Variable Answer = new Variable();
+            Variable Variables = new Variable();
+            foreach (bool l1 in read_termOptions(Options, Variables))
+            {
+                foreach (bool l2 in portable_read3(Answer, Variables, new Variable()))
+                {
+                    foreach (bool l3 in remove_pos(Answer, Term))
+                        yield return false;
+                }
+            }
+        }
+
+        public static IEnumerable<bool> read_term3(object Input, object Term, object Options)
+        {
+            Variable SaveInput = new Variable();
+            Variable Answer = new Variable();
+            Variable Variables = new Variable();
+            foreach (bool l1 in read_termOptions(Options, Variables))
+            {
+                foreach (bool l2 in YP.current_input(SaveInput))
+                {
+                    try
+                    {
+                        YP.see(Input);
+                        foreach (bool l3 in portable_read3(Answer, Variables, new Variable()))
+                        {
+                            foreach (bool l4 in remove_pos(Answer, Term))
+                                yield return false;
+                        }
+                    }
+                    finally
+                    {
+                        YP.see(SaveInput);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// For read_term, check if Options has variable_names(Variables).
+        /// Otherwise, ignore Options.
+        /// </summary>
+        /// <param name="Options"></param>
+        /// <param name="Variables"></param>
+        /// <returns></returns>
+        private static IEnumerable<bool> read_termOptions(object Options, object Variables)
+        {
+            Options = YP.getValue(Options);
+            if (Options is Variable)
+                throw new PrologException(Atom.a("instantiation_error"), "Options is an unbound variable");
+            // First try to match Options = [variable_names(Variables)]
+            foreach (bool l1 in YP.unify(Options, ListPair.make(new Functor1("variable_names", Variables))))
+            {
+                yield return false;
+                yield break;
+            }
+            // Default: Ignore Options.
+            yield return false;
+        }
+
+        public static IEnumerable<bool> read1(object Term)
+        {
+            return read_term2(Term, Atom.NIL);
+        }
+
+        public static IEnumerable<bool> read2(object Input, object Term)
+        {
+            return read_term3(Input, Term, Atom.NIL);
+        }
+
         public static IEnumerable<bool> formatError(object Output, object Format, object Arguments)
         {
             // Debug: Simple implementation for now.
@@ -44,9 +120,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             yield return false;
         }
 
-        // disable warning on l1, don't see how we can
-        // code this differently
-        #pragma warning disable 0168, 0219
 
         // Debug: Hand-modify this central predicate to do tail recursion.
         public static IEnumerable<bool> read_tokens(object arg1, object arg2, object arg3)
@@ -217,7 +290,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Variables = new Variable();
                 Variable Answer = new Variable();
                 Variable x4 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"f", Term, Variables)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("f", Term, Variables)))
                 {
                     foreach (bool l3 in YP.repeat())
                     {
@@ -225,14 +298,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         {
                             foreach (bool l5 in remove_pos(Answer, Term))
                             {
-                                if (YP.termEqual(Term, Atom.a(@"end_of_file")))
+                                if (YP.termEqual(Term, Atom.a("end_of_file")))
                                 {
                                     yield break;
-                                    // goto cutIf1;
+                                    goto cutIf1;
                                 }
                                 yield return false;
-                            // cutIf1:
-                            //     { }
+                            cutIf1:
+                                { }
                             }
                         }
                     }
@@ -267,7 +340,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object X = arg2;
                 Variable _Pos = new Variable();
                 Variable _Name = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor3(@"$VAR", _Pos, _Name, X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor3("$VAR", _Pos, _Name, X)))
                 {
                     if (YP.var(X))
                     {
@@ -311,9 +384,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable B = new Variable();
                 Variable NA = new Variable();
                 Variable NB = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", A, B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", A, B)))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new Functor2(@",", NA, NB)))
+                    foreach (bool l3 in YP.unify(arg2, new Functor2(",", NA, NB)))
                     {
                         foreach (bool l4 in remove_pos(A, NA))
                         {
@@ -432,9 +505,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable E = new Variable();
                 Variable Xs = new Variable();
                 Variable Zs = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"comment", S, E), Xs)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("comment", S, E), Xs)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"comment", S, E), Zs)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("comment", S, E), Zs)))
                     {
                         foreach (bool l4 in remove_comments(Xs, Ys, Zs))
                         {
@@ -450,11 +523,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Ys = new Variable();
                 Variable Pos2 = new Variable();
                 Variable Zs = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"/", Atom.a(@"["), Pos), Xs)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("/", Atom.a("["), Pos), Xs)))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a(@"["), Ys)))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a("["), Ys)))
                     {
-                        foreach (bool l4 in YP.unify(arg3, new ListPair(new Functor2(@"list", Pos, Pos2), Zs)))
+                        foreach (bool l4 in YP.unify(arg3, new ListPair(new Functor2("list", Pos, Pos2), Zs)))
                         {
                             foreach (bool l5 in YP.unify(Pos2, YP.add(Pos, 1)))
                             {
@@ -474,11 +547,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Ys = new Variable();
                 Variable Pos2 = new Variable();
                 Variable Zs = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"/", Atom.a(@"]"), Pos), Xs)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("/", Atom.a("]"), Pos), Xs)))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a(@"]"), Ys)))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a("]"), Ys)))
                     {
-                        foreach (bool l4 in YP.unify(arg3, new ListPair(new Functor2(@"list", Pos, Pos2), Zs)))
+                        foreach (bool l4 in YP.unify(arg3, new ListPair(new Functor2("list", Pos, Pos2), Zs)))
                         {
                             foreach (bool l5 in YP.unify(Pos2, YP.add(Pos, 1)))
                             {
@@ -523,7 +596,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             {
                 object S0 = arg2;
                 object x3 = arg3;
-                foreach (bool l2 in syntax_error(new ListPair(Token, new ListPair(Atom.a(@"or"), new ListPair(Atom.a(@"operator"), new ListPair(Atom.a(@"expected"), Atom.NIL)))), S0))
+                foreach (bool l2 in syntax_error(ListPair.make(new object[] { Token, Atom.a("or"), Atom.a("operator"), Atom.a("expected") }), S0))
                 {
                     yield return false;
                 }
@@ -569,7 +642,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable S = new Variable();
                 foreach (bool l2 in YP.unify(arg1, new ListPair(Token, S)))
                 {
-                    foreach (bool l3 in syntax_error(new ListPair(Atom.a(@"operator"), new ListPair(Atom.a(@"expected"), new ListPair(Atom.a(@"after"), new ListPair(Atom.a(@"expression"), Atom.NIL)))), new ListPair(Token, S)))
+                    foreach (bool l3 in syntax_error(ListPair.make(new object[] { Atom.a("operator"), Atom.a("expected"), Atom.a("after"), Atom.a("expression") }), new ListPair(Token, S)))
                     {
                         yield return false;
                     }
@@ -585,7 +658,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x3 = arg4;
                 foreach (bool l2 in YP.unify(arg1, Atom.NIL))
                 {
-                    foreach (bool l3 in syntax_error(new ListPair(Atom.a(@"expression"), new ListPair(Atom.a(@"expected"), Atom.NIL)), Atom.NIL))
+                    foreach (bool l3 in syntax_error(new ListPair(Atom.a("expression"), new ListPair(Atom.a("expected"), Atom.NIL)), Atom.NIL))
                     {
                         yield return false;
                     }
@@ -614,9 +687,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x2 = arg3;
                 object x3 = arg4;
                 object x4 = arg5;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"}")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("}")))
                 {
-                    foreach (bool l3 in cannot_start(Atom.a(@"}"), S0))
+                    foreach (bool l3 in cannot_start(Atom.a("}"), S0))
                     {
                         yield return false;
                     }
@@ -627,9 +700,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x2 = arg3;
                 object x3 = arg4;
                 object x4 = arg5;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"]")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("]")))
                 {
-                    foreach (bool l3 in cannot_start(Atom.a(@"]"), S0))
+                    foreach (bool l3 in cannot_start(Atom.a("]"), S0))
                     {
                         yield return false;
                     }
@@ -640,9 +713,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x2 = arg3;
                 object x3 = arg4;
                 object x4 = arg5;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@")")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(")")))
                 {
-                    foreach (bool l3 in cannot_start(Atom.a(@")"), S0))
+                    foreach (bool l3 in cannot_start(Atom.a(")"), S0))
                     {
                         yield return false;
                     }
@@ -653,9 +726,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x2 = arg3;
                 object x3 = arg4;
                 object x4 = arg5;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@",")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(",")))
                 {
-                    foreach (bool l3 in cannot_start(Atom.a(@","), S0))
+                    foreach (bool l3 in cannot_start(Atom.a(","), S0))
                     {
                         yield return false;
                     }
@@ -666,9 +739,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x2 = arg3;
                 object x3 = arg4;
                 object x4 = arg5;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"|")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("|")))
                 {
-                    foreach (bool l3 in cannot_start(Atom.a(@"|"), S0))
+                    foreach (bool l3 in cannot_start(Atom.a("|"), S0))
                     {
                         yield return false;
                     }
@@ -679,13 +752,46 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object Precedence = arg3;
                 object Answer = arg4;
                 object S = arg5;
-                Variable Chars = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"string", Chars)))
+                Variable Codes = new Variable();
+                Variable Term = new Variable();
+                Variable A = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor1("string", Codes)))
                 {
-                    foreach (bool l3 in exprtl0(S0, Chars, Precedence, Answer, S))
+                    foreach (bool l3 in YP.current_prolog_flag(Atom.a("double_quotes"), Atom.a("atom")))
+                    {
+                        foreach (bool l4 in YP.atom_codes(Term, Codes))
+                        {
+                            foreach (bool l5 in exprtl0(S0, Term, Precedence, Answer, S))
+                            {
+                                yield return false;
+                            }
+                        }
+                        goto cutIf1;
+                    }
+                    foreach (bool l3 in YP.current_prolog_flag(Atom.a("double_quotes"), Atom.a("chars")))
+                    {
+                        foreach (bool l4 in YP.atom_codes(A, Codes))
+                        {
+                            foreach (bool l5 in YP.atom_chars(A, Term))
+                            {
+                                foreach (bool l6 in exprtl0(S0, Term, Precedence, Answer, S))
+                                {
+                                    yield return false;
+                                }
+                            }
+                        }
+                        goto cutIf2;
+                    }
+                    foreach (bool l3 in YP.unify(Term, Codes))
+                {
+                        foreach (bool l4 in exprtl0(S0, Term, Precedence, Answer, S))
                     {
                         yield return false;
                     }
+                }
+                cutIf2:
+                cutIf1:
+                    { }
                 }
             }
             {
@@ -694,7 +800,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object Answer = arg4;
                 object S = arg5;
                 Variable Number = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"number", Number)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("number", Number)))
                 {
                     foreach (bool l3 in exprtl0(S0, Number, Precedence, Answer, S))
                     {
@@ -707,11 +813,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object Answer = arg4;
                 object S = arg5;
                 Variable S1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"[")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("[")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a(@"]"), S1)))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a("]"), S1)))
                     {
-                        foreach (bool l4 in read_atom(new Functor2(@"/", Atom.NIL, 0), S1, Precedence, Answer, S))
+                        foreach (bool l4 in read_atom(new Functor2("/", Atom.NIL, 0), S1, Precedence, Answer, S))
                         {
                             yield return false;
                         }
@@ -728,7 +834,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable S2 = new Variable();
                 Variable RestArgs = new Variable();
                 Variable S3 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"[")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("[")))
                 {
                     foreach (bool l3 in parse(S1, 999, Arg1, S2))
                     {
@@ -751,11 +857,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Term = new Variable();
                 Variable S2 = new Variable();
                 Variable S3 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"(")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("(")))
                 {
                     foreach (bool l3 in parse(S1, 1200, Term, S2))
                     {
-                        foreach (bool l4 in expect(Atom.a(@")"), S2, S3))
+                        foreach (bool l4 in expect(Atom.a(")"), S2, S3))
                         {
                             foreach (bool l5 in exprtl0(S3, Term, Precedence, Answer, S))
                             {
@@ -774,11 +880,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Term = new Variable();
                 Variable S2 = new Variable();
                 Variable S3 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@" (")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(" (")))
                 {
                     foreach (bool l3 in parse(S1, 1200, Term, S2))
                     {
-                        foreach (bool l4 in expect(Atom.a(@")"), S2, S3))
+                        foreach (bool l4 in expect(Atom.a(")"), S2, S3))
                         {
                             foreach (bool l5 in exprtl0(S3, Term, Precedence, Answer, S))
                             {
@@ -795,11 +901,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object S = arg5;
                 Variable _Pos = new Variable();
                 Variable S1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"/", Atom.a(@"{"), _Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("/", Atom.a("{"), _Pos)))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a(@"}"), S1)))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a("}"), S1)))
                     {
-                        foreach (bool l4 in read_atom(Atom.a(@"{}"), S1, Precedence, Answer, S))
+                        foreach (bool l4 in read_atom(Atom.a("{}"), S1, Precedence, Answer, S))
                         {
                             yield return false;
                         }
@@ -816,13 +922,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Term = new Variable();
                 Variable S2 = new Variable();
                 Variable S3 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"/", Atom.a(@"{"), Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("/", Atom.a("{"), Pos)))
                 {
                     foreach (bool l3 in parse(S1, 1200, Term, S2))
                     {
-                        foreach (bool l4 in expect(Atom.a(@"}"), S2, S3))
+                        foreach (bool l4 in expect(Atom.a("}"), S2, S3))
                         {
-                            foreach (bool l5 in exprtl0(S3, new Functor2(@"{}", Pos, Term), Precedence, Answer, S))
+                            foreach (bool l5 in exprtl0(S3, new Functor2("{}", Pos, Term), Precedence, Answer, S))
                             {
                                 yield return false;
                             }
@@ -844,15 +950,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable RestArgs = new Variable();
                 Variable S3 = new Variable();
                 Variable Term = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor3(@"var", Variable_1, Name, Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor3("var", Variable_1, Name, Pos)))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a(@"("), S1)))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a("("), S1)))
                     {
                         foreach (bool l4 in parse(S1, 999, Arg1, S2))
                         {
                             foreach (bool l5 in read_args(S2, RestArgs, S3))
                             {
-                                foreach (bool l6 in YP.univ(Term, new ListPair(Atom.a(@"call"), new ListPair(new Functor3(@"$VAR", Pos, Name, Variable_1), new ListPair(Arg1, RestArgs)))))
+                                foreach (bool l6 in YP.univ(Term, new ListPair(Atom.a("call"), new ListPair(new Functor3("$VAR", Pos, Name, Variable_1), new ListPair(Arg1, RestArgs)))))
                                 {
                                     foreach (bool l7 in exprtl0(S3, Term, Precedence, Answer, S))
                                     {
@@ -874,9 +980,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Variable_1 = new Variable();
                 Variable Name = new Variable();
                 Variable Pos = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor3(@"var", Variable_1, Name, Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor3("var", Variable_1, Name, Pos)))
                 {
-                    foreach (bool l3 in exprtl0(S0, new Functor3(@"$VAR", Pos, Name, Variable_1), Precedence, Answer, S))
+                    foreach (bool l3 in exprtl0(S0, new Functor3("$VAR", Pos, Name, Variable_1), Precedence, Answer, S))
                     {
                         yield return false;
                     }
@@ -889,9 +995,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object S = arg5;
                 Variable Atom_1 = new Variable();
                 Variable P = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"atom", Atom_1, P)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("atom", Atom_1, P)))
                 {
-                    foreach (bool l3 in read_atom(new Functor2(@"/", Atom_1, P), S0, Precedence, Answer, S))
+                    foreach (bool l3 in read_atom(new Functor2("/", Atom_1, P), S0, Precedence, Answer, S))
                     {
                         yield return false;
                     }
@@ -906,9 +1012,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Number = new Variable();
                 Variable S1 = new Variable();
                 Variable Negative = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"/", Atom.a(@"-"), _Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("/", Atom.a("-"), _Pos)))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(new Functor1(@"number", Number), S1)))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(new Functor1("number", Number), S1)))
                     {
                         foreach (bool l4 in YP.unify(Negative, YP.negate(Number)))
                         {
@@ -930,9 +1036,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable RestArgs = new Variable();
                 Variable S3 = new Variable();
                 Variable Term = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"/", Functor_1, Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("/", Functor_1, Pos)))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a(@"("), S1)))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(Atom.a("("), S1)))
                     {
                         foreach (bool l4 in parse(S1, 999, Arg1, S2))
                         {
@@ -962,7 +1068,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Term = new Variable();
                 Variable Arg = new Variable();
                 Variable S1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"/", Op, Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("/", Op, Pos)))
                 {
                     foreach (bool l3 in prefixop(Op, Oprec, Aprec))
                     {
@@ -981,7 +1087,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                             }
                             if (YP.greaterThan(Oprec, Precedence))
                             {
-                                foreach (bool l6 in syntax_error(new ListPair(Atom.a(@"prefix"), new ListPair(Atom.a(@"operator"), new ListPair(Op, new ListPair(Atom.a(@"in"), new ListPair(Atom.a(@"context"), new ListPair(Atom.a(@"with"), new ListPair(Atom.a(@"precedence"), new ListPair(Precedence, Atom.NIL)))))))), S0))
+                                foreach (bool l6 in syntax_error(ListPair.make(new object[] { Atom.a("prefix"), Atom.a("operator"), Op, Atom.a("in"), Atom.a("context"), Atom.a("with"), Atom.a("precedence"), Precedence }), S0))
                                 {
                                     yield return false;
                                 }
@@ -991,7 +1097,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                             {
                                 foreach (bool l6 in parse(S0, Aprec, Arg, S1))
                                 {
-                                    foreach (bool l7 in YP.univ(Term, new ListPair(Op, new ListPair(Pos, new ListPair(Arg, Atom.NIL)))))
+                                    foreach (bool l7 in YP.univ(Term, ListPair.make(new object[] { Op, Pos, Arg })))
                                     {
                                         foreach (bool l8 in exprtl(S1, Oprec, Term, Precedence, Answer, S))
                                         {
@@ -1006,7 +1112,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                             {
                                 foreach (bool l6 in prefix_is_atom(S1, Oprec))
                                 {
-                                    foreach (bool l7 in exprtl(S1, Oprec, new Functor2(@"/", Op, Pos), Precedence, Answer, S))
+                                    foreach (bool l7 in exprtl(S1, Oprec, new Functor2("/", Op, Pos), Precedence, Answer, S))
                                     {
                                         yield return false;
                                     }
@@ -1014,7 +1120,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                             }
                             foreach (bool l5 in parse(S0, Aprec, Arg, S1))
                             {
-                                foreach (bool l6 in YP.univ(Term, new ListPair(Op, new ListPair(Pos, new ListPair(Arg, Atom.NIL)))))
+                                foreach (bool l6 in YP.univ(Term, ListPair.make(new object[] { Op, Pos, Arg })))
                                 {
                                     foreach (bool l7 in exprtl(S1, Oprec, Term, Precedence, Answer, S))
                                     {
@@ -1037,7 +1143,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Atom_1 = new Variable();
                 Variable Pos = new Variable();
                 Variable Term = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"/", Atom_1, Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("/", Atom_1, Pos)))
                 {
                     foreach (bool l3 in YP.univ(Term, new ListPair(Atom_1, new ListPair(Pos, Atom.NIL))))
                     {
@@ -1053,7 +1159,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         public static IEnumerable<bool> cannot_start(object Token, object S0)
         {
             {
-                foreach (bool l2 in syntax_error(new ListPair(Token, new ListPair(Atom.a(@"cannot"), new ListPair(Atom.a(@"start"), new ListPair(Atom.a(@"an"), new ListPair(Atom.a(@"expression"), Atom.NIL))))), S0))
+                foreach (bool l2 in syntax_error(ListPair.make(new object[] { Token, Atom.a("cannot"), Atom.a("start"), Atom.a("an"), Atom.a("expression") }), S0))
                 {
                     yield return false;
                 }
@@ -1068,7 +1174,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Term = new Variable();
                 Variable Rest = new Variable();
                 Variable S2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@","), S1)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(","), S1)))
                 {
                     foreach (bool l3 in YP.unify(arg2, new ListPair(Term, Rest)))
                     {
@@ -1086,7 +1192,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object S = arg3;
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@")"), S)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(")"), S)))
                 {
                     foreach (bool l3 in YP.unify(arg2, Atom.NIL))
                     {
@@ -1099,7 +1205,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object S = arg1;
                 object x2 = arg2;
                 object x3 = arg3;
-                foreach (bool l2 in syntax_error(new ListPair(Atom.a(@", or )"), new ListPair(Atom.a(@"expected"), new ListPair(Atom.a(@"in"), new ListPair(Atom.a(@"arguments"), Atom.NIL)))), S))
+                foreach (bool l2 in syntax_error(ListPair.make(new object[] { Atom.a(", or )"), Atom.a("expected"), Atom.a("in"), Atom.a("arguments") }), S))
                 {
                     yield return false;
                 }
@@ -1113,7 +1219,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x2 = arg3;
                 foreach (bool l2 in YP.unify(arg1, Atom.NIL))
                 {
-                    foreach (bool l3 in syntax_error(new ListPair(Atom.a(@", | or ]"), new ListPair(Atom.a(@"expected"), new ListPair(Atom.a(@"in"), new ListPair(Atom.a(@"list"), Atom.NIL)))), Atom.NIL))
+                    foreach (bool l3 in syntax_error(ListPair.make(new object[] { Atom.a(", | or ]"), Atom.a("expected"), Atom.a("in"), Atom.a("list") }), Atom.NIL))
                     {
                         yield return false;
                     }
@@ -1142,7 +1248,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Term = new Variable();
                 Variable Rest = new Variable();
                 Variable S2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@",")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(",")))
                 {
                     foreach (bool l3 in YP.unify(arg3, new ListPair(Term, Rest)))
                     {
@@ -1163,11 +1269,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object Rest = arg3;
                 object S = arg4;
                 Variable S2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"|")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("|")))
                 {
                     foreach (bool l3 in parse(S1, 999, Rest, S2))
                     {
-                        foreach (bool l4 in expect(Atom.a(@"]"), S2, S))
+                        foreach (bool l4 in expect(Atom.a("]"), S2, S))
                         {
                             yield return false;
                         }
@@ -1178,7 +1284,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 Variable S1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"]")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("]")))
                 {
                     foreach (bool l3 in YP.unify(arg2, S1))
                     {
@@ -1198,7 +1304,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object S1 = arg2;
                 object x3 = arg3;
                 object x4 = arg4;
-                foreach (bool l2 in syntax_error(new ListPair(Atom.a(@", | or ]"), new ListPair(Atom.a(@"expected"), new ListPair(Atom.a(@"in"), new ListPair(Atom.a(@"list"), Atom.NIL)))), new ListPair(Token, S1)))
+                foreach (bool l2 in syntax_error(ListPair.make(new object[] { Atom.a(", | or ]"), Atom.a("expected"), Atom.a("in"), Atom.a("list") }), new ListPair(Token, S1)))
                 {
                     yield return false;
                 }
@@ -1237,7 +1343,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable x1 = new Variable();
                 Variable x2 = new Variable();
                 Variable x3 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor3(@"var", x1, x2, x3)))
+                foreach (bool l2 in YP.unify(arg1, new Functor3("var", x1, x2, x3)))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
@@ -1248,7 +1354,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             {
                 object x2 = arg3;
                 Variable x1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"number", x1)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("number", x1)))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
@@ -1259,7 +1365,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             {
                 object x2 = arg3;
                 Variable x1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"string", x1)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("string", x1)))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
@@ -1269,7 +1375,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object x1 = arg3;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@" (")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(" (")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
@@ -1279,7 +1385,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object x1 = arg3;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"(")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("(")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 0))
                     {
@@ -1289,7 +1395,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object x1 = arg3;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@")")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(")")))
                 {
                     foreach (bool l3 in YP.unify(arg2, -1))
                     {
@@ -1299,11 +1405,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 Variable x1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"[")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("[")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 0))
                     {
-                        foreach (bool l4 in YP.unify(arg3, new ListPair(Atom.a(@"]"), x1)))
+                        foreach (bool l4 in YP.unify(arg3, new ListPair(Atom.a("]"), x1)))
                         {
                             yield return true;
                             yield break;
@@ -1313,7 +1419,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object x1 = arg3;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"[")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("[")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
@@ -1323,7 +1429,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object x1 = arg3;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"]")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("]")))
                 {
                     foreach (bool l3 in YP.unify(arg2, -1))
                     {
@@ -1333,11 +1439,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 Variable x1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"{")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("{")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 0))
                     {
-                        foreach (bool l4 in YP.unify(arg3, new ListPair(Atom.a(@"}"), x1)))
+                        foreach (bool l4 in YP.unify(arg3, new ListPair(Atom.a("}"), x1)))
                         {
                             yield return true;
                             yield break;
@@ -1347,7 +1453,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object x1 = arg3;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"{")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("{")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
@@ -1357,7 +1463,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object x1 = arg3;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"}")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("}")))
                 {
                     foreach (bool l3 in YP.unify(arg2, -1))
                     {
@@ -1367,7 +1473,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object x1 = arg3;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@",")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(",")))
                 {
                     foreach (bool l3 in YP.unify(arg2, -1))
                     {
@@ -1377,7 +1483,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object x1 = arg3;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"|")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("|")))
                 {
                     foreach (bool l3 in YP.unify(arg2, -1))
                     {
@@ -1389,7 +1495,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x3 = arg3;
                 Variable x1 = new Variable();
                 Variable x2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"atom", x1, x2)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("atom", x1, x2)))
                 {
                     foreach (bool l3 in YP.unify(arg2, 0))
                     {
@@ -1405,9 +1511,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable F = new Variable();
                 Variable Pos = new Variable();
                 Variable S1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"atom", F, Pos), new ListPair(Atom.a(@"("), S1))))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("atom", F, Pos), new ListPair(Atom.a("("), S1))))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(new Functor2(@"atom", F, Pos), new ListPair(Atom.a(@"("), S1))))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(new Functor2("atom", F, Pos), new ListPair(Atom.a("("), S1))))
                     {
                         yield return true;
                         yield break;
@@ -1421,9 +1527,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable L = new Variable();
                 Variable P = new Variable();
                 Variable R = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"atom", F, Pos), S1)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("atom", F, Pos), S1)))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(new Functor(Atom.a(@"infixop", Atom.a(@"")), new object[] { new Functor2(@"/", F, Pos), L, P, R }), S1)))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(new Functor(Atom.a("infixop", Atom.a("")), new object[] { new Functor2("/", F, Pos), L, P, R }), S1)))
                     {
                         foreach (bool l4 in infixop(F, L, P, R))
                         {
@@ -1438,9 +1544,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable S1 = new Variable();
                 Variable L = new Variable();
                 Variable P = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"atom", F, Pos), S1)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("atom", F, Pos), S1)))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(new Functor3(Atom.a(@"postfixop", Atom.a(@"")), new Functor2(@"/", F, Pos), L, P), S1)))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(new Functor3(Atom.a("postfixop", Atom.a("")), new Functor2("/", F, Pos), L, P), S1)))
                     {
                         foreach (bool l4 in postfixop(F, L, P))
                         {
@@ -1481,7 +1587,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable L = new Variable();
                 Variable x3 = new Variable();
                 Variable x4 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor(Atom.a(@"infixop", Atom.a(@"")), new object[] { x1, L, x3, x4 })))
+                foreach (bool l2 in YP.unify(arg1, new Functor(Atom.a("infixop", Atom.a("")), new object[] { x1, L, x3, x4 })))
                 {
                     if (YP.greaterThanOrEqual(L, P))
                     {
@@ -1494,7 +1600,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable x1 = new Variable();
                 Variable L = new Variable();
                 Variable x3 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor3(Atom.a(@"postfixop", Atom.a(@"")), x1, L, x3)))
+                foreach (bool l2 in YP.unify(arg1, new Functor3(Atom.a("postfixop", Atom.a("")), x1, L, x3)))
                 {
                     if (YP.greaterThanOrEqual(L, P))
                     {
@@ -1504,28 +1610,28 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object x1 = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@")")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(")")))
                 {
                     yield return false;
                 }
             }
             {
                 object x1 = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"]")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("]")))
                 {
                     yield return false;
                 }
             }
             {
                 object x1 = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"}")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("}")))
                 {
                     yield return false;
                 }
             }
             {
                 object P = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"|")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("|")))
                 {
                     if (YP.greaterThanOrEqual(1100, P))
                     {
@@ -1535,7 +1641,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
             {
                 object P = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@",")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(",")))
                 {
                     if (YP.greaterThanOrEqual(1000, P))
                     {
@@ -1594,13 +1700,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x2 = arg3;
                 object S1 = arg6;
                 Variable Term = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"}")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("}")))
                 {
                     foreach (bool l3 in YP.unify(arg2, Term))
                     {
                         foreach (bool l4 in YP.unify(arg4, Term))
                         {
-                            foreach (bool l5 in YP.unify(arg5, new ListPair(Atom.a(@"}"), S1)))
+                            foreach (bool l5 in YP.unify(arg5, new ListPair(Atom.a("}"), S1)))
                             {
                                 yield return false;
                             }
@@ -1612,13 +1718,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x2 = arg3;
                 object S1 = arg6;
                 Variable Term = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"]")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("]")))
                 {
                     foreach (bool l3 in YP.unify(arg2, Term))
                     {
                         foreach (bool l4 in YP.unify(arg4, Term))
                         {
-                            foreach (bool l5 in YP.unify(arg5, new ListPair(Atom.a(@"]"), S1)))
+                            foreach (bool l5 in YP.unify(arg5, new ListPair(Atom.a("]"), S1)))
                             {
                                 yield return false;
                             }
@@ -1630,13 +1736,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x2 = arg3;
                 object S1 = arg6;
                 Variable Term = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@")")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(")")))
                 {
                     foreach (bool l3 in YP.unify(arg2, Term))
                     {
                         foreach (bool l4 in YP.unify(arg4, Term))
                         {
-                            foreach (bool l5 in YP.unify(arg5, new ListPair(Atom.a(@")"), S1)))
+                            foreach (bool l5 in YP.unify(arg5, new ListPair(Atom.a(")"), S1)))
                             {
                                 yield return false;
                             }
@@ -1652,13 +1758,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object S1 = arg6;
                 Variable Next = new Variable();
                 Variable S2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@",")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(",")))
                 {
                     if (YP.greaterThanOrEqual(Precedence, 1000))
                     {
                         foreach (bool l4 in parse(S1, 1000, Next, S2))
                         {
-                            foreach (bool l5 in exprtl(S2, 1000, new Functor2(@",", Term, Next), Precedence, Answer, S))
+                            foreach (bool l5 in exprtl(S2, 1000, new Functor2(",", Term, Next), Precedence, Answer, S))
                             {
                                 yield return false;
                             }
@@ -1668,7 +1774,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     }
                     foreach (bool l3 in YP.unify(Answer, Term))
                     {
-                        foreach (bool l4 in YP.unify(S, new ListPair(Atom.a(@","), S1)))
+                        foreach (bool l4 in YP.unify(S, new ListPair(Atom.a(","), S1)))
                         {
                             yield return false;
                         }
@@ -1685,13 +1791,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object S1 = arg6;
                 Variable Next = new Variable();
                 Variable S2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"|")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("|")))
                 {
                     if (YP.greaterThanOrEqual(Precedence, 1100))
                     {
                         foreach (bool l4 in parse(S1, 1100, Next, S2))
                         {
-                            foreach (bool l5 in exprtl(S2, 1100, new Functor2(@";", Term, Next), Precedence, Answer, S))
+                            foreach (bool l5 in exprtl(S2, 1100, new Functor2(";", Term, Next), Precedence, Answer, S))
                             {
                                 yield return false;
                             }
@@ -1701,7 +1807,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     }
                     foreach (bool l3 in YP.unify(Answer, Term))
                     {
-                        foreach (bool l4 in YP.unify(S, new ListPair(Atom.a(@"|"), S1)))
+                        foreach (bool l4 in YP.unify(S, new ListPair(Atom.a("|"), S1)))
                         {
                             yield return false;
                         }
@@ -1717,9 +1823,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x5 = arg5;
                 object S1 = arg6;
                 Variable S = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"string", S)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("string", S)))
                 {
-                    foreach (bool l3 in cannot_follow(Atom.a(@"chars"), new Functor1(@"string", S), S1))
+                    foreach (bool l3 in cannot_follow(Atom.a("chars"), new Functor1("string", S), S1))
                     {
                         yield return false;
                     }
@@ -1732,9 +1838,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x5 = arg5;
                 object S1 = arg6;
                 Variable N = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"number", N)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("number", N)))
                 {
-                    foreach (bool l3 in cannot_follow(Atom.a(@"number"), new Functor1(@"number", N), S1))
+                    foreach (bool l3 in cannot_follow(Atom.a("number"), new Functor1("number", N), S1))
                     {
                         yield return false;
                     }
@@ -1746,11 +1852,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object Answer = arg4;
                 object S = arg5;
                 Variable S1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"{")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("{")))
                 {
-                    foreach (bool l3 in YP.unify(arg6, new ListPair(Atom.a(@"}"), S1)))
+                    foreach (bool l3 in YP.unify(arg6, new ListPair(Atom.a("}"), S1)))
                     {
-                        foreach (bool l4 in exprtl0_atom(Atom.a(@"{}"), Term, Precedence, Answer, S, S1))
+                        foreach (bool l4 in exprtl0_atom(Atom.a("{}"), Term, Precedence, Answer, S, S1))
                         {
                             yield return false;
                         }
@@ -1764,9 +1870,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x3 = arg4;
                 object x4 = arg5;
                 object S1 = arg6;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"{")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("{")))
                 {
-                    foreach (bool l3 in cannot_follow(Atom.a(@"brace"), Atom.a(@"{"), S1))
+                    foreach (bool l3 in cannot_follow(Atom.a("brace"), Atom.a("{"), S1))
                     {
                         yield return false;
                     }
@@ -1778,9 +1884,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object Answer = arg4;
                 object S = arg5;
                 Variable S1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"[")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("[")))
                 {
-                    foreach (bool l3 in YP.unify(arg6, new ListPair(Atom.a(@"]"), S1)))
+                    foreach (bool l3 in YP.unify(arg6, new ListPair(Atom.a("]"), S1)))
                     {
                         foreach (bool l4 in exprtl0_atom(Atom.NIL, Term, Precedence, Answer, S, S1))
                         {
@@ -1796,9 +1902,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x3 = arg4;
                 object x4 = arg5;
                 object S1 = arg6;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"[")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("[")))
                 {
-                    foreach (bool l3 in cannot_follow(Atom.a(@"bracket"), Atom.a(@"["), S1))
+                    foreach (bool l3 in cannot_follow(Atom.a("bracket"), Atom.a("["), S1))
                     {
                         yield return false;
                     }
@@ -1810,9 +1916,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x3 = arg4;
                 object x4 = arg5;
                 object S1 = arg6;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"(")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("(")))
                 {
-                    foreach (bool l3 in cannot_follow(Atom.a(@"parenthesis"), Atom.a(@"("), S1))
+                    foreach (bool l3 in cannot_follow(Atom.a("parenthesis"), Atom.a("("), S1))
                     {
                         yield return false;
                     }
@@ -1824,9 +1930,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x3 = arg4;
                 object x4 = arg5;
                 object S1 = arg6;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@" (")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(" (")))
                 {
-                    foreach (bool l3 in cannot_follow(Atom.a(@"parenthesis"), Atom.a(@"("), S1))
+                    foreach (bool l3 in cannot_follow(Atom.a("parenthesis"), Atom.a("("), S1))
                     {
                         yield return false;
                     }
@@ -1841,9 +1947,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable A = new Variable();
                 Variable B = new Variable();
                 Variable P = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor3(@"var", A, B, P)))
+                foreach (bool l2 in YP.unify(arg1, new Functor3("var", A, B, P)))
                 {
-                    foreach (bool l3 in cannot_follow(Atom.a(@"variable"), new Functor3(@"var", A, B, P), S1))
+                    foreach (bool l3 in cannot_follow(Atom.a("variable"), new Functor3("var", A, B, P), S1))
                     {
                         yield return false;
                     }
@@ -1857,9 +1963,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object S1 = arg6;
                 Variable F = new Variable();
                 Variable P = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"atom", F, P)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("atom", F, P)))
                 {
-                    foreach (bool l3 in exprtl0_atom(new Functor2(@"/", F, P), Term, Precedence, Answer, S, S1))
+                    foreach (bool l3 in exprtl0_atom(new Functor2("/", F, P), Term, Precedence, Answer, S, S1))
                     {
                         yield return false;
                     }
@@ -1881,23 +1987,23 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable R1 = new Variable();
                 Variable L2 = new Variable();
                 Variable O2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"/", F, Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("/", F, Pos)))
                 {
                     foreach (bool l3 in ambigop(F, Precedence, L1, O1, R1, L2, O2))
                     {
                         foreach (bool l4 in prefix_is_atom(S1, Precedence))
                         {
-                            foreach (bool l5 in exprtl(new ListPair(new Functor3(Atom.a(@"postfixop", Atom.a(@"")), new Functor2(@"/", F, Pos), L2, O2), S1), 0, Term, Precedence, Answer, S))
+                            foreach (bool l5 in exprtl(new ListPair(new Functor3(Atom.a("postfixop", Atom.a("")), new Functor2("/", F, Pos), L2, O2), S1), 0, Term, Precedence, Answer, S))
                             {
                                 yield return false;
                             }
                             yield break;
                         }
-                        foreach (bool l4 in exprtl(new ListPair(new Functor(Atom.a(@"infixop", Atom.a(@"")), new object[] { new Functor2(@"/", F, Pos), L1, O1, R1 }), S1), 0, Term, Precedence, Answer, S))
+                        foreach (bool l4 in exprtl(new ListPair(new Functor(Atom.a("infixop", Atom.a("")), new object[] { new Functor2("/", F, Pos), L1, O1, R1 }), S1), 0, Term, Precedence, Answer, S))
                         {
                             yield return false;
                         }
-                        foreach (bool l4 in exprtl(new ListPair(new Functor3(Atom.a(@"postfixop", Atom.a(@"")), new Functor2(@"/", F, Pos), L2, O2), S1), 0, Term, Precedence, Answer, S))
+                        foreach (bool l4 in exprtl(new ListPair(new Functor3(Atom.a("postfixop", Atom.a("")), new Functor2("/", F, Pos), L2, O2), S1), 0, Term, Precedence, Answer, S))
                         {
                             yield return false;
                         }
@@ -1915,11 +2021,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable L1 = new Variable();
                 Variable O1 = new Variable();
                 Variable R1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"/", F, Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("/", F, Pos)))
                 {
                     foreach (bool l3 in infixop(F, L1, O1, R1))
                     {
-                        foreach (bool l4 in exprtl(new ListPair(new Functor(Atom.a(@"infixop", Atom.a(@"")), new object[] { new Functor2(@"/", F, Pos), L1, O1, R1 }), S1), 0, Term, Precedence, Answer, S))
+                        foreach (bool l4 in exprtl(new ListPair(new Functor(Atom.a("infixop", Atom.a("")), new object[] { new Functor2("/", F, Pos), L1, O1, R1 }), S1), 0, Term, Precedence, Answer, S))
                         {
                             yield return false;
                         }
@@ -1936,11 +2042,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Pos = new Variable();
                 Variable L2 = new Variable();
                 Variable O2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"/", F, Pos)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("/", F, Pos)))
                 {
                     foreach (bool l3 in postfixop(F, L2, O2))
                     {
-                        foreach (bool l4 in exprtl(new ListPair(new Functor3(Atom.a(@"postfixop", Atom.a(@"")), new Functor2(@"/", F, Pos), L2, O2), S1), 0, Term, Precedence, Answer, S))
+                        foreach (bool l4 in exprtl(new ListPair(new Functor3(Atom.a("postfixop", Atom.a("")), new Functor2("/", F, Pos), L2, O2), S1), 0, Term, Precedence, Answer, S))
                         {
                             yield return false;
                         }
@@ -1955,7 +2061,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object x4 = arg4;
                 object x5 = arg5;
                 Variable x7 = new Variable();
-                foreach (bool l2 in syntax_error(new ListPair(new Functor2(@"-", Atom.a(@"non"), Atom.a(@"operator")), new ListPair(X, new ListPair(Atom.a(@"follows"), new ListPair(Atom.a(@"expression"), Atom.NIL)))), new ListPair(new Functor2(@"atom", X, x7), S1)))
+                foreach (bool l2 in syntax_error(ListPair.make(new object[] { new Functor2("-", Atom.a("non"), Atom.a("operator")), X, Atom.a("follows"), Atom.a("expression") }), new ListPair(new Functor2("atom", X, x7), S1)))
                 {
                     yield return false;
                 }
@@ -1966,7 +2072,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         public static IEnumerable<bool> cannot_follow(object Type, object Token, object Tokens)
         {
             {
-                foreach (bool l2 in syntax_error(new ListPair(Type, new ListPair(Atom.a(@"follows"), new ListPair(Atom.a(@"expression"), Atom.NIL))), new ListPair(Token, Tokens)))
+                foreach (bool l2 in syntax_error(ListPair.make(new object[] { Type, Atom.a("follows"), Atom.a("expression") }), new ListPair(Token, Tokens)))
                 {
                     yield return false;
                 }
@@ -2028,7 +2134,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Other = new Variable();
                 Variable S2 = new Variable();
                 Variable Expr = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor(Atom.a(@"infixop", Atom.a(@"")), new object[] { new Functor2(@"/", F, Pos), L, O, R })))
+                foreach (bool l2 in YP.unify(arg1, new Functor(Atom.a("infixop", Atom.a("")), new object[] { new Functor2("/", F, Pos), L, O, R })))
                 {
                     if (YP.greaterThanOrEqual(Precedence, O))
                     {
@@ -2036,7 +2142,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         {
                             foreach (bool l5 in parse(S1, R, Other, S2))
                             {
-                                foreach (bool l6 in YP.univ(Expr, new ListPair(F, new ListPair(Pos, new ListPair(Term, new ListPair(Other, Atom.NIL))))))
+                                foreach (bool l6 in YP.univ(Expr, ListPair.make(new object[] { F, Pos, Term, Other })))
                                 {
                                     foreach (bool l7 in exprtl(S2, O, Expr, Precedence, Answer, S))
                                     {
@@ -2062,13 +2168,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable O = new Variable();
                 Variable Expr = new Variable();
                 Variable S2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor3(Atom.a(@"postfixop", Atom.a(@"")), new Functor2(@"/", F, Pos), L, O)))
+                foreach (bool l2 in YP.unify(arg1, new Functor3(Atom.a("postfixop", Atom.a("")), new Functor2("/", F, Pos), L, O)))
                 {
                     if (YP.greaterThanOrEqual(Precedence, O))
                     {
                         if (YP.lessThanOrEqual(C, L))
                         {
-                            foreach (bool l5 in YP.univ(Expr, new ListPair(F, new ListPair(Pos, new ListPair(Term, Atom.NIL)))))
+                            foreach (bool l5 in YP.univ(Expr, ListPair.make(new object[] { F, Pos, Term })))
                             {
                                 foreach (bool l6 in peepop(S1, S2))
                                 {
@@ -2092,7 +2198,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object S1 = arg7;
                 Variable Next = new Variable();
                 Variable S2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@",")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(",")))
                 {
                     if (YP.greaterThanOrEqual(Precedence, 1000))
                     {
@@ -2100,7 +2206,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         {
                             foreach (bool l5 in parse(S1, 1000, Next, S2))
                             {
-                                foreach (bool l6 in exprtl(S2, 1000, new Functor2(@",", Term, Next), Precedence, Answer, S))
+                                foreach (bool l6 in exprtl(S2, 1000, new Functor2(",", Term, Next), Precedence, Answer, S))
                                 {
                                     yield return false;
                                 }
@@ -2119,7 +2225,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 object S1 = arg7;
                 Variable Next = new Variable();
                 Variable S2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"|")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("|")))
                 {
                     if (YP.greaterThanOrEqual(Precedence, 1100))
                     {
@@ -2127,7 +2233,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         {
                             foreach (bool l5 in parse(S1, 1100, Next, S2))
                             {
-                                foreach (bool l6 in exprtl(S2, 1100, new Functor2(@";", Term, Next), Precedence, Answer, S))
+                                foreach (bool l6 in exprtl(S2, 1100, new Functor2(";", Term, Next), Precedence, Answer, S))
                                 {
                                     yield return false;
                                 }
@@ -2161,6 +2267,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             {
                 yield break;
             }
+            foreach (bool l1 in YP.fail())
+            {
+                yield return false;
+            }
         }
 
         public static IEnumerable<bool> syntax_error(object _List)
@@ -2168,12 +2278,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             {
                 yield break;
             }
+            foreach (bool l1 in YP.fail())
+            {
+                yield return false;
+            }
         }
 
         public static IEnumerable<bool> prefixop(object F, object O, object Q)
         {
             {
-                foreach (bool l2 in YP.current_op(O, Atom.a(@"fx"), F))
+                foreach (bool l2 in YP.current_op(O, Atom.a("fx"), F))
                 {
                     foreach (bool l3 in YP.unify(Q, YP.subtract(O, 1)))
                     {
@@ -2181,7 +2295,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     }
                     goto cutIf1;
                 }
-                foreach (bool l2 in YP.current_op(O, Atom.a(@"fy"), F))
+                foreach (bool l2 in YP.current_op(O, Atom.a("fy"), F))
                 {
                     foreach (bool l3 in YP.unify(Q, O))
                     {
@@ -2198,7 +2312,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         public static IEnumerable<bool> postfixop(object F, object P, object O)
         {
             {
-                foreach (bool l2 in YP.current_op(O, Atom.a(@"xf"), F))
+                foreach (bool l2 in YP.current_op(O, Atom.a("xf"), F))
                 {
                     foreach (bool l3 in YP.unify(P, YP.subtract(O, 1)))
                     {
@@ -2206,7 +2320,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     }
                     goto cutIf1;
                 }
-                foreach (bool l2 in YP.current_op(O, Atom.a(@"yf"), F))
+                foreach (bool l2 in YP.current_op(O, Atom.a("yf"), F))
                 {
                     foreach (bool l3 in YP.unify(P, O))
                     {
@@ -2223,7 +2337,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         public static IEnumerable<bool> infixop(object F, object P, object O, object Q)
         {
             {
-                foreach (bool l2 in YP.current_op(O, Atom.a(@"xfy"), F))
+                foreach (bool l2 in YP.current_op(O, Atom.a("xfy"), F))
                 {
                     foreach (bool l3 in YP.unify(P, YP.subtract(O, 1)))
                     {
@@ -2234,7 +2348,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     }
                     goto cutIf1;
                 }
-                foreach (bool l2 in YP.current_op(O, Atom.a(@"xfx"), F))
+                foreach (bool l2 in YP.current_op(O, Atom.a("xfx"), F))
                 {
                     foreach (bool l3 in YP.unify(P, YP.subtract(O, 1)))
                     {
@@ -2245,7 +2359,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     }
                     goto cutIf2;
                 }
-                foreach (bool l2 in YP.current_op(O, Atom.a(@"yfx"), F))
+                foreach (bool l2 in YP.current_op(O, Atom.a("yfx"), F))
                 {
                     foreach (bool l3 in YP.unify(Q, YP.subtract(O, 1)))
                     {
@@ -2302,7 +2416,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"atom", Atom.a(@"end_of_file"), 0), Atom.NIL)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("atom", Atom.a("end_of_file"), 0), Atom.NIL)))
                 {
                     yield return false;
                 }
@@ -2336,7 +2450,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"atom", Atom.a(@"end_of_file"), 0), Atom.NIL)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("atom", Atom.a("end_of_file"), 0), Atom.NIL)))
                 {
                     foreach (bool l3 in YP.unify(arg2, Atom.NIL))
                     {
@@ -2407,7 +2521,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 37))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"comment", StartPos, EndPos), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("comment", StartPos, EndPos), Tokens)))
                     {
                         foreach (bool l4 in get_current_position(StartPos))
                         {
@@ -2456,7 +2570,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     {
                         if (YP.equal(C2, new ListPair(42, Atom.NIL)))
                         {
-                            foreach (bool l5 in YP.unify(T, new ListPair(new Functor2(@"comment", StartPos, EndPos), Tokens)))
+                            foreach (bool l5 in YP.unify(T, new ListPair(new Functor2("comment", StartPos, EndPos), Tokens)))
                             {
                                 foreach (bool l6 in get_current_position(StartPos1))
                                 {
@@ -2498,7 +2612,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 33))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"atom", Atom.a(@"!"), Pos), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("atom", Atom.a("!"), Pos), Tokens)))
                     {
                         foreach (bool l4 in get_current_position(Pos))
                         {
@@ -2518,7 +2632,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 40))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@" ("), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(" ("), Tokens)))
                     {
                         foreach (bool l4 in YP.get_code(NextCh))
                         {
@@ -2535,7 +2649,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 41))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@")"), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(")"), Tokens)))
                     {
                         foreach (bool l4 in YP.get_code(NextCh))
                         {
@@ -2552,7 +2666,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 44))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@","), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(","), Tokens)))
                     {
                         foreach (bool l4 in YP.get_code(NextCh))
                         {
@@ -2570,7 +2684,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 59))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"atom", Atom.a(@";"), Pos), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("atom", Atom.a(";"), Pos), Tokens)))
                     {
                         foreach (bool l4 in get_current_position(Pos))
                         {
@@ -2591,7 +2705,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 91))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"/", Atom.a(@"["), Pos), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("/", Atom.a("["), Pos), Tokens)))
                     {
                         foreach (bool l4 in get_current_position(Pos))
                         {
@@ -2612,7 +2726,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 93))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"/", Atom.a(@"]"), Pos), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("/", Atom.a("]"), Pos), Tokens)))
                     {
                         foreach (bool l4 in get_current_position(Pos))
                         {
@@ -2633,7 +2747,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 123))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"/", Atom.a(@"{"), Pos), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("/", Atom.a("{"), Pos), Tokens)))
                     {
                         foreach (bool l4 in get_current_position(Pos))
                         {
@@ -2653,7 +2767,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 124))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"|"), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a("|"), Tokens)))
                     {
                         foreach (bool l4 in YP.get_code(NextCh))
                         {
@@ -2670,7 +2784,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 125))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"}"), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a("}"), Tokens)))
                     {
                         foreach (bool l4 in YP.get_code(NextCh))
                         {
@@ -2702,7 +2816,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 34))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor1(@"string", Chars), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor1("string", Chars), Tokens)))
                     {
                         foreach (bool l4 in read_string(Chars, 34, NextCh))
                         {
@@ -3098,7 +3212,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Atom_1 = new Variable();
                 Variable Pos = new Variable();
                 Variable Tokens = new Variable();
-                foreach (bool l2 in YP.unify(arg3, new ListPair(new Functor2(@"atom", Atom_1, Pos), Tokens)))
+                foreach (bool l2 in YP.unify(arg3, new ListPair(new Functor2("atom", Atom_1, Pos), Tokens)))
                 {
                     foreach (bool l3 in YP.unify(Pos, 0))
                     {
@@ -3121,7 +3235,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in YP.unify(arg1, 40))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"("), Tokens)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a("("), Tokens)))
                     {
                         foreach (bool l4 in YP.get_code(NextCh))
                         {
@@ -3397,7 +3511,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable Tokens = new Variable();
                 Variable Chars = new Variable();
                 Variable NextCh = new Variable();
-                foreach (bool l2 in YP.unify(arg3, new ListPair(new Functor3(@"var", Var, Name, StartPos), Tokens)))
+                foreach (bool l2 in YP.unify(arg3, new ListPair(new Functor3("var", Var, Name, StartPos), Tokens)))
                 {
                     foreach (bool l3 in get_current_position(StartPos))
                     {
@@ -3405,7 +3519,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         {
                             foreach (bool l5 in YP.atom_codes(Name, Chars))
                             {
-                                if (YP.termEqual(Name, Atom.a(@"_")))
+                                if (YP.termEqual(Name, Atom.a("_")))
                                 {
                                     foreach (bool l7 in read_after_atom(NextCh, Dict, Tokens))
                                     {
@@ -3435,7 +3549,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable N = new Variable();
                 Variable V = new Variable();
                 Variable L = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"=", N, V), L)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("=", N, V), L)))
                 {
                     foreach (bool l3 in YP.unify(N, Name))
                     {
@@ -3493,7 +3607,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 }
                 foreach (bool l2 in YP.unify(LastCh, Ch))
                 {
-                    foreach (bool l3 in formatError(Atom.a(@"user_error"), Atom.a(@"~N** end of file in /*comment~n"), Atom.NIL))
+                    foreach (bool l3 in formatError(Atom.a("user_error"), Atom.a("~N** end of file in /*comment~n"), Atom.NIL))
                     {
                         yield return false;
                     }
@@ -3633,7 +3747,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 {
                     if (YP.greaterThanOrEqual(Ch, new ListPair(48, Atom.NIL)))
                     {
-                        foreach (bool l4 in YP.unify(Tokens, new ListPair(new Functor1(@"number", Number), Tokens1)))
+                        foreach (bool l4 in YP.unify(Tokens, new ListPair(new Functor1("number", Number), Tokens1)))
                         {
                             foreach (bool l5 in read_float(Number, Dict, Tokens1, new ListPair(48, Atom.NIL), Ch))
                             {
@@ -3662,7 +3776,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     }
                     goto cutIf3;
                 }
-                foreach (bool l2 in formatError(Atom.a(@"user_error"), Atom.a(@"~N** end of file just after full stop~n"), Atom.NIL))
+                foreach (bool l2 in formatError(Atom.a("user_error"), Atom.a("~N** end of file just after full stop~n"), Atom.NIL))
                 {
                 }
             cutIf3:
@@ -3680,7 +3794,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable NextCh = new Variable();
                 foreach (bool l2 in prepend(Digits, Chars, Rest))
                 {
-                    foreach (bool l3 in read_float(Digit, Rest, NextCh, Chars))
+                    foreach (bool l3 in read_float4(Digit, Rest, NextCh, Chars))
                     {
                         foreach (bool l4 in YP.number_codes(Number, Chars))
                         {
@@ -3724,7 +3838,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
         }
 
-        public static IEnumerable<bool> read_float(object C1, object arg2, object NextCh, object Total)
+        public static IEnumerable<bool> read_float4(object C1, object arg2, object NextCh, object Total)
         {
             {
                 Variable Chars = new Variable();
@@ -3740,7 +3854,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         {
                             if (YP.lessThanOrEqual(C2, new ListPair(57, Atom.NIL)))
                             {
-                                foreach (bool l6 in read_float(C2, Chars, NextCh, Total))
+                                foreach (bool l6 in read_float4(C2, Chars, NextCh, Total))
                                 {
                                     yield return false;
                                 }
@@ -3770,7 +3884,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                                             }
                                             foreach (bool l9 in YP.unify(More, Atom.NIL))
                                             {
-                                                foreach (bool l10 in formatError(Atom.a(@"user_error"), Atom.a(@"~N** Missing exponent in ~s~n"), new ListPair(Total, Atom.NIL)))
+                                                foreach (bool l10 in formatError(Atom.a("user_error"), Atom.a("~N** Missing exponent in ~s~n"), new ListPair(Total, Atom.NIL)))
                                                 {
                                                 }
                                             }
@@ -3806,7 +3920,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                                             }
                                             foreach (bool l9 in YP.unify(More, Atom.NIL))
                                             {
-                                                foreach (bool l10 in formatError(Atom.a(@"user_error"), Atom.a(@"~N** Missing exponent in ~s~n"), new ListPair(Total, Atom.NIL)))
+                                                foreach (bool l10 in formatError(Atom.a("user_error"), Atom.a("~N** Missing exponent in ~s~n"), new ListPair(Total, Atom.NIL)))
                                                 {
                                                 }
                                             }
@@ -3840,7 +3954,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                                         }
                                         foreach (bool l8 in YP.unify(More, Atom.NIL))
                                         {
-                                            foreach (bool l9 in formatError(Atom.a(@"user_error"), Atom.a(@"~N** Missing exponent in ~s~n"), new ListPair(Total, Atom.NIL)))
+                                            foreach (bool l9 in formatError(Atom.a("user_error"), Atom.a("~N** Missing exponent in ~s~n"), new ListPair(Total, Atom.NIL)))
                                             {
                                             }
                                         }
@@ -3920,7 +4034,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Variable C = new Variable();
                 Variable C3 = new Variable();
                 Variable Digits = new Variable();
-                foreach (bool l2 in YP.unify(arg3, new ListPair(new Functor1(@"number", Number), Tokens)))
+                foreach (bool l2 in YP.unify(arg3, new ListPair(new Functor1("number", Number), Tokens)))
                 {
                     foreach (bool l3 in read_number4(C1, C2, 0, N))
                     {
@@ -3954,7 +4068,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                                 }
                                 goto cutIf3;
                             }
-                            foreach (bool l5 in formatError(Atom.a(@"user_error"), Atom.a(@"~N** ~d' read as ~d '~n"), new ListPair(N, new ListPair(N, Atom.NIL))))
+                            foreach (bool l5 in formatError(Atom.a("user_error"), Atom.a("~N** ~d' read as ~d '~n"), new ListPair(N, new ListPair(N, Atom.NIL))))
                             {
                                 foreach (bool l6 in YP.unify(Number, N))
                                 {
@@ -4240,7 +4354,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     {
                         if (YP.lessThan(C1, 0))
                         {
-                            foreach (bool l5 in formatError(Atom.a(@"user_error"), Atom.a(@"~N** end of file in ~cquoted~c~n"), new ListPair(Quote, new ListPair(Quote, Atom.NIL))))
+                            foreach (bool l5 in formatError(Atom.a("user_error"), Atom.a("~N** end of file in ~cquoted~c~n"), new ListPair(Quote, new ListPair(Quote, Atom.NIL))))
                             {
                                 foreach (bool l6 in YP.unify(Result, -1))
                                 {
@@ -4332,7 +4446,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                             {
                                 if (YP.lessThan(C2, 0))
                                 {
-                                    foreach (bool l7 in formatError(Atom.a(@"user_error"), Atom.a(@"~N** end of file in ~c..~c^..~c~n"), new ListPair(Quote, new ListPair(92, new ListPair(Quote, Atom.NIL)))))
+                                    foreach (bool l7 in formatError(Atom.a("user_error"), Atom.a("~N** end of file in ~c..~c^..~c~n"), ListPair.make(new object[] { Quote, 92, Quote })))
                                     {
                                         foreach (bool l8 in YP.unify(Result, -1))
                                         {
@@ -4432,7 +4546,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                             {
                                     foreach (bool l7 in YP.unify(Next, Char))
                                 {
-                                        foreach (bool l8 in formatError(Atom.a(@"user_error"), Atom.a(@"~N** Strange character ~d ends ~ctoken~c~n"), new ListPair(Char, new ListPair(Quote, new ListPair(Quote, Atom.NIL)))))
+                                        foreach (bool l8 in formatError(Atom.a("user_error"), Atom.a("~N** Strange character ~d ends ~ctoken~c~n"), ListPair.make(new object[] { Char, Quote, Quote })))
                                     {
                                         yield return false;
                                     }
@@ -4456,6 +4570,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 { }
             }
         }
-        #pragma warning restore 0168, 0219
+#pragma warning restore 0168, 0219, 0162
     }
 }

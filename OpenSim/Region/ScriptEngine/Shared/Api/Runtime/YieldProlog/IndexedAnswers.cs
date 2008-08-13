@@ -270,8 +270,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 throw new PrologException("instantiation_error", "Head is an unbound variable");
             object[] arguments = YP.getFunctorArgs(Head);
 
-            // We always match Head from _allAnswers, and the Body is
-            // Atom.a("true").
+            // We always match Head from _allAnswers, and the Body is Atom.a("true").
             #pragma warning disable 0168
             foreach (bool l1 in YP.unify(Body, Atom.a("true")))
             {
