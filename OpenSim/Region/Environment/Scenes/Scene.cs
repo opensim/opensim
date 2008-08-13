@@ -2459,12 +2459,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
                 // rewrite session_id
                 CachedUserInfo userinfo = CommsManager.UserProfileCacheService.GetUserDetails(agent.AgentID);
-                if (userinfo.SessionID != agent.SessionID) // means cache hit but outdated session ID
-                {
-                    // Let's re-grab the whole user profile, because anything may have changed on the user server.
-                    CommsManager.UserProfileCacheService.RemoveUser(agent.AgentID);
-                    userinfo = CommsManager.UserProfileCacheService.GetUserDetails(agent.AgentID);
-                }
+                userinfo.SessionID = agent.SessionID;
             }
             else
             {
