@@ -354,6 +354,17 @@ namespace Opensim.Framework
             return data;
         }
 
+		// Find an object in cache by delegate.
+		//
+		public Object Find(Predicate<Opensim.Framework.CacheItemBase> d)
+		{
+			CacheItemBase item = m_Index.Find(d);
+
+			if(item == null)
+				return null;
+
+			return item.Retrieve();
+		}
 
         public virtual void Store(LLUUID index, Object data)
         {
