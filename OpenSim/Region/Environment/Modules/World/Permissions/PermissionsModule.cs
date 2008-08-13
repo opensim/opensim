@@ -238,7 +238,13 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             // If there is no master avatar, return false
             if (m_scene.RegionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
             {
-                return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
+                if(m_scene.RegionInfo.MasterAvatarAssignedUUID == user)
+                    return true;
+            }
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+            {
+                if(m_scene.RegionInfo.EstateSettings.EstateOwner == user)
+                    return true;
             }
 
             return false;
