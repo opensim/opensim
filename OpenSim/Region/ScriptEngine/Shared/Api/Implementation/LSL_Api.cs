@@ -2943,7 +2943,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llTeleportAgentHome(string agent)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llTeleportAgentHome");
+            LLUUID agentId = new LLUUID();
+            if (LLUUID.TryParse(agent, out agentId))
+            {
+                ScenePresence presence = World.GetScenePresence(agentId);
+                if (presence != null)
+                {
+                    // agent must be over the owners land
+                    if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
+                        World.TeleportClientHome(agentId, presence.ControllingClient);
+                }
+            }
         }
 
         public void llModifyLand(int action, int brush)
