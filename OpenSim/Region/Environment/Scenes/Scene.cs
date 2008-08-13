@@ -3466,8 +3466,14 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetSceneObjectPart(localID);
             if (part != null)
             {
-                LLVector3 pos = part.GetWorldPosition();
-                return scriptDanger(part, pos);
+                // Changed so that child prims of attachments return scriptDanger for their parent, so that
+                //  their scripts will actually run.
+                //      -- Leaf, Tue Aug 12 14:17:05 EDT 2008
+                SceneObjectPart parent = part.ParentGroup.RootPart;
+                if( parent != null && parent.IsAttachment )
+                    return scriptDanger(parent, parent.GetWorldPosition() );
+                else
+                    return scriptDanger(part, part.GetWorldPosition() );
             }
             else
             {
