@@ -2986,7 +2986,36 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llRequestInventoryData(string name)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRequestInventoryData");
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            {
+                if (item.Type == 3 && item.Name == name)
+                {
+                    LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
+                        m_localID, m_itemID, item.AssetID.ToString());
+                    
+                    LLVector3 region = new LLVector3(
+                        World.RegionInfo.RegionLocX * Constants.RegionSize,
+                        World.RegionInfo.RegionLocY * Constants.RegionSize,
+                        0);
+
+                    World.AssetCache.GetAsset(item.AssetID,
+                        delegate(LLUUID i, AssetBase a)
+                        {
+                            AssetLandmark lm = new AssetLandmark(a);
+
+                            float rx = (uint)(lm.RegionHandle >> 32);
+                            float ry = (uint)lm.RegionHandle;
+                            region = lm.Position + new LLVector3(rx, ry, 0) - region;
+
+                            string reply = region.ToString();
+                            m_ScriptEngine.m_ASYNCLSLCommandManager.
+                                m_Dataserver.DataserverReply(i.ToString(),
+                                                             reply);
+                        }, false);
+
+                    return tid.ToString();
+                }
+            }
             return String.Empty;
         }
 

@@ -2917,10 +2917,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             AssetLandmark lm = new AssetLandmark(a);
 
-                            region += lm.Position;
+                            float rx = (uint)(lm.RegionHandle >> 32);
+                            float ry = (uint)lm.RegionHandle;
+                            region = lm.Position + new LLVector3(rx, ry, 0) - region;
 
                             string reply = region.ToString();
-
                             AsyncCommands.
                                 DataserverPlugin.DataserverReply(i.ToString(),
                                                              reply);
