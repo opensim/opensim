@@ -6541,14 +6541,130 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llParcelMediaCommandList(LSL_Types.list commandList)
         {
+            //TO DO: Implement the missing commands
+            //PARCEL_MEDIA_COMMAND_STOP 	Stop the media stream and go back to the first frame. 
+            //PARCEL_MEDIA_COMMAND_PAUSE 	Pause the media stream (stop playing but stay on current frame).
+            //PARCEL_MEDIA_COMMAND_PLAY 	Start the media stream playing from the current frame and stop when the end is reached. 
+            //PARCEL_MEDIA_COMMAND_LOOP 	Start the media stream playing from the current frame. When the end is reached, loop to the beginning and continue. 
+            //PARCEL_MEDIA_COMMAND_TEXTURE 	key uuid 	Use this to get or set the parcel's media texture.
+            //PARCEL_MEDIA_COMMAND_URL 	string url 	Used to get or set the parcel's media url.
+            //PARCEL_MEDIA_COMMAND_TIME 	float time 	Move a media stream to a specific time.
+            //PARCEL_MEDIA_COMMAND_AGENT 	key uuid 	Applies the media command to the specified agent only.
+            //PARCEL_MEDIA_COMMAND_UNLOAD 	Completely unloads the movie and restores the original texture. 
+            //PARCEL_MEDIA_COMMAND_AUTO_ALIGN 	integer boolean 	Sets the parcel option 'Auto scale content'. 
+            //PARCEL_MEDIA_COMMAND_TYPE 	string mime_type 	Use this to get or set the parcel media MIME type (e.g. "text/html"). (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_SIZE 	integer x, integer y 	Use this to get or set the parcel media pixel resolution. (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_DESC 	string desc 	Use this to get or set the parcel media description. (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_LOOP_SET 	float loop 	Use this to get or set the parcel's media loop duration. (1.19.1 RC0 or later)
             m_host.AddScriptLPS(1);
-            NotImplemented("llParcelMediaCommandList");
+            for (int i = 0; i < commandList.Data.Length; i++)
+            {                
+                switch ((ParcelMediaCommandEnum)commandList.Data[i])
+                {
+                    case ParcelMediaCommandEnum.Play:
+                        List<ScenePresence> scenePresencePlayList = World.GetScenePresences();
+                        foreach (ScenePresence agent in scenePresencePlayList)
+                        {
+                            if (!agent.IsChildAgent)
+                            {
+                                agent.ControllingClient.SendParcelMediaCommand((uint)(4), ParcelMediaCommandEnum.Play, 0);
+                            }                                
+                        }
+                        break;
+                    case ParcelMediaCommandEnum.Stop:
+                        List<ScenePresence> scenePresenceStopList = World.GetScenePresences();
+                        foreach (ScenePresence agent in scenePresenceStopList)
+                        {
+                            if (!agent.IsChildAgent)
+                            {
+                                agent.ControllingClient.SendParcelMediaCommand((uint)(4), ParcelMediaCommandEnum.Stop, 0);
+                            }
+                        }
+                        break;
+                    case ParcelMediaCommandEnum.Pause:
+                        List<ScenePresence> scenePresencePauseList = World.GetScenePresences();
+                        foreach (ScenePresence agent in scenePresencePauseList)
+                        {
+                            if (!agent.IsChildAgent)
+                            {
+                                agent.ControllingClient.SendParcelMediaCommand((uint)(4), ParcelMediaCommandEnum.Pause, 0);
+                            }
+                        }
+                        break;
+
+                    case ParcelMediaCommandEnum.Url:
+                        if ((i + 1) < commandList.Length)
+                        {
+                            if (commandList.Data[i + 1] is string)
+                            {
+                                //Set the new media URL only if the user is the owner of the land
+                                osSetParcelMediaURL(commandList.Data[i + 1].ToString());
+                                                                    
+                                List<ScenePresence> scenePresenceList = World.GetScenePresences();
+                                LandData landData = World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+                                //Send an update of the mediaURL to all the clients that are in the parcel
+                                foreach (ScenePresence agent in scenePresenceList)
+                                {
+                                    if (!agent.IsChildAgent)
+                                    {
+                                        //Send parcel media update to the client
+                                        agent.ControllingClient.SendParcelMediaUpdate(landData.MediaURL, landData.MediaID, landData.MediaAutoScale, "", landData.Description, 0, 0, 1);
+                                    }
+                                }                    
+                                
+                            }
+                            i++;
+                        }
+                        break;
+                    default:
+                        ParcelMediaCommandEnum mediaCommandEnum = ParcelMediaCommandEnum.Url;
+                        NotImplemented("llParcelMediaCommandList parameter do not supported yet: " + Enum.Parse(mediaCommandEnum.GetType(), commandList.Data[i].ToString()).ToString());
+                        break;
+                }//end switch
+                
+            }
+
+
+            //NotImplemented("llParcelMediaCommandList");
         }
 
-        public void llParcelMediaQuery()
+        public LSL_Types.list llParcelMediaQuery(LSL_Types.list aList)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llParcelMediaQuery");
+            LSL_Types.list list = new LSL_Types.list();
+            //TO DO: make the implementation for the missing commands
+            //PARCEL_MEDIA_COMMAND_TEXTURE 	key uuid 	Use this to get or set the parcel's media texture. 
+            //PARCEL_MEDIA_COMMAND_URL 	string url 	Used to get or set the parcel's media url. 
+            //PARCEL_MEDIA_COMMAND_TYPE 	string mime_type 	Use this to get or set the parcel media MIME type (e.g. "text/html"). (1.19.1 RC0 or later) 
+            //PARCEL_MEDIA_COMMAND_SIZE 	integer x, integer y 	Use this to get or set the parcel media pixel resolution. (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_DESC 	string desc 	Use this to get or set the parcel media description. (1.19.1 RC0 or later) 
+            //PARCEL_MEDIA_COMMAND_LOOP_SET 	float loop 	Use this to get or set the parcel's media loop duration. (1.19.1 RC0 or later)
+            for (int i = 0; i < aList.Data.Length; i++)
+            {
+
+                if (aList.Data[i] != null)
+                {
+                    switch((ParcelMediaCommandEnum)aList.Data[i])
+                    {
+                        case ParcelMediaCommandEnum.Url:
+                            list.Add(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaURL);
+                            break;
+                        case ParcelMediaCommandEnum.Desc:
+                            list.Add(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).Description);
+                            break;
+                        case ParcelMediaCommandEnum.Texture:
+                            list.Add(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaID);
+                            break;
+                        default:
+                            ParcelMediaCommandEnum mediaCommandEnum = ParcelMediaCommandEnum.Url;
+                            NotImplemented("llParcelMediaQuery parameter do not supported yet: " + Enum.Parse(mediaCommandEnum.GetType() , aList.Data[i].ToString()).ToString());
+                            break;
+                    }
+
+                }
+            }
+            return list;
+            
         }
 
         public LSL_Types.LSLInteger llModPow(int a, int b, int c)

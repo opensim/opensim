@@ -173,6 +173,8 @@ namespace Opensim.Framework
     public class Cache
     {
         private List<CacheItemBase> m_Index = new List<CacheItemBase>();
+		private Dictionary<LLUUID, CacheItemBase> m_Lookup =
+				new Dictionary<LLUUID, CacheItemBase>();
 
         private CacheStrategy m_Strategy;
         private CacheMedium m_Medium;
@@ -267,6 +269,11 @@ namespace Opensim.Framework
 
                 m_Index.RemoveRange(newSize, Count - newSize);
                 m_Size = newSize;
+
+				m_Lookup.Clear();
+
+				foreach (CacheItemBase item in m_Index)
+					m_Lookup[item.uuid] = item;
             }
         }
 
@@ -284,12 +291,8 @@ namespace Opensim.Framework
 
             lock (m_Index)
             {
-                item = m_Index.Find(delegate(CacheItemBase i)
-                {
-                    if (i.uuid == index)
-                        return true;
-                    return false;
-                });
+				if(m_Lookup.ContainsKey(index))
+					item = m_Lookup[index];
             }
 
             if (item == null)
@@ -337,7 +340,10 @@ namespace Opensim.Framework
                     {
                         CacheItemBase missing = new CacheItemBase(index);
                         if (!m_Index.Contains(missing))
+						{
                             m_Index.Add(missing);
+							m_Lookup[index] = missing;
+						}
                     }
                 }
                 return null;
@@ -404,6 +410,7 @@ namespace Opensim.Framework
                     item.expires = DateTime.Now + m_DefaultTTL;
 
                 m_Index.Add(item);
+				m_Lookup[index] = item;
             }
             item.Store(data);
         }
@@ -421,7 +428,10 @@ namespace Opensim.Framework
                 {
                     if (item.expires.Ticks == 0 ||
                             item.expires <= now)
+					{
                         m_Index.Remove(item);
+						m_Lookup.Remove(item.uuid);
+					}
                 }
             }
 
@@ -450,12 +460,20 @@ namespace Opensim.Framework
                         foreach (CacheItemBase i in candidates)
                         {
                             if (doExpire(i.uuid))
+							{
                                 m_Index.Remove(i);
+								m_Lookup.Remove(i.uuid);
+							}
                         }
                     }
                     else
                     {
                         m_Index.RemoveRange(target, Count - target);
+
+						m_Lookup.Clear();
+
+						foreach (CacheItemBase item in m_Index)
+							m_Lookup[item.uuid] = item;
                     }
                 }
                 break;

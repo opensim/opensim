@@ -583,7 +583,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void llLoadURL(string avatar_id, string message, string url);
         //wiki: llParcelMediaCommandList(list commandList)
         void llParcelMediaCommandList(LSL_Types.list commandList);
-        void llParcelMediaQuery();
+        LSL_Types.list llParcelMediaQuery(LSL_Types.list aList);
         //wiki integer llModPow(integer a, integer b, integer c)
         LSL_Types.LSLInteger llModPow(int a, int b, int c);
         //wiki: integer llGetInventoryType(string name)

@@ -1564,9 +1564,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llParcelMediaCommandList(commandList);
         }
 
-        public void llParcelMediaQuery()
+        public LSL_Types.list llParcelMediaQuery(LSL_Types.list aList)
         {
-            m_LSL_Functions.llParcelMediaQuery();
+            return m_LSL_Functions.llParcelMediaQuery(aList);
         }
 
         public LSL_Types.LSLInteger llModPow(int a, int b, int c)
