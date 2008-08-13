@@ -637,9 +637,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         # endregion
 
         protected int m_terrainCheckerCount = 0;
+        
         /// <summary>
         /// Event handler for check client timer
-        /// checks to ensure that the client is still connected
+        /// Checks to ensure that the client is still connected.  If the client has failed to respond to many pings
+        /// in succession then close down the connection.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -648,11 +650,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_PacketHandler.PacketsReceived == m_PacketHandler.PacketsReceivedReported)
             {
                 m_probesWithNoIngressPackets++;
-                if ((m_probesWithNoIngressPackets > 30 && !m_clientBlocked) || (m_probesWithNoIngressPackets > 90 && m_clientBlocked))
+                if ((m_probesWithNoIngressPackets > 30 && !m_clientBlocked) 
+                    || (m_probesWithNoIngressPackets > 90 && m_clientBlocked))
                 {
-
                     if (OnConnectionClosed != null)
                     {
+                        m_log.WarnFormat(
+                            "[CLIENT]: Client for agent {0} {1} has stopped responding to pings.  Closing connection", 
+                            Name, AgentId);
+                        
                         OnConnectionClosed(this);
                     }
                 }
@@ -682,6 +688,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Establish our two timers.  We could probably get this down to one
 
+            // Ping the client regularly to check that it's still there
             m_clientPingTimer = new Timer(5000);
             m_clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
             m_clientPingTimer.Enabled = true;
@@ -3402,12 +3409,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="client">
-        /// A <see cref="IClientAPI"/>
-        /// </param>
-        /// <returns>
-        /// A <see cref="System.Boolean"/>
-        /// </returns>
+        /// <param name="client"></param>
+        /// <returns></returns>
         protected virtual bool Logout(IClientAPI client)
         {
             m_log.Info("[CLIENT]: Got a logout request");
