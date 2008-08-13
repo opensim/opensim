@@ -46,7 +46,6 @@ namespace OpenSim.Grid.InventoryServer
 
         public const string LogName = "INVENTORY";
 
-        [STAThread]
         public static void Main(string[] args)
         {
             XmlConfigurator.Configure();

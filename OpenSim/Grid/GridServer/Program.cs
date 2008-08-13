@@ -32,7 +32,6 @@ namespace OpenSim.Grid.GridServer
 {
     public class Program
     {
-        [STAThread]
         public static void Main(string[] args)
         {
             XmlConfigurator.Configure();

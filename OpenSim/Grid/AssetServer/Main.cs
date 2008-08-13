@@ -53,7 +53,6 @@ namespace OpenSim.Grid.AssetServer
 
         private IAssetProviderPlugin m_assetProvider;
 
-        [STAThread]
         public static void Main(string[] args)
         {
             XmlConfigurator.Configure();

@@ -50,7 +50,6 @@ namespace OpenSim.Grid.MessagingServer
 
         // private LLUUID m_lastCreatedUser = LLUUID.Random();
 
-        [STAThread]
         public static void Main(string[] args)
         {
             XmlConfigurator.Configure();
