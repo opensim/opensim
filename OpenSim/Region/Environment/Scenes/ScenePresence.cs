@@ -872,7 +872,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (scriptedcontrols.Count > 0)
                 {
-                    SendControlToScripts(flags, LastCommands);
+                    SendControlToScripts(flags);
                     flags = this.RemoveIgnoredControls(flags, IgnoredControls);
 
                 }
@@ -2741,11 +2741,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        internal void SendControlToScripts(uint flags, ScriptControlled lastFlags)
+        internal void SendControlToScripts(uint flags)
         {
 
             ScriptControlled allflags = ScriptControlled.CONTROL_ZERO;
 
+            // find all activated controls, whether the scripts are interested in them or not
             if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) != 0)
             {
                 allflags |= ScriptControlled.CONTROL_FWD;
@@ -2770,11 +2771,11 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 allflags |= ScriptControlled.CONTROL_RIGHT;
             }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
             {
                 allflags |= ScriptControlled.CONTROL_ROT_RIGHT;
             }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
             {
                 allflags |= ScriptControlled.CONTROL_ROT_LEFT;
             }
@@ -2787,45 +2788,24 @@ namespace OpenSim.Region.Environment.Scenes
                 allflags |= ScriptControlled.CONTROL_LBUTTON;
             }
 
-            ScriptControlled held = ScriptControlled.CONTROL_ZERO;
-            ScriptControlled change = ScriptControlled.CONTROL_ZERO;
-
-            foreach (ScriptControlled DCF in Enum.GetValues(typeof (ScriptControlled)))
-            {
-                // Held
-                if ((lastFlags & DCF) != 0 && (allflags & DCF) != 0)
+            // optimization; we have to check per script, but if nothing is pressed and nothing changed, we can skip that
+            if(allflags != ScriptControlled.CONTROL_ZERO || allflags != LastCommands) {
+                lock (scriptedcontrols)
                 {
-                    held |= DCF;
-                    continue;
-                }
-                // Not held recently
-                if ((lastFlags & DCF) != 0 && (allflags & DCF) == 0)
-                {
-                    change |= DCF;
-                    continue;
-                }
-                // Newly pressed.
-                if ((lastFlags & DCF) == 0 && (allflags & DCF) != 0)
-                {
-                    change |= DCF;
-                    continue;
+                    foreach (LLUUID scriptUUID in scriptedcontrols.Keys)
+                    {
+                        ScriptControllers scriptControlData = scriptedcontrols[scriptUUID];
+                        ScriptControlled localHeld = allflags & scriptControlData.eventControls;     // the flags interesting for us
+                        ScriptControlled localLast = LastCommands & scriptControlData.eventControls; // the activated controls in the last cycle
+                        ScriptControlled localChange = localHeld ^ localLast;                        // the changed bits
+                        if(localHeld != ScriptControlled.CONTROL_ZERO || localChange != ScriptControlled.CONTROL_ZERO) {
+                            // only send if still pressed or just changed
+                            m_scene.EventManager.TriggerControlEvent(scriptControlData.objID, scriptUUID, UUID, (uint)localHeld, (uint)localChange);
+                        }
+                    }
                 }
             }
-
-            lock (scriptedcontrols)
-            {
-                foreach (LLUUID scriptUUID in scriptedcontrols.Keys)
-                {
-                    ScriptControllers scriptControlData = scriptedcontrols[scriptUUID];
-                    ScriptControlled localHeld = held & scriptControlData.eventControls;
-                    //if (localHeld != ScriptControlled.CONTROL_ZERO)
-                    //{
-                        //int i = 1;
-                    //}
-                    ScriptControlled localChange = change & scriptControlData.eventControls;
-                    m_scene.EventManager.TriggerControlEvent(scriptControlData.objID, scriptUUID, UUID, (uint)localHeld, (uint)localChange);
-                }
-            }
+            
             LastCommands = allflags;
         }
 
