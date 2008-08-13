@@ -1659,7 +1659,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llTriggerSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            m_host.SendSound(sound, volume, true, 0);
+            // send the sound, once, to all clients in range
+            m_host.SendSound(KeyOrName(sound).ToString(), volume, false, 0);
         }
 
         // Xantor 20080528: Clear prim data of sound instead
