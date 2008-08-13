@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Globalization;
 using libsecondlife;
@@ -303,41 +304,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                 if (e.InnerException != null)
                                 {
                                     // Send inner exception
-                                    string[] lines=e.InnerException.ToString().Replace("\r", "").Split('\n');
                                     string line = " (unknown line)";
-                                    foreach (string t in lines)
-                                    {
-                                        int idx=t.IndexOf("SecondLife.Script.");
-                                        if (idx != -1)
-                                        {
-                                            // Need to skip past windows paths that have "c:\" in them
-                                            int colon=t.LastIndexOf(":");
-
-                                            if (-1 != colon)
-                                            {
-                                                // Not sure why this is converted to an int then back to a string, either
-                                                // way, need to skip the word "line " in the substring
-                                                try
-                                                {
-                                                    // ...if it is there. With mono --debug OpenSim.exe,
-                                                    // you'll get the error in the format filename:linenumber
-                                                    if (colon + 6 < t.Length && t.Substring(colon + 1, 5).Equals("line ")) colon += 6;
-                                                    else ++colon; // else only skip the colon
-                                                    line = " at line " + Convert.ToInt32(t.Substring(colon)).ToString();
-                                                }
-                                                catch (ArgumentOutOfRangeException e2)
-                                                {
-                                                    // FIXME: Big fat temporary patch to stop the Substring above throwing an exception
-                                                    // and stopping a proper kill of the script.  We're making an unwarranted assumption
-                                                    // about the size of t.  This needs to be fixed properly.                                                    
-                                                    m_log.ErrorFormat("[SCRIPT ENGINE]: Error line number conversion exception {0}", e2);                                                    
-                                                    line = " at line (unavailable)";
-                                                }
-                                                
-                                                break;
-                                            }
-                                        }
-                                    }
+                                    Regex rx = new Regex(@"SecondLife\.Script\..+[\s:](?<line>\d+)\.?\r?$", RegexOptions.Compiled);
+                                    if (rx.Match(e.InnerException.ToString()).Success)
+                                        line = " (line " + rx.Match(e.InnerException.ToString()).Result("${line}") + ")";
                                     text += e.InnerException.Message.ToString() + line;
                                 }
                                 else
