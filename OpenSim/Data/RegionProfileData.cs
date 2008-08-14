@@ -171,7 +171,7 @@ namespace OpenSim.Data
         /// <summary>
         /// Request sim profile information from a grid server, by Region UUID
         /// </summary>
-        /// <param name="region_uuid">The region UUID to look for</param>
+        /// <param name="region_UUID">The region UUID to look for</param>
         /// <param name="gridserver_url"></param>
         /// <param name="gridserver_sendkey"></param>
         /// <param name="gridserver_recvkey"></param>
@@ -180,7 +180,7 @@ namespace OpenSim.Data
         public static RegionProfileData RequestSimProfileData(LLUUID region_uuid, Uri gridserver_url,
                                                        string gridserver_sendkey, string gridserver_recvkey)
         {
-            return RequestSimData(gridserver_url, gridserver_sendkey, "region_uuid", region_uuid.UUID.ToString());
+            return RequestSimData(gridserver_url, gridserver_sendkey, "region_UUID", region_uuid.UUID.ToString());
         }
 
         /// <summary>

@@ -152,10 +152,21 @@ namespace OpenSim.Grid.UserServer
                 }
                 else if (startLocationRequest == "home")
                 {
-                    SimInfo =
-                        RegionProfileData.RequestSimProfileData(
-                            theUser.HomeRegion, m_config.GridServerURL,
-                            m_config.GridSendKey, m_config.GridRecvKey);
+                    // use the homeRegionID if it is stored already. If not, use the regionHandle as before
+                    if(theUser.HomeRegionID != LLUUID.Zero)
+                    {
+                        SimInfo =
+                            RegionProfileData.RequestSimProfileData(
+                                theUser.HomeRegionID, m_config.GridServerURL,
+                                m_config.GridSendKey, m_config.GridRecvKey);
+                    }
+                    else
+                    {
+                        SimInfo =
+                            RegionProfileData.RequestSimProfileData(
+                                theUser.HomeRegion, m_config.GridServerURL,
+                                m_config.GridSendKey, m_config.GridRecvKey);
+                    }
                 }
                 else
                 {
@@ -201,8 +212,8 @@ namespace OpenSim.Grid.UserServer
                                 (SimInfo.regionLocY * Constants.RegionSize).ToString() + "], " +
                                 "'position':[r" + theUser.HomeLocation.X.ToString() + ",r" +
                                 theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "], " +
-                                "'look_at':[r" + theUser.HomeLocation.X.ToString() + ",r" +
-                                theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "]}";
+                                "'look_at':[r" + theUser.HomeLookAt.X.ToString() + ",r" +
+                                theUser.HomeLookAt.Y.ToString() + ",r" + theUser.HomeLookAt.Z.ToString() + "]}";
 
                 // Destination
                 //CFK: The "Notifying" message always seems to appear, so subsume the data from this message into
