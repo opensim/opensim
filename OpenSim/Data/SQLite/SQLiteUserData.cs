@@ -662,6 +662,7 @@ namespace OpenSim.Data.SQLite
 
             SQLiteUtil.createCol(users, "homeRegionX", typeof (Int32));
             SQLiteUtil.createCol(users, "homeRegionY", typeof (Int32));
+            SQLiteUtil.createCol(users, "homeRegionID", typeof (String));
             SQLiteUtil.createCol(users, "homeLocationX", typeof (Double));
             SQLiteUtil.createCol(users, "homeLocationY", typeof (Double));
             SQLiteUtil.createCol(users, "homeLocationZ", typeof (Double));
@@ -769,6 +770,11 @@ namespace OpenSim.Data.SQLite
                 Convert.ToSingle(row["homeLookAtY"]),
                 Convert.ToSingle(row["homeLookAtZ"])
                 );
+
+            LLUUID regionID = LLUUID.Zero;
+            LLUUID.TryParse(row["homeRegionID"].ToString(), out regionID); // it's ok if it doesn't work; just use LLUUID.Zero
+            user.HomeRegionID = regionID;
+
             user.Created = Convert.ToInt32(row["created"]);
             user.LastLogin = Convert.ToInt32(row["lastLogin"]);
             user.RootInventoryFolderID = new LLUUID((String) row["rootInventoryFolderID"]);
@@ -803,6 +809,7 @@ namespace OpenSim.Data.SQLite
 
             row["homeRegionX"] = user.HomeRegionX;
             row["homeRegionY"] = user.HomeRegionY;
+            row["homeRegionID"] = user.HomeRegionID;
             row["homeLocationX"] = user.HomeLocation.X;
             row["homeLocationY"] = user.HomeLocation.Y;
             row["homeLocationZ"] = user.HomeLocation.Z;

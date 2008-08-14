@@ -151,6 +151,7 @@ namespace OpenSim.Grid.UserServer
             responseData["home_coordinates_z"] = profile.HomeLocation.Z.ToString();
 
             responseData["home_region"] = profile.HomeRegion.ToString();
+            responseData["home_region_id"] = profile.HomeRegionID.ToString();
 
             responseData["home_look_x"] = profile.HomeLookAt.X.ToString();
             responseData["home_look_y"] = profile.HomeLookAt.Y.ToString();
@@ -563,6 +564,12 @@ namespace OpenSim.Grid.UserServer
                     m_log.Error("[PROFILE]:Failed to set home region, Value was too large");
                 }
 
+            }
+            if (requestData.Contains("home_region_id"))
+            {
+                LLUUID regionID = LLUUID.Zero;
+                LLUUID.TryParse((string)requestData["home_region_id"], out regionID);
+                userProfile.HomeRegionID = regionID;
             }
             if (requestData.Contains("home_pos_x"))
             {

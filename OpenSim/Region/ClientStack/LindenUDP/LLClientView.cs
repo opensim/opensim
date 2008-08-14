@@ -5241,7 +5241,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerTeleportLandmarkRequest = OnTeleportLandmarkRequest;
                         if (handlerTeleportLandmarkRequest != null)
                         {
-                            handlerTeleportLandmarkRequest(this, lm.RegionHandle, lm.Position);
+                            handlerTeleportLandmarkRequest(this, lm.RegionID, lm.Position);
                         }
                         else
                         {

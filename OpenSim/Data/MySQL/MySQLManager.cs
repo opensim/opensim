@@ -538,6 +538,10 @@ namespace OpenSim.Data.MySQL
                     Convert.ToSingle(reader["homeLookAtY"].ToString()),
                     Convert.ToSingle(reader["homeLookAtZ"].ToString()));
 
+                LLUUID regionID = LLUUID.Zero;
+                LLUUID.TryParse(reader["homeRegionID"].ToString(), out regionID); // it's ok if it doesn't work; just use LLUUID.Zero
+                retval.HomeRegionID = regionID;
+                
                 retval.Created = Convert.ToInt32(reader["created"].ToString());
                 retval.LastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
 
@@ -583,6 +587,7 @@ namespace OpenSim.Data.MySQL
                     LLUUID.TryParse((string)reader["webLoginKey"], out tmp);
                     retval.WebLoginKey = tmp;
                 }
+                
             }
             else
             {
@@ -806,7 +811,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="webLoginKey">UUID for weblogin Key</param>
         /// <returns>Success?</returns>
         public bool updateUserRow(LLUUID uuid, string username, string lastname, string passwordHash,
-                                  string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
+                                  string passwordSalt, UInt64 homeRegion, LLUUID homeRegionID, float homeLocX, float homeLocY, float homeLocZ,
                                   float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
                                   string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
                                   string aboutText, string firstText,
@@ -814,7 +819,7 @@ namespace OpenSim.Data.MySQL
         {
             string sql = "UPDATE users SET `username` = ?username , `lastname` = ?lastname ";
             sql += ", `passwordHash` = ?passwordHash , `passwordSalt` = ?passwordSalt , ";
-            sql += "`homeRegion` = ?homeRegion , `homeLocationX` = ?homeLocationX , ";
+            sql += "`homeRegion` = ?homeRegion , `homeRegionID` = ?homeRegionID, `homeLocationX` = ?homeLocationX , ";
             sql += "`homeLocationY`  = ?homeLocationY , `homeLocationZ` = ?homeLocationZ , ";
             sql += "`homeLookAtX` = ?homeLookAtX , `homeLookAtY` = ?homeLookAtY , ";
             sql += "`homeLookAtZ` = ?homeLookAtZ , `created` = ?created , `lastLogin` = ?lastLogin , ";
@@ -831,6 +836,7 @@ namespace OpenSim.Data.MySQL
             parameters["?passwordHash"] = passwordHash.ToString();
             parameters["?passwordSalt"] = passwordSalt.ToString();
             parameters["?homeRegion"] = homeRegion.ToString();
+            parameters["?homeRegionID"] = homeRegionID.ToString();
             parameters["?homeLocationX"] = homeLocX.ToString();
             parameters["?homeLocationY"] = homeLocY.ToString();
             parameters["?homeLocationZ"] = homeLocZ.ToString();

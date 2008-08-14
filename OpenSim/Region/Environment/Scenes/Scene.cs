@@ -2104,10 +2104,34 @@ namespace OpenSim.Region.Environment.Scenes
             UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(AgentId);
             if (UserProfile != null)
             {
-                ulong homeRegion = UserProfile.HomeRegion;
+                LLUUID homeRegionID = UserProfile.HomeRegionID;
                 LLVector3 homePostion = new LLVector3(UserProfile.HomeLocationX,UserProfile.HomeLocationY,UserProfile.HomeLocationZ);
                 LLVector3 homeLookat = new LLVector3(UserProfile.HomeLookAt);
-                RequestTeleportLocation(client, homeRegion, homePostion,homeLookat,(uint)0);
+                ulong homeRegionHandle = UserProfile.HomeRegion;
+                if(homeRegionID == LLUUID.Zero)
+                {
+                    RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegion);
+                    if(info == null)
+                    {
+                        // can't find the region: Tell viewer and abort
+                        client.SendTeleportFailed("Your home-region could not be found.");
+                        return;
+                    }
+                    UserProfile.HomeRegionID = info.RegionID;
+                    CommsManager.UserService.UpdateUserProfileProperties(UserProfile);
+                }
+                else
+                {
+                    RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(homeRegionID);
+                    if(info == null)
+                    {
+                        // can't find the region: Tell viewer and abort
+                        client.SendTeleportFailed("Your home-region could not be found.");
+                        return;
+                    }
+                    homeRegionHandle = info.RegionHandle;
+                }
+                RequestTeleportLocation(client, homeRegionHandle, homePostion,homeLookat,(uint)0);
             }
         }
 
@@ -2189,6 +2213,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // I know I'm ignoring the regionHandle provided by the teleport location request.
                 // reusing the TeleportLocationRequest delegate, so regionHandle isn't valid
+                UserProfile.HomeRegionID = RegionInfo.RegionID;
+                // TODO: The next line can be removed, as soon as only homeRegionID based UserServers are around.
+                // TODO: The HomeRegion property can be removed then, too
                 UserProfile.HomeRegion = RegionInfo.RegionHandle;
 
                 // We cast these to an int so as not to cause a breaking change with old regions
@@ -2718,13 +2745,20 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         /// <param name="regionHandle"></param>
         /// <param name="position"></param>
-        public void RequestTeleportLandmark(IClientAPI remoteClient, ulong regionHandle, LLVector3 position)
+        public void RequestTeleportLandmark(IClientAPI remoteClient, LLUUID regionID, LLVector3 position)
         {
+            RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(regionID);
+            if(info == null)
+            {
+                // can't find the region: Tell viewer and abort
+                remoteClient.SendTeleportFailed("The teleport destination could not be found.");
+                return;
+            }
             lock (m_scenePresences)
             {
                 if (m_scenePresences.ContainsKey(remoteClient.AgentId))
                 {
-                    m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], regionHandle,
+                    m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], info.RegionHandle,
                                                                  position, LLVector3.Zero, 0);
                 }
             }

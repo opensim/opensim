@@ -81,7 +81,7 @@ namespace OpenSim.Framework
         IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags);
 
     public delegate void TeleportLandmarkRequest(
-        IClientAPI remoteClient, ulong regionHandle, LLVector3 position);
+        IClientAPI remoteClient, LLUUID regionID, LLVector3 position);
 
     public delegate void DisconnectUser();
 

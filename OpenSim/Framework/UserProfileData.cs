@@ -149,6 +149,16 @@ namespace OpenSim.Framework
             }
         }
 
+        private LLUUID _homeRegionID;
+        /// <summary>
+        /// The regionID of the users home region. This is unique; even if the position of the region changes within the grid, this will refer to the same region.
+        /// </summary>
+        public LLUUID HomeRegionID
+        {
+            get { return _homeRegionID; }
+            set { _homeRegionID = value; }
+        }
+
         // Property wrappers
         public virtual LLUUID ID
         {

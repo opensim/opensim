@@ -172,6 +172,16 @@ namespace OpenSim.Region.Communications.Local
             return null;
         }
 
+        public RegionInfo RequestNeighbourInfo(LLUUID regionID)
+        {
+            // TODO add a dictionary for faster lookup
+            foreach(RegionInfo info in m_regions.Values)
+            {
+                if(info.RegionID == regionID) return info;
+            }
+            return null;
+        }
+
         public RegionInfo RequestClosestRegion(string regionName)
         {
             foreach (RegionInfo regInfo in m_regions.Values)

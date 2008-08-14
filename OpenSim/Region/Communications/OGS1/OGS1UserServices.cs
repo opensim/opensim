@@ -75,6 +75,8 @@ namespace OpenSim.Region.Communications.OGS1
             userData.Image = new LLUUID((string) data["profile_image"]);
             userData.LastLogin = Convert.ToInt32((string) data["profile_lastlogin"]);
             userData.HomeRegion = Convert.ToUInt64((string) data["home_region"]);
+            if(data.Contains("home_region_id")) userData.HomeRegionID = new LLUUID((string)data["home_region_id"]);
+            else userData.HomeRegionID = LLUUID.Zero;
             userData.HomeLocation =
                 new LLVector3((float) Convert.ToDecimal((string) data["home_coordinates_x"]),
                               (float) Convert.ToDecimal((string) data["home_coordinates_y"]),
@@ -83,7 +85,6 @@ namespace OpenSim.Region.Communications.OGS1
                 new LLVector3((float) Convert.ToDecimal((string) data["home_look_x"]),
                               (float) Convert.ToDecimal((string) data["home_look_y"]),
                               (float) Convert.ToDecimal((string) data["home_look_z"]));
-
             return userData;
         }
 
@@ -453,6 +454,7 @@ namespace OpenSim.Region.Communications.OGS1
             //param["ProfileURL"] = UserProfile.ProfileURL.ToString();
 
             param["home_region"] = UserProfile.HomeRegion.ToString();
+            param["home_region_id"] = UserProfile.HomeRegionID.ToString();
 
             param["home_pos_x"] = UserProfile.HomeLocationX.ToString();
             param["home_pos_y"] = UserProfile.HomeLocationY.ToString();

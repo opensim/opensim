@@ -682,7 +682,7 @@ namespace OpenSim.Data.MySQL
             lock (database)
             {
                 database.updateUserRow(user.ID, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
-                                       user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y, user.HomeLocation.Z, user.HomeLookAt.X,
+                                       user.HomeRegion, user.HomeRegionID, user.HomeLocation.X, user.HomeLocation.Y, user.HomeLocation.Z, user.HomeLookAt.X,
                                        user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created, user.LastLogin, user.UserInventoryURI,
                                        user.UserAssetURI, user.CanDoMask, user.WantDoMask, user.AboutText,
                                        user.FirstLifeAboutText, user.Image, user.FirstLifeImage, user.WebLoginKey);

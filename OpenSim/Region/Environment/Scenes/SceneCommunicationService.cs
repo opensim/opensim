@@ -532,6 +532,17 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
+        /// Helper function to request neighbors from grid-comms
+        /// </summary>
+        /// <param name="regionID"></param>
+        /// <returns></returns>
+        public virtual RegionInfo RequestNeighbouringRegionInfo(LLUUID regionID)
+        {
+            //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending Grid Services Request about neighbor " + regionID);
+            return m_commsProvider.GridService.RequestNeighbourInfo(regionID);
+        }
+
+        /// <summary>
         /// Requests map blocks in area of minX, maxX, minY, MaxY in world cordinates
         /// </summary>
         /// <param name="minX"></param>
@@ -597,8 +608,8 @@ namespace OpenSim.Region.Environment.Scenes
                         // once we reach here...
                         avatar.Scene.RemoveCapsHandler(avatar.UUID);
 
-                        m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
-                        m_commsProvider.InterRegion.ExpectAvatarCrossing(regionHandle, avatar.ControllingClient.AgentId,
+                        m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent);
+                        m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
                                                                      position, false);
                         AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();
 
@@ -610,17 +621,17 @@ namespace OpenSim.Region.Environment.Scenes
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
 
-                        avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
+                        avatar.ControllingClient.SendRegionTeleport(reg.RegionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
                                                                     capsPath);
                         avatar.MakeChildAgent();
                         Thread.Sleep(5000);
-                        avatar.CrossAttachmentsIntoNewRegion(regionHandle);
+                        avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle);
                         if (KillObject != null)
                         {
                             KillObject(avatar.LocalId);
                         }
-                        uint newRegionX = (uint)(regionHandle >> 40);
-                        uint newRegionY = (((uint)(regionHandle)) >> 8);
+                        uint newRegionX = (uint)(reg.RegionHandle >> 40);
+                        uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
                         uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);
                         uint oldRegionY = (((uint)(m_regionInfo.RegionHandle)) >> 8);
                         if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
