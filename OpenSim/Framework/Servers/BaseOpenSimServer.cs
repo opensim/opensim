@@ -254,7 +254,7 @@ namespace OpenSim.Framework.Servers
             // FIXME: Making an assumption about the directory we're currently in - we do this all over the place
             // elsewhere as well
             string svnRevisionFileName = "svn_revision";
-            string svnFileName = "../.svn/entries";
+            string svnFileName = ".svn/entries";
             string inputLine;
             int strcmp;
 
