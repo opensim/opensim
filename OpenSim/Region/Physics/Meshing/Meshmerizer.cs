@@ -30,7 +30,6 @@ using System;
 using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-using libsecondlife;
 
 namespace OpenSim.Region.Physics.Meshing
 {
@@ -1883,12 +1882,12 @@ namespace OpenSim.Region.Physics.Meshing
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
             {
-                if (primShape.PathCurve == (byte)LLObject.PathCurve.Line)
+                if (primShape.PathCurve == (byte)Extrusion.Straight)
                 { // its a box
                     mesh = CreateBoxMesh(primName, primShape, size);
                     CalcNormals(mesh);
                 }
-                else if (primShape.PathCurve == (byte)LLObject.PathCurve.Circle)
+                else if (primShape.PathCurve == (byte)Extrusion.Curve1)
                 { // tube
                     // do a cylinder for now
                     //mesh = CreateCylinderMesh(primName, primShape, size);
@@ -1904,9 +1903,8 @@ namespace OpenSim.Region.Physics.Meshing
                     CalcNormals(mesh);
                 }
 
-                // look at LLObject.cs in libsecondlife for how to know the prim type
                 // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
-                else if (primShape.PathCurve == (byte) Extrusion.Curve1 && LLObject.UnpackPathScale(primShape.PathScaleY) <= 0.75f)
+                else if (primShape.PathCurve == (byte) Extrusion.Curve1)
                 {  // dahlia's favorite, a torus :)
                     mesh = CreateCircularPathMesh(primName, primShape, size);
                     CalcNormals(mesh);
