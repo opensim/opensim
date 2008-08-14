@@ -98,8 +98,11 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
         {
             if (args[0] == "tree")
             {
+				LLUUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+				if(uuid == LLUUID.Zero)
+					uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                 m_log.Debug("[TREES]: New tree planting");
-                CreateTree(new LLVector3(128.0f, 128.0f, 0.0f));
+                CreateTree(uuid, new LLVector3(128.0f, 128.0f, 0.0f));
             }
         }
 
@@ -220,15 +223,19 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
             position.X += (float) randX;
             position.Y += (float) randY;
 
-            CreateTree(position);
+			LLUUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+			if(uuid == LLUUID.Zero)
+				uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+
+            CreateTree(uuid, position);
         }
 
-        private void CreateTree(LLVector3 position)
+        private void CreateTree(LLUUID uuid, LLVector3 position)
         {
             position.Z = (float) m_scene.Heightmap[(int) position.X, (int) position.Y];
 
             SceneObjectGroup tree =
-                m_scene.AddTree(new LLVector3(0.1f, 0.1f, 0.1f),
+                m_scene.AddTree(uuid, new LLVector3(0.1f, 0.1f, 0.1f),
                                 LLQuaternion.Identity,
                                 position,
                                 Tree.Cypress1,

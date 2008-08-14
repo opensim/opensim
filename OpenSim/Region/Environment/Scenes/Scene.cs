@@ -1635,10 +1635,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public SceneObjectGroup AddTree(LLVector3 scale, LLQuaternion rotation, LLVector3 position,
+        public SceneObjectGroup AddTree(LLUUID uuid, LLVector3 scale, LLQuaternion rotation, LLVector3 position,
                                         Tree treeType, bool newTree)
         {
-            LLUUID uuid = this.RegionInfo.MasterAvatarAssignedUUID;
             PrimitiveBaseShape treeShape = new PrimitiveBaseShape();
             treeShape.PathCurve = 16;
             treeShape.PathEnd = 49900;
