@@ -587,6 +587,9 @@ namespace OpenSim.Data.MySQL
                     LLUUID.TryParse((string)reader["webLoginKey"], out tmp);
                     retval.WebLoginKey = tmp;
                 }
+
+                retval.UserFlags = Convert.ToInt32(reader["userFlags"].ToString());
+                retval.GodLevel = Convert.ToInt32(reader["godLevel"].ToString());
                 
             }
             else
@@ -728,14 +731,14 @@ namespace OpenSim.Data.MySQL
                 "`homeLocationX`, `homeLocationY`, `homeLocationZ`, `homeLookAtX`, `homeLookAtY`, `homeLookAtZ`, `created`, ";
             sql +=
                 "`lastLogin`, `userInventoryURI`, `userAssetURI`, `profileCanDoMask`, `profileWantDoMask`, `profileAboutText`, ";
-            sql += "`profileFirstText`, `profileImage`, `profileFirstImage`, `webLoginKey`) VALUES ";
+            sql += "`profileFirstText`, `profileImage`, `profileFirstImage`, `webLoginKey`, `userFlags`, `godLevel`) VALUES ";
 
             sql += "(?UUID, ?username, ?lastname, ?passwordHash, ?passwordSalt, ?homeRegion, ";
             sql +=
                 "?homeLocationX, ?homeLocationY, ?homeLocationZ, ?homeLookAtX, ?homeLookAtY, ?homeLookAtZ, ?created, ";
             sql +=
                 "?lastLogin, ?userInventoryURI, ?userAssetURI, ?profileCanDoMask, ?profileWantDoMask, ?profileAboutText, ";
-            sql += "?profileFirstText, ?profileImage, ?profileFirstImage, ?webLoginKey)";
+            sql += "?profileFirstText, ?profileImage, ?profileFirstImage, ?webLoginKey, ?userFlags, ?godLevel)";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters["?UUID"] = uuid.ToString();
@@ -761,6 +764,9 @@ namespace OpenSim.Data.MySQL
             parameters["?profileImage"] = profileImage.ToString();
             parameters["?profileFirstImage"] = firstImage.ToString();
             parameters["?webLoginKey"] = string.Empty;
+            parameters["?userFlags"] = "0";
+            parameters["?godLevel"] = "0";
+
 
             bool returnval = false;
 
@@ -815,7 +821,7 @@ namespace OpenSim.Data.MySQL
                                   float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
                                   string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
                                   string aboutText, string firstText,
-                                  LLUUID profileImage, LLUUID firstImage, LLUUID webLoginKey)
+                                  LLUUID profileImage, LLUUID firstImage, LLUUID webLoginKey, int userFlags, int godLevel)
         {
             string sql = "UPDATE users SET `username` = ?username , `lastname` = ?lastname ";
             sql += ", `passwordHash` = ?passwordHash , `passwordSalt` = ?passwordSalt , ";
@@ -827,6 +833,7 @@ namespace OpenSim.Data.MySQL
             sql += "`profileCanDoMask` = ?profileCanDoMask , `profileWantDoMask` = ?profileWantDoMask , ";
             sql += "`profileAboutText` = ?profileAboutText , `profileFirstText` = ?profileFirstText, ";
             sql += "`profileImage` = ?profileImage , `profileFirstImage` = ?profileFirstImage , ";
+            sql += "`userFlags` = ?userFlags , `godLevel` = ?godLevel , ";
             sql += "`webLoginKey` = ?webLoginKey WHERE UUID = ?UUID";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
@@ -854,6 +861,8 @@ namespace OpenSim.Data.MySQL
             parameters["?profileImage"] = profileImage.ToString();
             parameters["?profileFirstImage"] = firstImage.ToString();
             parameters["?webLoginKey"] = webLoginKey.ToString();
+            parameters["?userFlags"] = userFlags.ToString();
+            parameters["?godLevel"] = userFlags.ToString();
 
             bool returnval = false;
             try

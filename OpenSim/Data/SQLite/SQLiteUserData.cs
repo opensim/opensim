@@ -681,6 +681,8 @@ namespace OpenSim.Data.SQLite
             SQLiteUtil.createCol(users, "profileImage", typeof (String));
             SQLiteUtil.createCol(users, "profileFirstImage", typeof (String));
             SQLiteUtil.createCol(users, "webLoginKey", typeof(String));
+            SQLiteUtil.createCol(users, "userFlags", typeof (Int32));
+            SQLiteUtil.createCol(users, "godLevel", typeof (Int32));
             // Add in contraints
             users.PrimaryKey = new DataColumn[] {users.Columns["UUID"]};
             return users;
@@ -789,6 +791,8 @@ namespace OpenSim.Data.SQLite
             LLUUID.TryParse((String)row["profileFirstImage"], out tmp);
             user.FirstLifeImage = tmp;
             user.WebLoginKey = new LLUUID((String) row["webLoginKey"]);
+            user.UserFlags = Convert.ToInt32(row["userFlags"]);
+            user.GodLevel = Convert.ToInt32(row["godLevel"]);
 
             return user;
         }
@@ -829,6 +833,8 @@ namespace OpenSim.Data.SQLite
             row["profileImage"] = user.Image;
             row["profileFirstImage"] = user.FirstLifeImage;
             row["webLoginKey"] = user.WebLoginKey;
+            row["userFlags"] = user.UserFlags;
+            row["godLevel"] = user.GodLevel;
 
             // ADO.NET doesn't handle NULL very well
             foreach (DataColumn col in ds.Tables["users"].Columns)

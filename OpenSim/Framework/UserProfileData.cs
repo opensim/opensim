@@ -136,6 +136,12 @@ namespace OpenSim.Framework
         /// </summary>
         private LLUUID _webLoginKey;
 
+        // Data for estates and other goodies
+        // to get away from per-machine configs a little
+        //
+        private int _userFlags;
+        private int _godLevel;
+
         /// <summary>
         /// The regionhandle of the users preffered home region. If multiple sims occupy the same spot, the grid may decide which region the user logs into
         /// </summary>
@@ -329,6 +335,18 @@ namespace OpenSim.Framework
         {
             get { return _currentAgent; }
             set { _currentAgent = value; }
+        }
+
+        public virtual int UserFlags
+        {
+            get { return _userFlags; }
+            set { _userFlags = value; }
+        }
+
+        public virtual int GodLevel
+        {
+            get { return _godLevel; }
+            set { _godLevel = value; }
         }
     }
 }

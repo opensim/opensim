@@ -156,6 +156,9 @@ namespace OpenSim.Grid.UserServer
             responseData["home_look_x"] = profile.HomeLookAt.X.ToString();
             responseData["home_look_y"] = profile.HomeLookAt.Y.ToString();
             responseData["home_look_z"] = profile.HomeLookAt.Z.ToString();
+
+            responseData["user_flags"] = profile.UserFlags.ToString();
+            responseData["god_level"] = profile.GodLevel.ToString();
             response.Value = responseData;
 
             return response;
@@ -636,6 +639,28 @@ namespace OpenSim.Grid.UserServer
                 catch (InvalidCastException)
                 {
                     m_log.Error("[PROFILE]:Failed to set home lookat z");
+                }
+            }
+            if (requestData.Contains("user_flags"))
+            {
+                try
+                {
+                    userProfile.UserFlags = Convert.ToInt32((string)requestData["user_flags"]);
+                }
+                catch (InvalidCastException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set user flags");
+                }
+            }
+            if (requestData.Contains("god_level"))
+            {
+                try
+                {
+                    userProfile.GodLevel = Convert.ToInt32((string)requestData["god_level"]);
+                }
+                catch (InvalidCastException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set god level");
                 }
             }
             // call plugin!

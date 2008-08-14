@@ -85,6 +85,11 @@ namespace OpenSim.Region.Communications.OGS1
                 new LLVector3((float) Convert.ToDecimal((string) data["home_look_x"]),
                               (float) Convert.ToDecimal((string) data["home_look_y"]),
                               (float) Convert.ToDecimal((string) data["home_look_z"]));
+			if(data.Contains("user_flags"))
+				userData.UserFlags = Convert.ToInt32((string) data["user_flags"]);
+			if(data.Contains("god_level"))
+				userData.GodLevel = Convert.ToInt32((string) data["god_level"]);
+
             return userData;
         }
 
@@ -462,6 +467,8 @@ namespace OpenSim.Region.Communications.OGS1
             param["home_look_x"] = UserProfile.HomeLookAtX.ToString();
             param["home_look_y"] = UserProfile.HomeLookAtY.ToString();
             param["home_look_z"] = UserProfile.HomeLookAtZ.ToString();
+            param["user_flags"] = UserProfile.UserFlags.ToString();
+            param["god_level"] = UserProfile.GodLevel.ToString();
 
             IList parameters = new ArrayList();
             parameters.Add(param);
