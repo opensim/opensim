@@ -761,7 +761,7 @@ namespace OpenSim.Region.Environment.Scenes
             #endregion
 
             #region CAN ISSUE ESTATE COMMAND
-            public delegate bool CanIssueEstateCommand(LLUUID user, Scene requestFromScene);
+            public delegate bool CanIssueEstateCommand(LLUUID user, Scene requestFromScene, bool ownerCommand);
             private List<CanIssueEstateCommand> CanIssueEstateCommandCheckFunctions = new List<CanIssueEstateCommand>();
 
             public void addCheckIssueEstateCommand(CanIssueEstateCommand delegateFunc)
@@ -775,11 +775,11 @@ namespace OpenSim.Region.Environment.Scenes
                     CanIssueEstateCommandCheckFunctions.Remove(delegateFunc);
             }
 
-            public bool ExternalChecksCanIssueEstateCommand(LLUUID user)
+            public bool ExternalChecksCanIssueEstateCommand(LLUUID user, bool ownerCommand)
             {
                 foreach (CanIssueEstateCommand check in CanIssueEstateCommandCheckFunctions)
                 {
-                    if (check(user, m_scene) == false)
+                    if (check(user, m_scene, ownerCommand) == false)
                     {
                         return false;
                     }

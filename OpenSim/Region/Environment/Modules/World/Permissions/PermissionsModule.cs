@@ -626,10 +626,16 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericCommunicationPermission(user, target);
             }
 
-            private bool CanIssueEstateCommand(LLUUID user, Scene requestFromScene)
+            private bool CanIssueEstateCommand(LLUUID user, Scene requestFromScene, bool ownerCommand)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                if (m_scene.RegionInfo.EstateSettings.IsEstateOwner(user))
+                    return true;
+
+                if (ownerCommand)
+                    return false;
 
                 return GenericEstatePermission(user);
             }

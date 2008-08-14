@@ -121,7 +121,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             m_host.AddScriptLPS(1);
-            if (World.ExternalChecks.ExternalChecksCanIssueEstateCommand(m_host.OwnerID))
+            if (World.ExternalChecks.ExternalChecksCanIssueEstateCommand(m_host.OwnerID, false))
             {
                 World.Restart((float)seconds);
                 return 1;

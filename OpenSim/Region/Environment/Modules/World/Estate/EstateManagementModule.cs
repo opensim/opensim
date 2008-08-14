@@ -218,7 +218,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             switch (estateAccessType)
             {
                 case 64:
-                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId, false) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
                     {
                         EstateBan[] banlistcheck = m_scene.RegionInfo.EstateSettings.EstateBans;
                         
@@ -267,7 +267,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     }
                     break;
                 case 128:
-                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId, false) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
                     {
                         EstateBan[] banlistcheck = m_scene.RegionInfo.EstateSettings.EstateBans;
 
@@ -303,9 +303,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     break;
                 case 256:
 
-                    // This needs to be updated for SuperEstateOwnerUser..   a non existing user in the estatesettings.xml
-                    // So make sure you really trust your region owners.   because they can add other estate manaagers to your other estates
-                    if (remote_client.AgentId == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId, true) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
                     {
                         m_scene.RegionInfo.EstateSettings.AddEstateManager(user);
                         m_scene.RegionInfo.EstateSettings.Save();
@@ -318,9 +316,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
                     break;
                 case 512:
-                    // This needs to be updated for SuperEstateOwnerUser..   a non existing user in the estatesettings.xml
-                    // So make sure you really trust your region owners.   because they can add other estate manaagers to your other estates
-                    if (remote_client.AgentId == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId, true) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
                     {
                         m_scene.RegionInfo.EstateSettings.RemoveEstateManager(user);
                         m_scene.RegionInfo.EstateSettings.Save();

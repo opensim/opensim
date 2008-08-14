@@ -312,7 +312,18 @@ namespace OpenSim.Framework
 
         public bool IsEstateManager(LLUUID avatarID)
         {
+            if (IsEstateOwner(avatarID))
+                return true;
+
             return l_EstateManagers.Contains(avatarID);
+        }
+
+        public bool IsEstateOwner(LLUUID avatarID)
+        {
+            if (avatarID == m_EstateOwner)
+                return true;
+
+            return false;
         }
 
         public bool IsBanned(LLUUID avatarID)
