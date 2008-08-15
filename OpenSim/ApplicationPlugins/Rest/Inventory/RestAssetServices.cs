@@ -168,6 +168,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     DoGet(rdata);
                     break;
                 case "put" :
+                    DoPut(rdata);
+                    break;
                 case "post" :
                 case "delete" :
                 default :
@@ -233,6 +235,48 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     rdata.Fail(Rest.HttpStatusCodeNotFound, 
                                Rest.HttpStatusDescNotFound);
                 }
+            }
+
+            rdata.Complete();
+            rdata.Respond("Asset " + rdata.method + ": Normal completion");
+
+        }
+
+        private void DoPut(AssetRequestData rdata)
+        {
+            Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
+
+            // The only parameter we accept is an LLUUID for
+            // the asset
+
+            if (rdata.parameters.Length == 1)
+            {
+                rdata.initXmlReader();
+                XmlReader xml = rdata.reader;
+
+                if (!xml.ReadToFollowing("Asset"))
+                {
+                    Rest.Log.DebugFormat("{0} Invalid request data: <{1}>", MsgId, rdata.path);
+                    rdata.Fail(Rest.HttpStatusCodeBadRequest, 
+                               Rest.HttpStatusDescBadRequest);
+                }
+
+                AssetBase asset = new AssetBase();
+                asset.ID = rdata.parameters[0];
+                asset.Name = xml.GetAttribute("name");
+                asset.Description = xml.GetAttribute("desc");
+                asset.Type = SByte.Parse(xml.GetAttribute("type"));
+                asset.Local = Int32.Parse(xml.GetAttribute("local")) != 0;
+                asset.Temporary = Int32.Parse(xml.GetAttribute("temporary")) != 0;
+                asset.Data = (new System.Text.ASCIIEncoding()).GetBytes(Rest.Base64ToString(xml.ReadElementContentAsString("Asset", "")));
+
+                Rest.AssetServices.AddAsset(asset);
+            }
+            else
+            {
+                Rest.Log.DebugFormat("{0} Invalid parameters: <{1}>", MsgId, rdata.path);
+                rdata.Fail(Rest.HttpStatusCodeNotFound, 
+                           Rest.HttpStatusDescNotFound);
             }
 
             rdata.Complete();
