@@ -137,6 +137,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
                 // otherwise, use the master avatar uuid instead
                 LLUUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                    masterAvatarId = m_scene.RegionInfo.EstateSettings.EstateOwner;
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
                     if (!resolveUserUuid(part.CreatorID))

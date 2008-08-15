@@ -116,6 +116,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     userlevel = 1;
                 }
+                // TODO: remove this cruft once MasterAvatar is fully deprecated
+                //
                 if (m_regInfo.MasterAvatarAssignedUUID == AgentID)
                 {
                     userlevel = 2;

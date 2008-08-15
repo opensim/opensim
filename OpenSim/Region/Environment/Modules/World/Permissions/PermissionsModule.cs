@@ -32,6 +32,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Framework;
 using OpenSim.Region.Environment.Modules.Framework.InterfaceCommander;
@@ -63,6 +64,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         private bool m_bypassPermissions = false;
         private bool m_bypassPermissionsValue = true;
         private bool m_debugPermissions = false;
+        private bool m_allowGridGods = false;
 
         #endregion
 
@@ -135,6 +137,8 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             if (!modules.Contains("DefaultPermissionsModule"))
                 return;
+
+            m_allowGridGods = myConfig.GetBoolean("allow_grid_gods", false);
 
             m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
             
@@ -231,11 +235,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         protected bool IsAdministrator(LLUUID user)
         {
-//            m_log.DebugFormat(
-//                "[PERMISSIONS]: Is adminstrator called for {0} where region master avatar is {1}", 
-//                user, m_scene.RegionInfo.MasterAvatarAssignedUUID);
-            
-            // If there is no master avatar, return false
             if (m_scene.RegionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
             {
                 if (m_scene.RegionInfo.MasterAvatarAssignedUUID == user)
@@ -246,7 +245,9 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if (m_scene.RegionInfo.EstateSettings.EstateOwner == user)
                     return true;
             }
-
+            UserProfileData userProfile = m_scene.CommsManager.UserService.GetUserProfile(user);
+            if((userProfile.GodLevel) >= 200 && m_allowGridGods)
+                return true;
             return false;
         }
 

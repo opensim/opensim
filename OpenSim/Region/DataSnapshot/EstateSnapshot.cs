@@ -28,6 +28,7 @@
 using System;
 using System.Xml;
 using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -50,15 +51,20 @@ namespace OpenSim.Region.DataSnapshot.Providers
         public XmlNode RequestSnapshotData(XmlDocument factory)
         {
             //Estate data section - contains who owns a set of sims and the name of the set.
-            //In Opensim all the estate names are the same as the Master Avatar (owner of the sim)
             //Now in DataSnapshotProvider module form!
             XmlNode estatedata = factory.CreateNode(XmlNodeType.Element, "estate", "");
 
             LLUUID ownerid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                ownerid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+
+            // Can't fail because if it weren't in cache, we wouldn't be here
+            //
+            UserProfileData userProfile = m_scene.CommsManager.UserService.GetUserProfile(ownerid);
 
             //TODO: Change to query userserver about the master avatar UUID ?
-            String firstname = m_scene.RegionInfo.MasterAvatarFirstName;
-            String lastname = m_scene.RegionInfo.MasterAvatarLastName;
+            String firstname = userProfile.FirstName;
+            String lastname = userProfile.SurName;
 
             //TODO: Fix the marshalling system to have less copypasta gruntwork
             XmlNode user = factory.CreateNode(XmlNodeType.Element, "user", "");

@@ -212,6 +212,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         {
             // EstateAccessDelta handles Estate Managers, Sim Access, Sim Banlist, allowed Groups..  etc.
 
+            if (user == m_scene.RegionInfo.EstateSettings.EstateOwner)
+                return; // never process EO
             if (user == m_scene.RegionInfo.MasterAvatarAssignedUUID)
                 return; // never process owner
 
@@ -557,7 +559,10 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
             args.regionFlags = GetRegionFlags();
             args.regionName = m_scene.RegionInfo.RegionName;
-            args.SimOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                args.SimOwner = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            else
+                args.SimOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
             args.terrainBase0 = LLUUID.Zero;
             args.terrainBase1 = LLUUID.Zero;
             args.terrainBase2 = LLUUID.Zero;
@@ -810,6 +815,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         public bool IsManager(LLUUID avatarID)
         {
             if (avatarID == m_scene.RegionInfo.MasterAvatarAssignedUUID)
+                return true;
+            if (avatarID == m_scene.RegionInfo.EstateSettings.EstateOwner)
                 return true;
 
             List<LLUUID> ems = new List<LLUUID>(m_scene.RegionInfo.EstateSettings.EstateManagers);

@@ -2017,7 +2017,15 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (godStatus)
             {
-                m_godlevel = 250;
+                // TODO: remove this cruft once the master avatar is fully
+                // deprecated. For now, assign god level 200 to anyone
+                // who is granted god powers, but has no god level set.
+                //
+                UserProfileData userProfile = m_scene.CommsManager.UserService.GetUserProfile(agentID);
+                if(userProfile.GodLevel > 0)
+                    m_godlevel = userProfile.GodLevel;
+                else
+                    m_godlevel = 200;
             }
             else
             {

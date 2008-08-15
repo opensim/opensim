@@ -2693,7 +2693,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             //Sending Estate Settings
             returnblock[0].Parameter = Helpers.StringToField(estateName);
-            returnblock[1].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarAssignedUUID.ToString());
+            // TODO: remove this cruft once MasterAvatar is fully deprecated
+            //
+            if(m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                returnblock[1].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.EstateOwner.ToString());
+            else
+                returnblock[1].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarAssignedUUID.ToString());
             returnblock[2].Parameter = Helpers.StringToField(estateID.ToString());
 
             returnblock[3].Parameter = Helpers.StringToField(estateFlags.ToString());

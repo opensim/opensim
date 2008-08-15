@@ -162,7 +162,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             ILandObject fullSimParcel = new LandObject(LLUUID.Zero, false, m_scene);
 
             fullSimParcel.setLandBitmap(fullSimParcel.getSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
-            fullSimParcel.landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            if(m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                fullSimParcel.landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            else
+                fullSimParcel.landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
             fullSimParcel.landData.ClaimDate = Util.UnixTimeSinceEpoch();
             AddLandObject(fullSimParcel);
         }
@@ -931,7 +934,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 if (m_scene.ExternalChecks.ExternalChecksCanAbandonParcel(remote_client.AgentId, landList[local_id]))
                 {
-                    landList[local_id].landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    if(m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                        landList[local_id].landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                    else
+                        landList[local_id].landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                     m_scene.Broadcast(SendParcelOverlay);
                     landList[local_id].sendLandUpdateToClient(remote_client);
                 }
@@ -945,7 +951,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 if (m_scene.ExternalChecks.ExternalChecksCanReclaimParcel(remote_client.AgentId, landList[local_id]))
                 {
-                    landList[local_id].landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    if(m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                        landList[local_id].landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                    else
+                        landList[local_id].landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                     landList[local_id].landData.ClaimDate = Util.UnixTimeSinceEpoch();
                     m_scene.Broadcast(SendParcelOverlay);
                     landList[local_id].sendLandUpdateToClient(remote_client);

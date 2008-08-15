@@ -58,7 +58,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             region_id = regInfo.RegionID.ToString();
             region_x = regInfo.RegionLocX;
             region_y = regInfo.RegionLocY;
-            region_owner_id = regInfo.MasterAvatarAssignedUUID.ToString();
+            if (regInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                region_owner_id = regInfo.EstateSettings.EstateOwner.ToString();
+            else
+                region_owner_id = regInfo.MasterAvatarAssignedUUID.ToString();
             region_http_port = regInfo.HttpPort;
             region_server_uri = regInfo.ServerURI;
             region_external_hostname = regInfo.ExternalHostName;
