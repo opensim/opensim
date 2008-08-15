@@ -3541,6 +3541,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.list llListSort(LSL_Types.list src, int stride, int ascending)
         {
             m_host.AddScriptLPS(1);
+
+            if (stride <= 0)
+            {
+                stride = 1;
+            }
             return src.Sort(stride, ascending);
         }
 
@@ -3855,8 +3860,10 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             m_host.AddScriptLPS(1);
 
-            if (stride == 0)
+            if (stride <= 0)
+            {
                 stride = 1;
+            }
 
             // Stride MUST be a factor of the list length
             // If not, then return the src list. This also
