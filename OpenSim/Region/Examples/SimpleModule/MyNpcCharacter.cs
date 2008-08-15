@@ -698,7 +698,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember,
+        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, Byte[] charterMember,
                                          string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL,
                                          LLUUID partnerID)
         {

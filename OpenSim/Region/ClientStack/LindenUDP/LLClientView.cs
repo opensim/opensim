@@ -2041,7 +2041,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             */
         }
 
-        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember,
+        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, Byte[] charterMember,
                                          string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL,
                                          LLUUID partnerID)
         {
@@ -2053,12 +2053,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
                 avatarReply.PropertiesData.AboutText = Helpers.StringToField("");
             avatarReply.PropertiesData.BornOn = Helpers.StringToField(bornOn);
-            avatarReply.PropertiesData.CharterMember = Helpers.StringToField(charterMember);
+            avatarReply.PropertiesData.CharterMember = charterMember;
             if (flAbout != null)
                 avatarReply.PropertiesData.FLAboutText = Helpers.StringToField(flAbout);
             else
                 avatarReply.PropertiesData.FLAboutText = Helpers.StringToField("");
-            avatarReply.PropertiesData.Flags = 0;
+            avatarReply.PropertiesData.Flags = flags;
             avatarReply.PropertiesData.FLImageID = flImageID;
             avatarReply.PropertiesData.ImageID = imageID;
             avatarReply.PropertiesData.ProfileURL = Helpers.StringToField(profileURL);

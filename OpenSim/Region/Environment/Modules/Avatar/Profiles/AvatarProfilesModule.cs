@@ -97,9 +97,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
             UserProfileData profile = m_scene.CommsManager.UserService.GetUserProfile(avatarID);
             if (null != profile)
             {
+                Byte[] charterMember = new Byte[1];
+                charterMember[0] = (Byte)((profile.UserFlags & 0xf00) >> 8);
+
                 remoteClient.SendAvatarProperties(profile.ID, profile.AboutText,
                                                   Util.ToDateTime(profile.Created).ToString(),
-                                                  String.Empty, profile.FirstLifeAboutText, profile.CanDoMask,
+                                                  charterMember, profile.FirstLifeAboutText, (uint)(profile.UserFlags & 0xff),
                                                   profile.FirstLifeImage, profile.Image, String.Empty, partner);
             }
             else
