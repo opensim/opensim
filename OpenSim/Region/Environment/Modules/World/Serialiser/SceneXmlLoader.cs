@@ -143,7 +143,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="fileName"></param>
         public static void LoadPrimsFromXml2(Scene scene, string fileName)
         {
-            LoadPrimsFromXml2(scene, new XmlTextReader(fileName));
+            LoadPrimsFromXml2(scene, new XmlTextReader(fileName), false);
         }
 
         /// <summary>
@@ -151,9 +151,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="reader"></param>
-        public static void LoadPrimsFromXml2(Scene scene, TextReader reader)
+        /// <param name="startScripts"></param>
+        public static void LoadPrimsFromXml2(Scene scene, TextReader reader, bool startScripts)
         {
-            LoadPrimsFromXml2(scene, new XmlTextReader(reader));
+            LoadPrimsFromXml2(scene, new XmlTextReader(reader), startScripts);
         }
 
         /// <summary>
@@ -161,7 +162,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="reader"></param>
-        protected static void LoadPrimsFromXml2(Scene scene, XmlTextReader reader)
+        /// <param name="startScripts"></param>
+        protected static void LoadPrimsFromXml2(Scene scene, XmlTextReader reader, bool startScripts)
         {
             XmlDocument doc = new XmlDocument();
             reader.WhitespaceHandling = WhitespaceHandling.None;
@@ -169,9 +171,17 @@ namespace OpenSim.Region.Environment.Scenes
             reader.Close();
             XmlNode rootNode = doc.FirstChild;
 
+            ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();            
             foreach (XmlNode aPrimNode in rootNode.ChildNodes)
             {
-                CreatePrimFromXml2(scene, aPrimNode.OuterXml);
+                SceneObjectGroup obj = CreatePrimFromXml2(scene, aPrimNode.OuterXml);
+                if (obj != null && startScripts)
+                    sceneObjects.Add(obj);
+            }
+
+            foreach (SceneObjectGroup sceneObject in sceneObjects)
+            {
+                 sceneObject.CreateScriptInstances(0, true);
             }
         }
 
@@ -198,10 +208,36 @@ namespace OpenSim.Region.Environment.Scenes
             SavePrimListToXml2(EntityList, fileName);
         }
 
+        public static void SavePrimsToXml2(Scene scene, TextWriter stream, LLVector3 min, LLVector3 max)
+        {
+            List<EntityBase> EntityList = scene.GetEntities();
+
+            SavePrimListToXml2(EntityList, stream, min, max);
+        }
+
         public static void SavePrimListToXml2(List<EntityBase> entityList, string fileName)
         {
             FileStream file = new FileStream(fileName, FileMode.Create);
-            StreamWriter stream = new StreamWriter(file);
+            try
+            {
+                StreamWriter stream = new StreamWriter(file);
+                try
+                {
+                    SavePrimListToXml2(entityList, stream, LLVector3.Zero, LLVector3.Zero);
+                }
+                finally
+                {
+                    stream.Close();
+                }
+            }
+            finally
+            {
+                file.Close();
+            }
+        }
+
+        public static void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, LLVector3 min, LLVector3 max)
+        {
             int primCount = 0;
             stream.WriteLine("<scene>\n");
 
@@ -209,13 +245,23 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    stream.WriteLine(((SceneObjectGroup)ent).ToXmlString2());
+                    SceneObjectGroup g = (SceneObjectGroup)ent;
+                    if (!min.Equals(LLVector3.Zero) || !max.Equals(LLVector3.Zero))
+                    {
+                        LLVector3 pos = g.RootPart.GetWorldPosition();
+                        if (min.X > pos.X || min.Y > pos.Y || min.Z > pos.Z)
+                            continue;
+                        if (max.X < pos.X || max.Y < pos.Y || max.Z < pos.Z)
+                            continue;
+                    }
+                    
+                    stream.WriteLine(g.ToXmlString2());
                     primCount++;
                 }
             }
             stream.WriteLine("</scene>\n");
-            stream.Close();
-            file.Close();
+            stream.Flush();
         }
+
     }
 }

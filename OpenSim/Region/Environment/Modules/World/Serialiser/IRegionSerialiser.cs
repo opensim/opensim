@@ -64,7 +64,8 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="reader"></param>
-        void LoadPrimsFromXml2(Scene scene, TextReader reader);
+        /// <param name="startScripts"></param>
+        void LoadPrimsFromXml2(Scene scene, TextReader reader, bool startScripts);
 
         /// <summary>
         /// Save prims in the xml2 format
@@ -74,11 +75,33 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         void SavePrimsToXml2(Scene scene, string fileName);
 
         /// <summary>
+        /// Save prims in the xml2 format, optionally specifying a bounding box for which
+        /// prims should be saved.  If both min and max vectors are LLVector3.Zero, then all prims
+        /// are exported.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="stream"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        void SavePrimsToXml2(Scene scene, TextWriter stream, LLVector3 min, LLVector3 max);
+
+        /// <summary>
         /// Save a set of prims in the xml2 format
         /// </summary>
         /// <param name="entityList"></param>
         /// <param name="fileName"></param>
         void SavePrimListToXml2(List<EntityBase> entityList, string fileName);
+
+        /// <summary>
+        /// Save a set of prims in the xml2 format, optionally specifying a bounding box for which
+        /// prims should be saved.  If both min and max vectors are LLVector3.Zero, then all prims
+        /// are exported.
+        /// </summary>
+        /// <param name="entityList"></param>
+        /// <param name="stream"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, LLVector3 min, LLVector3 max);
 
         /// <summary>
         /// Deserializes a scene object from its xml2 representation.  This does not load the object into the scene.

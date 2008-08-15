@@ -102,14 +102,19 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
             SceneXmlLoader.LoadPrimsFromXml2(scene, fileName);
         }
 
-        public void LoadPrimsFromXml2(Scene scene, TextReader reader)
+        public void LoadPrimsFromXml2(Scene scene, TextReader reader, bool startScripts)
         {
-            SceneXmlLoader.LoadPrimsFromXml2(scene, reader);
+            SceneXmlLoader.LoadPrimsFromXml2(scene, reader, startScripts);
         }
 
         public void SavePrimsToXml2(Scene scene, string fileName)
         {
             SceneXmlLoader.SavePrimsToXml2(scene, fileName);
+        }
+
+        public void SavePrimsToXml2(Scene scene, TextWriter stream, LLVector3 min, LLVector3 max)
+        {
+            SceneXmlLoader.SavePrimsToXml2(scene, stream, min, max);
         }
 
         public SceneObjectGroup DeserializeGroupFromXml2(string xmlString)
@@ -125,6 +130,11 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         public void SavePrimListToXml2(List<EntityBase> entityList, string fileName)
         {
             SceneXmlLoader.SavePrimListToXml2(entityList, fileName);
+        }
+
+        public void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, LLVector3 min, LLVector3 max)
+        {
+            SceneXmlLoader.SavePrimListToXml2(entityList, stream, min, max);
         }
 
         public List<string> SerialiseRegion(Scene scene, string saveDir)
