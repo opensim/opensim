@@ -925,12 +925,12 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 NoteDeadRegion(regionHandle);
 
-				if(regInfo != null)
-				{
-					m_log.WarnFormat(
-						"[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
-						regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
-				}
+                if (regInfo != null)
+                {
+                    m_log.WarnFormat(
+                        "[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region: {0} {1},{2}",
+                        regInfo.RegionName, regInfo.RegionLocX, regInfo.RegionLocY);
+                }
                 m_log.DebugFormat("[OGS1 GRID SERVICES]: {0} {1}", e.Source, e.Message);
 
                 return false;
