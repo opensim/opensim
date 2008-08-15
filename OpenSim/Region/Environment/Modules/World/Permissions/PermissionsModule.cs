@@ -37,6 +37,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Framework;
 using OpenSim.Region.Environment.Modules.Framework.InterfaceCommander;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Environment.Modules.World.Permissions
 {
@@ -246,7 +247,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     return true;
             }
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
-            if(profile.UserProfile.GodLevel >= 200 && m_AllowGridGods)
+            if(profile.UserProfile.GodLevel >= 200 && m_allowGridGods)
                 return true;
 
             return false;
