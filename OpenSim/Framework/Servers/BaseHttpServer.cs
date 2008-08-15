@@ -222,7 +222,8 @@ namespace OpenSim.Framework.Servers
 
                     request.InputStream.Close();
                     if (!response.IsContentTypeSet) response.ContentType = requestHandler.ContentType;
-                    response.ContentLength64 = buffer.LongLength;
+                    if (!response.SendChunked)
+                        response.ContentLength64 = buffer.LongLength;
 
                     try
                     {
