@@ -1102,12 +1102,13 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Get our own copy of the part array, and sort into the order we want to test
             SceneObjectPart[] partArray = targetPart.ParentGroup.GetParts();
-            Array.Sort(partArray, delegate(SceneObjectPart p1, SceneObjectPart p2) {
-                        // we want the originally selected part first, then the rest in link order -- so make the selected part link num (-1)
-                        int linkNum1 = p1==targetPart ? -1 : p1.LinkNum;
-                        int linkNum2 = p2==targetPart ? -1 : p2.LinkNum;
-                        return linkNum1 - linkNum2;
-                    }
+            Array.Sort(partArray, delegate(SceneObjectPart p1, SceneObjectPart p2)
+                       {
+                           // we want the originally selected part first, then the rest in link order -- so make the selected part link num (-1)
+                           int linkNum1 = p1==targetPart ? -1 : p1.LinkNum;
+                           int linkNum2 = p2==targetPart ? -1 : p2.LinkNum;
+                           return linkNum1 - linkNum2;
+                       }
                 );
 
             //look for prims with explicit sit targets that are available
@@ -1772,7 +1773,8 @@ namespace OpenSim.Region.Environment.Scenes
         // Because appearance setting is in a module, we actually need
         // to give it access to our appearance directly, otherwise we
         // get a synchronization issue.
-        public AvatarAppearance Appearance {
+        public AvatarAppearance Appearance
+        {
             get { return m_appearance; }
             set { m_appearance = value; }
         }
@@ -2789,7 +2791,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             // optimization; we have to check per script, but if nothing is pressed and nothing changed, we can skip that
-            if(allflags != ScriptControlled.CONTROL_ZERO || allflags != LastCommands) {
+            if (allflags != ScriptControlled.CONTROL_ZERO || allflags != LastCommands)
+            {
                 lock (scriptedcontrols)
                 {
                     foreach (LLUUID scriptUUID in scriptedcontrols.Keys)
@@ -2798,7 +2801,8 @@ namespace OpenSim.Region.Environment.Scenes
                         ScriptControlled localHeld = allflags & scriptControlData.eventControls;     // the flags interesting for us
                         ScriptControlled localLast = LastCommands & scriptControlData.eventControls; // the activated controls in the last cycle
                         ScriptControlled localChange = localHeld ^ localLast;                        // the changed bits
-                        if(localHeld != ScriptControlled.CONTROL_ZERO || localChange != ScriptControlled.CONTROL_ZERO) {
+                        if (localHeld != ScriptControlled.CONTROL_ZERO || localChange != ScriptControlled.CONTROL_ZERO)
+                        {
                             // only send if still pressed or just changed
                             m_scene.EventManager.TriggerControlEvent(scriptControlData.objID, scriptUUID, UUID, (uint)localHeld, (uint)localChange);
                         }

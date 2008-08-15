@@ -153,7 +153,7 @@ namespace OpenSim.Grid.UserServer
                 else if (startLocationRequest == "home")
                 {
                     // use the homeRegionID if it is stored already. If not, use the regionHandle as before
-                    if(theUser.HomeRegionID != LLUUID.Zero)
+                    if (theUser.HomeRegionID != LLUUID.Zero)
                     {
                         SimInfo =
                             RegionProfileData.RequestSimProfileData(

@@ -2122,10 +2122,10 @@ namespace OpenSim.Region.Environment.Scenes
                 LLVector3 homePostion = new LLVector3(UserProfile.HomeLocationX,UserProfile.HomeLocationY,UserProfile.HomeLocationZ);
                 LLVector3 homeLookat = new LLVector3(UserProfile.HomeLookAt);
                 ulong homeRegionHandle = UserProfile.HomeRegion;
-                if(homeRegionID == LLUUID.Zero)
+                if (homeRegionID == LLUUID.Zero)
                 {
                     RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegion);
-                    if(info == null)
+                    if (info == null)
                     {
                         // can't find the region: Tell viewer and abort
                         client.SendTeleportFailed("Your home-region could not be found.");
@@ -2137,7 +2137,7 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(homeRegionID);
-                    if(info == null)
+                    if (info == null)
                     {
                         // can't find the region: Tell viewer and abort
                         client.SendTeleportFailed("Your home-region could not be found.");
@@ -2762,7 +2762,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void RequestTeleportLandmark(IClientAPI remoteClient, LLUUID regionID, LLVector3 position)
         {
             RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(regionID);
-            if(info == null)
+            if (info == null)
             {
                 // can't find the region: Tell viewer and abort
                 remoteClient.SendTeleportFailed("The teleport destination could not be found.");
@@ -3518,10 +3518,10 @@ namespace OpenSim.Region.Environment.Scenes
                 //  their scripts will actually run.
                 //      -- Leaf, Tue Aug 12 14:17:05 EDT 2008
                 SceneObjectPart parent = part.ParentGroup.RootPart;
-                if( parent != null && parent.IsAttachment )
-                    return scriptDanger(parent, parent.GetWorldPosition() );
+                if (parent != null && parent.IsAttachment)
+                    return scriptDanger(parent, parent.GetWorldPosition());
                 else
-                    return scriptDanger(part, part.GetWorldPosition() );
+                    return scriptDanger(part, part.GetWorldPosition());
             }
             else
             {

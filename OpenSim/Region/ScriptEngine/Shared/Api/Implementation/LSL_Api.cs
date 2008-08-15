@@ -6662,7 +6662,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (aList.Data[i] != null)
                 {
-                    switch((ParcelMediaCommandEnum)aList.Data[i])
+                    switch ((ParcelMediaCommandEnum) aList.Data[i])
                     {
                         case ParcelMediaCommandEnum.Url:
                             list.Add(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaURL);

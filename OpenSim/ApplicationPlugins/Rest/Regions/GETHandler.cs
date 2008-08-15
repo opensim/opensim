@@ -133,7 +133,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                 return XmlWriterResult;
             }
 
-            if (2 == comps.Length) {
+            if (2 == comps.Length)
+            {
                 string resp = ShortRegionInfo(comps[1], details[comps[1]]);
                 if (null != resp) return resp;
 
@@ -153,7 +154,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                 }
             }
 
-            if (3 == comps.Length) {
+            if (3 == comps.Length)
+            {
                 switch (comps[1].ToLower())
                 {
                 case "prims":
@@ -166,7 +168,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                             min = new LLVector3((float)Double.Parse(subregion[0]), (float)Double.Parse(subregion[1]), (float)Double.Parse(subregion[2]));
                             max = new LLVector3((float)Double.Parse(subregion[3]), (float)Double.Parse(subregion[4]), (float)Double.Parse(subregion[5]));
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             return Failure(httpResponse, OSHttpStatusCode.ClientErrorBadRequest,
                                            "GET", "invalid subregion parameter");

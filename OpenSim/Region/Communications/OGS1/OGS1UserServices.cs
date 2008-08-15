@@ -75,8 +75,10 @@ namespace OpenSim.Region.Communications.OGS1
             userData.Image = new LLUUID((string) data["profile_image"]);
             userData.LastLogin = Convert.ToInt32((string) data["profile_lastlogin"]);
             userData.HomeRegion = Convert.ToUInt64((string) data["home_region"]);
-            if(data.Contains("home_region_id")) userData.HomeRegionID = new LLUUID((string)data["home_region_id"]);
-            else userData.HomeRegionID = LLUUID.Zero;
+            if (data.Contains("home_region_id"))
+                userData.HomeRegionID = new LLUUID((string)data["home_region_id"]);
+            else
+                userData.HomeRegionID = LLUUID.Zero;
             userData.HomeLocation =
                 new LLVector3((float) Convert.ToDecimal((string) data["home_coordinates_x"]),
                               (float) Convert.ToDecimal((string) data["home_coordinates_y"]),
@@ -85,10 +87,10 @@ namespace OpenSim.Region.Communications.OGS1
                 new LLVector3((float) Convert.ToDecimal((string) data["home_look_x"]),
                               (float) Convert.ToDecimal((string) data["home_look_y"]),
                               (float) Convert.ToDecimal((string) data["home_look_z"]));
-			if(data.Contains("user_flags"))
-				userData.UserFlags = Convert.ToInt32((string) data["user_flags"]);
-			if(data.Contains("god_level"))
-				userData.GodLevel = Convert.ToInt32((string) data["god_level"]);
+            if (data.Contains("user_flags"))
+                userData.UserFlags = Convert.ToInt32((string) data["user_flags"]);
+            if (data.Contains("god_level"))
+                userData.GodLevel = Convert.ToInt32((string) data["god_level"]);
 
             return userData;
         }

@@ -175,9 +175,10 @@ namespace OpenSim.Region.Communications.Local
         public RegionInfo RequestNeighbourInfo(LLUUID regionID)
         {
             // TODO add a dictionary for faster lookup
-            foreach(RegionInfo info in m_regions.Values)
+            foreach (RegionInfo info in m_regions.Values)
             {
-                if(info.RegionID == regionID) return info;
+                if (info.RegionID == regionID)
+                    return info;
             }
             return null;
         }
@@ -186,7 +187,8 @@ namespace OpenSim.Region.Communications.Local
         {
             foreach (RegionInfo regInfo in m_regions.Values)
             {
-                if (regInfo.RegionName == regionName) return regInfo;
+                if (regInfo.RegionName == regionName)
+                    return regInfo;
             }
             return null;
         }

@@ -98,9 +98,9 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
         {
             if (args[0] == "tree")
             {
-				LLUUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
-				if(uuid == LLUUID.Zero)
-					uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                LLUUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                if (uuid == LLUUID.Zero)
+                    uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                 m_log.Debug("[TREES]: New tree planting");
                 CreateTree(uuid, new LLVector3(128.0f, 128.0f, 0.0f));
             }
@@ -223,9 +223,9 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
             position.X += (float) randX;
             position.Y += (float) randY;
 
-			LLUUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
-			if(uuid == LLUUID.Zero)
-				uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            LLUUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            if (uuid == LLUUID.Zero)
+                uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
 
             CreateTree(uuid, position);
         }

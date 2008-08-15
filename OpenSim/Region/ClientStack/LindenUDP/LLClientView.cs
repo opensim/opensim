@@ -2669,7 +2669,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             EstateCovenantReplyPacket.DataBlock edata = new EstateCovenantReplyPacket.DataBlock();
             edata.CovenantID = covenant;
             edata.CovenantTimestamp = 0;
-            if(m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
                 edata.EstateOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             else
                 edata.EstateOwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
