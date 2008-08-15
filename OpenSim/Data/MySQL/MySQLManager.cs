@@ -862,7 +862,7 @@ namespace OpenSim.Data.MySQL
             parameters["?profileFirstImage"] = firstImage.ToString();
             parameters["?webLoginKey"] = webLoginKey.ToString();
             parameters["?userFlags"] = userFlags.ToString();
-            parameters["?godLevel"] = userFlags.ToString();
+            parameters["?godLevel"] = godLevel.ToString();
 
             bool returnval = false;
             try
