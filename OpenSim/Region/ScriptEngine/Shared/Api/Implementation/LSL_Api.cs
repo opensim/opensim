@@ -1013,6 +1013,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
         }
+        
+        public void SetGlow(SceneObjectPart part, int face, float glow) 
+        {                  
+            LLObject.TextureEntry tex = part.Shape.Textures;
+            if (face > -1)
+            {
+				tex.CreateFace((uint) face);
+                tex.FaceTextures[face].Glow = glow;
+                part.UpdateTexture(tex);
+                return;
+            } 
+            else if (face == -1)
+            {
+                for (uint i = 0; i < 32; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        tex.FaceTextures[i].Glow = glow;
+                    }
+					tex.DefaultTexture.Glow = glow;
+                }
+                part.UpdateTexture(tex);
+                return;
+            }
+        }
 
         public double llGetAlpha(int face)
         {
@@ -5404,6 +5429,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         SetPointLight(part, (light == 1), lightcolor, intensity, radius, falloff);
 
                         break;
+                    case (int)ScriptBaseClass.PRIM_GLOW:
+                        if (remain < 2)
+                            return;
+                        face = Convert.ToInt32(rules.Data[idx++]);
+                        float glow = (float)Convert.ToDouble(rules.Data[idx++]);
+					                   
+                        SetGlow(part, face, glow);
+                    
+                        break; 
                 }
             }
         }
