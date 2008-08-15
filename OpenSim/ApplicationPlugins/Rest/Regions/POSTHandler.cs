@@ -73,6 +73,28 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 
                 if (String.IsNullOrEmpty(param)) return CreateRegion(httpRequest, httpResponse);
 
+                // Parse region ID and other parameters
+                param = param.TrimEnd(new char[]{'/'});
+                string[] comps = param.Split('/');
+                LLUUID regionID = (LLUUID)comps[0];
+
+                m_log.DebugFormat("{0} POST region UUID {1}", MsgID, regionID.ToString());
+                if (LLUUID.Zero == regionID) throw new Exception("missing region ID");
+
+                Scene scene = null;
+                App.SceneManager.TryGetScene(regionID, out scene);
+                if (null == scene) return Failure(httpResponse, OSHttpStatusCode.ClientErrorNotFound,
+                                                  "POST", "cannot find region {0}", regionID.ToString());
+
+                if (2 == comps.Length) {
+                    // check for {prims}
+                    switch (comps[1].ToLower())
+                    {
+                    case "prims":
+                        return LoadPrims(request, httpRequest, httpResponse, scene);
+                    }
+                }
+
                 return Failure(httpResponse, OSHttpStatusCode.ClientErrorNotFound,
                                "POST", "url {0} not supported", param);
             }
@@ -95,6 +117,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 
             return XmlWriterResult;
         }
+
+        public string LoadPrims(string requestBody, OSHttpRequest request, OSHttpResponse response, Scene scene)
+        {
+            scene.LoadPrimsFromXml2(new StringReader(requestBody), true);
+            return "";
+        }
+
         #endregion POST methods
     }
 }
