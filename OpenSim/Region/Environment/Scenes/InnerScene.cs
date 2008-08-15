@@ -1203,6 +1203,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     group.SetPartName(Util.CleanString(name), primLocalID);
+                    group.HasGroupChanged = true;
                 }
             }
         }
@@ -1220,6 +1221,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     group.SetPartDescription(Util.CleanString(description), primLocalID);
+                    group.HasGroupChanged = true;
                 }
             }
         }
