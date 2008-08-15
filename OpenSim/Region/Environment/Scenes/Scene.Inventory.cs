@@ -1712,7 +1712,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 CachedUserInfo userInfo =
                     CommsManager.UserProfileCacheService.GetUserDetails(agentID);
-                if (userInfo != null)
+                if (userInfo != null && userInfo.RootFolder != null)
                 {
                     Queue<InventoryFolderImpl> searchfolders = new Queue<InventoryFolderImpl>();
                     searchfolders.Enqueue(userInfo.RootFolder);
