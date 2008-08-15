@@ -149,9 +149,38 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                     return RegionStats(httpResponse, scene);
 
                 case "prims":
-                    return RegionPrims(httpResponse, scene);
+                    return RegionPrims(httpResponse, scene, LLVector3.Zero, LLVector3.Zero);
                 }
             }
+
+            if (3 == comps.Length) {
+                switch (comps[1].ToLower())
+                {
+                case "prims":
+                    string[] subregion = comps[2].Split(',');
+                    if (subregion.Length == 6)
+                    {
+                        LLVector3 min, max;
+                        try
+                        {
+                            min = new LLVector3((float)Double.Parse(subregion[0]), (float)Double.Parse(subregion[1]), (float)Double.Parse(subregion[2]));
+                            max = new LLVector3((float)Double.Parse(subregion[3]), (float)Double.Parse(subregion[4]), (float)Double.Parse(subregion[5]));
+                        }
+                        catch (Exception e)
+                        {
+                            return Failure(httpResponse, OSHttpStatusCode.ClientErrorBadRequest,
+                                           "GET", "invalid subregion parameter");
+                        }
+                        return RegionPrims(httpResponse, scene, min, max);
+                    }
+                    else
+                    {
+                        return Failure(httpResponse, OSHttpStatusCode.ClientErrorBadRequest,
+                                       "GET", "invalid subregion parameter");
+                    }
+                }
+            }
+
             return Failure(httpResponse, OSHttpStatusCode.ClientErrorBadRequest,
                            "GET", "too many parameters {0}", param);
         }
@@ -184,10 +213,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             return XmlWriterResult;
         }
 
-        protected string RegionPrims(OSHttpResponse httpResponse, Scene scene)
+        protected string RegionPrims(OSHttpResponse httpResponse, Scene scene, LLVector3 min, LLVector3 max)
         {
-            return Failure(httpResponse, OSHttpStatusCode.ServerErrorNotImplemented,
-                           "GET", "prims not implemented");
+            httpResponse.SendChunked = true;
+            httpResponse.ContentType = "text/xml";
+            scene.SavePrimsToXml2(new StreamWriter(httpResponse.OutputStream), min, max);
+            return "";
         }
     }
 }
