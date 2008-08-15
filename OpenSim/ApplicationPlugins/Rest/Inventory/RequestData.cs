@@ -158,7 +158,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         private static Regex digestParm2 = new Regex("\\s*(?<parm>\\w+)\\s*=\\s*(?<pval>[^\\p{P}\\s]+)",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
         
-        private static Regex reuserPass  = new Regex("\\s*(?<user>[^:]+)\\s*:\\s*(?<pass>\\S*)",
+        private static Regex reuserPass  = new Regex("(?<user>[^:]+):(?<pass>[\\S\\s]*)",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
         
         // For efficiency, we create static instances of these objects
