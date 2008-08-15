@@ -141,6 +141,8 @@ namespace OpenSim.Framework
         //
         private int _userFlags;
         private int _godLevel;
+        private string _customType;
+        private LLUUID _partner;
 
         /// <summary>
         /// The regionhandle of the users preffered home region. If multiple sims occupy the same spot, the grid may decide which region the user logs into
@@ -347,6 +349,18 @@ namespace OpenSim.Framework
         {
             get { return _godLevel; }
             set { _godLevel = value; }
+        }
+
+        public virtual string CustomType
+        {
+            get { return _customType; }
+            set { _customType = value; }
+        }
+
+        public virtual LLUUID Partner
+        {
+            get { return _partner; }
+            set { _partner = value; }
         }
     }
 }

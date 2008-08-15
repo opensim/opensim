@@ -92,6 +92,18 @@ namespace OpenSim.Region.Communications.OGS1
             if (data.Contains("god_level"))
                 userData.GodLevel = Convert.ToInt32((string) data["god_level"]);
 
+            if (data.Contains("custom_type"))
+                userData.CustomType = (string) data["custom_type"];
+            else
+                userData.CustomType = "";
+            if(userData.CustomType == null)
+                userData.CustomType = "";
+
+            if (data.Contains("partner"))
+                userData.Partner = new LLUUID((string) data["partner"]);
+            else
+                userData.Partner = LLUUID.Zero;
+
             return userData;
         }
 
@@ -471,6 +483,8 @@ namespace OpenSim.Region.Communications.OGS1
             param["home_look_z"] = UserProfile.HomeLookAtZ.ToString();
             param["user_flags"] = UserProfile.UserFlags.ToString();
             param["god_level"] = UserProfile.GodLevel.ToString();
+            param["custom_type"] = UserProfile.CustomType.ToString();
+            param["partner"] = UserProfile.Partner.ToString();
 
             IList parameters = new ArrayList();
             parameters.Add(param);

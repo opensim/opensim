@@ -159,6 +159,8 @@ namespace OpenSim.Grid.UserServer
 
             responseData["user_flags"] = profile.UserFlags.ToString();
             responseData["god_level"] = profile.GodLevel.ToString();
+            responseData["custom_type"] = profile.CustomType.ToString();
+            responseData["partner"] = profile.Partner.ToString();
             response.Value = responseData;
 
             return response;
@@ -663,6 +665,33 @@ namespace OpenSim.Grid.UserServer
                     m_log.Error("[PROFILE]:Failed to set god level");
                 }
             }
+            if (requestData.Contains("custom_type"))
+            {
+                try
+                {
+                    userProfile.CustomType = (string)requestData["custom_type"];
+                }
+                catch (InvalidCastException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set custom type");
+                }
+            }
+            if (requestData.Contains("partner"))
+            {
+                try
+                {
+                    userProfile.Partner = new LLUUID((string)requestData["partner"]);
+                }
+                catch (InvalidCastException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set partner");
+                }
+            }
+            else
+            {
+                 userProfile.Partner = LLUUID.Zero;
+            }
+
             // call plugin!
             bool ret = UpdateUserProfileProperties(userProfile);
             responseData["returnString"] = ret.ToString();

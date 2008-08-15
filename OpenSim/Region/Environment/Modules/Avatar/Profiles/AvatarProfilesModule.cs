@@ -93,17 +93,24 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
         public void RequestAvatarProperty(IClientAPI remoteClient, LLUUID avatarID)
         {
             // FIXME: finish adding fields such as url, masking, etc.
-            LLUUID partner = new LLUUID("11111111-1111-0000-0000-000100bba000");
             UserProfileData profile = m_scene.CommsManager.UserService.GetUserProfile(avatarID);
             if (null != profile)
             {
-                Byte[] charterMember = new Byte[1];
-                charterMember[0] = (Byte)((profile.UserFlags & 0xf00) >> 8);
+                Byte[] charterMember;
+                if(profile.CustomType == "")
+                {
+                    charterMember = new Byte[1];
+                    charterMember[0] = (Byte)((profile.UserFlags & 0xf00) >> 8);
+                }
+                else
+                {
+                    charterMember = Helpers.StringToField(profile.CustomType);
+                }
 
                 remoteClient.SendAvatarProperties(profile.ID, profile.AboutText,
                                                   Util.ToDateTime(profile.Created).ToString(),
                                                   charterMember, profile.FirstLifeAboutText, (uint)(profile.UserFlags & 0xff),
-                                                  profile.FirstLifeImage, profile.Image, String.Empty, partner);
+                                                  profile.FirstLifeImage, profile.Image, String.Empty, profile.Partner);
             }
             else
             {
