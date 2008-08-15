@@ -39,6 +39,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
 
+
 namespace OpenSim.Region.Environment.Scenes
 {
     enum ScriptControlled : int
@@ -1345,6 +1346,14 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
 
             RemoveAnimation(animID);
+        }
+        
+        public LLUUID[] GetAnimationArray()
+        {
+            LLUUID[] animIDs;
+            int[] sequenceNums;
+            m_animations.GetArrays( out animIDs, out sequenceNums );
+            return animIDs;
         }
 
         public void HandleStartAnim(IClientAPI remoteClient, LLUUID animID)

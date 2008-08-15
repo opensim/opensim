@@ -5698,11 +5698,19 @@ namespace OpenSim.Region.ScriptEngine.Common
             return (double)Math.Log(val);
         }
 
-        public LSL_Types.list llGetAnimationList(string id)
+        public LSL_Types.list llGetAnimationList( string id )
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetAnimationList");
-            return new LSL_Types.list();
+            
+            LSL_Types.list l = new LSL_Types.list();
+            ScenePresence av = World.GetScenePresence(id);
+            if( av == null )
+                return l;
+            LLUUID[] anims;
+            anims = av.GetAnimationArray();
+            foreach( LLUUID foo in anims )
+                l.Add( foo.ToString() );
+            return l;
         }
 
         public void llSetParcelMusicURL(string url)
