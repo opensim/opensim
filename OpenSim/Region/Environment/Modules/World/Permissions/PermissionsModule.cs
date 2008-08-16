@@ -246,11 +246,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if (m_scene.RegionInfo.EstateSettings.EstateOwner == user)
                     return true;
             }
-            CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
-            if(profile != null && profile.UserProfile != null)
+            if(m_allowGridGods)
             {
-                if(profile.UserProfile.GodLevel >= 200 && m_allowGridGods)
-                    return true;
+                CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
+                if(profile != null && profile.UserProfile != null)
+                {
+                    if(profile.UserProfile.GodLevel >= 200)
+                        return true;
+                }
             }
 
             return false;
