@@ -292,6 +292,8 @@ namespace OpenSim.Framework.Communications
                             return logResponse.CreateDeadRegionResponse();
                             //return logResponse.ToXmlRpcResponse();
                         }
+
+                        userProfile.LastLogin = userProfile.CurrentAgent.LoginTime; 
                         CommitAgent(ref userProfile);
 
                         // If we reach this point, then the login has successfully logged onto the grid
@@ -464,6 +466,7 @@ namespace OpenSim.Framework.Communications
                             return logResponse.CreateDeadRegionResponseLLSD();
                         }
 
+                        userProfile.LastLogin = userProfile.CurrentAgent.LoginTime;
                         CommitAgent(ref userProfile);
 
                         // If we reach this point, then the login has successfully logged onto the grid
