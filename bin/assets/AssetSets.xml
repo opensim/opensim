@@ -10,11 +10,11 @@
 
   <!-- New asset sets can be added as shown below -->
 
-<!--
+
   <Section Name="My Asset Set">
-    <Key Name="file" Value="MyAssetSet/MyAssetSet.xml"/>
+	  <Key Name="file" Value="OpenTexturesAssetSet/3DDCAssetSet.xml"/>
   </Section>
--->
+
   
 
   <Section Name="Animations AssetSet">
