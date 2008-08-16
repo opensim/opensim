@@ -2170,6 +2170,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnScriptReset += ProcessScriptReset;
             client.OnGetScriptRunning += GetScriptRunning;
             client.OnSetScriptRunning += SetScriptRunning;
+            
+            client.OnRegionHandleRequest += RegionHandleRequest;
 
             client.OnUnackedTerrain += TerrainUnAcked;
 
@@ -2502,6 +2504,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnRemoveKnownRegionFromAvatar += HandleRemoveKnownRegionsFromAvatar;
             m_sceneGridService.OnLogOffUser += HandleLogOffUserFromGrid;
             m_sceneGridService.KillObject += SendKillObject;
+            m_sceneGridService.OnGetLandData += GetLandData;
         }
 
         /// <summary>
@@ -2518,6 +2521,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnExpectUser -= NewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection -= CloseConnection;
+            m_sceneGridService.OnGetLandData -= GetLandData;
 
             m_sceneGridService.Close();
         }
@@ -3436,6 +3440,12 @@ namespace OpenSim.Region.Environment.Scenes
             return LandChannel.GetLandObject(x, y).landData;
         }
 
+        public LandData GetLandData(uint x, uint y)
+        {
+            m_log.DebugFormat("[SCENE] returning land for {0},{1}", x, y);
+            return LandChannel.GetLandObject((int)x, (int)y).landData;
+        }
+
         public void SetLandMusicURL(float x, float y, string url)
         {
             ILandObject land = LandChannel.GetLandObject(x, y);
@@ -3832,6 +3842,14 @@ namespace OpenSim.Region.Environment.Scenes
 //                Thread.Sleep(200);
 //                client.SendParcelMediaCommand((uint)(4), ParcelMediaCommandEnum.Play, 0);
 //            });
+        }
+        
+        public void RegionHandleRequest(IClientAPI client, LLUUID regionID)
+        {
+            RegionInfo info;
+            if(regionID == RegionInfo.RegionID) info = RegionInfo;
+            else info = CommsManager.GridService.RequestNeighbourInfo(regionID);
+            if(info != null) client.SendRegionHandle(regionID, info.RegionHandle);
         }
 
 

@@ -204,6 +204,9 @@ namespace OpenSim.Region.Examples.SimpleModule
 
        public event TerrainUnacked OnUnackedTerrain;
 
+       public event RegionHandleRequest OnRegionHandleRequest;
+       public event ParcelInfoRequest OnParcelInfoRequest;
+
 #pragma warning restore 67
 
         private LLUUID myID = LLUUID.Random();
@@ -830,6 +833,14 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public void SendClearFollowCamProperties (LLUUID objectID)
+        {
+        }
+
+        public void SendRegionHandle (LLUUID regoinID, ulong handle)
+        {
+        }
+
+        public void SendParcelInfo (RegionInfo info, LandData land, LLUUID parcelID, uint x, uint y)
         {
         }
     }

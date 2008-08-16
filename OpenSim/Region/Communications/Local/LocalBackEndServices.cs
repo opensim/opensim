@@ -491,5 +491,20 @@ namespace OpenSim.Region.Communications.Local
 
             return false;
         }
+
+        public LandData RequestLandData (ulong regionHandle, uint x, uint y)
+        {
+            m_log.DebugFormat("[INTERREGION STANDALONE] requests land data in {0}, at {1}, {2}",
+                              regionHandle, x, y);
+            
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                LandData land = m_regionListeners[regionHandle].TriggerGetLandData(x, y);
+                return land;
+            }
+            
+            m_log.Debug("[INTERREGION STANDALONE] didn't find land data locally.");
+            return null;
+        }
     }
 }

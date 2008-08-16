@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -92,6 +93,7 @@ namespace OpenSim.Region.Communications.OGS1
             httpServer.AddXmlRPCHandler("expect_user", ExpectUser);
             httpServer.AddXmlRPCHandler("logoff_user", LogOffUser);
             httpServer.AddXmlRPCHandler("check", PingCheckReply);
+            httpServer.AddXmlRPCHandler("land_data", LandData);
 
             StartRemoting();
         }
@@ -1623,6 +1625,105 @@ namespace OpenSim.Region.Communications.OGS1
                     m_deadRegionCache.Add(regionhandle, 1);
                 }
             }
+        }
+
+        public LandData RequestLandData (ulong regionHandle, uint x, uint y)
+        {
+            m_log.DebugFormat("[OGS1 GRID SERVICES] requests land data in {0}, at {1}, {2}",
+                              regionHandle, x, y);
+            LandData landData = m_localBackend.RequestLandData(regionHandle, x, y);
+            if (landData == null)
+            {
+                Hashtable hash = new Hashtable();
+                hash["region_handle"] = regionHandle.ToString();
+                hash["x"] = x.ToString();
+                hash["y"] = y.ToString();
+                
+                IList paramList = new ArrayList();
+                paramList.Add(hash);
+                
+                // this might be cached, as we probably requested it just a moment ago...
+                RegionInfo info = RequestNeighbourInfo(regionHandle);
+
+                try
+                {
+                    XmlRpcRequest request = new XmlRpcRequest("land_data", paramList);
+                    string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
+                    XmlRpcResponse response = request.Send(uri, 10000);
+                    if (response.IsFault)
+                    {
+                        m_log.ErrorFormat("[OGS1 GRID SERVICES] remote call returned an error: {0}", response.FaultString);
+                    }
+                    else
+                    {
+                        hash = (Hashtable)response.Value;
+                        try {
+                            landData = new LandData();
+                            landData.AABBMax = LLVector3.Parse((string)hash["AABBMax"]);
+                            landData.AABBMin = LLVector3.Parse((string)hash["AABBMin"]);
+                            landData.Area = Convert.ToInt32(hash["Area"]);
+                            landData.AuctionID = Convert.ToUInt32(hash["AuctionID"]);
+                            landData.Description = (string)hash["Description"];
+                            landData.Flags = Convert.ToUInt32(hash["Flags"]);
+                            landData.GlobalID = new LLUUID((string)hash["GlobalID"]);
+                            landData.Name = (string)hash["Name"];
+                            landData.OwnerID = new LLUUID((string)hash["OwnerID"]);
+                            landData.SalePrice = Convert.ToInt32(hash["SalePrice"]);
+                            landData.SnapshotID = new LLUUID((string)hash["SnapshotID"]);
+                            landData.UserLocation = LLVector3.Parse((string)hash["UserLocation"]);
+                            m_log.DebugFormat("[OGS1 GRID SERVICES] Got land data for parcel {0}", landData.Name);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Error("[OGS1 GRID SERVICES] Got exception while parsing land-data:", e);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[OGS1 GRID SERVICES] Couldn't contact region {0}: {1}", regionHandle, e);
+                }
+            }
+            return landData;
+        }
+
+        // Grid Request Processing
+        /// <summary>
+        /// Someone asked us about parcel-information
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public XmlRpcResponse LandData(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            ulong regionHandle = Convert.ToUInt64(requestData["region_handle"]);
+            uint x = Convert.ToUInt32(requestData["x"]);
+            uint y = Convert.ToUInt32(requestData["y"]);
+            m_log.DebugFormat("[OGS1 GRID SERVICES]: Got XML reqeuest for land data at {0}, {1} in region {2}", x, y, regionHandle);
+
+            LandData landData = m_localBackend.RequestLandData(regionHandle, x, y);
+            Hashtable hash = new Hashtable();
+            if (landData != null)
+            {
+                // for now, only push out the data we need for answering a ParcelInfoReqeust
+                // FIXME: these Replace calls are necessary as LLVector3.Parse can't parse vectors with spaces in them. Can be removed as soon as we switch to a newer version
+                hash["AABBMax"] = landData.AABBMax.ToString().Replace(" ", "");
+                hash["AABBMin"] = landData.AABBMin.ToString().Replace(" ", "");
+                hash["Area"] = landData.Area.ToString();
+                hash["AuctionID"] = landData.AuctionID.ToString();
+                hash["Description"] = landData.Description;
+                hash["Flags"] = landData.Flags.ToString();
+                hash["GlobalID"] = landData.GlobalID.ToString();
+                hash["Name"] = landData.Name;
+                hash["OwnerID"] = landData.OwnerID.ToString();
+                hash["SalePrice"] = landData.SalePrice.ToString();
+                hash["SnapshotID"] = landData.SnapshotID.ToString();
+                hash["UserLocation"] = landData.UserLocation.ToString().Replace(" ", "");
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
         }
     }
 }

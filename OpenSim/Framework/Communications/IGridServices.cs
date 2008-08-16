@@ -57,5 +57,7 @@ namespace OpenSim.Framework.Communications
         RegionInfo RequestClosestRegion(string regionName);
         Dictionary<string, string> GetGridSettings();
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);
+        // not complete yet, only contains the fields needed for ParcelInfoReqeust
+        LandData RequestLandData(ulong regionHandle, uint x, uint y);
     }
 }

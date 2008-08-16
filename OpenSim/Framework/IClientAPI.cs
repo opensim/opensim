@@ -293,6 +293,9 @@ namespace OpenSim.Framework
     public delegate void EstateBlueBoxMessageRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID sessionID, string senderName, string message);
     public delegate void EstateDebugRegionRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, bool scripted, bool collisionEvents, bool physics);
     public delegate void EstateTeleportOneUserHomeRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID prey);
+    public delegate void RegionHandleRequest(IClientAPI remoteClient, LLUUID regionID);
+    public delegate void ParcelInfoRequest(IClientAPI remoteClient, LLUUID parcelID);
+    
     public delegate void ScriptReset(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
     public delegate void GetScriptRunning(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
     public delegate void SetScriptRunning(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, bool running);
@@ -498,6 +501,9 @@ namespace OpenSim.Framework
         event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
         event UUIDNameRequest OnUUIDGroupNameRequest;
+        
+        event RegionHandleRequest OnRegionHandleRequest;
+        event ParcelInfoRequest OnParcelInfoRequest;
 
         event RequestObjectPropertiesFamily OnObjectGroupRequest;
         event ScriptReset OnScriptReset;
@@ -721,5 +727,8 @@ namespace OpenSim.Framework
         
         void SendSetFollowCamProperties(LLUUID objectID, SortedDictionary<int, float> parameters);
         void SendClearFollowCamProperties(LLUUID objectID);
+        
+        void SendRegionHandle(LLUUID regoinID, ulong handle);
+        void SendParcelInfo(RegionInfo info, LandData land, LLUUID parcelID, uint x, uint y);
     }
 }

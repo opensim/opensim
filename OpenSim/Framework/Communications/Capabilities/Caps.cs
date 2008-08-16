@@ -86,10 +86,12 @@ namespace OpenSim.Framework.Communications.Capabilities
         private static readonly string m_notecardTaskUpdatePath = "0005/";
         // private static readonly string m_fetchInventoryPath = "0006/";
 
-        // The following two entries are in a module, however, there also here so that we don't re-assign
+        // The following entries are in a module, however, they are also here so that we don't re-assign
         // the path to another cap by mistake.
         // private static readonly string m_parcelVoiceInfoRequestPath = "0007/"; // This is in a module.
         // private static readonly string m_provisionVoiceAccountRequestPath = "0008/";// This is in a module.
+
+        // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
 
         //private string eventQueue = "0100/";
         private BaseHttpServer m_httpListener;

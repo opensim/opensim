@@ -46,7 +46,8 @@ namespace OpenSim.Framework
         private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
         private RegionUp handlerRegionUp = null; // OnRegionUp;
         private LogOffUser handlerLogOffUser = null;
-
+        private GetLandData handlerGetLandData = null;
+        
         #region IRegionCommsListener Members
 
         public event ExpectUserDelegate OnExpectUser;
@@ -61,6 +62,7 @@ namespace OpenSim.Framework
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
         public event LogOffUser OnLogOffUser;
+        public event GetLandData OnGetLandData;
 
         #endregion
 
@@ -225,6 +227,15 @@ namespace OpenSim.Framework
                 return handlerCloseAgentConnection(regionHandle, agentID);
 
             return false;
+        }
+        
+        public LandData TriggerGetLandData(uint x, uint y)
+        {
+            handlerGetLandData = OnGetLandData;
+            if (handlerGetLandData != null)
+                return handlerGetLandData(x, y);
+            
+            return null;
         }
     }
 }

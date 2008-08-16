@@ -302,6 +302,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event UpdateVector OnAutoPilotGo;
 
         public event TerrainUnacked OnUnackedTerrain;
+
+        public event RegionHandleRequest OnRegionHandleRequest;
+        public event ParcelInfoRequest OnParcelInfoRequest;
+        
 #pragma warning restore 67
 
         #endregion
@@ -830,6 +834,14 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
 
         public void SendClearFollowCamProperties (LLUUID objectID)
+        {
+        }
+
+        public void SendRegionHandle (LLUUID regoinID, ulong handle)
+        {
+        }
+
+        public void SendParcelInfo (RegionInfo info, LandData land, LLUUID parcelID, uint x, uint y)
         {
         }
     }

@@ -52,6 +52,8 @@ namespace OpenSim.Framework
 
     public delegate void LogOffUser(ulong regionHandle, LLUUID agentID, LLUUID regionSecret, string message);
 
+    public delegate LandData GetLandData(uint x, uint y);
+
     public interface IRegionCommsListener
     {
         event ExpectUserDelegate OnExpectUser;
@@ -66,5 +68,6 @@ namespace OpenSim.Framework
         event RegionUp OnRegionUp;
         event ChildAgentUpdate OnChildAgentUpdate;
         event LogOffUser OnLogOffUser;
+        event GetLandData OnGetLandData;
     }
 }

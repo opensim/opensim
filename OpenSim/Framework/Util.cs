@@ -716,5 +716,24 @@ namespace OpenSim.Framework
             XmlRpcRequest client = new XmlRpcRequest(methodName, args);
             return client.Send(url, 6000);
         }
+        
+        // used for RemoteParcelRequest (for "About Landmark")
+        public static LLUUID BuildFakeParcelID(ulong regionHandle, uint x, uint y) {
+            byte[] bytes = {
+                (byte)(regionHandle >> 56), (byte)(regionHandle >> 48), (byte)(regionHandle >> 40), (byte)(regionHandle >> 32),
+                (byte)(regionHandle >> 24), (byte)(regionHandle >> 16), (byte)(regionHandle >> 8), (byte)regionHandle,
+                (byte)(x >> 24), (byte)(x >> 16), (byte)(x >> 8), (byte)x,
+                (byte)(y >> 24), (byte)(y >> 16), (byte)(y >> 8), (byte)y };
+            return new LLUUID(bytes, 0);
+        }
+        
+        public static void ParseFakeParcelID(LLUUID parcelID, out ulong regionHandle, out uint x, out uint y) {
+            byte[] bytes = parcelID.GetBytes();
+            regionHandle = Helpers.BytesToUInt64(bytes);
+            x = Helpers.BytesToUInt(bytes, 8);
+            // grrr. I'd like to use that code in the next line, but libsl has an off-by-one bug here and returns 0.
+            //uint y = Helpers.BytesToUInt(bytes, 12);
+            y = (uint)((bytes[12] << 24) | (bytes[13] << 16) | (bytes[14] << 8) | bytes[15]);
+        }
     }
 }

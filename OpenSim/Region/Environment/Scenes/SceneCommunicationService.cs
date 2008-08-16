@@ -59,7 +59,8 @@ namespace OpenSim.Region.Environment.Scenes
         public event ChildAgentUpdate OnChildAgentUpdate;
         public event RemoveKnownRegionsFromAvatarList OnRemoveKnownRegionFromAvatar;
         public event LogOffUser OnLogOffUser;
-
+        public event GetLandData OnGetLandData;
+        
         private AgentCrossing handlerAvatarCrossingIntoRegion = null; // OnAvatarCrossingIntoRegion;
         private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser;
         private ExpectPrimDelegate handlerExpectPrim = null; // OnExpectPrim;
@@ -69,6 +70,7 @@ namespace OpenSim.Region.Environment.Scenes
         private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
         private RemoveKnownRegionsFromAvatarList handlerRemoveKnownRegionFromAvatar = null; // OnRemoveKnownRegionFromAvatar;
         private LogOffUser handlerLogOffUser = null;
+        private GetLandData handlerGetLandData = null; // OnGetLandData 
 
         public KillObjectDelegate KillObject;
         public string _debugRegionName = String.Empty;
@@ -108,6 +110,7 @@ namespace OpenSim.Region.Environment.Scenes
                 regionCommsHost.OnRegionUp += newRegionUp;
                 regionCommsHost.OnChildAgentUpdate += ChildAgentUpdate;
                 regionCommsHost.OnLogOffUser += GridLogOffUser;
+                regionCommsHost.OnGetLandData += FetchLandData;
             }
             else
             {
@@ -131,6 +134,7 @@ namespace OpenSim.Region.Environment.Scenes
                 regionCommsHost.OnExpectPrim -= IncomingPrimCrossing;
                 regionCommsHost.OnAvatarCrossingIntoRegion -= AgentCrossing;
                 regionCommsHost.OnCloseAgentConnection -= CloseConnection;
+                regionCommsHost.OnGetLandData -= FetchLandData;
                 m_commsProvider.GridService.DeregisterRegion(m_regionInfo);
                 regionCommsHost = null;
             }
@@ -227,6 +231,16 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
+        protected LandData FetchLandData(uint x, uint y)
+        {
+            handlerGetLandData = OnGetLandData;
+            if (handlerGetLandData != null)
+            {
+                return handlerGetLandData(x, y);
+            }
+            return null;
+        }
+        
         #endregion
 
         #region Inform Client of Neighbours

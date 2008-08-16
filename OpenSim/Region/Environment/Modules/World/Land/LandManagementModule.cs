@@ -26,19 +26,30 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
+using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Region.Physics.Manager;
 using Axiom.Math;
+using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.Environment.Modules.World.Land
 {
     public class LandManagementModule : IRegionModule
     {
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        private static readonly string remoteParcelRequestPath = "0009/";
+        
         private LandChannel landChannel;
         private Scene m_scene;
 
@@ -75,6 +86,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             m_scene.EventManager.OnSetAllowForcefulBan += this.SetAllowedForcefulBans;
             m_scene.EventManager.OnRequestParcelPrimCountUpdate += this.PerformParcelPrimCountUpdate;
             m_scene.EventManager.OnParcelPrimCountTainted += this.SetPrimsTainted;
+            m_scene.EventManager.OnRegisterCaps += this.OnRegisterCaps;
 
             lock (m_scene)
             {
@@ -95,7 +107,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             client.OnParcelAccessListUpdateRequest += new ParcelAccessListUpdateRequest(handleParcelAccessUpdateRequest);
             client.OnParcelAbandonRequest += new ParcelAbandonRequest(handleParcelAbandonRequest);
             client.OnParcelReclaim += new ParcelReclaim(handleParcelReclaim);
-
+            client.OnParcelInfoRequest += new ParcelInfoRequest(handleParcelInfo);
             if (m_scene.Entities.ContainsKey(client.AgentId))
             {
                 SendLandUpdate((ScenePresence)m_scene.Entities[client.AgentId], true);
@@ -1083,6 +1095,112 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         }
         public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel)
         {
+        }
+
+        #region CAPS handler
+        private void OnRegisterCaps(LLUUID agentID, Caps caps)
+        {
+            string capsBase = "/CAPS/" + caps.CapsObjectPath;
+            caps.RegisterHandler("RemoteParcelRequest",
+                                 new RestStreamHandler("POST", capsBase + remoteParcelRequestPath,
+                                                       delegate(string request, string path, string param,
+                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                                           {
+                                                               return RemoteParcelRequest(request, path, param, agentID, caps);
+                                                           }));
+        }
+        
+        // we cheat here: As we don't have (and want) a grid-global parcel-store, we can't return the
+        // "real" parcelID, because we wouldn't be able to map that to the region the parcel belongs to.
+        // So, we create a "fake" parcelID by using the regionHandle (64 bit), and the local (integer) x
+        // and y coordinate (each 8 bit), encoded in a LLUUID (128 bit).
+        //
+        // Request format:
+        // <llsd>
+        //   <map>
+        //     <key>location</key>
+        //     <array>
+        //       <real>1.23</real>
+        //       <real>45..6</real>
+        //       <real>78.9</real>
+        //     </array>
+        //     <key>region_id</key>
+        //     <uuid>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</uuid>
+        //   </map>
+        // </llsd>
+        private string RemoteParcelRequest(string request, string path, string param, LLUUID agentID, Caps caps)
+        {
+            LLUUID parcelID = LLUUID.Zero;
+            try
+            {
+                Hashtable hash = new Hashtable();
+                hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
+                if(hash.ContainsKey("region_id") && hash.ContainsKey("location"))
+                {
+                    LLUUID regionID = (LLUUID)hash["region_id"];
+                    ArrayList list = (ArrayList)hash["location"];
+                    uint x = (uint)(double)list[0];
+                    uint y = (uint)(double)list[1];
+                    if(hash.ContainsKey("region_handle"))
+                    {
+                        // if you do a "About Landmark" on a landmark a second time, the viewer sends the
+                        // region_handle it got earlier via RegionHandleRequest
+                        ulong regionHandle = Helpers.BytesToUInt64((byte[])hash["region_handle"]);
+                        parcelID = Util.BuildFakeParcelID(regionHandle, x, y);
+                    }
+                    else if(regionID == m_scene.RegionInfo.RegionID)
+                    {
+                        // a parcel request for a local parcel => no need to query the grid
+                        parcelID = Util.BuildFakeParcelID(m_scene.RegionInfo.RegionHandle, x, y);
+                    }
+                    else
+                    {
+                        // a parcel request for a parcel in another region. Ask the grid about the region
+                        RegionInfo info = m_scene.CommsManager.GridService.RequestNeighbourInfo(regionID);
+                        if(info != null) parcelID = Util.BuildFakeParcelID(info.RegionHandle, x, y);
+                    }
+                }
+            }
+            catch (LLSD.LLSDParseException e)
+            {
+                m_log.ErrorFormat("[LAND] Fetch error: {0}", e.Message);
+                m_log.ErrorFormat("[LAND] ... in request {0}", request);
+            }
+            catch(InvalidCastException)
+            {
+                m_log.ErrorFormat("[LAND] Wrong type in request {0}", request);
+            }
+            
+            LLSDRemoteParcelResponse response = new LLSDRemoteParcelResponse();
+            response.parcel_id = parcelID;
+            m_log.DebugFormat("[LAND] got parcelID {0}", parcelID);
+            
+            return LLSDHelpers.SerialiseLLSDReply(response);
+        }
+
+        #endregion
+
+        private void handleParcelInfo(IClientAPI remoteClient, LLUUID parcelID)
+        {
+            if(parcelID == LLUUID.Zero) return;
+
+            // assume we've got the parcelID we just computed in RemoteParcelRequest
+            ulong regionHandle;
+            uint x, y;
+            Util.ParseFakeParcelID(parcelID, out regionHandle, out x, out y);
+            m_log.DebugFormat("[LAND] got parcelinfo request for regionHandle {0}, x/y {1}/{2}", regionHandle, x, y);
+            
+            LandData landData;
+            if(regionHandle == m_scene.RegionInfo.RegionHandle) landData = this.GetLandObject(x, y).landData;
+            else landData = m_scene.CommsManager.GridService.RequestLandData(regionHandle, x, y);
+
+            if(landData != null)
+            {
+                // we need to transfer the fake parcelID, not the one in landData, so the viewer can match it to the landmark.
+                m_log.Debug("[LAND] got parcelinfo; sending");
+                remoteClient.SendParcelInfo(m_scene.RegionInfo, landData, parcelID, x, y);
+            }
+            else m_log.Debug("[LAND] got no parcelinfo; not sending");
         }
     }
     

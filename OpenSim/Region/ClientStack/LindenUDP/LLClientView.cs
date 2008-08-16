@@ -229,6 +229,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // private RequestAsset handlerRequestAsset = null; // OnRequestAsset;
         private UUIDNameRequest handlerTeleportHomeRequest = null;
 
+        private RegionHandleRequest handlerRegionHandleRequest = null; // OnRegionHandleRequest
+        private ParcelInfoRequest handlerParcelInfoRequest = null; // OnParcelInfoRequest
+        
         private ScriptAnswer handlerScriptAnswer = null;
         private RequestPayPrice handlerRequestPayPrice = null;
         private ObjectDeselect handlerObjectDetach = null;
@@ -916,6 +919,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        public event RegionHandleRequest OnRegionHandleRequest;
+        public event ParcelInfoRequest OnParcelInfoRequest;
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
@@ -5296,6 +5301,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     #region Parcel related packets
 
+                    case PacketType.RegionHandleRequest:
+                        RegionHandleRequestPacket rhrPack = (RegionHandleRequestPacket)Pack;
+                        
+                        handlerRegionHandleRequest = OnRegionHandleRequest;
+                        if (handlerRegionHandleRequest != null)
+                        {
+                            handlerRegionHandleRequest(this, rhrPack.RequestBlock.RegionID);
+                        }
+                        break;
+                    
+                    case PacketType.ParcelInfoRequest:
+                        ParcelInfoRequestPacket pirPack = (ParcelInfoRequestPacket)Pack;
+                        
+                        handlerParcelInfoRequest = OnParcelInfoRequest;
+                        if (handlerParcelInfoRequest != null)
+                        {
+                            handlerParcelInfoRequest(this, pirPack.Data.ParcelID);
+                        }
+                        break;
+                    
                     case PacketType.ParcelAccessListRequest:
                         ParcelAccessListRequestPacket requestPacket = (ParcelAccessListRequestPacket)Pack;
 
@@ -6294,5 +6319,45 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #endregion
+
+        public void SendRegionHandle(LLUUID regionID, ulong handle) {
+            RegionIDAndHandleReplyPacket reply = (RegionIDAndHandleReplyPacket)PacketPool.Instance.GetPacket(PacketType.RegionIDAndHandleReply);
+            reply.ReplyBlock.RegionID = regionID;
+            reply.ReplyBlock.RegionHandle = handle;
+            OutPacket(reply, ThrottleOutPacketType.Land);
+        }
+        
+        public void SendParcelInfo(RegionInfo info, LandData land, LLUUID parcelID, uint x, uint y)
+        {
+            ParcelInfoReplyPacket reply = (ParcelInfoReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelInfoReply);
+            reply.AgentData.AgentID = m_agentId;
+            reply.Data.ParcelID = parcelID;
+            reply.Data.OwnerID = land.OwnerID;
+            reply.Data.Name = Helpers.StringToField(land.Name);
+            reply.Data.Desc = Helpers.StringToField(land.Description);
+            reply.Data.ActualArea = land.Area;
+            reply.Data.BillableArea = land.Area; // TODO: what is this?
+            
+            // Bit 0: Mature, bit 7: on sale, other bits: no idea
+            reply.Data.Flags = (byte)(
+                ((land.Flags & (uint)Parcel.ParcelFlags.MaturePublish) != 0 ? (1 << 0) : 0) +
+                ((land.Flags & (uint)Parcel.ParcelFlags.ForSale) != 0 ? (1 << 7) : 0));
+            
+            LLVector3 pos = land.UserLocation;
+            if (pos.Equals(LLVector3.Zero))
+            {
+                pos = (land.AABBMax + land.AABBMin) * 0.5f; 
+            }
+            reply.Data.GlobalX = info.RegionLocX * Constants.RegionSize + x;
+            reply.Data.GlobalY = info.RegionLocY * Constants.RegionSize + y;
+            reply.Data.GlobalZ = pos.Z;
+            reply.Data.SimName = Helpers.StringToField(info.RegionName);
+            reply.Data.SnapshotID = land.SnapshotID;
+            reply.Data.Dwell = 0; // TODO: not implemented yet
+            reply.Data.SalePrice = land.SalePrice;
+            reply.Data.AuctionID = (int)land.AuctionID;
+            
+            OutPacket(reply, ThrottleOutPacketType.Land);
+        }
     }
 }
