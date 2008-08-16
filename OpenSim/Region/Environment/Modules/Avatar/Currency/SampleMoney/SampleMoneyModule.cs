@@ -39,6 +39,7 @@ using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
 {
@@ -589,10 +590,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         {
             // try avatar username surname
             Scene scene = GetRandomScene();
-            UserProfileData profile = scene.CommsManager.UserService.GetUserProfile(agentID);
-            if (profile != null)
+            CachedUserInfo profile = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentID);
+            if (profile != null && profile.UserProfile != null)
             {
-                string avatarname = profile.FirstName + " " + profile.SurName;
+                string avatarname = profile.UserProfile.FirstName + " " + profile.UserProfile.SurName;
                 return avatarname;
             }
             return String.Empty;

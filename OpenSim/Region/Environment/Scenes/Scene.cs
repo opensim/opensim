@@ -3777,22 +3777,5 @@ namespace OpenSim.Region.Environment.Scenes
             //Console.WriteLine("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
              client.SendLayerData(patchX, patchY, Heightmap.GetFloatsSerialised());
         }
-
-//        public bool IsAdministrator(LLUUID user)
-//        {
-//            if(RegionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
-//            {
-//                if(RegionInfo.MasterAvatarAssignedUUID == user)
-//                    return true;
-//            }
-//
-//            UserProfileData userProfile =
-//                    CommsManager.UserService.GetUserProfile(user);
-//
-//            if(userProfile.GodLevel >= 200)
-//                return true;
-//
-//            return false;
-//        }
     }
 }              

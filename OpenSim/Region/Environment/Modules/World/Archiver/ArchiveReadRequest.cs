@@ -29,6 +29,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
+using OpenSim.Framework.Communications.Cache;
 using System;
 using Axiom.Math;
 using System.Collections.Generic;
@@ -187,7 +188,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             if (!m_validUserUuids.ContainsKey(uuid))
             {
-                if (m_scene.CommsManager.UserService.GetUserProfile(uuid) != null)
+                CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(uuid);
+                if (profile != null && profile.UserProfile != null)
                     m_validUserUuids.Add(uuid, true);
                 else
                     m_validUserUuids.Add(uuid, false);

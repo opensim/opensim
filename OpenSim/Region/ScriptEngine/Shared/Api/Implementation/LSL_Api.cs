@@ -633,10 +633,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string resolveName(LLUUID objecUUID)
         {
             // try avatar username surname
-            UserProfileData profile = World.CommsManager.UserService.GetUserProfile(objecUUID);
-            if (profile != null)
+            CachedUserInfo profile = World.CommsManager.UserProfileCacheService.GetUserDetails(objecUUID);
+            if (profile != null && profile.UserProfile != null)
             {
-                string avatarname = profile.FirstName + " " + profile.SurName;
+                string avatarname = profile.UserProfile.FirstName + " " + profile.UserProfile.SurName;
                 return avatarname;
             }
             // try an scene object

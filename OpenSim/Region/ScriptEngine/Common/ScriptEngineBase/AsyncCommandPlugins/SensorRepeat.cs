@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins
 {
@@ -272,10 +273,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                             string entname =ent.Name;
 
                             // try avatar username surname
-                            UserProfileData profile = m_CmdManager.m_ScriptEngine.World.CommsManager.UserService.GetUserProfile(ent.UUID);
-                            if (profile != null)
+                            CachedUserInfo profile = m_CmdManager.m_ScriptEngine.World.CommsManager.UserProfileCacheService.GetUserDetails(ent.UUID);
+                            if (profile != null && profile.UserProfile != null)
                             {
-                               avatarname = profile.FirstName + " " + profile.SurName;
+                               avatarname = profile.UserProfile.FirstName + " " + profile.UserProfile.SurName;
                             }
                             // try an scene object
                             SceneObjectPart SOP = m_CmdManager.m_ScriptEngine.World.GetSceneObjectPart(ent.UUID);
