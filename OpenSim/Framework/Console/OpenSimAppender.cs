@@ -32,17 +32,22 @@ using log4net.Core;
 
 namespace OpenSim.Framework.Console
 {
+    /// <summary>
+    /// Writes log information out onto the console
+    /// </summary>
     public class OpenSimAppender : AnsiColorTerminalAppender
     {
         override protected void Append(LoggingEvent le)
         {
-            try {
+            try 
+            {
                 string loggingMessage = RenderLoggingEvent(le);
 
                 string regex = @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)";
 
                 Regex RE = new Regex(regex, RegexOptions.Multiline);
                 MatchCollection matches = RE.Matches(loggingMessage);
+                
                 // Get some direct matches $1 $4 is a
                 if (matches.Count == 1)
                 {

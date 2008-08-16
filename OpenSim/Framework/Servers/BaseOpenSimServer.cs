@@ -33,6 +33,9 @@ using System.Text;
 using System.Threading;
 using System.Timers;
 using log4net;
+using log4net.Appender;
+using log4net.Core;
+using log4net.Repository;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
 
@@ -120,6 +123,50 @@ namespace OpenSim.Framework.Servers
             
             return sb.ToString();
         }
+        
+        /// <summary>
+        /// Set the level of log notices being echoed to the console
+        /// </summary>
+        /// <param name="setParams"></param>
+        private void SetConsoleLogLevel(string[] setParams)
+        {
+            ILoggerRepository repository = LogManager.GetRepository();
+            IAppender[] appenders = repository.GetAppenders();
+            OpenSimAppender consoleAppender = null;
+            
+            foreach (IAppender appender in appenders)
+            {
+                if (appender.Name == "Console")
+                {
+                    consoleAppender = (OpenSimAppender)appender;
+                    break;
+                }
+            }
+            
+            if (null == consoleAppender)
+            {
+                Notice("No appender named Console found (see the log4net config file for this executable)!");
+                return;
+            }
+                
+            if (setParams.Length > 0)
+            {
+                Level consoleLevel = repository.LevelMap[setParams[0]];
+                if (consoleLevel != null)
+                    consoleAppender.Threshold = consoleLevel;
+                else
+                    Notice(
+                        String.Format(
+                            "{0} is not a valid logging level.  Valid logging levels are ALL, DEBUG, INFO, WARN, ERROR, FATAL, OFF",
+                            setParams[0]));
+            }
+            
+            // If there is no threshold set then the threshold is effectively everything.
+            Level thresholdLevel
+                = (null != consoleAppender.Threshold ? consoleAppender.Threshold : log4net.Core.Level.All);
+                                    
+            Notice(String.Format("Console log level is {0}", thresholdLevel));                        
+        }
 
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
@@ -156,6 +203,7 @@ namespace OpenSim.Framework.Servers
                     Notice("");
                     Notice("quit - equivalent to shutdown.");
 
+                    Notice("set log level [level] - change the console logging level only.  For example, off or debug."); 
                     Notice("show info - show server information (e.g. startup path).");
 
                     if (m_stats != null)
@@ -168,6 +216,10 @@ namespace OpenSim.Framework.Servers
 
                     break;
 
+                case "set":
+                    Set(cmdparams);
+                    break;
+                
                 case "show":
                     if (cmdparams.Length > 0)
                     {
@@ -180,15 +232,38 @@ namespace OpenSim.Framework.Servers
                     Shutdown();
                     break;
             }
-        }
+        }        
+        
+        /// <summary>
+        /// Set an OpenSim parameter
+        /// </summary>
+        /// <param name="setArgs">
+        /// The arguments given to the set command.
+        /// </param>
+        public virtual void Set(string[] setArgs)
+        {
+            // Temporary while we only have one command which takes at least two parameters
+            if (setArgs.Length < 2)
+                return;
+            
+            if (setArgs[0] == "log" && setArgs[1] == "level")
+            {
+                string[] setParams = new string[setArgs.Length - 2];
+                Array.Copy(setArgs, 2, setParams, 0, setArgs.Length - 2);
+                
+                SetConsoleLogLevel(setParams);           
+            }
+        }           
 
         /// <summary>
         /// Outputs to the console information about the region
         /// </summary>
-        /// <param name="ShowWhat">What information to display (valid arguments are "uptime", "users")</param>
-        public virtual void Show(string ShowWhat)
+        /// <param name="showWhat">
+        /// What information to display (valid arguments are "uptime", "users")
+        /// </param>
+        public virtual void Show(string showWhat)
         {
-            switch (ShowWhat)
+            switch (showWhat)
             {
                 case "info":
                     Notice("Version: " + m_version);
@@ -226,7 +301,7 @@ namespace OpenSim.Framework.Servers
                     Notice("Version: " + m_version);
                     break;
             }
-        }
+        }     
 
         /// <summary>
         /// Console output is only possible if a console has been established.

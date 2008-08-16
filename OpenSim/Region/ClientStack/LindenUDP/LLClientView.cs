@@ -48,7 +48,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public delegate bool PacketMethod(IClientAPI simClient, Packet packet);
 
-
     /// <summary>
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything

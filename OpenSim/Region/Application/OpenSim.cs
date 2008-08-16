@@ -214,6 +214,7 @@ namespace OpenSim
         {
             base.RunCmd(command, cmdparams);
             RunPluginCommands(command , cmdparams);
+            
             switch (command)
             {
                 case "clear-assets":
