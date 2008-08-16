@@ -1115,15 +1115,15 @@ namespace OpenSim.Region.Environment.Scenes
                                 {
                                     hfvalue = (float)hm[x, y];
                                     hfvaluecompare = (float)hm[x - 1, y - 1];
-                                    hfdiff = hfvaluecompare - hfvalue;
-
-
+                                    
                                     if (Single.IsInfinity(hfvalue) || Single.IsNaN(hfvalue))
                                         hfvalue = 0;
 
                                     if (Single.IsInfinity(hfvaluecompare) || Single.IsNaN(hfvaluecompare))
                                         hfvaluecompare = 0;
-                                    
+
+                                    hfdiff = hfvaluecompare - hfvalue;
+
                                     if (hfdiff > 0.3f)
                                     {
 
