@@ -1038,7 +1038,57 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
         }
-
+		
+		public void SetShiny(SceneObjectPart part, int face, int shiny, Bumpiness bump)
+		{
+			
+			Shininess sval = new Shininess();
+			
+			switch (shiny)
+			{
+			case 0: 
+				sval = Shininess.None;
+				break;
+			case 1:
+				sval = Shininess.Low;
+				break;
+			case 2:
+				sval = Shininess.Medium;
+				break;
+			case 3:
+				sval = Shininess.High;
+				break;
+			default:
+				sval = Shininess.None;
+				break;
+			}
+			
+			LLObject.TextureEntry tex = part.Shape.Textures;
+            if (face > -1)
+            {
+				tex.CreateFace((uint) face);
+				tex.FaceTextures[face].Shiny = sval;
+				tex.FaceTextures[face].Bump = bump;
+                part.UpdateTexture(tex);
+                return;				
+			} 
+			else if (face == -1)
+			{
+                for (uint i = 0; i < 32; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        tex.FaceTextures[i].Shiny = sval;
+						tex.FaceTextures[i].Bump = bump;;
+                    }
+					tex.DefaultTexture.Shiny = sval;
+					tex.DefaultTexture.Bump = bump;
+                }
+                part.UpdateTexture(tex);
+                return;
+            }
+		}
+				
         public double llGetAlpha(int face)
         {
             m_host.AddScriptLPS(1);
@@ -5437,8 +5487,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 					                   
                         SetGlow(part, face, glow);
                     
-                        break; 
-                }
+                        break;
+					case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+						if (remain < 3)
+							return; 
+						face = Convert.ToInt32(rules.Data[idx++]);
+						int shiny = Convert.ToInt32(rules.Data[idx++]);
+						Bumpiness bump = (Bumpiness)Convert.ToByte(rules.Data[idx++]);
+						
+						SetShiny(part, face, shiny, bump);
+						
+						break;
+	                }
             }
         }
 
