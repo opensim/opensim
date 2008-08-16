@@ -1053,6 +1053,14 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 float mid = (high + low) * 0.5f;
+                
+                // temporary initializer
+                float hfvalue = (float)m_regInfo.RegionSettings.WaterHeight;
+                float hfvaluecompare = hfvalue;
+                float hfdiff = hfvalue;
+                int hfdiffi = 0;
+                int hfdiffi2 = 0;
+
                 for (int x = 0; x < 256; x++)
                 {
                     //int tc = System.Environment.TickCount;
@@ -1096,6 +1104,84 @@ namespace OpenSim.Region.Environment.Scenes
 
                                 // Y flip the cordinates
                                 mapbmp.SetPixel(x, (256 - y) - 1, green);
+
+                                //X
+                                // .
+                                //
+                            
+                                if ((x - 1 > 0) && (y - 1 > 0))
+                                {
+                                    hfvalue = (float)hm[x, y];
+                                    hfvaluecompare = (float)hm[x - 1, y - 1];
+                                    hfdiff = hfvaluecompare - hfvalue;
+
+                                    if (Single.IsInfinity(hfvalue) || Single.IsNaN(hfvalue))
+                                        hfvalue = 0;
+
+                                    if (Single.IsInfinity(hfvaluecompare) || Single.IsNaN(hfvaluecompare))
+                                        hfvaluecompare = 0;
+                                    
+                                    if (hfdiff > 0.3f)
+                                    {
+
+                                    }
+                                    else if (hfdiff < -0.3f)
+                                    {
+                                        hfdiffi = Math.Abs((int)((hfdiff * 4) + (hfdiff * 0.5))) + Math.Abs((int)(((hfdiff % 1) * 0.5f) * 10f));
+                                        //hfdiffi2 = (int)(hfdiff * 0.5f) + 1;
+                                        if ((256 - y) - 1 > 0)
+                                        {
+                                            Color Shade = mapbmp.GetPixel(x - 1, (256 - y) - 1);
+
+                                            int r = Shade.R;
+                                            
+                                            int g = Shade.G;
+                                            int b = Shade.B;
+                                            Shade = Color.FromArgb((r - hfdiffi > 0) ? r - hfdiffi : 0, (g - hfdiffi > 0) ? g - hfdiffi : 0, (b - hfdiffi > 0) ? b - hfdiffi : 0);
+                                            //Console.WriteLine("d:" + hfdiff.ToString() + ", i:" + hfdiffi + ", pos: " + x + "," + y + " - R:" + Shade.R.ToString() + ", G:" + Shade.G.ToString() + ", B:" + Shade.G.ToString());
+                                            mapbmp.SetPixel(x - 1, (256 - y) - 1, Shade);
+                                        }
+
+                                    }
+
+                                }
+                             
+                                /*
+                                //
+                                // .
+                                //  X
+                                if ((x + 1 < 255) && (y + 1 < 255))
+                               {
+                                    hfvalue = (float)hm[x, y];
+                                    hfvaluecompare = (float)hm[x + 1, y + 1];
+                                    hfdiff = hfvaluecompare - hfvalue;
+
+                                    if (hfdiff > 0.3f)
+                                    {
+
+                                    }
+                                    else if (hfdiff < -0.3f)
+                                    {
+                                        hfdiffi = Math.Abs((int)hfdiff) + 1;
+                                        if ((256 - y) + 1 < 256)
+                                        {
+                                            Color Shade = mapbmp.GetPixel(x + 1, (256 - y) + 1);
+
+                                            int r = Shade.R;
+                                            int g = Shade.G;
+                                            int b = Shade.B;
+                                            Shade = Color.FromArgb((r - hfdiffi > 0) ? r - hfdiffi : 0, (g - hfdiffi > 0) ? g - hfdiffi : 0, (b - hfdiffi > 0) ? g - hfdiffi : 0);
+                                            mapbmp.SetPixel(x + 1, (256 - y) + 1, Shade);
+                                        }
+
+                                    }
+
+
+                                }
+                                */
+                                //if ((x 
+
+
                             }
                             catch (System.ArgumentException)
                             {
