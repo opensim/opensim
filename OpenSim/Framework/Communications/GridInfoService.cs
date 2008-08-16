@@ -36,7 +36,7 @@ using Nwc.XmlRpc;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework;
 
-namespace OpenSim.Common.Communications
+namespace OpenSim.Framework.Communications
 {
     public class GridInfoService
     {

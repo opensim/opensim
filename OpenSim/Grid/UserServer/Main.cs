@@ -39,7 +39,6 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
-using OpenSim.Common.Communications;
 using OpenSim.Grid.Communications.OGS1;
 
 namespace OpenSim.Grid.UserServer
