@@ -96,7 +96,7 @@ namespace OpenSim.Region.Communications.OGS1
                 userData.CustomType = (string) data["custom_type"];
             else
                 userData.CustomType = "";
-            if(userData.CustomType == null)
+            if (userData.CustomType == null)
                 userData.CustomType = "";
 
             if (data.Contains("partner"))

@@ -123,7 +123,7 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["server_uri"] = regionInfo.ServerURI;
             GridParams["region_secret"] = regionInfo.regionSecret;
 
-            if(regionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
+            if (regionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
                 GridParams["master_avatar_uuid"] = regionInfo.MasterAvatarAssignedUUID.ToString();
             else
                 GridParams["master_avatar_uuid"] = regionInfo.EstateSettings.EstateOwner.ToString();

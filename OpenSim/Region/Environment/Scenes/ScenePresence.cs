@@ -2030,7 +2030,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // who is granted god powers, but has no god level set.
                 //
                 CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(agentID);
-                if(profile.UserProfile.GodLevel > 0)
+                if (profile.UserProfile.GodLevel > 0)
                     m_godlevel = profile.UserProfile.GodLevel;
                 else
                     m_godlevel = 200;

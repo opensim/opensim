@@ -162,7 +162,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             ILandObject fullSimParcel = new LandObject(LLUUID.Zero, false, m_scene);
 
             fullSimParcel.setLandBitmap(fullSimParcel.getSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
-            if(m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
                 fullSimParcel.landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             else
                 fullSimParcel.landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
@@ -934,7 +934,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 if (m_scene.ExternalChecks.ExternalChecksCanAbandonParcel(remote_client.AgentId, landList[local_id]))
                 {
-                    if(m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                    if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
                         landList[local_id].landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     else
                         landList[local_id].landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
@@ -951,7 +951,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 if (m_scene.ExternalChecks.ExternalChecksCanReclaimParcel(remote_client.AgentId, landList[local_id]))
                 {
-                    if(m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                    if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
                         landList[local_id].landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     else
                         landList[local_id].landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;

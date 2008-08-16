@@ -5704,12 +5704,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             
             LSL_Types.list l = new LSL_Types.list();
             ScenePresence av = World.GetScenePresence(id);
-            if( av == null )
+            if (av == null)
                 return l;
             LLUUID[] anims;
             anims = av.GetAnimationArray();
-            foreach( LLUUID foo in anims )
-                l.Add( foo.ToString() );
+            foreach (LLUUID foo in anims)
+                l.Add(foo.ToString());
             return l;
         }
 
@@ -6813,20 +6813,20 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llParcelMediaCommandList(LSL_Types.list commandList)
         {
             //TO DO: Implement the missing commands
-            //PARCEL_MEDIA_COMMAND_STOP 	Stop the media stream and go back to the first frame. 
-            //PARCEL_MEDIA_COMMAND_PAUSE 	Pause the media stream (stop playing but stay on current frame).
-            //PARCEL_MEDIA_COMMAND_PLAY 	Start the media stream playing from the current frame and stop when the end is reached. 
-            //PARCEL_MEDIA_COMMAND_LOOP 	Start the media stream playing from the current frame. When the end is reached, loop to the beginning and continue. 
-            //PARCEL_MEDIA_COMMAND_TEXTURE 	key uuid 	Use this to get or set the parcel's media texture.
-            //PARCEL_MEDIA_COMMAND_URL 	string url 	Used to get or set the parcel's media url.
-            //PARCEL_MEDIA_COMMAND_TIME 	float time 	Move a media stream to a specific time.
-            //PARCEL_MEDIA_COMMAND_AGENT 	key uuid 	Applies the media command to the specified agent only.
-            //PARCEL_MEDIA_COMMAND_UNLOAD 	Completely unloads the movie and restores the original texture. 
-            //PARCEL_MEDIA_COMMAND_AUTO_ALIGN 	integer boolean 	Sets the parcel option 'Auto scale content'. 
-            //PARCEL_MEDIA_COMMAND_TYPE 	string mime_type 	Use this to get or set the parcel media MIME type (e.g. "text/html"). (1.19.1 RC0 or later)
-            //PARCEL_MEDIA_COMMAND_SIZE 	integer x, integer y 	Use this to get or set the parcel media pixel resolution. (1.19.1 RC0 or later)
-            //PARCEL_MEDIA_COMMAND_DESC 	string desc 	Use this to get or set the parcel media description. (1.19.1 RC0 or later)
-            //PARCEL_MEDIA_COMMAND_LOOP_SET 	float loop 	Use this to get or set the parcel's media loop duration. (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_STOP        Stop the media stream and go back to the first frame.
+            //PARCEL_MEDIA_COMMAND_PAUSE       Pause the media stream (stop playing but stay on current frame).
+            //PARCEL_MEDIA_COMMAND_PLAY        Start the media stream playing from the current frame and stop when the end is reached.
+            //PARCEL_MEDIA_COMMAND_LOOP        Start the media stream playing from the current frame. When the end is reached, loop to the beginning and continue.
+            //PARCEL_MEDIA_COMMAND_TEXTURE     key uuid        Use this to get or set the parcel's media texture.
+            //PARCEL_MEDIA_COMMAND_URL         string url      Used to get or set the parcel's media url.
+            //PARCEL_MEDIA_COMMAND_TIME        float time      Move a media stream to a specific time.
+            //PARCEL_MEDIA_COMMAND_AGENT       key uuid        Applies the media command to the specified agent only.
+            //PARCEL_MEDIA_COMMAND_UNLOAD      Completely unloads the movie and restores the original texture.
+            //PARCEL_MEDIA_COMMAND_AUTO_ALIGN  integer boolean         Sets the parcel option 'Auto scale content'.
+            //PARCEL_MEDIA_COMMAND_TYPE        string mime_type        Use this to get or set the parcel media MIME type (e.g. "text/html"). (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_SIZE        integer x, integer y    Use this to get or set the parcel media pixel resolution. (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_DESC        string desc     Use this to get or set the parcel media description. (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_LOOP_SET    float loop      Use this to get or set the parcel's media loop duration. (1.19.1 RC0 or later)
             m_host.AddScriptLPS(1);
             for (int i = 0; i < commandList.Data.Length; i++)
             {                
@@ -6904,12 +6904,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             LSL_Types.list list = new LSL_Types.list();
             //TO DO: make the implementation for the missing commands
-            //PARCEL_MEDIA_COMMAND_TEXTURE 	key uuid 	Use this to get or set the parcel's media texture. 
-            //PARCEL_MEDIA_COMMAND_URL 	string url 	Used to get or set the parcel's media url. 
-            //PARCEL_MEDIA_COMMAND_TYPE 	string mime_type 	Use this to get or set the parcel media MIME type (e.g. "text/html"). (1.19.1 RC0 or later) 
-            //PARCEL_MEDIA_COMMAND_SIZE 	integer x, integer y 	Use this to get or set the parcel media pixel resolution. (1.19.1 RC0 or later)
-            //PARCEL_MEDIA_COMMAND_DESC 	string desc 	Use this to get or set the parcel media description. (1.19.1 RC0 or later) 
-            //PARCEL_MEDIA_COMMAND_LOOP_SET 	float loop 	Use this to get or set the parcel's media loop duration. (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_TEXTURE     key uuid        Use this to get or set the parcel's media texture.
+            //PARCEL_MEDIA_COMMAND_URL         string url      Used to get or set the parcel's media url.
+            //PARCEL_MEDIA_COMMAND_TYPE        string mime_type        Use this to get or set the parcel media MIME type (e.g. "text/html"). (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_SIZE        integer x, integer y    Use this to get or set the parcel media pixel resolution. (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_DESC        string desc     Use this to get or set the parcel media description. (1.19.1 RC0 or later)
+            //PARCEL_MEDIA_COMMAND_LOOP_SET    float loop      Use this to get or set the parcel's media loop duration. (1.19.1 RC0 or later)
             for (int i = 0; i < aList.Data.Length; i++)
             {
 
