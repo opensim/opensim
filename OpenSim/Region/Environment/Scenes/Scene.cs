@@ -1027,7 +1027,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_log.Info("[MAPTILE]: Generating Maptile Step 1: Terrain");
                 Bitmap mapbmp = new Bitmap(256, 256);
                 double[,] hm = Heightmap.GetDoubles();
-
+                bool ShadowDebugContinue = true;
                 //Color prim = Color.FromArgb(120, 120, 120);
                 //LLVector3 RayEnd = new LLVector3(0, 0, 0);
                 //LLVector3 RayStart = new LLVector3(0, 0, 0);
@@ -1059,7 +1059,7 @@ namespace OpenSim.Region.Environment.Scenes
                 float hfvaluecompare = hfvalue;
                 float hfdiff = hfvalue;
                 int hfdiffi = 0;
-                int hfdiffi2 = 0;
+                
 
                 for (int x = 0; x < 256; x++)
                 {
@@ -1133,24 +1133,38 @@ namespace OpenSim.Region.Environment.Scenes
                                         // We have to desaturate and blacken the land at the same time
                                         // we use floats, colors use bytes, so shrink are space down to 
                                         // 0-255
-                                        hfdiffi = Math.Abs((int)((hfdiff * 4) + (hfdiff * 0.5))) + 1;
-                                        if (hfdiff % 1 != 0)
-                                        {
-                                            hfdiffi = hfdiffi + Math.Abs((int)(((hfdiff % 1) * 0.5f) * 10f) + 1);
-                                        }
-                                        //hfdiffi2 = (int)(hfdiff * 0.5f) + 1;
-                                        if ((256 - y) - 1 > 0)
-                                        {
-                                            Color Shade = mapbmp.GetPixel(x - 1, (256 - y) - 1);
+                                        
 
-                                            int r = Shade.R;
-                                            
-                                            int g = Shade.G;
-                                            int b = Shade.B;
-                                            Shade = Color.FromArgb((r - hfdiffi > 0) ? r - hfdiffi : 0, (g - hfdiffi > 0) ? g - hfdiffi : 0, (b - hfdiffi > 0) ? b - hfdiffi : 0);
-                                            //Console.WriteLine("d:" + hfdiff.ToString() + ", i:" + hfdiffi + ", pos: " + x + "," + y + " - R:" + Shade.R.ToString() + ", G:" + Shade.G.ToString() + ", B:" + Shade.G.ToString());
-                                            mapbmp.SetPixel(x - 1, (256 - y) - 1, Shade);
+                                        try
+                                        {
+                                            hfdiffi = Math.Abs((int)((hfdiff * 4) + (hfdiff * 0.5))) + 1;
+                                            if (hfdiff % 1 != 0)
+                                            {
+                                                hfdiffi = hfdiffi + Math.Abs((int)(((hfdiff % 1) * 0.5f) * 10f) - 1);
+                                            }
                                         }
+                                        catch (System.OverflowException)
+                                        {
+                                            m_log.Debug("[MAPTILE]: Shadow failed at value: " + hfdiff.ToString());
+                                            ShadowDebugContinue = false;
+                                        }
+                                            
+                                        if (ShadowDebugContinue)
+                                        {
+                                            if ((256 - y) - 1 > 0)
+                                            {
+                                                Color Shade = mapbmp.GetPixel(x - 1, (256 - y) - 1);
+
+                                                int r = Shade.R;
+
+                                                int g = Shade.G;
+                                                int b = Shade.B;
+                                                Shade = Color.FromArgb((r - hfdiffi > 0) ? r - hfdiffi : 0, (g - hfdiffi > 0) ? g - hfdiffi : 0, (b - hfdiffi > 0) ? b - hfdiffi : 0);
+                                                //Console.WriteLine("d:" + hfdiff.ToString() + ", i:" + hfdiffi + ", pos: " + x + "," + y + " - R:" + Shade.R.ToString() + ", G:" + Shade.G.ToString() + ", B:" + Shade.G.ToString());
+                                                mapbmp.SetPixel(x - 1, (256 - y) - 1, Shade);
+                                            }
+                                        }
+                                       
 
                                     }
 
