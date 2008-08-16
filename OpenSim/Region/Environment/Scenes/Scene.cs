@@ -1085,8 +1085,10 @@ namespace OpenSim.Region.Environment.Scenes
                         //float tmpval = (float)hm[x, y];
                         float heightvalue = (float)hm[x, y];
 
+
                         if (heightvalue > (float)m_regInfo.RegionSettings.WaterHeight)
                         {
+                           
                             // scale height value
                             heightvalue = low + mid * (heightvalue - low) / mid;
 
@@ -1108,12 +1110,13 @@ namespace OpenSim.Region.Environment.Scenes
                                 //X
                                 // .
                                 //
-                            
+                                // Shade the terrain for shadows 
                                 if ((x - 1 > 0) && (y - 1 > 0))
                                 {
                                     hfvalue = (float)hm[x, y];
                                     hfvaluecompare = (float)hm[x - 1, y - 1];
                                     hfdiff = hfvaluecompare - hfvalue;
+
 
                                     if (Single.IsInfinity(hfvalue) || Single.IsNaN(hfvalue))
                                         hfvalue = 0;
@@ -1127,7 +1130,14 @@ namespace OpenSim.Region.Environment.Scenes
                                     }
                                     else if (hfdiff < -0.3f)
                                     {
-                                        hfdiffi = Math.Abs((int)((hfdiff * 4) + (hfdiff * 0.5))) + Math.Abs((int)(((hfdiff % 1) * 0.5f) * 10f));
+                                        // We have to desaturate and blacken the land at the same time
+                                        // we use floats, colors use bytes, so shrink are space down to 
+                                        // 0-255
+                                        hfdiffi = Math.Abs((int)((hfdiff * 4) + (hfdiff * 0.5))) + 1;
+                                        if (hfdiff % 1 != 0)
+                                        {
+                                            hfdiffi = hfdiffi + Math.Abs((int)(((hfdiff % 1) * 0.5f) * 10f) + 1);
+                                        }
                                         //hfdiffi2 = (int)(hfdiff * 0.5f) + 1;
                                         if ((256 - y) - 1 > 0)
                                         {
@@ -1146,40 +1156,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                                 }
                              
-                                /*
-                                //
-                                // .
-                                //  X
-                                if ((x + 1 < 255) && (y + 1 < 255))
-                               {
-                                    hfvalue = (float)hm[x, y];
-                                    hfvaluecompare = (float)hm[x + 1, y + 1];
-                                    hfdiff = hfvaluecompare - hfvalue;
-
-                                    if (hfdiff > 0.3f)
-                                    {
-
-                                    }
-                                    else if (hfdiff < -0.3f)
-                                    {
-                                        hfdiffi = Math.Abs((int)hfdiff) + 1;
-                                        if ((256 - y) + 1 < 256)
-                                        {
-                                            Color Shade = mapbmp.GetPixel(x + 1, (256 - y) + 1);
-
-                                            int r = Shade.R;
-                                            int g = Shade.G;
-                                            int b = Shade.B;
-                                            Shade = Color.FromArgb((r - hfdiffi > 0) ? r - hfdiffi : 0, (g - hfdiffi > 0) ? g - hfdiffi : 0, (b - hfdiffi > 0) ? g - hfdiffi : 0);
-                                            mapbmp.SetPixel(x + 1, (256 - y) + 1, Shade);
-                                        }
-
-                                    }
-
-
-                                }
-                                */
-                                //if ((x 
+                               
 
 
                             }
