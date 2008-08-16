@@ -1437,22 +1437,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (items.Count < MAX_ITEMS_PER_PACKET)
                 {
                     descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count];
-                    descend.AgentData.Descendents = items.Count;
                 }
                 else
                 {
                     descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[MAX_ITEMS_PER_PACKET];
-                    descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
                 }
 
-                // Even if we aren't fetching the folders, we still need to include the folder count
-                // in the total number of descendents.  Failure to do so will cause subtle bugs such
-                // as the failure of textures which haven't been expanded in inventory to show up
-                // in the texture prim edit selection panel.
-                if (!fetchFolders)
-                {
-                    descend.AgentData.Descendents += folders.Count;
-                }
+                // Descendents must contain the *total* number of descendents (plus folders, whether we
+                // fetch them or not), not the number of entries we send in this packet. For consistency,
+                // I'll use it for folder-requests, too, although I wasn't able to get one with
+                // FetchFolders = true.
+                // TODO this should be checked with FetchFolders = true
+                descend.AgentData.Descendents = items.Count + folders.Count;
 
                 int count = 0;
                 int i = 0;
@@ -1506,13 +1502,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if ((items.Count - count) < MAX_ITEMS_PER_PACKET)
                             {
                                 descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count - count];
-                                descend.AgentData.Descendents = items.Count - count;
                             }
                             else
                             {
                                 descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[MAX_ITEMS_PER_PACKET];
-                                descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
                             }
+                            descend.AgentData.Descendents = items.Count + folders.Count;
                             i = 0;
                         }
                     }
@@ -1532,20 +1527,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (folders.Count < MAX_ITEMS_PER_PACKET)
                 {
                     descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders.Count];
-                    descend.AgentData.Descendents = folders.Count;
                 }
                 else
                 {
                     descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[MAX_ITEMS_PER_PACKET];
-                    descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
                 }
 
                 // Not sure if this scenario ever actually occurs, but nonetheless we include the items
                 // count even if we're not sending item data for the same reasons as above.
-                if (!fetchItems)
-                {
-                    descend.AgentData.Descendents += items.Count;
-                }
+                descend.AgentData.Descendents = items.Count + folders.Count;
 
                 int i = 0;
                 int count = 0;
@@ -1570,14 +1560,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             {
                                 descend.FolderData =
                                     new InventoryDescendentsPacket.FolderDataBlock[folders.Count - count];
-                                descend.AgentData.Descendents = folders.Count - count;
                             }
                             else
                             {
                                 descend.FolderData =
                                     new InventoryDescendentsPacket.FolderDataBlock[MAX_ITEMS_PER_PACKET];
-                                descend.AgentData.Descendents = MAX_ITEMS_PER_PACKET;
                             }
+                            descend.AgentData.Descendents = items.Count + folders.Count;
                             i = 0;
                         }
                     }
