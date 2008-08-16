@@ -65,6 +65,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="userID"></param>
         public void AddNewUser(LLUUID userID)
         {
+            if(userID == LLUUID.Zero)
+                return;
             m_log.DebugFormat("[USER CACHE]: Adding user profile for {0}", userID);
             GetUserDetails(userID);
         }
@@ -130,6 +132,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// <returns>null if no user details are found</returns>
         public CachedUserInfo GetUserDetails(LLUUID userID)
         {
+            if(userID == LLUUID.Zero)
+                return null;
+
             lock (m_userProfiles)
             {
                 if (m_userProfiles.ContainsKey(userID))
