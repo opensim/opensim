@@ -2059,27 +2059,6 @@
       </Files>
     </Project>
 
-    <!-- Tests -->
-    <Project name="OpenSim.Tests.UserServer.Stress" path="OpenSim/Tests/UserServer/Stress" type="Exe">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/tests/stress</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/tests/stress</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="log4net.dll"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <!-- Tools -->
     <Project name="OpenSimExport" path="OpenSim/Tools/Export" type="Exe">
       <Configuration name="Debug">
