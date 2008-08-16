@@ -2178,14 +2178,12 @@ namespace OpenSim.Region.Environment.Scenes
             // EventManager.TriggerOnNewClient(client);
         }
 
-        public virtual void TeleportClientHome(LLUUID AgentId, IClientAPI client)
+        public virtual void TeleportClientHome(LLUUID agentId, IClientAPI client)
         {
-            UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(AgentId);
+            UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(agentId);
             if (UserProfile != null)
             {
                 LLUUID homeRegionID = UserProfile.HomeRegionID;
-                LLVector3 homePostion = new LLVector3(UserProfile.HomeLocationX,UserProfile.HomeLocationY,UserProfile.HomeLocationZ);
-                LLVector3 homeLookat = new LLVector3(UserProfile.HomeLookAt);
                 ulong homeRegionHandle = UserProfile.HomeRegion;
                 if (homeRegionID == LLUUID.Zero)
                 {
@@ -2210,7 +2208,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     homeRegionHandle = info.RegionHandle;
                 }
-                RequestTeleportLocation(client, homeRegionHandle, homePostion,homeLookat,(uint)0);
+                RequestTeleportLocation(client, homeRegionHandle, UserProfile.HomeLocation, UserProfile.HomeLookAt, (uint)0);
             }
         }
 
@@ -2296,16 +2294,8 @@ namespace OpenSim.Region.Environment.Scenes
                 // TODO: The next line can be removed, as soon as only homeRegionID based UserServers are around.
                 // TODO: The HomeRegion property can be removed then, too
                 UserProfile.HomeRegion = RegionInfo.RegionHandle;
-
-                // We cast these to an int so as not to cause a breaking change with old regions
-                // Newer regions treat this as a float on the ExpectUser method..  so we need to wait a few
-                // releases before setting these to floats. (r4257)
-                UserProfile.HomeLocationX = (int)position.X;
-                UserProfile.HomeLocationY = (int)position.Y;
-                UserProfile.HomeLocationZ = (int)position.Z;
-                UserProfile.HomeLookAtX = (int)lookAt.X;
-                UserProfile.HomeLookAtY = (int)lookAt.Y;
-                UserProfile.HomeLookAtZ = (int)lookAt.Z;
+                UserProfile.HomeLocation = position;
+                UserProfile.HomeLookAt = lookAt;
                 CommsManager.UserService.UpdateUserProfileProperties(UserProfile);
 
                 remoteClient.SendAgentAlertMessage("Set home to here if supported by login service",false);
@@ -2797,6 +2787,27 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_log.InfoFormat("[MAPBLOCK]: {0}-{1}, {2}-{3}", minX, minY, maxX, maxY);
             m_sceneGridService.RequestMapBlocks(remoteClient, minX, minY, maxX, maxY);
+        }
+
+        /// <summary>
+        /// Tries to teleport agent to other region.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="regionName"></param>
+        /// <param name="position"></param>
+        /// <param name="lookAt"></param>
+        /// <param name="flags"></param>
+        public void RequestTeleportLocation(IClientAPI remoteClient, string regionName, LLVector3 position,
+                                            LLVector3 lookat, uint flags)
+        {
+            RegionInfo regionInfo = m_sceneGridService.RequestClosestRegion(regionName);
+            if (regionInfo == null)
+            {
+                // can't find the region: Tell viewer and abort
+                remoteClient.SendTeleportFailed("The region '" + regionName + "' could not be found.");
+                return;
+            }
+            RequestTeleportLocation(remoteClient, regionInfo.RegionHandle, position, lookat, flags);
         }
 
         /// <summary>
