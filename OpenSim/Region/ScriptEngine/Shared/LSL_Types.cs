@@ -1254,6 +1254,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 value = (int)d;
             }
 
+            public LSLInteger(string s)
+            {
+                value = (int)double.Parse(s);
+            }
+
             #endregion
 
             #region Operators
@@ -1449,6 +1454,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public LSLFloat(double d)
             {
                 this.value = d;
+            }
+
+            public LSLFloat(string s)
+            {
+                this.value = double.Parse(s);
             }
 
             #endregion
