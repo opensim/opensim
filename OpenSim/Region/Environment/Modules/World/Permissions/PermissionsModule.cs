@@ -247,8 +247,11 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     return true;
             }
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
-            if(profile.UserProfile.GodLevel >= 200 && m_allowGridGods)
-                return true;
+            if(profile != null && profile.UserProfile != null)
+            {
+                if(profile.UserProfile.GodLevel >= 200 && m_allowGridGods)
+                    return true;
+            }
 
             return false;
         }
