@@ -36,7 +36,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
 {
-    public class InventoryModule : IRegionModule
+    public class InventoryModule : IInventoryModule, IRegionModule
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -48,14 +48,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
         /// </summary>
         private IDictionary<LLUUID, LLUUID> m_pendingOffers = new Dictionary<LLUUID, LLUUID>();
 
-        private Scene m_scene;
+        private List<Scene> m_Scenelist = new List<Scene>();
 
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            m_scene = scene;
-            scene.EventManager.OnNewClient += OnNewClient;
+            if(!m_Scenelist.Contains(scene))
+            {
+                m_Scenelist.Add(scene);
+
+                scene.RegisterModuleInterface<IInventoryModule>(this);
+
+                scene.EventManager.OnNewClient += OnNewClient;
+            }
         }
 
         public void PostInitialise()
@@ -73,7 +79,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
 
         public bool IsSharedModule
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
@@ -97,9 +103,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
                     "[AGENT INVENTORY]: Routing inventory offering message from {0}, {1} to {2}",
                     client.AgentId, client.Name, toAgentID);
 
-                if (m_scene.Entities.ContainsKey(toAgentID) && m_scene.Entities[toAgentID] is ScenePresence)
+                if (((Scene)(client.Scene)).Entities.ContainsKey(toAgentID) && ((Scene)(client.Scene)).Entities[toAgentID] is ScenePresence)
                 {
-                    ScenePresence user = (ScenePresence) m_scene.Entities[toAgentID];
+                    ScenePresence user = (ScenePresence) ((Scene)(client.Scene)).Entities[toAgentID];
 
                     if (!user.IsChildAgent)
                     {
@@ -143,9 +149,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
                     "[AGENT INVENTORY]: Routing inventory accepted message from {0}, {1} to {2}",
                     client.AgentId, client.Name, toAgentID);
 
-                if (m_scene.Entities.ContainsKey(toAgentID) && m_scene.Entities[toAgentID] is ScenePresence)
+                if (((Scene)(client.Scene)).Entities.ContainsKey(toAgentID) && ((Scene)(client.Scene)).Entities[toAgentID] is ScenePresence)
                 {
-                    ScenePresence user = (ScenePresence) m_scene.Entities[toAgentID];
+                    ScenePresence user = (ScenePresence) ((Scene)(client.Scene)).Entities[toAgentID];
 
                     if (!user.IsChildAgent)
                     {
@@ -160,7 +166,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
 
                             // Since the message originates from the accepting client, the toAgentID is
                             // the agent giving the item.
-                            m_scene.GiveInventoryItem(client, toAgentID, m_pendingOffers[imSessionID]);
+                            ((Scene)(client.Scene)).GiveInventoryItem(client, toAgentID, m_pendingOffers[imSessionID]);
 
                             m_pendingOffers.Remove(imSessionID);
                         }
@@ -189,9 +195,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
             }
             else if (dialog == (byte) InstantMessageDialog.InventoryDeclined)
             {
-                if (m_scene.Entities.ContainsKey(toAgentID) && m_scene.Entities[toAgentID] is ScenePresence)
+                if (((Scene)(client.Scene)).Entities.ContainsKey(toAgentID) && ((Scene)(client.Scene)).Entities[toAgentID] is ScenePresence)
                 {
-                    ScenePresence user = (ScenePresence) m_scene.Entities[toAgentID];
+                    ScenePresence user = (ScenePresence) ((Scene)(client.Scene)).Entities[toAgentID];
 
                     if (!user.IsChildAgent)
                     {
@@ -216,5 +222,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
                 }
             }
         }
+
+//        public void TestFunction()
+//        {
+//        }
     }
 }

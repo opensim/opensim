@@ -2308,5 +2308,14 @@ namespace OpenSim.Region.Environment.Scenes
             else
                 EventManager.TriggerStopScript(part.LocalId, itemID);
         }
+
+//        public void TestFunction()
+//        {
+//            IInventoryModule imod = RequestModuleInterface<IInventoryModule>();
+//            if (imod == null)
+//                return;
+//
+//            imod.TestFunction();
+//        }
     }
 }
