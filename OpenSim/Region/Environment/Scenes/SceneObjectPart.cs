@@ -2105,6 +2105,9 @@ namespace OpenSim.Region.Environment.Scenes
                     _flags &= ~LLObject.ObjectFlags.CreateSelected;
                 }
             }
+            //bool isattachment = IsAttachment;
+            //if (LocalId != ParentGroup.RootPart.LocalId)
+                //isattachment = ParentGroup.RootPart.IsAttachment;
 
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
             remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
@@ -2237,8 +2240,13 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendTerseUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
         {
             LLQuaternion mRot = RotationOffset;
+            //bool isattachment = IsAttachment;
+            //if (LocalId != ParentGroup.RootPart.LocalId)
+                //isattachment = ParentGroup.RootPart.IsAttachment;
+
             if (IsAttachment)
             {
+                //m_log.Debug(AttachmentPoint.ToString());
                 remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, (byte)((AttachmentPoint % 16) * 16 + (AttachmentPoint / 16)),FromAssetID);
             }
             else
@@ -2259,6 +2267,15 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetAttachmentPoint(uint AttachmentPoint)
         {
             this.AttachmentPoint = AttachmentPoint;
+
+            if (AttachmentPoint != 0)
+            {
+                IsAttachment = true;
+            }
+            else
+            {
+                IsAttachment = false;
+            }
 
             // save the attachment point.
             //if (AttachmentPoint != 0)
