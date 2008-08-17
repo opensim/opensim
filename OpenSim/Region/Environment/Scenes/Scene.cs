@@ -1023,6 +1023,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (terrain == null)
             {
+                #region Fallback default maptile generation
+
                 int tc = System.Environment.TickCount;
                 m_log.Info("[MAPTILE]: Generating Maptile Step 1: Terrain");
                 Bitmap mapbmp = new Bitmap(256, 256);
@@ -1053,13 +1055,13 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 float mid = (high + low) * 0.5f;
-                
+
                 // temporary initializer
                 float hfvalue = (float)m_regInfo.RegionSettings.WaterHeight;
                 float hfvaluecompare = hfvalue;
                 float hfdiff = hfvalue;
                 int hfdiffi = 0;
-                
+
 
                 for (int x = 0; x < 256; x++)
                 {
@@ -1088,7 +1090,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (heightvalue > (float)m_regInfo.RegionSettings.WaterHeight)
                         {
-                           
+
                             // scale height value
                             heightvalue = low + mid * (heightvalue - low) / mid;
 
@@ -1115,7 +1117,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 {
                                     hfvalue = (float)hm[x, y];
                                     hfvaluecompare = (float)hm[x - 1, y - 1];
-                                    
+
                                     if (Single.IsInfinity(hfvalue) || Single.IsNaN(hfvalue))
                                         hfvalue = 0;
 
@@ -1133,7 +1135,7 @@ namespace OpenSim.Region.Environment.Scenes
                                         // We have to desaturate and blacken the land at the same time
                                         // we use floats, colors use bytes, so shrink are space down to 
                                         // 0-255
-                                        
+
 
                                         try
                                         {
@@ -1148,7 +1150,7 @@ namespace OpenSim.Region.Environment.Scenes
                                             m_log.Debug("[MAPTILE]: Shadow failed at value: " + hfdiff.ToString());
                                             ShadowDebugContinue = false;
                                         }
-                                            
+
                                         if (ShadowDebugContinue)
                                         {
                                             if ((256 - y) - 1 > 0)
@@ -1164,13 +1166,13 @@ namespace OpenSim.Region.Environment.Scenes
                                                 mapbmp.SetPixel(x - 1, (256 - y) - 1, Shade);
                                             }
                                         }
-                                       
+
 
                                     }
 
                                 }
-                             
-                               
+
+
 
 
                             }
@@ -1178,7 +1180,7 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 if (!terraincorruptedwarningsaid)
                                 {
-                                    m_log.WarnFormat("[MAPIMAGE]: Your terrain is corrupted in region {0}, it might take a few minutes to generate the map image depending on the corruption level",RegionInfo.RegionName);
+                                    m_log.WarnFormat("[MAPIMAGE]: Your terrain is corrupted in region {0}, it might take a few minutes to generate the map image depending on the corruption level", RegionInfo.RegionName);
                                     terraincorruptedwarningsaid = true;
                                 }
                                 Color black = Color.Black;
@@ -1262,7 +1264,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     if (part == null)
                                         continue;
 
-                                    
+
                                     // Draw if the object is at least 1 meter wide in any direction
                                     if (part.Scale.X > 1f || part.Scale.Y > 1f || part.Scale.Z > 1f)
                                     {
@@ -1278,8 +1280,8 @@ namespace OpenSim.Region.Environment.Scenes
 
                                             if (part.Shape.PCode == (byte)PCode.Tree || part.Shape.PCode == (byte)PCode.NewTree)
                                                 continue; // eliminates trees from this since we don't really have a good tree representation
-                                                // if you want tree blocks on the map comment the above line and uncomment the below line
-                                                //mapdotspot = Color.PaleGreen;
+                                            // if you want tree blocks on the map comment the above line and uncomment the below line
+                                            //mapdotspot = Color.PaleGreen;
 
                                             if (part.Shape.Textures == null)
                                                 continue;
@@ -1410,106 +1412,76 @@ namespace OpenSim.Region.Environment.Scenes
                     return;
                 }
 
-                LLUUID lastMapRegionUUID = m_regInfo.lastMapUUID;
+                LazySaveGeneratedMaptile(data,temporary);
 
-                int lastMapRefresh = 0;
-                int twoDays = 172800;
-                int RefreshSeconds = twoDays;
-
-                try
-                {
-                    lastMapRefresh = Convert.ToInt32(m_regInfo.lastMapRefresh);
-                }
-                catch (ArgumentException)
-                {
-                }
-                catch (FormatException)
-                {
-                }
-                catch (OverflowException)
-                {
-                }
-
-                LLUUID TerrainImageLLUUID = LLUUID.Random();
-
-                if (lastMapRegionUUID == LLUUID.Zero || (lastMapRefresh + RefreshSeconds) < Util.UnixTimeSinceEpoch())
-                {
-                    m_regInfo.SaveLastMapUUID(TerrainImageLLUUID);
-
-                    m_log.Warn("[MAPTILE]: STORING MAPTILE IMAGE");
-                    //Extra protection..  probably not needed.
-                }
-                else
-                {
-                    TerrainImageLLUUID = lastMapRegionUUID;
-                    m_log.Warn("[MAPTILE]: REUSING OLD MAPTILE IMAGE ID");
-                }
-
-                m_regInfo.RegionSettings.TerrainImageID = TerrainImageLLUUID;
-
-                AssetBase asset = new AssetBase();
-                asset.FullID = m_regInfo.RegionSettings.TerrainImageID;
-                asset.Data = data;
-                asset.Name = "terrainImage_" + m_regInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
-                asset.Description = RegionInfo.RegionName;
-
-                asset.Type = 0;
-                asset.Temporary = temporary;
-                AssetCache.AddAsset(asset);
+                #endregion
             }
             else
             {
+                // Use the module to generate the maptile.
                 byte[] data = terrain.WriteJpeg2000Image("defaultstripe.png");
                 if (data != null)
                 {
-                    LLUUID lastMapRegionUUID = m_regInfo.lastMapUUID;
-
-                    int lastMapRefresh = 0;
-                    int twoDays = 172800;
-                    int RefreshSeconds = twoDays;
-
-                    try
-                    {
-                        lastMapRefresh = Convert.ToInt32(m_regInfo.lastMapRefresh);
-                    }
-                    catch (ArgumentException)
-                    {
-                    }
-                    catch (FormatException)
-                    {
-                    }
-                    catch (OverflowException)
-                    {
-                    }
-
-                    LLUUID TerrainImageLLUUID = LLUUID.Random();
-
-                    if (lastMapRegionUUID == LLUUID.Zero || (lastMapRefresh + RefreshSeconds) < Util.UnixTimeSinceEpoch())
-                    {
-                        m_regInfo.SaveLastMapUUID(TerrainImageLLUUID);
-
-                        //m_log.Warn(terrainImageID);
-                        //Extra protection..  probably not needed.
-                    }
-                    else
-                    {
-                        TerrainImageLLUUID = lastMapRegionUUID;
-                    }
-
-                    m_regInfo.RegionSettings.TerrainImageID = TerrainImageLLUUID;
-
-                    AssetBase asset = new AssetBase();
-                    asset.FullID = m_regInfo.RegionSettings.TerrainImageID;
-                    asset.Data = data;
-                    asset.Name = "terrainImage_" + m_regInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
-                    asset.Description = RegionInfo.RegionName;
-                    asset.Type = 0;
-                    asset.Temporary = temporary;
-                    AssetCache.AddAsset(asset);
+                    LazySaveGeneratedMaptile(data,temporary);
                 }
             }
         }
+        public void LazySaveGeneratedMaptile(byte[] data, bool temporary)
+        {
+            // Overwrites the local Asset cache with new maptile data
+            // Assets are single write, this causes the asset server to ignore this update, 
+            // but the local asset cache does not
 
+            // this is on purpose!  The net result of this is the region always has the most up to date
+            // map tile while protecting the (grid) asset database from bloat caused by a new asset each 
+            // time a mapimage is generated!
+            
+            LLUUID lastMapRegionUUID = m_regInfo.lastMapUUID;
+
+            int lastMapRefresh = 0;
+            int twoDays = 172800;
+            int RefreshSeconds = twoDays;
+
+            try
+            {
+                lastMapRefresh = Convert.ToInt32(m_regInfo.lastMapRefresh);
+            }
+            catch (ArgumentException)
+            {
+            }
+            catch (FormatException)
+            {
+            }
+            catch (OverflowException)
+            {
+            }
+
+            LLUUID TerrainImageLLUUID = LLUUID.Random();
+
+            if (lastMapRegionUUID == LLUUID.Zero || (lastMapRefresh + RefreshSeconds) < Util.UnixTimeSinceEpoch())
+            {
+                m_regInfo.SaveLastMapUUID(TerrainImageLLUUID);
+
+                m_log.Warn("[MAPTILE]: STORING MAPTILE IMAGE");
+            }
+            else
+            {
+                TerrainImageLLUUID = lastMapRegionUUID;
+                m_log.Warn("[MAPTILE]: REUSING OLD MAPTILE IMAGE ID");
+            }
+
+            m_regInfo.RegionSettings.TerrainImageID = TerrainImageLLUUID;
+
+            AssetBase asset = new AssetBase();
+            asset.FullID = m_regInfo.RegionSettings.TerrainImageID;
+            asset.Data = data;
+            asset.Name = "terrainImage_" + m_regInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
+            asset.Description = RegionInfo.RegionName;
+
+            asset.Type = 0;
+            asset.Temporary = temporary;
+            AssetCache.AddAsset(asset);
+        }
         #endregion
 
         #region Load Land
