@@ -66,6 +66,8 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         private bool m_bypassPermissionsValue = true;
         private bool m_debugPermissions = false;
         private bool m_allowGridGods = false;
+        private bool m_RegionOwnerIsGod = false;
+        private bool m_ParcelOwnerIsGod = false;
 
         #endregion
 
@@ -142,6 +144,8 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_allowGridGods = myConfig.GetBoolean("allow_grid_gods", false);
 
             m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
+            m_RegionOwnerIsGod = myConfig.GetBoolean("region_owner_is_god", true);
+            m_ParcelOwnerIsGod = myConfig.GetBoolean("parcel_owner_is_god", true);
             
             if (m_bypassPermissions)
                 m_log.Info("[PERMISSIONS]: serviceside_object_permissions = false in ini file so disabling all region service permission checks");
@@ -238,7 +242,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         {
             if (m_scene.RegionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
             {
-                if (m_scene.RegionInfo.MasterAvatarAssignedUUID == user)
+                if (m_RegionOwnerIsGod && (m_scene.RegionInfo.MasterAvatarAssignedUUID == user))
                     return true;
             }
             if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
@@ -346,7 +350,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             // Users should be able to edit what is over their land.
             ILandObject parcel = m_scene.LandChannel.GetLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y);
-            if (parcel != null && parcel.landData.OwnerID == user)
+            if (parcel != null && parcel.landData.OwnerID == user && m_ParcelOwnerIsGod)
                 return objectOwnerMask;
 
             // Admin objects should not be editable by the above
@@ -354,7 +358,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return objectEveryoneMask;
 
             // Estate users should be able to edit anything in the sim
-            if (IsEstateManager(user))
+            if (IsEstateManager(user) && m_RegionOwnerIsGod)
                 return objectOwnerMask;
 
 
