@@ -492,5 +492,15 @@ namespace Opensim.Framework
                 break;
             }
         }
+
+        public void Invalidate(LLUUID uuid)
+        {
+            if(!m_Lookup.ContainsKey(uuid))
+                return;
+
+            CacheItemBase item = m_Lookup[uuid];
+            m_Lookup.Remove(uuid);
+            m_Index.Remove(item);
+        }
     }
 }
