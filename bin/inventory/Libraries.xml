@@ -9,10 +9,9 @@
 
        You can also add folders and items to the folders of libraries defined in this file --> 
     
-  <Section Name="Open Textures Library">
-    <Key Name="foldersFile" Value="OpenTexturesLibrary/3DDCInventoryFolders.xml"/>
-    <Key Name="itemsFile" Value="OpenTexturesLibrary/3DDCInventoryItems.xml"/>
-  </Section>
+  <Section Name="My Site Library">
+    <Key Name="foldersFile" Value="MySiteLibrary/MySiteLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="MySiteLibrary/MySiteLibraryItems.xml"/>
  
 
 <!-- comment the following to stop from loading the subfolders on login -->

@@ -12,7 +12,7 @@
 
 
   <Section Name="My Asset Set">
-	  <Key Name="file" Value="OpenTexturesAssetSet/3DDCAssetSet.xml"/>
+	  <Key Name="file" Value="MyAssetSet/MyAssetSet.xml"/>
   </Section>
 
   
