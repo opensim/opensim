@@ -147,24 +147,52 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void DeselectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            List<EntityBase> EntityList = GetEntities();
+            SceneObjectPart part = GetSceneObjectPart(primLocalID);
+            if(part == null)
+                return;
 
-            foreach (EntityBase ent in EntityList)
+            bool isAttachment = false;
+
+            // If the parent group is null, we are in an inconsistent state
+            // try to recover gracefully by doing all that can be done on
+            // a lone prim
+            //
+            if (part.ParentGroup == null)
             {
-                if (ent is SceneObjectGroup)
+                if(part.IsAttachment)
+                    isAttachment = true;
+                else
+                    part.ScheduleFullUpdate();
+            }
+            else
+            {
+                part.ParentGroup.IsSelected = false;
+
+                // This is wrong, wrong, wrong. Selection should not be
+                // handled by group, but by prim. Legacy cruft.
+                // TODO: Make selection flagging per prim!
+                //
+                if (part.ParentGroup.RootPart != null)
                 {
-                    if (((SceneObjectGroup) ent).LocalId == primLocalID)
-                    {
-                        ((SceneObjectGroup) ent).IsSelected = false;
-                        ((SceneObjectGroup)ent).ScheduleGroupForFullUpdate();
-                        if (ExternalChecks.ExternalChecksCanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) 
-                            || ExternalChecks.ExternalChecksCanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
-                        {
-                            EventManager.TriggerParcelPrimCountTainted();
-                            break;
-                        }
-                    }
+                    if (part.ParentGroup.RootPart.IsAttachment)
+                        isAttachment = true;
+                    else
+                        part.ParentGroup.ScheduleGroupForFullUpdate();
                 }
+            }
+
+            // If it's not an attachment, and we are allowed to move it,
+            // then we might have done so. If we moved across a parcel
+            // boundary, we will need to recount prims on the parcels.
+            // For attachments, that makes no sense.
+            //
+            if (!isAttachment)
+            {
+                if (ExternalChecks.ExternalChecksCanEditObject(
+                        part.UUID, remoteClient.AgentId) 
+                        || ExternalChecks.ExternalChecksCanMoveObject(
+                        part.UUID, remoteClient.AgentId))
+                    EventManager.TriggerParcelPrimCountTainted();
             }
         }
 
