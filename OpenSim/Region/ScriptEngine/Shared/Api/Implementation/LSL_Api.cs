@@ -1088,32 +1088,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
         }
-		   
-		public void SetFullBright(SceneObjectPart part, int face, bool bright) 
- 		{
- 			LLObject.TextureEntry tex = part.Shape.Textures;
+           
+        public void SetFullBright(SceneObjectPart part, int face, bool bright) 
+        {
+             LLObject.TextureEntry tex = part.Shape.Textures;
              if (face > -1)
              {
- 				tex.CreateFace((uint) face);
- 				tex.FaceTextures[face].Fullbright = bright;
- 				part.UpdateTexture(tex);
- 				return;
- 			}
- 			else if (face == -1)
- 			{
+                 tex.CreateFace((uint) face);
+                 tex.FaceTextures[face].Fullbright = bright;
+                 part.UpdateTexture(tex);
+                 return;
+             }
+             else if (face == -1)
+             {
                  for (uint i = 0; i < 32; i++)
                  {
                      if (tex.FaceTextures[i] != null)
                      {
- 						tex.FaceTextures[i].Fullbright = bright;
- 					}	
- 				}
- 				tex.DefaultTexture.Fullbright = bright;
+                         tex.FaceTextures[i].Fullbright = bright;
+                     }    
+                 }
+                 tex.DefaultTexture.Fullbright = bright;
                  part.UpdateTexture(tex);
                  return;
- 			}
- 		}
- 		        
+             }
+         }
+                 
         public double llGetAlpha(int face)
         {
             m_host.AddScriptLPS(1);
@@ -5523,20 +5523,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         SetShiny(part, face, shiny, bump);
                         
                         break;
-					 case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
- 						if (remain < 2)
- 							return;
- 						face = Convert.ToInt32(rules.Data[idx++]);						
- 						string bv = rules.Data[idx++].ToString();
- 						bool st;
- 						if(bv.Equals("1"))
- 							st = true;
- 						else
- 							st = false;
- 					
- 						SetFullBright(part, face , st);
- 						break;
-				}
+                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
+                         if (remain < 2)
+                             return;
+                         face = Convert.ToInt32(rules.Data[idx++]);                        
+                         string bv = rules.Data[idx++].ToString();
+                         bool st;
+                         if (bv.Equals("1"))
+                             st = true;
+                         else
+                             st = false;
+                     
+                         SetFullBright(part, face , st);
+                         break;
+                }
             }
         }
 

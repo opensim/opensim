@@ -3872,9 +3872,13 @@ namespace OpenSim.Region.Environment.Scenes
         public void RegionHandleRequest(IClientAPI client, LLUUID regionID)
         {
             RegionInfo info;
-            if(regionID == RegionInfo.RegionID) info = RegionInfo;
-            else info = CommsManager.GridService.RequestNeighbourInfo(regionID);
-            if(info != null) client.SendRegionHandle(regionID, info.RegionHandle);
+            if (regionID == RegionInfo.RegionID)
+                info = RegionInfo;
+            else
+                info = CommsManager.GridService.RequestNeighbourInfo(regionID);
+
+            if (info != null)
+                client.SendRegionHandle(regionID, info.RegionHandle);
         }
 
 

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -1135,20 +1135,20 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 Hashtable hash = new Hashtable();
                 hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
-                if(hash.ContainsKey("region_id") && hash.ContainsKey("location"))
+                if (hash.ContainsKey("region_id") && hash.ContainsKey("location"))
                 {
                     LLUUID regionID = (LLUUID)hash["region_id"];
                     ArrayList list = (ArrayList)hash["location"];
                     uint x = (uint)(double)list[0];
                     uint y = (uint)(double)list[1];
-                    if(hash.ContainsKey("region_handle"))
+                    if (hash.ContainsKey("region_handle"))
                     {
                         // if you do a "About Landmark" on a landmark a second time, the viewer sends the
                         // region_handle it got earlier via RegionHandleRequest
                         ulong regionHandle = Helpers.BytesToUInt64((byte[])hash["region_handle"]);
                         parcelID = Util.BuildFakeParcelID(regionHandle, x, y);
                     }
-                    else if(regionID == m_scene.RegionInfo.RegionID)
+                    else if (regionID == m_scene.RegionInfo.RegionID)
                     {
                         // a parcel request for a local parcel => no need to query the grid
                         parcelID = Util.BuildFakeParcelID(m_scene.RegionInfo.RegionHandle, x, y);
@@ -1157,7 +1157,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     {
                         // a parcel request for a parcel in another region. Ask the grid about the region
                         RegionInfo info = m_scene.CommsManager.GridService.RequestNeighbourInfo(regionID);
-                        if(info != null) parcelID = Util.BuildFakeParcelID(info.RegionHandle, x, y);
+                        if (info != null)
+                            parcelID = Util.BuildFakeParcelID(info.RegionHandle, x, y);
                     }
                 }
             }
@@ -1182,7 +1183,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         private void handleParcelInfo(IClientAPI remoteClient, LLUUID parcelID)
         {
-            if(parcelID == LLUUID.Zero) return;
+            if (parcelID == LLUUID.Zero)
+                return;
 
             // assume we've got the parcelID we just computed in RemoteParcelRequest
             ulong regionHandle;
@@ -1191,17 +1193,19 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             m_log.DebugFormat("[LAND] got parcelinfo request for regionHandle {0}, x/y {1}/{2}", regionHandle, x, y);
             
             LandData landData;
-            if(regionHandle == m_scene.RegionInfo.RegionHandle) landData = this.GetLandObject(x, y).landData;
-            else landData = m_scene.CommsManager.GridService.RequestLandData(regionHandle, x, y);
+            if (regionHandle == m_scene.RegionInfo.RegionHandle)
+                landData = this.GetLandObject(x, y).landData;
+            else
+                landData = m_scene.CommsManager.GridService.RequestLandData(regionHandle, x, y);
 
-            if(landData != null)
+            if (landData != null)
             {
                 // we need to transfer the fake parcelID, not the one in landData, so the viewer can match it to the landmark.
                 m_log.Debug("[LAND] got parcelinfo; sending");
                 remoteClient.SendParcelInfo(m_scene.RegionInfo, landData, parcelID, x, y);
             }
-            else m_log.Debug("[LAND] got no parcelinfo; not sending");
+            else
+                m_log.Debug("[LAND] got no parcelinfo; not sending");
         }
     }
-    
 }
