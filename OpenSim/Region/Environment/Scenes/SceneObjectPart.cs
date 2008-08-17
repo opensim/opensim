@@ -1177,7 +1177,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ClearUndoState()
         {
-            lock(m_undo)
+            lock (m_undo)
             {
                 m_undo.Clear();
             }
@@ -2449,7 +2449,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_parentGroup != null)
                 {
-                    lock(m_undo)
+                    lock (m_undo)
                     {
                         if (m_undo.Count > 0)
                         {
@@ -2958,7 +2958,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void Undo()
         {
-            lock(m_undo)
+            lock (m_undo)
             {
                 if (m_undo.Count > 0)
                     {

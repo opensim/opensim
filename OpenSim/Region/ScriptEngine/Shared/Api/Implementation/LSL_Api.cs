@@ -5536,48 +5536,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                      
                          SetFullBright(part, face , st);
                          break;
-					 case (int)ScriptBaseClass.PRIM_MATERIAL:
- 						if (remain < 1)
- 							return;
-						if (part != null)
-						{
-							/* Unhandled at this time - sends "Unhandled" message
-							   will enable when available
-							byte material = (byte)Convert.ToByte( rules.Data[idx++]);
-							part.Material =  material;
-							*/
-							return;
-						}
-						break;
-				 	case (int)ScriptBaseClass.PRIM_PHANTOM:
-						if (remain < 1)
- 							return;
-	
- 						string ph = rules.Data[idx++].ToString();
- 						bool phantom;
-					
- 						if(ph.Equals("1"))
- 							phantom = true;
- 						else
- 							phantom = false;
- 					
- 						part.ScriptSetPhantomStatus(phantom);
-						part.ScheduleFullUpdate();
-						break;
-				 	case (int)ScriptBaseClass.PRIM_PHYSICS:
-						if (remain < 1)
- 							return;						
- 						string phy = rules.Data[idx++].ToString();
- 						bool physics;
-					
- 						if(phy.Equals("1"))
- 							physics = true;
- 						else
- 							physics = false;
- 					
- 						m_host.ScriptSetPhysicsStatus(physics);
-						part.ScheduleFullUpdate();
-						break;
+                     case (int)ScriptBaseClass.PRIM_MATERIAL:
+                         if (remain < 1)
+                             return;
+                        if (part != null)
+                        {
+                            /* Unhandled at this time - sends "Unhandled" message
+                               will enable when available
+                            byte material = (byte)Convert.ToByte( rules.Data[idx++]);
+                            part.Material =  material;
+                            */
+                            return;
+                        }
+                        break;
+                     case (int)ScriptBaseClass.PRIM_PHANTOM:
+                        if (remain < 1)
+                             return;
+    
+                         string ph = rules.Data[idx++].ToString();
+                         bool phantom;
+                    
+                         if (ph.Equals("1"))
+                             phantom = true;
+                         else
+                             phantom = false;
+                     
+                         part.ScriptSetPhantomStatus(phantom);
+                        part.ScheduleFullUpdate();
+                        break;
+                     case (int)ScriptBaseClass.PRIM_PHYSICS:
+                        if (remain < 1)
+                             return;                        
+                         string phy = rules.Data[idx++].ToString();
+                         bool physics;
+                    
+                         if (phy.Equals("1"))
+                             physics = true;
+                         else
+                             physics = false;
+                     
+                         m_host.ScriptSetPhysicsStatus(physics);
+                        part.ScheduleFullUpdate();
+                        break;
                 }
             }
         }

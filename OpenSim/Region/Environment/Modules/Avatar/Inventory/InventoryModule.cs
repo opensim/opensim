@@ -54,7 +54,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            if(!m_Scenelist.Contains(scene))
+            if (!m_Scenelist.Contains(scene))
             {
                 m_Scenelist.Add(scene);
 

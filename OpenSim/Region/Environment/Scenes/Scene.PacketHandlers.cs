@@ -148,7 +148,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void DeselectPrim(uint primLocalID, IClientAPI remoteClient)
         {
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
-            if(part == null)
+            if (part == null)
                 return;
 
             bool isAttachment = false;
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Environment.Scenes
             //
             if (part.ParentGroup == null)
             {
-                if(part.IsAttachment)
+                if (part.IsAttachment)
                     isAttachment = true;
                 else
                     part.ScheduleFullUpdate();

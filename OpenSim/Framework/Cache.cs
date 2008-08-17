@@ -495,7 +495,7 @@ namespace Opensim.Framework
 
         public void Invalidate(LLUUID uuid)
         {
-            if(!m_Lookup.ContainsKey(uuid))
+            if (!m_Lookup.ContainsKey(uuid))
                 return;
 
             CacheItemBase item = m_Lookup[uuid];
