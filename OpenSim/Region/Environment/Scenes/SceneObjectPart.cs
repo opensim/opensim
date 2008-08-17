@@ -1177,7 +1177,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ClearUndoState()
         {
-            m_undo.Clear();
+            lock(m_undo)
+            {
+                m_undo.Clear();
+            }
             StoreUndoState();
         }
 
@@ -2446,22 +2449,26 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_parentGroup != null)
                 {
-                    if (m_undo.Count > 0)
+                    lock(m_undo)
                     {
-                        UndoState last = m_undo.Peek();
-                        if (last != null)
+                        if (m_undo.Count > 0)
                         {
-                            if (last.Compare(this))
-                                return;
+                            UndoState last = m_undo.Peek();
+                            if (last != null)
+                            {
+                                if (last.Compare(this))
+                                    return;
+                            }
                         }
-                    }
+                   
 
 
-                    if (m_parentGroup.GetSceneMaxUndo() > 0)
-                    {
-                        UndoState nUndo = new UndoState(this);
+                        if (m_parentGroup.GetSceneMaxUndo() > 0)
+                        {
+                            UndoState nUndo = new UndoState(this);
 
-                        m_undo.Push(nUndo);
+                            m_undo.Push(nUndo);
+                        }
 
                     }
                 }
@@ -2951,11 +2958,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void Undo()
         {
-            if (m_undo.Count > 0)
+            lock(m_undo)
             {
-                UndoState goback = m_undo.Pop();
-                if (goback != null)
-                    goback.PlaybackState(this);
+                if (m_undo.Count > 0)
+                    {
+                        UndoState goback = m_undo.Pop();
+                        if (goback != null)
+                            goback.PlaybackState(this);
+                }
             }
         }
 
