@@ -253,11 +253,10 @@ namespace OpenSim.Region.DataSnapshot
 
         private String GetRegionCategory(Scene scene)
         {
-
             //Boolean choice between:
             //  "PG" - Mormontown
             //  "Mature" - Sodom and Gomorrah
-            //  (Depreciated) "Patriotic Nigra Testing Sandbox" - Abandon Hope All Ye Who Enter Here
+            //  (Deprecated) "Patriotic Nigra Testing Sandbox" - Abandon Hope All Ye Who Enter Here
             if (scene.RegionInfo.RegionSettings.Maturity == 1)
             {
                 return "Mature";

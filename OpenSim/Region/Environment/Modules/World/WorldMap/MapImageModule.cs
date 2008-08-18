@@ -118,45 +118,46 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         #endregion
 
-        private void ShadeBuildings(Bitmap map)
-        {
-            lock (map)
-            {
-                lock (m_scene.Entities)
-                {
-                    foreach (EntityBase entity in m_scene.Entities.Values)
-                    {
-                        if (entity is SceneObjectGroup)
-                        {
-                            SceneObjectGroup sog = (SceneObjectGroup) entity;
-
-                            foreach (SceneObjectPart primitive in sog.Children.Values)
-                            {
-                                int x = (int) (primitive.AbsolutePosition.X - (primitive.Scale.X / 2));
-                                int y = (int) (primitive.AbsolutePosition.Y - (primitive.Scale.Y / 2));
-                                int w = (int) primitive.Scale.X;
-                                int h = (int) primitive.Scale.Y;
-
-                                int dx;
-                                for (dx = x; dx < x + w; dx++)
-                                {
-                                    int dy;
-                                    for (dy = y; dy < y + h; dy++)
-                                    {
-                                        if (x < 0 || y < 0)
-                                            continue;
-                                        if (x >= map.Width || y >= map.Height)
-                                            continue;
-
-                                        map.SetPixel(dx, dy, Color.DarkGray);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+// TODO: unused:
+//         private void ShadeBuildings(Bitmap map)
+//         {
+//             lock (map)
+//             {
+//                 lock (m_scene.Entities)
+//                 {
+//                     foreach (EntityBase entity in m_scene.Entities.Values)
+//                     {
+//                         if (entity is SceneObjectGroup)
+//                         {
+//                             SceneObjectGroup sog = (SceneObjectGroup) entity;
+// 
+//                             foreach (SceneObjectPart primitive in sog.Children.Values)
+//                             {
+//                                 int x = (int) (primitive.AbsolutePosition.X - (primitive.Scale.X / 2));
+//                                 int y = (int) (primitive.AbsolutePosition.Y - (primitive.Scale.Y / 2));
+//                                 int w = (int) primitive.Scale.X;
+//                                 int h = (int) primitive.Scale.Y;
+// 
+//                                 int dx;
+//                                 for (dx = x; dx < x + w; dx++)
+//                                 {
+//                                     int dy;
+//                                     for (dy = y; dy < y + h; dy++)
+//                                     {
+//                                         if (x < 0 || y < 0)
+//                                             continue;
+//                                         if (x >= map.Width || y >= map.Height)
+//                                             continue;
+// 
+//                                         map.SetPixel(dx, dy, Color.DarkGray);
+//                                     }
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
 
         private Bitmap TerrainToBitmap2(Scene whichScene, Bitmap mapbmp)
         {
@@ -532,42 +533,43 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             return mapbmp;
         }
 
-        # region Depreciated Maptile Generation.  Adam may update this
-        private Bitmap TerrainToBitmap(string gradientmap)
-        {
-            Bitmap gradientmapLd = new Bitmap(gradientmap);
-
-            int pallete = gradientmapLd.Height;
-
-            Bitmap bmp = new Bitmap(m_scene.Heightmap.Width, m_scene.Heightmap.Height);
-            Color[] colours = new Color[pallete];
-
-            for (int i = 0; i < pallete; i++)
-            {
-                colours[i] = gradientmapLd.GetPixel(0, i);
-            }
-
-            lock (m_scene.Heightmap)
-            {
-                ITerrainChannel copy = m_scene.Heightmap;
-                for (int y = 0; y < copy.Height; y++)
-                {
-                    for (int x = 0; x < copy.Width; x++)
-                    {
-                        // 512 is the largest possible height before colours clamp
-                        int colorindex = (int) (Math.Max(Math.Min(1.0, copy[x, y] / 512.0), 0.0) * (pallete - 1));
-
-                        // Handle error conditions
-                        if (colorindex > pallete - 1 || colorindex < 0)
-                            bmp.SetPixel(x, copy.Height - y - 1, Color.Red);
-                        else
-                            bmp.SetPixel(x, copy.Height - y - 1, colours[colorindex]);
-                    }
-                }
-                ShadeBuildings(bmp);
-                return bmp;
-            }
-        }
-        #endregion
+// TODO: unused:
+//         #region Deprecated Maptile Generation.  Adam may update this
+//         private Bitmap TerrainToBitmap(string gradientmap)
+//         {
+//             Bitmap gradientmapLd = new Bitmap(gradientmap);
+// 
+//             int pallete = gradientmapLd.Height;
+// 
+//             Bitmap bmp = new Bitmap(m_scene.Heightmap.Width, m_scene.Heightmap.Height);
+//             Color[] colours = new Color[pallete];
+// 
+//             for (int i = 0; i < pallete; i++)
+//             {
+//                 colours[i] = gradientmapLd.GetPixel(0, i);
+//             }
+// 
+//             lock (m_scene.Heightmap)
+//             {
+//                 ITerrainChannel copy = m_scene.Heightmap;
+//                 for (int y = 0; y < copy.Height; y++)
+//                 {
+//                     for (int x = 0; x < copy.Width; x++)
+//                     {
+//                         // 512 is the largest possible height before colours clamp
+//                         int colorindex = (int) (Math.Max(Math.Min(1.0, copy[x, y] / 512.0), 0.0) * (pallete - 1));
+// 
+//                         // Handle error conditions
+//                         if (colorindex > pallete - 1 || colorindex < 0)
+//                             bmp.SetPixel(x, copy.Height - y - 1, Color.Red);
+//                         else
+//                             bmp.SetPixel(x, copy.Height - y - 1, colours[colorindex]);
+//                     }
+//                 }
+//                 ShadeBuildings(bmp);
+//                 return bmp;
+//             }
+//         }
+//         #endregion
     }
 }
