@@ -456,6 +456,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="shutdownCircuit"></param>
         public void Close(bool shutdownCircuit)
         {
+            m_clientPingTimer.Enabled = false;
+            
             m_log.DebugFormat(
                 "[CLIENT]: Close has been called with shutdownCircuit = {0} on scene {1}",
                 shutdownCircuit, m_scene.RegionInfo.RegionName);
@@ -655,14 +657,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if ((m_probesWithNoIngressPackets > 30 && !m_clientBlocked)
                     || (m_probesWithNoIngressPackets > 90 && m_clientBlocked))
                 {
+                    m_clientPingTimer.Enabled = false;
+                    
+                    m_log.WarnFormat(
+                        "[CLIENT]: Client for agent {0} {1} has stopped responding to pings.  Closing connection",
+                        Name, AgentId);
+                    
                     if (OnConnectionClosed != null)
                     {
-                        m_log.WarnFormat(
-                            "[CLIENT]: Client for agent {0} {1} has stopped responding to pings.  Closing connection",
-                            Name, AgentId);
-
                         OnConnectionClosed(this);
-                    }
+                    }                                       
                 }
                 else
                 {
