@@ -26,8 +26,11 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Reflection;
 using Axiom.Math;
 using Nini.Config;
@@ -39,6 +42,12 @@ using libsecondlife;
 
 namespace OpenSim.Region.Environment.Modules.World.WorldMap
 {
+    public struct RectangleDrawStruct
+    {
+        public Rectangle rect;
+        public SolidBrush brush;
+    }
+
     public class MapImageModule : IMapImageGenerator, IRegionModule
     {
         private static readonly ILog m_log =
@@ -352,6 +361,10 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             tc = System.Environment.TickCount;
             m_log.Info("[MAPTILE]: Generating Maptile Step 2: Object Volume Profile");
             List<EntityBase> objs = whichScene.GetEntities();
+            Dictionary<uint, RectangleDrawStruct> z_sort = new Dictionary<uint, RectangleDrawStruct>();
+            //SortedList<float, RectangleDrawStruct> z_sort = new SortedList<float, RectangleDrawStruct>();
+            List<float> z_sortheights = new List<float>();
+            List<uint> z_localIDs = new List<uint>();
 
             lock (objs)
             {
@@ -476,33 +489,65 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
                                     bool breakYN = false; // If we run into an error drawing, break out of the
                                     // loop so we don't lag to death on error handling
-                                    for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
-                                    {
-                                        for (wy = mapdrawstartY; wy < mapdrawendY; wy++)
-                                        {
+                                    RectangleDrawStruct ds = new RectangleDrawStruct();
+                                    ds.brush = new SolidBrush(mapdotspot);
+                                    ds.rect = new Rectangle(mapdrawstartX, (255 - mapdrawstartY), mapdrawendX - mapdrawstartX, mapdrawendY - mapdrawstartY);
+                                    z_sort.Add(part.LocalId, ds);
+                                    z_localIDs.Add(part.LocalId);
+                                    z_sortheights.Add(pos.Z);
+
+                                    
+
+                                    //for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
+                                    //{
+                                        //for (wy = mapdrawstartY; wy < mapdrawendY; wy++)
+                                        //{
                                             //m_log.InfoFormat("[MAPDEBUG]: {0},{1}({2})", wx, (255 - wy),wy);
-                                            try
-                                            {
+                                            //try
+                                            //{
                                                 // Remember, flip the y!
-                                                mapbmp.SetPixel(wx, (255 - wy), mapdotspot);
-                                            }
-                                            catch (ArgumentException)
-                                            {
-                                                breakYN = true;
-                                            }
+                                            //    mapbmp.SetPixel(wx, (255 - wy), mapdotspot);
+                                            //}
+                                            //catch (ArgumentException)
+                                            //{
+                                            //    breakYN = true;
+                                            //}
 
-                                            if (breakYN)
-                                                break;
-                                        }
+                                            //if (breakYN)
+                                            //    break;
+                                        //}
 
-                                        if (breakYN)
-                                            break;
-                                    }
+                                        //if (breakYN)
+                                        //    break;
+                                    //}
                                 } // Object is within 256m Z of terrain
                             } // object is at least a meter wide
                         } // loop over group children
                     } // entitybase is sceneobject group
                 } // foreach loop over entities
+                
+                float[] sortedZHeights = z_sortheights.ToArray();
+                uint[] sortedlocalIds = z_localIDs.ToArray();
+
+                // Sort prim by Z position
+                Array.Sort(sortedZHeights, sortedlocalIds);
+
+                
+               
+                Graphics g = Graphics.FromImage(mapbmp);
+
+                for (int s = 0; s < sortedZHeights.Length; s++)
+                {
+                    
+                    if (z_sort.ContainsKey(sortedlocalIds[s]))
+                    {
+                        RectangleDrawStruct rectDrawStruct = z_sort[sortedlocalIds[s]];
+                        g.FillRectangle(rectDrawStruct.brush , rectDrawStruct.rect);
+                    }
+                }
+
+                
+                g.Dispose();
             } // lock entities objs
 
             m_log.Info("[MAPTILE]: Generating Maptile Step 2: Done in " + (System.Environment.TickCount - tc) + " ms");
