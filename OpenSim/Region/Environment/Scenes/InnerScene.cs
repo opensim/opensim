@@ -96,7 +96,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // Then we've got to remove the previous
                 // event handler
 
-                if (_PhyScene != null) 
+                if (_PhyScene != null)
                     _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
 
                 _PhyScene = value;
@@ -194,7 +194,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </param>
         /// <returns>
         /// true if the object was added, false if an object with the same uuid was already in the scene
-        /// </returns>         
+        /// </returns>
         protected internal bool AddRestoredSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
         {
@@ -205,7 +205,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 part.LocalId = m_parentScene.PrimIDAllocate();
             }
-            
+
             sceneObject.UpdateParentIDs();
 
             if (!alreadyPersisted)
@@ -213,10 +213,10 @@ namespace OpenSim.Region.Environment.Scenes
                 sceneObject.ForceInventoryPersistence();
                 sceneObject.HasGroupChanged = true;
             }
- 
+
             return AddSceneObject(sceneObject, attachToBackup);
         }
-        
+
         /// <summary>
         /// Add a newly created object to the scene.  This will both update the scene, and send information about the
         /// new object to all clients interested in the scene.
@@ -228,12 +228,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// </param>
         /// <returns>
         /// true if the object was added, false if an object with the same uuid was already in the scene
-        /// </returns>        
+        /// </returns>
         protected internal bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
-        {   
+        {
             // Ensure that we persist this new scene object
             sceneObject.HasGroupChanged = true;
-            
+
             return AddSceneObject(sceneObject, attachToBackup);
         }
 
@@ -252,7 +252,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             sceneObject.ApplyPhysics(m_parentScene.m_physicalPrim);
             sceneObject.ScheduleGroupForFullUpdate();
-            
+
             lock (Entities)
             {
                 if (!Entities.ContainsKey(sceneObject.UUID))
@@ -261,8 +261,8 @@ namespace OpenSim.Region.Environment.Scenes
                     Entities.Add(sceneObject.UUID, sceneObject);
                     m_numPrim += sceneObject.Children.Count;
 
-                    if (attachToBackup)                        
-                        sceneObject.AttachToBackup();                                        
+                    if (attachToBackup)
+                        sceneObject.AttachToBackup();
 
                     return true;
                 }
@@ -342,7 +342,7 @@ namespace OpenSim.Region.Environment.Scenes
                             "[INNER SCENE]: Failed to update {0}, {1} - {2}", entity.Name, entity.UUID, e);
                     }
                 }
-                
+
                 m_updateList.Clear();
             }
         }
@@ -555,7 +555,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal void AddScenePresence(ScenePresence presence)
         {
             bool child = presence.IsChildAgent;
-            
+
             if (child)
             {
                 m_numChildAgents++;
@@ -598,7 +598,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (!ScenePresences.Remove(agentID))
                 {
-                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);                                        
+                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
                 }
 //                else
 //                {
@@ -774,7 +774,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Get a scene object group that contains the prim with the given uuid
         /// </summary>
         /// <param name="fullID"></param>
-        /// <returns>null if no scene object group containing that prim is found</returns>        
+        /// <returns>null if no scene object group containing that prim is found</returns>
         private SceneObjectGroup GetGroupByPrim(LLUUID fullID)
         {
             List<EntityBase> EntityList = GetEntities();
@@ -823,7 +823,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal SceneObjectPart GetSceneObjectPart(uint localID)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
-            
+
             if (group != null)
                 return group.GetChildPart(localID);
             else
@@ -834,7 +834,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Get a part contained in this scene.
         /// </summary>
         /// <param name="fullID"></param>
-        /// <returns>null if the part was not found</returns>        
+        /// <returns>null if the part was not found</returns>
         protected internal SceneObjectPart GetSceneObjectPart(LLUUID fullID)
         {
             SceneObjectGroup group = GetGroupByPrim(fullID);
@@ -1089,7 +1089,7 @@ namespace OpenSim.Region.Environment.Scenes
                     group.SendGroupTerseUpdate();
                     return;
                 }
-                
+
                 if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.IsAttachment)
                 {
                     group.UpdateSinglePosition(pos, localID);
@@ -1119,7 +1119,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.IsAttachment)
                     {
                         group.SendGroupTerseUpdate();
-                        
+
                         return;
                     }
                         if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.IsAttachment)
@@ -1397,14 +1397,14 @@ namespace OpenSim.Region.Environment.Scenes
                     if (sendEvents)
                         parenPrim.TriggerScriptChangedEvent(Changed.LINK);
                 }
-                else 
+                else
                 {
                     // The link set has prims remaining. This path is taken
                     // when a subset of a link set's prims are selected
                     // and the root prim is part of that selection
                     //
                     List<SceneObjectPart> parts = new List<SceneObjectPart>(parenPrim.Children.Values);
-                    
+
                     List<uint> unlink_ids = new List<uint>();
                     foreach (SceneObjectPart unlink_part in parts)
                         unlink_ids.Add(unlink_part.LocalId);

@@ -305,7 +305,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         public event RegionHandleRequest OnRegionHandleRequest;
         public event ParcelInfoRequest OnParcelInfoRequest;
-        
+
 #pragma warning restore 67
 
         #endregion
@@ -368,7 +368,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
             get { return 0; }
         }
-        
+
         public ulong GetGroupPowers(LLUUID groupID)
         {
             return 0;
@@ -820,13 +820,13 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
 
         public void SendParcelMediaCommand(uint flags, ParcelMediaCommandEnum command, float time)
-        {           
+        {
         }
 
         public void SendParcelMediaUpdate(string mediaUrl, LLUUID mediaTextureID,
                                    byte autoScale, string mediaType, string mediaDesc, int mediaWidth, int mediaHeight,
                                    byte mediaLoop)
-        {  
+        {
         }
 
         public void SendSetFollowCamProperties (LLUUID objectID, SortedDictionary<int, float> parameters)

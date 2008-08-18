@@ -141,7 +141,7 @@ namespace OpenSim.Data.SQLite
                         cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
                         cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
                         cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
-                        
+
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -155,7 +155,7 @@ namespace OpenSim.Data.SQLite
         override public void UpdateAsset(AssetBase asset)
         {
             LogAssetLoad(asset);
-            
+
             lock (this)
             {
                 using (SqliteCommand cmd = new SqliteCommand(UpdateAssetSQL, m_conn))
@@ -167,7 +167,7 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
                     cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
                     cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
-                    
+
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -269,7 +269,7 @@ namespace OpenSim.Data.SQLite
          **********************************************************************/
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -301,7 +301,7 @@ namespace OpenSim.Data.SQLite
          **********************************************************************/
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="conn"></param>
         // private static void InitDB(SqliteConnection conn)
@@ -312,7 +312,7 @@ namespace OpenSim.Data.SQLite
         // }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="conn"></param>
         /// <param name="m"></param>
@@ -331,10 +331,10 @@ namespace OpenSim.Data.SQLite
                 m_log.Info("[ASSET DB]: SQLite Database doesn't exist... creating");
                 return false;
             }
-            
+
             // if the tables are here, and we don't have a migration,
             // set it to 1, as we're migrating off of legacy bits
-            if (m.Version == 0) 
+            if (m.Version == 0)
                 m.Version = 1;
 
             return true;
@@ -343,7 +343,7 @@ namespace OpenSim.Data.SQLite
         #region IPlugin interface
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         override public string Version
         {

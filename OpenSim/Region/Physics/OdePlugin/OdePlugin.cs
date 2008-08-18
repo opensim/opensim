@@ -252,7 +252,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int physics_logging_interval = 0;
         public bool physics_logging_append_existing_logfile = false;
 
-
         /// <summary>
         /// Initiailizes the scene
         /// Sets many properties that ODE requires to be stable
@@ -352,14 +351,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", 10.000006836f);
                     bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", 20);
-                    
+
                     bodyPIDD = physicsconfig.GetFloat("body_pid_derivative", 35f);
                     bodyPIDG = physicsconfig.GetFloat("body_pid_gain", 25f);
 
                     meshSculptedPrim = physicsconfig.GetBoolean("mesh_sculpted_prim", true);
                     meshSculptLOD = physicsconfig.GetFloat("mesh_lod", 32f);
                     MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", 16f);
-                    
 
                     if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
@@ -367,7 +365,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         avPIDP = physicsconfig.GetFloat("av_pid_proportional_linux", 1400.0f);
                         avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_linux", 2000000f);
                         bodyMotorJointMaxforceTensor = physicsconfig.GetFloat("body_motor_joint_maxforce_tensor_linux", 2f);
-
                     }
                     else
                     {
@@ -547,7 +544,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             catch (AccessViolationException)
             {
-
                 m_log.Warn("[PHYSICS]: Unable to collide test an object");
                 return;
             }
@@ -603,7 +599,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         p2.CollidingGround = true;
                         break;
                 }
-                
 
                 // we don't want prim or avatar to explode
 
@@ -850,87 +845,87 @@ namespace OpenSim.Region.Physics.OdePlugin
                 case ActorTypes.Agent:
                     cc2 = (OdeCharacter)p2;
 
-                        // obj1LocalID = cc2.m_localID;
-                        switch ((ActorTypes)p1.PhysicsActorType)
-                        {
-                            case ActorTypes.Agent:
-                                cc1 = (OdeCharacter)p1;
-                                obj2LocalID = cc1.m_localID;
-                                cc1.AddCollisionEvent(cc2.m_localID, collisiondepth);
-                                //ctype = (int)CollisionCategories.Character;
+                    // obj1LocalID = cc2.m_localID;
+                    switch ((ActorTypes)p1.PhysicsActorType)
+                    {
+                        case ActorTypes.Agent:
+                            cc1 = (OdeCharacter)p1;
+                            obj2LocalID = cc1.m_localID;
+                            cc1.AddCollisionEvent(cc2.m_localID, collisiondepth);
+                            //ctype = (int)CollisionCategories.Character;
 
-                                //if (cc1.CollidingObj)
-                                    //cStartStop = (int)StatusIndicators.Generic;
-                                //else
-                                    //cStartStop = (int)StatusIndicators.Start;
+                            //if (cc1.CollidingObj)
+                            //cStartStop = (int)StatusIndicators.Generic;
+                            //else
+                            //cStartStop = (int)StatusIndicators.Start;
 
-                                //returncollisions = true;
-                                break;
-                            case ActorTypes.Prim:
-                                cp1 = (OdePrim)p1;
-                                obj2LocalID = cp1.m_localID;
-                                cp1.AddCollisionEvent(cc2.m_localID, collisiondepth);
-                                //ctype = (int)CollisionCategories.Geom;
+                            //returncollisions = true;
+                            break;
+                        case ActorTypes.Prim:
+                            cp1 = (OdePrim)p1;
+                            obj2LocalID = cp1.m_localID;
+                            cp1.AddCollisionEvent(cc2.m_localID, collisiondepth);
+                            //ctype = (int)CollisionCategories.Geom;
 
-                                //if (cp1.CollidingObj)
-                                    //cStartStop = (int)StatusIndicators.Generic;
-                                //else
-                                    //cStartStop = (int)StatusIndicators.Start;
+                            //if (cp1.CollidingObj)
+                            //cStartStop = (int)StatusIndicators.Generic;
+                            //else
+                            //cStartStop = (int)StatusIndicators.Start;
 
-                                //returncollisions = true;
-                                break;
+                            //returncollisions = true;
+                            break;
 
-                            case ActorTypes.Ground:
-                            case ActorTypes.Unknown:
-                                obj2LocalID = 0;
-                                //ctype = (int)CollisionCategories.Land;
-                                //returncollisions = true;
-                                break;
-                        }
+                        case ActorTypes.Ground:
+                        case ActorTypes.Unknown:
+                            obj2LocalID = 0;
+                            //ctype = (int)CollisionCategories.Land;
+                            //returncollisions = true;
+                            break;
+                    }
 
                     cc2.AddCollisionEvent(obj2LocalID, collisiondepth);
                     break;
                 case ActorTypes.Prim:
                     cp2 = (OdePrim)p2;
 
-                        // obj1LocalID = cp2.m_localID;
-                        switch ((ActorTypes)p1.PhysicsActorType)
-                        {
-                            case ActorTypes.Agent:
-                                cc1 = (OdeCharacter)p1;
-                                obj2LocalID = cc1.m_localID;
-                                cc1.AddCollisionEvent(cp2.m_localID, collisiondepth);
-                                //ctype = (int)CollisionCategories.Character;
+                    // obj1LocalID = cp2.m_localID;
+                    switch ((ActorTypes)p1.PhysicsActorType)
+                    {
+                        case ActorTypes.Agent:
+                            cc1 = (OdeCharacter)p1;
+                            obj2LocalID = cc1.m_localID;
+                            cc1.AddCollisionEvent(cp2.m_localID, collisiondepth);
+                            //ctype = (int)CollisionCategories.Character;
 
-                                //if (cc1.CollidingObj)
-                                    //cStartStop = (int)StatusIndicators.Generic;
-                                //else
-                                    //cStartStop = (int)StatusIndicators.Start;
-                                //returncollisions = true;
+                            //if (cc1.CollidingObj)
+                                //cStartStop = (int)StatusIndicators.Generic;
+                            //else
+                                //cStartStop = (int)StatusIndicators.Start;
+                            //returncollisions = true;
 
-                                break;
-                            case ActorTypes.Prim:
-                                cp1 = (OdePrim)p1;
-                                obj2LocalID = cp1.m_localID;
-                                cp1.AddCollisionEvent(cp2.m_localID, collisiondepth);
-                                //ctype = (int)CollisionCategories.Geom;
+                            break;
+                        case ActorTypes.Prim:
+                            cp1 = (OdePrim)p1;
+                            obj2LocalID = cp1.m_localID;
+                            cp1.AddCollisionEvent(cp2.m_localID, collisiondepth);
+                            //ctype = (int)CollisionCategories.Geom;
 
-                                //if (cp1.CollidingObj)
-                                    //cStartStop = (int)StatusIndicators.Generic;
-                                //else
-                                    //cStartStop = (int)StatusIndicators.Start;
+                            //if (cp1.CollidingObj)
+                                //cStartStop = (int)StatusIndicators.Generic;
+                            //else
+                                //cStartStop = (int)StatusIndicators.Start;
 
-                                //returncollisions = true;
-                                break;
+                            //returncollisions = true;
+                            break;
 
-                            case ActorTypes.Ground:
-                            case ActorTypes.Unknown:
-                                obj2LocalID = 0;
-                                //ctype = (int)CollisionCategories.Land;
+                        case ActorTypes.Ground:
+                        case ActorTypes.Unknown:
+                            obj2LocalID = 0;
+                            //ctype = (int)CollisionCategories.Land;
 
-                                //returncollisions = true;
-                                break;
-                        }
+                            //returncollisions = true;
+                            break;
+                    }
 
                     cp2.AddCollisionEvent(obj2LocalID, collisiondepth);
                     break;
@@ -1015,7 +1010,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="timeStep"></param>
         private void collision_optimized(float timeStep)
         {
-
             foreach (OdeCharacter chr in _characters)
             {
                 // Reset the collision values to false
@@ -1579,7 +1573,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         //    if (pbs.ProfileShape == ProfileShape.EquilateralTriangle)
         //        return true;
 
-            
+
 
         //    return false;
 
@@ -1624,7 +1618,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             float fps = 0;
             //m_log.Info(timeStep.ToString());
             step_time += timeStep;
-
 
             // If We're loaded down by something else,
             // or debugging with the Visual Studio project on pause
@@ -1739,7 +1732,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 }
 
                                 d.WorldQuickStep(world, ODE_STEPSIZE);
-
                                 d.JointGroupEmpty(contactgroup);
                                 //ode.dunlock(world);
                             }
@@ -2075,7 +2067,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (resultarr2[y, x] <= 0)
                     {
                         returnarr[i] = 0.0000001f;
-                        
+
                     }
                     else
                         returnarr[i] = resultarr2[y, x];

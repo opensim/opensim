@@ -54,11 +54,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 string path = Path.Combine(Directory.GetCurrentDirectory(),
                         Path.Combine(s, assemblyName))+".dll";
-                        
+
                 if (File.Exists(path))
                     return Assembly.LoadFrom(path);
             }
-            
+
             return null;
         }
     }

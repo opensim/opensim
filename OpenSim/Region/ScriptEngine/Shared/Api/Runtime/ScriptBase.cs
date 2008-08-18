@@ -81,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 return;
 
             MethodInfo mi = inits[api];
-            
+
             Object[] args = new Object[1];
             args[0] = data;
 

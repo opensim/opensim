@@ -51,11 +51,11 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             return retval;
         }
-        
+
         public ITerrainChannel LoadStream(Stream s)
         {
             TerrainChannel retval = new TerrainChannel();
-            
+
             BinaryReader bs = new BinaryReader(s);
 
             bool eof = false;
@@ -107,7 +107,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             }
 
             bs.Close();
-            
+
             return retval;
         }
 
@@ -115,7 +115,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
         {
             throw new NotImplementedException();
         }
-        
+
         public void SaveStream(Stream stream, ITerrainChannel map)
         {
             throw new NotImplementedException();

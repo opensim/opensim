@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             scene.EventManager.OnGridInstantMessageToGroupsModule += OnGridInstantMessage;
             lock (m_groupUUIDGroup)
             {
-                
+
                 GroupData OpenSimulatorGroup = new GroupData();
                 OpenSimulatorGroup.ActiveGroupTitle = "OpenSimulator Tester";
                 OpenSimulatorGroup.GroupID = opensimulatorGroupID;
@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                 }
 
             }
-            
+
             lock (m_groupmap)
             {
                 if (!m_groupmap.ContainsKey(client.AgentId))
@@ -159,8 +159,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             updateGroups[0] = OpenSimulatorGroup;
 
             client.SendGroupMembership(updateGroups);
-            
-
         }
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient, LLUUID AgentID, LLUUID SessionID)
@@ -275,6 +273,4 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             GC.Collect();
         }
     }
-
-
 }

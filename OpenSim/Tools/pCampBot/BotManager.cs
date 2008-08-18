@@ -51,7 +51,7 @@ namespace pCampBot
         protected Random somthing = new Random(Environment.TickCount);
         protected int numbots = 0;
         protected IConfig Previous_config;
-        
+
         /// <summary>
         /// Constructor Creates MainConsole.Instance to take commands and provide the place to write data
         /// </summary>
@@ -96,7 +96,7 @@ namespace pCampBot
                 startupBot(i, Previous_config);
             }
         }
-       
+
         /// <summary>
         /// This starts up the bot and stores the thread for the bot in the thread array
         /// </summary>
@@ -127,7 +127,7 @@ namespace pCampBot
         {
             string returnstring = "";
             string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-            
+
             for (int i = 0; i < 7; i++)
             {
                 returnstring += chars.Substring(somthing.Next(chars.Length),1);
@@ -177,7 +177,7 @@ namespace pCampBot
         {
             return new ConsoleBase("Region", this);
         }
-        
+
         /// <summary>
         /// Command runnint tool..  Currently use it to add bots, shutdown and (dangerous)Forcequit
         /// </summary>
@@ -198,7 +198,7 @@ namespace pCampBot
                 case "addbots":
                     int newbots;
                     Helpers.TryParse(cmdparams[0], out newbots);
-                    
+
                     if (newbots > 0)
                         addbots(newbots);
                     break;

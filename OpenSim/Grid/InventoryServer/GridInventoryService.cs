@@ -84,12 +84,12 @@ namespace OpenSim.Grid.InventoryServer
                     {
                         return true;
                     }
-                }                
-                
+                }
+
                 m_log.WarnFormat(
-                    "[GRID AGENT INVENTORY]: Rejecting request since source {0} was not in the list of trusted sources", 
-                    peer);    
-                
+                    "[GRID AGENT INVENTORY]: Rejecting request since source {0} was not in the list of trusted sources",
+                    peer);
+
                 return false;
             }
             else
@@ -110,7 +110,7 @@ namespace OpenSim.Grid.InventoryServer
             if (m_doLookup)
             {
                 m_log.InfoFormat("[GRID AGENT INVENTORY]: checking authed session {0} {1}", session_id, avatar_id);
-                
+
                 if (m_session_cache.getCachedSession(session_id, avatar_id) == null)
                 {
                     // cache miss, ask userserver
@@ -137,7 +137,7 @@ namespace OpenSim.Grid.InventoryServer
                     m_log.Info("[GRID AGENT INVENTORY]: got authed session from cache");
                     return true;
                 }
-                
+
                 m_log.Warn("[GRID AGENT INVENTORY]: unknown session_id, request rejected");
                 return false;
             }

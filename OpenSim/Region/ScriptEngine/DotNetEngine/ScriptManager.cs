@@ -39,13 +39,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     public class ScriptManager : Common.ScriptEngineBase.ScriptManager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public ScriptManager(Common.ScriptEngineBase.ScriptEngine scriptEngine)
             : base(scriptEngine)
         {
             base.m_scriptEngine = scriptEngine;
         }
-        private Compiler.LSL.Compiler LSLCompiler;        
+        private Compiler.LSL.Compiler LSLCompiler;
 
         public override void Initialize()
         {
@@ -63,7 +63,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public override void _StartScript(uint localID, LLUUID itemID, string Script, int startParam, bool postOnRez)
         {
             m_log.DebugFormat(
-                "[{0}]: ScriptManager StartScript: localID: {1}, itemID: {2}", 
+                "[{0}]: ScriptManager StartScript: localID: {1}, itemID: {2}",
                 m_scriptEngine.ScriptEngineName, localID, itemID);
 
             //IScriptHost root = host.GetRoot();
@@ -73,13 +73,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             string CompiledScriptFile = String.Empty;
 
             SceneObjectPart m_host = World.GetSceneObjectPart(localID);
-            
+
             if (null == m_host)
             {
                 m_log.ErrorFormat(
-                    "[{0}]: Could not find scene object part corresponding to localID {1} to start script", 
+                    "[{0}]: Could not find scene object part corresponding to localID {1} to start script",
                     m_scriptEngine.ScriptEngineName, localID);
-                
+
                 return;
             }
 

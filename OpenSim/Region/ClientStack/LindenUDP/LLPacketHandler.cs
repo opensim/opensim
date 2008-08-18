@@ -230,7 +230,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Call the load balancer's hook. If this is not active here
             // we defer to the sim server this client is actually connected
-            // to. Packet drop notifies will not be triggered in this 
+            // to. Packet drop notifies will not be triggered in this
             // configuration!
             //
             if ((m_SynchronizeClient != null) && (!m_Client.IsActive))
@@ -282,7 +282,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
         }
-        
+
         private void QueuePacket(
                 Packet packet, ThrottleOutPacketType throttlePacketType,
                 Object id)
@@ -303,7 +303,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             int now = System.Environment.TickCount;
             int lastAck = m_LastAck;
-            
+
             // Unless we have received at least one ack, don't bother resending
             // anything. There may not be a client there, don't clog up the
             // pipes.
@@ -558,7 +558,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             PruneDupeTracker();
 
-            // Check for duplicate packets..    packets that the client is 
+            // Check for duplicate packets..    packets that the client is
             // resending because it didn't receive our ack
             //
             lock (m_DupeTracker)
@@ -677,7 +677,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_Sequence = info.sequence;
         }
-        
+
         public void AddImportantPacket(PacketType type)
         {
             if (m_ImportantPackets.Contains(type))
@@ -693,7 +693,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_ImportantPackets.Remove(type);
         }
-        
+
         private void DropResend(Object id)
         {
             foreach (AckData data in new List<AckData>(m_NeedAck.Values))
@@ -736,7 +736,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (packet.Header.Reliable)
                     {
                         m_UnackedBytes += packet.ToBytes().Length;
-                        m_NeedAck[packet.Header.Sequence] = new AckData(packet, 
+                        m_NeedAck[packet.Header.Sequence] = new AckData(packet,
                                 item.Identifier);
                     }
                 }

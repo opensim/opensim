@@ -172,7 +172,7 @@ namespace OpenSim.Framework.Servers
                 OSHttpResponse response = new OSHttpResponse(context.Response);
 
                 //  This is the REST agent interface. We require an agent to properly identify
-                //  itself. If the REST handler recognizes the prefix it will attempt to 
+                //  itself. If the REST handler recognizes the prefix it will attempt to
                 //  satisfy the request. If it is not recognizable, and no damage has occurred
                 //  the request can be passed through to the other handlers. This is a low
                 //  probability event; if a request is matched it is normally expected to be
@@ -650,7 +650,7 @@ namespace OpenSim.Framework.Servers
             }
 
             response.AddHeader("Content-type", contentType);
-            
+
             byte[] buffer;
 
             if (!contentType.Contains("image"))

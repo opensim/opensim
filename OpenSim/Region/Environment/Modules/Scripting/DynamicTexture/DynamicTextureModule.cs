@@ -208,7 +208,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 SceneObjectPart part = scene.GetSceneObjectPart(PrimID);
                 byte[] assetData;
                 AssetBase oldAsset = null;
-                
+
                 if (BlendWithOldTexture)
                 {
                     LLUUID lastTextureID = part.Shape.Textures.DefaultTexture.TextureID;
@@ -228,7 +228,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                     assetData = new byte[data.Length];
                     Array.Copy(data, assetData, data.Length);
                 }
-                
+
                 // Create a new asset for user
                 AssetBase asset = new AssetBase();
                 asset.FullID = LLUUID.Random();
@@ -244,7 +244,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
                 // mostly keep the values from before
                 LLObject.TextureEntry tmptex = part.Shape.Textures;
-                
+
                 // remove the old asset from the cache
                 LLUUID oldID = tmptex.DefaultTexture.TextureID;
                 scene.AssetCache.ExpireAsset(oldID);

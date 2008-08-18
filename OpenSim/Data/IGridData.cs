@@ -47,7 +47,7 @@ namespace OpenSim.Data
         /// Initialises the interface
         /// </summary>
         void Initialise(string connect);
-        
+
         /// <summary>
         /// Returns a sim profile from a regionHandle
         /// </summary>
@@ -100,7 +100,7 @@ namespace OpenSim.Data
 
         ReservationData GetReservationAtPoint(uint x, uint y);
     }
-    
+
     public class GridDataInitialiser : PluginInitialiserBase
     {
         private string connect;

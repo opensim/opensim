@@ -90,7 +90,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             m_log.WarnFormat(
                 "[USER CACHE]: Tried to remove the profile of user {0}, but this was not in the scene", userId);
-            
+
             return false;
         }
 

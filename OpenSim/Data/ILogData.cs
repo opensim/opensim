@@ -73,7 +73,7 @@ namespace OpenSim.Data
         /// </summary>
         void Initialise(string connect);
     }
-    
+
     public class LogDataInitialiser : PluginInitialiserBase
     {
         private string connect;

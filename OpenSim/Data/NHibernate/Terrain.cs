@@ -32,21 +32,21 @@ using OpenSim.Framework;
 using log4net;
 using libsecondlife;
 
-namespace OpenSim.Data.NHibernate 
+namespace OpenSim.Data.NHibernate
 {
     public class Terrain
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private double[,] map;
         private LLUUID regionID;
-        
+
         public Terrain(LLUUID Region, double[,] array)
         {
             map = array;
             regionID = Region;
         }
-        
+
         public Terrain()
         {
             map = new double[Constants.RegionSize, Constants.RegionSize];
@@ -65,7 +65,7 @@ namespace OpenSim.Data.NHibernate
             get { return serializeTerrain(map); }
             set { map = parseTerrain(value); }
         }
-        
+
         public double[,] Doubles
         {
             get {return map;}
@@ -76,7 +76,7 @@ namespace OpenSim.Data.NHibernate
         {
             double[,] terret = new double[256,256];
             terret.Initialize();
-            
+
             MemoryStream str = new MemoryStream(data);
             BinaryReader br = new BinaryReader(str);
             try {
@@ -87,7 +87,7 @@ namespace OpenSim.Data.NHibernate
                         terret[x, y] = br.ReadDouble();
                     }
                 }
-            } 
+            }
             catch (Exception e)
             {
                 m_log.Error("Issue parsing Map", e);
@@ -99,7 +99,7 @@ namespace OpenSim.Data.NHibernate
         {
             MemoryStream str = new MemoryStream((int)(65536 * sizeof (double)));
             BinaryWriter bw = new BinaryWriter(str);
-            
+
             // TODO: COMPATIBILITY - Add byte-order conversions
             for (int x = 0; x < 256; x++)
             {
@@ -108,7 +108,7 @@ namespace OpenSim.Data.NHibernate
                     double height = val[x, y];
                     if (height <= 0.0)
                         height = double.Epsilon;
-                    
+
                     bw.Write(height);
                 }
             }

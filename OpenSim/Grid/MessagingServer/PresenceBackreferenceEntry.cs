@@ -62,7 +62,7 @@ namespace OpenSim.Grid.MessagingServer
             }
             return result;
         }
-        
+
         public int Count
         {
             get

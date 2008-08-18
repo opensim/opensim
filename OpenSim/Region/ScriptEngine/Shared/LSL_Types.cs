@@ -1335,22 +1335,22 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 bool ret = i1.value != i2.value;
                 return ret;
             }
-            
+
             static public LSLInteger operator +(LSLInteger i1, int i2)
             {
                 return new LSLInteger(i1.value + i2);
             }
-            
+
             static public LSLInteger operator -(LSLInteger i1, int i2)
             {
                 return new LSLInteger(i1.value - i2);
             }
-            
+
             static public LSLInteger operator *(LSLInteger i1, int i2)
             {
                 return new LSLInteger(i1.value * i2);
             }
-            
+
             static public LSLInteger operator /(LSLInteger i1, int i2)
             {
                 return new LSLInteger(i1.value / i2);
@@ -1360,22 +1360,22 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 return new LSLFloat((double)i1.value + f);
             }
-            
+
             static public LSLFloat operator -(LSLInteger i1, double f)
             {
                 return new LSLFloat((double)i1.value - f);
             }
-            
+
             static public LSLFloat operator *(LSLInteger i1, double f)
             {
                 return new LSLFloat((double)i1.value * f);
             }
-            
+
             static public LSLFloat operator /(LSLInteger i1, double f)
             {
                 return new LSLFloat((double)i1.value / f);
             }
-            
+
             static public LSLInteger operator -(LSLInteger i)
             {
                 return new LSLInteger(-i.value);
@@ -1536,17 +1536,17 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 f.value--;
                 return f;
             }
-            
+
             static public LSLFloat operator +(LSLFloat f, int i)
             {
                 return new LSLFloat(f.value + (double)i);
             }
-            
+
             static public LSLFloat operator -(LSLFloat f, int i)
             {
                 return new LSLFloat(f.value - (double)i);
             }
-            
+
             static public LSLFloat operator *(LSLFloat f, int i)
             {
                 return new LSLFloat(f.value * (double)i);

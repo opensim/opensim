@@ -380,7 +380,7 @@ namespace Opensim.Framework
             default:
                 return;
             }
-            
+
             Store(index, data, container);
         }
 
@@ -403,7 +403,7 @@ namespace Opensim.Framework
                     if ((m_Flags & CacheFlags.AllowUpdate) != 0)
                     {
                         item = GetItem(index);
-                        
+
                         item.hits++;
                         item.lastUsed = DateTime.Now;
                         if (m_DefaultTTL.Ticks != 0)

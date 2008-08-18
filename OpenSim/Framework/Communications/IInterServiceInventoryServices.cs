@@ -32,22 +32,22 @@ namespace OpenSim.Framework.Communications
 {
     /// <summary>
     /// Inventory operations used between grid services.
-    /// </summary>    
+    /// </summary>
     public interface IInterServiceInventoryServices
-    {        
+    {
         /// <summary>
         /// Create a new inventory for the given user.
         /// </summary>
         /// <param name="user"></param>
         /// <returns>true if the inventory was successfully created, false otherwise</returns>
         bool CreateNewUserInventory(LLUUID user);
-        
+
         /// <summary>
         /// Returns a list of all the folders in a given user's inventory.
         /// </summary>
         /// <param name="userId"></param>
         /// <returns>A flat list of the user's inventory folder tree,
         /// null if there is no inventory for this user</returns>
-        List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId);        
+        List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId);
     }
 }

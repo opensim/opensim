@@ -41,9 +41,9 @@ namespace OpenGridServices.Manager
         private string ServerURL;
         public LLUUID SessionID;
         public bool connected=false;
-        
+
         public RegionBlock[][] WorldMap;
-        
+
         public bool Connect(string GridServerURL, string username, string password)
         {
             try
@@ -76,14 +76,14 @@ namespace OpenGridServices.Manager
                 return false;
             }
         }
-        
+
         public void DownloadMap()
         {
             System.Net.WebClient mapdownloader = new WebClient();
             Stream regionliststream = mapdownloader.OpenRead(ServerURL + "/regionlist");
-            
+
             RegionBlock TempRegionData;
-            
+
             XmlDocument doc = new XmlDocument();
             doc.Load(regionliststream);
             regionliststream.Close();
@@ -105,12 +105,12 @@ namespace OpenGridServices.Manager
                 }
             }
         }
-        
+
         public bool RestartServer()
         {
             return true;
         }
-        
+
         public bool ShutdownServer()
         {
             try
@@ -137,7 +137,7 @@ namespace OpenGridServices.Manager
                 return false;
             }
         }
-    
+
         public void DisconnectServer()
         {
             this.connected=false;

@@ -286,7 +286,7 @@ namespace OpenSim.Region.Physics.Meshing
             // It's not quite clear what pushY (Y top shear) does, but subtracting it from the start and end
             // angles appears to approximate it's effects on path cut. Likewise, adding it to the angle used
             // to calculate the sine for generating the path radius appears to approximate it's effects there
-            // too, but there are some subtle differences in the radius which are noticeable as the prim size 
+            // too, but there are some subtle differences in the radius which are noticeable as the prim size
             // increases and it may affect megaprims quite a bit. The effect of the Y top shear parameter on
             // the meshes generated with this technique appear nearly identical in shape to the same prims when
             // displayed by the viewer.
@@ -369,28 +369,26 @@ namespace OpenSim.Region.Physics.Meshing
                 float yOffset;
                 float zOffset;
 
-                
                 xOffset = 0.5f * (skewStart + totalSkew * (float)percentOfPath);
                 xOffset += (float) System.Math.Sin(angle) * pushX * 0.45f;
                 yOffset = (float)(System.Math.Cos(angle) * (0.5f - yPathScale)) * radiusScale;
                 zOffset = (float)(System.Math.Sin(angle + pushY * 0.9f) * (0.5f - yPathScale)) * radiusScale;
 
-
-                    // next apply twist rotation to the profile layer
-                    if (twistTotal != 0.0f || twistBot != 0.0f)
+                // next apply twist rotation to the profile layer
+                if (twistTotal != 0.0f || twistBot != 0.0f)
+                {
+                    Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), twist);
+                    foreach (Vertex v in newLayer.vertices)
                     {
-                        Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), twist);
-                        foreach (Vertex v in newLayer.vertices)
+                        if (v != null)
                         {
-                            if (v != null)
-                            {
-                                vTemp = v * profileRot;
-                                v.X = vTemp.X;
-                                v.Y = vTemp.Y;
-                                v.Z = vTemp.Z;
-                            }
+                            vTemp = v * profileRot;
+                            v.X = vTemp.X;
+                            v.Y = vTemp.Y;
+                            v.Z = vTemp.Z;
                         }
                     }
+                }
 
                 // now orient the rotation of the profile layer relative to it's position on the path
                 // adding pushY to the angle used to generate the quat appears to approximate the viewer

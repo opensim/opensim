@@ -170,7 +170,7 @@ namespace OpenSim.Framework
         void RemoveAttachment(LLUUID user, LLUUID item);
         List<LLUUID> GetAttachments(LLUUID user);
     }
-    
+
     public class UserDataInitialiser : PluginInitialiserBase
     {
         private string connect;

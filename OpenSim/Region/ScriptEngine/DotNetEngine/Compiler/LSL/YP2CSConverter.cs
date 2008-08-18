@@ -61,7 +61,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 myCode = myCode.Substring(0, cs_pointer);
             }
             myCode.Replace("//yp", "%YPCode");
-            
+
             StringWriter myCS_SW = new StringWriter();
             StringReader myCode_SR = new StringReader(" yp_nop_header_nop. \n "+myCode + "\n");
 

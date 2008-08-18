@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private string m_inventoryFileName = String.Empty;
         private int m_inventoryFileNameSerial = 0;
-        
+
         /// <summary>
         /// Serial count for inventory file , used to tell if inventory has changed
         /// no need for this to be part of Database backup
@@ -53,13 +53,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Holds in memory prim inventory
         /// </summary>
-        protected TaskInventoryDictionary m_taskInventory = new TaskInventoryDictionary();      
+        protected TaskInventoryDictionary m_taskInventory = new TaskInventoryDictionary();
 
         /// <summary>
         /// Tracks whether inventory has changed since the last persistent backup
         /// </summary>
         protected bool HasInventoryChanged;
-        
+
         /// <summary>
         /// Force the task inventory of this prim to persist at the next update sweep
         /// </summary>
@@ -308,7 +308,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (i.InvType == (int)InventoryType.LSL)
                         RemoveScriptInstance(i.ItemID);
-                    
+
                     RemoveInventoryItem(i.ItemID);
                     break;
                 }
@@ -316,7 +316,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             AddInventoryItem(item.Name, item);
         }
-        
+
         /// <summary>
         /// Add an item to this prim's inventory.
         /// </summary>
@@ -329,7 +329,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             item.ParentID = UUID;
             item.ParentPartID = UUID;
-            
+
             lock (m_taskInventory)
             {
                 m_taskInventory.Add(item.ItemID, item);
@@ -339,7 +339,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_inventorySerial++;
             //m_inventorySerial += 2;
             HasInventoryChanged = true;
-            ParentGroup.HasGroupChanged = true;                    
+            ParentGroup.HasGroupChanged = true;
         }
 
         /// <summary>
@@ -369,10 +369,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <returns>null if the item does not exist</returns>
         public TaskInventoryItem GetInventoryItem(LLUUID itemId)
-        {            
+        {
             TaskInventoryItem item;
             m_taskInventory.TryGetValue(itemId, out item);
-            
+
             return item;
         }
 
@@ -450,12 +450,12 @@ namespace OpenSim.Region.Environment.Scenes
                         }
 
                     }
-                    
+
                     if (scriptcount <= 0)
                     {
                         RemFlag(LLObject.ObjectFlags.Scripted);
                     }
-                    
+
                     ScheduleFullUpdate();
 
                     return type;
@@ -603,7 +603,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void ProcessInventoryBackup(IRegionDataStore datastore)
         {
             if (HasInventoryChanged)
-            {                                
+            {
                 lock (TaskInventory)
                 {
                     datastore.StorePrimInventory(UUID, TaskInventory.Values);

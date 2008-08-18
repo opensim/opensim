@@ -48,6 +48,5 @@ namespace OpenSim.Region.Physics.Manager
         int[] getIndexListAsIntLocked();
         float[] getVertexListAsFloatLocked();
         void releasePinned();
-        
     }
 }

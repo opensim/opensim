@@ -62,7 +62,7 @@ namespace OpenSim.Framework
     public delegate void ModifyTerrain(
         float height, float seconds, byte size, byte action, float north, float west, float south, float east,
         IClientAPI remoteClient);
-    
+
     public delegate void SetAppearance(byte[] texture, List<byte> visualParamList);
 
     public delegate void StartAnim(IClientAPI remoteClient, LLUUID animID);
@@ -295,7 +295,7 @@ namespace OpenSim.Framework
     public delegate void EstateTeleportOneUserHomeRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID prey);
     public delegate void RegionHandleRequest(IClientAPI remoteClient, LLUUID regionID);
     public delegate void ParcelInfoRequest(IClientAPI remoteClient, LLUUID parcelID);
-    
+
     public delegate void ScriptReset(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
     public delegate void GetScriptRunning(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
     public delegate void SetScriptRunning(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, bool running);
@@ -322,9 +322,9 @@ namespace OpenSim.Framework
         ulong ActiveGroupPowers { get; }
 
         ulong GetGroupPowers(LLUUID groupID);
-        
+
         string FirstName { get; }
-        
+
         string LastName { get; }
 
         IScene Scene { get; }
@@ -501,7 +501,7 @@ namespace OpenSim.Framework
         event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
         event UUIDNameRequest OnUUIDGroupNameRequest;
-        
+
         event RegionHandleRequest OnRegionHandleRequest;
         event ParcelInfoRequest OnParcelInfoRequest;
 
@@ -724,10 +724,10 @@ namespace OpenSim.Framework
         ClientInfo GetClientInfo();
         void SetClientInfo(ClientInfo info);
         void Terminate();
-        
+
         void SendSetFollowCamProperties(LLUUID objectID, SortedDictionary<int, float> parameters);
         void SendClearFollowCamProperties(LLUUID objectID);
-        
+
         void SendRegionHandle(LLUUID regoinID, ulong handle);
         void SendParcelInfo(RegionInfo info, LandData land, LLUUID parcelID, uint x, uint y);
     }

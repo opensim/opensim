@@ -226,7 +226,7 @@ namespace OpenSim.Framework
         private LLUUID _permsGranter;
         private int _permsMask;
         private int _type = 0;
-        
+
         public LLUUID AssetID {
             get {
                 return _assetID;

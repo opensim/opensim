@@ -79,7 +79,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="response">The existing response</param>
         /// <param name="theUser">The user profile</param>
         public abstract void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest);
-        
+
         /// <summary>
         /// If the user is already logged in, try to notify the region that the user they've got is dead.
         /// </summary>
@@ -206,12 +206,11 @@ namespace OpenSim.Framework.Communications
                         userProfile.CurrentAgent.AgentOnline = false;
 
                         m_userManager.CommitAgent(ref userProfile);
-                            
+
                         // try to tell the region that their user is dead.
                         LogOffUser(userProfile, " XMLRPC You were logged off because you logged in from another location");
-                        
+
                         // Reject the login
-                        
 
                         m_log.InfoFormat(
                             "[LOGIN END]:  XMLRPC Notifying user {0} {1} that they are already logged in",
@@ -293,7 +292,7 @@ namespace OpenSim.Framework.Communications
                             //return logResponse.ToXmlRpcResponse();
                         }
 
-                        userProfile.LastLogin = userProfile.CurrentAgent.LoginTime; 
+                        userProfile.LastLogin = userProfile.CurrentAgent.LoginTime;
                         CommitAgent(ref userProfile);
 
                         // If we reach this point, then the login has successfully logged onto the grid

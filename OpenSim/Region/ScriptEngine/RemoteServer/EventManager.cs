@@ -53,12 +53,12 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
         public EventManager(ScriptEngine _ScriptEngine)
         {
             myScriptEngine = _ScriptEngine;
-            
+
             m_TCPClient = new TCPClient();
             RPC = new TRPC_Remote(m_TCPClient);
             RPC.ReceiveCommand += new TRPC_Remote.ReceiveCommandDelegate(RPC_ReceiveCommand);
             myScriptServerID = m_TCPClient.ConnectAndReturnID(remoteHost, remotePort);
-            
+
             myScriptEngine.Log.Info("[RemoteEngine]: Hooking up to server events");
             //myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
             myScriptEngine.World.EventManager.OnRezScript += OnRezScript;

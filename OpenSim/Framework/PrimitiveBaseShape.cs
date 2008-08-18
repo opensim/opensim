@@ -128,7 +128,7 @@ namespace OpenSim.Framework
         [XmlIgnore] private bool _flexiEntry = false;
         [XmlIgnore] private bool _lightEntry = false;
         [XmlIgnore] private bool _sculptEntry = false;
-        
+
         public byte ProfileCurve
         {
             get { return (byte)((byte)HollowShape | (byte)ProfileShape); }
@@ -185,10 +185,10 @@ namespace OpenSim.Framework
         [XmlIgnore]
         public LLObject.TextureEntry Textures
         {
-            get 
-            { 
+            get
+            {
                 //m_log.DebugFormat("[PRIMITIVE BASE SHAPE]: get m_textureEntry length {0}", m_textureEntry.Length);
-                return new LLObject.TextureEntry(m_textureEntry, 0, m_textureEntry.Length); 
+                return new LLObject.TextureEntry(m_textureEntry, 0, m_textureEntry.Length);
             }
 
             set { m_textureEntry = value.ToBytes(); }
@@ -198,12 +198,12 @@ namespace OpenSim.Framework
         {
             get { return m_textureEntry; }
 
-            set 
-            { 
-                if (value == null) 
+            set
+            {
+                if (value == null)
                     m_textureEntry = new byte[1];
-                else 
-                    m_textureEntry = value; 
+                else
+                    m_textureEntry = value;
             }
         }
 
@@ -302,7 +302,7 @@ namespace OpenSim.Framework
             _profileBegin = LLObject.PackBeginCut(profileRange.X);
             _profileEnd = LLObject.PackEndCut(profileRange.Y);
         }
-        
+
         public byte[] ExtraParams
         {
             get
@@ -941,7 +941,7 @@ namespace OpenSim.Framework
 
             return data;
         }
-        
+
         public void ReadFlexiData(byte[] data, int pos)
         {
             if (data.Length-pos >= 16)
@@ -972,7 +972,7 @@ namespace OpenSim.Framework
                 _flexiForceZ = 0f;
             }
         }
-        
+
         public byte[] GetFlexiBytes()
         {
             byte[] data = new byte[16];
@@ -991,7 +991,7 @@ namespace OpenSim.Framework
 
             return data;
         }
-        
+
         public void ReadLightData(byte[] data, int pos)
         {
             if (data.Length - pos >= 16)
@@ -1021,7 +1021,7 @@ namespace OpenSim.Framework
                 _lightIntensity = 0f;
             }
         }
-        
+
         public byte[] GetLightBytes()
         {
             byte[] data = new byte[16];

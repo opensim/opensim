@@ -63,7 +63,7 @@ namespace OpenSim.Data.MSSQL
                 database.ExecuteResourceSql("CreateAssetsTable.sql");
                 return;
             }
-            
+
         }
 
         /// <summary>
@@ -230,7 +230,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// Database provider version. 
+        /// Database provider version.
         /// </summary>
         override public string Version
         {
@@ -238,7 +238,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// The name of this DB provider. 
+        /// The name of this DB provider.
         /// </summary>
         override public string Name
         {

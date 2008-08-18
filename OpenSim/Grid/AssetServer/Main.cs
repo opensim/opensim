@@ -83,7 +83,7 @@ namespace OpenSim.Grid.AssetServer
         public override void Startup()
         {
             base.Startup();
-            
+
             AssetConfig config = new AssetConfig("ASSET SERVER", (Path.Combine(Util.configDir(), "AssetServer_Config.xml")));
 
             m_log.Info("[ASSET]: Setting up asset DB");
@@ -115,17 +115,17 @@ namespace OpenSim.Grid.AssetServer
 
         public IAssetProviderPlugin LoadDatabasePlugin(string provider, string connect)
         {
-            PluginLoader<IAssetProviderPlugin> loader = 
+            PluginLoader<IAssetProviderPlugin> loader =
                 new PluginLoader<IAssetProviderPlugin> (new AssetDataInitialiser (connect));
 
-            // loader will try to load all providers (MySQL, MSSQL, etc) 
+            // loader will try to load all providers (MySQL, MSSQL, etc)
             // unless it is constrainted to the correct "Provider" entry in the addin.xml
             loader.Add ("/OpenSim/AssetData", new PluginProviderFilter (provider));
             loader.Load();
 
             return loader.Plugin;
         }
-        
+
         public void setupDB(AssetConfig config)
         {
             try

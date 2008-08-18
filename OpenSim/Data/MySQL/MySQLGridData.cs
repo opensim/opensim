@@ -49,8 +49,8 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         private MySQLManager database;
 
-        override public void Initialise() 
-        { 
+        override public void Initialise()
+        {
             m_log.Info("[MySQLGridData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
@@ -253,7 +253,7 @@ namespace OpenSim.Data.MySQL
                 return null;
             }
         }
-       
+
         /// <summary>
         /// Returns a sim profile from it's UUID
         /// </summary>

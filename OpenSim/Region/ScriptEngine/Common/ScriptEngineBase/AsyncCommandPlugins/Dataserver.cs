@@ -88,7 +88,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
             {
                 if (!DataserverRequests.ContainsKey(identifier))
                     return;
-                
+
                 ds=DataserverRequests[identifier];
                 DataserverRequests.Remove(identifier);
             }

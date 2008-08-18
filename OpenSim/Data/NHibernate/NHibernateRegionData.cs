@@ -89,10 +89,10 @@ namespace OpenSim.Data.NHibernate
             using (MemoryStream stream =
                    HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
                 cfg.AddInputStream(stream);
-            
+
             factory  = cfg.BuildSessionFactory();
             session = factory.OpenSession();
-            
+
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
             Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "RegionStore");
@@ -113,7 +113,7 @@ namespace OpenSim.Data.NHibernate
         {
             return null;
         }
-        
+
         // This looks inefficient, but it turns out that it isn't
         // based on trial runs with nhibernate 1.2
         private void SaveOrUpdate(SceneObjectPart p)
@@ -164,7 +164,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="regionUUID">the region UUID</param>
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
-            try 
+            try
             {
                 foreach (SceneObjectPart part in obj.Children.Values)
                 {
@@ -173,7 +173,7 @@ namespace OpenSim.Data.NHibernate
                 }
                 session.Flush();
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 m_log.Error("Can't save: ", e);
             }
@@ -196,7 +196,7 @@ namespace OpenSim.Data.NHibernate
                     group.AddPart(p);
                     group.RootPart = p;
                 }
-                else 
+                else
                 {
                     group.AddPart(p);
                 }
@@ -232,7 +232,7 @@ namespace OpenSim.Data.NHibernate
         {
             Dictionary<LLUUID, SceneObjectGroup> SOG = new Dictionary<LLUUID, SceneObjectGroup>();
             List<SceneObjectGroup> ret = new List<SceneObjectGroup>();
-            
+
             ICriteria criteria = session.CreateCriteria(typeof(SceneObjectPart));
             criteria.Add(Expression.Eq("RegionID", regionUUID));
             criteria.AddOrder( Order.Asc("ParentID") );
@@ -246,12 +246,12 @@ namespace OpenSim.Data.NHibernate
                     group.RootPart = p;
                     SOG.Add(p.ParentUUID, group);
                 }
-                else 
+                else
                 {
                     SOG[p.ParentUUID].AddPart(p);
                 }
                 // get the inventory
-                
+
                 ICriteria InvCriteria = session.CreateCriteria(typeof(TaskInventoryItem));
                 InvCriteria.Add(Expression.Eq("ParentPartID", p.UUID));
                 IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
@@ -263,7 +263,7 @@ namespace OpenSim.Data.NHibernate
                 if (inventory.Count > 0)
                     p.RestoreInventoryItems(inventory);
             }
-            foreach (SceneObjectGroup g in SOG.Values) 
+            foreach (SceneObjectGroup g in SOG.Values)
             {
                 ret.Add(g);
             }
@@ -304,7 +304,7 @@ namespace OpenSim.Data.NHibernate
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="globalID"></param>
         public void RemoveLandObject(LLUUID globalID)
@@ -313,7 +313,7 @@ namespace OpenSim.Data.NHibernate
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="parcel"></param>
         public void StoreLandObject(ILandObject parcel)
@@ -322,7 +322,7 @@ namespace OpenSim.Data.NHibernate
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="regionUUID"></param>
         /// <returns></returns>
@@ -341,7 +341,7 @@ namespace OpenSim.Data.NHibernate
         {
             session.Flush();
         }
-        
+
         /// <summary>
         /// Load a region banlist
         /// </summary>
@@ -373,7 +373,7 @@ namespace OpenSim.Data.NHibernate
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
@@ -399,17 +399,17 @@ namespace OpenSim.Data.NHibernate
         {
              ICriteria criteria = session.CreateCriteria(typeof(TaskInventoryItem));
              criteria.Add(Expression.Eq("ParentPartID", primID));
-             try 
+             try
              {
                  foreach (TaskInventoryItem i in criteria.List())
                  {
                      session.Delete(i);
                  }
-                 
+
                  foreach (TaskInventoryItem i in items)
                  {
                      session.Save(i);
-                     
+
                  }
                  session.Flush();
              }

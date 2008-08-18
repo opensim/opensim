@@ -89,7 +89,7 @@ namespace OpenSim.Framework.Servers
 
             m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
             m_periodicDiagnosticsTimer.Enabled = true;
-            
+
             // Add ourselves to thread monitoring.  This thread will go on to become the console listening thread
             Thread.CurrentThread.Name = "ConsoleThread";
             ThreadTracker.Add(Thread.CurrentThread);
@@ -102,15 +102,15 @@ namespace OpenSim.Framework.Servers
         {
             StringBuilder sb = new StringBuilder("DIAGNOSTICS\n\n");
             sb.Append(GetUptimeReport());
-            
+
             if (m_stats != null)
             {
                 sb.Append(m_stats.Report());
             }
-            
+
             m_log.Debug(sb);
         }
-        
+
         /// <summary>
         /// Return a report about the uptime of this server
         /// </summary>
@@ -120,10 +120,10 @@ namespace OpenSim.Framework.Servers
             StringBuilder sb = new StringBuilder(String.Format("Time now is {0}\n", DateTime.Now));
             sb.Append(String.Format("Server has been running since {0}, {1}\n", m_startuptime.DayOfWeek, m_startuptime));
             sb.Append(String.Format("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime));
-            
+
             return sb.ToString();
         }
-        
+
         /// <summary>
         /// Set the level of log notices being echoed to the console
         /// </summary>
@@ -133,7 +133,7 @@ namespace OpenSim.Framework.Servers
             ILoggerRepository repository = LogManager.GetRepository();
             IAppender[] appenders = repository.GetAppenders();
             OpenSimAppender consoleAppender = null;
-            
+
             foreach (IAppender appender in appenders)
             {
                 if (appender.Name == "Console")
@@ -142,13 +142,13 @@ namespace OpenSim.Framework.Servers
                     break;
                 }
             }
-            
+
             if (null == consoleAppender)
             {
                 Notice("No appender named Console found (see the log4net config file for this executable)!");
                 return;
             }
-                
+
             if (setParams.Length > 0)
             {
                 Level consoleLevel = repository.LevelMap[setParams[0]];
@@ -160,12 +160,12 @@ namespace OpenSim.Framework.Servers
                             "{0} is not a valid logging level.  Valid logging levels are ALL, DEBUG, INFO, WARN, ERROR, FATAL, OFF",
                             setParams[0]));
             }
-            
+
             // If there is no threshold set then the threshold is effectively everything.
             Level thresholdLevel
                 = (null != consoleAppender.Threshold ? consoleAppender.Threshold : log4net.Core.Level.All);
-                                    
-            Notice(String.Format("Console log level is {0}", thresholdLevel));                        
+
+            Notice(String.Format("Console log level is {0}", thresholdLevel));
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace OpenSim.Framework.Servers
                     Notice("");
                     Notice("quit - equivalent to shutdown.");
 
-                    Notice("set log level [level] - change the console logging level only.  For example, off or debug."); 
+                    Notice("set log level [level] - change the console logging level only.  For example, off or debug.");
                     Notice("show info - show server information (e.g. startup path).");
 
                     if (m_stats != null)
@@ -219,7 +219,7 @@ namespace OpenSim.Framework.Servers
                 case "set":
                     Set(cmdparams);
                     break;
-                
+
                 case "show":
                     if (cmdparams.Length > 0)
                     {
@@ -232,8 +232,8 @@ namespace OpenSim.Framework.Servers
                     Shutdown();
                     break;
             }
-        }        
-        
+        }
+
         /// <summary>
         /// Set an OpenSim parameter
         /// </summary>
@@ -245,15 +245,15 @@ namespace OpenSim.Framework.Servers
             // Temporary while we only have one command which takes at least two parameters
             if (setArgs.Length < 2)
                 return;
-            
+
             if (setArgs[0] == "log" && setArgs[1] == "level")
             {
                 string[] setParams = new string[setArgs.Length - 2];
                 Array.Copy(setArgs, 2, setParams, 0, setArgs.Length - 2);
-                
-                SetConsoleLogLevel(setParams);           
+
+                SetConsoleLogLevel(setParams);
             }
-        }           
+        }
 
         /// <summary>
         /// Outputs to the console information about the region
@@ -276,7 +276,7 @@ namespace OpenSim.Framework.Servers
                         Notice(m_stats.Report());
                     }
                     break;
-                    
+
                 case "threads":
                     List<Thread> threads = ThreadTracker.GetThreads();
                     if (threads == null)
@@ -291,7 +291,7 @@ namespace OpenSim.Framework.Servers
                             Notice("ID: " + t.ManagedThreadId.ToString() + ", Name: " + t.Name + ", Alive: " + t.IsAlive.ToString() + ", Pri: " + t.Priority.ToString() + ", State: " + t.ThreadState.ToString());
                         }
                     }
-                    break;                    
+                    break;
 
                 case "uptime":
                     Notice(GetUptimeReport());
@@ -301,7 +301,7 @@ namespace OpenSim.Framework.Servers
                     Notice("Version: " + m_version);
                     break;
             }
-        }     
+        }
 
         /// <summary>
         /// Console output is only possible if a console has been established.

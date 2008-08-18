@@ -70,7 +70,7 @@ namespace OpenSim
         /// The file used to load and save an opensim archive if no filename has been specified
         /// </summary>
         protected const string DEFAULT_OAR_BACKUP_FILENAME = "scene_oar.tar.gz";
-        
+
         /// <summary>
         /// The file to load and save inventory if no filename has been specified
         /// </summary>
@@ -161,7 +161,7 @@ namespace OpenSim
             m_config = new OpenSimConfigSource();
             m_config.Source = new IniConfigSource();
             // IConfigSource icong;
-            
+
             //check for .INI file (either default or name passed in command line)
             if (File.Exists(Application.iniFilePath))
             {
@@ -338,7 +338,7 @@ namespace OpenSim
 
         protected void LoadPlugins()
         {
-            PluginLoader<IApplicationPlugin> loader = 
+            PluginLoader<IApplicationPlugin> loader =
                 new PluginLoader<IApplicationPlugin> (new ApplicationPluginInitialiser (this));
 
             loader.Load ("/OpenSim/Startup");
@@ -351,7 +351,7 @@ namespace OpenSim
         public override void Startup()
         {
             base.Startup();
-            
+
             m_stats = StatsManager.StartCollectingSimExtraStats();
 
             // StandAlone mode? m_sandbox is determined by !startupConfig.GetBoolean("gridmode", false)
@@ -586,7 +586,7 @@ namespace OpenSim
         public void handleRestartRegion(RegionInfo whichRegion)
         {
             m_log.Error("[OPENSIM MAIN]: Got restart signal from SceneManager");
-            
+
             // Shutting down the client server
             bool foundClientServer = false;
             int clientServerElement = 0;
@@ -660,7 +660,7 @@ namespace OpenSim
         }
 
         #endregion
-        
+
         /// <summary>
         /// Save inventory to a file.
         /// </summary>
@@ -668,49 +668,49 @@ namespace OpenSim
         protected void SaveInv(string[] cmdparams)
         {
             m_log.Error("[CONSOLE]: This command has not yet been implemented!");
-            
+
             if (cmdparams.Length < 3)
             {
                 m_log.Error("[CONSOLE]: usage is save-inv <first name> <last name> <inventory path> [<save file path>]");
                 return;
             }
-            
-            string firstName = cmdparams[0];            
+
+            string firstName = cmdparams[0];
             string lastName = cmdparams[1];
             string invPath = cmdparams[2];
             //string savePath = (cmdparams.Length > 3 ? cmdparams[3] : DEFAULT_INV_BACKUP_FILENAME);
-            
+
             UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(firstName, lastName);
             if (null == userProfile)
             {
                 m_log.ErrorFormat("[CONSOLE]: Failed to find user {0} {1}", firstName, lastName);
                 return;
-            }            
-            
+            }
+
             CachedUserInfo userInfo = m_commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
             if (null == userInfo)
             {
                 m_log.ErrorFormat("[CONSOLE]: Failed to find user info for {0} {1} {2}", firstName, lastName, userProfile.ID);
                 return;
-            }       
-            
+            }
+
             InventoryFolderImpl inventoryFolder = null;
             InventoryItemBase inventoryItem = null;
-            
+
             if (userInfo.HasReceivedInventory)
             {
                 // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
                 // itself (possibly at a small loss in efficiency).
-                string[] components 
+                string[] components
                     = invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
                 invPath = String.Empty;
                 foreach (string c in components)
                 {
                     invPath += c + InventoryFolderImpl.PATH_DELIMITER;
-                }                    
-                
+                }
+
                 invPath = invPath.Remove(invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
-                
+
                 // Annoyingly Split actually returns the original string if the input string consists only of delimiters
                 // Therefore if we still start with a / after the split, then we need the root folder
                 if (invPath.StartsWith(InventoryFolderImpl.PATH_DELIMITER))
@@ -718,10 +718,10 @@ namespace OpenSim
                     inventoryFolder = userInfo.RootFolder;
                 }
                 else
-                {                        
-                    inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);   
+                {
+                    inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);
                 }
-                
+
                 // The path may point to an item instead
                 if (inventoryFolder == null)
                 {
@@ -733,7 +733,7 @@ namespace OpenSim
                 m_log.ErrorFormat("[CONSOLE]: Have not yet received inventory info for user {0} {1} {2}", firstName, lastName, userProfile.ID);
                 return;
             }
-            
+
             if (null != inventoryFolder)
             {
                 m_log.InfoFormat("[CONSOLE]: Found folder {0} {1} at {2}", inventoryFolder.Name, inventoryFolder.ID, invPath);
@@ -746,8 +746,8 @@ namespace OpenSim
             {
                 m_log.ErrorFormat("[CONSOLE]: Could not find inventory entry at path {0}", invPath);
                 return;
-            }            
-        }        
+            }
+        }
 
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server

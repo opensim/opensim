@@ -54,13 +54,13 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly string m_mapLayerPath = "0001/";
-        
-        //private IConfig m_config; 
+
+        //private IConfig m_config;
         private Scene m_scene;
         private List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
         private int cachedTime = 0;
         private byte[] myMapImageJPEG;
-        
+
         //private int CacheRegionsDistance = 256;
 
         #region IRegionModule Members
@@ -85,7 +85,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         }
         public void PostInitialise()
         {
-            
+
         }
 
         public void Close()
@@ -102,10 +102,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         }
 
         #endregion
-    
-
-
-
 
         public void OnRegisterCaps(LLUUID agentID, Caps caps)
         {
@@ -117,9 +113,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                                                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
                                                            {
                                                                return MapLayerRequest(request, path, param,
-                                                                                             agentID, caps);
+                                                                                      agentID, caps);
                                                            }));
-            
         }
 
         /// <summary>
@@ -138,12 +133,12 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             //{
                 //m_log.DebugFormat("[MAPLAYER]: request: {0}, path: {1}, param: {2}, agent:{3}",
                                   //request, path, param,agentID.ToString());
-            
+
             // this is here because CAPS map requests work even beyond the 10,000 limit.
             ScenePresence avatarPresence = null;
 
             m_scene.TryGetAvatar(agentID, out avatarPresence);
-            
+
             if (avatarPresence != null)
             {
                 bool lookup = false;
@@ -168,7 +163,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
                     mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks((int)m_scene.RegionInfo.RegionLocX - 8, (int)m_scene.RegionInfo.RegionLocY - 8, (int)m_scene.RegionInfo.RegionLocX + 8, (int)m_scene.RegionInfo.RegionLocY + 8);
                     avatarPresence.ControllingClient.SendMapBlock(mapBlocks,0);
-                    
+
                     lock (cachedMapBlocks)
                         cachedMapBlocks = mapBlocks;
 
@@ -262,18 +257,16 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 MemoryStream imgstream = new MemoryStream();
                 Bitmap mapTexture = new Bitmap(1,1);
                 System.Drawing.Image image = (System.Drawing.Image)mapTexture;
-                
-                
+
                 try
                 {
                     // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular jpeg data
 
-
                     imgstream = new MemoryStream();
-                    
+
                     // non-async because we know we have the asset immediately.
                     AssetBase mapasset = m_scene.AssetCache.GetAsset(m_scene.RegionInfo.lastMapUUID, true);
-                    
+
                     // Decode image to System.Drawing.Image
                     image = OpenJPEG.DecodeToImage(mapasset.Data);
 
@@ -293,7 +286,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
                     myEncoderParameter = new EncoderParameter(myEncoder, 95L);
                     myEncoderParameters.Param[0] = myEncoderParameter;
-                   
+
                     // Save bitmap to stream
                     mapTexture.Save(imgstream, myImageCodecInfo, myEncoderParameters);
 
@@ -332,16 +325,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         // From msdn
         private static ImageCodecInfo GetEncoderInfo(String mimeType)
         {
-            int j;
             ImageCodecInfo[] encoders;
             encoders = ImageCodecInfo.GetImageEncoders();
-            for (j = 0; j < encoders.Length; ++j)
+            for (int j = 0; j < encoders.Length; ++j)
             {
                 if (encoders[j].MimeType == mimeType)
                     return encoders[j];
             }
             return null;
         }
-
     }
 }

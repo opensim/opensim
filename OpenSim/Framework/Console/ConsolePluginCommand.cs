@@ -30,10 +30,10 @@ using System;
 namespace OpenSim.Framework.Console
 {
     public delegate void ConsoleCommand(string[] comParams);
-    
+
     /// <summary>
     /// Holder object for a new console plugin command
-    /// 
+    ///
     /// Override the methods like Run and IsHelpfull (but the defaults might work ok.)
     /// </summary>
     public class ConsolePluginCommand
@@ -52,10 +52,10 @@ namespace OpenSim.Framework.Console
         private string[] m_cmdText;
 
         /// <summary>
-        /// Construct a new ConsolePluginCommand 
-        /// 
+        /// Construct a new ConsolePluginCommand
+        ///
         /// for use with OpenSim.RegisterConsolePluginCommand(myCmd);
-        /// 
+        ///
         /// </summary>
         /// <param name="command">in the form of "showme new commands"</param>
         /// <param name="dlg">ommand delegate used in running</param>
@@ -68,13 +68,13 @@ namespace OpenSim.Framework.Console
         }
 
         /// <summary>
-        /// Returns the match length this command has upon the 'cmdWithParams' 
+        /// Returns the match length this command has upon the 'cmdWithParams'
         /// At least a higher number for "show plugin status" then "show" would return
         /// This is used to have multi length command verbs
-        /// 
+        ///
         /// @see OopenSim.RunPluginCommands
         /// It will only run the one with the highest number
-        /// 
+        ///
         /// </summary>
         public int matchLength(string cmdWithParams)
         {
@@ -106,8 +106,8 @@ namespace OpenSim.Framework.Console
                     }
                     currentParam++;
                 }
-               
-            }           
+
+            }
             string[] sendCmdParams = cmdParams;
             if (skipParams > 0)
             {

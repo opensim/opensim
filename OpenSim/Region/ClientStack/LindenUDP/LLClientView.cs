@@ -230,7 +230,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private RegionHandleRequest handlerRegionHandleRequest = null; // OnRegionHandleRequest
         private ParcelInfoRequest handlerParcelInfoRequest = null; // OnParcelInfoRequest
-        
+
         private ScriptAnswer handlerScriptAnswer = null;
         private RequestPayPrice handlerRequestPayPrice = null;
         private ObjectDeselect handlerObjectDetach = null;
@@ -366,7 +366,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public LLClientView(EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
                           AgentCircuitManager authenSessions, LLUUID agentId, LLUUID sessionId, uint circuitCode, EndPoint proxyEP)
-        {                        
+        {
             m_moneyBalance = 1000;
 
             m_channelVersion = Helpers.StringToField(scene.GetSimulatorVersion());
@@ -378,7 +378,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_networkServer = packServer;
             // m_inventoryCache = inventoryCache;
-            m_authenticateSessionsHandler = authenSessions;            
+            m_authenticateSessionsHandler = authenSessions;
 
             m_agentId = agentId;
             m_sessionId = sessionId;
@@ -404,8 +404,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientThread.IsBackground = true;
             m_clientThread.Start();
             ThreadTracker.Add(m_clientThread);
-            
-            m_log.Info("[CLIENT]: Started up new thread to handle client UDP session");                        
+
+            m_log.Info("[CLIENT]: Started up new thread to handle client UDP session");
         }
 
         public void SetDebug(int newDebug)
@@ -457,9 +457,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Close(bool shutdownCircuit)
         {
             m_log.DebugFormat(
-                "[CLIENT]: Close has been called with shutdownCircuit = {0} on scene {1}", 
+                "[CLIENT]: Close has been called with shutdownCircuit = {0} on scene {1}",
                 shutdownCircuit, m_scene.RegionInfo.RegionName);
-            
+
             m_PacketHandler.Flush();
 
             // raise an event on the packet server to Shutdown the circuit
@@ -639,7 +639,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         # endregion
 
         protected int m_terrainCheckerCount = 0;
-        
+
         /// <summary>
         /// Event handler for check client timer
         /// Checks to ensure that the client is still connected.  If the client has failed to respond to many pings
@@ -652,15 +652,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_PacketHandler.PacketsReceived == m_PacketHandler.PacketsReceivedReported)
             {
                 m_probesWithNoIngressPackets++;
-                if ((m_probesWithNoIngressPackets > 30 && !m_clientBlocked) 
+                if ((m_probesWithNoIngressPackets > 30 && !m_clientBlocked)
                     || (m_probesWithNoIngressPackets > 90 && m_clientBlocked))
                 {
                     if (OnConnectionClosed != null)
                     {
                         m_log.WarnFormat(
-                            "[CLIENT]: Client for agent {0} {1} has stopped responding to pings.  Closing connection", 
+                            "[CLIENT]: Client for agent {0} {1} has stopped responding to pings.  Closing connection",
                             Name, AgentId);
-                        
+
                         OnConnectionClosed(this);
                     }
                 }
@@ -694,7 +694,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientPingTimer = new Timer(5000);
             m_clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
             m_clientPingTimer.Enabled = true;
-            
+
             m_scene.AddNewClient(this, true);
         }
 
@@ -764,7 +764,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     LLQueItem item = new LLQueItem();
                     item.Packet = packet;
-                    
+
                     m_PacketHandler.ProcessOutPacket(item);
 
                     // There may be a better way to do this.  Perhaps kick?  Not sure this propogates notifications to
@@ -1091,7 +1091,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int y = 0; y < 16; y++)
                 {
                     // For some terrains, sending more than one terrain patch at once results in a libsecondlife exception
-                    // see http://opensimulator.org/mantis/view.php?id=1662                     
+                    // see http://opensimulator.org/mantis/view.php?id=1662
                     //for (int x = 0; x < 16; x += 4)
                     //{
                     //    SendLayerPacket(map, y, x);
@@ -1113,7 +1113,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Sends a set of four patches (x, x+1, ..., x+3) to the client
         /// </summary>
-        /// <param name="map">heightmap</param> 
+        /// <param name="map">heightmap</param>
         /// <param name="px">X coordinate for patches 0..12</param>
         /// <param name="py">Y coordinate for patches 0..15</param>
         // private void SendLayerPacket(float[] map, int y, int x)
@@ -1147,7 +1147,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 LayerDataPacket layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
                 layerpack.Header.Zerocoded = true;
-               
+
                 OutPacket(layerpack, ThrottleOutPacketType.Land);
             }
             catch (Exception e)
@@ -1157,7 +1157,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Tell the client that the given neighbour region is ready to receive a child agent. 
+        /// Tell the client that the given neighbour region is ready to receive a child agent.
         /// </summary>
         /// <param name="neighbourHandle"></param>
         /// <param name="neighbourIP"></param>
@@ -3405,7 +3405,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="client"></param>
         /// <returns></returns>
@@ -3682,7 +3682,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>
         /// returns a byte array of the client set throttles Gets multiplied by the multiplier
-        /// 
+        ///
         /// </summary>
         /// <param name="multiplier">non 1 multiplier for subdividing the throttles between individual regions</param>
         /// <returns></returns>
@@ -3691,7 +3691,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return m_PacketHandler.PacketQueue.GetThrottlesPacked(multiplier);
         }
         /// <summary>
-        /// sets the throttles from values supplied by the client 
+        /// sets the throttles from values supplied by the client
         /// </summary>
         /// <param name="throttles"></param>
         public void SetChildAgentThrottle(byte[] throttles)
@@ -5291,24 +5291,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     case PacketType.RegionHandleRequest:
                         RegionHandleRequestPacket rhrPack = (RegionHandleRequestPacket)Pack;
-                        
+
                         handlerRegionHandleRequest = OnRegionHandleRequest;
                         if (handlerRegionHandleRequest != null)
                         {
                             handlerRegionHandleRequest(this, rhrPack.RequestBlock.RegionID);
                         }
                         break;
-                    
+
                     case PacketType.ParcelInfoRequest:
                         ParcelInfoRequestPacket pirPack = (ParcelInfoRequestPacket)Pack;
-                        
+
                         handlerParcelInfoRequest = OnParcelInfoRequest;
                         if (handlerParcelInfoRequest != null)
                         {
                             handlerParcelInfoRequest(this, pirPack.Data.ParcelID);
                         }
                         break;
-                    
+
                     case PacketType.ParcelAccessListRequest:
                         ParcelAccessListRequestPacket requestPacket = (ParcelAccessListRequestPacket)Pack;
 
@@ -6277,10 +6277,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #endregion
-        
-        
+
+
         #region Camera
-        
+
         public void SendSetFollowCamProperties (LLUUID objectID, SortedDictionary<int, float> parameters)
         {
             SetFollowCamPropertiesPacket packet = (SetFollowCamPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.SetFollowCamProperties);
@@ -6292,7 +6292,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SetFollowCamPropertiesPacket.CameraPropertyBlock block = new SetFollowCamPropertiesPacket.CameraPropertyBlock();
                 block.Type = pair.Key;
                 block.Value = pair.Value;
-                
+
                 camPropBlock[idx++] = block;
             }
             packet.CameraProperty = camPropBlock;
@@ -6314,7 +6314,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.ReplyBlock.RegionHandle = handle;
             OutPacket(reply, ThrottleOutPacketType.Land);
         }
-        
+
         public void SendParcelInfo(RegionInfo info, LandData land, LLUUID parcelID, uint x, uint y)
         {
             ParcelInfoReplyPacket reply = (ParcelInfoReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelInfoReply);
@@ -6325,16 +6325,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.Data.Desc = Helpers.StringToField(land.Description);
             reply.Data.ActualArea = land.Area;
             reply.Data.BillableArea = land.Area; // TODO: what is this?
-            
+
             // Bit 0: Mature, bit 7: on sale, other bits: no idea
             reply.Data.Flags = (byte)(
                 ((land.Flags & (uint)Parcel.ParcelFlags.MaturePublish) != 0 ? (1 << 0) : 0) +
                 ((land.Flags & (uint)Parcel.ParcelFlags.ForSale) != 0 ? (1 << 7) : 0));
-            
+
             LLVector3 pos = land.UserLocation;
             if (pos.Equals(LLVector3.Zero))
             {
-                pos = (land.AABBMax + land.AABBMin) * 0.5f; 
+                pos = (land.AABBMax + land.AABBMin) * 0.5f;
             }
             reply.Data.GlobalX = info.RegionLocX * Constants.RegionSize + x;
             reply.Data.GlobalY = info.RegionLocY * Constants.RegionSize + y;
@@ -6344,7 +6344,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.Data.Dwell = 0; // TODO: not implemented yet
             reply.Data.SalePrice = land.SalePrice;
             reply.Data.AuctionID = (int)land.AuctionID;
-            
+
             OutPacket(reply, ThrottleOutPacketType.Land);
         }
     }

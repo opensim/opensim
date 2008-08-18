@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Communications
         {
             get;
         }
-        
+
         /// <summary>
         /// Request the inventory for a user.  This is an asynchronous operation that will call the callback when the
         /// inventory has been received
@@ -102,14 +102,14 @@ namespace OpenSim.Framework.Communications
         /// Does the given user have an inventory structure?
         /// </summary>
         /// <param name="userID"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         bool HasInventoryForUser(LLUUID userID);
-        
+
         /// <summary>
         /// Retrieve the root inventory folder for the given user.
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>null if no root folder was found</returns>
-        InventoryFolderBase RequestRootFolder(LLUUID userID);        
+        InventoryFolderBase RequestRootFolder(LLUUID userID);
     }
 }

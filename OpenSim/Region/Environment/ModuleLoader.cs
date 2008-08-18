@@ -320,7 +320,7 @@ namespace OpenSim.Region.Environment
         public void UnloadModule(IRegionModule rm)
         {
             rm.Close();
-            
+
             m_loadedModules.Remove(rm);
         }
     }

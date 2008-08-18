@@ -61,20 +61,20 @@ namespace OpenSim.Grid.GridServer
         /// <param name="provider">The name of the grid server plugin DLL</param>
         public void AddPlugin(string provider, string connect)
         {
-            PluginLoader<IGridDataPlugin> gridloader = 
+            PluginLoader<IGridDataPlugin> gridloader =
                 new PluginLoader<IGridDataPlugin> (new GridDataInitialiser (connect));
 
-            PluginLoader<ILogDataPlugin> logloader = 
+            PluginLoader<ILogDataPlugin> logloader =
                 new PluginLoader<ILogDataPlugin> (new LogDataInitialiser (connect));
 
-            // loader will try to load all providers (MySQL, MSSQL, etc) 
+            // loader will try to load all providers (MySQL, MSSQL, etc)
             // unless it is constrainted to the correct "Provider" entry in the addin.xml
             gridloader.Add ("/OpenSim/GridData", new PluginProviderFilter (provider));
             logloader.Add ("/OpenSim/LogData", new PluginProviderFilter (provider));
-            
+
             gridloader.Load();
             logloader.Load();
-            
+
             _plugins = gridloader.Plugins;
             _logplugins = logloader.Plugins;
         }
@@ -382,7 +382,7 @@ namespace OpenSim.Grid.GridServer
                     string logMsg = e.Message;
                     if (e.InnerException != null)
                         logMsg += ", " + e.InnerException.Message;
-                    
+
                     m_log.WarnFormat("[LOGIN END]: {0}", logMsg);
 
                     return e.XmlRpcErrorResponse;

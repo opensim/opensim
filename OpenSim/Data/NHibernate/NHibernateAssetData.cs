@@ -93,7 +93,7 @@ namespace OpenSim.Data.NHibernate
 
             factory  = cfg.BuildSessionFactory();
             session = factory.OpenSession();
-            
+
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
             Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "AssetStore");
@@ -111,7 +111,7 @@ namespace OpenSim.Data.NHibernate
             {
                 m_log.ErrorFormat("[NHIBERNATE] no such asset {0}", uuid);
                 return null;
-            } 
+            }
             catch (Exception e)
             {
                 m_log.Error("[NHIBERNATE] unexpected exception: ", e);
@@ -121,7 +121,7 @@ namespace OpenSim.Data.NHibernate
 
         private void Save(AssetBase asset)
         {
-            try 
+            try
             {
                 // a is not used anywhere?
                 // AssetBase a = session.Load(typeof(AssetBase), asset.FullID) as AssetBase;

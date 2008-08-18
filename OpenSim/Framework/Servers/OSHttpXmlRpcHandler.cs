@@ -54,16 +54,16 @@ namespace OpenSim.Framework.Servers
         protected bool XmlRpcMethodMatch(OSHttpRequest req)
         {
             XmlRpcRequest xmlRpcRequest = null;
-            
+
             // check whether req is already reified
             // if not: reify (and post to whiteboard)
-            try 
+            try
             {
                 if (req.Whiteboard.ContainsKey("xmlrequest"))
                 {
                     xmlRpcRequest = req.Whiteboard["xmlrequest"] as XmlRpcRequest;
                 }
-                else 
+                else
                 {
                     StreamReader body = new StreamReader(req.InputStream);
                     string requestBody = body.ReadToEnd();
@@ -76,22 +76,22 @@ namespace OpenSim.Framework.Servers
                 _log.ErrorFormat("[OSHttpXmlRpcHandler] failed to deserialize XmlRpcRequest from {0}", req.ToString());
                 return false;
             }
-            
+
             // check against methodName
-            if ((null != xmlRpcRequest) 
-                && !String.IsNullOrEmpty(xmlRpcRequest.MethodName) 
+            if ((null != xmlRpcRequest)
+                && !String.IsNullOrEmpty(xmlRpcRequest.MethodName)
                 && xmlRpcRequest.MethodName == _methodName)
             {
                 _log.DebugFormat("[OSHttpXmlRpcHandler] located handler {0} for {1}", _methodName, req.ToString());
                 return true;
             }
-            
+
             return false;
         }
 
         // contains handler for processing XmlRpc Request
         private XmlRpcMethod _handler;
-        
+
         // contains XmlRpc method name
         private string _methodName;
 
@@ -112,9 +112,9 @@ namespace OpenSim.Framework.Servers
         /// can be null, in which case they are not taken into account
         /// when the handler is being looked up.
         /// </remarks>
-        public OSHttpXmlRpcHandler(XmlRpcMethod handler, string methodName, Regex path, 
+        public OSHttpXmlRpcHandler(XmlRpcMethod handler, string methodName, Regex path,
                                    Dictionary<string, Regex> headers, Regex whitelist)
-            : base(new Regex(@"^POST$", RegexOptions.IgnoreCase | RegexOptions.Compiled), path, null, headers, 
+            : base(new Regex(@"^POST$", RegexOptions.IgnoreCase | RegexOptions.Compiled), path, null, headers,
                    new Regex(@"^(text|application)/xml", RegexOptions.IgnoreCase | RegexOptions.Compiled),
                    whitelist)
         {
@@ -138,7 +138,7 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Invoked by OSHttpRequestPump.
         /// </summary>
-        public override OSHttpHandlerResult Process(OSHttpRequest request) 
+        public override OSHttpHandlerResult Process(OSHttpRequest request)
         {
             XmlRpcResponse xmlRpcResponse;
             string responseString;
@@ -148,13 +148,13 @@ namespace OpenSim.Framework.Servers
 
 
             OSHttpResponse resp = new OSHttpResponse(request);
-            try 
+            try
             {
                 // reified XmlRpcRequest must still be on the whiteboard
                 XmlRpcRequest xmlRpcRequest = request.Whiteboard["xmlrequest"] as XmlRpcRequest;
                 xmlRpcResponse = _handler(xmlRpcRequest);
                 responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
-                
+
                 resp.ContentType = "text/xml";
                 byte[] buffer = Encoding.UTF8.GetBytes(responseString);
 

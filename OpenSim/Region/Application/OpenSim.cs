@@ -90,8 +90,8 @@ namespace OpenSim
             m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (m_sandbox ? "sandbox" : "grid"));
 
             m_console = new ConsoleBase("Region", this);
-            MainConsole.Instance = m_console;            
-            
+            MainConsole.Instance = m_console;
+
             base.Startup();
 
             //Run Startup Commands
@@ -116,9 +116,9 @@ namespace OpenSim
             PrintFileToConsole("startuplogo.txt");
             RegisterCmd("echoTest", RunEchoTest, "this echos your command args to see how they are parsed");
             RegisterCmd("kickuser", KickUserCommand, "kickuser [first] [last] - attempts to log off a user from any region we are serving");
-            
+
             // For now, start at the 'root' level by default
-            ChangeSelectedRegion(new string[] {"root"});            
+            ChangeSelectedRegion(new string[] {"root"});
         }
 
         private void RunAutoTimerScript(object sender, EventArgs e)
@@ -135,7 +135,7 @@ namespace OpenSim
         {
             for (int i = 0; i < cmdparams.Length; i++)
             {
-                m_log.Info("[EchoTest]:  <arg" + i + ">"+cmdparams[i]+"</arg" + i + ">"); 
+                m_log.Info("[EchoTest]:  <arg" + i + ">"+cmdparams[i]+"</arg" + i + ">");
             }
         }
 
@@ -214,7 +214,7 @@ namespace OpenSim
         {
             base.RunCmd(command, cmdparams);
             RunPluginCommands(command , cmdparams);
-            
+
             switch (command)
             {
                 case "clear-assets":
@@ -255,7 +255,7 @@ namespace OpenSim
                     m_console.Notice("  debug scene [scripting] [collision] [physics] - Enable/Disable debug stuff, each can be True/False");
                     m_console.Notice("edit-scale [prim name] [x] [y] [z] - resize given prim");
                     m_console.Notice("export-map [filename] - save image of world map");
-                    m_console.Notice("force-update - force an update of prims in the scene");                                        
+                    m_console.Notice("force-update - force an update of prims in the scene");
                     m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
                     m_console.Notice("remove-region [name] - remove a region");
                     m_console.Notice("load-xml [filename] - load prims from XML (DEPRECATED)");
@@ -273,14 +273,14 @@ namespace OpenSim
                     m_console.Notice("config set section field value - set a config value");
                     m_console.Notice("config get section field - get a config value");
                     m_console.Notice("config save - save OpenSim.ini");
-                    m_console.Notice("terrain help - show help for terrain commands.");                    
+                    m_console.Notice("terrain help - show help for terrain commands.");
                     ShowPluginCommandsHelp(CombineParams(cmdparams, 0), m_console);
-                    
+
                     if (m_sandbox)
                     {
                         m_console.Notice("");
                         m_console.Notice("create user - adds a new user.");
-                    }                    
+                    }
 
                     break;
 
@@ -314,11 +314,11 @@ namespace OpenSim
                 case "load-oar":
                     LoadOar(cmdparams);
                     break;
-                    
+
                 case "save-oar":
                     SaveOar(cmdparams);
                     break;
-                    
+
                 case "save-inv":
                     SaveInv(cmdparams);
                     break;
@@ -343,13 +343,13 @@ namespace OpenSim
                     break;
 
                 case "create":
-                    Create(cmdparams);                    
+                    Create(cmdparams);
                     break;
 
                 case "create-region":
                     CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1],false), true);
                     break;
-                
+
                 case "remove-region":
                     string regName = CombineParams(cmdparams, 0);
 
@@ -441,7 +441,7 @@ namespace OpenSim
                         }
                     }
                     break;
-                
+
                 case "modules":
                     if (cmdparams.Length > 0)
                     {
@@ -488,7 +488,7 @@ namespace OpenSim
                         m_commsManager.AddInventoryService(cmdparams[0]);
                     }
                     break;
-                
+
                 default:
                     string[] tmpPluginArgs = new string[cmdparams.Length + 1];
                     cmdparams.CopyTo(tmpPluginArgs, 1);
@@ -498,7 +498,7 @@ namespace OpenSim
                     break;
             }
         }
-        
+
         /// <summary>
         /// Change the currently selected region.  The selected region is that operated upon by single region commands.
         /// </summary>
@@ -515,13 +515,13 @@ namespace OpenSim
             else
             {
                 m_console.Error("Usage: change-region <region name>");
-            }   
+            }
 
-            string regionName = (m_sceneManager.CurrentScene == null ? "root" : m_sceneManager.CurrentScene.RegionInfo.RegionName);                               
+            string regionName = (m_sceneManager.CurrentScene == null ? "root" : m_sceneManager.CurrentScene.RegionInfo.RegionName);
             m_console.Notice(String.Format("Currently selected region is {0}", regionName));
-            m_console.DefaultPrompt = String.Format("Region ({0}) ", regionName);                                 
+            m_console.DefaultPrompt = String.Format("Region ({0}) ", regionName);
         }
-        
+
         /// <summary>
         /// Execute switch for some of the create commands
         /// </summary>
@@ -530,7 +530,7 @@ namespace OpenSim
         {
             if (args.Length == 0)
                 return;
-            
+
             switch (args[0])
             {
                 case "user":
@@ -547,7 +547,7 @@ namespace OpenSim
         {
             if (args.Length == 0)
                 return;
-          
+
             switch (args[0])
             {
                 case "packet":
@@ -566,7 +566,7 @@ namespace OpenSim
                     }
 
                     break;
-                
+
                 case "scene":
                     if (args.Length == 4)
                     {
@@ -580,11 +580,11 @@ namespace OpenSim
                             bool collisionsOn = !Convert.ToBoolean(args[2]);
                             bool physicsOn = !Convert.ToBoolean(args[3]);
                             m_sceneManager.CurrentScene.SetSceneCoreDebug(scriptingOn, collisionsOn, physicsOn);
-                        
+
                             m_console.Notice(
-                                "CONSOLE", 
+                                "CONSOLE",
                                 String.Format(
-                                    "Set debug scene scripting = {0}, collisions = {1}, physics = {2}", 
+                                    "Set debug scene scripting = {0}, collisions = {1}, physics = {2}",
                                     !scriptingOn, !collisionsOn, !physicsOn));
                         }
                     }
@@ -592,9 +592,9 @@ namespace OpenSim
                     {
                         m_console.Error("debug scene <scripting> <collisions> <physics> (where inside <> is true/false)");
                     }
-               
-                    break;                
-                
+
+                    break;
+
                 default:
                     m_console.Error("Unknown debug");
                     break;
@@ -666,7 +666,7 @@ namespace OpenSim
                     break;
             }
         }
-        
+
         /// <summary>
         /// Create a new user
         /// </summary>
@@ -697,7 +697,7 @@ namespace OpenSim
 
             if ( cmdparams.Length < 6 )
                 regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", regY.ToString()));
-            else regY = Convert.ToUInt32(cmdparams[5]);        
+            else regY = Convert.ToUInt32(cmdparams[5]);
 
             if (null == m_commsManager.UserService.GetUserProfile(firstName, lastName))
             {
@@ -706,9 +706,9 @@ namespace OpenSim
             else
             {
                 m_log.ErrorFormat("[CONSOLE]: A user with the name {0} {1} already exists!", firstName, lastName);
-            }            
+            }
         }
-        
+
         protected void SaveXml(string[] cmdparams)
         {
             m_log.Error("[CONSOLE]: PLEASE NOTE, save-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use save-xml2, please file a mantis detailing the reason.");
@@ -721,8 +721,8 @@ namespace OpenSim
             {
                 m_sceneManager.SaveCurrentSceneToXml(DEFAULT_PRIM_BACKUP_FILENAME);
             }
-        }            
-        
+        }
+
         protected void LoadXml(string[] cmdparams)
         {
             m_log.Error("[CONSOLE]: PLEASE NOTE, load-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use load-xml2, please file a mantis detailing the reason.");
@@ -758,8 +758,8 @@ namespace OpenSim
             {
                 m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME, false, loadOffset);
             }
-        }           
-        
+        }
+
         protected void SaveXml2(string[] cmdparams)
         {
             if (cmdparams.Length > 0)
@@ -771,7 +771,7 @@ namespace OpenSim
                 m_sceneManager.SaveCurrentSceneToXml2(DEFAULT_PRIM_BACKUP_FILENAME);
             }
         }
-        
+
         protected void LoadXml2(string[] cmdparams)
         {
             if (cmdparams.Length > 0)
@@ -782,8 +782,8 @@ namespace OpenSim
             {
                 m_sceneManager.LoadCurrentSceneFromXml2(DEFAULT_PRIM_BACKUP_FILENAME);
             }
-        }           
-        
+        }
+
         /// <summary>
         /// Load a whole region from an opensim archive.
         /// </summary>
@@ -800,9 +800,9 @@ namespace OpenSim
             else
             {
                 m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
-            }            
+            }
         }
-        
+
         /// <summary>
         /// Save a region to a file, including all the assets needed to restore it.
         /// </summary>
@@ -819,8 +819,8 @@ namespace OpenSim
             else
             {
                 m_sceneManager.SaveCurrentSceneToArchive(DEFAULT_OAR_BACKUP_FILENAME);
-            }           
-        }              
+            }
+        }
 
         private static string CombineParams(string[] commandParams, int pos)
         {
@@ -835,7 +835,7 @@ namespace OpenSim
 
         /// <summary>
         /// Runs the best matching plugin command
-        /// 
+        ///
         /// returns true if a match was found, false otherwise.
         /// </summary>
         public bool RunPluginCommands(string cmd, string[] withParams)

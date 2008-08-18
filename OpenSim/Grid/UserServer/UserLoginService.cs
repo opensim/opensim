@@ -46,7 +46,7 @@ namespace OpenSim.Grid.UserServer
     public class UserLoginService : LoginService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected IInterServiceInventoryServices m_inventoryService;
 
         public event UserLoggedInAtLocation OnUserLoggedInAtLocation;
@@ -63,7 +63,7 @@ namespace OpenSim.Grid.UserServer
             m_config = config;
             m_inventoryService = inventoryService;
         }
-        
+
         public override void LogOffUser(UserProfileData theUser, string message)
         {
             RegionProfileData SimInfo = null;
@@ -72,7 +72,7 @@ namespace OpenSim.Grid.UserServer
                 SimInfo = RegionProfileData.RequestSimProfileData(
                                 theUser.CurrentAgent.Handle, m_config.GridServerURL,
                                 m_config.GridSendKey, m_config.GridRecvKey);
-                
+
                 if (SimInfo == null)
                 {
                     m_log.Error("[GRID]: Region user was in isn't currently logged in");
@@ -84,7 +84,7 @@ namespace OpenSim.Grid.UserServer
                 m_log.Error("[GRID]: Unable to look up region to log user off");
                 return;
             }
-            
+
             // Prepare notification
             Hashtable SimParams = new Hashtable();
             SimParams["agent_id"] = theUser.ID.ToString();
@@ -101,7 +101,7 @@ namespace OpenSim.Grid.UserServer
             m_log.InfoFormat(
                 "[ASSUMED CRASH]: Telling region {0} @ {1},{2} ({3}) that their agent is dead: {4}",
                 SimInfo.regionName, SimInfo.regionLocX, SimInfo.regionLocY, SimInfo.httpServerURI, theUser.FirstName + " " + theUser.SurName);
-            
+
             try
             {
                 XmlRpcRequest GridReq = new XmlRpcRequest("logoff_user", SendParams);
@@ -306,8 +306,6 @@ namespace OpenSim.Grid.UserServer
                                 theUser.FirstName, theUser.SurName);
                         }
                     }
-                
-
                 }
             }
             catch (Exception)
@@ -419,7 +417,7 @@ namespace OpenSim.Grid.UserServer
                     else
                     {
                         response.CreateDeadRegionResponse();
-                    }                    
+                    }
                 }
 
                 catch (Exception e)
@@ -432,11 +430,11 @@ namespace OpenSim.Grid.UserServer
 
         // See LoginService
         protected override InventoryData GetInventorySkeleton(LLUUID userID)
-        {           
+        {
             m_log.DebugFormat(
                  "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of user {1}",
                  m_config.InventoryUrl, userID);
-            
+
             List<InventoryFolderBase> folders = m_inventoryService.GetInventorySkeleton(userID);
 
             if (null == folders || folders.Count == 0)

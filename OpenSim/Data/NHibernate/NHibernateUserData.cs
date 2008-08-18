@@ -53,8 +53,8 @@ namespace OpenSim.Data.NHibernate
         private ISessionFactory factory;
         private ISession session;
 
-        public override void Initialise() 
-        { 
+        public override void Initialise()
+        {
             m_log.Info("[NHibernateUserData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
@@ -83,7 +83,7 @@ namespace OpenSim.Data.NHibernate
 
             factory  = cfg.BuildSessionFactory();
             session = factory.OpenSession();
-            
+
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
             Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "UserStore");
@@ -97,7 +97,7 @@ namespace OpenSim.Data.NHibernate
             {
                 user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
             }
-            catch (ObjectNotFoundException) 
+            catch (ObjectNotFoundException)
             {
                 user = null;
             }
@@ -109,12 +109,12 @@ namespace OpenSim.Data.NHibernate
         {
             UserProfileData user;
             // TODO: I'm sure I'll have to do something silly here
-            try 
+            try
             {
                 user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
                 user.CurrentAgent = GetAgentByUUID(uuid);
-            } 
-            catch (ObjectNotFoundException) 
+            }
+            catch (ObjectNotFoundException)
             {
                 user = null;
             }
@@ -144,12 +144,12 @@ namespace OpenSim.Data.NHibernate
             }
             else
             {
-                try 
+                try
                 {
                     UserAgentData old = session.Load(typeof(UserAgentData), uuid) as UserAgentData;
                     session.Delete(old);
                 }
-                catch (ObjectNotFoundException) 
+                catch (ObjectNotFoundException)
                 {
                 }
                 session.Save(agent);
@@ -174,12 +174,12 @@ namespace OpenSim.Data.NHibernate
 
         override public void AddNewUserAgent(UserAgentData agent)
         {
-            try 
+            try
             {
                 UserAgentData old = session.Load(typeof(UserAgentData), agent.ProfileID) as UserAgentData;
                 session.Delete(old);
             }
-            catch (ObjectNotFoundException) 
+            catch (ObjectNotFoundException)
             {
             }
             session.Save(agent);
@@ -287,9 +287,9 @@ namespace OpenSim.Data.NHibernate
 
         public override void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
-            if (appearance == null) 
+            if (appearance == null)
                 return;
-            
+
             appearance.Owner = user;
 
             bool exists = ExistsAppearance(user);

@@ -209,9 +209,7 @@ namespace OpenSim.Region.Physics.Manager
         public override bool Stopped
         {
             get{ return false; }
-            
         }
-
 
         public override PhysicsVector Position
         {

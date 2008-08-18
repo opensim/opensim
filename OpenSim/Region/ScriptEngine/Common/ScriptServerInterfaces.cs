@@ -73,7 +73,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             void remote_data(uint localID, LLUUID itemID);
             void http_response(uint localID, LLUUID itemID);
         }
-        
+
         public interface ServerRemotingObject
         {
             RemoteEvents Events();

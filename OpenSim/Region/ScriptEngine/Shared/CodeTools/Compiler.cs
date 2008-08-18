@@ -412,8 +412,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
         private static string CreateYPCompilerScript(string compileScript)
         {
-            
-
             compileScript = String.Empty +
                        "using OpenSim.Region.ScriptEngine.Shared.YieldProlog; " +
                         "using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\r\n" +

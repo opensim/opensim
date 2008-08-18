@@ -56,15 +56,15 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         /// <remarks>
         /// Setting this property will also set IsContentTypeSet to
-        /// true. 
+        /// true.
         /// </remarks>
         public string ContentType
         {
-            get 
-            { 
+            get
+            {
                 if (HttpServer)
                     return _httpResponse.ContentType;
-                else 
+                else
                     return _httpListenerResponse.ContentType;
             }
             set
@@ -100,11 +100,11 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public long ContentLength
         {
-            get 
-            { 
+            get
+            {
                 if (HttpServer)
                     return _httpResponse.ContentLength;
-                else 
+                else
                     return _httpListenerResponse.ContentLength64;
             }
             set
@@ -130,11 +130,11 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public Encoding ContentEncoding
         {
-            get 
-            { 
+            get
+            {
                 if (HttpServer)
                     return _httpResponse.Encoding;
-                else 
+                else
                     return _httpListenerResponse.ContentEncoding;
             }
 
@@ -142,7 +142,7 @@ namespace OpenSim.Framework.Servers
             {
                 if (HttpServer)
                     _httpResponse.Encoding = value;
-                else 
+                else
                     _httpListenerResponse.ContentEncoding = value;
             }
         }
@@ -152,8 +152,8 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public WebHeaderCollection Headers
         {
-            get 
-            { 
+            get
+            {
                 if (HttpServer)
                     return null;
                 else
@@ -166,10 +166,10 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public bool KeepAlive
         {
-            get 
-            { 
+            get
+            {
                 if (HttpServer)
-                    return _httpResponse.Connection == ConnectionType.KeepAlive; 
+                    return _httpResponse.Connection == ConnectionType.KeepAlive;
                 else
                     return _httpListenerResponse.KeepAlive;
             }
@@ -178,7 +178,7 @@ namespace OpenSim.Framework.Servers
             {
                 if (HttpServer)
                     _httpResponse.Connection = ConnectionType.KeepAlive;
-                else 
+                else
                     _httpListenerResponse.KeepAlive = value;
             }
         }
@@ -191,8 +191,8 @@ namespace OpenSim.Framework.Servers
         /// </remarks>
         public Stream OutputStream
         {
-            get 
-            { 
+            get
+            {
                 if (HttpServer)
                     return _httpResponse.Body;
                 else
@@ -205,10 +205,10 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public Stream Body
         {
-            get 
-            { 
+            get
+            {
                 if (HttpServer)
-                    return _httpResponse.Body; 
+                    return _httpResponse.Body;
                 throw new Exception("[OSHttpResponse] mixed .NET and HttpServer access");
             }
         }
@@ -228,18 +228,18 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        
+
         /// <summary>
         /// Chunk transfers.
         /// </summary>
         public bool SendChunked
         {
-            get 
-            { 
+            get
+            {
                 if (HttpServer)
                     return _httpResponse.Chunked;
                 else
-                    return _httpListenerResponse.SendChunked; 
+                    return _httpListenerResponse.SendChunked;
             }
 
             set
@@ -256,12 +256,12 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public int StatusCode
         {
-            get 
-            { 
+            get
+            {
                 if (HttpServer)
                     return (int)_httpResponse.Status;
-                else 
-                    return _httpListenerResponse.StatusCode; 
+                else
+                    return _httpListenerResponse.StatusCode;
             }
 
             set
@@ -279,12 +279,12 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public string StatusDescription
         {
-            get 
-            { 
+            get
+            {
                 if (HttpServer)
                     return _httpResponse.Reason;
                 else
-                    return _httpListenerResponse.StatusDescription; 
+                    return _httpListenerResponse.StatusDescription;
             }
 
             set
@@ -331,7 +331,7 @@ namespace OpenSim.Framework.Servers
         /// object.
         /// </summary
         /// <param name="req">Incoming OSHttpRequest to which we are
-        /// replying</param> 
+        /// replying</param>
         public OSHttpResponse(OSHttpRequest req)
         {
             _httpResponse = new HttpResponse(req.HttpClientContext, req.HttpRequest);
@@ -343,7 +343,7 @@ namespace OpenSim.Framework.Servers
         /// <param name="key">string containing the header field
         /// name</param>
         /// <param name="value">string containing the header field
-        /// value</param> 
+        /// value</param>
         public void AddHeader(string key, string value)
         {
             if (HttpServer)
@@ -361,8 +361,8 @@ namespace OpenSim.Framework.Servers
             {
                 _httpResponse.Body.Flush();
                 _httpResponse.Send();
-            } 
-            else 
+            }
+            else
             {
                 OutputStream.Close();
             }

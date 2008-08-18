@@ -143,10 +143,10 @@ namespace OpenSim.Framework.Communications.Cache
         public void Clear()
         {
             m_log.Info("[ASSET CACHE]: Clearing Asset cache");
-            
+
             if (StatsManager.SimExtraStats != null)
                 StatsManager.SimExtraStats.ClearAssetCacheStatistics();
-            
+
             Initialize();
         }
 
@@ -365,9 +365,9 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
             else
-            {                
+            {
                 if (!Assets.ContainsKey(asset.FullID))
-                {                    
+                {
                     AssetInfo assetInf = new AssetInfo(asset);
                     Assets.Add(assetInf.FullID, assetInf);
 
@@ -382,7 +382,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        /// <summary> 
+        /// <summary>
         /// Allows you to clear a specific asset by uuid out
         /// of the asset cache.  This is needed because the osdynamic
         /// texture code grows the asset cache without bounds.  The
@@ -399,8 +399,8 @@ namespace OpenSim.Framework.Communications.Cache
             if (Textures.ContainsKey(uuid))
             {
                 Textures.Remove(uuid);
-            } 
-            else if (Assets.ContainsKey(uuid)) 
+            }
+            else if (Assets.ContainsKey(uuid))
             {
                 Assets.Remove(uuid);
             }

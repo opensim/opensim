@@ -43,12 +43,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     class AssetsRequest
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         /// <summary>
         /// uuids to request
         /// </summary>
         protected ICollection<LLUUID> m_uuids;
-        
+
         /// <summary>
         /// Callback used when all the assets requested have been received.
         /// </summary>
@@ -58,7 +58,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// Assets retrieved in this request
         /// </summary>
         protected Dictionary<LLUUID, AssetBase> m_assets = new Dictionary<LLUUID, AssetBase>();
-        
+
         /// <summary>
         /// Maintain a list of assets that could not be found.  This will be passed back to the requester.
         /// </summary>
@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_assetCache = assetCache;
             m_repliesRequired = uuids.Count;
         }
-        
+
         protected internal void Execute()
         {
             // We can stop here if there are no assets to fetch
@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 m_assets[assetID] = asset;
             else
                 m_notFoundAssetUuids.Add(assetID);
-            
+
             //m_log.DebugFormat(
             //    "[ARCHIVER]: Received {0} assets and notification of {1} missing assets", m_assets.Count, m_notFoundAssetUuids.Count);
 

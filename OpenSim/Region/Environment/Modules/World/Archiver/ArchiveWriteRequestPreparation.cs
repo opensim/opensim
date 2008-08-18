@@ -52,14 +52,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         protected Scene m_scene;
         protected string m_savePath;
-        
+
         /// <summary>
         /// Used for identifying uuids embedded in scripts
         /// </summary>
-        protected static readonly Regex m_uuidRegex 
+        protected static readonly Regex m_uuidRegex
             = new Regex(
-                "[0-9a-eA-E]{8}-[0-9a-eA-E]{4}-[0-9a-eA-E]{4}-[0-9a-eA-E]{4}-[0-9a-eA-E]{12}", 
-                RegexOptions.Compiled);        
+                "[0-9a-eA-E]{8}-[0-9a-eA-E]{4}-[0-9a-eA-E]{4}-[0-9a-eA-E]{4}-[0-9a-eA-E]{12}",
+                RegexOptions.Compiled);
 
         /// <summary>
         /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
@@ -93,9 +93,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 Monitor.Pulse(this);
             }
         }
-        
+
         /// <summary>
-        /// Get an asset synchronously, potentially using an asynchronous callback.  If the 
+        /// Get an asset synchronously, potentially using an asynchronous callback.  If the
         /// asynchronous callback is used, we will wait for it to complete.
         /// </summary>
         /// <param name="uuid"></param>
@@ -118,11 +118,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     Monitor.Wait(this);
                     m_waitingForObjectAsset = false;
                 }
-            }          
-            
+            }
+
             return m_requestedObjectAsset;
         }
-        
+
         /// <summary>
         /// Record the asset uuids embedded within the given script.
         /// </summary>
@@ -138,16 +138,16 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 //m_log.DebugFormat("[ARCHIVER]: Script {0}", script);
                 MatchCollection uuidMatches = m_uuidRegex.Matches(script);
                 //m_log.DebugFormat("[ARCHIVER]: Found {0} matches in script", uuidMatches.Count);
-                
+
                 foreach (Match uuidMatch in uuidMatches)
                 {
                     LLUUID uuid = new LLUUID(uuidMatch.Value);
                     //m_log.DebugFormat("[ARCHIVER]: Recording {0} in script", uuid);
                     assetUuids[uuid] = 1;
                 }
-            }                         
+            }
         }
-        
+
         /// <summary>
         /// Record the uuids referenced by the given wearable asset
         /// </summary>
@@ -159,25 +159,25 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             //m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
             AssetWearable wearableAsset = new AssetBodypart(assetBase.Data);
             wearableAsset.Decode();
-            
+
             //m_log.DebugFormat(
             //    "[ARCHIVER]: Wearable asset {0} references {1} assets", wearableAssetUuid, wearableAsset.Textures.Count);
-            
+
             foreach (LLUUID uuid in wearableAsset.Textures.Values)
             {
                 //m_log.DebugFormat("[ARCHIVER]: Got bodypart uuid {0}", uuid);
                 assetUuids[uuid] = 1;
             }
         }
-        
+
         /// <summary>
         /// Get all the asset uuids associated with a given object.  This includes both those directly associated with
         /// it (e.g. face textures) and recursively, those of items within it's inventory (e.g. objects contained
         /// within this object).
         /// </summary>
         /// <param name="sceneObject"></param>
-        /// <param name="assetUuids"></param>        
-        protected void GetSceneObjectAssetUuids(LLUUID sceneObjectUuid, IDictionary<LLUUID, int> assetUuids)   
+        /// <param name="assetUuids"></param>
+        protected void GetSceneObjectAssetUuids(LLUUID sceneObjectUuid, IDictionary<LLUUID, int> assetUuids)
         {
             AssetBase objectAsset = GetAsset(sceneObjectUuid);
 
@@ -186,7 +186,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 string xml = Helpers.FieldToUTF8String(objectAsset.Data);
                 SceneObjectGroup sog = new SceneObjectGroup(m_scene, m_scene.RegionInfo.RegionHandle, xml);
                 GetSceneObjectAssetUuids(sog, assetUuids);
-            }            
+            }
         }
 
         /// <summary>
@@ -209,10 +209,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 try
                 {
                     LLObject.TextureEntry textureEntry = part.Shape.Textures;
-    
+
                     // Get the prim's default texture.  This will be used for faces which don't have their own texture
                     assetUuids[textureEntry.DefaultTexture.TextureID] = 1;
-    
+
                     // XXX: Not a great way to iterate through face textures, but there's no
                     // other method available to tell how many faces there actually are
                     //int i = 0;
@@ -224,15 +224,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                             assetUuids[texture.TextureID] = 1;
                         }
                     }
-                    
+
                     foreach (TaskInventoryItem tii in part.TaskInventory.Values)
                     {
                         //m_log.DebugFormat("[ARCHIVER]: Analysing item asset type {0}", tii.Type);
-                        
+
                         if (!assetUuids.ContainsKey(tii.AssetID))
                         {
                             assetUuids[tii.AssetID] = 1;
-    
+
                             if ((int)AssetType.Bodypart == tii.Type || ((int)AssetType.Clothing == tii.Type))
                             {
                                 GetWearableAssetUuids(tii.AssetID, assetUuids);
@@ -275,20 +275,20 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 if (entity is SceneObjectGroup)
                     sceneObjects.Add((SceneObjectGroup)entity);
             }
-            
+
             foreach (SceneObjectGroup sceneObject in sceneObjects)
             {
                 GetSceneObjectAssetUuids(sceneObject, assetUuids);
             }
 
             m_log.DebugFormat(
-                "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets", 
+                "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",
                 sceneObjects.Count, assetUuids.Count);
 
             // Asynchronously request all the assets required to perform this archive operation
-            ArchiveWriteRequestExecution awre 
+            ArchiveWriteRequestExecution awre
                 = new ArchiveWriteRequestExecution(
-                    sceneObjects, 
+                    sceneObjects,
                     m_scene.RequestModuleInterface<ITerrainModule>(),
                     m_scene.RequestModuleInterface<IRegionSerialiser>(),
                     m_scene.RegionInfo.RegionName,

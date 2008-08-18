@@ -50,7 +50,7 @@ namespace OpenSim.Framework
             set { m_httpPort = value; }
         }
         protected uint m_httpPort;
-        
+
         /// <summary>
         /// A well-formed URI for the host region server (namely "http://" + ExternalHostName)
         /// </summary>
@@ -58,17 +58,17 @@ namespace OpenSim.Framework
         {
             get { return m_serverURI; }
             set { m_serverURI = value; }
-        }        
+        }
         protected string m_serverURI;
 
         protected bool Allow_Alternate_Ports;
         public bool m_allow_alternate_ports;
         protected string m_externalHostName;
-        
+
         protected IPEndPoint m_internalEndPoint;
         protected uint? m_regionLocX;
         protected uint? m_regionLocY;
-        protected uint m_remotingPort;        
+        protected uint m_remotingPort;
         public LLUUID RegionID = LLUUID.Zero;
         public string RemotingAddress;
 
@@ -404,11 +404,11 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "(Sandbox Mode Only)Password for Master Avatar account",
                                                 MasterAvatarSandboxPassword, true);
-            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, 
+            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                                                 "Last Map UUID", lastMapUUID.ToString(), true);
-            configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, 
+            configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
-            
+
         }
 
         public void loadConfigurationOptions()
@@ -454,15 +454,14 @@ namespace OpenSim.Framework
                                                 shouldMasterAvatarDetailsBeAsked);
             configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                                     "Last Map UUID", lastMapUUID.ToString(), true);
-            
-            configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, 
+
+            configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
-            
         }
 
         public bool shouldMasterAvatarDetailsBeAsked(string configuration_key)
         {
-            if (MasterAvatarAssignedUUID == LLUUID.Zero)
+            return MasterAvatarAssignedUUID == LLUUID.Zero;
             {
                 return true;
             }

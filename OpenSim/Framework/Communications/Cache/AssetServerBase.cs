@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="req"></param>
         /// <returns></returns>
         /// <exception cref="System.Exception">
-        /// Thrown if the request failed for some other reason than that the 
+        /// Thrown if the request failed for some other reason than that the
         /// asset cannot be found.
         /// </exception>
         protected abstract AssetBase GetAsset(AssetRequest req);
@@ -70,7 +70,7 @@ namespace OpenSim.Framework.Communications.Cache
         protected virtual void ProcessRequest(AssetRequest req)
         {
             AssetBase asset;
-            
+
             try
             {
                 asset = GetAsset(req);
@@ -78,12 +78,12 @@ namespace OpenSim.Framework.Communications.Cache
             catch (Exception e)
             {
                 m_log.ErrorFormat("[ASSET]: Asset request for {0} threw exception {1}", req.AssetID, e);
-                
+
                 if (StatsManager.SimExtraStats != null)
                     StatsManager.SimExtraStats.AddAssetServiceRequestFailure();
-                
+
                 m_receiver.AssetNotFound(req.AssetID, req.IsTexture);
-                
+
                 return;
             }
 

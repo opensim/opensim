@@ -45,7 +45,6 @@ namespace OpenSim.Grid.ScriptServer
                 regInfo, authen, commsMan, sceneGridService, assetCach, storeManager, httpServer,
                 moduleLoader, dumpAssetsToFile, physicalPrim, sendTasksToChild, config, "")
         {
-            
         }
 
         // What does a scene have to do? :P

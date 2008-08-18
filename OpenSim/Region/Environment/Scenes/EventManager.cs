@@ -131,12 +131,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
 
-
         public delegate void SignificantClientMovement(IClientAPI remote_client);
 
         public event SignificantClientMovement OnSignificantClientMovement;
-
-
 
         public delegate void NewGridInstantMessage(GridInstantMessage message);
 
@@ -163,7 +160,7 @@ namespace OpenSim.Region.Environment.Scenes
         public event ScriptAtTargetEvent OnScriptAtTargetEvent;
 
         public delegate void ScriptNotAtTargetEvent(uint localID);
-        
+
         public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
 
         public delegate void ScriptColliding(uint localID, ColliderArgs colliders);
@@ -171,8 +168,6 @@ namespace OpenSim.Region.Environment.Scenes
         public event ScriptColliding OnScriptColliderStart;
         public event ScriptColliding OnScriptColliding;
         public event ScriptColliding OnScriptCollidingEnd;
-
-        
 
         public delegate void OnMakeChildAgentDelegate(ScenePresence presence);
         public event OnMakeChildAgentDelegate OnMakeChildAgent;
@@ -289,7 +284,6 @@ namespace OpenSim.Region.Environment.Scenes
             public int transactionID = 0;
             public int amountDebited = 0;
 
-
             public LandBuyArgs(LLUUID pagentId, LLUUID pgroupId, bool pfinal, bool pgroupOwned,
                 bool premoveContribution, int pparcelLocalID, int pparcelArea, int pparcelPrice,
                 bool pauthenticated)
@@ -305,8 +299,6 @@ namespace OpenSim.Region.Environment.Scenes
                 authenticated = pauthenticated;
             }
         }
-
-
 
         public delegate void MoneyTransferEvent(Object sender, MoneyTransferArgs e);
 
@@ -376,7 +368,6 @@ namespace OpenSim.Region.Environment.Scenes
         private ScriptColliding handlerCollidingStart = null;
         private ScriptColliding handlerColliding = null;
         private ScriptColliding handlerCollidingEnd = null;
-
 
         private SunLindenHour handlerSunGetLindenHour = null;
 
@@ -491,7 +482,6 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerObjectBeingRemovedFromScene != null)
             {
                 handlerObjectBeingRemovedFromScene(obj);
-
             }
         }
 
@@ -641,7 +631,6 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     handlerGridInstantMessageToFriends(message);
                 }
-
             }
         }
 
@@ -698,7 +687,8 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerNewInventoryItemUpdateComplete(agentID, AssetID, AssetName, userlevel);
             }
         }
-        public void TriggerLandBuy (Object sender, LandBuyArgs e)
+
+        public void TriggerLandBuy(Object sender, LandBuyArgs e)
         {
             handlerLandBuy = OnLandBuy;
             if (handlerLandBuy != null)
@@ -706,6 +696,7 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerLandBuy(sender, e);
             }
         }
+
         public void TriggerValidateLandBuy(Object sender, LandBuyArgs e)
         {
             handlerValidateLandBuy = OnValidateLandBuy;
@@ -741,6 +732,7 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerRequestChangeWaterHeight(height);
             }
         }
+
         public void TriggerAvatarKill(uint KillerObjectLocalID, ScenePresence DeadAvatar)
         {
             handlerAvatarKill = OnAvatarKilled;
@@ -756,7 +748,6 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerSignificantClientMovement != null)
             {
                 handlerSignificantClientMovement(client);
-
             }
         }
 
@@ -786,7 +777,6 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerScriptControlEvent(p, scriptUUID,  avatarID, held, _changed);
             }
         }
-
 
         public void TriggerNoticeNoLandDataFromStorage()
         {
@@ -818,26 +808,24 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
- 
-
         public void TriggerRequestParcelPrimCountUpdate()
         {
             handlerRequestParcelPrimCountUpdate = OnRequestParcelPrimCountUpdate;
             if (handlerRequestParcelPrimCountUpdate != null)
             {
                 handlerRequestParcelPrimCountUpdate();
-
             }
         }
+
         public void TriggerParcelPrimCountTainted()
         {
             handlerParcelPrimCountTainted = OnParcelPrimCountTainted;
             if (handlerParcelPrimCountTainted != null)
             {
                 handlerParcelPrimCountTainted();
-
             }
         }
+
         // this lets us keep track of nasty script events like timer, etc.
         public void TriggerTimerEvent(uint objLocalID, double Interval)
         {
@@ -845,9 +833,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerScriptTimerEvent != null)
             {
                 handlerScriptTimerEvent(objLocalID, Interval);
-
             }
-            
         }
 
         public void TriggerEstateToolsTimeUpdate(ulong regionHandle, bool FixedTime, bool useEstateTime, float LindenHour)
@@ -875,19 +861,19 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerCollidingStart != null)
                 handlerCollidingStart(localId, colliders);
         }
+
         public void TriggerScriptColliding(uint localId, ColliderArgs colliders)
         {
-
             handlerColliding = OnScriptColliding;
             if (handlerColliding != null)
                 handlerColliding(localId, colliders);
         }
+
         public void TriggerScriptCollidingEnd(uint localId, ColliderArgs colliders)
         {
             handlerCollidingEnd = OnScriptCollidingEnd;
             if (handlerCollidingEnd != null)
                 handlerCollidingEnd(localId, colliders);
         }
-
     }
 }

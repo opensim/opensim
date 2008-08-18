@@ -55,12 +55,12 @@ namespace OpenSim.Data.SQLite
         public void Initialise(string connectionString)
         {
             m_connectionString = connectionString;
-            
+
             m_log.Info("[ESTATE DB]: Sqlite - connecting: "+m_connectionString);
 
             m_connection = new SqliteConnection(m_connectionString);
             m_connection.Open();
-            
+
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(m_connection, assem, "EstateStore");
             m.Update();
@@ -77,7 +77,7 @@ namespace OpenSim.Data.SQLite
                 if (f.Name.Substring(0, 2) == "m_")
                     m_FieldMap[f.Name.Substring(2)] = f;
         }
-        
+
         private string[] FieldList
         {
             get { return new List<string>(m_FieldMap.Keys).ToArray(); }
@@ -134,7 +134,7 @@ namespace OpenSim.Data.SQLite
                 names.Remove("EstateID");
 
                 sql = "insert into estate_settings ("+String.Join(",", names.ToArray())+") values ( :"+String.Join(", :", names.ToArray())+")";
-                
+
                 cmd.CommandText = sql;
                 cmd.Parameters.Clear();
 
@@ -272,16 +272,16 @@ namespace OpenSim.Data.SQLite
         private void SaveBanList(EstateSettings es)
         {
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
-            
+
             cmd.CommandText = "delete from estateban where EstateID = :EstateID";
             cmd.Parameters.Add(":EstateID", es.EstateID.ToString());
 
             cmd.ExecuteNonQuery();
-            
+
             cmd.Parameters.Clear();
 
             cmd.CommandText = "insert into estateban (EstateID, bannedUUID, bannedIp, bannedIpHostMask, bannedNameMask) values ( :EstateID, :bannedUUID, '', '', '' )";
-            
+
             foreach (EstateBan b in es.EstateBans)
             {
                 cmd.Parameters.Add(":EstateID", es.EstateID.ToString());
@@ -295,16 +295,16 @@ namespace OpenSim.Data.SQLite
         void SaveUUIDList(uint EstateID, string table, LLUUID[] data)
         {
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
-            
+
             cmd.CommandText = "delete from "+table+" where EstateID = :EstateID";
             cmd.Parameters.Add(":EstateID", EstateID.ToString());
 
             cmd.ExecuteNonQuery();
-            
+
             cmd.Parameters.Clear();
 
             cmd.CommandText = "insert into "+table+" (EstateID, uuid) values ( :EstateID, :uuid )";
-            
+
             foreach (LLUUID uuid in data)
             {
                 cmd.Parameters.Add(":EstateID", EstateID.ToString());
@@ -336,7 +336,7 @@ namespace OpenSim.Data.SQLite
                 uuids.Add(uuid);
             }
             r.Close();
-            
+
             return uuids.ToArray();
         }
     }

@@ -144,11 +144,11 @@ namespace OpenSim.Data.MySQL
             _dbConnection.GetTableVersion(tableList);
 
             // if there is no table, return, migrations will handle it.
-            if (tableList["assets"] == null) 
+            if (tableList["assets"] == null)
                 return;
 
             // if there is a table, and we don't have a migration, set it to 1
-            if (m.Version == 0) 
+            if (m.Version == 0)
                 m.Version = 1;
         }
 
@@ -272,12 +272,12 @@ namespace OpenSim.Data.MySQL
             lock (_dbConnection)
             {
                 _dbConnection.CheckConnection();
-                
+
                 MySqlCommand cmd =
                     new MySqlCommand(
                         "SELECT id FROM assets WHERE id=?id",
                         _dbConnection.Connection);
-                
+
                 cmd.Parameters.AddWithValue("?id", uuid.ToString());
 
                 try

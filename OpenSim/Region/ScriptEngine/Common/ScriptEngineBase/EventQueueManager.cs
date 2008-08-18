@@ -126,7 +126,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// Queue containing events waiting to be executed
         /// </summary>
         public Queue<QueueItemStruct> eventQueue = new Queue<QueueItemStruct>();
-        
+
         #region " Queue structures "
         /// <summary>
         /// Queue item structure
@@ -193,7 +193,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         }
 
         #endregion
-        
+
         #region " Shutdown all threads "
         ~EventQueueManager()
         {
@@ -408,10 +408,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
                             // Set flag if script should be removed or not
                             EventQueueThread.KillCurrentScript = KillScriptOnMaxFunctionExecutionTime;
-                            
+
                             // Abort this thread
                             AbortThreadClass(EventQueueThread);
-                            
+
                             // We do not need to start another, MaintenenceThread will do that for us
                             //StartNewThreadClass();
                         }

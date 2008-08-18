@@ -37,19 +37,19 @@ namespace OpenSim.Framework.Communications.Cache
     public class InventoryFolderImpl : InventoryFolderBase
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public static readonly string PATH_DELIMITER = "/";
 
         /// <summary>
         /// Items that are contained in this folder
         /// </summary>
         public Dictionary<LLUUID, InventoryItemBase> Items = new Dictionary<LLUUID, InventoryItemBase>();
-        
+
         /// <summary>
         /// Child folders that are contained in this folder
         /// </summary>
         public Dictionary<LLUUID, InventoryFolderImpl> SubFolders = new Dictionary<LLUUID, InventoryFolderImpl>();
-        
+
         // Constructors
         public InventoryFolderImpl(InventoryFolderBase folderbase)
         {
@@ -195,15 +195,15 @@ namespace OpenSim.Framework.Communications.Cache
 
             return null;
         }
-        
+
         /// <summary>
         /// Find a folder given a PATH_DELIMITOR delimited path starting from this folder
-        /// 
+        ///
         /// This method does not handle paths that contain multiple delimitors
-        /// 
+        ///
         /// FIXME: We do not yet handle situations where folders have the same name.  We could handle this by some
         /// XPath like expression
-        /// 
+        ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
         /// </summary>
         /// <param name="path">
@@ -214,7 +214,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if (path == string.Empty)
                 return this;
-            
+
             string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
 
             lock (SubFolders)
@@ -228,19 +228,19 @@ namespace OpenSim.Framework.Communications.Cache
                             return folder;
                 }
             }
-            
+
             // We didn't find a folder with the given name
             return null;
         }
-        
+
         /// <summary>
         /// Find an item given a PATH_DELIMITOR delimited path starting from this folder.
-        /// 
+        ///
         /// This method does not handle paths that contain multiple delimitors
-        /// 
+        ///
         /// FIXME: We do not yet handle situations where folders or items have the same name.  We could handle this by some
         /// XPath like expression
-        /// 
+        ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
         /// </summary>
         /// <param name="path">
@@ -248,7 +248,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </param>
         /// <returns>null if the item is not found</returns>
         public InventoryItemBase FindItemByPath(string path)
-        {            
+        {
             string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
 
             if (components.Length == 1)
@@ -263,7 +263,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
             else
-            {                
+            {
                 lock (SubFolders)
                 {
                     foreach (InventoryFolderImpl folder in SubFolders.Values)
@@ -273,10 +273,10 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
             }
-            
+
             // We didn't find an item or intermediate folder with the given name
             return null;
-        }        
+        }
 
         /// <summary>
         /// Return a copy of the list of child items in this folder

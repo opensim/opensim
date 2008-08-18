@@ -40,14 +40,14 @@ namespace OpenSim.Data.MSSQL
     internal class MSSQLLogData : ILogDataPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         /// <summary>
         /// The database manager
         /// </summary>
         public MSSQLManager database;
 
-        public void Initialise() 
-        { 
+        public void Initialise()
+        {
             m_log.Info("[MSSQLLogData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }

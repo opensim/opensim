@@ -70,7 +70,7 @@ namespace OpenSim.Data.NHibernate
         public object NullSafeGet(IDataReader rs, string[] names, object owner)
         {
             object vector = null;
-                        
+
             int x = rs.GetOrdinal(names[0]);
             int y = rs.GetOrdinal(names[1]);
             int z = rs.GetOrdinal(names[2]);

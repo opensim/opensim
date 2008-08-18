@@ -355,8 +355,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         private static string CreateYPCompilerScript(string compileScript)
         {
-            
-
             compileScript = String.Empty +
                        "using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog; " +
                         "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;\r\n" +

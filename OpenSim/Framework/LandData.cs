@@ -39,7 +39,7 @@ namespace OpenSim.Framework
         private uint _auctionID = 0; //Unemplemented. If set to 0, not being auctioned
         private LLUUID _authBuyerID = LLUUID.Zero; //Unemplemented. Authorized Buyer's UUID
         private Parcel.ParcelCategory _category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
-        private int _claimDate = 0; 
+        private int _claimDate = 0;
         private int _claimPrice = 0; //Unemplemented
         private LLUUID _globalID = LLUUID.Zero;
         private LLUUID _groupID = LLUUID.Zero; //Unemplemented
@@ -77,7 +77,7 @@ namespace OpenSim.Framework
         private LLUUID _snapshotID = LLUUID.Zero;
         private LLVector3 _userLocation = new LLVector3();
         private LLVector3 _userLookAt = new LLVector3();
-        
+
         public LLVector3 AABBMax {
             get {
                 return _AABBMax;

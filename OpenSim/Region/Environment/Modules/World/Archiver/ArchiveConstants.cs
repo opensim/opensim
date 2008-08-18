@@ -39,33 +39,33 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// The location of the archive control file
         /// </summary>
         public static readonly string CONTROL_FILE_PATH = "archive.xml";
-        
+
         /// <summary>
         /// Path for the assets held in an archive
         /// </summary>
         public static readonly string ASSETS_PATH = "assets/";
-        
+
         /// <summary>
         /// Path for the assets metadata file
         /// </summary>
         //public static readonly string ASSETS_METADATA_PATH = "assets.xml";
-        
+
         /// <summary>
         /// Path for the prims file
         /// </summary>
         public static readonly string OBJECTS_PATH = "objects/";
-        
+
         /// <summary>
         /// Path for terrains.  Technically these may be assets, but I think it's quite nice to split them out.
         /// </summary>
         public static readonly string TERRAINS_PATH = "terrains/";
-                
+
         /// <summary>
         /// Extensions used for asset types in the archive
         /// </summary>
         public static readonly IDictionary<sbyte, string> ASSET_TYPE_TO_EXTENSION = new Dictionary<sbyte, string>();
         public static readonly IDictionary<string, sbyte> EXTENSION_TO_ASSET_TYPE = new Dictionary<string, sbyte>();
-        
+
         static ArchiveConstants()
         {
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Animation]           = "_animation.bvh";
@@ -79,11 +79,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LostAndFoundFolder]  = "_lostandfoundfolder.txt";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLBytecode]         = "_bytecode.lso";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLText]             = "_script.lsl";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Notecard]            = "_notecard.txt";            
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Notecard]            = "_notecard.txt";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Object]              = "_object.xml";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.RootFolder]          = "_rootfolder.txt";   // Not sure if we'll ever see this
 // disable warning: we know Script is obsolete, but need to support it
-// anyhow 
+// anyhow
 #pragma warning disable 0612
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Script]              = "_script.txt";   // Not sure if we'll ever see this
 #pragma warning restore 0612
@@ -93,8 +93,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV]            = "_sound.wav";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Texture]             = "_texture.jp2";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TextureTGA]          = "_texture.tga";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TrashFolder]         = "_trashfolder.txt";   // Not sure if we'll ever see this                                                            
-            
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TrashFolder]         = "_trashfolder.txt";   // Not sure if we'll ever see this
+
             EXTENSION_TO_ASSET_TYPE["_animation.bvh"] = (sbyte)AssetType.Animation;
             EXTENSION_TO_ASSET_TYPE["_bodypart.txt"] = (sbyte)AssetType.Bodypart;
             EXTENSION_TO_ASSET_TYPE["_callingcard.txt"] = (sbyte)AssetType.CallingCard;
@@ -110,7 +110,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             EXTENSION_TO_ASSET_TYPE["_object.xml"] = (sbyte)AssetType.Object;
             EXTENSION_TO_ASSET_TYPE["_rootfolder.txt"] = (sbyte)AssetType.RootFolder;
 // disable warning: we know Script is obsolete, but need to support it
-// anyhow 
+// anyhow
 #pragma warning disable 0612
             EXTENSION_TO_ASSET_TYPE["_script.txt"] = (sbyte)AssetType.Script;
 #pragma warning restore 0612

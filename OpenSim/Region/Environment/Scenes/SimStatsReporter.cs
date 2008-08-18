@@ -126,7 +126,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_report.Interval = statsUpdatesEveryMS;
             m_report.Elapsed += new ElapsedEventHandler(statsHeartBeat);
             m_report.Enabled = true;
-            
+
             if (StatsManager.SimExtraStats != null)
                 OnSendStatsResult += StatsManager.SimExtraStats.ReceiveClassicSimStatsPacket;
         }

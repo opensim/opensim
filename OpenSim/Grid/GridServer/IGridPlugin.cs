@@ -34,7 +34,7 @@ namespace OpenSim.Grid.GridServer
     {
         void Initialise(GridServerBase gridServer);
     }
-    
+
     public class GridPluginInitialiser : PluginInitialiserBase
     {
         private GridServerBase server;

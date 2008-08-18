@@ -91,8 +91,8 @@ namespace OpenSim.Framework.Communications.Cache
             get { return m_session_id; }
             set { m_session_id = value; }
         }
-        private LLUUID m_session_id = LLUUID.Zero;        
-        
+        private LLUUID m_session_id = LLUUID.Zero;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -172,7 +172,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
         }
-        
+
         /// <summary>
         /// Drop all cached inventory.
         /// </summary>

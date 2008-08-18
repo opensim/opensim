@@ -83,13 +83,11 @@ namespace OpenSim.Grid.MessagingServer
         public override void Startup()
         {
             base.Startup();
-            
+
             Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
 
             m_log.Info("[REGION]: Starting HTTP process");
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
-
-            
 
             msgsvc = new MessageService(Cfg);
 
@@ -123,7 +121,6 @@ namespace OpenSim.Grid.MessagingServer
             switch (what)
             {
                 case "user":
-
                     try
                     {
                         //userID =
@@ -161,8 +158,6 @@ namespace OpenSim.Grid.MessagingServer
                     m_console.Notice("Region cache cleared! Cleared " + entries.ToString() + " entries");
                     break;
             }
-
-                
         }
 
         public override void Shutdown()

@@ -53,7 +53,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         private Scene m_scene;
         private string m_loadPath;
-        
+
         /// <summary>
         /// Used to cache lookups for valid uuids.
         /// </summary>
@@ -68,15 +68,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         }
 
         private void DearchiveRegion()
-        {                        
-            TarArchiveReader archive 
+        {
+            TarArchiveReader archive
                 = new TarArchiveReader(
-                    new GZipStream(new FileStream(m_loadPath, FileMode.Open), CompressionMode.Decompress));           
+                    new GZipStream(new FileStream(m_loadPath, FileMode.Open), CompressionMode.Decompress));
             //AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
 
             List<string> serialisedSceneObjects = new List<string>();
             string filePath = "ERROR";
-            
+
             int successfulAssetRestores = 0;
             int failedAssetRestores = 0;
 
@@ -111,30 +111,30 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             //m_log.Debug("[ARCHIVER]: Reached end of archive");
 
             archive.Close();
-            
+
             m_log.InfoFormat("[ARCHIVER]: Restored {0} assets", successfulAssetRestores);
-            
+
             if (failedAssetRestores > 0)
                 m_log.ErrorFormat("[ARCHIVER]: Failed to load {0} assets", failedAssetRestores);
 
-            m_log.Info("[ARCHIVER]: Clearing all existing scene objects");            
+            m_log.Info("[ARCHIVER]: Clearing all existing scene objects");
             m_scene.DeleteAllSceneObjects();
-            
+
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
             IRegionSerialiser serialiser = m_scene.RequestModuleInterface<IRegionSerialiser>();
-            ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();            
+            ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
 
             foreach (string serialisedSceneObject in serialisedSceneObjects)
-            {             
+            {
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
-                
+
                 // For now, give all incoming scene objects new uuids.  This will allow scenes to be cloned
                 // on the same region server and multiple examples a single object archive to be imported
                 // to the same scene (when this is possible).
                 sceneObject.ResetIDs();
-                
+
                 // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
                 // otherwise, use the master avatar uuid instead
                 LLUUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
@@ -144,41 +144,41 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 {
                     if (!resolveUserUuid(part.CreatorID))
                         part.CreatorID = masterAvatarId;
-                    
+
                     if (!resolveUserUuid(part.OwnerID))
                         part.OwnerID = masterAvatarId;
-                    
+
                     if (!resolveUserUuid(part.LastOwnerID))
-                        part.LastOwnerID = masterAvatarId;   
-                    
+                        part.LastOwnerID = masterAvatarId;
+
                     // And zap any troublesome sit target information
                     part.SitTargetOrientation = new Quaternion(0,0,0,1);
                     part.SitTargetPosition    = new Vector3(0,0,0);
-                }                 
-                
+                }
+
                 if (m_scene.AddRestoredSceneObject(sceneObject, true, false))
-                {                        
+                {
                     sceneObjects.Add(sceneObject);
                 }
-            }            
-            
+            }
+
             m_log.InfoFormat("[ARCHIVER]: Restored {0} scene objects to the scene", sceneObjects.Count);
-            
+
             int ignoredObjects = serialisedSceneObjects.Count - sceneObjects.Count;
-            
+
             if (ignoredObjects > 0)
                 m_log.WarnFormat("[ARCHIVER]: Ignored {0} scene objects that already existed in the scene", ignoredObjects);
-                                 
+
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
-            
+
             m_log.Debug("[ARCHIVER]: Starting scripts");
-            
+
             foreach (SceneObjectGroup sceneObject in sceneObjects)
             {
                 sceneObject.CreateScriptInstances(0, true);
-            }            
+            }
         }
-        
+
         /// <summary>
         /// Look up the given user id to check whether it's one that is valid for this grid.
         /// </summary>
@@ -194,13 +194,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 else
                     m_validUserUuids.Add(uuid, false);
             }
-            
+
             if (m_validUserUuids[uuid])
                 return true;
             else
-                return false;          
+                return false;
         }
-    
+
         /// <summary>
         /// Load an asset
         /// </summary>
@@ -212,20 +212,20 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             // Right now we're nastily obtaining the lluuid from the filename
             string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
             string extension = filename.Substring(filename.LastIndexOf("_"));
-            string uuid = filename.Remove(filename.Length - extension.Length);        
-                    
+            string uuid = filename.Remove(filename.Length - extension.Length);
+
             if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
             {
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
-    
+
                 //m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
-    
+
                 AssetBase asset = new AssetBase(new LLUUID(uuid), String.Empty);
                 asset.Type = assetType;
                 asset.Data = data;
-    
+
                 m_scene.AssetCache.AddAsset(asset);
-                
+
                 return true;
             }
             else
@@ -233,11 +233,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 m_log.ErrorFormat(
                     "[ARCHIVER]: Tried to dearchive data with path {0} with an unknown type extension {1}",
                     assetPath, extension);
-                
+
                 return false;
             }
         }
-        
+
         /// <summary>
         /// Load terrain data
         /// </summary>
@@ -249,13 +249,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         private bool LoadTerrain(string terrainPath, byte[] data)
         {
             ITerrainModule terrainModule = m_scene.RequestModuleInterface<ITerrainModule>();
-            
+
             MemoryStream ms = new MemoryStream(data);
             terrainModule.LoadFromStream(terrainPath, ms);
             ms.Close();
-            
+
             m_log.DebugFormat("[ARCHIVER]: Restored terrain {0}", terrainPath);
-            
+
             return true;
         }
     }

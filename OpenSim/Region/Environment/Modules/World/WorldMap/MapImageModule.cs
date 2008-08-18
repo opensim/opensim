@@ -162,7 +162,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         {
             int tc = System.Environment.TickCount;
             m_log.Info("[MAPTILE]: Generating Maptile Step 1: Terrain");
-            
+
             double[,] hm = whichScene.Heightmap.GetDoubles();
             bool ShadowDebugContinue = true;
             //Color prim = Color.FromArgb(120, 120, 120);
@@ -247,7 +247,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                             //X
                             // .
                             //
-                            // Shade the terrain for shadows 
+                            // Shade the terrain for shadows
                             if ((x - 1 > 0) && (y - 1 > 0))
                             {
                                 hfvalue = (float)hm[x, y];
@@ -268,7 +268,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                 else if (hfdiff < -0.3f)
                                 {
                                     // We have to desaturate and blacken the land at the same time
-                                    // we use floats, colors use bytes, so shrink are space down to 
+                                    // we use floats, colors use bytes, so shrink are space down to
                                     // 0-255
 
 
@@ -368,8 +368,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             return mapbmp;
         }
-            
-        
+
+
         private Bitmap DrawObjectVolume(Scene whichScene, Bitmap mapbmp)
         {
             int tc = 0;

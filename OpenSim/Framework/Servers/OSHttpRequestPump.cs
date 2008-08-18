@@ -39,7 +39,6 @@ using System.Threading;
 using log4net;
 using HttpServer;
 
-
 namespace OpenSim.Framework.Servers
 {
     /// <summary>
@@ -58,13 +57,12 @@ namespace OpenSim.Framework.Servers
         protected Thread _engine;
 
         private int _id;
-        
+
         public string EngineID
         {
             get { return String.Format("{0} pump {1}", _server.EngineID, _id); }
         }
 
-        
         public OSHttpRequestPump(OSHttpServer server, OSHttpRequestQueue queue, int id)
         {
             _server = server;
@@ -77,7 +75,6 @@ namespace OpenSim.Framework.Servers
             _engine.Start();
 
             ThreadTracker.Add(_engine);
-
         }
 
         public static OSHttpRequestPump[] Pumps(OSHttpServer server, OSHttpRequestQueue queue, int poolSize)
@@ -104,21 +101,22 @@ namespace OpenSim.Framework.Servers
         public void Engine()
         {
             OSHttpRequest req = null;
-            
+
             while (true)
             {
-                try {
+                try
+                {
                     // dequeue an OSHttpRequest from OSHttpServer's
-                    // request queue 
+                    // request queue
                     req = _queue.Dequeue();
-                    
+
                     // get a copy of the list of registered handlers
                     List<OSHttpHandler> handlers = _server.OSHttpHandlers;
-                    
+
                     // prune list and have it sorted from most
                     // specific to least specific
                     handlers = MatchHandlers(req, handlers);
-                        
+
                     // process req: we try each handler in turn until
                     // we are either out of handlers or get back a
                     // Pass or Done
@@ -126,18 +124,18 @@ namespace OpenSim.Framework.Servers
                     foreach (OSHttpHandler h in handlers)
                     {
                         rc = h.Process(req);
-                            
+
                         // Pass: handler did not process the request,
                         // try next handler
                         if (OSHttpHandlerResult.Pass == rc) continue;
 
                         // Handled: handler has processed the request
                         if (OSHttpHandlerResult.Done == rc) break;
-                            
+
                         // hmm, something went wrong
                         throw new Exception(String.Format("[{0}] got unexpected OSHttpHandlerResult {1}", EngineID, rc));
                     }
-                    
+
                     if (OSHttpHandlerResult.Unprocessed == rc)
                     {
                         _log.InfoFormat("[{0}] OSHttpHandler: no handler registered for {1}", EngineID, req);
@@ -190,7 +188,7 @@ namespace OpenSim.Framework.Servers
                     if (null != remote)
                     {
                         Match epm = h.IPEndPointWhitelist.Match(remote.ToString());
-                        if (!epm.Success) 
+                        if (!epm.Success)
                         {
                             scoredHandlers.Remove(h);
                             continue;
@@ -201,7 +199,7 @@ namespace OpenSim.Framework.Servers
                 if (null != h.Method)
                 {
                     Match m = h.Method.Match(req.HttpMethod);
-                    if (!m.Success) 
+                    if (!m.Success)
                     {
                         scoredHandlers.Remove(h);
                         continue;
@@ -213,7 +211,7 @@ namespace OpenSim.Framework.Servers
                 if (null != h.Path)
                 {
                     Match m = h.Path.Match(req.RawUrl);
-                    if (!m.Success) 
+                    if (!m.Success)
                     {
                         scoredHandlers.Remove(h);
                         continue;
@@ -272,14 +270,15 @@ namespace OpenSim.Framework.Servers
                 {
                     return 0;
                 }
-                            
+
                 // does the content of collection[tag] match
                 // the supplied regex?
                 Match cm = regexs[tag].Match(collection[tag]);
-                if (!cm.Success) {
+                if (!cm.Success)
+                {
                     return 0;
                 }
-                        
+
                 // ok: matches
                 matched++;
                 continue;
@@ -288,7 +287,7 @@ namespace OpenSim.Framework.Servers
             return matched;
         }
 
-        [ConditionalAttribute("DEBUGGING")] 
+        [ConditionalAttribute("DEBUGGING")]
         private void LogDumpHandlerList(List<OSHttpHandler> l)
         {
             _log.DebugFormat("[{0}] OSHttpHandlerList dump:", EngineID);

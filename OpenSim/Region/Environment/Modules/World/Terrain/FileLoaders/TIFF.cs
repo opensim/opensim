@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             colours.Save(filename, ImageFormat.Tiff);
         }
-        
+
         /// <summary>
         /// Exports a stream using a System.Drawing exporter.
         /// </summary>
@@ -51,7 +51,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             Bitmap colours = CreateGrayscaleBitmapFromMap(map);
 
             colours.Save(stream, ImageFormat.Tiff);
-        }         
+        }
 
         public override string ToString()
         {

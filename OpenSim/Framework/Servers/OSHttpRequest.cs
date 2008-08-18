@@ -38,14 +38,11 @@ namespace OpenSim.Framework.Servers
 {
     public class OSHttpRequest
     {
-
-
         public string[] AcceptTypes
         {
             get { return _acceptTypes; }
         }
         private string[] _acceptTypes;
-
 
         public Encoding ContentEncoding
         {
@@ -53,26 +50,22 @@ namespace OpenSim.Framework.Servers
         }
         private Encoding _contentEncoding;
 
-
         public long ContentLength
         {
             get { return _contentLength64; }
         }
         private long _contentLength64;
 
-
         public long ContentLength64
         {
             get { return ContentLength; }
         }
-
 
         public string ContentType
         {
             get { return _contentType; }
         }
         private string _contentType;
-
 
         // public CookieCollection Cookies
         // {
@@ -92,13 +85,11 @@ namespace OpenSim.Framework.Servers
         }
         private string _httpMethod;
 
-
         public Stream InputStream
         {
             get { return _inputStream; }
         }
         private Stream _inputStream;
-
 
         // public bool IsSecureConnection
         // {
@@ -106,13 +97,11 @@ namespace OpenSim.Framework.Servers
         // }
         // private bool _isSecureConnection;
 
-
         // public bool IsAuthenticated
         // {
         //     get { return _isAuthenticated; }
         // }
         // private bool _isAuthenticated;
-
 
         public bool HasEntityBody
         {
@@ -120,13 +109,11 @@ namespace OpenSim.Framework.Servers
         }
         private bool _hasbody;
 
-
         public bool KeepAlive
         {
             get { return _keepAlive; }
         }
         private bool _keepAlive;
-
 
         public string RawUrl
         {
@@ -134,20 +121,17 @@ namespace OpenSim.Framework.Servers
         }
         private string _rawUrl;
 
-
         public Uri Url
         {
             get { return _url; }
         }
         private Uri _url;
 
-
         public string UserAgent
         {
             get { return _userAgent; }
         }
         private string _userAgent;
-
 
         public NameValueCollection QueryString
         {
@@ -161,13 +145,11 @@ namespace OpenSim.Framework.Servers
         }
         private Hashtable _query;
 
-
         public IPEndPoint RemoteIPEndPoint
         {
             get { return _ipEndPoint; }
         }
         private IPEndPoint _ipEndPoint;
-
 
         internal HttpRequest HttpRequest
         {
@@ -175,14 +157,12 @@ namespace OpenSim.Framework.Servers
         }
         private HttpRequest _request;
 
-
         internal HttpClientContext HttpClientContext
         {
             get { return _context; }
         }
         private HttpClientContext _context;
 
-        
         /// <summary>
         /// Internal whiteboard for handlers to store temporary stuff
         /// into.
@@ -193,11 +173,9 @@ namespace OpenSim.Framework.Servers
         }
         private Dictionary<string, object> _whiteboard = new Dictionary<string, object>();
 
-
         public OSHttpRequest()
         {
         }
-
 
         public OSHttpRequest(HttpListenerRequest req)
         {

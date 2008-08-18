@@ -139,7 +139,7 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
-                
+
                 // The timeout should always be significantly larger than the timeout for the grid server to request
                 // the initial status of the region before confirming registration.
                 GridResp = GridReq.Send(serversInfo.GridURL, 90000);
@@ -630,7 +630,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
 
             XmlRpcResponse resp = new XmlRpcResponse();
-            
+
             if (banned)
             {
                 m_log.InfoFormat("[OGS1 GRID SERVICES]: Denying access for user {0} {1} because user is banned",agentData.firstname,agentData.lastname);
@@ -645,7 +645,7 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.Debug("[CONNECTION DEBUGGING]: Triggering welcome for " + agentData.AgentID.ToString() + " into " + regionHandle.ToString());
                 m_localBackend.TriggerExpectUser(regionHandle, agentData);
                 m_log.Info("[OGS1 GRID SERVICES]: Welcoming new user...");
-                Hashtable respdata = new Hashtable();  
+                Hashtable respdata = new Hashtable();
                 respdata["success"] = "TRUE";
                 resp.Value = respdata;
 
@@ -1638,10 +1638,10 @@ namespace OpenSim.Region.Communications.OGS1
                 hash["region_handle"] = regionHandle.ToString();
                 hash["x"] = x.ToString();
                 hash["y"] = y.ToString();
-                
+
                 IList paramList = new ArrayList();
                 paramList.Add(hash);
-                
+
                 // this might be cached, as we probably requested it just a moment ago...
                 RegionInfo info = RequestNeighbourInfo(regionHandle);
 

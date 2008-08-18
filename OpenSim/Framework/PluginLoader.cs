@@ -47,7 +47,7 @@ namespace OpenSim.Framework
     }
 
     /// <summary>
-    /// Classes wishing to impose constraints on plugin loading must implement 
+    /// Classes wishing to impose constraints on plugin loading must implement
     /// this class and pass it to PluginLoader AddConstraint()
     /// </summary>
     public interface IPluginConstraint
@@ -75,46 +75,46 @@ namespace OpenSim.Framework
         private List<T> loaded = new List<T>();
         private List<string> extpoints = new List<string>();
         private PluginInitialiserBase initialiser;
-        
-        private Dictionary<string,IPluginConstraint> constraints 
+
+        private Dictionary<string,IPluginConstraint> constraints
             = new Dictionary<string,IPluginConstraint>();
 
-        private Dictionary<string,IPluginFilter> filters 
+        private Dictionary<string,IPluginFilter> filters
             = new Dictionary<string,IPluginFilter>();
 
-        private static readonly ILog log 
+        private static readonly ILog log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public PluginInitialiserBase Initialiser
-        { 
-            set { initialiser = value; } 
-            get { return initialiser; } 
+        {
+            set { initialiser = value; }
+            get { return initialiser; }
         }
 
-        public List<T> Plugins 
-        { 
-            get { return loaded; } 
+        public List<T> Plugins
+        {
+            get { return loaded; }
         }
 
         public T Plugin
-        { 
-            get { return (loaded.Count == 1)? loaded [0] : default (T); } 
+        {
+            get { return (loaded.Count == 1)? loaded [0] : default (T); }
         }
 
-        public PluginLoader () 
+        public PluginLoader ()
         {
             Initialiser = new PluginInitialiserBase();
             initialise_plugin_dir_ (".");
         }
 
         public PluginLoader (PluginInitialiserBase init)
-        {            
+        {
             Initialiser = init;
             initialise_plugin_dir_ (".");
         }
 
         public PluginLoader (PluginInitialiserBase init, string dir)
-        {            
+        {
             Initialiser = init;
             initialise_plugin_dir_ (dir);
         }
@@ -123,7 +123,7 @@ namespace OpenSim.Framework
         {
             if (extpoints.Contains (extpoint))
                 return;
-            
+
             extpoints.Add (extpoint);
         }
 
@@ -156,7 +156,7 @@ namespace OpenSim.Framework
         }
 
         public void Load ()
-        {            
+        {
             foreach (string ext in extpoints)
             {
                 log.Info("[PLUGINS]: Loading extension point " + ext);
@@ -169,17 +169,17 @@ namespace OpenSim.Framework
                 }
 
                 IPluginFilter filter = null;
-                
+
                 if (filters.ContainsKey (ext))
                     filter = filters [ext];
 
                 foreach (PluginExtensionNode node in AddinManager.GetExtensionNodes (ext))
                 {
                     log.Info("[PLUGINS]: Trying plugin " + node.Path);
-                    
+
                     if ((filter != null) && (filter.Apply (node) == false))
                         continue;
-                        
+
                     T plugin = (T) node.CreateInstance();
                     Initialiser.Initialise (plugin);
                     Plugins.Add (plugin);
@@ -219,7 +219,7 @@ namespace OpenSim.Framework
         private void on_addinloaderror_(object sender, AddinErrorEventArgs args)
         {
             if (args.Exception == null)
-                log.Error ("[PLUGINS]: Plugin Error: " 
+                log.Error ("[PLUGINS]: Plugin Error: "
                         + args.Message);
             else
                 log.Error ("[PLUGINS]: Plugin Error: "
@@ -229,7 +229,7 @@ namespace OpenSim.Framework
 
         private void clear_registry_ ()
         {
-            // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0) 
+            // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0)
             // occasionally seems to corrupt its addin cache
             // Hence, as a temporary solution we'll remove it before each startup
             try
@@ -252,7 +252,7 @@ namespace OpenSim.Framework
             }
         }
 
-        private static TextWriter prev_console_;        
+        private static TextWriter prev_console_;
         public void suppress_console_output_ (bool save)
         {
             if (save)
@@ -262,7 +262,7 @@ namespace OpenSim.Framework
             }
             else
             {
-                if (prev_console_ != null) 
+                if (prev_console_ != null)
                     System.Console.SetOut(prev_console_);
             }
         }
@@ -283,7 +283,7 @@ namespace OpenSim.Framework
 
         public Type TypeObject
         {
-            get 
+            get
             {
                 if (typeobj != null)
                     return typeobj;
@@ -295,9 +295,9 @@ namespace OpenSim.Framework
             }
         }
 
-        public object CreateInstance () 
-        { 
-            return Activator.CreateInstance (TypeObject); 
+        public object CreateInstance ()
+        {
+            return Activator.CreateInstance (TypeObject);
         }
     }
 
@@ -305,29 +305,29 @@ namespace OpenSim.Framework
     /// Constraint that bounds the number of plugins to be loaded.
     /// </summary>
     public class PluginCountConstraint : IPluginConstraint
-    { 
-        private int min; 
-        private int max; 
+    {
+        private int min;
+        private int max;
 
         public PluginCountConstraint (int exact)
         {
-            min = exact; 
-            max = exact; 
+            min = exact;
+            max = exact;
         }
 
-        public PluginCountConstraint (int minimum, int maximum) 
-        { 
-            min = minimum; 
-            max = maximum; 
-        } 
+        public PluginCountConstraint (int minimum, int maximum)
+        {
+            min = minimum;
+            max = maximum;
+        }
 
-        public string Message 
-        { 
-            get 
-            { 
-                return "The number of plugins is constrained to the interval [" 
-                    + min + ", " + max + "]"; 
-            } 
+        public string Message
+        {
+            get
+            {
+                return "The number of plugins is constrained to the interval ["
+                    + min + ", " + max + "]";
+            }
         }
 
         public bool Apply (string extpoint)
@@ -340,7 +340,7 @@ namespace OpenSim.Framework
             return true;
         }
     }
-    
+
     /// <summary>
     /// Filters out which plugin to load based on its "Provider", which is name given by in the addin.xml
     /// </summary>
@@ -348,7 +348,7 @@ namespace OpenSim.Framework
     {
         private string provider;
 
-        public PluginProviderFilter (string p) 
+        public PluginProviderFilter (string p)
         {
             provider = p;
         }

@@ -23,7 +23,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 using System;
@@ -42,7 +42,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
     public class Rest
     {
 
-        internal static readonly log4net.ILog  Log = 
+        internal static readonly log4net.ILog Log =
             log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         internal static bool DEBUG = Log.IsDebugEnabled;
@@ -106,7 +106,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// supported by all servers. See Respond
         /// to see how these are handled.
         /// </summary>
-        
+
         // REST AGENT 1.0 interpretations
         public const string GET     = "get";       // information retrieval - server state unchanged
         public const string HEAD    = "head";      // same as get except only the headers are returned.
@@ -138,7 +138,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         public   static   readonly char   C_PERIOD   = '.';
         public   static   readonly char   C_COMMA    = ',';
         public   static   readonly char   C_DQUOTE   = '"';
-        
+
         public   static   readonly string   CS_SPACE    = " ";
         public   static   readonly string   CS_SLASH    = "/";
         public   static   readonly string   CS_PATHSEP  = "/";
@@ -147,7 +147,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         public   static   readonly string   CS_PERIOD   = ".";
         public   static   readonly string   CS_COMMA    = ",";
         public   static   readonly string   CS_DQUOTE   = "\"";
-        
+
         public   static   readonly char[] CA_SPACE   = { C_SPACE   };
         public   static   readonly char[] CA_SLASH   = { C_SLASH   };
         public   static   readonly char[] CA_PATHSEP = { C_PATHSEP };
@@ -311,7 +311,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         public const string AS_DIGEST                     = "Digest";
 
         /// Supported Digest algorithms
- 
+
         public const string Digest_MD5                    = "MD5"; // assumedd efault if omitted
         public const string Digest_MD5Sess                = "MD5-sess";
 
@@ -359,7 +359,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             int    val = 0;
             int    sum = 0;
             string tmp = null;
-            
+
             if (hex != null)
             {
                 tmp = hex.ToLower();
@@ -446,20 +446,20 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 {
                     if (i % 4  == 0) Console.Write(" ");
                     // if (i%16 == 0) Console.Write(" ");
-                    Console.Write("  "); 
+                    Console.Write("  ");
                     buffer[i % Rest.DumpLineSize] = ' ';
                 }
                 Console.WriteLine(" |"+(new String(buffer))+"|");
             }
             else
             {
-                Console.Write("\n"); 
+                Console.Write("\n");
             }
 
         }
 
     }
-  
+
     // Local exception type
 
     public class RestException : Exception
@@ -470,8 +470,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal string httpmethod;
         internal string httppath;
 
-        public RestException(string msg) : base(msg) 
-        { 
+        public RestException(string msg) : base(msg)
+        {
         }
     }
 

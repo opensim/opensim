@@ -24,10 +24,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 using System;
 using System.Text;
- 
+
 namespace OpenSim.Framework.Statistics
 {
     /// <summary>
@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Statistics
                 string.Format(
                     "Allocated to OpenSim : {0} MB" + Environment.NewLine,
                     Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)));
-            
+
             return sb.ToString();
         }
     }

@@ -94,7 +94,7 @@ namespace OpenSim.Region.Environment.Modules
         private LLVector3 Position = new LLVector3(0,0,0);
         private LLVector3 Velocity = new LLVector3(0,0,0);
         private LLQuaternion  Tilt = new LLQuaternion(1,0,0,0);
-        
+
         private long LindenHourOffset = 0;
         private bool sunFixed = false;
 
@@ -111,7 +111,7 @@ namespace OpenSim.Region.Environment.Modules
         private float GetLindenEstateHourFromCurrentTime()
         {
             float ticksleftover = ((float)CurrentTime) % ((float)SecondsPerSunCycle);
-            
+
             float hour = (24 * (ticksleftover / SecondsPerSunCycle)) + 6;
 
             return hour;
@@ -132,7 +132,7 @@ namespace OpenSim.Region.Environment.Modules
             float hour = (24 * (ticksleftover / SecondsPerSunCycle));
 
             float offsethours = 0;
-            
+
             if (LindenHour - 6 > hour)
             {
                 offsethours = hour + ((LindenHour-6) - hour);
@@ -142,7 +142,7 @@ namespace OpenSim.Region.Environment.Modules
                 offsethours = hour - (hour - (LindenHour - 6));
             }
             //m_log.Debug("[OFFSET]: " + hour + " - " + LindenHour + " - " + offsethours.ToString());
-            
+
             LindenHourOffset = (long)((float)offsethours * (36000000000/m_day_length));
             m_log.Info("[SUN]: Directive from the Estate Tools to set the sun phase to LindenHour " + GetLindenEstateHourFromCurrentTime().ToString());
 
@@ -422,7 +422,7 @@ namespace OpenSim.Region.Environment.Modules
                 }
             }
         }
-        
+
         public void EstateToolsTimeUpdate(ulong regionHandle, bool FixedTime, bool useEstateTime, float LindenHour)
         {
             if (m_scene.RegionInfo.RegionHandle == regionHandle)

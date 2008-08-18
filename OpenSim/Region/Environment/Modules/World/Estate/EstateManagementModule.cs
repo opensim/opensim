@@ -223,7 +223,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId, false) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
                     {
                         EstateBan[] banlistcheck = m_scene.RegionInfo.EstateSettings.EstateBans;
-                        
+
                         bool alreadyInList = false;
 
                         for (int i = 0; i < banlistcheck.Length; i++)
@@ -407,8 +407,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
            args.useEstateSun = m_scene.RegionInfo.RegionSettings.UseEstateSun;
            args.waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
            args.simName = m_scene.RegionInfo.RegionName;
-           
-           
+
            remote_client.SendRegionInfoToEstateMenu(args);
         }
 
@@ -416,6 +415,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         {
             remote_client.SendEstateCovenantInformation(m_scene.RegionInfo.RegionSettings.Covenant);
         }
+
         private void HandleLandStatRequest(int parcelID, uint reportType, uint requestFlags, string filter, IClientAPI remoteClient)
         {
             Dictionary<uint, float> SceneData = new Dictionary<uint,float>();
@@ -472,7 +472,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                                         continue;
                                     }
                                 }
-                                
+
                                 SceneReport.Add(lsri);
                             }
                         }
@@ -481,7 +481,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 }
             }
             remoteClient.SendLandStatReply(reportType, requestFlags, (uint)SceneReport.Count,SceneReport.ToArray());
-            
+
             if (uuidNameLookupList.Count > 0)
                 LookupUUID(uuidNameLookupList);
         }
@@ -502,7 +502,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         private void LookupUUIDsAsync(List<LLUUID> uuidLst)
         {
             LLUUID[] uuidarr = new LLUUID[0];
-            
+
             lock (uuidLst)
             {
                 uuidarr = uuidLst.ToArray();
@@ -539,7 +539,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 if (EstateManagers[i] == remoteClient.AgentId)
                     estatemanager = true;
             }
-            
+
             args.isEstateManager = estatemanager;
 
             args.billableFactor = m_scene.RegionInfo.EstateSettings.BillableFactor;
@@ -729,11 +729,11 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             client.OnLandStatRequest += HandleLandStatRequest;
             sendRegionHandshake(client);
         }
-        
+
         public uint GetRegionFlags()
         {
             Simulator.RegionFlags flags = Simulator.RegionFlags.None;
-            
+
             // Fully implemented
             //
             if (m_scene.RegionInfo.RegionSettings.AllowDamage)

@@ -47,7 +47,7 @@ namespace OpenSim.Framework
         private RegionUp handlerRegionUp = null; // OnRegionUp;
         private LogOffUser handlerLogOffUser = null;
         private GetLandData handlerGetLandData = null;
-        
+
         #region IRegionCommsListener Members
 
         public event ExpectUserDelegate OnExpectUser;
@@ -228,13 +228,13 @@ namespace OpenSim.Framework
 
             return false;
         }
-        
+
         public LandData TriggerGetLandData(uint x, uint y)
         {
             handlerGetLandData = OnGetLandData;
             if (handlerGetLandData != null)
                 return handlerGetLandData(x, y);
-            
+
             return null;
         }
     }

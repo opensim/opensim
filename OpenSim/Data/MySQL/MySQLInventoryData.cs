@@ -48,8 +48,8 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         private MySQLManager database;
 
-        public void Initialise() 
-        { 
+        public void Initialise()
+        {
             m_log.Info("[MySQLInventoryData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
@@ -81,7 +81,7 @@ namespace OpenSim.Data.MySQL
                 string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
                 string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
                 string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
-                
+
                 database =
                     new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
                                      settingPort);
@@ -147,7 +147,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="conn">MySQL connection handler</param>
         /// <param name="m"></param>
@@ -180,7 +180,7 @@ namespace OpenSim.Data.MySQL
             // ... and set the version
             if (m.Version == 0)
                 m.Version = 1;
-            
+
         }
 
         #endregion
@@ -290,7 +290,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-     
+
         /// <summary>
         /// see <see cref="InventoryItemBase.getUserRootFolder"/>
         /// </summary>
@@ -708,10 +708,10 @@ namespace OpenSim.Data.MySQL
                  * - We will only need to hit the database twice instead of n times.
                  * - We assume the database is well-formed - no stranded/dangling folders, all folders in heirarchy owned
                  *   by the same person, each user only has 1 inventory heirarchy
-                 * - The returned list is not ordered, instead of breadth-first ordered   
+                 * - The returned list is not ordered, instead of breadth-first ordered
                There are basically 2 usage cases for getFolderHeirarchy:
                  1) Getting the user's entire inventory heirarchy when they log in
-                 2) Finding a subfolder heirarchy to delete when emptying the trash.                 
+                 2) Finding a subfolder heirarchy to delete when emptying the trash.
                This implementation will pull all inventory folders from the database, and then prune away any folder that
                is not part of the requested sub-heirarchy. The theory is that it is cheaper to make 1 request from the
                database than to make n requests. This pays off only if requested heirarchy is large.
@@ -774,7 +774,7 @@ namespace OpenSim.Data.MySQL
                             while (reader.Read())
                             {
                                 InventoryFolderBase curFolder = readInventoryFolder(reader);
-                                if (hashtable.ContainsKey(curFolder.ParentID))      // Current folder already has a sibling 
+                                if (hashtable.ContainsKey(curFolder.ParentID))      // Current folder already has a sibling
                                     hashtable[curFolder.ParentID].Add(curFolder);   // append to sibling list
                                 else // else current folder has no known (yet) siblings
                                 {

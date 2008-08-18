@@ -49,7 +49,6 @@ namespace OpenSim.Region.Examples.SimpleModule
 
             public RotatingWheel()
             {
-
             }
 
             public RotatingWheel(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID,
@@ -78,7 +77,6 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public ComplexObject()
         {
-            
         }
 
         public ComplexObject(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos)

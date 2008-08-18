@@ -141,7 +141,7 @@ namespace OpenSim.Region.Environment.Scenes
         public uint AttachmentPoint = (byte)0;
         [XmlIgnore]
         public PhysicsVector RotationAxis = new PhysicsVector(1f,1f,1f);
-        
+
         [XmlIgnore]
         public bool Undoing = false;
 
@@ -196,11 +196,11 @@ namespace OpenSim.Region.Environment.Scenes
         protected LLVector3 m_velocity;
 
         // TODO: Those have to be changed into persistent properties at some later point,
-        // or sit-camera on vehicles will break on sim-crossing. 
+        // or sit-camera on vehicles will break on sim-crossing.
         private LLVector3 m_cameraEyeOffset = new LLVector3(0.0f, 0.0f, 0.0f);
         private LLVector3 m_cameraAtOffset = new LLVector3(0.0f, 0.0f, 0.0f);
         private bool m_forceMouselook = false;
-        
+
         #endregion Fields
 
         #region Constructors
@@ -352,13 +352,13 @@ namespace OpenSim.Region.Environment.Scenes
         private uint _everyoneMask = (uint)PermissionMask.None;
         private uint _nextOwnerMask = (uint)PermissionMask.All;
         private LLObject.ObjectFlags _flags = LLObject.ObjectFlags.None;
-        
+
         public LLUUID CreatorID {
-            get 
+            get
             {
                 return _creatorID;
             }
-            set 
+            set
             {
                 _creatorID = value;
             }
@@ -390,26 +390,26 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return (uint)_flags; }
             set { _flags = (LLObject.ObjectFlags)value; }
-        }       
-        
+        }
+
         public LLUUID UUID
         {
             get { return m_uuid; }
             set { m_uuid = value; }
         }
-        
+
         public uint LocalId
         {
             get { return m_localId; }
             set { m_localId = value; }
         }
-        
+
         public virtual string Name
         {
             get { return m_name; }
             set { m_name = value; }
         }
-   
+
         public byte Material
         {
             get { return (byte) m_material; }
@@ -607,13 +607,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary></summary>
         public LLVector3 AngularVelocity
         {
-            get 
-            { 
+            get
+            {
                 if ((PhysActor != null) && PhysActor.IsPhysical)
                 {
                     m_angularVelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(), 0);
                 }
-                return m_angularVelocity; 
+                return m_angularVelocity;
             }
             set { m_angularVelocity = value; }
         }
@@ -631,7 +631,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_description; }
             set { m_description = value; }
         }
-        
+
         public Color Color
         {
             get { return m_color; }
@@ -702,7 +702,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // set of attributes on shape change.  For instance,
                 // changing the lighting on a shape shouldn't cause
                 // this.
-                if (m_shape != null) 
+                if (m_shape != null)
                     shape_changed = true;
 
                 m_shape = value;
@@ -740,7 +740,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
-       
+
 //---------------
 
 
@@ -771,7 +771,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_parentGroup; }
         }
 
-        
+
 
         public scriptEvents ScriptEvents
         {
@@ -802,8 +802,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLQuaternion SitTargetOrientationLL
         {
-            get 
-            { 
+            get
+            {
                 return new LLQuaternion(
                                         m_sitTargetOrientation.x,
                                         m_sitTargetOrientation.y,
@@ -830,97 +830,97 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public uint ParentID 
+        public uint ParentID
         {
             get { return _parentID; }
             set { _parentID = value; }
         }
 
-        public int CreationDate 
+        public int CreationDate
         {
             get { return _creationDate; }
             set { _creationDate = value; }
         }
 
-        public uint Category 
+        public uint Category
         {
             get { return _category; }
             set { _category = value; }
         }
 
-        public int SalePrice 
+        public int SalePrice
         {
             get { return _salePrice; }
             set { _salePrice = value; }
         }
 
-        public byte ObjectSaleType 
+        public byte ObjectSaleType
         {
             get { return _objectSaleType; }
             set { _objectSaleType = value; }
         }
 
-        public int OwnershipCost 
+        public int OwnershipCost
         {
             get { return _ownershipCost; }
             set { _ownershipCost = value; }
         }
 
-        public LLUUID GroupID 
+        public LLUUID GroupID
         {
             get { return _groupID; }
             set { _groupID = value; }
         }
 
-        public LLUUID OwnerID 
+        public LLUUID OwnerID
         {
             get { return _ownerID; }
             set { _ownerID = value; }
         }
 
-        public LLUUID LastOwnerID 
+        public LLUUID LastOwnerID
         {
             get { return _lastOwnerID; }
             set { _lastOwnerID = value; }
         }
 
-        public uint BaseMask 
+        public uint BaseMask
         {
             get { return _baseMask; }
             set { _baseMask = value; }
         }
 
-        public uint OwnerMask 
+        public uint OwnerMask
         {
             get { return _ownerMask; }
             set { _ownerMask = value; }
         }
 
-        public uint GroupMask 
+        public uint GroupMask
         {
             get { return _groupMask; }
             set { _groupMask = value; }
         }
 
-        public uint EveryoneMask 
+        public uint EveryoneMask
         {
             get { return _everyoneMask; }
             set { _everyoneMask = value; }
         }
 
-        public uint NextOwnerMask 
+        public uint NextOwnerMask
         {
             get { return _nextOwnerMask; }
             set { _nextOwnerMask = value; }
         }
 
-        public libsecondlife.LLObject.ObjectFlags Flags 
+        public libsecondlife.LLObject.ObjectFlags Flags
         {
             get { return _flags; }
             set { _flags = value; }
         }
 
-        public LLUUID SitTargetAvatar 
+        public LLUUID SitTargetAvatar
         {
             get { return m_sitTargetAvatar; }
             set { m_sitTargetAvatar = value; }
@@ -929,8 +929,8 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore]
         public virtual LLUUID RegionID
         {
-            get 
-            { 
+            get
+            {
                 if (ParentGroup != null && ParentGroup.Scene != null)
                     return ParentGroup.Scene.RegionInfo.RegionID;
                 else
@@ -943,9 +943,9 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore]
         public LLUUID ParentUUID
         {
-            get 
+            get
             {
-                if (ParentGroup != null) 
+                if (ParentGroup != null)
                 {
                     _parentUUID = ParentGroup.UUID;
                 }
@@ -953,7 +953,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             set { _parentUUID = value; }
         }
-        
+
         #endregion Public Properties with only Get
 
         #region Private Methods
@@ -2460,7 +2460,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     return;
                             }
                         }
-                   
+
 
 
                         if (m_parentGroup.GetSceneMaxUndo() > 0)
@@ -2914,7 +2914,7 @@ namespace OpenSim.Region.Environment.Scenes
                             ScaleOffset = Math.Abs(ScaleOffset);
                             Vector3 offset = returnresult.normal * ScaleOffset;
                             returnresult.ipoint = AXpos + offset;
-                            
+
                             ///pos = (intersectionpoint + offset);
                         }
                         else
@@ -3354,27 +3354,27 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetCameraAtOffset(LLVector3 v) {
             m_cameraAtOffset = v;
         }
-        
+
         public void SetCameraEyeOffset(LLVector3 v) {
             m_cameraEyeOffset = v;
         }
-        
+
         public void SetForceMouselook(bool force) {
             m_forceMouselook = force;
         }
-        
+
         public LLVector3 GetCameraAtOffset() {
             return m_cameraAtOffset;
         }
-        
+
         public LLVector3 GetCameraEyeOffset() {
             return m_cameraEyeOffset;
         }
-        
+
         public bool GetForceMouselook() {
             return m_forceMouselook;
         }
-        
+
         #endregion Public Methods
     }
 }

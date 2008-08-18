@@ -1,20 +1,20 @@
 /*
  * Copyright (C) 2007-2008, Jeff Thompson
- * 
+ *
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without 
+ *
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright 
+ *
+ *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright 
- *       notice, this list of conditions and the following disclaimer in the 
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its contributors 
- *       may be used to endorse or promote products derived from this software 
+ *     * Neither the name of the copyright holder nor the names of its contributors
+ *       may be used to endorse or promote products derived from this software
  *       without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -54,7 +54,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         /// This uses YP.makeCopy to copy the ErrorTerm and Message so that they are valid after unbinding.
         /// </summary>
         /// <param name="ErrorTerm">the error term of the error</param>
-        /// <param name="Messsage">the message term of the error.  If this is a string, it is converted to an 
+        /// <param name="Messsage">the message term of the error.  If this is a string, it is converted to an
         /// Atom so it can be used by Prolog code.
         /// Message, converted to a string, is use as the printable exception message.
         /// </param>
@@ -66,7 +66,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             _term = YP.makeCopy(new Functor2(Atom.a("error"), ErrorTerm, Message), new Variable.CopyStore());
         }
 
-        public class TypeErrorInfo 
+        public class TypeErrorInfo
         {
             public readonly Atom _Type;
             public readonly object _Culprit;
@@ -116,14 +116,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             /// <returns></returns>
             public object getProcedureName()
             {
-                if (!(_Type._name == "procedure" && 
+                if (!(_Type._name == "procedure" &&
                       _Culprit is Functor2 && ((Functor2)_Culprit)._name == Atom.SLASH))
                     return null;
                 return ((Functor2)_Culprit)._arg1;
             }
 
             /// <summary>
-            /// If _Type is procedure and _Culprit is name/arity and arity is an integer, return the arity.  
+            /// If _Type is procedure and _Culprit is name/arity and arity is an integer, return the arity.
             /// Otherwise return -1.
             /// </summary>
             /// <returns></returns>

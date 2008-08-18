@@ -151,7 +151,7 @@ namespace OpenSim.Framework.Servers
         private CheckIdentityMethod m_smethod;
 
         public RestDeserialiseSecureHandler(
-             string httpMethod, string path, 
+             string httpMethod, string path,
              RestDeserialiseMethod<TRequest, TResponse> method, CheckIdentityMethod smethod)
             : base(httpMethod, path)
         {
@@ -196,7 +196,7 @@ namespace OpenSim.Framework.Servers
         /// <param name="method"></param>
         /// <param name="tmethod"></param>
         private RestDeserialiseMethod<TRequest, TResponse> m_method;
-            
+
         /// <summary>
         /// The method used to check whether a request is trusted.
         /// </summary>

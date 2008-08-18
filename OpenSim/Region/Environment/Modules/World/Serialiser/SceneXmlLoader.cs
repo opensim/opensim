@@ -44,7 +44,7 @@ namespace OpenSim.Region.Environment.Scenes
     public class SceneXmlLoader
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public static void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, LLVector3 loadOffset)
         {
             XmlDocument doc = new XmlDocument();
@@ -114,7 +114,7 @@ namespace OpenSim.Region.Environment.Scenes
             doc.Load(reader);
             reader.Close();
             rootNode = doc.FirstChild;
-            
+
             // This is to deal with neighbouring regions that are still surrounding the group xml with the <scene>
             // tag.  It should be possible to remove the first part of this if statement once we go past 0.5.9 (or
             // when some other changes forces all regions to upgrade).
@@ -127,13 +127,13 @@ namespace OpenSim.Region.Environment.Scenes
                     // There is only ever one prim.  This oddity should be removeable post 0.5.9
                     return new SceneObjectGroup(aPrimNode.OuterXml);
                 }
-                               
+
                 return null;
             }
             else
             {
                 return new SceneObjectGroup(rootNode.OuterXml);
-            }            
+            }
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace OpenSim.Region.Environment.Scenes
             reader.Close();
             XmlNode rootNode = doc.FirstChild;
 
-            ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();            
+            ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
             foreach (XmlNode aPrimNode in rootNode.ChildNodes)
             {
                 SceneObjectGroup obj = CreatePrimFromXml2(scene, aPrimNode.OuterXml);
@@ -195,7 +195,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
 
-            if (scene.AddRestoredSceneObject(obj, true, false))                            
+            if (scene.AddRestoredSceneObject(obj, true, false))
                 return obj;
             else
                 return null;
@@ -254,7 +254,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (max.X < pos.X || max.Y < pos.Y || max.Z < pos.Z)
                             continue;
                     }
-                    
+
                     stream.WriteLine(g.ToXmlString2());
                     primCount++;
                 }

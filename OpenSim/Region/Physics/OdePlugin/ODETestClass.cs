@@ -40,7 +40,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private OdePlugin cbt;
         private PhysicsScene ps;
         private IMeshingPlugin imp;
-        
+
         [SetUp]
         public void Initialize()
         {
@@ -96,11 +96,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 Assert.That(!oprim.m_taintadd);
                 Console.WriteLine("Prim Position (" + oprim.m_localID +  "): " + prim.Position.ToString());
-                
+
                 // Make sure we're above the ground
                 //Assert.That(prim.Position.Z > 20f);
                 //Console.WriteLine("PrimCollisionScore (" + oprim.m_localID + "): " + oprim.m_collisionscore);
-                
+
                 // Make sure we've got a Body
                 Assert.That(oprim.Body != (IntPtr)0);
                 //Console.WriteLine(

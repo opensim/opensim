@@ -501,7 +501,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="globalID"></param>
         public void RemoveLandObject(LLUUID globalID)
@@ -523,7 +523,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="parcel"></param>
         public void StoreLandObject(ILandObject parcel)
@@ -564,7 +564,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="regionUUID"></param>
         /// <returns></returns>
@@ -594,7 +594,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void Commit()
         {
@@ -629,7 +629,7 @@ namespace OpenSim.Data.SQLite
          **********************************************************************/
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="name"></param>
@@ -877,7 +877,7 @@ namespace OpenSim.Data.SQLite
          **********************************************************************/
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -1071,7 +1071,7 @@ namespace OpenSim.Data.SQLite
                 newData.UserLookAt =
                     new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
                                   Convert.ToSingle(row["UserLookAtZ"]));
-               
+
             }
             catch (InvalidCastException)
             {
@@ -1132,7 +1132,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
@@ -1166,7 +1166,7 @@ namespace OpenSim.Data.SQLite
 //         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="prim"></param>
@@ -1233,7 +1233,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="taskItem"></param>
@@ -1263,7 +1263,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="land"></param>
@@ -1308,7 +1308,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="entry"></param>
@@ -1321,7 +1321,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -1376,7 +1376,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="prim"></param>
@@ -1418,7 +1418,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="prim"></param>
         /// <param name="sceneGroupID"></param>
@@ -1574,7 +1574,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="dt">Data Table</param>
         /// <returns></returns>
@@ -1631,7 +1631,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -1650,7 +1650,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -1669,7 +1669,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -1680,7 +1680,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -1694,7 +1694,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -1705,7 +1705,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -1799,7 +1799,7 @@ namespace OpenSim.Data.SQLite
         // }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="conn"></param>
         /// <param name="m"></param>
@@ -1845,8 +1845,8 @@ namespace OpenSim.Data.SQLite
             // if we've gotten this far, and our version is still 0,
             // it's because the migration was never done, so
             // initialize to 1 just to sync up to where we should be.
-            
-            if (m.Version == 0) 
+
+            if (m.Version == 0)
                 m.Version = 1;
 
             // pDa.Fill(tmpDS, "prims");

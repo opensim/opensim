@@ -186,7 +186,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             client.OnTerminateFriendship += OnTerminateFriendship;
 
             doFriendListUpdateOnline(client.AgentId);
-  
+
         }
 
         private void doFriendListUpdateOnline(LLUUID AgentId)
@@ -386,7 +386,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 {
                     m_rootAgents.Add(avatar.UUID, avatar.RegionHandle);
                     m_log.Info("[FRIEND]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
-                    
+
                     List<StoredFriendListUpdate> updateme = new List<StoredFriendListUpdate>();
                     lock (StoredFriendListUpdates)
                     {
@@ -546,7 +546,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
                 SceneAgentIn.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
                 SceneAgentIn.StoreAddFriendship(m_pendingFriendRequests[transactionID], agentID, (uint) 1);
-                
+
 
                 //LLUUID[] Agents = new LLUUID[1];
                 //Agents[0] = msg.toAgentID;

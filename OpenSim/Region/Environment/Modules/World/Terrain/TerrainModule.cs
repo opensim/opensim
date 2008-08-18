@@ -221,7 +221,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 throw new TerrainException(String.Format("Unable to save heightmap: saving of this file format not implemented"));
             }
         }
-        
+
         /// <summary>
         /// Loads a terrain file from a stream and installs it in the scene.
         /// </summary>
@@ -281,7 +281,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 m_log.Error("Unable to save to " + filename + ", saving of this file format has not been implemented.");
                 throw new TerrainException(String.Format("Unable to save heightmap: saving of this file format not implemented"));
             }
-        }        
+        }
 
         #region Plugin Loading Methods
 
@@ -450,7 +450,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 m_tainted = false;
                 m_scene.PhysicsScene.SetTerrain(m_channel.GetFloatsSerialised());
                 m_scene.SaveTerrain();
-                
+
                 // Clients who look at the map will never see changes after they looked at the map, so i've commented this out.
                 //m_scene.CreateTerrainTexture(true);
             }
@@ -517,11 +517,11 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                         // fixup and height deltas that don't respect them
                         if (respectEstateSettings && LimitChannelChanges(x, y))
                         {
-                            // this has been vetoed, so update 
+                            // this has been vetoed, so update
                             // what we are going to send to the client
                             serialised = m_channel.GetFloatsSerialised();
                         }
-                        
+
                         SendToClients(serialised, x, y);
                         shouldTaint = true;
                     }
@@ -580,9 +580,9 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         private void SendToClients(float[] serialised, int x, int y)
         {
             m_scene.ForEachClient(
-                delegate(IClientAPI controller) 
+                delegate(IClientAPI controller)
                     { controller.SendLayerData(
-                        x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize, serialised); 
+                        x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize, serialised);
                     }
             );
         }
@@ -647,7 +647,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         {
             // Not a good permissions check (see client_OnModifyTerrain above), need to check the entire area.
             // for now check a point in the centre of the region
-            
+
             if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(remoteClient.AgentId, new LLVector3(127, 127, 0)))
             {
                 InterfaceBakeTerrain(null); //bake terrain does not use the passed in parameter

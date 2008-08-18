@@ -75,7 +75,7 @@ namespace OpenSim.Data
         public abstract void AddAttachment(LLUUID user, LLUUID item);
         public abstract void RemoveAttachment(LLUUID user, LLUUID item);
         public abstract List<LLUUID> GetAttachments(LLUUID user);
-        
+
         public abstract string Version {get;}
         public abstract string Name {get;}
         public abstract void Initialise(string connect);

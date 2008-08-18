@@ -68,14 +68,14 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
         {
             m_Config = config;
             IConfig SMTPConfig;
-            
+
             //FIXME: RegionName is correct??
             //m_RegionName = scene.RegionInfo.RegionName;
 
             IConfig startupConfig = m_Config.Configs["Startup"];
 
             m_Enabled = (startupConfig.GetString("emailmodule", "DefaultEmailModule") == "DefaultEmailModule");
-                        
+
             //Load SMTP SERVER config
             try
             {
@@ -85,16 +85,16 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
                     m_Enabled = false;
                     return;
                 }
-                
+
                 if (!SMTPConfig.GetBoolean("enabled", false))
                 {
                     m_log.InfoFormat("[SMTP] module disabled in configuration");
                     m_Enabled = false;
                     return;
                 }
-                    
+
                 m_HostName = SMTPConfig.GetString("host_domain_header_from", m_HostName);
-                SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME",SMTP_SERVER_HOSTNAME);    
+                SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME",SMTP_SERVER_HOSTNAME);
                 SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
                 SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
                 SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
                         m_Scenes.Add(scene.RegionInfo.RegionHandle, scene);
                     }
                 }
-                                             
+
                 m_log.Info("[EMAIL] Activated DefaultEmailModule");
             }
         }
@@ -146,9 +146,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
         {
             get { return true; }
         }
-        
+
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="seconds"></param>
         private void DelayInSeconds(int seconds)
@@ -156,11 +156,11 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
             TimeSpan DiffDelay = new TimeSpan(0, 0, seconds);
             DateTime EndDelay = DateTime.Now.Add(DiffDelay);
             while (DateTime.Now < EndDelay)
-            {    
+            {
                 ;//Do nothing!!
             }
         }
-        
+
         private SceneObjectPart findPrim(LLUUID objectID, out string ObjectRegionName)
         {
             lock (m_Scenes)
@@ -187,7 +187,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
             {
                  ObjectAbsolutePosition = part.AbsolutePosition.ToString();
                  ObjectName = part.Name;
-                 ObjectRegionName = m_ObjectRegionName; 
+                 ObjectRegionName = m_ObjectRegionName;
                  return;
             }
             ObjectAbsolutePosition = part.AbsolutePosition.ToString();
@@ -195,7 +195,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
             ObjectRegionName = m_ObjectRegionName;
             return;
         }
-            
+
         /// <summary>
         /// SendMail function utilized by llEMail
         /// </summary>
@@ -206,14 +206,14 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
         public void SendEmail(LLUUID objectID, string address, string subject, string body)
         {
             //Check if address is empty
-            if (address == string.Empty) 
+            if (address == string.Empty)
                 return;
-                
+
             //FIXED:Check the email is correct form in REGEX
-            string EMailpatternStrict = @"^(([^<>()[\]\\.,;:\s@\""]+" 
-                + @"(\.[^<>()[\]\\.,;:\s@\""]+)*)|(\"".+\""))@" 
-                + @"((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" 
-                + @"\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+" 
+            string EMailpatternStrict = @"^(([^<>()[\]\\.,;:\s@\""]+"
+                + @"(\.[^<>()[\]\\.,;:\s@\""]+)*)|(\"".+\""))@"
+                + @"((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"
+                + @"\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+"
                 + @"[a-zA-Z]{2,}))$";
             Regex EMailreStrict = new Regex(EMailpatternStrict);
             bool isEMailStrictMatch = EMailreStrict.IsMatch(address);
@@ -226,9 +226,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
             if ((subject.Length + body.Length) > 1024)
             {
                 m_log.Error("[EMAIL] subject + body > 1024 Byte");
-                return;     
+                return;
             }
-                                  
+
             try
             {
                 string LastObjectName = string.Empty;
@@ -242,21 +242,21 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
                 //From
                 emailMessage.FromAddress = new EmailAddress(objectID.UUID.ToString()+"@"+m_HostName);
                 //To - Only One
-                emailMessage.AddToAddress(new EmailAddress(address));    
+                emailMessage.AddToAddress(new EmailAddress(address));
                 //Subject
                 emailMessage.Subject = subject;
                 //TEXT Body
                 resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName);
                 emailMessage.TextPart = new TextAttachment("Object-Name: " + LastObjectName +
                                                            "\r\nRegion: " + LastObjectRegionName + "\r\nLocal-Position: " +
-                                                           LastObjectPosition+"\r\n\r\n\r\n" + body);                
+                                                           LastObjectPosition+"\r\n\r\n\r\n" + body);
                 //HTML Body
-                emailMessage.HtmlPart = new HtmlAttachment("<html><body><p>" + 
+                emailMessage.HtmlPart = new HtmlAttachment("<html><body><p>" +
                                                            "<BR>Object-Name: " + LastObjectName +
                                                            "<BR>Region: " + LastObjectRegionName +
                                                            "<BR>Local-Position: " + LastObjectPosition + "<BR><BR><BR>"
                                                            +body+"\r\n</p></body><html>");
-                    
+
                 //Set SMTP SERVER config
                 SmtpServer smtpServer=new SmtpServer(SMTP_SERVER_HOSTNAME,SMTP_SERVER_PORT);
                 //Authentication
@@ -272,9 +272,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
                 return;
             }
         }
-            
+
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="objectID"></param>
         /// <param name="sender"></param>

@@ -118,7 +118,7 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
     {
         return new Vertex(Y * v.Z - Z * v.Y, Z * v.X - X * v.Z, X * v.Y - Y * v.X);
     }
-    
+
     // disable warning: mono compiler moans about overloading
     // operators hiding base operator but should not according to C#
     // language spec

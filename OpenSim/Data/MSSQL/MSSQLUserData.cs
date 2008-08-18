@@ -52,8 +52,8 @@ namespace OpenSim.Data.MSSQL
         private string m_usersTableName;
         private string m_userFriendsTableName;
 
-        public override void Initialise() 
-        { 
+        public override void Initialise()
+        {
             m_log.Info("[MSSQLUserData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
@@ -99,11 +99,11 @@ namespace OpenSim.Data.MSSQL
 
             TestTables();
         }
-        
-        public override void Dispose () {} 
+
+        public override void Dispose () {}
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <returns></returns>
         private bool TestTables()
@@ -205,7 +205,7 @@ namespace OpenSim.Data.MSSQL
                 {
                     adder.ExecuteNonQuery();
                 }
-                
+
                 using (IDbCommand adder =
                     database.Query(
                     "INSERT INTO " + m_userFriendsTableName + " " +
@@ -351,7 +351,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="queryID"></param>
         /// <param name="query"></param>
@@ -379,7 +379,7 @@ namespace OpenSim.Data.MSSQL
                             user.firstName = (string)reader["username"];
                             user.lastName = (string)reader["lastname"];
                             returnlist.Add(user);
-                        }                       
+                        }
                     }
                 }
                 catch (Exception e)
@@ -406,7 +406,7 @@ namespace OpenSim.Data.MSSQL
                             returnlist.Add(user);
                         }
                     }
-                }                
+                }
                 catch (Exception e)
                 {
                     m_log.Error(e.ToString());

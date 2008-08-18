@@ -54,10 +54,10 @@ namespace OpenSim.Region.Environment
             // Directories are signalled by a final /
             if (!dirName.EndsWith("/"))
                 dirName += "/";
-            
+
             AddFile(dirName, new byte[0]);
         }
-        
+
         /// <summary>
         /// Add a file to the tar archive
         /// </summary>
@@ -161,7 +161,7 @@ namespace OpenSim.Region.Environment
                 if (data.Length % 512 != 0)
                 {
                     int paddingRequired = 512 - (data.Length % 512);
-                    
+
                     //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Padding data with {0} bytes", paddingRequired);
 
                     byte[] padding = new byte[paddingRequired];

@@ -87,9 +87,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             string quote = String.Empty;
             bool last_was_escape = false;
             int quote_replaced_count = 0;
-            
+
             string removefwnoncomments = nonCommentFwsl.Replace(Script, "\"\";");
-            
+
             string removecomments = conelinecomments.Replace(removefwnoncomments, "");
             removecomments = cstylecomments.Replace(removecomments, "");
             string[] localscript = removecomments.Split('"');
@@ -120,7 +120,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             // checks for alpha.alpha way of referring to objects in C#
             // ignores alpha.x alpha.y, alpha.z for refering to vector components
               Match SecurityM;
- 
+
             // BROKEN: this check is very wrong.  It block's any url in strings.
             SecurityM = Regex.Match(checkscript, @"(?:[a-zA-Z])\.(?:[a-rt-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 

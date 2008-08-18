@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Statistics
     public class SimExtraStatsCollector : BaseStatsCollector
     {
         private long abnormalClientThreadTerminations;
-        
+
         private long assetsInCache;
         private long texturesInCache;
         private long assetCacheMemoryUsage;
@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Statistics
 
         private long assetServiceRequestFailures;
         private long inventoryServiceRetrievalFailures;
-        
+
         private float timeDilation;
         private float simFps;
         private float physicsFps;
@@ -70,8 +70,8 @@ namespace OpenSim.Framework.Statistics
         private float pendingDownloads;
         private float pendingUploads;
         private float activeScripts;
-        private float scriptLinesPerSecond;                        
-        
+        private float scriptLinesPerSecond;
+
         /// <summary>
         /// Number of times that a client thread terminated because of an exception
         /// </summary>
@@ -79,7 +79,7 @@ namespace OpenSim.Framework.Statistics
 
         /// <summary>
         /// These statistics are being collected by push rather than pull.  Pull would be simpler, but I had the
-        /// notion of providing some flow statistics (which pull wouldn't give us).  Though admittedly these 
+        /// notion of providing some flow statistics (which pull wouldn't give us).  Though admittedly these
         /// haven't yet been implemented... :)
         /// </summary>
         public long AssetsInCache { get { return assetsInCache; } }
@@ -101,19 +101,19 @@ namespace OpenSim.Framework.Statistics
         /// as a failure
         /// </summary>
         public long AssetServiceRequestFailures { get { return assetServiceRequestFailures; } }
-        
+
         /// <summary>
         /// Number of known failures to retrieve avatar inventory from the inventory service.  This does not
         /// cover situations where the inventory service accepts the request but never returns any data, since
         /// we do not yet timeout this situation.
         /// </summary>
         public long InventoryServiceRetrievalFailures { get { return inventoryServiceRetrievalFailures; } }
-        
+
         /// <summary>
         /// Retrieve the total frame time (in ms) of the last frame
         /// </summary>
         //public float TotalFrameTime { get { return totalFrameTime; } }
-        
+
         /// <summary>
         /// Retrieve the physics update component (in ms) of the last frame
         /// </summary>
@@ -124,7 +124,7 @@ namespace OpenSim.Framework.Statistics
         /// </summary>
         private IDictionary<LLUUID, PacketQueueStatsCollector> packetQueueStatsCollectors
             = new Dictionary<LLUUID, PacketQueueStatsCollector>();
-        
+
         public void AddAbnormalClientThreadTermination()
         {
             abnormalClientThreadTerminations++;
@@ -146,7 +146,7 @@ namespace OpenSim.Framework.Statistics
                 textureCacheMemoryUsage += image.Data.Length;
             }
         }
-        
+
         /// <summary>
         /// Signal that the asset cache can be cleared.
         /// </summary>
@@ -167,7 +167,7 @@ namespace OpenSim.Framework.Statistics
         {
             assetServiceRequestFailures++;
         }
-        
+
         public void AddInventoryServiceRetrievalFailure()
         {
             inventoryServiceRetrievalFailures++;
@@ -199,18 +199,18 @@ namespace OpenSim.Framework.Statistics
                 packetQueueStatsCollectors.Remove(uuid);
             }
         }
-        
+
         /// <summary>
-        /// This is the method on which the classic sim stats reporter (which collects stats for 
+        /// This is the method on which the classic sim stats reporter (which collects stats for
         /// client purposes) sends information to listeners.
         /// </summary>
         /// <param name="pack"></param>
-        public void ReceiveClassicSimStatsPacket(SimStatsPacket statsPacket)        
+        public void ReceiveClassicSimStatsPacket(SimStatsPacket statsPacket)
         {
             // FIXME: Really shouldn't rely on the probably arbitrary order in which
             // stats are packed into the packet
             timeDilation            = statsPacket.Stat[0].StatValue;
-            simFps                  = statsPacket.Stat[1].StatValue;            
+            simFps                  = statsPacket.Stat[1].StatValue;
             physicsFps              = statsPacket.Stat[2].StatValue;
             agentUpdates            = statsPacket.Stat[3].StatValue;
             rootAgents              = statsPacket.Stat[4].StatValue;
@@ -231,7 +231,7 @@ namespace OpenSim.Framework.Statistics
             activeScripts           = statsPacket.Stat[19].StatValue;
             scriptLinesPerSecond    = statsPacket.Stat[20].StatValue;
         }
-        
+
         /// <summary>
         /// Report back collected statistical information.
         /// </summary>
@@ -248,10 +248,10 @@ Texture cache contains {2,6} texture     assets using {3,10} K
 Blocked client requests for missing textures: {4}
 Asset service request failures: {5}"+ Environment.NewLine,
                     AssetsInCache, Math.Round(AssetCacheMemoryUsage / 1024.0),
-                    TexturesInCache, Math.Round(TextureCacheMemoryUsage / 1024.0), 
+                    TexturesInCache, Math.Round(TextureCacheMemoryUsage / 1024.0),
                     BlockedMissingTextureRequests,
                     AssetServiceRequestFailures));
-            
+
             sb.Append(Environment.NewLine);
             sb.Append("CONNECTION STATISTICS");
             sb.Append(Environment.NewLine);
@@ -267,7 +267,7 @@ Asset service request failures: {5}"+ Environment.NewLine,
                 string.Format(
                     "Initial inventory caching failures: {0}" + Environment.NewLine,
                     InventoryServiceRetrievalFailures));
-            
+
             sb.Append(Environment.NewLine);
             sb.Append("FRAME STATISTICS");
             sb.Append(Environment.NewLine);
@@ -278,18 +278,18 @@ Asset service request failures: {5}"+ Environment.NewLine,
                     "{0,6:0.00}  {1,6:0}  {2,6:0.0}  {3,6:0.0}  {4,6:0}  {5,6:0}  {6,6:0}  {7,6:0}  {8,6:0}  {9,6:0}",
                     timeDilation, simFps, physicsFps, agentUpdates, rootAgents,
                     childAgents, totalPrims, activePrims, activeScripts, scriptLinesPerSecond));
-                    
+
             sb.Append(Environment.NewLine);
             sb.Append(Environment.NewLine);
             // There is no script frame time currently because we don't yet collect it
             sb.Append("PktsIn  PktOut  PendDl  PendUl  UnackB  TotlFt  NetFt   PhysFt  OthrFt  AgntFt  ImgsFt");
-            sb.Append(Environment.NewLine);                    
+            sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
                     "{0,6:0}  {1,6:0}  {2,6:0}  {3,6:0}  {4,6:0}  {5,6:0.0}  {6,6:0.0}  {7,6:0.0}  {8,6:0.0}  {9,6:0.0}  {10,6:0.0}",
                     inPacketsPerSecond, outPacketsPerSecond, pendingDownloads, pendingUploads, unackedBytes, totalFrameTime,
                     netFrameTime, physicsFrameTime, otherFrameTime, agentFrameTime, imageFrameTime));
-            sb.Append(Environment.NewLine);                  
+            sb.Append(Environment.NewLine);
 
             /*
             sb.Append(Environment.NewLine);
@@ -311,7 +311,7 @@ Asset service request failures: {5}"+ Environment.NewLine,
             */
 
             sb.Append(base.Report());
-            
+
             return sb.ToString();
         }
     }

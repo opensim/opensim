@@ -80,7 +80,7 @@ namespace OpenSim.Framework.Servers
             get { return _isSecure; }
         }
 
-        public int QueueSize 
+        public int QueueSize
         {
             get { return _pumps.Length; }
         }
@@ -91,7 +91,7 @@ namespace OpenSim.Framework.Servers
         protected List<OSHttpHandler> _httpHandlers = new List<OSHttpHandler>();
         public List<OSHttpHandler> OSHttpHandlers
         {
-            get 
+            get
             {
                 lock (_httpHandlers)
                 {
@@ -175,7 +175,7 @@ namespace OpenSim.Framework.Servers
                 _listener.RequestHandler += OnHttpRequest;
                 _listener.Start(QueueSize);
                 _log.InfoFormat("[{0}] HTTP server started", EngineID);
-                
+
                 lock (_syncObject) Monitor.Wait(_syncObject);
             }
             catch (Exception ex)
@@ -196,7 +196,7 @@ namespace OpenSim.Framework.Servers
         /// and regular expressions to match against header values</param>
         public void AddHandler(OSHttpHandler handler)
         {
-            lock (_httpHandlers) 
+            lock (_httpHandlers)
             {
                 if (_httpHandlers.Contains(handler))
                 {

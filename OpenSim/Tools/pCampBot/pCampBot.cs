@@ -54,9 +54,9 @@ namespace pCampBot
             else
             {
                 int botcount = config.GetInt("botcount", 1);
-                
+
                 BotManager bm = new BotManager();
-                
+
                 //startup specified number of bots.  1 is the default
                 bm.dobotStartup(botcount, config);
                 while (true)
@@ -70,18 +70,18 @@ namespace pCampBot
         {
             //Set up our nifty config..  thanks to nini
             ArgvConfigSource cs = new ArgvConfigSource(args);
-            
+
             cs.AddSwitch("Startup", "botcount","n");
             cs.AddSwitch("Startup", "loginuri","l");
             cs.AddSwitch("Startup", "firstname");
             cs.AddSwitch("Startup", "lastname");
             cs.AddSwitch("Startup", "password");
             cs.AddSwitch("Startup", "help","h");
-            
+
             IConfig ol = cs.Configs["Startup"];
             return ol;
         }
-        
+
         private static void Help()
         {
             Console.WriteLine(

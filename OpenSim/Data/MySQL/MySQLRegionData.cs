@@ -53,27 +53,27 @@ namespace OpenSim.Data.MySQL
         private const string m_terrainSelect = "select * from terrain limit 1";
         private const string m_landSelect = "select * from land";
         private const string m_landAccessListSelect = "select * from landaccesslist";
-        private const string m_regionSettingsSelect = "select * from regionsettings";        
+        private const string m_regionSettingsSelect = "select * from regionsettings";
         private const string m_waitTimeoutSelect = "select @@wait_timeout";
 
         private MySqlConnection m_connection;
         private string m_connectionString;
-        
+
         /// <summary>
         /// Wait timeout for our connection in ticks.
         /// </summary>
         private long m_waitTimeout;
-        
+
         /// <summary>
         /// Make our storage of the timeout this amount smaller than it actually is, to give us a margin on long
         /// running database operations.
         /// </summary>
         private long m_waitTimeoutLeeway = 60 * TimeSpan.TicksPerSecond;
-        
+
         /// <summary>
         /// Holds the last tick time that the connection was used.
         /// </summary>
-        private long m_lastConnectionUse;        
+        private long m_lastConnectionUse;
 
         private DataSet m_dataSet;
         private MySqlDataAdapter m_primDataAdapter;
@@ -105,7 +105,7 @@ namespace OpenSim.Data.MySQL
         public void Initialise(string connectionString)
         {
             m_connectionString = connectionString;
-            
+
             m_dataSet = new DataSet();
 
             int passPosition = 0;
@@ -132,8 +132,8 @@ namespace OpenSim.Data.MySQL
             m_log.Info("[REGION DB]: MySql - connecting: " + displayConnectionString);
             m_connection = new MySqlConnection(m_connectionString);
             m_connection.Open();
-            
-            GetWaitTimeout();             
+
+            GetWaitTimeout();
 
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
@@ -177,12 +177,11 @@ namespace OpenSim.Data.MySQL
                 m_dataSet.Tables.Add(m_shapeTable);
                 SetupShapeCommands(m_shapeDataAdapter, m_connection);
                 m_shapeDataAdapter.Fill(m_shapeTable);
-                
 
-                    m_itemsTable = createItemsTable();
-                    m_dataSet.Tables.Add(m_itemsTable);
-                    SetupItemsCommands(m_itemsDataAdapter, m_connection);
-                    m_itemsDataAdapter.Fill(m_itemsTable);
+                m_itemsTable = createItemsTable();
+                m_dataSet.Tables.Add(m_itemsTable);
+                SetupItemsCommands(m_itemsDataAdapter, m_connection);
+                m_itemsDataAdapter.Fill(m_itemsTable);
 
                 m_terrainTable = createTerrainTable();
                 m_dataSet.Tables.Add(m_terrainTable);
@@ -205,58 +204,58 @@ namespace OpenSim.Data.MySQL
                 m_regionSettingsDataAdapter.Fill(m_regionSettingsTable);
             }
         }
-        
+
         /// <summary>
         /// Get the wait_timeout value for our connection
         /// </summary>
         protected void GetWaitTimeout()
         {
             MySqlCommand cmd = new MySqlCommand(m_waitTimeoutSelect, m_connection);
-            
+
             using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
             {
                 if (dbReader.Read())
                 {
-                    m_waitTimeout 
+                    m_waitTimeout
                         = Convert.ToInt32(dbReader["@@wait_timeout"]) * TimeSpan.TicksPerSecond + m_waitTimeoutLeeway;
-                }       
-                
+                }
+
                 dbReader.Close();
                 cmd.Dispose();
-            }   
-            
+            }
+
             m_lastConnectionUse = System.DateTime.Now.Ticks;
-            
+
             m_log.DebugFormat(
-                "[REGION DB]: Connection wait timeout {0} seconds", m_waitTimeout / TimeSpan.TicksPerSecond);            
+                "[REGION DB]: Connection wait timeout {0} seconds", m_waitTimeout / TimeSpan.TicksPerSecond);
         }
-                
+
         /// <summary>
         /// Should be called before any db operation.  This checks to see if the connection has not timed out
         /// </summary>
         protected void CheckConnection()
         {
             //m_log.Debug("[REGION DB]: Checking connection");
-            
+
             long timeNow = System.DateTime.Now.Ticks;
             if (timeNow - m_lastConnectionUse > m_waitTimeout || m_connection.State != ConnectionState.Open)
             {
                 m_log.DebugFormat("[REGION DB]: Database connection has gone away - reconnecting");
-                
+
                 lock (m_connection)
                 {
                     m_connection.Close();
                     m_connection = new MySqlConnection(m_connectionString);
-                    m_connection.Open();                    
+                    m_connection.Open();
                 }
             }
-            
+
             // Strictly, we should set this after the actual db operation.  But it's more convenient to set here rather
             // than require the code to call another method - the timeout leeway should be large enough to cover the
             // inaccuracy.
-            m_lastConnectionUse = timeNow;            
-        }        
-        
+            m_lastConnectionUse = timeNow;
+        }
+
         /// <summary>
         /// Given a list of tables, return the version of the tables, as seen in the database
         /// </summary>
@@ -271,7 +270,7 @@ namespace OpenSim.Data.MySQL
                         "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname",
                         dbcon);
                 tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
-                
+
                 CheckConnection();
                 using (MySqlDataReader tables = tablesCmd.ExecuteReader())
                 {
@@ -465,7 +464,7 @@ namespace OpenSim.Data.MySQL
 
             lock (m_dataSet)
             {
-                CheckConnection();                
+                CheckConnection();
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
                 m_log.Info("[REGION DB]: " +
                                          "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
@@ -587,10 +586,10 @@ namespace OpenSim.Data.MySQL
                 using (cmd)
                 {
                     delete.Parameters.Add(new MySqlParameter("?RegionUUID", Util.ToRawUuidString(regionID)));
-                    
+
                     CheckConnection();
                     delete.ExecuteNonQuery();
-                    
+
                     cmd.Parameters.Add(new MySqlParameter("?RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new MySqlParameter("?Revision", revision));
                     cmd.Parameters.Add(new MySqlParameter("?Heightfield", serializeTerrain(ter)));
@@ -774,7 +773,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="regionUUID"></param>
         /// <returns></returns>
@@ -805,7 +804,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void Commit()
         {
@@ -845,7 +844,7 @@ namespace OpenSim.Data.MySQL
          **********************************************************************/
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="name"></param>
@@ -1139,7 +1138,7 @@ namespace OpenSim.Data.MySQL
          **********************************************************************/
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -1315,7 +1314,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -1374,14 +1373,14 @@ namespace OpenSim.Data.MySQL
                 newData.UserLookAt = LLVector3.Zero;
                 m_log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.Name);
             }
-                
+
             newData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
 
             return newData;
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -1395,7 +1394,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
@@ -1419,7 +1418,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="prim"></param>
@@ -1502,7 +1501,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="taskItem"></param>
@@ -1532,7 +1531,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private static void fillRegionSettingsRow(DataRow row, RegionSettings settings)
         {
@@ -1573,7 +1572,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="land"></param>
@@ -1618,7 +1617,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="entry"></param>
@@ -1631,7 +1630,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -1694,7 +1693,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="prim"></param>
@@ -1731,7 +1730,7 @@ namespace OpenSim.Data.MySQL
             row["ProfileHollow"] = s.ProfileHollow;
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
-            
+
             try
             {
                 row["State"] = s.State;
@@ -1754,7 +1753,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="prim"></param>
         /// <param name="sceneGroupID"></param>
@@ -1911,7 +1910,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="dt"></param>
         /// <returns></returns>
@@ -1973,7 +1972,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -1994,7 +1993,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -2027,7 +2026,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -2038,7 +2037,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -2052,7 +2051,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -2063,7 +2062,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -2082,7 +2081,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="conn">MySQL connection handler</param>
         // private static void InitDB(MySqlConnection conn)
@@ -2174,7 +2173,7 @@ namespace OpenSim.Data.MySQL
         // }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="conn"></param>
         /// <param name="m"></param>

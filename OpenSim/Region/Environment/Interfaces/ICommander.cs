@@ -27,8 +27,6 @@
 
 namespace OpenSim.Region.Environment.Interfaces
 {
-    
-
     public interface ICommander
     {
         void ProcessConsoleCommand(string function, string[] args);

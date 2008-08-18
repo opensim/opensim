@@ -56,8 +56,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public string Version { get { return m_version; } }
         public string Name { get { return m_name; } }
 
-        public void Initialise() 
-        { 
+        public void Initialise()
+        {
             m_log.Info("[RADMIN]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
@@ -512,7 +512,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             try
             {
                 Hashtable requestData = (Hashtable) request.Params[0];
-            
+
                 // check completeness
                 checkStringParameters(request, new string[] { "password", "user_firstname",
                                                               "user_lastname", "user_password" });
@@ -603,7 +603,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             try
             {
                 Hashtable requestData = (Hashtable) request.Params[0];
-            
+
                 // check completeness
                 checkStringParameters(request, new string[] { "password", "user_firstname",
                                                               "user_lastname" });
@@ -616,7 +616,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 string firstname = (string) requestData["user_firstname"];
                 string lastname  = (string) requestData["user_lastname"];
 
-                
+
                 string passwd = String.Empty;
                 uint?  regX   = null;
                 uint?  regY   = null;
@@ -632,7 +632,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (null == userProfile)
                     throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
 
-                if (null != passwd) 
+                if (null != passwd)
                 {
                     string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(passwd) + ":" + String.Empty);
                     userProfile.PasswordHash = md5PasswdHash;
@@ -648,7 +648,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 response.Value = responseData;
 
-                m_log.InfoFormat("[RADMIN]: UpdateUserAccount: account for user {0} {1} updated, UUID {2}", firstname, lastname, 
+                m_log.InfoFormat("[RADMIN]: UpdateUserAccount: account for user {0} {1} updated, UUID {2}", firstname, lastname,
                                  userProfile.ID);
             }
             catch (Exception e)

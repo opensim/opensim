@@ -95,7 +95,7 @@ namespace OpenSim
         }
 
         private static bool _IsHandlingException = false; // Make sure we don't go recursive on ourself
-        
+
         /// <summary>
         /// Global exception handler -- all unhandlet exceptions end up here :)
         /// </summary>

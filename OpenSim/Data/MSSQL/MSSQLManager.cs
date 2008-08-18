@@ -60,7 +60,7 @@ namespace OpenSim.Data.MSSQL
             builder.UserID = userId;
             builder.Password = password;
             builder.ApplicationName = Assembly.GetEntryAssembly().Location;
-            
+
             connectionString = builder.ToString();
         }
 
@@ -117,7 +117,7 @@ namespace OpenSim.Data.MSSQL
         //}
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="name"></param>
@@ -376,7 +376,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
@@ -492,7 +492,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>

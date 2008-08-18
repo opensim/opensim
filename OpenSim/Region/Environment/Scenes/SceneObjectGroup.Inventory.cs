@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Force all task inventories of prims in the scene object to persist 
+        /// Force all task inventories of prims in the scene object to persist
         /// </summary>
         public void ForceInventoryPersistence()
         {
@@ -49,9 +49,9 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     part.ForceInventoryPersistence();
                 }
-            }            
+            }
         }
-        
+
         /// <summary>
         /// Start the scripts contained in all the prims in this group.
         /// </summary>
@@ -161,7 +161,7 @@ namespace OpenSim.Region.Environment.Scenes
 //                taskItem.SalePrice = item.SalePrice;
 //                taskItem.SaleType = item.SaleType;
                 taskItem.CreationDate = (uint)item.CreationDate;
-                    
+
                 part.AddInventoryItem(taskItem);
 
                 return true;

@@ -54,7 +54,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         {
             _arity = arity;
         }
-        
+
         /// <summary>
         /// Append the answer to the list and update the indexes, if any.
         /// Elements of answer must be ground, since arguments with unbound variables make this

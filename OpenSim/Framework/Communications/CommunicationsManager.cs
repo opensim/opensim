@@ -41,26 +41,26 @@ namespace OpenSim.Framework.Communications
     public class CommunicationsManager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected Dictionary<LLUUID, string[]> m_nameRequestCache = new Dictionary<LLUUID, string[]>();
 
         public IUserService UserService
         {
             get { return m_userService; }
         }
-        protected IUserService m_userService;        
+        protected IUserService m_userService;
 
         public IGridServices GridService
         {
             get { return m_gridService; }
         }
-        protected IGridServices m_gridService;        
-       
+        protected IGridServices m_gridService;
+
         public IInterRegionCommunications InterRegion
         {
             get { return m_interRegion; }
         }
-        protected IInterRegionCommunications m_interRegion;                
+        protected IInterRegionCommunications m_interRegion;
 
         public UserProfileCacheService UserProfileCacheService
         {
@@ -68,36 +68,36 @@ namespace OpenSim.Framework.Communications
         }
         protected UserProfileCacheService m_userProfileCacheService;
 
-      //  protected AgentAssetTransactionsManager m_transactionsManager;
+        // protected AgentAssetTransactionsManager m_transactionsManager;
 
-       // public AgentAssetTransactionsManager TransactionsManager
-      //  {
-      //      get { return m_transactionsManager; }
-      //  }       
+        // public AgentAssetTransactionsManager TransactionsManager
+        // {
+        //     get { return m_transactionsManager; }
+        // }
 
         public IAvatarService AvatarService
         {
             get { return m_avatarService; }
         }
-        protected IAvatarService m_avatarService;                
+        protected IAvatarService m_avatarService;
 
         public AssetCache AssetCache
         {
             get { return m_assetCache; }
         }
-        protected AssetCache m_assetCache;                
-        
+        protected AssetCache m_assetCache;
+
         public IInterServiceInventoryServices InterServiceInventoryService
         {
             get { return m_interServiceInventoryService; }
-        }        
+        }
         protected IInterServiceInventoryServices m_interServiceInventoryService;
 
         public NetworkServersInfo NetworkServersInfo
         {
             get { return m_networkServersInfo; }
         }
-        protected NetworkServersInfo m_networkServersInfo;          
+        protected NetworkServersInfo m_networkServersInfo;
 
         /// <summary>
         /// Constructor
@@ -138,7 +138,7 @@ namespace OpenSim.Framework.Communications
                 return null;
             }
         }
-        
+
         public IInventoryServices InventoryService
         {
             get

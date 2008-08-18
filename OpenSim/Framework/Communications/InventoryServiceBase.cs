@@ -53,14 +53,14 @@ namespace OpenSim.Framework.Communications
         /// <param name="provider">The filename to the user server plugin DLL</param>
         public void AddPlugin(string provider, string connect)
         {
-            PluginLoader<IInventoryDataPlugin> loader = 
+            PluginLoader<IInventoryDataPlugin> loader =
                 new PluginLoader<IInventoryDataPlugin> (new InventoryDataInitialiser (connect));
 
-            // loader will try to load all providers (MySQL, MSSQL, etc) 
+            // loader will try to load all providers (MySQL, MSSQL, etc)
             // unless it is constrainted to the correct "Provider" entry in the addin.xml
             loader.Add ("/OpenSim/InventoryData", new PluginProviderFilter (provider));
             loader.Load();
-            
+
             m_plugins = loader.Plugins;
         }
 

@@ -70,7 +70,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         public BasicScene()
         {
         }
-        
+
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
             // Does nothing right now

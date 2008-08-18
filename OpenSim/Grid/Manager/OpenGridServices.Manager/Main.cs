@@ -38,9 +38,9 @@ namespace OpenGridServices.Manager
         public static BlockingQueue<string> PendingOperations = new BlockingQueue<string>();
 
         private static Thread OperationsRunner;
-        
+
         private static GridServerConnectionManager gridserverConn;
-        
+
         private static MainWindow win;
 
         public static void DoMainLoop()
@@ -79,7 +79,7 @@ namespace OpenGridServices.Manager
                             win.SetStatus("Could not connect");
                         }
                         break;
-                    
+
                     case "restart_gridserver":
                         win.SetStatus("Restarting grid server...");
                         if (gridserverConn.RestartServer())
@@ -93,7 +93,7 @@ namespace OpenGridServices.Manager
                             win.SetStatus("Error restarting grid server!!!");
                         }
                         break;
-                    
+
                     case "shutdown_gridserver":
                         win.SetStatus("Shutting down grid server...");
                         if (gridserverConn.ShutdownServer())
@@ -108,7 +108,7 @@ namespace OpenGridServices.Manager
                             win.SetStatus("Could not shutdown grid server!!!");
                         }
                         break;
-                    
+
                     case "disconnect_gridserver":
                         gridserverConn.DisconnectServer();
                         win.SetGridServerConnected(false);

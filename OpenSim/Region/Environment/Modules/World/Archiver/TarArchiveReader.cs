@@ -69,9 +69,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public byte[] ReadEntry(out string filePath)
         {
             filePath = String.Empty;
-            
+
             TarHeader header = ReadHeader();
-            
+
             if (null == header)
                 return null;
 
@@ -98,14 +98,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <returns>A tar header struct.  null if we have reached the end of the archive.</returns>
         protected TarHeader ReadHeader()
-        {            
+        {
             byte[] header = m_br.ReadBytes(512);
-            
+
             // If we've reached the end of the archive we'll be in null block territory, which means
-            // the next byte will be 0            
+            // the next byte will be 0
             if (header[0] == 0)
                 return null;
-            
+
             TarHeader tarHeader = new TarHeader();
 
             tarHeader.FilePath = m_asciiEncoding.GetString(header, 0, 100);

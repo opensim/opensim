@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Console
         private readonly object m_syncRoot = new object();
 
         public conscmd_callback m_cmdParser;
-        
+
         /// <summary>
         /// The default prompt text.
         /// </summary>
@@ -249,7 +249,7 @@ namespace OpenSim.Framework.Console
                 {
                     line = System.Console.ReadLine();
                 }
-                    
+
                 return line;
             }
             catch (Exception e)

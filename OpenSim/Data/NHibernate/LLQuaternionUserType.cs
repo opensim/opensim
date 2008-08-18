@@ -72,7 +72,7 @@ namespace OpenSim.Data.NHibernate
         public object NullSafeGet(IDataReader rs, string[] names, object owner)
         {
             object quat = null;
-                        
+
             int x = rs.GetOrdinal(names[0]);
             int y = rs.GetOrdinal(names[1]);
             int z = rs.GetOrdinal(names[2]);
@@ -105,10 +105,10 @@ namespace OpenSim.Data.NHibernate
 
         public SqlType[] SqlTypes
         {
-            get { return new SqlType [] { 
-                    NHibernateUtil.Single.SqlType, 
-                    NHibernateUtil.Single.SqlType, 
-                    NHibernateUtil.Single.SqlType, 
+            get { return new SqlType [] {
+                    NHibernateUtil.Single.SqlType,
+                    NHibernateUtil.Single.SqlType,
+                    NHibernateUtil.Single.SqlType,
                     NHibernateUtil.Single.SqlType
                 }; }
         }

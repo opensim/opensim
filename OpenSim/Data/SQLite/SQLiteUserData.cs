@@ -65,8 +65,8 @@ namespace OpenSim.Data.SQLite
         private SqliteDataAdapter daf;
         SqliteConnection g_conn;
 
-        public override void Initialise() 
-        { 
+        public override void Initialise()
+        {
             m_log.Info("[SQLiteUserData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
@@ -93,7 +93,7 @@ namespace OpenSim.Data.SQLite
 
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(g_conn, assem, "UserStore");
-            
+
             // TODO: remove this after rev 6000
             TestTables(conn, m);
 
@@ -130,7 +130,7 @@ namespace OpenSim.Data.SQLite
             return;
         }
 
-        public override void Dispose () {} 
+        public override void Dispose () {}
 
         /// <summary>
         /// see IUserDataPlugin,
@@ -308,7 +308,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="queryID"></param>
         /// <param name="query"></param>
@@ -570,7 +570,7 @@ namespace OpenSim.Data.SQLite
             }
             return aa;
         }
-        
+
         /// <summary>
         /// Update a user appearence
         /// </summary>
@@ -802,7 +802,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="user"></param>
@@ -853,7 +853,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -881,7 +881,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="ua"></param>
@@ -914,7 +914,7 @@ namespace OpenSim.Data.SQLite
          **********************************************************************/
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -933,7 +933,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="daf"></param>
         /// <param name="conn"></param>
@@ -954,7 +954,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="conn"></param>
         private static void InitDB(SqliteConnection conn)
@@ -990,7 +990,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="conn"></param>
         /// <param name="m"></param>
@@ -1016,7 +1016,7 @@ namespace OpenSim.Data.SQLite
                 return false;
             }
 
-            if (m.Version == 0) 
+            if (m.Version == 0)
                 m.Version = 1;
 
             return true;

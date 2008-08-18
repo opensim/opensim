@@ -33,7 +33,7 @@ namespace OpenSim.Framework.Communications
     public interface IGridServices
     {
         string gdebugRegionName { get; set; }
-        
+
         /// <summary>
         /// Register a region with the grid service.
         /// </summary>
@@ -41,7 +41,7 @@ namespace OpenSim.Framework.Communications
         /// <returns></returns>
         /// <exception cref="System.Exception">Thrown if region registration failed</exception>
         RegionCommsListener RegisterRegion(RegionInfo regionInfos);
-        
+
         bool DeregisterRegion(RegionInfo regionInfo);
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="y"></param>
         /// <returns></returns>
         List<SimpleRegionInfo> RequestNeighbours(uint x, uint y);
-        
+
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
         RegionInfo RequestNeighbourInfo(LLUUID regionID);
         RegionInfo RequestClosestRegion(string regionName);

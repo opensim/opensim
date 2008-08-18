@@ -703,7 +703,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         // Otherwise, if we have strings, compare them alphabetically.
                         string str1 = new string(space1);
                         string str2 = new string(space2);
-                        
+
                         int result;
 
                         if (char.IsDigit(space1[0]) && char.IsDigit(space2[0]))
@@ -1427,22 +1427,22 @@ namespace OpenSim.Region.ScriptEngine.Common
                 bool ret = i1.value != i2.value;
                 return ret;
             }
-            
+
             static public LSLInteger operator +(LSLInteger i1, int i2)
             {
                 return new LSLInteger(i1.value + i2);
             }
-            
+
             static public LSLInteger operator -(LSLInteger i1, int i2)
             {
                 return new LSLInteger(i1.value - i2);
             }
-            
+
             static public LSLInteger operator *(LSLInteger i1, int i2)
             {
                 return new LSLInteger(i1.value * i2);
             }
-            
+
             static public LSLInteger operator /(LSLInteger i1, int i2)
             {
                 return new LSLInteger(i1.value / i2);
@@ -1452,22 +1452,22 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return new LSLFloat((double)i1.value + f);
             }
-            
+
             static public LSLFloat operator -(LSLInteger i1, double f)
             {
                 return new LSLFloat((double)i1.value - f);
             }
-            
+
             static public LSLFloat operator *(LSLInteger i1, double f)
             {
                 return new LSLFloat((double)i1.value * f);
             }
-            
+
             static public LSLFloat operator /(LSLInteger i1, double f)
             {
                 return new LSLFloat((double)i1.value / f);
             }
-            
+
             static public LSLInteger operator -(LSLInteger i)
             {
                 return new LSLInteger(-i.value);
@@ -1623,17 +1623,17 @@ namespace OpenSim.Region.ScriptEngine.Common
                 f.value--;
                 return f;
             }
-            
+
             static public LSLFloat operator +(LSLFloat f, int i)
             {
                 return new LSLFloat(f.value + (double)i);
             }
-            
+
             static public LSLFloat operator -(LSLFloat f, int i)
             {
                 return new LSLFloat(f.value - (double)i);
             }
-            
+
             static public LSLFloat operator *(LSLFloat f, int i)
             {
                 return new LSLFloat(f.value * (double)i);

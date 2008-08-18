@@ -242,9 +242,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Retrieve item
             TaskInventoryItem item = group.GetInventoryItem(part.LocalId, itemId);
-            
+
             if (null == item)
-            {                                  
+            {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: Tried to retrieve item ID {0} from prim {1}, {2} for caps script update "
                         + " but the item does not exist in this inventory",
@@ -338,7 +338,6 @@ namespace OpenSim.Region.Environment.Scenes
                             item.CreationDate = Util.UnixTimeSinceEpoch();
                         else
                             item.CreationDate = itemUpd.CreationDate;
- 
 
                         // TODO: Check if folder changed and move item
                         //item.NextPermissions = itemUpd.Folder;
@@ -577,7 +576,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Type = assetType;
             asset.FullID = LLUUID.Random();
             asset.Data = (data == null) ? new byte[1] : data;
-            
+
             return asset;
         }
 
@@ -958,7 +957,7 @@ namespace OpenSim.Region.Environment.Scenes
             agentItem.Folder = folderId;
             AddInventoryItem(remoteClient, agentItem);
         }
-        
+
         /// <summary>
         /// <see>ClientMoveTaskInventoryItem</see>
         /// </summary>
@@ -981,13 +980,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             TaskInventoryItem taskItem = part.GetInventoryItem(itemId);
-            
+
             if (null == taskItem)
             {
                 m_log.WarnFormat("[PRIM INVENTORY]: Move of inventory item {0} from prim with local id {1} failed"
                     + " because the inventory item could not be found",
                     itemId, primLocalId);
-                
+
                 return;
             }
 
@@ -997,7 +996,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             MoveTaskInventoryItem(remoteClient, folderId, part, itemId);
         }
-        
+
         /// <summary>
         /// <see>MoveTaskInventoryItem</see>
         /// </summary>
@@ -1029,7 +1028,7 @@ namespace OpenSim.Region.Environment.Scenes
                 AddInventoryItem(avatarId, agentItem);
             }
         }
-        
+
         /// <summary>
         /// Copy a task (prim) inventory item to another task (prim)
         /// </summary>
@@ -1049,7 +1048,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 return;
             }
-            
+
             SceneObjectPart destPart = GetSceneObjectPart(destId);
 
             if (destPart == null)
@@ -1060,7 +1059,7 @@ namespace OpenSim.Region.Environment.Scenes
                         destId);
                 return;
             }
-            
+
             if (part.OwnerID != destPart.OwnerID && (part.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.AllowInventoryDrop) == 0)
             {
                 // object cannot copy items to an object owned by a different owner
@@ -1076,7 +1075,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             TaskInventoryItem destTaskItem = new TaskInventoryItem();
-            
+
             destTaskItem.ItemID = LLUUID.Random();
             destTaskItem.CreatorID = srcTaskItem.CreatorID;
             destTaskItem.AssetID = srcTaskItem.AssetID;
@@ -1091,7 +1090,7 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions;
             destTaskItem.NextPermissions = srcTaskItem.NextPermissions;
             destTaskItem.Flags = srcTaskItem.Flags;
-            
+
             if (destPart.OwnerID != part.OwnerID)
             {
                 if (ExternalChecks.ExternalChecksPropagatePermissions())
@@ -1112,20 +1111,20 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.Name = srcTaskItem.Name;
             destTaskItem.InvType = srcTaskItem.InvType;
             destTaskItem.Type = srcTaskItem.Type;
-            
+
             destPart.AddInventoryItem(destTaskItem);
 
             if ((srcTaskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                 part.RemoveInventoryItem(itemId);
 
             ScenePresence avatar;
-            
+
             if (TryGetAvatar(srcTaskItem.OwnerID, out avatar))
             {
                 destPart.GetProperties(avatar.ControllingClient);
             }
         }
-        
+
         public void MoveTaskInventoryItems(LLUUID destID, string category, SceneObjectPart host, List<LLUUID> items)
         {
             CachedUserInfo profile = CommsManager.UserProfileCacheService.GetUserDetails(destID);
@@ -1139,7 +1138,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             LLUUID newFolderID = LLUUID.Random();
-            
+
             profile.CreateFolder(category, newFolderID, 0xffff, profile.RootFolder.ID);
 
             foreach (LLUUID itemID in items)
@@ -1346,7 +1345,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 part.AddInventoryItem(taskItem);
                 part.GetProperties(remoteClient);
-                
+
                 part.CreateScriptInstance(taskItem, 0, false);
             }
         }
@@ -1370,7 +1369,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 return;
             }
-            
+
             SceneObjectPart destPart = GetSceneObjectPart(destId);
 
             if (destPart == null)
@@ -1381,7 +1380,7 @@ namespace OpenSim.Region.Environment.Scenes
                         destId);
                 return;
             }
-            
+
             // Must own the object, and have modify rights
             if (srcPart.OwnerID != destPart.OwnerID)
                 return;
@@ -1395,14 +1394,14 @@ namespace OpenSim.Region.Environment.Scenes
                         "[PRIM INVENTORY]: " +
                         "Script in object {0} : {1}, attempted to load script {2} : {3} into object {4} : {5} with invalid pin {6}",
                         srcPart.Name, srcId, srcTaskItem.Name, srcTaskItem.ItemID, destPart.Name, destId, pin);
-                // the LSL Wiki says we are supposed to shout on the DEBUG_CHANNEL - 
+                // the LSL Wiki says we are supposed to shout on the DEBUG_CHANNEL -
                 //   "Object: Task Object trying to illegally load script onto task Other_Object!"
                 // How do we shout from in here?
                 return;
             }
-            
+
             TaskInventoryItem destTaskItem = new TaskInventoryItem();
-            
+
             destTaskItem.ItemID = LLUUID.Random();
             destTaskItem.CreatorID = srcTaskItem.CreatorID;
             destTaskItem.AssetID = srcTaskItem.AssetID;
@@ -1417,7 +1416,7 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions;
             destTaskItem.NextPermissions = srcTaskItem.NextPermissions;
             destTaskItem.Flags = srcTaskItem.Flags;
-            
+
             if (destPart.OwnerID != srcPart.OwnerID)
             {
                 if (ExternalChecks.ExternalChecksPropagatePermissions())
@@ -1438,22 +1437,22 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.Name = srcTaskItem.Name;
             destTaskItem.InvType = srcTaskItem.InvType;
             destTaskItem.Type = srcTaskItem.Type;
-            
+
             destPart.AddInventoryItemExclusive(destTaskItem);
 
             if (running > 0)
             {
                 destPart.CreateScriptInstance(destTaskItem, 0, false);
             }
-            
+
             ScenePresence avatar;
-            
+
             if (TryGetAvatar(srcTaskItem.OwnerID, out avatar))
             {
                 destPart.GetProperties(avatar.ControllingClient);
             }
         }
-        
+
         /// <summary>
         /// Called when an object is removed from the environment into inventory.
         /// </summary>
@@ -1566,7 +1565,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool InventoryDeQueueAndDelete()
         {
             DeleteToInventoryHolder x = null;
-            
+
             try
             {
                 lock (m_inventoryDeletes)
@@ -1580,13 +1579,13 @@ namespace OpenSim.Region.Environment.Scenes
                         return true;
                     }
                 }
-            } 
+            }
             catch(Exception e)
             {
                 // We can't put the object group details in here since the root part may have disappeared (which is where these sit).
                 // FIXME: This needs to be fixed.
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Queued deletion of scene object to agent {0} {1} failed: {2}", 
+                    "[AGENT INVENTORY]: Queued deletion of scene object to agent {0} {1} failed: {2}",
                     (x != null ? x.remoteClient.Name : "unavailable"), (x != null ? x.remoteClient.AgentId : "unavailable"), e.ToString());
             }
 
@@ -1745,7 +1744,7 @@ namespace OpenSim.Region.Environment.Scenes
                             }
                         }
                     }
-                    
+
                     AssetBase asset = CreateAsset(
                         objectGroup.GetPartName(objectGroup.LocalId),
                         objectGroup.GetPartDescription(objectGroup.LocalId),
@@ -1792,7 +1791,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-        
+
         public LLUUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID AgentId)
         {
             SceneObjectGroup objectGroup = grp;
@@ -2057,7 +2056,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="param"></param>
         /// <returns></returns>
         public virtual SceneObjectGroup RezObject(
-            SceneObjectPart sourcePart, TaskInventoryItem item, 
+            SceneObjectPart sourcePart, TaskInventoryItem item,
             LLVector3 pos, LLQuaternion rot, LLVector3 vel, int param)
         {
             // Rez object
@@ -2142,10 +2141,10 @@ namespace OpenSim.Region.Environment.Scenes
                     return rootPart.ParentGroup;
                 }
             }
-            
+
             return null;
         }
-        
+
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects, LLUUID AgentId)
         {
             string message = "";
@@ -2218,7 +2217,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.AssetType = asset.Type;
                         item.InvType = (int)InventoryType.Object;
                         item.Folder = folderID;
-                        
+
                         if ((AgentId != returnobjects[i].RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                         {
                             uint perms = returnobjects[i].GetEffectivePermissions();

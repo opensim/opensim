@@ -63,7 +63,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_name; }
             set { m_name = value; }
         }
-                
+
         /// <summary>
         /// Signals whether this group was in a scene but has since been deleted from it.
         /// </summary>
@@ -71,7 +71,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_isDeleted; }
         }
-        protected bool m_isDeleted;        
+        protected bool m_isDeleted;
 
         protected LLVector3 m_pos;
 

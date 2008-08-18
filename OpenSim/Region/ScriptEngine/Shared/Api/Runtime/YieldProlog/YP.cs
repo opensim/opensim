@@ -1,20 +1,20 @@
 /*
  * Copyright (C) 2007-2008, Jeff Thompson
- * 
+ *
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without 
+ *
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright 
+ *
+ *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright 
- *       notice, this list of conditions and the following disclaimer in the 
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its contributors 
- *       may be used to endorse or promote products derived from this software 
+ *     * Neither the name of the copyright holder nor the names of its contributors
+ *       may be used to endorse or promote products derived from this software
  *       without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -147,7 +147,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         /// <summary>
         /// Convert term to an int.
         /// If term is a single-element List, use its first element
-        /// (to handle the char types like "a").  
+        /// (to handle the char types like "a").
         /// If can't convert, throw a PrologException for type_error evaluable (because this is only
         ///   called from arithmetic functions).
         /// </summary>
@@ -172,8 +172,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             {
                 throw new PrologException
                     (new Functor2
-                     ("type_error", Atom.a("evaluable"), 
-                      new Functor2(Atom.SLASH, getFunctorName(term), getFunctorArgs(term).Length)), 
+                     ("type_error", Atom.a("evaluable"),
+                      new Functor2(Atom.SLASH, getFunctorName(term), getFunctorArgs(term).Length)),
                      "Term must be an integer");
             }
         }
@@ -181,7 +181,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         /// <summary>
         /// Convert term to a double.  This may convert an int to a double, etc.
         /// If term is a single-element List, use its first element
-        /// (to handle the char types like "a").  
+        /// (to handle the char types like "a").
         /// If can't convert, throw a PrologException for type_error evaluable (because this is only
         ///   called from arithmetic functions).
         /// </summary>
@@ -195,7 +195,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 // Assume it is a char type like "a".
                 term = YP.getValue(((Functor2)term)._arg1);
             if (term is Variable)
-                throw new PrologException(Atom.a("instantiation_error"), 
+                throw new PrologException(Atom.a("instantiation_error"),
                     "Expected a number but the argument is an unbound variable");
 
             try
@@ -776,8 +776,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             if (term1TypeCode == -2)
             {
                 // Variable.
-                // We always check for equality first because we want to be sure 
-                //   that less than returns false if the terms are equal, in 
+                // We always check for equality first because we want to be sure
+                //   that less than returns false if the terms are equal, in
                 //   case that the less than check really behaves like less than or equal.
                 if ((Variable)Term1 != (Variable)Term2)
                     // The hash code should be unique to a Variable object.
@@ -820,8 +820,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         }
 
         /// <summary>
-        /// Type code is -2 if term is a Variable, 0 if it is an Atom, 
-        /// 1 if it is a Functor1, 2 if it is a Functor2, 3 if it is a Functor3, 
+        /// Type code is -2 if term is a Variable, 0 if it is an Atom,
+        /// 1 if it is a Functor1, 2 if it is a Functor2, 3 if it is a Functor3,
         /// 4 if it is Functor.
         /// Otherwise, type code is -1.
         /// This does not call YP.getValue(term).
@@ -1167,7 +1167,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                             "Arg 2 List has an element which is an unbound variable");
                     if (!(listAtom is Atom && ((Atom)listAtom)._name.Length == 1))
                         throw new PrologException
-                            (new Functor2("type_error", Atom.a("character"), listAtom), 
+                            (new Functor2("type_error", Atom.a("character"), listAtom),
                              "Arg 2 List has an element which is not a one character atom");
                     charArray[i] = ((Atom)listAtom)._name[0];
                 }
@@ -1209,7 +1209,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                     int codeInt;
                     if (!getInt(codeArray[i], out codeInt) || codeInt < 0)
                         throw new PrologException
-                            (new Functor1("representation_error", Atom.a("character_code")), 
+                            (new Functor1("representation_error", Atom.a("character_code")),
                              "Element of Arg 2 List is not a character code");
                     charArray[i] = (char)codeInt;
                 }
@@ -1323,7 +1323,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 {
                     if (!YP.number(Number))
                         throw new PrologException
-                            (new Functor2("type_error", Atom.a("number"), Number), 
+                            (new Functor2("type_error", Atom.a("number"), Number),
                             "Arg 1 Number is not var or number");
                     // We just checked, so convertDouble shouldn't throw an exception.
                     numberString = YP.doubleToString(YP.convertDouble(Number));
@@ -1413,7 +1413,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             {
                 if (!(Char is Atom) || ((Atom)Char)._name.Length != 1)
                     throw new PrologException
-                        (new Functor2("type_error", Atom.a("character"), Char), 
+                        (new Functor2("type_error", Atom.a("character"), Char),
                          "Arg 1 Char is not var or one-character atom");
 
                 if (Code is Variable)
@@ -1795,7 +1795,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             IndexedAnswers indexedAnswers;
             if (!_predicatesStore.TryGetValue(nameArity, out clauses))
             {
-                // Create an IndexedAnswers as the only clause of the predicate.                
+                // Create an IndexedAnswers as the only clause of the predicate.
                 _predicatesStore[nameArity] = (clauses = new List<IClause>());
                 clauses.Add(indexedAnswers = new IndexedAnswers(values.Length));
             }
@@ -1826,7 +1826,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             IndexedAnswers indexedAnswers;
             if (!_predicatesStore.TryGetValue(nameArity, out clauses))
             {
-                // Create an IndexedAnswers as the only clause of the predicate.                
+                // Create an IndexedAnswers as the only clause of the predicate.
                 _predicatesStore[nameArity] = (clauses = new List<IClause>());
                 clauses.Add(indexedAnswers = new IndexedAnswers(values.Length));
             }
@@ -1855,7 +1855,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         {
             List<IClause> clauses;
             if (!_predicatesStore.TryGetValue(new NameArity(name, arguments.Length), out clauses))
-                return unknownPredicate(name, arguments.Length, 
+                return unknownPredicate(name, arguments.Length,
                      "Undefined dynamic predicate: " + name + "/" + arguments.Length);
 
             if (clauses.Count == 1)
@@ -1889,7 +1889,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         }
 
         /// <summary>
-        /// If _prologFlags["unknown"] is fail then return fail(), else if 
+        /// If _prologFlags["unknown"] is fail then return fail(), else if
         ///   _prologFlags["unknown"] is warning then write the message to YP.write and
         ///   return fail(), else throw a PrologException for existence_error.  .
         /// </summary>
@@ -1917,7 +1917,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         }
 
         /// <summary>
-        /// This is deprecated and just calls matchDynamic. This matches all clauses, 
+        /// This is deprecated and just calls matchDynamic. This matches all clauses,
         /// not just the ones defined with assertFact.
         /// </summary>
         /// <param name="name"></param>
@@ -2066,7 +2066,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         /// dynamic predicate.
         /// </summary>
         /// <param name="NameSlashArity"></param>
-        /// <param name="declaringClass">if not null, used to resolve references to the default 
+        /// <param name="declaringClass">if not null, used to resolve references to the default
         /// module Atom.a("")</param>
         /// <returns></returns>
         public static IEnumerable<bool> current_predicate(object NameSlashArity, Type declaringClass)
@@ -2078,7 +2078,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 Functor2 NameArityFunctor = NameSlashArity as Functor2;
                 if (!(NameArityFunctor != null && NameArityFunctor._name == Atom.SLASH))
                     throw new PrologException
-                        (new Functor2("type_error", Atom.a("predicate_indicator"), NameSlashArity), 
+                        (new Functor2("type_error", Atom.a("predicate_indicator"), NameSlashArity),
                          "Must be a name/arity predicate indicator");
                 object name = YP.getValue(NameArityFunctor._arg1);
                 object arity = YP.getValue(NameArityFunctor._arg2);
@@ -2163,12 +2163,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         }
 
         /// <summary>
-        /// If Goal is a simple predicate, call YP.getFunctorName(Goal) using arguments from 
+        /// If Goal is a simple predicate, call YP.getFunctorName(Goal) using arguments from
         /// YP.getFunctorArgs(Goal). If not found, this throws a PrologException for existence_error.
-        /// Otherwise, compile the goal as a single clause predicate and invoke it. 
+        /// Otherwise, compile the goal as a single clause predicate and invoke it.
         /// </summary>
         /// <param name="Goal"></param>
-        /// <param name="declaringClass">if not null, used to resolve references to the default 
+        /// <param name="declaringClass">if not null, used to resolve references to the default
         /// module Atom.a("")</param>
         /// <returns></returns>
         public static IEnumerable<bool> getIterator(object Goal, Type declaringClass)
@@ -2259,7 +2259,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                         (new Functor2("type_error", Atom.a("atom"), Key), "Arg 1 Key is not an atom");
                 if (!_prologFlags.ContainsKey(((Atom)Key)._name))
                     throw new PrologException
-                        (new Functor2("domain_error", Atom.a("prolog_flag"), Key), 
+                        (new Functor2("domain_error", Atom.a("prolog_flag"), Key),
                         "Arg 1 Key is not a recognized flag");
 
                 foreach (bool l1 in YP.unify(Value, _prologFlags[((Atom)Key)._name]))
@@ -2343,7 +2343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             string results = "";
             for (Match m = Regex.Match(inData,inPattern); m.Success; m=m.NextMatch())
             {
-                //Console.WriteLine( m );    
+                //Console.WriteLine( m );
                 results += presep+ m + postsep;
             }
             return results;
@@ -2662,7 +2662,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 #pragma warning restore 0168
             }
         }
-        
+
         /// <summary>
         /// CodeListReader extends TextReader and overrides Read to read the next code from
         /// the CodeList which is a Prolog list of integer character codes.
@@ -2683,7 +2683,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             /// <returns></returns>
             public override int Read()
             {
-                Functor2 CodeListPair = _CodeList as Functor2; 
+                Functor2 CodeListPair = _CodeList as Functor2;
                 int code;
                 if (!(CodeListPair != null && CodeListPair._name == Atom.DOT &&
                     getInt(CodeListPair._arg1, out code)))

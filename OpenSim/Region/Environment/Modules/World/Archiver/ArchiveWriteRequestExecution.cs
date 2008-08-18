@@ -61,8 +61,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         public ArchiveWriteRequestExecution(
              List<SceneObjectGroup> sceneObjects,
-             ITerrainModule terrainModule,                               
-             IRegionSerialiser serialiser, 
+             ITerrainModule terrainModule,
+             IRegionSerialiser serialiser,
              string sceneName,
              string savePath)
         {
@@ -79,37 +79,37 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 m_log.DebugFormat("[ARCHIVER]: Could not find asset {0}", uuid);
             }
-            
+
             m_log.InfoFormat(
                 "[ARCHIVER]: Received {0} of {1} assets requested", assetsFound.Count, assetsFound.Count + assetsNotFoundUuids.Count);
 
             TarArchiveWriter archive = new TarArchiveWriter();
-            
+
             // Write out control file
             archive.AddFile(ArchiveConstants.CONTROL_FILE_PATH, CreateControlFile());
-            
+
             // Write out terrain
             string terrainPath = String.Format("{0}{1}.r32", ArchiveConstants.TERRAINS_PATH, m_sceneName);
-            MemoryStream ms = new MemoryStream();            
+            MemoryStream ms = new MemoryStream();
             m_terrainModule.SaveToStream(terrainPath, ms);
-            archive.AddFile(terrainPath, ms.ToArray());           
+            archive.AddFile(terrainPath, ms.ToArray());
             ms.Close();
-            
+
             // Write out scene object metadata
             foreach (SceneObjectGroup sceneObject in m_sceneObjects)
             {
                 //m_log.DebugFormat("[ARCHIVER]: Saving {0} {1}, {2}", entity.Name, entity.UUID, entity.GetType());
-                
+
                 LLVector3 position = sceneObject.AbsolutePosition;
-                
+
                 string serializedObject = m_serialiser.SaveGroupToXml2(sceneObject);
-                string filename 
+                string filename
                     = string.Format(
                         "{0}{1}_{2:000}-{3:000}-{4:000}__{5}.xml",
-                        ArchiveConstants.OBJECTS_PATH, sceneObject.Name, 
-                        Math.Round(position.X), Math.Round(position.Y), Math.Round(position.Z), 
+                        ArchiveConstants.OBJECTS_PATH, sceneObject.Name,
+                        Math.Round(position.X), Math.Round(position.Y), Math.Round(position.Z),
                         sceneObject.UUID);
-                
+
                 archive.AddFile(filename, serializedObject);
             }
 
@@ -120,8 +120,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             archive.WriteTar(new GZipStream(new FileStream(m_savePath, FileMode.Create), CompressionMode.Compress));
 
             m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive {0}", m_savePath);
-        }   
-        
+        }
+
         /// <summary>
         /// Create the control file for this archive
         /// </summary>
@@ -136,13 +136,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             xtw.WriteAttributeString("major_version", "0");
             xtw.WriteAttributeString("minor_version", "1");
             xtw.WriteEndElement();
-            
+
             xtw.Flush();
             xtw.Close();
-            
+
             String s = sw.ToString();
             sw.Close();
-            
+
             return s;
         }
     }

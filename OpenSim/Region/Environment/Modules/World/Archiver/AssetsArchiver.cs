@@ -41,17 +41,17 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     public class AssetsArchiver
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         /// <summary>
         /// Archive assets
         /// </summary>
         protected IDictionary<LLUUID, AssetBase> m_assets;
-        
+
         public AssetsArchiver(IDictionary<LLUUID, AssetBase> assets)
         {
             m_assets = assets;
         }
-        
+
         /// <summary>
         /// Archive the assets given to this archiver to the given archive.
         /// </summary>
@@ -70,44 +70,44 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);
-            
+
             xtw.Formatting = Formatting.Indented;
             xtw.WriteStartDocument();
-            
+
             xtw.WriteStartElement("assets");
-            
+
             foreach (LLUUID uuid in m_assets.Keys)
             {
                 AssetBase asset = m_assets[uuid];
-                
+
                 if (asset != null)
                 {
                     xtw.WriteStartElement("asset");
-                    
+
                     string extension = string.Empty;
-                    
+
                     if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
                     {
                         extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
-                    }                    
-                    
+                    }
+
                     xtw.WriteElementString("filename", uuid.ToString() + extension);
-                    
+
                     xtw.WriteElementString("name", asset.Name);
                     xtw.WriteElementString("description", asset.Description);
                     xtw.WriteElementString("asset-type", asset.Type.ToString());
-                    
+
                     xtw.WriteEndElement();
                 }
             }
-            
+
             xtw.WriteEndElement();
-            
+
             xtw.WriteEndDocument();
-            
+
             archive.AddFile("assets.xml", sw.ToString());
         }
-        
+
         /// <summary>
         /// Write asset data files to the given archive
         /// </summary>
@@ -116,18 +116,18 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
             //archive.AddDir("assets");
-            
+
             foreach (LLUUID uuid in m_assets.Keys)
             {
                 AssetBase asset = m_assets[uuid];
-                
+
                 string extension = string.Empty;
-                
+
                 if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
                 {
                     extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
                 }
-                
+
                 archive.AddFile(
                     ArchiveConstants.ASSETS_PATH + uuid.ToString() + extension,
                     asset.Data);

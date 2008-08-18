@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Interfaces
         /// </summary>
         /// <returns></returns>
         float[] GetFloatsSerialised();
-        
+
         double[,] GetDoubles();
         bool Tainted(int x, int y);
         ITerrainChannel MakeCopy();

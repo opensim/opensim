@@ -89,7 +89,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             {
                 if (!DataserverRequests.ContainsKey(identifier))
                     return;
-                
+
                 ds=DataserverRequests[identifier];
                 DataserverRequests.Remove(identifier);
             }

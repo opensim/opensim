@@ -90,7 +90,7 @@ namespace OpenSim.Grid.UserServer
         public override void Startup()
         {
             base.Startup();
-            
+
             Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
 
             m_stats = StatsManager.StartCollectingUserStats();
@@ -101,11 +101,11 @@ namespace OpenSim.Grid.UserServer
 
             m_gridInfoService = new GridInfoService();
 
-            m_interServiceInventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);            
+            m_interServiceInventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
 
             m_loginService = new UserLoginService(
-                 m_userManager, m_interServiceInventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);            
-            
+                 m_userManager, m_interServiceInventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
+
             m_messagesService = new MessageServersConnector();
 
             m_loginService.OnUserLoggedInAtLocation += NotifyMessageServersUserLoggedInToLocation;
@@ -151,7 +151,6 @@ namespace OpenSim.Grid.UserServer
 
             m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
             m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
-            
 
             m_httpServer.AddStreamHandler(
                 new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
@@ -188,7 +187,7 @@ namespace OpenSim.Grid.UserServer
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
 
                     LLUUID userID = new LLUUID();
-                    
+
                     try
                     {
                         userID = m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
@@ -199,7 +198,7 @@ namespace OpenSim.Grid.UserServer
                     }
 
                     try
-                    {                        
+                    {
                         if (!m_interServiceInventoryService.CreateNewUserInventory(userID))
                         {
                             throw new Exception(
@@ -245,9 +244,9 @@ namespace OpenSim.Grid.UserServer
                     // requester.ReturnResponseVal = TestResponse;
                     // requester.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
                     SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(
-                        "POST", Cfg.InventoryUrl + "RootFolders/", m_lastCreatedUser);                
-                    break;     
-                
+                        "POST", Cfg.InventoryUrl + "RootFolders/", m_lastCreatedUser);
+                    break;
+
                 case "logoff-user":
 
                     if (cmdparams.Length >= 3)
@@ -279,7 +278,7 @@ namespace OpenSim.Grid.UserServer
                                     m_loginService.LogOffUser(theUser, message);
 
                                     theUser.CurrentAgent.AgentOnline = false;
-                                    
+
                                     m_loginService.CommitAgent(ref theUser);
                                 }
                                 else

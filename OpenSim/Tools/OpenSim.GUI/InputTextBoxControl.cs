@@ -38,7 +38,7 @@ namespace OpenSim.GUI
         {
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(TextInputControl_KeyDown);
         }
-  
+
         private List<string> CommandHistory = new List<string>();
         private bool InHistory = false;
         private int HistoryPosition = -1;

@@ -58,7 +58,7 @@ namespace OpenSim.Framework.Servers
         /// <param name="headers">null or dictionary with header
         /// regexs</param>
         /// <param name="whitelist">null or IP address whitelist</param>
-        public OSHttpHttpHandler(GenericHTTPMethod handler, Regex method, Regex path, 
+        public OSHttpHttpHandler(GenericHTTPMethod handler, Regex method, Regex path,
                                  Dictionary<string, Regex> query,
                                  Dictionary<string, Regex> headers, Regex whitelist)
             : base(method, path, query, headers, new Regex(@"^text/html", RegexOptions.IgnoreCase | RegexOptions.Compiled),
@@ -71,7 +71,7 @@ namespace OpenSim.Framework.Servers
         /// Instantiate an HTTP handler.
         /// </summary>
         /// <param name="handler">a GenericHTTPMethod</param>
-        public OSHttpHttpHandler(GenericHTTPMethod handler) 
+        public OSHttpHttpHandler(GenericHTTPMethod handler)
             : this(handler, new Regex(@"^GET$", RegexOptions.IgnoreCase | RegexOptions.Compiled), null, null, null, null)
         {
         }
@@ -79,7 +79,7 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Invoked by OSHttpRequestPump.
         /// </summary>
-        public override OSHttpHandlerResult Process(OSHttpRequest request) 
+        public override OSHttpHandlerResult Process(OSHttpRequest request)
         {
             // call handler method
             Hashtable responseData = _handler(request.Query);
@@ -110,7 +110,7 @@ namespace OpenSim.Framework.Servers
             }
 
             response.AddHeader("Content-type", contentType);
-            
+
             byte[] buffer;
 
             if (!contentType.Contains("image"))

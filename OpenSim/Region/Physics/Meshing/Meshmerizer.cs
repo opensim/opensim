@@ -941,7 +941,7 @@ namespace OpenSim.Region.Physics.Meshing
             extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.01f;
             extr.pathBegin = primShape.PathBegin;
             extr.pathEnd = primShape.PathEnd;
-            
+
             //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
             //Mesh result = extr.Extrude(m);
             Mesh result = extr.ExtrudeLinearPath(m);
@@ -1340,7 +1340,7 @@ namespace OpenSim.Region.Physics.Meshing
         }
 
         /// <summary>
-        /// Creates a mesh for prim types torus, ring, tube, and sphere 
+        /// Creates a mesh for prim types torus, ring, tube, and sphere
         /// </summary>
         /// <param name="primName"></param>
         /// <param name="primShape"></param>
@@ -1655,7 +1655,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             // Vertex vTemp = new Vertex(0.0f, 0.0f, 0.0f);
 
-            
+
             float skew = primShape.PathSkew * 0.01f;
             float pathScaleX = (float)(200 - primShape.PathScaleX) * 0.01f;
             float pathScaleY = (float)(200 - primShape.PathScaleY) * 0.01f;
@@ -1700,7 +1700,7 @@ namespace OpenSim.Region.Physics.Meshing
             //System.Console.WriteLine("primShape.PathTaperX: " + primShape.PathTaperX.ToString());
             //System.Console.WriteLine("primShape.PathTaperY: " + primShape.PathTaperY.ToString());
 
-            
+
             //System.Console.WriteLine("primShape.PathRadiusOffset: " + primShape.PathRadiusOffset.ToString());
 #endif
 
@@ -1875,7 +1875,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (primShape.SculptEntry && primShape.SculptType != (byte)0 && primShape.SculptData.Length > 0)
             {
-                
+
                 SculptMesh smesh = CreateSculptMesh(primName, primShape, size, lod);
                 mesh = (Mesh)smesh;
                 CalcNormals(mesh);
@@ -1967,7 +1967,7 @@ namespace OpenSim.Region.Physics.Meshing
             float pathShearY = primShape.PathShearY < 128 ? (float)primShape.PathShearY * 0.01f : (float)(primShape.PathShearY - 256) * 0.01f;
             float pathBegin = (float)primShape.PathBegin * 2.0e-5f;
             float pathEnd = 1.0f - (float)primShape.PathEnd * 2.0e-5f;
-            
+
             float profileBegin = (float)primShape.ProfileBegin * 2.0e-5f;
             float profileEnd = 1.0f - (float)primShape.ProfileEnd * 2.0e-5f;
 

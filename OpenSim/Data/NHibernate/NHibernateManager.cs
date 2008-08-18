@@ -51,7 +51,7 @@ namespace OpenSim.Data.NHibernate
 //                 "NHibernate.Driver.SqliteClientDriver";
 //             cfg.Properties[NHibernate.Cfg.Environment.ConnectionString] =
 //                 "URI=file:opensim-nh.db,version=3";
-            
+
 //             factory = cfg.BuildSessionFactory();
         }
 

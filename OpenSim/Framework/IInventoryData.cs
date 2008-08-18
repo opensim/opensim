@@ -132,7 +132,7 @@ namespace OpenSim.Framework
         /// <param name="folder">The id of the folder</param>
         void deleteInventoryFolder(LLUUID folder);
     }
-    
+
     public class InventoryDataInitialiser : PluginInitialiserBase
     {
         private string connect;

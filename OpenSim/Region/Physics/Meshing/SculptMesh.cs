@@ -52,7 +52,7 @@ namespace OpenSim.Region.Physics.Meshing
         {
             if (_lod == 2f || _lod == 4f || _lod == 8f || _lod == 16f || _lod == 32f || _lod == 64f)
                 lod = (int)_lod;
-            
+
             try
             {
                 idata = OpenJPEG.DecodeToImage(jpegData);
@@ -81,7 +81,7 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
 
-            
+
         }
         private Vertex ColorToVertex(Color input)
         {
@@ -225,7 +225,7 @@ namespace OpenSim.Region.Physics.Meshing
                     // Create a vertex position from the RGB channels in the current pixel
                     // int ypos = y * bLOD.Width;
 
-                    
+
                     if (y == 0)
                     {
                         v1 = northpole;
@@ -291,7 +291,7 @@ namespace OpenSim.Region.Physics.Meshing
                             Add(tri2);
                         }
                     }
-                    
+
                 }
                 //Vertex vt31 = sVertices[(y * x_max + x)];
                 //Vertex vt32 = sVertices[(y * x_max + 0)];
@@ -311,7 +311,7 @@ namespace OpenSim.Region.Physics.Meshing
                         //Add(tri3);
                    // }
                 //}
-                
+
                 //Vertex vt41 = sVertices[(y * x_max + x)];
                 //Vertex vt42 = sVertices[((y + 1) * x_max + 0)];
                 //Vertex vt43 = sVertices[((y + 1) * x_max + x)];
@@ -329,7 +329,7 @@ namespace OpenSim.Region.Physics.Meshing
                         //Add(tri4);
                     //}
                 //}
-                
+
             }
         }
     }

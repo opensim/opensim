@@ -363,7 +363,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             new WorkItemCallback(
                             this.DoOnRezScriptQueue), new Object[0]);
                 }
-                else 
+                else
                 {
                     m_CurrentCompile = null;
                 }
@@ -394,7 +394,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             new WorkItemCallback(
                             this.DoOnRezScriptQueue), new Object[0]);
                 }
-                else 
+                else
                 {
                     m_CurrentCompile = null;
                 }
@@ -1113,7 +1113,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             string savedState = Path.Combine(Path.GetDirectoryName(m_Assembly),
                     m_ItemID.ToString() + ".state");
-            
+
             try
             {
                 File.Delete(savedState);

@@ -74,11 +74,11 @@ namespace OpenSim.Region.Environment.Scenes
         public InnerScene m_innerScene;
 
         /// <summary>
-        /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is 
+        /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is
         /// dispenced.
-        /// </summary>       
+        /// </summary>
         private uint m_lastAllocatedLocalId = 720000;
-        
+
         private readonly Mutex _primAllocateMutex = new Mutex(false);
 
         private int m_timePhase = 24;
@@ -607,7 +607,7 @@ namespace OpenSim.Region.Environment.Scenes
         public override void Close()
         {
             m_log.InfoFormat("[SCENE]: Closing down the single simulator: {0}", RegionInfo.RegionName);
-            
+
             // Kick all ROOT agents with the message, 'The simulator is going down'
             ForEachScenePresence(delegate(ScenePresence avatar)
                                  {
@@ -765,7 +765,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (m_frame % m_update_backup == 0)
                     {
                         UpdateStorageBackup();
-                        
+
                     }
 
                     if (m_frame % m_update_terrain == 0)
@@ -1112,7 +1112,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 //X
                                 // .
                                 //
-                                // Shade the terrain for shadows 
+                                // Shade the terrain for shadows
                                 if ((x - 1 > 0) && (y - 1 > 0))
                                 {
                                     hfvalue = (float)hm[x, y];
@@ -1133,7 +1133,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     else if (hfdiff < -0.3f)
                                     {
                                         // We have to desaturate and blacken the land at the same time
-                                        // we use floats, colors use bytes, so shrink are space down to 
+                                        // we use floats, colors use bytes, so shrink are space down to
                                         // 0-255
 
 
@@ -1429,13 +1429,13 @@ namespace OpenSim.Region.Environment.Scenes
         public void LazySaveGeneratedMaptile(byte[] data, bool temporary)
         {
             // Overwrites the local Asset cache with new maptile data
-            // Assets are single write, this causes the asset server to ignore this update, 
+            // Assets are single write, this causes the asset server to ignore this update,
             // but the local asset cache does not
 
             // this is on purpose!  The net result of this is the region always has the most up to date
-            // map tile while protecting the (grid) asset database from bloat caused by a new asset each 
+            // map tile while protecting the (grid) asset database from bloat caused by a new asset each
             // time a mapimage is generated!
-            
+
             LLUUID lastMapRegionUUID = m_regInfo.lastMapUUID;
 
             int lastMapRefresh = 0;
@@ -1711,7 +1711,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </param>
         /// <returns>
         /// true if the object was added, false if an object with the same uuid was already in the scene
-        /// </returns> 
+        /// </returns>
         public bool AddRestoredSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
         {
@@ -1739,15 +1739,15 @@ namespace OpenSim.Region.Environment.Scenes
             lock (Entities)
             {
                 ICollection<EntityBase> entities = new List<EntityBase>(Entities.Values);
-                
+
                 foreach (EntityBase e in entities)
                 {
                     if (e is SceneObjectGroup)
                         DeleteSceneObject((SceneObjectGroup)e);
                 }
-            }        
+            }
         }
-        
+
         /// <summary>
         /// Delete the given object from the scene.
         /// </summary>
@@ -1791,8 +1791,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void LoadPrimsFromXml(string fileName, bool newIdsFlag, LLVector3 loadOffset)
         {
-            m_log.InfoFormat("[SCENE]: Loading prims in xml format to region {0} from {1}", RegionInfo.RegionName);            
-            
+            m_log.InfoFormat("[SCENE]: Loading prims in xml format to region {0} from {1}", RegionInfo.RegionName);
+
             m_serialiser.LoadPrimsFromXml(this, fileName, newIdsFlag, loadOffset);
         }
 
@@ -1805,29 +1805,29 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void LoadPrimsFromXml2(string fileName)
         {
-            m_log.InfoFormat("[SCENE]: Loading prims in xml2 format to region {0} from {1}", RegionInfo.RegionName, fileName);            
-            
+            m_log.InfoFormat("[SCENE]: Loading prims in xml2 format to region {0} from {1}", RegionInfo.RegionName, fileName);
+
             m_serialiser.LoadPrimsFromXml2(this, fileName);
         }
 
         public void LoadPrimsFromXml2(TextReader reader, bool startScripts)
         {
-            m_log.InfoFormat("[SCENE]: Loading prims in xml2 format to region {0} from stream", RegionInfo.RegionName);            
-            
+            m_log.InfoFormat("[SCENE]: Loading prims in xml2 format to region {0} from stream", RegionInfo.RegionName);
+
             m_serialiser.LoadPrimsFromXml2(this, reader, startScripts);
         }
 
         public void SavePrimsToXml2(string fileName)
         {
             m_log.InfoFormat("[SCENE]: Saving prims in xml2 format for region {0} to {1}", RegionInfo.RegionName, fileName);
-            
+
             m_serialiser.SavePrimsToXml2(this, fileName);
         }
 
         public void SavePrimsToXml2(TextWriter stream, LLVector3 min, LLVector3 max)
         {
             m_log.InfoFormat("[SCENE]: Saving prims in xml2 format for region {0} to stream", RegionInfo.RegionName);
-            
+
             m_serialiser.SavePrimsToXml2(this, stream, min, max);
         }
 
@@ -1835,7 +1835,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_log.InfoFormat(
                 "[SCENE]: Saving prims with name {0} in xml2 format for region {1} to {2}", primName, RegionInfo.RegionName, fileName);
-            
+
             List<EntityBase> entityList = GetEntities();
             List<EntityBase> primList = new List<EntityBase>();
 
@@ -1860,7 +1860,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void LoadPrimsFromArchive(string filePath)
         {
             m_log.InfoFormat("[SCENE]: Loading archive to region {0} from {1}", RegionInfo.RegionName, filePath);
-                        
+
             m_archiver.DearchiveRegion(filePath);
         }
 
@@ -1871,7 +1871,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SavePrimsToArchive(string filePath)
         {
             m_log.InfoFormat("[SCENE]: Writing archive for region {0} to {1}", RegionInfo.RegionName, filePath);
-            
+
             m_archiver.ArchiveRegion(filePath);
         }
 
@@ -1986,7 +1986,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Warn("{[INTERREGION]: A new prim arrived from a neighbor");
             if (XMLMethod == 0)
             {
-                SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);                
+                SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
                 AddRestoredSceneObject(sceneObject, true, false);
 
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
@@ -1999,7 +1999,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             DeleteSceneObject(grp);
                         }
-                        
+
                         m_log.Info("[INTERREGION]: Denied prim crossing for banned avatar");
 
                         return false;
@@ -2075,7 +2075,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.DebugFormat(
-                    "[SCENE]: Adding new {0} agent {1} {2} in {3}", 
+                    "[SCENE]: Adding new {0} agent {1} {2} in {3}",
                     (child ? "child" : "root"), client.Name, client.AgentId, RegionInfo.RegionName);
 
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
@@ -2156,7 +2156,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnScriptReset += ProcessScriptReset;
             client.OnGetScriptRunning += GetScriptRunning;
             client.OnSetScriptRunning += SetScriptRunning;
-            
+
             client.OnRegionHandleRequest += RegionHandleRequest;
 
             client.OnUnackedTerrain += TerrainUnAcked;
@@ -2310,7 +2310,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
         {
             appearance = null;  // VS needs this line, mono doesn't
-            
+
             try
             {
                 if (m_AvatarFactory == null ||
@@ -2323,10 +2323,10 @@ namespace OpenSim.Region.Environment.Scenes
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[APPERANCE]: Problem when fetching appearance for avatar {0}, {1}, using default. {2}", 
+                    "[APPERANCE]: Problem when fetching appearance for avatar {0}, {1}, using default. {2}",
                     client.Name, client.AgentId, e);
                 appearance = new AvatarAppearance();
-            }                
+            }
         }
 
         /// <summary>
@@ -2341,13 +2341,13 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 childagentYN = avatar.IsChildAgent;
             }
-            
+
             try
             {
                 m_log.DebugFormat(
-                    "[SCENE]: Removing {0} agent {1} from region {2}", 
+                    "[SCENE]: Removing {0} agent {1} from region {2}",
                     (childagentYN ? "child" : "root"), agentID, RegionInfo.RegionName);
-                
+
                 if (avatar.IsChildAgent)
                 {
                     m_innerScene.removeUserCount(false);
@@ -2378,7 +2378,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // We don't know which count to remove it from
                 // Avatar is already disposed :/
             }
-            
+
             m_eventManager.TriggerOnRemovePresence(agentID);
             Broadcast(delegate(IClientAPI client)
                       {
@@ -2717,7 +2717,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         m_innerScene.removeUserCount(true);
                     }
-                    
+
                     // Tell a single agent to disconnect from the region.
                     presence.ControllingClient.SendShutdownConnectionNotice();
 
@@ -3827,9 +3827,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             //should be doing this by parcel, but as its only for testing
             // The use of Thread.Sleep here causes the following compiler error under mono 1.2.4
-            // OpenSim/Region/Environment/Scenes/Scene.cs(3675,17): error CS0103: The name `Thread' does not exist 
+            // OpenSim/Region/Environment/Scenes/Scene.cs(3675,17): error CS0103: The name `Thread' does not exist
             // in the context of `<>c__CompilerGenerated17'
-            // MW said it was okay to comment the body of this method out for now since the code is experimental 
+            // MW said it was okay to comment the body of this method out for now since the code is experimental
             // and will be replaced anyway
 //            ForEachClient(delegate(IClientAPI client)
 //            {
@@ -3840,7 +3840,7 @@ namespace OpenSim.Region.Environment.Scenes
 //                client.SendParcelMediaCommand((uint)(4), ParcelMediaCommandEnum.Play, 0);
 //            });
         }
-        
+
         public void RegionHandleRequest(IClientAPI client, LLUUID regionID)
         {
             RegionInfo info;
@@ -3860,4 +3860,4 @@ namespace OpenSim.Region.Environment.Scenes
              client.SendLayerData(patchX, patchY, Heightmap.GetFloatsSerialised());
         }
     }
-}              
+}

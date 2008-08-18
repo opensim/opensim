@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Communications.Capabilities
     public class LLSDRemoteParcelResponse
     {
         public LLUUID parcel_id;
-        
+
         public LLSDRemoteParcelResponse()
         {
         }

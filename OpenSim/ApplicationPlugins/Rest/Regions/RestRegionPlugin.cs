@@ -57,7 +57,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             _xmlNs = new XmlSerializerNamespaces();
             _xmlNs.Add(String.Empty, String.Empty);
         }
-        
+
         #region overriding properties
         public override string Name
         {
@@ -90,7 +90,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                     return;
                 }
                 m_log.InfoFormat("{0} REST region plugin enabled", MsgID);
-                
+
                 // add REST method handlers
                 AddRestStreamHandler("GET", "/regions/", GetHandler);
                 AddRestStreamHandler("POST", "/regions/", PostHandler);

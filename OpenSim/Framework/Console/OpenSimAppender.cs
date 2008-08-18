@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Console
     {
         override protected void Append(LoggingEvent le)
         {
-            try 
+            try
             {
                 string loggingMessage = RenderLoggingEvent(le);
 
@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Console
 
                 Regex RE = new Regex(regex, RegexOptions.Multiline);
                 MatchCollection matches = RE.Matches(loggingMessage);
-                
+
                 // Get some direct matches $1 $4 is a
                 if (matches.Count == 1)
                 {

@@ -72,21 +72,21 @@ namespace OpenSim.Framework.Servers
         /// Regular expression used to match against method of
         /// the incoming HTTP request. If you want to match any string
         /// either use '.*' or null. To match on the empty string use
-        /// '^$'. 
+        /// '^$'.
         /// </summary>
         public virtual Regex Method
         {
             get { return _method; }
         }
         protected Regex _method;
-        
+
         /// <summary>
         /// Regular expression used to match against path of the
         /// incoming HTTP request. If you want to match any string
         /// either use '.*' or null. To match on the emtpy string use
         /// '^$'.
         /// </summary>
-        public virtual Regex Path 
+        public virtual Regex Path
         {
             get { return _path; }
         }
@@ -97,7 +97,7 @@ namespace OpenSim.Framework.Servers
         /// allowing us to match on URI query fields.
         /// </summary>
         public virtual Dictionary<string, Regex> Query
-        { 
+        {
             get { return _query; }
         }
         protected Dictionary<string, Regex> _query;
@@ -107,7 +107,7 @@ namespace OpenSim.Framework.Servers
         /// allowing us to match on HTTP header fields.
         /// </summary>
         public virtual Dictionary<string, Regex> Headers
-        { 
+        {
             get { return _headers; }
         }
         protected Dictionary<string, Regex> _headers;
@@ -137,7 +137,7 @@ namespace OpenSim.Framework.Servers
         /// <param name="contentType">null or content type
         /// regex</param>
         /// <param name="whitelist">null or IP address regex</param>
-        public OSHttpHandler(Regex method, Regex path, Dictionary<string, Regex> query, 
+        public OSHttpHandler(Regex method, Regex path, Dictionary<string, Regex> query,
                              Dictionary<string, Regex> headers, Regex contentType, Regex whitelist)
         {
             _method = method;
@@ -155,7 +155,7 @@ namespace OpenSim.Framework.Servers
 
         /// <summary>
         /// Process an incoming OSHttpRequest that matched our
-        /// requirements. 
+        /// requirements.
         /// </summary>
         /// <returns>
         /// OSHttpHandlerResult.Pass if we are after all not

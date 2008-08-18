@@ -44,12 +44,12 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         public MySQLManager database;
 
-        public void Initialise() 
-        { 
+        public void Initialise()
+        {
             m_log.Info("[MySQLLogData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
-        
+
         /// <summary>
         /// Artificial constructor called when the plugin is loaded
         /// Uses the obsolete mysql_connection.ini if connect string is empty.
@@ -100,7 +100,7 @@ namespace OpenSim.Data.MySQL
             Dictionary<string, string> tableList = new Dictionary<string, string>();
             tableList["logs"] = null;
             database.GetTableVersion(tableList);
-            
+
             // migrations will handle it
             if (tableList["logs"] == null)
                 return;

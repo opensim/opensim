@@ -413,7 +413,7 @@ namespace OpenSim.Grid.UserServer
 
             return ProfileToXmlRPCResponse(userProfile);
         }
-        
+
         public XmlRpcResponse XmlRPCGetAgentMethodUUID(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();

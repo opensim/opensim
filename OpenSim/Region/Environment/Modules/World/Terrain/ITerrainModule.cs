@@ -33,7 +33,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
     {
         void LoadFromFile(string filename);
         void SaveToFile(string filename);
-        
+
         /// <summary>
         /// Load a terrain from a stream.
         /// </summary>
@@ -42,7 +42,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         /// </param>
         /// <param name="stream"></param>
         void LoadFromStream(string filename, Stream stream);
-        
+
         /// <summary>
         /// Save a terrain to a stream.
         /// </summary>
@@ -51,7 +51,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         /// </param>
         /// <param name="stream"></param>
         void SaveToStream(string filename, Stream stream);
-        
+
         void InstallPlugin(string name, ITerrainEffect plug);
     }
 }

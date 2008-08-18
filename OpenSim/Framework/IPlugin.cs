@@ -38,7 +38,7 @@ namespace OpenSim.Framework
         public PluginNotInitialisedException (string msg) : base(msg) {}
         public PluginNotInitialisedException (string msg, Exception e) : base(msg, e) {}
     }
-    
+
     /// <summary>
     /// This interface, describes a generic plugin
     /// </summary>
@@ -63,17 +63,17 @@ namespace OpenSim.Framework
     }
 
     /// <summary>
-    /// Any plugins which need to pass parameters to their initialisers must 
+    /// Any plugins which need to pass parameters to their initialisers must
     /// inherit this class and use it to set the PluginLoader Initialiser property
     /// </summary>
     public class PluginInitialiserBase
     {
         // this would be a lot simpler if C# supported currying or typedefs
-        
+
         // default initialisation
         public virtual void Initialise (IPlugin plugin)
         {
-            plugin.Initialise(); 
+            plugin.Initialise();
         }
     }
 

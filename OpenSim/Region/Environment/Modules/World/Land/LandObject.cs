@@ -116,7 +116,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             return newLand;
         }
 
-        
+
         static overrideParcelMaxPrimCountDelegate overrideParcelMaxPrimCount;
         static overrideSimulatorMaxPrimCountDelegate overrideSimulatorMaxPrimCount;
 
@@ -156,7 +156,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
         #endregion
-        
+
         #region Packet Request Handling
 
         public void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client)

@@ -55,7 +55,7 @@ namespace OpenSim.Data.MySQL
         private string connectionString;
 
         private const string m_waitTimeoutSelect = "select @@wait_timeout";
-        
+
         /// <summary>
         /// Wait timeout for our connection in ticks.
         /// </summary>
@@ -70,7 +70,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Holds the last tick time that the connection was used.
         /// </summary>
-        private long m_lastConnectionUse;  
+        private long m_lastConnectionUse;
 
         /// <summary>
         /// Initialises and creates a new MySQL connection and maintains it.
@@ -172,7 +172,7 @@ namespace OpenSim.Data.MySQL
             // inaccuracy.
             m_lastConnectionUse = timeNow;
         }
-        
+
         /// <summary>
         /// Get the connection being used
         /// </summary>
@@ -287,14 +287,14 @@ namespace OpenSim.Data.MySQL
         {
             lock (dbcon)
             {
-                CheckConnection(); 
-                
+                CheckConnection();
+
                 MySqlCommand tablesCmd =
                     new MySqlCommand(
                         "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname",
                         dbcon);
                 tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
-                
+
                 using (MySqlDataReader tables = tablesCmd.ExecuteReader())
                 {
                     while (tables.Read())
@@ -541,7 +541,7 @@ namespace OpenSim.Data.MySQL
                 LLUUID regionID = LLUUID.Zero;
                 LLUUID.TryParse(reader["homeRegionID"].ToString(), out regionID); // it's ok if it doesn't work; just use LLUUID.Zero
                 retval.HomeRegionID = regionID;
-                
+
                 retval.Created = Convert.ToInt32(reader["created"].ToString());
                 retval.LastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
 
@@ -1124,7 +1124,7 @@ namespace OpenSim.Data.MySQL
             sql += "?skirt_item, ?skirt_asset)";
 
             bool returnval = false;
-            
+
             // we want to send in byte data, which means we can't just pass down strings
             try {
                 MySqlCommand cmd = (MySqlCommand) dbcon.CreateCommand();
@@ -1160,7 +1160,7 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("?underpants_asset", appearance.UnderPantsAsset.ToString());
                 cmd.Parameters.AddWithValue("?skirt_item", appearance.SkirtItem.ToString());
                 cmd.Parameters.AddWithValue("?skirt_asset", appearance.SkirtAsset.ToString());
-                
+
                 if (cmd.ExecuteNonQuery() > 0)
                     returnval = true;
 

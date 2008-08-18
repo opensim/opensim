@@ -94,7 +94,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// since the group's last persistent backup
         /// </summary>
         public bool HasGroupChanged = false;
-        
+
         public float scriptScore = 0f;
 
         private LLVector3 lastPhysGroupPos;
@@ -115,7 +115,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_scriptListens_notAtTarget = false;
 
         #region Properties
-        
+
         /// <summary>
         /// The name of an object grouping is always the same as its root part
         /// </summary>
@@ -123,7 +123,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return RootPart.Name; }
             set { RootPart.Name = value; }
-        } 
+        }
 
         /// <summary>
         /// Added because the Parcel code seems to use it
@@ -445,13 +445,13 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 more = !reader.EOF;
             }
-            
+
             reader.Close();
             sr.Close();
 
             UpdateParentIDs();
         }
-       
+
         /// <summary>
         ///
         /// </summary>
@@ -468,14 +468,14 @@ namespace OpenSim.Region.Environment.Scenes
             newPart.LinkNum = 0;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
-            
+
             // one of these is a proxy.
             if (shape.PCode != (byte)PCode.None && shape.PCode != (byte)PCode.ParticleSystem)
                 AttachToBackup();
 
             //ApplyPhysics(scene.m_physicalPrim);
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -754,7 +754,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.ScheduleFullUpdate();
             m_rootPart.ClearUndoState();
         }
-        
+
         public void DetachToInventoryPrep()
         {
             ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
@@ -873,11 +873,11 @@ namespace OpenSim.Region.Environment.Scenes
                 return m_scene.MaxUndoCount;
             return 5;
         }
-        
-        // justincc: I don't believe this hack is needed any longer, especially since the physics 
+
+        // justincc: I don't believe this hack is needed any longer, especially since the physics
         // parts of set AbsolutePosition were already commented out.  By changing HasGroupChanged to false
         // this method was preventing proper reload of scene objects.
-        // dahlia: I had to uncomment it, without it meshing was failing on some prims and objects 
+        // dahlia: I had to uncomment it, without it meshing was failing on some prims and objects
         // at region startup
         public void ResetChildPrimPhysicsPositions()
         {
@@ -926,20 +926,20 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void DeleteGroup()
         {
-            // We need to keep track of this state in case this group is still queued for backup.            
+            // We need to keep track of this state in case this group is still queued for backup.
             // FIXME: This is a poor temporary solution, since it still leaves plenty of scope for race
             // conditions where a user deletes an entity while it is being stored.  Really, the update
-            // code needs a redesign.            
+            // code needs a redesign.
             m_isDeleted = true;
-            
-            DetachFromBackup(this);                       
+
+            DetachFromBackup(this);
 
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
                     part.RemoveScriptInstances();
-                
+
                     List<ScenePresence> avatars = Scene.GetScenePresences();
                     for (int i = 0; i < avatars.Count; i++)
                     {
@@ -951,12 +951,12 @@ namespace OpenSim.Region.Environment.Scenes
                         avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                     }
                 }
-                
+
                 m_rootPart = null;
-                m_parts.Clear();                 
+                m_parts.Clear();
             }
         }
-        
+
         public void FakeDeleteGroup()
         {
             foreach (SceneObjectPart part in m_parts.Values)
@@ -1034,7 +1034,7 @@ namespace OpenSim.Region.Environment.Scenes
                 lock (m_targets)
                     m_targets.Clear();
             }
-            
+
             ScheduleGroupForFullUpdate();
         }
 
@@ -1067,7 +1067,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_physicalPrim);
                         }
-                        
+
                         // Hack to get the physics scene geometries in the right spot
                         ResetChildPrimPhysicsPositions();
                     }
@@ -1102,14 +1102,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="datastore"></param>
         public void ProcessBackup(IRegionDataStore datastore)
-        {            
+        {
             if (HasGroupChanged)
             {
                 // don't backup while it's selected or you're asking for changes mid stream.
                 if ((!IsSelected) && (RootPart != null))
                 {
                     m_log.InfoFormat(
-                        "[SCENE]: Storing object {0}, {1} in {2}", 
+                        "[SCENE]: Storing object {0}, {1} in {2}",
                         Name, UUID, m_scene.RegionInfo.RegionName);
 
                     SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
@@ -1236,7 +1236,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
             }
-            
+
             // Now we've made a copy that replaces this one, we need to
             // switch the owner to the person who did the copying
             // Second Life copies an object and duplicates the first one in it's place
@@ -1267,7 +1267,7 @@ namespace OpenSim.Region.Environment.Scenes
                 dupe.UpdateParentIDs();
                 dupe.HasGroupChanged = true;
                 dupe.AttachToBackup();
-                
+
                 ScheduleGroupForFullUpdate();
             }
 
@@ -1673,7 +1673,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 return true;
             }
-            
+
             return false;
         }
 
@@ -1695,7 +1695,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            
+
             return false;
         }
 
@@ -2042,7 +2042,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdatePrimFlags(uint localID, ushort type, bool inUse, byte[] data)
         {
             SceneObjectPart selectionPart = GetChildPart(localID);
-            
+
             if (selectionPart != null)
             {
                 lock (m_parts)
@@ -2164,7 +2164,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
                 //if (part.UUID != m_rootPart.UUID)
-                
+
                 HasGroupChanged = true;
                 ScheduleGroupForFullUpdate();
 
@@ -2332,10 +2332,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 AbsolutePosition = pos;
-                
+
                 HasGroupChanged = true;
             }
-            
+
             //we need to do a terse update even if the move wasn't allowed
             // so that the position is reset in the client (the object snaps back)
             ScheduleGroupForTerseUpdate();
@@ -2349,7 +2349,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateSinglePosition(LLVector3 pos, uint localID)
         {
             SceneObjectPart part = GetChildPart(localID);
-            
+
             if (part != null)
             {
                 if (part.UUID == m_rootPart.UUID)
@@ -2360,7 +2360,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     part.UpdateOffSet(pos);
                 }
-                
+
                 HasGroupChanged = true;
             }
         }
@@ -2398,7 +2398,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             AbsolutePosition = newPos;
-            
+
             HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
         }
@@ -2426,7 +2426,7 @@ namespace OpenSim.Region.Environment.Scenes
                                    m_rootPart.RotationOffset.Z);
                 m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
             }
-            
+
             HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
         }
@@ -2447,7 +2447,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
             }
             AbsolutePosition = pos;
-            
+
             HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
         }
@@ -2684,7 +2684,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-        
+
         /// <summary>
         /// Set the user group to which this scene object belongs.
         /// </summary>
@@ -2698,10 +2698,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     part.SetGroup(GroupID, client);
                 }
-                
+
                 HasGroupChanged = true;
             }
-            
+
             ScheduleGroupForFullUpdate();
         }
 

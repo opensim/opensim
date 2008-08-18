@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Scenes
             Rotation = rot;
             Scale = scale;
         }
-        
+
         public UndoState(SceneObjectPart part)
         {
             if (part != null)
@@ -50,7 +50,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     Position = part.AbsolutePosition;
                     Rotation = part.RotationOffset;
-                    
+
                 }
                 else
                 {
@@ -90,7 +90,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 part.Undoing = true;
-                
+
                 if (part.ParentID == 0)
                 {
                     part.ParentGroup.AbsolutePosition = Position;
@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Scenes
                     part.ScheduleTerseUpdate();
                 }
                 part.Undoing = false;
-                
+
             }
         }
 

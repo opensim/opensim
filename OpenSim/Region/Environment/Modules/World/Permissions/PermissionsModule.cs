@@ -146,7 +146,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
             m_RegionOwnerIsGod = myConfig.GetBoolean("region_owner_is_god", true);
             m_ParcelOwnerIsGod = myConfig.GetBoolean("parcel_owner_is_god", true);
-            
+
             if (m_bypassPermissions)
                 m_log.Info("[PERMISSIONS]: serviceside_object_permissions = false in ini file so disabling all region service permission checks");
             else

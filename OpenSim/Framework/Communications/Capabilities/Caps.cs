@@ -422,7 +422,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             mapLayer.Right = 5000;
             mapLayer.Top = 5000;
             mapLayer.ImageID = new LLUUID("00000000-0000-1111-9999-000000000006");
-            
+
             return mapLayer;
         }
 
@@ -783,7 +783,7 @@ namespace OpenSim.Framework.Communications.Capabilities
 
                 // TODO: probably make this a better set of extensions here
                 string extension = ".jp2";
-                if (m_invType != "image") 
+                if (m_invType != "image")
                 {
                     extension = ".dat";
                 }

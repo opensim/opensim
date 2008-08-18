@@ -1198,7 +1198,7 @@ namespace OpenSim.Region.Environment.Scenes
                         RemoveFromPhysicalScene();
                     }
                 }
-                
+
                 cameraAtOffset = part.GetCameraAtOffset();
                 cameraEyeOffset = part.GetCameraEyeOffset();
                 forceMouselook = part.GetForceMouselook();
@@ -1347,7 +1347,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             RemoveAnimation(animID);
         }
-        
+
         public LLUUID[] GetAnimationArray()
         {
             LLUUID[] animIDs;
@@ -1696,7 +1696,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 
         /// <summary>
-        /// Do everything required once a client completes its movement into a region 
+        /// Do everything required once a client completes its movement into a region
         /// </summary>
         public void SendInitialData()
         {
@@ -1898,7 +1898,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (IsChildAgent)
                 return;
-            
+
             LLVector3 pos2 = AbsolutePosition;
             LLVector3 vel = Velocity;
 
@@ -1968,9 +1968,9 @@ namespace OpenSim.Region.Environment.Scenes
                 // This means we need to remove the current caps handler here and possibly compensate later,
                 // in case both scenes are being hosted on the same region server.  Messy
                 m_scene.RemoveCapsHandler(UUID);
-                newpos = newpos + (vel);                
+                newpos = newpos + (vel);
 
-                CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(UUID);                
+                CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(UUID);
                 if (userInfo != null)
                 {
                     userInfo.DropInventory();
@@ -1978,11 +1978,11 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     m_log.WarnFormat("[SCENE PRESENCE]: No cached user info found for {0} {1} on leaving region", Name, UUID);
-                }   
-                
+                }
+
                 bool crossingSuccessful =
                     m_scene.InformNeighbourOfCrossing(neighbourHandle, m_controllingClient.AgentId, newpos,
-                                                      m_physicsActor.Flying);                
+                                                      m_physicsActor.Flying);
                 if (crossingSuccessful)
                 {
                     AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
@@ -1998,8 +1998,8 @@ namespace OpenSim.Region.Environment.Scenes
                     m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath);
                     MakeChildAgent();
-                    CrossAttachmentsIntoNewRegion(neighbourHandle);                                                                                   
-                        
+                    CrossAttachmentsIntoNewRegion(neighbourHandle);
+
                     m_scene.SendKillObject(m_localId);
                     m_scene.NotifyMyCoarseLocationChange();
                     // the user may change thier profile information in other region,
@@ -2010,7 +2010,7 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     // Restore the user structures that we needed to delete before asking the receiving region to complete the crossing
-                    m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(UUID);                    
+                    m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(UUID);
                     m_scene.AddCapsHandler(UUID);
                 }
             }
@@ -2825,7 +2825,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            
+
             LastCommands = allflags;
         }
 

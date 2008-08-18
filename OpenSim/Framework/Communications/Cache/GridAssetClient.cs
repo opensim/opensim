@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Communications.Cache
                 rc.AddQueryParameter("texture");
 
             rc.RequestMethod = "GET";
-            
+
             Stream s = rc.Request();
 
             if (s.Length > 0)

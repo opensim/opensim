@@ -123,7 +123,7 @@ namespace LaunchSLClient
                 string sandboxHostName = "";
                 string sandboxPort = "";
                 string text;
-                
+
                 Regex myRegex = new Regex(".*internal_ip_port=\\\"(?<port>.*?)\\\".*external_host_name=\\\"(?<name>.*?)\\\".*");
 
                 FileInfo defaultFile = new FileInfo("Regions/default.xml");

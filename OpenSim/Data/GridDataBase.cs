@@ -39,7 +39,7 @@ namespace OpenSim.Data
         public abstract DataResponse AddProfile(RegionProfileData profile);
         public abstract ReservationData GetReservationAtPoint(uint x, uint y);
         public abstract DataResponse UpdateProfile(RegionProfileData profile);
-        
+
         public abstract void Initialise();
         public abstract void Initialise(string connect);
         public abstract void Dispose();

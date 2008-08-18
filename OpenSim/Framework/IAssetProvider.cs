@@ -37,7 +37,7 @@ namespace OpenSim.Framework
         bool ExistsAsset(LLUUID uuid);
         void Initialise(string connect);
     }
-    
+
     public class AssetDataInitialiser : PluginInitialiserBase
     {
         private string connect;

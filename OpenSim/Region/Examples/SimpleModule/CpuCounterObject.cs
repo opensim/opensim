@@ -59,7 +59,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
             float cpu = m_counter.NextValue()/40f;
             LLVector3 size = new LLVector3(cpu, cpu, cpu);
-            
+
             RootPart.Resize(size);
 
             base.UpdateMovement();

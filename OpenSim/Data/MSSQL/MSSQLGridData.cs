@@ -51,8 +51,8 @@ namespace OpenSim.Data.MSSQL
 
         private string m_regionsTableName;
 
-        override public void Initialise() 
-        { 
+        override public void Initialise()
+        {
             m_log.Info("[MSSQLGridData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
@@ -87,7 +87,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private void TestTables()
         {
@@ -114,7 +114,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// The name of this DB provider. 
+        /// The name of this DB provider.
         /// </summary>
         /// <returns>A string containing the storage system name</returns>
         override public string Name
@@ -123,7 +123,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// Database provider version. 
+        /// Database provider version.
         /// </summary>
         /// <returns>A string containing the storage system version</returns>
         override public string Version
@@ -209,7 +209,7 @@ namespace OpenSim.Data.MSSQL
                     {
                         return database.getRegionRow(reader);
                     }
-                    
+
                 }
                 catch (Exception e)
                 {

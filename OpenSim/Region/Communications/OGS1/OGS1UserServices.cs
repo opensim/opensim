@@ -252,7 +252,7 @@ namespace OpenSim.Region.Communications.OGS1
             IList parameters = new ArrayList();
             parameters.Add(param);
             XmlRpcRequest req = new XmlRpcRequest("logout_of_simulator", parameters);
-            
+
             try
             {
                 req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
@@ -262,7 +262,7 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.Warn("[LOGOFF]: Unable to notify grid server of user logoff");
             }
         }
-        
+
         public UserProfileData GetUserProfile(string firstName, string lastName)
         {
             return GetUserProfile(firstName + " " + lastName);
@@ -711,7 +711,7 @@ namespace OpenSim.Region.Communications.OGS1
         public AvatarAppearance GetUserAppearance(LLUUID user)
         {
             AvatarAppearance appearance = null;
-            
+
             try
             {
                 Hashtable param = new Hashtable();
@@ -722,14 +722,14 @@ namespace OpenSim.Region.Communications.OGS1
                 XmlRpcRequest req = new XmlRpcRequest("get_avatar_appearance", parameters);
                 XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
-                
+
                 return ConvertXMLRPCDataToAvatarAppearance(respData);
             }
             catch (WebException e)
             {
                 m_log.ErrorFormat("[OGS1 USER SERVICES]: Network problems when trying to fetch appearance for avatar {0}, {1}", user, e.Message);
             }
-            
+
             return appearance;
         }
 

@@ -94,7 +94,7 @@ namespace OpenSim.Test.Inventory
             if (a.parentFolderID != b.parentFolderID) return false;
             return true;
         }
-        
+
         /// <summary>
         /// Test that we can insert a root folder
         /// </summary>

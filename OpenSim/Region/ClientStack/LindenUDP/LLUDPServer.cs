@@ -213,7 +213,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             BeginReceive();
-            
+
             if (packet != null)
             {
                 try
@@ -297,11 +297,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
                                         ReceivedData, null);
 
-                // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
+                // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
                 // so therefore..  we've got to tell the server to BeginReceiveFrom again.
-                // This will happen over and over until we've gone through all packets 
+                // This will happen over and over until we've gone through all packets
                 // sent to and from this particular user.
-                // Stupid I know..  
+                // Stupid I know..
                 // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
             }
             catch (SocketException e)
@@ -329,7 +329,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (!(packet is UseCircuitCodePacket))
                     return;
-                
+
                 UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
                 lock (clientCircuits)
                 {
@@ -424,13 +424,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual void RemoveClientCircuit(uint circuitcode)
         {
             EndPoint sendto = null;
-            if (clientCircuits_reverse.Contains(circuitcode)) 
+            if (clientCircuits_reverse.Contains(circuitcode))
             {
                 sendto = (EndPoint)clientCircuits_reverse[circuitcode];
 
                 clientCircuits_reverse.Remove(circuitcode);
-                
-                lock (clientCircuits) 
+
+                lock (clientCircuits)
                 {
                     if (sendto != null)
                     {
@@ -442,7 +442,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             "[UDPSERVER]: endpoint for circuit code {0} in RemoveClientCircuit() was unexpectedly null!", circuitcode);
                     }
                 }
-                lock (proxyCircuits) 
+                lock (proxyCircuits)
                 {
                     proxyCircuits.Remove(circuitcode);
                 }

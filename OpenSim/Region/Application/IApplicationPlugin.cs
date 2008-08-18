@@ -33,7 +33,7 @@ namespace OpenSim
     {
         void Initialise(OpenSimBase openSim);
     }
-    
+
     public class ApplicationPluginInitialiser : PluginInitialiserBase
     {
         private OpenSimBase server;

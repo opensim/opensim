@@ -46,7 +46,7 @@ namespace OpenSim.Framework.Configuration.XML
 
         private void LoadDataToClass()
         {
-            rootNode = doc.SelectSingleNode("Root");            
+            rootNode = doc.SelectSingleNode("Root");
             if (null == rootNode)
                 throw new Exception("Error: Invalid .xml File. Missing <Root>");
 

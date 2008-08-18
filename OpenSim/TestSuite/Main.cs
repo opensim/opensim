@@ -58,9 +58,9 @@ namespace OpenSim.TestSuite
             else
             {
                 // TODO: unused: int botcount = config.GetInt("botcount", 1);
-                
+
                 // BotManager bm = new BotManager();
-                
+
                 Utils.TestPass("Completed Startup");
             }
         }
@@ -69,18 +69,18 @@ namespace OpenSim.TestSuite
         {
             //Set up our nifty config..  thanks to nini
             ArgvConfigSource cs = new ArgvConfigSource(args);
-            
+
             // TODO: unused: cs.AddSwitch("Startup", "botcount","n");
             cs.AddSwitch("Startup", "loginuri","l");
             cs.AddSwitch("Startup", "firstname");
             cs.AddSwitch("Startup", "lastname");
             cs.AddSwitch("Startup", "password");
             cs.AddSwitch("Startup", "help","h");
-            
+
             IConfig ol = cs.Configs["Startup"];
             return ol;
         }
-        
+
         private static void Help()
         {
             Console.WriteLine(

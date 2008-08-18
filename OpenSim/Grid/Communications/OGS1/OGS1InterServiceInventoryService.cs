@@ -40,17 +40,17 @@ namespace OpenSim.Grid.Communications.OGS1
     public class OGS1InterServiceInventoryService : IInterServiceInventoryServices
     {
         protected Uri m_inventoryServerUrl;
-        
+
         public OGS1InterServiceInventoryService(Uri inventoryServerUrl)
         {
             m_inventoryServerUrl = inventoryServerUrl;
         }
-        
+
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInterServiceInventoryServices"/>
         /// </summary>
         /// <param name="userId"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         public bool CreateNewUserInventory(LLUUID userId)
         {
             return SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(

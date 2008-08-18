@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Servers
     {
         private object _syncObject = new object();
 
-        new public void Enqueue(OSHttpRequest req) 
+        new public void Enqueue(OSHttpRequest req)
         {
             lock (_syncObject)
             {
@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Servers
                 Monitor.Pulse(_syncObject);
             }
         }
-        
+
         new public OSHttpRequest Dequeue()
         {
             OSHttpRequest req = null;

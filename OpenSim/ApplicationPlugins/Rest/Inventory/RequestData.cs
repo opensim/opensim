@@ -23,7 +23,6 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
  */
 
 using System;
@@ -44,14 +43,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
     /// <summary>
     /// This class represents the current REST request. It
-    /// encapsulates the request/response state and takes care 
+    /// encapsulates the request/response state and takes care
     /// of response generation without exposing the REST handler
     /// to the actual mechanisms involved.
     ///
     /// This structure is created on entry to the Handler
     /// method and is disposed of upon return. It is part of
     /// the plug-in infrastructure, rather than the functionally
-    /// specific REST handler, and fundamental changes to 
+    /// specific REST handler, and fundamental changes to
     /// this should be reflected in the Rest HandlerVersion. The
     /// object is instantiated, and may be extended by, any
     /// given handler. See the inventory handler for an example
@@ -100,7 +99,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal bool                 chunked = false;
 
         // Authentication related state
- 
+
         internal bool                 authenticated = false;
         // internal string               scheme = Rest.AS_DIGEST;
         // internal string               scheme = Rest.AS_BASIC;
@@ -132,7 +131,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         private static readonly string[] EmptyPath = { String.Empty };
 
         // Session related tables. These are only needed if QOP is set to "auth-sess"
-        // and for now at least, it is not. Session related authentication is of 
+        // and for now at least, it is not. Session related authentication is of
         // questionable merit in the context of REST anyway, but it is, arguably, more
         // secure.
 
@@ -148,27 +147,27 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private static Regex schema      = new Regex("^\\s*(?<scheme>\\w+)\\s*.*",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        
+
         private static Regex basicParms  = new Regex("^\\s*(?:\\w+)\\s+(?<pval>\\S+)\\s*",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        
+
         private static Regex digestParm1 = new Regex("\\s*(?<parm>\\w+)\\s*=\\s*\"(?<pval>[^\"]+)\"",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        
+
         private static Regex digestParm2 = new Regex("\\s*(?<parm>\\w+)\\s*=\\s*(?<pval>[^\\p{P}\\s]+)",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        
+
         private static Regex reuserPass  = new Regex("(?<user>[^:]+):(?<pass>[\\S\\s]*)",
                                                      RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        
+
         // For efficiency, we create static instances of these objects
 
         private static MD5   md5hash     = MD5.Create();
-        
+
         private static StringComparer sc = StringComparer.OrdinalIgnoreCase;
 
         // Constructor
-        
+
         internal RequestData(OSHttpRequest p_request, OSHttpResponse p_response, string p_qprefix)
         {
 
@@ -203,7 +202,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal bool IsAuthenticated
         {
             get
-            { 
+            {
                 if (Rest.Authenticate)
                 {
                     if (!authenticated)
@@ -223,7 +222,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// Realm, domain, etc.
         ///
         /// This method checks to see if the current request is already
-        /// authenticated for this domain. If it is, then it returns 
+        /// authenticated for this domain. If it is, then it returns
         /// true. If it is not, then it issues a challenge to the client
         /// and responds negatively to the request.
         /// </summary>
@@ -243,7 +242,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.DebugFormat("{0} Challenge reason: No authorization data", MsgId);
                 DoChallenge();
             }
-            
+
             // So, we have authentication data, now we have to check to
             // see what we got and whether or not it is valid for the
             // current domain. To do this we need to interpret the data
@@ -327,7 +326,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             foreach (Match m in matches)
             {
                 authparms.Add("response",m.Groups["pval"].Value);
-                Rest.Log.DebugFormat("{0} Parameter matched : {1} = {2}", 
+                Rest.Log.DebugFormat("{0} Parameter matched : {1} = {2}",
                                      MsgId, "response", m.Groups["pval"].Value);
             }
 
@@ -369,7 +368,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             foreach (Match m in matches)
             {
                 authparms.Add(m.Groups["parm"].Value,m.Groups["pval"].Value);
-                Rest.Log.DebugFormat("{0} String Parameter matched : {1} = {2}", 
+                Rest.Log.DebugFormat("{0} String Parameter matched : {1} = {2}",
                                      MsgId, m.Groups["parm"].Value,m.Groups["pval"].Value);
             }
 
@@ -380,7 +379,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             foreach (Match m in matches)
             {
                 authparms.Add(m.Groups["parm"].Value,m.Groups["pval"].Value);
-                Rest.Log.DebugFormat("{0} Tokenized Parameter matched : {1} = {2}", 
+                Rest.Log.DebugFormat("{0} Tokenized Parameter matched : {1} = {2}",
                                      MsgId, m.Groups["parm"].Value,m.Groups["pval"].Value);
             }
 
@@ -417,7 +416,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     if (!authparms.TryGetValue("nonce", out nonce) || nonce == null)
                     {
-                        Rest.Log.WarnFormat("{0} Authentication failed: nonce missing", MsgId); 
+                        Rest.Log.WarnFormat("{0} Authentication failed: nonce missing", MsgId);
                         break;
                     }
 
@@ -428,7 +427,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     {
                         if (temp != opaque)
                         {
-                            Rest.Log.WarnFormat("{0} Authentication failed: bad opaque value", MsgId); 
+                            Rest.Log.WarnFormat("{0} Authentication failed: bad opaque value", MsgId);
                             break;
                         }
                     }
@@ -440,7 +439,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     {
                         if (temp != algorithm)
                         {
-                            Rest.Log.WarnFormat("{0} Authentication failed: bad algorithm value", MsgId); 
+                            Rest.Log.WarnFormat("{0} Authentication failed: bad algorithm value", MsgId);
                             break;
                         }
                     }
@@ -457,7 +456,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                         if (!authparms.ContainsKey("cnonce"))
                         {
-                            Rest.Log.WarnFormat("{0} Authentication failed: cnonce missing", MsgId); 
+                            Rest.Log.WarnFormat("{0} Authentication failed: cnonce missing", MsgId);
                             break;
                         }
 
@@ -465,7 +464,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                         if (!authparms.TryGetValue("nc", out nck) || nck == null)
                         {
-                            Rest.Log.WarnFormat("{0} Authentication failed: cnonce counter missing", MsgId); 
+                            Rest.Log.WarnFormat("{0} Authentication failed: cnonce counter missing", MsgId);
                             break;
                         }
 
@@ -477,7 +476,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                             if (Rest.Hex2Int(ncl) >= Rest.Hex2Int(nck))
                             {
-                                Rest.Log.WarnFormat("{0} Authentication failed: bad cnonce counter", MsgId); 
+                                Rest.Log.WarnFormat("{0} Authentication failed: bad cnonce counter", MsgId);
                                 break;
                             }
                             cntable[nonce] = nck;
@@ -497,12 +496,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         // these MUST NOT be present.
                         if (authparms.ContainsKey("cnonce"))
                         {
-                            Rest.Log.WarnFormat("{0} Authentication failed: invalid cnonce", MsgId); 
+                            Rest.Log.WarnFormat("{0} Authentication failed: invalid cnonce", MsgId);
                             break;
                         }
                         if (authparms.ContainsKey("nc"))
                         {
-                            Rest.Log.WarnFormat("{0} Authentication failed: invalid cnonce counter[2]", MsgId); 
+                            Rest.Log.WarnFormat("{0} Authentication failed: invalid cnonce counter[2]", MsgId);
                             break;
                         }
                     }
@@ -511,7 +510,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     authenticated = ValidateDigest(userName, nonce, cnonce, nck, authPrefix, response);
 
-                } 
+                }
                 while (false);
 
             }
@@ -608,7 +607,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 }
 
                 // We don;t know the userid that will be used
-                // so we cannot make any authentication domain 
+                // so we cannot make any authentication domain
                 // assumptions. So the prefix will determine
                 // this.
 
@@ -624,7 +623,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         }
 
         /// <summary>
-        /// This method provides validation in support of the BASIC 
+        /// This method provides validation in support of the BASIC
         /// authentication method. This is not normaly expected to be
         /// used, but is included for completeness (and because I tried
         /// it first).
@@ -650,11 +649,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// <summary>
         /// This mechanism is used by the digest authetnication mechanism
         /// to return the user's password. In fact, because the OpenSim
-        /// user's passwords are already hashed, and the HTTP mechanism 
-        /// does not supply an open password, the hashed passwords cannot 
+        /// user's passwords are already hashed, and the HTTP mechanism
+        /// does not supply an open password, the hashed passwords cannot
         /// be used unless the cliemt has used the same salting mechanism
-        /// to has the password before using it in the authentication 
-        /// algorithn. This is not inconceivable...
+        /// to has the password before using it in the authentication
+        /// algorithm. This is not inconceivable...
         /// </summary>
 
         private string getPassword(string user)
@@ -665,12 +664,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             string last;
 
             // Distinguish the parts, if necessary
- 
+
             if ((x=user.IndexOf(Rest.C_SPACE)) != -1)
             {
                 first = user.Substring(0,x);
                 last  = user.Substring(x+1);
-            } 
+            }
             else
             {
                 first = user;
@@ -712,12 +711,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             string last;
 
             // Distinguish the parts, if necessary
- 
+
             if ((x=user.IndexOf(Rest.C_SPACE)) != -1)
             {
                 first = user.Substring(0,x);
                 last  = user.Substring(x+1);
-            } 
+            }
             else
             {
                 first = user;
@@ -733,9 +732,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             HA1 = HashToString(pass);
             HA1 = HashToString(String.Format("{0}:{1}",HA1,udata.PasswordSalt));
-            
+
             return (0 == sc.Compare(HA1, udata.PasswordHash));
-            
+
         }
 
         // Validate the request-digest
@@ -784,7 +783,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             HA2  = HashToString(patt);
 
             // Generate Digest
-              
+
             if (qop != String.Empty)
             {
                 patt = String.Format("{0}:{1}:{2}:{3}:{4}:{5}", HA1, nonce, nck, cnonce, qop, HA2);
@@ -856,7 +855,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             Fail(code, message, true);
         }
 
-        // More adventurous. This failure also includes a 
+        // More adventurous. This failure also includes a
         // specified entity.
 
         internal void Fail(int code, string message, string data)
@@ -899,7 +898,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             fail = true;
 
             Respond("Failure response");
-           
+
             RestException re = new RestException(message+" <"+code+">");
 
             re.statusCode = code;
@@ -918,7 +917,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             Fail(Rest.HttpStatusCodeNotImplemented, Rest.HttpStatusDescNotImplemented);
         }
 
-        // This MUST be called by an agent handler before it returns 
+        // This MUST be called by an agent handler before it returns
         // control to Handle, otherwise the request will be ignored.
         // This is called implciitly for the REST stream handlers and
         // is harmless if it is called twice.
@@ -962,7 +961,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         Rest.Log.DebugFormat("{0} XML Response handler extension EXIT", MsgId);
                     }
 
-                    // If buffer != null, then we assume that 
+                    // If buffer != null, then we assume that
                     // this has already been done some other
                     // way. For example, transfer encoding might
                     // have been done.
@@ -997,7 +996,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 }
 
-                // Set the status code & description. If nothing has been stored, 
+                // Set the status code & description. If nothing has been stored,
                 // we consider that a success.
 
                 if (statusCode == 0)
@@ -1011,7 +1010,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 // For a redirect we need to set the relocation header accordingly
 
-                if (response.StatusCode == (int) Rest.HttpStatusCodeTemporaryRedirect || 
+                if (response.StatusCode == (int) Rest.HttpStatusCodeTemporaryRedirect ||
                     response.StatusCode == (int) Rest.HttpStatusCodePermanentRedirect)
                 {
                     Rest.Log.DebugFormat("{0} Re-direct location is {1}", MsgId, redirectLocation);
@@ -1031,7 +1030,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // We've left the setting of handled' until the
                 // last minute because the header settings included
                 // above are pretty harmless. But everything from
-                // here on down probably leaves the response 
+                // here on down probably leaves the response
                 // element unusable by anyone else.
 
                 handled = true;
@@ -1046,7 +1045,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 if (buffer != null && buffer.Length != 0)
                 {
-                    Rest.Log.DebugFormat("{0} Entity buffer, length = {1} : <{2}>", 
+                    Rest.Log.DebugFormat("{0} Entity buffer, length = {1} : <{2}>",
                                          MsgId, buffer.Length, encoding.GetString(buffer));
                     response.OutputStream.Write(buffer, 0, buffer.Length);
                 }
@@ -1066,17 +1065,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         // Add a header to the table. We need to allow
         // multiple instances of many of the headers.
-        // If the 
+        // If the
 
         internal void AddHeader(string hdr, string data)
         {
             if (Rest.DEBUG)
             {
-                Rest.Log.DebugFormat("{0}   Adding header: <{1}: {2}>", 
+                Rest.Log.DebugFormat("{0}   Adding header: <{1}: {2}>",
                          MsgId, hdr, data);
                 if (response.Headers.Get(hdr) != null)
                 {
-                    Rest.Log.DebugFormat("{0} Multipe {1} headers will be generated>", 
+                    Rest.Log.DebugFormat("{0} Multipe {1} headers will be generated>",
                              MsgId, hdr);
                 }
             }
@@ -1093,7 +1092,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.DebugFormat("{0} Removing header: <{1}>", MsgId, hdr);
                 if (response.Headers.Get(hdr) == null)
                 {
-                    Rest.Log.DebugFormat("{0} No such header existed", 
+                    Rest.Log.DebugFormat("{0} No such header existed",
                              MsgId, hdr);
                 }
             }
@@ -1110,7 +1109,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 for (int i=0;i<response.Headers.Count;i++)
                 {
-                    Rest.Log.DebugFormat("{0} Header[{1}] : {2}", MsgId, i, 
+                    Rest.Log.DebugFormat("{0} Header[{1}] : {2}", MsgId, i,
                              response.Headers.Get(i));
                 }
             }
@@ -1144,7 +1143,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // If we succeeded in getting a path, perform any
             // additional pre-processing required.
 
-            if (path != null) 
+            if (path != null)
             {
                 if (Rest.ExtendedEscape)
                 {
@@ -1182,14 +1181,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 parameters = new string[0];
             }
- 
+
             // Generate a debug list of the decoded parameters
 
             if (Rest.DEBUG && prfxlen < path.Length-1)
             {
                 Rest.Log.DebugFormat("{0} URI: Parameters: {1}", MsgId, path.Substring(prfxlen));
                 for (int i = 0; i < parameters.Length; i++)
-                { 
+                {
                     Rest.Log.DebugFormat("{0} Parameter[{1}]: {2}", MsgId, i, parameters[i]);
                 }
             }
@@ -1197,11 +1196,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             return parameters.Length;
 
         }
-                
+
         internal string[] PathNodes
         {
             get
-            { 
+            {
                 if (pathNodes == null)
                 {
                     initUrl();
@@ -1209,10 +1208,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 return pathNodes;
             }
         }
-        
+
         internal string BuildUrl(int first, int last)
         {
-           
+
             if (pathNodes == null)
             {
                 initUrl();

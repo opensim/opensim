@@ -57,7 +57,7 @@ namespace OpenSim.Grid.ScriptServer
         internal TCPServer m_TCPServer;
         internal TRPC_Remote RPC;
 
-                public ScriptServerMain()
+        public ScriptServerMain()
         {
             m_console = CreateConsole();
 
@@ -68,7 +68,6 @@ namespace OpenSim.Grid.ScriptServer
             Engine = ScriptEngines.LoadEngine("DotNetEngine");
 
             Engine.InitializeEngine(null, null, false, Engine.GetScriptManager());
-                    
 
             // Set up server
             //m_RemotingServer = new RemotingServer(listenPort, "DotNetEngine");

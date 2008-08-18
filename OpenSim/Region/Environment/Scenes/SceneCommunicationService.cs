@@ -60,7 +60,7 @@ namespace OpenSim.Region.Environment.Scenes
         public event RemoveKnownRegionsFromAvatarList OnRemoveKnownRegionFromAvatar;
         public event LogOffUser OnLogOffUser;
         public event GetLandData OnGetLandData;
-        
+
         private AgentCrossing handlerAvatarCrossingIntoRegion = null; // OnAvatarCrossingIntoRegion;
         private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser;
         private ExpectPrimDelegate handlerExpectPrim = null; // OnExpectPrim;
@@ -70,7 +70,7 @@ namespace OpenSim.Region.Environment.Scenes
         private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
         private RemoveKnownRegionsFromAvatarList handlerRemoveKnownRegionFromAvatar = null; // OnRemoveKnownRegionFromAvatar;
         private LogOffUser handlerLogOffUser = null;
-        private GetLandData handlerGetLandData = null; // OnGetLandData 
+        private GetLandData handlerGetLandData = null; // OnGetLandData
 
         public KillObjectDelegate KillObject;
         public string _debugRegionName = String.Empty;
@@ -240,7 +240,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return null;
         }
-        
+
         #endregion
 
         #region Inform Client of Neighbours
@@ -582,7 +582,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                       LLVector3 lookAt, uint flags)
         {
             bool destRegionUp = false;
-            
+
             if (regionHandle == m_regionInfo.RegionHandle)
             {
                 // Teleport within the same region

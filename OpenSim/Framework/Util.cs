@@ -716,7 +716,7 @@ namespace OpenSim.Framework
             XmlRpcRequest client = new XmlRpcRequest(methodName, args);
             return client.Send(url, 6000);
         }
-        
+
         // used for RemoteParcelRequest (for "About Landmark")
         public static LLUUID BuildFakeParcelID(ulong regionHandle, uint x, uint y) {
             byte[] bytes = {
@@ -726,7 +726,7 @@ namespace OpenSim.Framework
                 (byte)(y >> 24), (byte)(y >> 16), (byte)(y >> 8), (byte)y };
             return new LLUUID(bytes, 0);
         }
-        
+
         public static void ParseFakeParcelID(LLUUID parcelID, out ulong regionHandle, out uint x, out uint y) {
             byte[] bytes = parcelID.GetBytes();
             regionHandle = Helpers.BytesToUInt64(bytes);

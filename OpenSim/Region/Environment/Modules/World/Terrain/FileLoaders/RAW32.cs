@@ -112,11 +112,11 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             return retval;
         }
-        
+
         public ITerrainChannel LoadStream(Stream s)
         {
             TerrainChannel retval = new TerrainChannel();
-            
+
             BinaryReader bs = new BinaryReader(s);
             int y;
             for (y = 0; y < retval.Height; y++)
@@ -129,10 +129,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             }
 
             bs.Close();
-            
+
             return retval;
         }
-            
+
         public void SaveFile(string filename, ITerrainChannel map)
         {
             FileInfo file = new FileInfo(filename);
@@ -141,7 +141,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             s.Close();
         }
-        
+
         public void SaveStream(Stream s, ITerrainChannel map)
         {
             BinaryWriter bs = new BinaryWriter(s);
@@ -156,7 +156,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 }
             }
 
-            bs.Close();            
+            bs.Close();
         }
 
         #endregion

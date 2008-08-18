@@ -58,19 +58,19 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
         /// <returns>A terrain channel generated from the image.</returns>
         public virtual ITerrainChannel LoadFile(string filename)
         {
-            return LoadBitmap(new Bitmap(filename));            
+            return LoadBitmap(new Bitmap(filename));
         }
 
         public ITerrainChannel LoadFile(string filename, int x, int y, int fileWidth, int fileHeight, int w, int h)
         {
             throw new NotImplementedException();
         }
-        
+
         public virtual ITerrainChannel LoadStream(Stream stream)
         {
             return LoadBitmap(new Bitmap(stream));
         }
-        
+
         protected virtual ITerrainChannel LoadBitmap(Bitmap bitmap)
         {
             ITerrainChannel retval = new TerrainChannel(bitmap.Width, bitmap.Height);
@@ -85,7 +85,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 }
             }
 
-            return retval;            
+            return retval;
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             colours.Save(filename, ImageFormat.Png);
         }
-        
+
         /// <summary>
         /// Exports a stream using a System.Drawing exporter.
         /// </summary>
@@ -110,7 +110,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             Bitmap colours = CreateGrayscaleBitmapFromMap(map);
 
             colours.Save(stream, ImageFormat.Png);
-        }        
+        }
 
         #endregion
 

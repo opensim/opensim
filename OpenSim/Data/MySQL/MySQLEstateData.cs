@@ -51,7 +51,7 @@ namespace OpenSim.Data.MySQL
         private string m_connectionString;
         private long m_waitTimeout;
         private long m_waitTimeoutLeeway = 60 * TimeSpan.TicksPerSecond;
-        private long m_lastConnectionUse;        
+        private long m_lastConnectionUse;
 
         private FieldInfo[] m_Fields;
         private Dictionary<string, FieldInfo> m_FieldMap =
@@ -83,13 +83,13 @@ namespace OpenSim.Data.MySQL
             }
 
             m_log.Info("[REGION DB]: MySql - connecting: " + displayConnectionString);
-            
+
             //m_log.Info("[ESTATE DB]: MySql - connecting: "+m_connectionString);
 
             m_connection = new MySqlConnection(m_connectionString);
             m_connection.Open();
-            
-            GetWaitTimeout();             
+
+            GetWaitTimeout();
 
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(m_connection, assem, "EstateStore");
@@ -106,7 +106,7 @@ namespace OpenSim.Data.MySQL
                     m_FieldMap[f.Name.Substring(2)] = f;
             }
         }
-        
+
         private string[] FieldList
         {
             get { return new List<string>(m_FieldMap.Keys).ToArray(); }
@@ -116,28 +116,28 @@ namespace OpenSim.Data.MySQL
         {
             MySqlCommand cmd = new MySqlCommand(m_waitTimeoutSelect,
                     m_connection);
-            
+
             using (MySqlDataReader dbReader =
                     cmd.ExecuteReader(CommandBehavior.SingleRow))
             {
                 if (dbReader.Read())
                 {
-                    m_waitTimeout 
+                    m_waitTimeout
                         = Convert.ToInt32(dbReader["@@wait_timeout"]) *
                         TimeSpan.TicksPerSecond + m_waitTimeoutLeeway;
-                }       
-                
+                }
+
                 dbReader.Close();
                 cmd.Dispose();
-            }   
-            
+            }
+
             m_lastConnectionUse = System.DateTime.Now.Ticks;
-            
+
             m_log.DebugFormat(
                 "[REGION DB]: Connection wait timeout {0} seconds",
-                m_waitTimeout / TimeSpan.TicksPerSecond);            
+                m_waitTimeout / TimeSpan.TicksPerSecond);
         }
-                
+
         protected void CheckConnection()
         {
             long timeNow = System.DateTime.Now.Ticks;
@@ -145,17 +145,17 @@ namespace OpenSim.Data.MySQL
                     m_connection.State != ConnectionState.Open)
             {
                 m_log.DebugFormat("[REGION DB]: Database connection has gone away - reconnecting");
-                
+
                 lock (m_connection)
                 {
                     m_connection.Close();
                     m_connection = new MySqlConnection(m_connectionString);
-                    m_connection.Open();                    
+                    m_connection.Open();
                 }
             }
-            
-            m_lastConnectionUse = timeNow;            
-        }        
+
+            m_lastConnectionUse = timeNow;
+        }
 
         public EstateSettings LoadEstateSettings(LLUUID regionID)
         {
@@ -210,7 +210,7 @@ namespace OpenSim.Data.MySQL
                 names.Remove("EstateID");
 
                 sql = "insert into estate_settings ("+String.Join(",", names.ToArray())+") values ( ?"+String.Join(", ?", names.ToArray())+")";
-                
+
                 cmd.CommandText = sql;
                 cmd.Parameters.Clear();
 
@@ -318,7 +318,7 @@ namespace OpenSim.Data.MySQL
             es.ClearBans();
 
             CheckConnection();
-            
+
             MySqlCommand cmd = m_connection.CreateCommand();
 
             cmd.CommandText = "select bannedUUID from estateban where EstateID = ?EstateID";
@@ -344,18 +344,18 @@ namespace OpenSim.Data.MySQL
         private void SaveBanList(EstateSettings es)
         {
             CheckConnection();
-            
+
             MySqlCommand cmd = m_connection.CreateCommand();
-            
+
             cmd.CommandText = "delete from estateban where EstateID = ?EstateID";
             cmd.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
 
             cmd.ExecuteNonQuery();
-            
+
             cmd.Parameters.Clear();
 
             cmd.CommandText = "insert into estateban (EstateID, bannedUUID) values ( ?EstateID, ?bannedUUID )";
-            
+
             foreach (EstateBan b in es.EstateBans)
             {
                 cmd.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
@@ -369,18 +369,18 @@ namespace OpenSim.Data.MySQL
         void SaveUUIDList(uint EstateID, string table, LLUUID[] data)
         {
             CheckConnection();
-            
+
             MySqlCommand cmd = m_connection.CreateCommand();
-            
+
             cmd.CommandText = "delete from "+table+" where EstateID = ?EstateID";
             cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
 
             cmd.ExecuteNonQuery();
-            
+
             cmd.Parameters.Clear();
 
             cmd.CommandText = "insert into "+table+" (EstateID, uuid) values ( ?EstateID, ?uuid )";
-            
+
             foreach (LLUUID uuid in data)
             {
                 cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
@@ -396,7 +396,7 @@ namespace OpenSim.Data.MySQL
             List<LLUUID> uuids = new List<LLUUID>();
 
             CheckConnection();
-            
+
             MySqlCommand cmd = m_connection.CreateCommand();
 
             cmd.CommandText = "select uuid from "+table+" where EstateID = ?EstateID";
@@ -414,7 +414,7 @@ namespace OpenSim.Data.MySQL
                 uuids.Add(uuid);
             }
             r.Close();
-            
+
             return uuids.ToArray();
         }
     }

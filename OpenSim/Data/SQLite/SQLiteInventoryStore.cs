@@ -50,8 +50,8 @@ namespace OpenSim.Data.SQLite
         private SqliteDataAdapter invItemsDa;
         private SqliteDataAdapter invFoldersDa;
 
-        public void Initialise() 
-        { 
+        public void Initialise()
+        {
             m_log.Info("[SQLiteInventoryData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
@@ -105,7 +105,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -150,7 +150,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="item"></param>
@@ -302,7 +302,7 @@ namespace OpenSim.Data.SQLite
         /// <returns>A string containing the DB provider version</returns>
         public string Version
         {
-            get 
+            get
             {
                 Module module = GetType().Module;
                 // string dllName = module.Assembly.ManifestModule.Name;
@@ -419,10 +419,10 @@ namespace OpenSim.Data.SQLite
                  * - We will only need to hit the database twice instead of n times.
                  * - We assume the database is well-formed - no stranded/dangling folders, all folders in heirarchy owned
                  *   by the same person, each user only has 1 inventory heirarchy
-                 * - The returned list is not ordered, instead of breadth-first ordered   
+                 * - The returned list is not ordered, instead of breadth-first ordered
                There are basically 2 usage cases for getFolderHeirarchy:
                  1) Getting the user's entire inventory heirarchy when they log in
-                 2) Finding a subfolder heirarchy to delete when emptying the trash.                 
+                 2) Finding a subfolder heirarchy to delete when emptying the trash.
                This implementation will pull all inventory folders from the database, and then prune away any folder that
                is not part of the requested sub-heirarchy. The theory is that it is cheaper to make 1 request from the
                database than to make n requests. This pays off only if requested heirarchy is large.
@@ -449,17 +449,17 @@ namespace OpenSim.Data.SQLite
                     folderRows = inventoryFolderTable.Select(selectExp);
                 }
 
-                if ( folderRows!=null && folderRows.GetLength(0)>=1 )   // No result means parent folder does not exist
+                if (folderRows != null && folderRows.GetLength(0) >= 1)   // No result means parent folder does not exist
                 {                                                       // or has no children
                     /* if we're querying the root folder, just return an unordered list of all folders in the user's
                      * inventory
                      */
                     if (parentFolder.ParentID == LLUUID.Zero)
-                    { 
+                    {
                         foreach (DataRow row in folderRows)
                         {
                             InventoryFolderBase curFolder = buildFolder(row);
-                            if (curFolder.ID != parentID)   // Return all folders except the parent folder of heirarchy 
+                            if (curFolder.ID != parentID)   // Return all folders except the parent folder of heirarchy
                                 folders.Add(buildFolder(row));
                         }
                     } // If requesting root folder
@@ -481,16 +481,16 @@ namespace OpenSim.Data.SQLite
                             InventoryFolderBase curFolder = buildFolder(row);
                             if (curFolder.ParentID != LLUUID.Zero) // Discard root of tree - not needed
                             {
-                                if ( hashtable.ContainsKey(curFolder.ParentID ) )
+                                if (hashtable.ContainsKey(curFolder.ParentID))
                                 {
                                     // Current folder already has a sibling - append to sibling list
-                                    hashtable[curFolder.ParentID].Add( curFolder );
+                                    hashtable[curFolder.ParentID].Add(curFolder);
                                 }
                                 else {
                                     List<InventoryFolderBase> siblingList = new List<InventoryFolderBase>();
-                                    siblingList.Add( curFolder );
+                                    siblingList.Add(curFolder);
                                     // Current folder has no known (yet) siblings
-                                    hashtable.Add( curFolder.ParentID, siblingList );
+                                    hashtable.Add(curFolder.ParentID, siblingList);
                                 }
                             }
                         } // For all inventory folders
@@ -498,12 +498,12 @@ namespace OpenSim.Data.SQLite
                         // Note: Could release the ds lock here - we don't access folderRows or the database anymore.
                         // This is somewhat of a moot point as the callers of this function usually lock db anyways.
 
-                        if ( hashtable.ContainsKey( parentID ) ) // if requested folder does have children
-                            folders.AddRange( hashtable[parentID] );
+                        if (hashtable.ContainsKey(parentID)) // if requested folder does have children
+                            folders.AddRange(hashtable[parentID]);
 
                         // BreadthFirstSearch build inventory tree **Note: folders.Count is *not* static
-                        for ( int i = 0; i < folders.Count; i++ )         
-                            if (hashtable.ContainsKey(folders[i].ID))     
+                        for (int i = 0; i < folders.Count; i++)
+                            if (hashtable.ContainsKey(folders[i].ID))
                                 folders.AddRange(hashtable[folders[i].ID]);
 
                     } // if requesting a subfolder heirarchy
@@ -601,7 +601,7 @@ namespace OpenSim.Data.SQLite
         /// Delete all items in the specified folder
         /// </summary>
         /// <param name="folderId">id of the folder, whose item content should be deleted</param>
-        /// <todo>this is horribly inefficient, but I don't want to ruin the overall structure of this implementation</todo> 
+        /// <todo>this is horribly inefficient, but I don't want to ruin the overall structure of this implementation</todo>
         private void deleteItemsInFolder(LLUUID folderId)
         {
             List<InventoryItemBase> items = getInventoryInFolder(Util.ToRawUuidString(folderId));
@@ -743,7 +743,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -765,7 +765,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="da"></param>
         /// <param name="conn"></param>
@@ -787,7 +787,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -804,7 +804,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="folder"></param>
@@ -819,7 +819,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <param name="folder"></param>
@@ -836,7 +836,7 @@ namespace OpenSim.Data.SQLite
          **********************************************************************/
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="conn"></param>
         // private static void InitDB(SqliteConnection conn)
@@ -852,7 +852,7 @@ namespace OpenSim.Data.SQLite
         // }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="conn"></param>
         /// <param name="m"></param>

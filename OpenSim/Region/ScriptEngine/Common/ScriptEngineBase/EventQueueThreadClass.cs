@@ -44,7 +44,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     public class EventQueueThreadClass : iScriptEngineFunctionModule
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         /// <summary>
         /// How many ms to sleep if queue is empty
         /// </summary>

@@ -70,7 +70,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         new LSL_Types.LSLInteger(rInfo.GetIntValue()),
                         new LSL_Types.LSLString(rInfo.GetStrVal())
                     };
-                    
+
                     foreach (AsyncCommandManager m in m_CmdManager.Managers)
                     {
                         if (m.m_ScriptEngine.PostScriptEvent(

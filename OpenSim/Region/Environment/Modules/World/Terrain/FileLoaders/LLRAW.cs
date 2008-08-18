@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             ITerrainChannel retval = LoadStream(s);
-            
+
             s.Close();
 
             return retval;
@@ -113,7 +113,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 // i.e. eat X upto where we start
                 while (currFileXOffset < offsetX)
                 {
-                    bs.ReadBytes(sectionWidth * 13); 
+                    bs.ReadBytes(sectionWidth * 13);
                     currFileXOffset++;
                 }
 
@@ -143,11 +143,11 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             return retval;
         }
-        
+
         public ITerrainChannel LoadStream(Stream s)
-        {            
+        {
             TerrainChannel retval = new TerrainChannel();
-            
+
             BinaryReader bs = new BinaryReader(s);
             int y;
             for (y = 0; y < retval.Height; y++)
@@ -160,8 +160,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 }
             }
 
-            bs.Close();  
-            
+            bs.Close();
+
             return retval;
         }
 
@@ -173,7 +173,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             s.Close();
         }
-        
+
         public void SaveStream(Stream s, ITerrainChannel map)
         {
             BinaryWriter binStream = new BinaryWriter(s);
@@ -224,9 +224,9 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 }
             }
 
-            binStream.Close();            
+            binStream.Close();
         }
-        
+
         public string FileExtension
         {
             get { return ".raw"; }
