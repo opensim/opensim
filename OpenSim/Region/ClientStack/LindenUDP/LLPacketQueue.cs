@@ -159,7 +159,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (this)
             {
-                switch (item.throttleType)
+                switch (item.throttleType & ThrottleOutPacketType.TypeMask)
                 {
                     case ThrottleOutPacketType.Resend:
                         ThrottleCheck(ref ResendThrottle, ref ResendOutgoingPacketQueue, item);
@@ -168,10 +168,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ThrottleCheck(ref TextureThrottle, ref TextureOutgoingPacketQueue, item);
                         break;
                     case ThrottleOutPacketType.Task:
-                        ThrottleCheck(ref TaskThrottle, ref TaskOutgoingPacketQueue, item);
-                        break;
-                    case ThrottleOutPacketType.LowpriorityTask:
-                        ThrottleCheck(ref TaskThrottle, ref TaskLowpriorityPacketQueue, item);
+                        if((item.throttleType & ThrottleOutPacketType.LowPriority) != 0)
+                            ThrottleCheck(ref TaskThrottle, ref TaskLowpriorityPacketQueue, item);
+                        else
+                            ThrottleCheck(ref TaskThrottle, ref TaskOutgoingPacketQueue, item);
                         break;
                     case ThrottleOutPacketType.Land:
                         ThrottleCheck(ref LandThrottle, ref LandOutgoingPacketQueue, item);

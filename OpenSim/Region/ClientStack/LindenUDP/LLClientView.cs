@@ -2364,7 +2364,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             outPacket.Header.Zerocoded = true;
 
-            OutPacket(outPacket, ThrottleOutPacketType.LowpriorityTask);
+            OutPacket(outPacket, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
         }
 
         /// <summary>
@@ -2388,7 +2388,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, state); // AssetID should fall into here probably somehow...
             terse.Header.Reliable = false;
             terse.Header.Zerocoded = true;
-            OutPacket(terse, ThrottleOutPacketType.LowpriorityTask);
+            OutPacket(terse, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
         }
 
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
@@ -2404,7 +2404,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, 0);
             terse.Header.Reliable = false;
             terse.Header.Zerocoded = true;
-            OutPacket(terse, ThrottleOutPacketType.LowpriorityTask);
+            OutPacket(terse, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
         }
 
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID)

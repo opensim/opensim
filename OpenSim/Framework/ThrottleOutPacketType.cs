@@ -11,6 +11,9 @@ namespace OpenSim.Framework
         Asset = 6,
         Unknown = 7, // Also doubles as 'do not throttle'
         Back = 8,
-        LowpriorityTask = 9
+
+        TypeMask = 15, // The mask to mask off the flags
+
+        LowPriority = 128 // Additional flags
     }
 }
