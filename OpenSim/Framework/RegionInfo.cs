@@ -462,10 +462,6 @@ namespace OpenSim.Framework
         public bool shouldMasterAvatarDetailsBeAsked(string configuration_key)
         {
             return MasterAvatarAssignedUUID == LLUUID.Zero;
-            {
-                return true;
-            }
-            return false;
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
