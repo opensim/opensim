@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
@@ -34,6 +35,7 @@ using libsecondlife;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Data.Base;
+using MySql.Data.MySqlClient;
 
 namespace OpenSim.Data.MySQL
 {
@@ -737,6 +739,8 @@ namespace OpenSim.Data.MySQL
                     reader.Dispose();
                     result.Dispose();
 
+                    appearance.SetAttachments(GetUserAttachments(user));
+
                     return appearance;
                 }
             }
@@ -762,6 +766,8 @@ namespace OpenSim.Data.MySQL
                 {
                     appearance.Owner = user;
                     database.insertAppearanceRow(appearance);
+
+                    UpdateUserAttachments(user, appearance.GetAttachments());
                 }
             }
             catch (Exception e)
@@ -817,6 +823,25 @@ namespace OpenSim.Data.MySQL
         override public string Version
         {
             get {return "0.1";}
+        }
+
+        public Hashtable GetUserAttachments(LLUUID agentID)
+        {
+            MySqlCommand cmd = (MySqlCommand) (database.Connection.CreateCommand());
+            cmd.CommandText = "select attachpoint, item, asset from avatarattachments where UUID = ?uuid";
+            cmd.Parameters.AddWithValue("?uuid", agentID.ToString());
+
+            IDataReader r = cmd.ExecuteReader();
+
+            return database.readAttachments(r);
+        }
+
+        public void UpdateUserAttachments(LLUUID agentID, Hashtable data)
+        {
+            if(data == null)
+                return;
+
+            database.writeAttachments(agentID, data);
         }
     }
 }

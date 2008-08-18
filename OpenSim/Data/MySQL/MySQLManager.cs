@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Data;
 using System.IO;
 using System.Reflection;
@@ -660,6 +661,26 @@ namespace OpenSim.Data.MySQL
         }
 
 
+        // Read attachment list from data reader
+        public Hashtable readAttachments(IDataReader r)
+        {
+            Hashtable ret = new Hashtable();
+
+            while(r.Read())
+            {
+                int attachpoint = Convert.ToInt32(r["attachpoint"]);
+                if(ret.ContainsKey(attachpoint))
+                    continue;
+                Hashtable item = new Hashtable();
+                item.Add("item", r["item"].ToString());
+                item.Add("asset", r["asset"].ToString());
+
+                ret.Add(attachpoint, item);
+            }
+
+            return ret;
+        }
+
         /// <summary>
         /// Inserts a new row into the log database
         /// </summary>
@@ -1176,5 +1197,35 @@ namespace OpenSim.Data.MySQL
 
         }
 
+        public void writeAttachments(LLUUID agentID, Hashtable data)
+        {
+            string sql = "delete from avatarattachments where UUID = ?uuid";
+
+            MySqlCommand cmd = (MySqlCommand) dbcon.CreateCommand();
+            cmd.CommandText = sql;
+            cmd.Parameters.AddWithValue("?uuid", agentID.ToString());
+            
+            cmd.ExecuteNonQuery();
+
+            sql = "insert into avatarattachments (UUID, attachpoint, item, asset) values (?uuid, ?attchpoint, ?item, ?asset)";
+
+            cmd = (MySqlCommand) dbcon.CreateCommand();
+            cmd.CommandText = sql;
+
+            foreach(DictionaryEntry e in data)
+            {
+                int attachpoint = Convert.ToInt32(e.Key);
+
+                Hashtable item = (Hashtable)e.Value;
+
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("?uuid", agentID.ToString());
+                cmd.Parameters.AddWithValue("?attachpoint", attachpoint);
+                cmd.Parameters.AddWithValue("?item",  item["item"]);
+                cmd.Parameters.AddWithValue("?asset", item["asset"]);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
     }
 }

@@ -361,6 +361,11 @@ namespace OpenSim.Framework
             h["underpants_asset"] = UnderPantsAsset.ToString();
             h["skirt_item"] = SkirtItem.ToString();
             h["skirt_asset"] = SkirtAsset.ToString();
+
+            Hashtable attachments = GetAttachments();
+            if(attachments != null)
+                h["attachments"] = attachments;
+
             return h;
         }
 
@@ -405,6 +410,12 @@ namespace OpenSim.Framework
             UnderPantsAsset = new LLUUID((string)h["underpants_asset"]);
             SkirtItem = new LLUUID((string)h["skirt_item"]);
             SkirtAsset = new LLUUID((string)h["skirt_asset"]);
+
+            if(h.ContainsKey("attachments"))
+            {
+                Hashtable attachments = (Hashtable) h["attachments"];
+                SetAttachments(attachments);
+            }
         }
 
         [SecurityPermission(SecurityAction.LinkDemand,
@@ -423,6 +434,96 @@ namespace OpenSim.Framework
             info.AddValue("m_wearables", m_wearables);
             info.AddValue("m_textureEntry", m_texture.ToBytes());
             info.AddValue("m_avatarHeight", m_avatarHeight);
+        }
+
+        private Dictionary<int, LLUUID[]> m_attachments = new Dictionary<int, LLUUID[]>();
+
+        public void SetAttachments(Hashtable data)
+        {
+            m_attachments.Clear();
+
+            if(data == null)
+                return;
+
+            foreach (DictionaryEntry e in data)
+            {
+                int attachpoint = Convert.ToInt32(e.Key);
+
+                if (m_attachments.ContainsKey(attachpoint))
+                    continue;
+
+                LLUUID item;
+                LLUUID asset;
+
+                Hashtable uuids = (Hashtable) e.Value;
+                LLUUID.TryParse(uuids["item"].ToString(), out item);
+                LLUUID.TryParse(uuids["asset"].ToString(), out asset);
+
+                LLUUID[] attachment = new LLUUID[2];
+                attachment[0] = item;
+                attachment[1] = asset;
+
+                m_attachments[attachpoint] = attachment;
+            }
+        }
+
+        public Hashtable GetAttachments()
+        {
+            if(m_attachments.Count == 0)
+                return null;
+
+            Hashtable ret = new Hashtable();
+
+            foreach (KeyValuePair<int, LLUUID[]> kvp in m_attachments)
+            {
+                int attachpoint = kvp.Key;
+                LLUUID[] uuids = kvp.Value;
+
+                Hashtable data = new Hashtable();
+                data["item"] = uuids[0].ToString();
+                data["asset"] = uuids[1].ToString();
+
+                ret[attachpoint] = data;
+            }
+
+            return ret;
+        }
+
+        public List<int> GetAttachedPoints()
+        {
+            return new List<int>(m_attachments.Keys);
+        }
+
+        public LLUUID GetAttachedItem(int attachpoint)
+        {
+            if (!m_attachments.ContainsKey(attachpoint))
+                return LLUUID.Zero;
+
+            return m_attachments[attachpoint][0];
+        }
+
+        public LLUUID GetAttachedAsset(int attachpoint)
+        {
+            if (!m_attachments.ContainsKey(attachpoint))
+                return LLUUID.Zero;
+
+            return m_attachments[attachpoint][1];
+        }
+
+        public void AddAttachment(int attachpoint, LLUUID item, LLUUID asset)
+        {
+            if (item == LLUUID.Zero || asset == LLUUID.Zero)
+            {
+                if (m_attachments.ContainsKey(attachpoint))
+                    m_attachments.Remove(attachpoint);
+                return;
+            }
+
+            if (!m_attachments.ContainsKey(attachpoint))
+                m_attachments[attachpoint] = new LLUUID[2];
+
+            m_attachments[attachpoint][0] = item;
+            m_attachments[attachpoint][1] = asset;
         }
     }
 }
