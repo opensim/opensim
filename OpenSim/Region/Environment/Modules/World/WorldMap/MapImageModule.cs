@@ -712,10 +712,13 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         {
             Point returnpt = new Point();
             //originpos = point3d;
-            Vector3 topos = new Vector3(255, 255, 255);//(originpos.x * 256) / originpos.x);
-            float z = -point3d.z - topos.z;
-            returnpt.X = (int)((topos.x - point3d.x) / z * 255) + 255;
-            returnpt.Y = (int)(255 - (((topos.y - point3d.y) / z * 255) + 255));
+            //int d = (int)(256f / 1.5f);
+
+            //Vector3 topos = new Vector3(0, 0, 0);
+           // float z = -point3d.z - topos.z;
+            
+            returnpt.X = (int)point3d.x;//(int)((topos.x - point3d.x) / z * d);
+            returnpt.Y = (int)(255 - point3d.y);//(int)(255 - (((topos.y - point3d.y) / z * d)));
 
             return returnpt;
 
