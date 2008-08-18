@@ -166,14 +166,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             double[,] hm = whichScene.Heightmap.GetDoubles();
             bool ShadowDebugContinue = true;
-            //Color prim = Color.FromArgb(120, 120, 120);
-            //LLVector3 RayEnd = new LLVector3(0, 0, 0);
-            //LLVector3 RayStart = new LLVector3(0, 0, 0);
-            //LLVector3 direction = new LLVector3(0, 0, -1);
-            //Vector3 AXOrigin = new Vector3();
-            //Vector3 AXdirection = new Vector3();
-            //Ray testRay = new Ray();
-            //EntityIntersection rt = new EntityIntersection();
+            
             bool terraincorruptedwarningsaid = false;
 
             float low = 255;
@@ -204,23 +197,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 //int tc = System.Environment.TickCount;
                 for (int y = 0; y < 256; y++)
                 {
-                    //RayEnd = new LLVector3(x, y, 0);
-                    //RayStart = new LLVector3(x, y, 255);
-
-                    //direction = LLVector3.Norm(RayEnd - RayStart);
-                    //AXOrigin = new Vector3(RayStart.X, RayStart.Y, RayStart.Z);
-                    //AXdirection = new Vector3(direction.X, direction.Y, direction.Z);
-
-                    //testRay = new Ray(AXOrigin, AXdirection);
-                    //rt = m_innerScene.GetClosestIntersectingPrim(testRay);
-
-                    //if (rt.HitTF)
-                    //{
-                    //mapbmp.SetPixel(x, y, prim);
-                    //}
-                    //else
-                    //{
-                    //float tmpval = (float)hm[x, y];
+                   
                     float heightvalue = (float)hm[x, y];
 
 
@@ -298,7 +275,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                             int g = Shade.G;
                                             int b = Shade.B;
                                             Shade = Color.FromArgb((r - hfdiffi > 0) ? r - hfdiffi : 0, (g - hfdiffi > 0) ? g - hfdiffi : 0, (b - hfdiffi > 0) ? b - hfdiffi : 0);
-                                            //Console.WriteLine("d:" + hfdiff.ToString() + ", i:" + hfdiffi + ", pos: " + x + "," + y + " - R:" + Shade.R.ToString() + ", G:" + Shade.G.ToString() + ", B:" + Shade.G.ToString());
                                             mapbmp.SetPixel(x - 1, (256 - y) - 1, Shade);
                                         }
                                     }
@@ -325,6 +301,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     }
                     else
                     {
+                        // We're under the water level with the terrain, so paint water instead of land
+
                         // Y flip the cordinates
                         heightvalue = (float)whichScene.RegionInfo.RegionSettings.WaterHeight - heightvalue;
                         if (heightvalue > 19)
@@ -360,10 +338,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                         }
                     }
                 }
-                //}
-
-                //tc = System.Environment.TickCount - tc;
-                //m_log.Info("[MAPTILE]: Completed One row in " + tc + " ms");
             }
             m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (System.Environment.TickCount - tc) + " ms");
 
@@ -402,6 +376,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                 //
                                 try
                                 {
+                                    // get the null checks out of the way
+                                    // skip the ones that break
                                     if (part == null)
                                         continue;
 
