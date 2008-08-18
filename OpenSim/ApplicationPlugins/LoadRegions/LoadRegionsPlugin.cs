@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using log4net;
@@ -74,6 +75,12 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
 
             openSim.ModuleLoader.LoadDefaultSharedModules();
+            
+            if (!CheckRegionsForSanity(regionsToLoad))
+            {
+                m_log.Error("[LOADREGIONS]: Halting startup due to conflicts in region configurations");
+                System.Environment.Exit(1);
+            }
 
             for (int i = 0; i < regionsToLoad.Length; i++)
             {
@@ -88,10 +95,56 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         public void Dispose()
         {
-        }
+        }                
 
         #endregion
-
+        
+        /// <summary>
+        /// Check that region configuration information makes sense.
+        /// </summary>
+        /// <param name="regions"></param>
+        /// <returns>True if we're sane, false if we're insane</returns>
+        private bool CheckRegionsForSanity(RegionInfo[] regions)
+        {
+            if (regions.Length <= 0)
+                return true;
+            
+            List<RegionInfo> checkedRegions = new List<RegionInfo>();
+            checkedRegions.Add(regions[0]);
+            
+            for (int i = 1; i < regions.Length; i++)
+            {
+                RegionInfo region = regions[i];
+                
+                foreach (RegionInfo checkedRegion in checkedRegions)
+                {
+                    if (region.RegionID == checkedRegion.RegionID)
+                    {
+                        m_log.ErrorFormat(
+                             "[LOADREGIONS]: Regions {0} and {1} have the same UUID {2}", 
+                             region.RegionName, checkedRegion.RegionName, region.RegionID); 
+                        return false;
+                    }
+                    else if (region.RegionLocX == checkedRegion.RegionLocX && region.RegionLocY == checkedRegion.RegionLocY)
+                    {
+                        m_log.ErrorFormat(
+                             "[LOADREGIONS]: Regions {0} and {1} have the same location {2} {3}", 
+                             region.RegionName, checkedRegion.RegionName, region.RegionLocX, region.RegionLocY); 
+                        return false;
+                    }    
+                    else if (region.InternalEndPoint.Port == checkedRegion.InternalEndPoint.Port)
+                    {
+                        m_log.ErrorFormat(
+                             "[LOADREGIONS]: Regions {0} and {1} have the same internal IP port {2}", 
+                             region.RegionName, checkedRegion.RegionName, region.InternalEndPoint.Port); 
+                        return false;
+                    }                                        
+                }
+            }
+            
+            return true;
+        }
+            
         public void LoadRegionFromConfig(OpenSimBase openSim, ulong regionhandle)
         {
             m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");

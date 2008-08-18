@@ -409,6 +409,7 @@ namespace OpenSim.Data.MySQL
 
                         Lfli.Add(fli);
                     }
+                    
                     reader.Dispose();
                     result.Dispose();
                 }
