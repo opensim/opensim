@@ -660,13 +660,12 @@ namespace OpenSim.Data.MySQL
             return appearance;
         }
 
-
         // Read attachment list from data reader
         public Hashtable readAttachments(IDataReader r)
         {
             Hashtable ret = new Hashtable();
 
-            while(r.Read())
+            while (r.Read())
             {
                 int attachpoint = Convert.ToInt32(r["attachpoint"]);
                 if(ret.ContainsKey(attachpoint))
@@ -677,6 +676,8 @@ namespace OpenSim.Data.MySQL
 
                 ret.Add(attachpoint, item);
             }
+            
+            r.Close();
 
             return ret;
         }
