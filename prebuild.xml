@@ -1026,7 +1026,6 @@
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Common.Communications"/>
       <Reference name="OpenSim.Region.Communications.OGS1"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
@@ -1796,7 +1795,6 @@
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="OpenSim.Common.Communications"/>
       <Reference name="OpenSim.Grid.Communications.OGS1"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="XMLRPC.dll"/>
