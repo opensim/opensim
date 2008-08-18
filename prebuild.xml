@@ -224,7 +224,6 @@
         <Match pattern="Properties/*.cs" recurse="false"/>
       </Files>
     </Project>
-
     
     <Project name="OpenSim.Data.MySQLMapper" path="OpenSim/Data/MySQLMapper" type="Library">
       <Configuration name="Debug">
