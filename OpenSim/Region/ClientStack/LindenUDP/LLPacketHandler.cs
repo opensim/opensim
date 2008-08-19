@@ -253,11 +253,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void AddAcks(ref Packet packet)
         {
-            // This packet type has shown to have issues with
+            // These packet types have shown to have issues with
             // acks being appended to the payload, just don't send
-            // any with this packet type until libsl is fixed.
+            // any with them until libsl is fixed.
             //
             if (packet is libsecondlife.Packets.ViewerEffectPacket)
+                return;
+            if (packet is libsecondlife.Packets.SimStatsPacket)
                 return;
 
             // Add acks to outgoing packets
