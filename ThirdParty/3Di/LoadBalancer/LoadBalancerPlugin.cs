@@ -140,7 +140,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             {
                 m_log.Info("[BALANCER] " + "Entering RegionStatus()");
 
-                int src_port = (int) request.Params[0];
+                int src_port = Convert.ToInt32(request.Params[0]);
                 Scene scene;
                 // try to get the scene object
                 RegionInfo src_region = SearchRegionFromPortNum(src_port);
