@@ -2014,7 +2014,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_scene.NotifyMyCoarseLocationChange();
                     // the user may change their profile information in other region,
                     // so the userinfo in UserProfileCache is not reliable any more, delete it
-                    if(m_scene.NeedSceneCacheClear(UUID))
+                    if (m_scene.NeedSceneCacheClear(UUID))
                         m_scene.CommsManager.UserProfileCacheService.RemoveUser(UUID);
                     m_log.InfoFormat("User {0} is going to another region, profile cache removed", UUID);
                 }

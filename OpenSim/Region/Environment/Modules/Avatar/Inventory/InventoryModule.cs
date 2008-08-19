@@ -235,7 +235,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
             if (!m_AgentRegions.ContainsKey(agentID))
                 return true;
 
-            if(m_AgentRegions[agentID] == scene)
+            if (m_AgentRegions[agentID] == scene)
             {
                 m_AgentRegions.Remove(agentID);
                 return true;

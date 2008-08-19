@@ -1007,7 +1007,7 @@ namespace OpenSim.Data.SQLite
 
             // return true;
         }
-        
+
         override public void ResetAttachments(LLUUID userID)
         {
         }

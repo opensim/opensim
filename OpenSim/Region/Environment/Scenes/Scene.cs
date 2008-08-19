@@ -3863,7 +3863,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetRootAgentScene(LLUUID agentID)
         {
             IInventoryModule inv = RequestModuleInterface<IInventoryModule>();
-            if(inv == null)
+            if (inv == null)
                 return;
 
             inv.SetRootAgentScene(agentID, this);
@@ -3872,7 +3872,7 @@ namespace OpenSim.Region.Environment.Scenes
         public bool NeedSceneCacheClear(LLUUID agentID)
         {
             IInventoryModule inv = RequestModuleInterface<IInventoryModule>();
-            if(inv == null)
+            if (inv == null)
                 return true;
 
             return inv.NeedSceneCacheClear(agentID, this);
