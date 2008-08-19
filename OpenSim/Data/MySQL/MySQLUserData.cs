@@ -57,8 +57,8 @@ namespace OpenSim.Data.MySQL
         private string m_appearanceTableName = "avatarappearance";
         private string m_connectString;
 
-        public override void Initialise() 
-        { 
+        public override void Initialise()
+        {
             m_log.Info("[MySQLUserData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
@@ -409,7 +409,7 @@ namespace OpenSim.Data.MySQL
 
                         Lfli.Add(fli);
                     }
-                    
+
                     reader.Dispose();
                     result.Dispose();
                 }

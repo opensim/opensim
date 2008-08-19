@@ -38,10 +38,8 @@ using Nini.Config;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
-
     public class Rest
     {
-
         internal static readonly log4net.ILog Log =
             log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -374,7 +372,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             return sum;
-
         }
 
         public static string Int2Hex8(int val)
@@ -409,7 +406,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         public static void Dump(byte[] data)
         {
-
             char[] buffer = new char[Rest.DumpLineSize];
             int cc = 0;
 
@@ -435,7 +431,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     Console.Write(" |"+(new String(buffer))+"|");
                     cc = 0;
                 }
-
             }
 
             // Finish off any incomplete line
@@ -455,16 +450,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 Console.Write("\n");
             }
-
         }
-
     }
 
     // Local exception type
 
     public class RestException : Exception
     {
-
         internal int    statusCode;
         internal string statusDesc;
         internal string httpmethod;
@@ -474,5 +466,4 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         {
         }
     }
-
 }

@@ -40,10 +40,8 @@ using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
-
     public class RestTestServices : IRest
     {
-
         private bool    enabled = false;
         private string  qPrefix = "test";
 
@@ -52,7 +50,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         public RestTestServices()
         {
-
             Rest.Log.InfoFormat("{0} Test services initializing", MsgId);
             Rest.Log.InfoFormat("{0} Using REST Implementation Version {1}", MsgId, Rest.Version);
 
@@ -67,7 +64,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // Load test cases
 
             loadTests();
-            foreach ( ITest test in tests )
+            foreach (ITest test in tests)
             {
                 test.Initialize();
             }
@@ -81,7 +78,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             enabled = true;
 
             Rest.Log.InfoFormat("{0} Test services initialization complete", MsgId);
-
         }
 
         // Post-construction, pre-enabled initialization opportunity
@@ -98,7 +94,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         public void Close()
         {
             enabled = false;
-            foreach ( ITest test in tests )
+            foreach (ITest test in tests)
             {
                 test.Close();
             }
@@ -123,8 +119,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void DoTests(RequestData rdata)
         {
-
-            if (!enabled) return;
+            if (!enabled)
+                return;
 
             // Now that we know this is a serious attempt to 
             // access inventory data, we should find out who
@@ -177,7 +173,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 if (!rdata.handled)
                     test.Execute(rdata);
             }
-
         }
 
         #endregion Interface

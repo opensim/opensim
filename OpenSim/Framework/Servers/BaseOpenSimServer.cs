@@ -255,8 +255,8 @@ namespace OpenSim.Framework.Servers
 
                 SetConsoleLogLevel(setParams);
             }
-        }    
-        
+        }
+
         /// <summary>
         /// Show help information
         /// </summary>
@@ -270,7 +270,7 @@ namespace OpenSim.Framework.Servers
                 //Notice("help [command] - display general help or specific command help.  Try help help for more info.");
                 Notice("quit - equivalent to shutdown.");
 
-                Notice("set log level [level] - change the console logging level only.  For example, off or debug."); 
+                Notice("set log level [level] - change the console logging level only.  For example, off or debug.");
                 Notice("show info - show server information (e.g. startup path).");
 
                 if (m_stats != null)
@@ -280,7 +280,7 @@ namespace OpenSim.Framework.Servers
                 Notice("show uptime - show server startup time and uptime.");
                 Notice("show version - show server version.");
                 Notice("shutdown - shutdown the server.\n");
-                
+
                 return;
             }
         }

@@ -257,7 +257,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (Rest.InventoryServices.HasInventoryForUser(rdata.uuid))
             {
-
                 rdata.root = Rest.InventoryServices.RequestRootFolder(rdata.uuid);
 
                 Rest.Log.DebugFormat("{0} Inventory Root retrieved for {1} {2}",
@@ -646,7 +645,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 // Scan the set of folders in the entity collection for an
                 // entry that matches the context folder. It is assumed that
-                // the only reliable indicator of this is a zero UUID ( using
+                // the only reliable indicator of this is a zero UUID (using
                 // implicit context), or the parent's UUID matches that of the
                 // URI designated node (explicit context). We don't allow
                 // ambiguity in this case because this is POST and we are
@@ -1368,7 +1367,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 foreach (InventoryFolderBase parent in ic.rdata.folders)
                 {
-                    if ( parent.ID == result.ParentID )
+                    if (parent.ID == result.ParentID)
                     {
                         found = true;
                         break;
@@ -1382,7 +1381,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     ic.Fail(Rest.HttpStatusCodeBadRequest,
                             Rest.HttpStatusDescBadRequest+": invalid parent");
                 }
-
             }
 
             // This is a new folder, so no existing UUID is available

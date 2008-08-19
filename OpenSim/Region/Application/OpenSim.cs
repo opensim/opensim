@@ -56,7 +56,7 @@ namespace OpenSim
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
-        
+
         /// <summary>
         /// List of Console Plugin Commands
         /// </summary>
@@ -601,11 +601,11 @@ namespace OpenSim
                     break;
             }
         }
-     
+
         public override void ShowHelp(string[] helpArgs)
         {
             base.ShowHelp(helpArgs);
-            
+
             m_console.Notice("alert - send alert to a designated user or all users.");
             m_console.Notice("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
             m_console.Notice("  alert general [Message] - send an alert to all users.");
@@ -619,7 +619,7 @@ namespace OpenSim
             m_console.Notice("  debug scene [scripting] [collision] [physics] - Enable/Disable debug stuff, each can be True/False");
             m_console.Notice("edit-scale [prim name] [x] [y] [z] - resize given prim");
             m_console.Notice("export-map [filename] - save image of world map");
-            m_console.Notice("force-update - force an update of prims in the scene");                                        
+            m_console.Notice("force-update - force an update of prims in the scene");
             m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
             m_console.Notice("remove-region [name] - remove a region");
             m_console.Notice("load-xml [filename] - load prims from XML (DEPRECATED)");
@@ -637,15 +637,15 @@ namespace OpenSim
             m_console.Notice("config set section field value - set a config value");
             m_console.Notice("config get section field - get a config value");
             m_console.Notice("config save - save OpenSim.ini");
-            m_console.Notice("terrain help - show help for terrain commands.");    
-            
+            m_console.Notice("terrain help - show help for terrain commands.");
+
             ShowPluginCommandsHelp(CombineParams(helpArgs, 0), m_console);
-            
+
             if (m_sandbox)
             {
                 m_console.Notice("");
                 m_console.Notice("create user - adds a new user.");
-            }                                
+            }
         }
 
         // see BaseOpenSimServer

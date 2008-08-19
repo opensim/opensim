@@ -358,8 +358,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 {
                     if (path.StartsWith(key))
                     {
-                        return ( path.Length == key.Length ||
-                                 path.Substring(key.Length,1) == Rest.UrlPathSeparator);
+                        return (path.Length == key.Length ||
+                                path.Substring(key.Length, 1) == Rest.UrlPathSeparator);
                     }
                 }
 

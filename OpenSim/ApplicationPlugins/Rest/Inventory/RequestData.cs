@@ -40,7 +40,6 @@ using System.Xml;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
-
     /// <summary>
     /// This class represents the current REST request. It
     /// encapsulates the request/response state and takes care
@@ -66,7 +65,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
     internal class RequestData
     {
-
         // HTTP Server interface data
 
         internal OSHttpRequest        request = null;
@@ -170,7 +168,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal RequestData(OSHttpRequest p_request, OSHttpResponse p_response, string p_qprefix)
         {
-
             request  = p_request;
             response = p_response;
             qprefix = p_qprefix;
@@ -187,7 +184,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             initUrl();
 
             initParameters(p_qprefix.Length);
-
         }
 
         // Just for convenience...
@@ -212,7 +208,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     return authenticated;
                 }
-                else return true;
+                else
+                    return true;
             }
         }
 
@@ -229,7 +226,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void authenticate()
         {
-
             string authdata  = request.Headers.Get("Authorization");
             string reqscheme = String.Empty;
 
@@ -291,7 +287,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.DebugFormat("{0} Challenge reason: Authentication failed", MsgId);
                 DoChallenge();
             }
-
         }
 
         /// <summary>
@@ -315,7 +310,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void DoBasic(string authdata)
         {
-
             string response = null;
 
             MatchCollection matches = basicParms.Matches(authdata);
@@ -346,7 +340,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // Validate against user database
                 authenticated = Validate(userName,userPass);
             }
-
         }
 
         /// <summary>
@@ -357,7 +350,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void DoDigest(string authdata)
         {
-
             string response = null;
 
             MatchCollection matches = digestParm1.Matches(authdata);
@@ -390,12 +382,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (authparms.TryGetValue("response", out response))
             {
-
                 string temp   = null;
 
                 do
                 {
-
                     string nck = null;
                     string ncl = null;
 
@@ -448,7 +438,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     if (authparms.TryGetValue("qop", out temp))
                     {
-
                         qop = temp.ToLower(); // replace with actual value used
 
                         // if QOP was specified then
@@ -485,11 +474,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         {
                             lock (cntable) cntable.Add(nonce, nck);
                         }
-
                     }
                     else
                     {
-
                         qop = String.Empty;
 
                         // if QOP was not specified then
@@ -509,12 +496,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     // Validate the supplied userid/password info
 
                     authenticated = ValidateDigest(userName, nonce, cnonce, nck, authPrefix, response);
-
                 }
                 while (false);
-
             }
-
         }
 
         // Indicate that authentication is required
@@ -523,7 +507,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                 string opaque, string stale, string alg,
                                 string qop, string auth)
         {
-
             sbuilder.Length = 0;
 
             if (scheme == null || scheme == Rest.AS_BASIC)
@@ -544,7 +527,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (scheme == null || scheme == Rest.AS_DIGEST)
             {
-
                 sbuilder.Append(Rest.AS_DIGEST);
                 sbuilder.Append(" ");
 
@@ -617,9 +599,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 sbuilder.Append(Rest.CS_DQUOTE);
 
                 AddHeader(Rest.HttpHeaderWWWAuthenticate,sbuilder.ToString());
-
             }
-
         }
 
         /// <summary>
@@ -631,7 +611,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private bool Validate(string user, string pass)
         {
-
             Rest.Log.DebugFormat("{0} Simple User Validation", MsgId);
 
             // Both values are required
@@ -643,7 +622,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             user = user.Trim();
 
             return vetPassword(user, pass);
-
         }
 
         /// <summary>
@@ -658,7 +636,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private string getPassword(string user)
         {
-
             int x;
             string first;
             string last;
@@ -690,7 +667,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.DebugFormat("{0} Normal User {1}", MsgId, user);
                 return udata.PasswordHash;
             }
-
         }
 
         /// <summary>
@@ -704,7 +680,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private bool vetPassword(string user, string pass)
         {
-
             int x;
             string HA1;
             string first;
@@ -734,13 +709,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             HA1 = HashToString(String.Format("{0}:{1}",HA1,udata.PasswordSalt));
 
             return (0 == sc.Compare(HA1, udata.PasswordHash));
-
         }
 
         // Validate the request-digest
         private bool ValidateDigest(string user, string nonce, string cnonce, string nck, string uri, string response)
         {
-
             string patt = null;
             string payl = String.Empty;
             string KDS  = null;
@@ -798,12 +771,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // Compare the generated sequence with the original
 
             return (0 == sc.Compare(KDS, response));
-
         }
 
         private string HashToString(string pattern)
         {
-
             Rest.Log.DebugFormat("{0} Generate <{1}>", MsgId, pattern);
 
             byte[] hash = md5hash.ComputeHash(encoding.GetBytes(pattern));
@@ -818,7 +789,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             Rest.Log.DebugFormat("{0} Hash = <{1}>", MsgId, sbuilder.ToString());
 
             return sbuilder.ToString();
-
         }
 
         internal void Complete()
@@ -829,7 +799,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal void Redirect(string Url, bool temp)
         {
-
             redirectLocation = Url;
 
             if (temp)
@@ -844,7 +813,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             Fail(statusCode, statusDescription, true);
-
         }
 
         // Fail for an arbitrary reason. Just a failure with
@@ -867,7 +835,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal void Fail(int code, string message, bool reset)
         {
-
             statusCode        = code;
             statusDescription = message;
 
@@ -907,7 +874,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             re.httppath   = path;
 
             throw re;
-
         }
 
         // Reject this request
@@ -924,19 +890,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal virtual bool Respond(string reason)
         {
-
             Rest.Log.DebugFormat("{0} Respond ENTRY, handled = {1}, reason = {2}", MsgId, handled, reason);
 
             if (!handled)
             {
-
                 Rest.Log.DebugFormat("{0} Generating Response", MsgId);
                 Rest.Log.DebugFormat("{0} Method is {1}", MsgId, method);
 
                 // A Head request can NOT have a body!
                 if (method != Rest.HEAD)
                 {
-
                     Rest.Log.DebugFormat("{0} Response is not abbreviated", MsgId);
 
                     // If the writer is non-null then we know that an XML
@@ -993,7 +956,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     response.SendChunked     = chunked;
                     response.KeepAlive       = keepAlive;
-
                 }
 
                 // Set the status code & description. If nothing has been stored,
@@ -1054,13 +1016,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 Rest.Log.DebugFormat("{0} Closing output stream", MsgId);
                 response.OutputStream.Close();
-
             }
 
             Rest.Log.DebugFormat("{0} Respond EXIT, handled = {1}, reason = {2}", MsgId, handled, reason);
 
             return handled;
-
         }
 
         // Add a header to the table. We need to allow
@@ -1122,7 +1082,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void initUrl()
         {
-
             uri = request.Url;
 
             if (query == null)
@@ -1137,7 +1096,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 path = uri.AbsolutePath;
                 if (path.EndsWith(Rest.UrlPathSeparator))
-                    path = path.Substring(0,path.Length-1);
+                    path = path.Substring(0, path.Length-1);
             }
 
             // If we succeeded in getting a path, perform any
@@ -1149,7 +1108,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 {
                     // Handle "+". Not a standard substitution, but
                     // common enough...
-                    path      = path.Replace(Rest.C_PLUS,Rest.C_SPACE);
+                    path = path.Replace(Rest.C_PLUS, Rest.C_SPACE);
                 }
                 pathNodes = path.Split(Rest.CA_PATHSEP);
             }
@@ -1167,12 +1126,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             hostname = uri.Host;
             port     = uri.Port;
-
         }
 
         internal int initParameters(int prfxlen)
         {
-
             if (prfxlen < path.Length-1)
             {
                 parameters = path.Substring(prfxlen+1).Split(Rest.CA_PATHSEP);
@@ -1194,7 +1151,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             return parameters.Length;
-
         }
 
         internal string[] PathNodes
@@ -1211,7 +1167,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal string BuildUrl(int first, int last)
         {
-
             if (pathNodes == null)
             {
                 initUrl();
@@ -1252,7 +1207,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             return sbuilder.ToString();
-
         }
 
         // Setup the XML writer for output
@@ -1272,7 +1226,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal void initXmlReader()
         {
-
             XmlReaderSettings        settings = new XmlReaderSettings();
 
             settings.ConformanceLevel             = ConformanceLevel.Fragment;
@@ -1282,14 +1235,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             settings.ValidationType               = ValidationType.None;
 
             reader = XmlReader.Create(request.InputStream,settings);
-
         }
 
         private void Flush()
         {
             byte[] dbuffer = new byte[8192];
             while (request.InputStream.Read(dbuffer,0,dbuffer.Length) != 0);
-            return;
         }
 
         // This allows us to make errors a bit more apparent in REST
@@ -1301,7 +1252,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal void SendHtml(string title, string text)
         {
-
             AddHeader(Rest.HttpHeaderContentType, "text/html");
             sbuilder.Length = 0;
 
@@ -1321,7 +1271,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             sbuilder.Append("</html>");
 
             html = sbuilder.ToString();
-
         }
     }
 }

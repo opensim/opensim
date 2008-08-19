@@ -182,7 +182,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             Rest.Log.DebugFormat("{0} REST Asset handler EXIT", MsgId);
-
         }
 
         #endregion Interface

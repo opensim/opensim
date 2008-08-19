@@ -363,7 +363,7 @@ namespace OpenSim.Framework
             h["skirt_asset"] = SkirtAsset.ToString();
 
             string attachments = GetAttachmentsString();
-            if(attachments != String.Empty)
+            if (attachments != String.Empty)
                 h["attachments"] = attachments;
 
             return h;
@@ -411,7 +411,7 @@ namespace OpenSim.Framework
             SkirtItem = new LLUUID((string)h["skirt_item"]);
             SkirtAsset = new LLUUID((string)h["skirt_asset"]);
 
-            if(h.ContainsKey("attachments"))
+            if (h.ContainsKey("attachments"))
             {
                 SetAttachmentsString(h["attachments"].ToString());
             }
@@ -441,7 +441,7 @@ namespace OpenSim.Framework
         {
             m_attachments.Clear();
 
-            if(data == null)
+            if (data == null)
                 return;
 
             foreach (DictionaryEntry e in data)
@@ -468,7 +468,7 @@ namespace OpenSim.Framework
 
         public Hashtable GetAttachments()
         {
-            if(m_attachments.Count == 0)
+            if (m_attachments.Count == 0)
                 return null;
 
             Hashtable ret = new Hashtable();

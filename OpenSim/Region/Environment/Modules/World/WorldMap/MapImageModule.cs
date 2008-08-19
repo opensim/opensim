@@ -97,7 +97,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 DrawObjectVolume(m_scene, mapbmp);
             }
 
-
             try
             {
                 imageData = OpenJPEG.EncodeFromImage(mapbmp, true);
@@ -153,14 +152,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 //                         if (entity is SceneObjectGroup)
 //                         {
 //                             SceneObjectGroup sog = (SceneObjectGroup) entity;
-// 
+//
 //                             foreach (SceneObjectPart primitive in sog.Children.Values)
 //                             {
 //                                 int x = (int) (primitive.AbsolutePosition.X - (primitive.Scale.X / 2));
 //                                 int y = (int) (primitive.AbsolutePosition.Y - (primitive.Scale.Y / 2));
 //                                 int w = (int) primitive.Scale.X;
 //                                 int h = (int) primitive.Scale.Y;
-// 
+//
 //                                 int dx;
 //                                 for (dx = x; dx < x + w; dx++)
 //                                 {
@@ -171,7 +170,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 //                                             continue;
 //                                         if (x >= map.Width || y >= map.Height)
 //                                             continue;
-// 
+//
 //                                         map.SetPixel(dx, dy, Color.DarkGray);
 //                                     }
 //                                 }
@@ -189,7 +188,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             double[,] hm = whichScene.Heightmap.GetDoubles();
             bool ShadowDebugContinue = true;
-            
+
             bool terraincorruptedwarningsaid = false;
 
             float low = 255;
@@ -220,13 +219,10 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 //int tc = System.Environment.TickCount;
                 for (int y = 0; y < 256; y++)
                 {
-                   
                     float heightvalue = (float)hm[x, y];
-
 
                     if (heightvalue > (float)whichScene.RegionInfo.RegionSettings.WaterHeight)
                     {
-
                         // scale height value
                         heightvalue = low + mid * (heightvalue - low) / mid;
 
@@ -238,6 +234,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
                         if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
                             heightvalue = 0;
+
                         try
                         {
                             Color green = Color.FromArgb((int)heightvalue, 100, (int)heightvalue);
@@ -264,7 +261,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
                                 if (hfdiff > 0.3f)
                                 {
-
                                 }
                                 else if (hfdiff < -0.3f)
                                 {
@@ -301,15 +297,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                             mapbmp.SetPixel(x - 1, (256 - y) - 1, Shade);
                                         }
                                     }
-
-
                                 }
-
                             }
-
-
-
-
                         }
                         catch (System.ArgumentException)
                         {
@@ -367,7 +356,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             return mapbmp;
         }
 
-
         private Bitmap DrawObjectVolume(Scene whichScene, Bitmap mapbmp)
         {
             int tc = 0;
@@ -394,7 +382,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                         {
                             if (part == null)
                                 continue;
-
 
                             // Draw if the object is at least 1 meter wide in any direction
                             if (part.Scale.X > 1f || part.Scale.Y > 1f || part.Scale.Z > 1f)
@@ -459,8 +446,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     continue;
 
                                 // skip prim in non-finite position
-                                if (Single.IsNaN(pos.X) || Single.IsNaN(pos.Y) || Single.IsInfinity(pos.X)
-                                                        || Single.IsInfinity(pos.Y))
+                                if (Single.IsNaN(pos.X) || Single.IsNaN(pos.Y) ||
+                                    Single.IsInfinity(pos.X) || Single.IsInfinity(pos.Y))
                                     continue;
 
                                 // Figure out if object is under 256m above the height of the terrain
@@ -481,7 +468,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     Vector3 scale = new Vector3();
                                     Vector3 tScale = new Vector3();
                                     Vector3 axPos = new Vector3(pos.X,pos.Y,pos.Z);
-                                    
 
                                     LLQuaternion llrot = part.GetWorldRotation();
                                     Quaternion rot = new Quaternion(llrot.W, llrot.X, llrot.Y, llrot.Z);
@@ -609,7 +595,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     FaceC[3] = vertexes[7];
                                     FaceD[5] = vertexes[7];
 #endregion
-                                    
+
                                     //int wy = 0;
 
                                     //bool breakYN = false; // If we run into an error drawing, break out of the
@@ -618,14 +604,10 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     ds.brush = new SolidBrush(mapdotspot);
                                     //ds.rect = new Rectangle(mapdrawstartX, (255 - mapdrawstartY), mapdrawendX - mapdrawstartX, mapdrawendY - mapdrawstartY);
 
-                                    
                                     ds.trns = new face[FaceA.Length];
-                                    
-                                    
-                                    
+
                                     for (int i = 0; i < FaceA.Length; i++)
                                     {
-                                        
                                         Point[] working = new Point[5];
                                         working[0] = project(FaceA[i], axPos);
                                         working[1] = project(FaceB[i], axPos);
@@ -635,19 +617,13 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
                                         face workingface = new face();
                                         workingface.pts = working;
-                                        
-                                        ds.trns[i] = workingface;
-                                        
-                                    }
 
-                                    
-                                    
+                                        ds.trns[i] = workingface;
+                                    }
 
                                     z_sort.Add(part.LocalId, ds);
                                     z_localIDs.Add(part.LocalId);
                                     z_sortheights.Add(pos.Z);
-
-                                    
 
                                     //for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
                                     //{
@@ -676,20 +652,17 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                         } // loop over group children
                     } // entitybase is sceneobject group
                 } // foreach loop over entities
-                
+
                 float[] sortedZHeights = z_sortheights.ToArray();
                 uint[] sortedlocalIds = z_localIDs.ToArray();
 
                 // Sort prim by Z position
                 Array.Sort(sortedZHeights, sortedlocalIds);
 
-                
-               
                 Graphics g = Graphics.FromImage(mapbmp);
 
                 for (int s = 0; s < sortedZHeights.Length; s++)
                 {
-                    
                     if (z_sort.ContainsKey(sortedlocalIds[s]))
                     {
                         DrawStruct rectDrawStruct = z_sort[sortedlocalIds[s]];
@@ -701,13 +674,13 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     }
                 }
 
-                
                 g.Dispose();
             } // lock entities objs
 
             m_log.Info("[MAPTILE]: Generating Maptile Step 2: Done in " + (System.Environment.TickCount - tc) + " ms");
             return mapbmp;
         }
+
         private Point project(Vector3 point3d, Vector3 originpos)
         {
             Point returnpt = new Point();
@@ -716,12 +689,11 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             //Vector3 topos = new Vector3(0, 0, 0);
            // float z = -point3d.z - topos.z;
-            
+
             returnpt.X = (int)point3d.x;//(int)((topos.x - point3d.x) / z * d);
             returnpt.Y = (int)(255 - point3d.y);//(int)(255 - (((topos.y - point3d.y) / z * d)));
 
             return returnpt;
-
         }
 
 // TODO: unused:
@@ -729,17 +701,17 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 //         private Bitmap TerrainToBitmap(string gradientmap)
 //         {
 //             Bitmap gradientmapLd = new Bitmap(gradientmap);
-// 
+//
 //             int pallete = gradientmapLd.Height;
-// 
+//
 //             Bitmap bmp = new Bitmap(m_scene.Heightmap.Width, m_scene.Heightmap.Height);
 //             Color[] colours = new Color[pallete];
-// 
+//
 //             for (int i = 0; i < pallete; i++)
 //             {
 //                 colours[i] = gradientmapLd.GetPixel(0, i);
 //             }
-// 
+//
 //             lock (m_scene.Heightmap)
 //             {
 //                 ITerrainChannel copy = m_scene.Heightmap;
@@ -749,7 +721,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 //                     {
 //                         // 512 is the largest possible height before colours clamp
 //                         int colorindex = (int) (Math.Max(Math.Min(1.0, copy[x, y] / 512.0), 0.0) * (pallete - 1));
-// 
+//
 //                         // Handle error conditions
 //                         if (colorindex > pallete - 1 || colorindex < 0)
 //                             bmp.SetPixel(x, copy.Height - y - 1, Color.Red);

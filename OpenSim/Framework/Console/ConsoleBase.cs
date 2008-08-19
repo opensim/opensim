@@ -245,7 +245,7 @@ namespace OpenSim.Framework.Console
             try
             {
                 string line = System.Console.ReadLine();
-                
+
                 while (line == null)
                 {
                     line = System.Console.ReadLine();

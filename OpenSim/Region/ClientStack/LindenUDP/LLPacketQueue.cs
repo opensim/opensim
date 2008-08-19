@@ -168,7 +168,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ThrottleCheck(ref TextureThrottle, ref TextureOutgoingPacketQueue, item);
                         break;
                     case ThrottleOutPacketType.Task:
-                        if((item.throttleType & ThrottleOutPacketType.LowPriority) != 0)
+                        if ((item.throttleType & ThrottleOutPacketType.LowPriority) != 0)
                             ThrottleCheck(ref TaskThrottle, ref TaskLowpriorityPacketQueue, item);
                         else
                             ThrottleCheck(ref TaskThrottle, ref TaskOutgoingPacketQueue, item);

@@ -668,7 +668,7 @@ namespace OpenSim.Data.MySQL
             while (r.Read())
             {
                 int attachpoint = Convert.ToInt32(r["attachpoint"]);
-                if(ret.ContainsKey(attachpoint))
+                if (ret.ContainsKey(attachpoint))
                     continue;
                 Hashtable item = new Hashtable();
                 item.Add("item", r["item"].ToString());
@@ -676,7 +676,7 @@ namespace OpenSim.Data.MySQL
 
                 ret.Add(attachpoint, item);
             }
-            
+
             r.Close();
 
             return ret;
@@ -1205,7 +1205,7 @@ namespace OpenSim.Data.MySQL
             MySqlCommand cmd = (MySqlCommand) dbcon.CreateCommand();
             cmd.CommandText = sql;
             cmd.Parameters.AddWithValue("?uuid", agentID.ToString());
-            
+
             cmd.ExecuteNonQuery();
 
             if (data == null)
@@ -1216,7 +1216,7 @@ namespace OpenSim.Data.MySQL
             cmd = (MySqlCommand) dbcon.CreateCommand();
             cmd.CommandText = sql;
 
-            foreach(DictionaryEntry e in data)
+            foreach (DictionaryEntry e in data)
             {
                 int attachpoint = Convert.ToInt32(e.Key);
 
