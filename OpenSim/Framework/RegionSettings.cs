@@ -70,19 +70,19 @@ namespace OpenSim.Framework
 
              configMember.addConfigurationOption("terrain_base_0",
                      ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                     String.Empty, "00000000-0000-0000-0000-000000000000",true);
+                     String.Empty, "b8d3965a-ad78-bf43-699b-bff8eca6c975",true);
 
              configMember.addConfigurationOption("terrain_base_1",
                      ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                     String.Empty, "00000000-0000-0000-0000-000000000000",true);
+                     String.Empty, "abb783e6-3e93-26c0-248a-247666855da3",true);
 
              configMember.addConfigurationOption("terrain_base_2",
                      ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                     String.Empty, "00000000-0000-0000-0000-000000000000",true);
+                     String.Empty, "179cdabd-398a-9b6b-1391-4dc333ba321f",true);
 
              configMember.addConfigurationOption("terrain_base_3",
                      ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                     String.Empty, "00000000-0000-0000-0000-000000000000",true);
+                     String.Empty, "beb169c7-11ea-fff2-efe5-0f24dc881df2",true);
 
              configMember.addConfigurationOption("terrain_start_height_0",
                      ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
@@ -354,7 +354,13 @@ namespace OpenSim.Framework
         public LLUUID TerrainTexture1
         {
             get { return m_TerrainTexture1; }
-            set { m_TerrainTexture1 = value; }
+            set
+            {
+                if (value == LLUUID.Zero)
+                    m_TerrainTexture1 = new LLUUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");
+                else
+                    m_TerrainTexture1 = value;
+            }
         }
 
         private LLUUID m_TerrainTexture2 = LLUUID.Zero;
@@ -362,7 +368,13 @@ namespace OpenSim.Framework
         public LLUUID TerrainTexture2
         {
             get { return m_TerrainTexture2; }
-            set { m_TerrainTexture2 = value; }
+            set
+            {
+                if (value == LLUUID.Zero)
+                    m_TerrainTexture2 = new LLUUID("abb783e6-3e93-26c0-248a-247666855da3");
+                else
+                    m_TerrainTexture2 = value;
+            }
         }
 
         private LLUUID m_TerrainTexture3 = LLUUID.Zero;
@@ -370,7 +382,13 @@ namespace OpenSim.Framework
         public LLUUID TerrainTexture3
         {
             get { return m_TerrainTexture3; }
-            set { m_TerrainTexture3 = value; }
+            set
+            {
+                if (value == LLUUID.Zero)
+                    m_TerrainTexture3 = new LLUUID("179cdabd-398a-9b6b-1391-4dc333ba321f");
+                else
+                    m_TerrainTexture3 = value;
+            }
         }
 
         private LLUUID m_TerrainTexture4 = LLUUID.Zero;
@@ -378,7 +396,13 @@ namespace OpenSim.Framework
         public LLUUID TerrainTexture4
         {
             get { return m_TerrainTexture4; }
-            set { m_TerrainTexture4 = value; }
+            set
+            {
+                if (value == LLUUID.Zero)
+                    m_TerrainTexture4 = new LLUUID("beb169c7-11ea-fff2-efe5-0f24dc881df2");
+                else
+                    m_TerrainTexture4 = value;
+            }
         }
 
         private double m_Elevation1NW = 10;
