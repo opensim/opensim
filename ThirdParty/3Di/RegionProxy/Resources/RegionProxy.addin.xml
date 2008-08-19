@@ -1,0 +1,11 @@
+<Addin id="RegionProxy" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.ApplicationPlugins.RegionProxy.dll" />
+    </Runtime>
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+    </Dependencies>
+    <Extension path="/OpenSim/Startup">
+        <Plugin id="RegionProxy" type="OpenSim.ApplicationPlugins.RegionProxy.RegionProxyPlugin" />
+    </Extension>
+</Addin>

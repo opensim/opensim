@@ -1,0 +1,12 @@
+<Addin id="LoadBalancer" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.ApplicationPlugins.LoadBalancer.dll" />
+    </Runtime>
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+        <Addin id="RegionProxy" version="0.1" />
+    </Dependencies>
+    <Extension path="/OpenSim/Startup">
+        <Plugin id="LoadBalancer" type="OpenSim.ApplicationPlugins.LoadBalancer.LoadBalancerPlugin" />
+    </Extension>
+</Addin>

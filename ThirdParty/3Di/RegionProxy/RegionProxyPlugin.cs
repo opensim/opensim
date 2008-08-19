@@ -37,9 +37,6 @@ using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 
-[assembly : Addin("RegionProxy", "0.1")]
-[assembly : AddinDependency("OpenSim", "0.5")]
-
 namespace OpenSim.ApplicationPlugins.RegionProxy
 {
     /* This module has an interface to OpenSim clients that is constant, and is responsible for relaying
@@ -60,7 +57,6 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
      * - UnblockClientMessages
      */
 
-    [Extension("/OpenSim/Startup")]
     public class RegionProxyPlugin : IApplicationPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -69,8 +65,8 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
 
         #region IApplicationPlugin Members
         // TODO: required by IPlugin, but likely not at all right
-        string m_name = "RegionProxyPlugin";
-        string m_version = "0.0";
+        string m_name = "RegionProxy";
+        string m_version = "0.1";
 
         public string Version { get { return m_version; } }
         public string Name { get { return m_name; } }
@@ -83,7 +79,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
 
         public void Initialise(OpenSimBase openSim)
         {
-            m_log.Info("Starting proxy");
+            m_log.Info("[PROXY] Starting proxy");
             string proxyURL = openSim.ConfigSource.Source.Configs["Network"].GetString("proxy_url", "");
             if (proxyURL.Length == 0) return;
 

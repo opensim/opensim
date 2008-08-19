@@ -45,14 +45,8 @@ using OpenSim.Region.Environment.Scenes;
 
 // TODO: remove LindenUDP dependency
 
-[assembly : Addin]
-[assembly : AddinDependency("OpenSim", "0.5")]
-[assembly : AddinDependency("RegionProxy", "0.1")]
-
 namespace OpenSim.ApplicationPlugins.LoadBalancer
 {
-    [Extension("/OpenSim/Startup")]
-    [ExtensionNode ("Plugin")]
     public class LoadBalancerPlugin : IApplicationPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -76,14 +70,14 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
         #region IApplicationPlugin Members
         // TODO: required by IPlugin, but likely not at all right
-        string m_name = "LoadBalancerPlugin";
-        string m_version = "0.0";
+        string m_name = "LoadBalancer";
+        string m_version = "0.1";
 
         public string Version { get { return m_version; } }
         public string Name { get { return m_name; } }
 
-        public void Initialise() 
-        { 
+        public void Initialise()
+        {
             m_log.Info("[BALANCER]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }

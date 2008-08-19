@@ -2122,6 +2122,7 @@
       <Reference name="OpenSim.Region.ClientStack"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
@@ -2156,6 +2157,7 @@
       <Reference name="libsecondlife.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
 
