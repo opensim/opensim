@@ -893,37 +893,6 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// add an attachement to an avatar
-        /// </summary>
-        /// <param name="user">the avatar UUID</param>
-        /// <param name="item">the item UUID</param>
-        override public void AddAttachment(LLUUID user, LLUUID item)
-        {
-            // TBI?
-        }
-
-        /// <summary>
-        /// Remove an attachement from an avatar
-        /// </summary>
-        /// <param name="user">the avatar UUID</param>
-        /// <param name="item">the item UUID</param>
-        override public void RemoveAttachment(LLUUID user, LLUUID item)
-        {
-            // TBI?
-        }
-
-        /// <summary>
-        /// get (fetch?) all attached item to an avatar
-        /// </summary>
-        /// <param name="user">the avatar UUID</param>
-        /// <returns>List of attached item</returns>
-        /// <remarks>return an empty list</remarks>
-        override public List<LLUUID> GetAttachments(LLUUID user)
-        {
-            return new List<LLUUID>();
-        }
-
-        /// <summary>
         /// Database provider name
         /// </summary>
         /// <returns>Provider name</returns>
@@ -946,6 +915,10 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="query"></param>
         public void runQuery(string query)
+        {
+        }
+
+        override public void ResetAttachments(LLUUID userID)
         {
         }
     }

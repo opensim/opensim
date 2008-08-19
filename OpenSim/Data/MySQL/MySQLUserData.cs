@@ -779,36 +779,6 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// Adds an attachment item to a user
-        /// </summary>
-        /// <param name="user">the user UUID</param>
-        /// <param name="item">the item UUID</param>
-        override public void AddAttachment(LLUUID user, LLUUID item)
-        {
-            return;
-        }
-
-        /// <summary>
-        /// Removes an attachment from a user
-        /// </summary>
-        /// <param name="user">the user UUID</param>
-        /// <param name="item">the item UUID</param>
-        override public void RemoveAttachment(LLUUID user, LLUUID item)
-        {
-            return;
-        }
-
-        /// <summary>
-        /// Get the list of item attached to a user
-        /// </summary>
-        /// <param name="user">the user UUID</param>
-        /// <returns>UUID list of attached item</returns>
-        override public List<LLUUID> GetAttachments(LLUUID user)
-        {
-            return new List<LLUUID>();
-        }
-
-        /// <summary>
         /// Database provider name
         /// </summary>
         /// <returns>Provider name</returns>
@@ -844,6 +814,15 @@ namespace OpenSim.Data.MySQL
         public void UpdateUserAttachments(LLUUID agentID, Hashtable data)
         {
             database.writeAttachments(agentID, data);
+        }
+
+        override public void ResetAttachments(LLUUID userID)
+        {
+            MySqlCommand cmd = (MySqlCommand) (database.Connection.CreateCommand());
+            cmd.CommandText = "update avatarattachments set asset = '00000000-0000-0000-0000-000000000000' where UUID = ?uuid";
+            cmd.Parameters.AddWithValue("?uuid", userID.ToString());
+
+            cmd.ExecuteNonQuery();
         }
     }
 }

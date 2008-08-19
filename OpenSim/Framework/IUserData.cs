@@ -165,10 +165,7 @@ namespace OpenSim.Framework
 
         void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
 
-
-        void AddAttachment(LLUUID user, LLUUID item);
-        void RemoveAttachment(LLUUID user, LLUUID item);
-        List<LLUUID> GetAttachments(LLUUID user);
+        void ResetAttachments(LLUUID userID);
     }
 
     public class UserDataInitialiser : PluginInitialiserBase

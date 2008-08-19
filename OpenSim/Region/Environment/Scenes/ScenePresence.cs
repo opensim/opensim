@@ -2880,24 +2880,33 @@ namespace OpenSim.Region.Environment.Scenes
             if (attachpoint == 0)
                 return;
 
+            LLUUID asset = m_appearance.GetAttachedAsset(attachpoint);
+            if (asset == LLUUID.Zero) // We have just logged in
+            {
+                m_log.InfoFormat("[ATTACHMENT] Rez attachment {0}",
+                        itemID.ToString());
+
+                // Rez from inventory
+                m_scene.RezSingleAttachment(ControllingClient, itemID,
+                        (uint)attachpoint, 0, 0);
+                return;
+            }
+
             SceneObjectPart att = m_scene.GetSceneObjectPart(m_appearance.GetAttachedAsset(attachpoint));
 
 
-            // If this is null, then we have just rezzed in. Non null means
-            // we're crossing
+            // If this is null, then the asset has not yet appeared in world
+            // so we revisit this when it does
             //
             if (att != null)
             {
-                System.Console.WriteLine("Attach from world {0}", itemID.ToString());
+                m_log.InfoFormat("[ATTACHEMENT] Attach from world {0}",
+                        itemID.ToString());
+
                 // Attach from world
                 if (att.ParentGroup != null)
-                    m_scene.RezSingleAttachment(att.ParentGroup, ControllingClient, itemID, (uint)attachpoint, 0, 0);
-            }
-            else
-            {
-                System.Console.WriteLine("Rez attachment {0}", itemID.ToString());
-                // Rez from inventory
-                m_scene.RezSingleAttachment(ControllingClient, itemID, (uint)attachpoint, 0, 0);
+                    m_scene.RezSingleAttachment(att.ParentGroup,
+                            ControllingClient, itemID, (uint)attachpoint, 0, 0);
             }
         }
     }

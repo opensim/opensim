@@ -583,39 +583,6 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// Add an attachment item to an avatar
-        /// </summary>
-        /// <param name="user">the user UUID</param>
-        /// <param name="item">the item UUID</param>
-        /// <remarks>DO NOTHING ?</remarks>
-        override public void AddAttachment(LLUUID user, LLUUID item)
-        {
-            return;
-        }
-
-        /// <summary>
-        /// Remove an attachement item from an avatar
-        /// </summary>
-        /// <param name="user">the user UUID</param>
-        /// <param name="item">the item UUID</param>
-        /// <remarks>DO NOTHING ?</remarks>
-        override public void RemoveAttachment(LLUUID user, LLUUID item)
-        {
-            return;
-        }
-
-        /// <summary>
-        /// Get list of attached item
-        /// </summary>
-        /// <param name="user">the user UUID</param>
-        /// <returns>List of attached item</returns>
-        /// <remarks>DO NOTHING ?</remarks>
-        override public List<LLUUID> GetAttachments(LLUUID user)
-        {
-            return new List<LLUUID>();
-        }
-
-        /// <summary>
         /// Returns the name of the storage provider
         /// </summary>
         /// <returns>Storage provider name</returns>
@@ -1039,6 +1006,10 @@ namespace OpenSim.Data.SQLite
             // }
 
             // return true;
+        }
+        
+        override public void ResetAttachments(LLUUID userID)
+        {
         }
     }
 }

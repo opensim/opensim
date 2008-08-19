@@ -303,19 +303,8 @@ namespace OpenSim.Data.NHibernate
             }
         }
 
-        override public void AddAttachment(LLUUID user, LLUUID item)
+        public override void ResetAttachments(LLUUID userID)
         {
-            return;
-        }
-
-        override public void RemoveAttachment(LLUUID user, LLUUID item)
-        {
-            return;
-        }
-
-        override public List<LLUUID> GetAttachments(LLUUID user)
-        {
-            return new List<LLUUID>();
         }
 
         public override string Name {

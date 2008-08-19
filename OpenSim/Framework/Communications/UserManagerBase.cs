@@ -83,6 +83,13 @@ namespace OpenSim.Framework.Communications
 
             return null;
         }
+        public void ResetAttachments(LLUUID userID)
+        {
+            foreach (IUserDataPlugin plugin in _plugins)
+            {
+                plugin.ResetAttachments(userID);
+            }
+        }
         public UserAgentData GetAgentByUUID(LLUUID userId)
         {
             foreach (IUserDataPlugin plugin in _plugins)
@@ -638,52 +645,6 @@ namespace OpenSim.Framework.Communications
                     m_log.InfoFormat("[USERSTORAGE]: Unable to update user appearance {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
                 }
             }
-        }
-
-        public void AddAttachment(LLUUID user, LLUUID item)
-        {
-            foreach (IUserDataPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.AddAttachment(user, item);
-                }
-                catch (Exception e)
-                {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to attach {3} => {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString(), item.ToString());
-                }
-            }
-        }
-
-        public void RemoveAttachment(LLUUID user, LLUUID item)
-        {
-            foreach (IUserDataPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.RemoveAttachment(user, item);
-                }
-                catch (Exception e)
-                {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to remove attachment {3} => {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString(), item.ToString());
-                }
-            }
-        }
-
-        public List<LLUUID> GetAttachments(LLUUID user)
-        {
-            foreach (IUserDataPlugin plugin in _plugins)
-            {
-                try
-                {
-                    return plugin.GetAttachments(user);
-                }
-                catch (Exception e)
-                {
-                    m_log.InfoFormat("[USERSTORAGE]: Unable to get attachments for {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
-                }
-            }
-            return new List<LLUUID>();
         }
     }
 }

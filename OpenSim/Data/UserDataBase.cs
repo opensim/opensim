@@ -72,9 +72,7 @@ namespace OpenSim.Data
         //     aplist[user] = appearance;
         //     m_log.Info("[APPEARANCE] Setting appearance for " + user.ToString() + appearance.ToString());
         // }
-        public abstract void AddAttachment(LLUUID user, LLUUID item);
-        public abstract void RemoveAttachment(LLUUID user, LLUUID item);
-        public abstract List<LLUUID> GetAttachments(LLUUID user);
+        public abstract void ResetAttachments(LLUUID userID);
 
         public abstract string Version {get;}
         public abstract string Name {get;}
