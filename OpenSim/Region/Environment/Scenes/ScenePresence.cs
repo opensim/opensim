@@ -607,7 +607,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void MakeRootAgent(LLVector3 pos, bool isFlying)
         {
             IAvatarFactory ava = m_scene.RequestModuleInterface<IAvatarFactory>();
-            if(ava != null)
+            if (ava != null)
             {
                 ava.TryGetAvatarAppearance(m_uuid, out m_appearance);
             }
@@ -2887,7 +2887,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 System.Console.WriteLine("Attach from world {0}", itemID.ToString());
                 // Attach from world
-                if(att.ParentGroup != null)
+                if (att.ParentGroup != null)
                     m_scene.RezSingleAttachment(att.ParentGroup, ControllingClient, itemID, (uint)attachpoint, 0, 0);
             }
             else

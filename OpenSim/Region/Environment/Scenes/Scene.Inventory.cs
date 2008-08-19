@@ -2331,11 +2331,11 @@ namespace OpenSim.Region.Environment.Scenes
                 AttachmentPt = att.RootPart.AttachmentPoint;
 
             ScenePresence presence;
-            if(TryGetAvatar(remoteClient.AgentId, out presence))
+            if (TryGetAvatar(remoteClient.AgentId, out presence))
             {
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, att.UUID);
                 IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
-                if(ava != null)
+                if (ava != null)
                 {
                     ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
                 }
@@ -2346,11 +2346,11 @@ namespace OpenSim.Region.Environment.Scenes
         public void DetachSingleAttachmentToInv(LLUUID itemID, IClientAPI remoteClient)
         {
             ScenePresence presence;
-            if(TryGetAvatar(remoteClient.AgentId, out presence))
+            if (TryGetAvatar(remoteClient.AgentId, out presence))
             {
                 presence.Appearance.DetachAttachment(itemID);
                 IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
-                if(ava != null)
+                if (ava != null)
                 {
                     ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
                 }

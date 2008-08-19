@@ -102,9 +102,9 @@ namespace OpenSim.Region.Communications.Local
             else
             {
                 // Already in our list, so the region went dead and restarted.
-                // don't replace the old regioninfo..    this might be a locking issue..  however we need to 
+                // don't replace the old regioninfo..    this might be a locking issue..  however we need to
                 // remove it and let it add normally below or we get extremely strange and intermittant
-                // connectivity errors.    
+                // connectivity errors.
                 // Don't change this line below to 'm_regions[regionInfo.RegionHandle] = regionInfo' unless you
                 // *REALLY* know what you are doing here.
                 m_regions.Remove(regionInfo.RegionHandle);

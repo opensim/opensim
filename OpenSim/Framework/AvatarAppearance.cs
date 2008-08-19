@@ -511,7 +511,7 @@ namespace OpenSim.Framework
 
         public void SetAttachment(int attachpoint, LLUUID item, LLUUID asset)
         {
-            if(attachpoint == 0)
+            if (attachpoint == 0)
                 return;
 
             if (item == LLUUID.Zero)
@@ -532,7 +532,7 @@ namespace OpenSim.Framework
         {
             foreach (KeyValuePair<int, LLUUID[]> kvp in m_attachments)
             {
-                if(kvp.Value[0] == itemID)
+                if (kvp.Value[0] == itemID)
                 {
                     return kvp.Key;
                 }
@@ -544,7 +544,7 @@ namespace OpenSim.Framework
         {
             int attachpoint = GetAttachpoint(itemID);
 
-            if(attachpoint > 0)
+            if (attachpoint > 0)
                 m_attachments.Remove(attachpoint);
         }
 
