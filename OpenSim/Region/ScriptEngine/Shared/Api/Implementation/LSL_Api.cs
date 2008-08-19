@@ -2768,7 +2768,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCreateLink(string target, int parent)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llCreateLink");
+            LLUUID invItemID = InventorySelf();
+            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_CHANGE_LINKS) == 0) {
+              ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
+              return;
+            }
+            IClientAPI client = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter).ControllingClient;
+            SceneObjectPart targetPart = World.GetSceneObjectPart(target);
+            SceneObjectGroup parentPrim = null, childPrim = null;
+            if (targetPart != null)
+            {
+                if (parent == BuiltIn_Commands_BaseClass.TRUE) {
+                    parentPrim = m_host.ParentGroup;
+                    childPrim = targetPart.ParentGroup;
+                }
+                else
+                {
+                    parentPrim = targetPart.ParentGroup;
+                    childPrim = m_host.ParentGroup;
+                }
+                byte uf = childPrim.RootPart.UpdateFlag;
+                childPrim.RootPart.UpdateFlag = 0;
+                parentPrim.LinkToGroup(childPrim);
+                childPrim.RootPart.UpdateFlag = uf;
+            }
+            parentPrim.TriggerScriptChangedEvent(Changed.LINK);
+            parentPrim.RootPart.AddFlag(LLObject.ObjectFlags.CreateSelected);
+            parentPrim.GetProperties(client);
+
+            // sleep for 1 second
+            System.Threading.Thread.Sleep(1000);
+
         }
 
         public void llBreakLink(int linknum)
