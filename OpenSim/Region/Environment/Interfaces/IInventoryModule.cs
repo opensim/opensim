@@ -27,6 +27,8 @@
 
 using System.Collections.Generic;
 using libsecondlife;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Framework
 {
@@ -35,6 +37,7 @@ namespace OpenSim.Framework
     /// </summary>
     public interface IInventoryModule
     {
-//        void TestFunction();
+        void SetRootAgentScene(LLUUID agentID, Scene scene);
+        bool NeedSceneCacheClear(LLUUID agentID, Scene scene);
     }
 }
