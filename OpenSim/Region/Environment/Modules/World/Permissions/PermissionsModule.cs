@@ -644,6 +644,9 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
+                if (IsAdministrator(user))
+                    return true;
+
                 if (m_scene.RegionInfo.EstateSettings.IsEstateOwner(user))
                     return true;
 
