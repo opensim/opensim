@@ -2316,5 +2316,48 @@ namespace OpenSim.Region.Environment.Scenes
 //
 //            imod.TestFunction();
 //        }
+        
+        public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID,
+                uint AttachmentPt, uint ItemFlags, uint NextOwnerMask)
+        {
+            SceneObjectGroup att = m_innerScene.RezSingleAttachment(remoteClient, itemID, AttachmentPt, ItemFlags, NextOwnerMask);
+
+            if (att == null)
+            {
+                DetachSingleAttachmentToInv(itemID, remoteClient);
+                return;
+            }
+
+            if (att.RootPart != null)
+                AttachmentPt = att.RootPart.AttachmentPoint;
+
+            ScenePresence presence;
+            if(TryGetAvatar(remoteClient.AgentId, out presence))
+            {
+                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, att.GetFromAssetID());
+                IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
+                if(ava != null)
+                {
+                    ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
+
+            }
+        }
+
+        public void DetachSingleAttachmentToInv(LLUUID itemID, IClientAPI remoteClient)
+        {
+            ScenePresence presence;
+            if(TryGetAvatar(remoteClient.AgentId, out presence))
+            {
+                presence.Appearance.DetachAttachment(itemID);
+                IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
+                if(ava != null)
+                {
+                    ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
+
+            }
+            m_innerScene.DetachSingleAttachmentToInv(itemID, remoteClient);
+        }
     }
 }

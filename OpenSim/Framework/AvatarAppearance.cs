@@ -362,8 +362,8 @@ namespace OpenSim.Framework
             h["skirt_item"] = SkirtItem.ToString();
             h["skirt_asset"] = SkirtAsset.ToString();
 
-            Hashtable attachments = GetAttachments();
-            if(attachments != null)
+            string attachments = GetAttachmentsString();
+            if(attachments != String.Empty)
                 h["attachments"] = attachments;
 
             return h;
@@ -413,8 +413,7 @@ namespace OpenSim.Framework
 
             if(h.ContainsKey("attachments"))
             {
-                Hashtable attachments = (Hashtable) h["attachments"];
-                SetAttachments(attachments);
+                SetAttachmentsString(h["attachments"].ToString());
             }
         }
 
@@ -510,9 +509,12 @@ namespace OpenSim.Framework
             return m_attachments[attachpoint][1];
         }
 
-        public void AddAttachment(int attachpoint, LLUUID item, LLUUID asset)
+        public void SetAttachment(int attachpoint, LLUUID item, LLUUID asset)
         {
-            if (item == LLUUID.Zero || asset == LLUUID.Zero)
+            if(attachpoint == 0)
+                return;
+
+            if (item == LLUUID.Zero)
             {
                 if (m_attachments.ContainsKey(attachpoint))
                     m_attachments.Remove(attachpoint);
@@ -524,6 +526,59 @@ namespace OpenSim.Framework
 
             m_attachments[attachpoint][0] = item;
             m_attachments[attachpoint][1] = asset;
+        }
+
+        public void DetachAttachment(LLUUID itemID)
+        {
+            int attachpoint = 0;
+
+            foreach (KeyValuePair<int, LLUUID[]> kvp in m_attachments)
+            {
+                if(kvp.Value[0] == itemID)
+                {
+                    attachpoint = kvp.Key;
+                    break;
+                }
+            }
+
+            if(attachpoint > 0)
+                m_attachments.Remove(attachpoint);
+        }
+        string GetAttachmentsString()
+        {
+            List<string> strings = new List<string>();
+
+            foreach (KeyValuePair<int, LLUUID[]> e in m_attachments)
+            {
+                strings.Add(e.Key.ToString());
+                strings.Add(e.Value[0].ToString());
+                strings.Add(e.Value[1].ToString());
+            }
+
+            return String.Join(",", strings.ToArray());
+        }
+
+        void SetAttachmentsString(string data)
+        {
+            string[] strings = data.Split(new char[] {','});
+            int i = 0;
+
+            m_attachments.Clear();
+
+            while (strings.Length - i > 2)
+            {
+                int attachpoint = Int32.Parse(strings[i]);
+                LLUUID item = new LLUUID(strings[i+1]);
+                LLUUID asset = new LLUUID(strings[i+2]);
+                i += 3;
+
+                if (!m_attachments.ContainsKey(attachpoint))
+                {
+                    m_attachments[attachpoint] = new LLUUID[2];
+                    m_attachments[attachpoint][0] = item;
+                    m_attachments[attachpoint][1] = asset;
+                }
+            }
         }
     }
 }

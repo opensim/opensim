@@ -39,10 +39,5 @@ namespace OpenSim.Framework.Communications
 
         void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
 
-        void AddAttachment(LLUUID user, LLUUID attach);
-
-        void RemoveAttachment(LLUUID user, LLUUID attach);
-
-        List<LLUUID> GetAttachments(LLUUID user);
     }
 }

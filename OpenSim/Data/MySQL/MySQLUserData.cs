@@ -834,14 +834,15 @@ namespace OpenSim.Data.MySQL
 
             IDataReader r = cmd.ExecuteReader();
 
-            return database.readAttachments(r);
+            Hashtable ret =  database.readAttachments(r);
+
+            r.Close();
+
+            return ret;
         }
 
         public void UpdateUserAttachments(LLUUID agentID, Hashtable data)
         {
-            if(data == null)
-                return;
-
             database.writeAttachments(agentID, data);
         }
     }

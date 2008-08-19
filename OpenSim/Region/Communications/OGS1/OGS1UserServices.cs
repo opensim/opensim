@@ -776,21 +776,5 @@ namespace OpenSim.Region.Communications.OGS1
                 // Return Empty list (no friends)
             }
         }
-
-        public void AddAttachment(LLUUID user, LLUUID item)
-        {
-            return;
-        }
-
-        public void RemoveAttachment(LLUUID user, LLUUID item)
-        {
-            return;
-        }
-
-        public List<LLUUID> GetAttachments(LLUUID user)
-        {
-            return new List<LLUUID>();
-        }
-
     }
 }

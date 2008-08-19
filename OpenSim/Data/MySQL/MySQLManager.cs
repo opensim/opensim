@@ -1208,7 +1208,10 @@ namespace OpenSim.Data.MySQL
             
             cmd.ExecuteNonQuery();
 
-            sql = "insert into avatarattachments (UUID, attachpoint, item, asset) values (?uuid, ?attchpoint, ?item, ?asset)";
+            if (data == null)
+                return;
+
+            sql = "insert into avatarattachments (UUID, attachpoint, item, asset) values (?uuid, ?attachpoint, ?item, ?asset)";
 
             cmd = (MySqlCommand) dbcon.CreateCommand();
             cmd.CommandText = sql;

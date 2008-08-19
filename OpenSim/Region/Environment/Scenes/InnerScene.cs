@@ -380,7 +380,7 @@ namespace OpenSim.Region.Environment.Scenes
                         SceneObjectGroup group = (SceneObjectGroup)obj;
 
                         //group.DetachToGround();
-                        DetachSingleAttachmentToInv(group.GetFromAssetID(),remoteClient);
+                        m_parentScene.DetachSingleAttachmentToInv(group.GetFromAssetID(),remoteClient);
                     }
                 }
             }
@@ -432,7 +432,7 @@ namespace OpenSim.Region.Environment.Scenes
             AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, LLVector3.Zero);
         }
 
-        protected internal void RezSingleAttachment(
+        public SceneObjectGroup RezSingleAttachment(
             IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,uint ItemFlags, uint NextOwnerMask)
         {
             SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient, itemID, LLVector3.Zero, LLVector3.Zero, LLUUID.Zero, (byte)1, true,
@@ -446,11 +446,12 @@ namespace OpenSim.Region.Environment.Scenes
                 AttachObject(remoteClient,objatt.LocalId,AttachmentPt,new LLQuaternion(0,0,0,1),objatt.AbsolutePosition);
                 objatt.ScheduleGroupForFullUpdate();
             }
+            return objatt;
         }
 
         // What makes this method odd and unique is it tries to detach using an LLUUID....     Yay for standards.
         // To LocalId or LLUUID, *THAT* is the question. How now Brown LLUUID??
-        protected internal void DetachSingleAttachmentToInv(LLUUID itemID, IClientAPI remoteClient)
+        public void DetachSingleAttachmentToInv(LLUUID itemID, IClientAPI remoteClient)
         {
             if (itemID == LLUUID.Zero) // If this happened, someone made a mistake....
                 return;
