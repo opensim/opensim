@@ -47,11 +47,15 @@ namespace OpenSim.Framework.Communications.Cache
     internal delegate void SendInventoryDescendentsDelegate(
         IClientAPI client, LLUUID folderID, bool fetchFolders, bool fetchItems);
 
+    public delegate void OnItemReceivedDelegate(LLUUID itemID);
+
     /// <summary>
     /// Stores user profile and inventory data received from backend services for a particular user.
     /// </summary>
     public class CachedUserInfo
     {
+        public event OnItemReceivedDelegate OnItemReceived;
+
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -306,6 +310,9 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 folder.Items[itemInfo.ID] = itemInfo;
             }
+
+            if (OnItemReceived != null)
+                OnItemReceived(itemInfo.ID);
         }
 
         /// <summary>

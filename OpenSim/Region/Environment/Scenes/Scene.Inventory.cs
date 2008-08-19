@@ -2308,15 +2308,6 @@ namespace OpenSim.Region.Environment.Scenes
                 EventManager.TriggerStopScript(part.LocalId, itemID);
         }
 
-//        public void TestFunction()
-//        {
-//            IInventoryModule imod = RequestModuleInterface<IInventoryModule>();
-//            if (imod == null)
-//                return;
-//
-//            imod.TestFunction();
-//        }
-        
         public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID,
                 uint AttachmentPt, uint ItemFlags, uint NextOwnerMask)
         {
@@ -2328,13 +2319,21 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
+            RezSingleAttachment(att, remoteClient, itemID, AttachmentPt,
+                    ItemFlags, NextOwnerMask);
+        }
+
+        public void RezSingleAttachment(SceneObjectGroup att,
+                IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,
+                uint ItemFlags, uint NextOwnerMask)
+        {
             if (att.RootPart != null)
                 AttachmentPt = att.RootPart.AttachmentPoint;
 
             ScenePresence presence;
             if(TryGetAvatar(remoteClient.AgentId, out presence))
             {
-                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, att.GetFromAssetID());
+                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, att.UUID);
                 IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
                 if(ava != null)
                 {

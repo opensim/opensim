@@ -36,6 +36,7 @@ using libsecondlife.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
 
@@ -416,7 +417,8 @@ namespace OpenSim.Region.Environment.Scenes
             RegisterToEvents();
             SetDirectionVectors();
 
-
+            CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid); 
+            userInfo.OnItemReceived += ItemReceived;
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,
@@ -604,6 +606,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeRootAgent(LLVector3 pos, bool isFlying)
         {
+            IAvatarFactory ava = m_scene.RequestModuleInterface<IAvatarFactory>();
+            if(ava != null)
+            {
+                ava.TryGetAvatarAppearance(m_uuid, out m_appearance);
+            }
+
 //            m_log.DebugFormat(
 //                 "[SCENE PRESENCE]: Upgrading child agent {0}, {1} to a root agent in {2} at pos {3}",
 //                 Name, UUID, m_scene.RegionInfo.RegionName, pos);
@@ -2861,6 +2869,33 @@ namespace OpenSim.Region.Environment.Scenes
                 //DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
                 //DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
             return flags;
+        }
+
+        private void ItemReceived(LLUUID itemID)
+        {
+            int attachpoint = m_appearance.GetAttachpoint(itemID);
+            if (attachpoint == 0)
+                return;
+
+            SceneObjectPart att = m_scene.GetSceneObjectPart(m_appearance.GetAttachedAsset(attachpoint));
+
+
+            // If this is null, then we have just rezzed in. Non null means
+            // we're crossing
+            //
+            if (att != null)
+            {
+                System.Console.WriteLine("Attach from world {0}", itemID.ToString());
+                // Attach from world
+                if(att.ParentGroup != null)
+                    m_scene.RezSingleAttachment(att.ParentGroup, ControllingClient, itemID, (uint)attachpoint, 0, 0);
+            }
+            else
+            {
+                System.Console.WriteLine("Rez attachment {0}", itemID.ToString());
+                // Rez from inventory
+                m_scene.RezSingleAttachment(ControllingClient, itemID, (uint)attachpoint, 0, 0);
+            }
         }
     }
 }

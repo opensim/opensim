@@ -528,22 +528,26 @@ namespace OpenSim.Framework
             m_attachments[attachpoint][1] = asset;
         }
 
-        public void DetachAttachment(LLUUID itemID)
+        public int GetAttachpoint(LLUUID itemID)
         {
-            int attachpoint = 0;
-
             foreach (KeyValuePair<int, LLUUID[]> kvp in m_attachments)
             {
                 if(kvp.Value[0] == itemID)
                 {
-                    attachpoint = kvp.Key;
-                    break;
+                    return kvp.Key;
                 }
             }
+            return 0;
+        }
+
+        public void DetachAttachment(LLUUID itemID)
+        {
+            int attachpoint = GetAttachpoint(itemID);
 
             if(attachpoint > 0)
                 m_attachments.Remove(attachpoint);
         }
+
         string GetAttachmentsString()
         {
             List<string> strings = new List<string>();
