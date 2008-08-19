@@ -49,6 +49,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
         private IDictionary<LLUUID, LLUUID> m_pendingOffers = new Dictionary<LLUUID, LLUUID>();
 
         private List<Scene> m_Scenelist = new List<Scene>();
+        private Dictionary<LLUUID, Scene> m_AgentRegions = new Dictionary<LLUUID, Scene>();
 
         #region IRegionModule Members
 
@@ -61,6 +62,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
                 scene.RegisterModuleInterface<IInventoryModule>(this);
 
                 scene.EventManager.OnNewClient += OnNewClient;
+                scene.EventManager.OnClientClosed += ClientLoggedOut;
             }
         }
 
@@ -223,8 +225,28 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
             }
         }
 
-//        public void TestFunction()
-//        {
-//        }
+        public void SetRootAgentScene(LLUUID agentID, Scene scene)
+        {
+            m_AgentRegions[agentID] = scene;
+        }
+
+        public bool NeedSceneCacheClear(LLUUID agentID, Scene scene)
+        {
+            if (!m_AgentRegions.ContainsKey(agentID))
+                return true;
+
+            if(m_AgentRegions[agentID] == scene)
+            {
+                m_AgentRegions.Remove(agentID);
+                return true;
+            }
+            return false;
+        }
+
+        public void ClientLoggedOut(LLUUID agentID)
+        {
+            if (m_AgentRegions.ContainsKey(agentID))
+                m_AgentRegions.Remove(agentID);
+        }
     }
 }

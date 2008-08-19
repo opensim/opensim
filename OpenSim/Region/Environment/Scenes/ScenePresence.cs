@@ -606,6 +606,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeRootAgent(LLVector3 pos, bool isFlying)
         {
+            m_scene.SetRootAgentScene(m_uuid);
+
             IAvatarFactory ava = m_scene.RequestModuleInterface<IAvatarFactory>();
             if (ava != null)
             {
@@ -2010,9 +2012,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                     m_scene.SendKillObject(m_localId);
                     m_scene.NotifyMyCoarseLocationChange();
-                    // the user may change thier profile information in other region,
+                    // the user may change their profile information in other region,
                     // so the userinfo in UserProfileCache is not reliable any more, delete it
-                    m_scene.CommsManager.UserProfileCacheService.RemoveUser(UUID);
+                    if(m_scene.NeedSceneCacheClear(UUID))
+                        m_scene.CommsManager.UserProfileCacheService.RemoveUser(UUID);
                     m_log.InfoFormat("User {0} is going to another region, profile cache removed", UUID);
                 }
                 else
