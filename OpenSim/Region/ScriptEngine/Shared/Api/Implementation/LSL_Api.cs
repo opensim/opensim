@@ -2769,7 +2769,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             LLUUID invItemID = InventorySelf();
-            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_CHANGE_LINKS) == 0) {
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0) {
               ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
               return;
             }
@@ -2778,7 +2778,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SceneObjectGroup parentPrim = null, childPrim = null;
             if (targetPart != null)
             {
-                if (parent == BuiltIn_Commands_BaseClass.TRUE) {
+                if (parent != 0) {
                     parentPrim = m_host.ParentGroup;
                     childPrim = targetPart.ParentGroup;
                 }
