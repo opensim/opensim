@@ -200,7 +200,7 @@
     <Project name="OpenSim.Data" path="OpenSim/Data" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../bin/</OutputPath>          
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
@@ -224,7 +224,7 @@
         <Match pattern="Properties/*.cs" recurse="false"/>
       </Files>
     </Project>
-    
+
     <Project name="OpenSim.Data.MySQLMapper" path="OpenSim/Data/MySQLMapper" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -731,7 +731,7 @@
       <Reference name="System.Data"/>
       <Reference name="System.Runtime.Remoting"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data" />     
+      <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework.Communications" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
@@ -789,7 +789,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-    
+
     <Project name="OpenSim.Region.ClientStack" path="OpenSim/Region/ClientStack" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -814,7 +814,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="OpenSim.Region.Communications.Local"/>      
+      <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="Nini.dll" />
@@ -850,8 +850,8 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="OpenSim.Region.ClientStack"/>      
-      <Reference name="OpenSim.Region.Communications.Local"/>      
+      <Reference name="OpenSim.Region.ClientStack"/>
+      <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="Nini.dll" />
@@ -892,7 +892,7 @@
     <Project name="OpenSim.Region.Modules.AvatarFactory" path="OpenSim/Region/Modules/AvatarFactory" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/</OutputPath>          
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
@@ -923,7 +923,7 @@
     <Project name="OpenSim.Region.Modules.Python" path="OpenSim/Region/Modules/Python" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/</OutputPath>          
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
@@ -950,7 +950,7 @@
     <Project name="OpenSim.Region.Modules.Terrain.Extensions.DefaultEffects" path="OpenSim/Region/Modules/Terrain/Extensions/DefaultEffects" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../../../bin/Terrain/</OutputPath>          
+          <OutputPath>../../../../../../bin/Terrain/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
@@ -971,7 +971,7 @@
     <Project name="OpenSim.Region.Modules.SvnSerialiser" path="OpenSim/Region/Modules/SvnSerialiser" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/</OutputPath>          
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
@@ -1105,7 +1105,7 @@
     </Project>
 
     <!-- REST plugins -->
-    <Project name="OpenSim.ApplicationPlugins.Rest" 
+    <Project name="OpenSim.ApplicationPlugins.Rest"
              path="OpenSim/ApplicationPlugins/Rest" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1139,7 +1139,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.ApplicationPlugins.Rest.Regions" 
+    <Project name="OpenSim.ApplicationPlugins.Rest.Regions"
              path="OpenSim/ApplicationPlugins/Rest/Regions" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1175,7 +1175,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.ApplicationPlugins.Rest.Inventory" 
+    <Project name="OpenSim.ApplicationPlugins.Rest.Inventory"
              path="OpenSim/ApplicationPlugins/Rest/Inventory" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1406,7 +1406,7 @@
     <Project name="SmartThreadPool" path="ThirdParty/SmartThreadPool" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../bin/</OutputPath>          
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
@@ -1437,7 +1437,7 @@
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../bin/</ReferencePath>      
+      <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
@@ -1495,7 +1495,7 @@
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../../../bin/</ReferencePath>      
+      <ReferencePath>../../../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
@@ -1530,7 +1530,7 @@
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../../../../bin/</ReferencePath>      
+      <ReferencePath>../../../../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
@@ -1565,7 +1565,7 @@
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../../../bin/</ReferencePath>      
+      <ReferencePath>../../../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
@@ -1602,7 +1602,7 @@
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../../bin/</ReferencePath>      
+      <ReferencePath>../../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="Microsoft.JScript"/>
       <Reference name="OpenSim.Framework" />
@@ -1655,7 +1655,7 @@
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../bin/</ReferencePath>      
+      <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
@@ -1876,7 +1876,7 @@
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../bin/</ReferencePath>      
+      <ReferencePath>../../../../bin/</ReferencePath>
       <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
@@ -1934,8 +1934,8 @@
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../bin/</ReferencePath>      
-      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath> 
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
@@ -1997,7 +1997,7 @@
       </Files>
     </Project>
 
-    
+
     <Project name="OpenSim.Region.ScriptEngine.RemoteServer" path="OpenSim/Region/ScriptEngine/RemoteServer" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2010,8 +2010,8 @@
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../bin/</ReferencePath>      
-      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath> 
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
