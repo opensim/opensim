@@ -110,9 +110,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         #region Interface
 
-        private RequestData Allocate(OSHttpRequest request, OSHttpResponse response)
+        private RequestData Allocate(OSHttpRequest request, OSHttpResponse response, string prefix)
         {
-            return new RequestData(request, response, qPrefix);
+            return new RequestData(request, response, prefix);
         }
 
         // Inventory Handler

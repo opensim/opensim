@@ -56,16 +56,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
     public class RestHandler : RestPlugin, IRestHandler, IHttpAgentHandler
     {
 
-        /// <remarks>
-        /// The handler delegates are not noteworthy. The allocator allows
-        /// a given handler to optionally subclass the base RequestData
-        /// structure to carry any locally required per-request state
-        /// needed.
-        /// </remarks>
-
-        // internal delegate void          RestMethodHandler(RequestData rdata);
-        // internal delegate RequestData RestMethodAllocator(OSHttpRequest request, OSHttpResponse response);
-
         // Handler tables: both stream and REST are supported. The path handlers and their
         // respective allocators are stored in separate tables.
 
@@ -623,7 +613,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             if (!String.IsNullOrEmpty(bestMatch))
             {
 
-                rdata = pathAllocators[bestMatch](request, response);
+                rdata = pathAllocators[bestMatch](request, response, bestMatch);
 
                 Rest.Log.DebugFormat("{0} Path based REST handler matched with <{1}>", MsgId, bestMatch);
 

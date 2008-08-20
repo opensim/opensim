@@ -40,7 +40,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
     /// </remarks>
 
     public delegate void        RestMethodHandler(RequestData rdata);
-    public delegate RequestData RestMethodAllocator(OSHttpRequest request, OSHttpResponse response);
+    public delegate RequestData RestMethodAllocator(OSHttpRequest request, OSHttpResponse response, string path);
  
     /// <summary>
     /// This interface represents the boundary between the general purpose

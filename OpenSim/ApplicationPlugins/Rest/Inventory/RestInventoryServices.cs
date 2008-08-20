@@ -128,9 +128,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// <param name=qPrefix>REST service domain prefix</param>
         /// <returns>A RequestData instance suitable for this service</returns>
 
-        private RequestData Allocate(OSHttpRequest request, OSHttpResponse response)
+        private RequestData Allocate(OSHttpRequest request, OSHttpResponse response, string prefix)
         {
-            return (RequestData) new InventoryRequestData(request, response, qPrefix);
+            return (RequestData) new InventoryRequestData(request, response, prefix);
         }
 
         /// <summary>
@@ -2168,7 +2168,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         }
                         break;
                     default :
-                        Rest.Log.DebugFormat("{0} Type was not inferred", MsgId);
+                        Rest.Log.DebugFormat("{0} Asset/Inventory type could not be inferred for {1}", 
+                               MsgId,ic.Item.Name);
                         break;
                     }
                 }
@@ -2177,7 +2178,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             /// If this is a TGA remember the fact
 
             if (ic.Item.AssetType == (int) AssetType.TextureTGA ||
-               ic.Item.AssetType == (int) AssetType.ImageTGA)
+                ic.Item.AssetType == (int) AssetType.ImageTGA)
             {
                 Bitmap temp;
                 Stream tgadata = new MemoryStream(ic.Asset.Data);
