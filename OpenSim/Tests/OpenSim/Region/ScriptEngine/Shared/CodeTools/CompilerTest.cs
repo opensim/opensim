@@ -85,11 +85,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
             }
         }
 
-        //[Test]
         /// <summary>
         /// Test the C# compiler error message can be mapped to the correct
         /// line/column in the LSL source when an undeclared variable is used.
         /// </summary>
+        //[Test]
         public void TestUseUndeclaredVariable()
         {
             m_compilerParameters.OutputAssembly = Path.Combine(m_testDir, Path.GetRandomFileName() + ".dll");
@@ -115,6 +115,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
 
             Assert.AreEqual(new KeyValuePair<int, int>(5, 21),
                             positionMap[new KeyValuePair<int, int>(m_compilerResults.Errors[0].Line, m_compilerResults.Errors[0].Column)]);
+        }
+
+        /// <summary>
+        /// Test that a string can be cast to string and another string
+        /// concatenated.
+        /// </summary>
+        //[Test]
+        public void TestCastAndConcatString()
+        {
+            m_compilerParameters.OutputAssembly = Path.Combine(m_testDir, Path.GetRandomFileName() + ".dll");
+
+            string input = @"string s = "" a string"";
+
+default
+{
+    state_entry()
+    {
+        key gAvatarKey = llDetectedKey(0);
+        string tmp = (string) gAvatarKey + s;
+        llSay(0, tmp);
+    }
+}";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = "using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\n" +
+                            "namespace SecondLife { " +
+                            "public class Script : OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass {\n" +
+                            "public Script() { } " +
+                            cg.Convert(input) +
+                            "} }\n";
+            m_compilerResults = m_CSCodeProvider.CompileAssemblyFromSource(m_compilerParameters, output);
+
+            Assert.AreEqual(0, m_compilerResults.Errors.Count);
         }
     }
 }
