@@ -23,7 +23,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  */
 
 using System;
@@ -38,9 +38,11 @@ using Nini.Config;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
+
     public class Rest
     {
-        internal static readonly log4net.ILog Log =
+
+        internal static readonly log4net.ILog  Log = 
             log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         internal static bool DEBUG = Log.IsDebugEnabled;
@@ -53,7 +55,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// RestHandler class during start-up.
         /// </summary>
 
-        internal static RestHandler               Plugin            = null;
+        internal static IRestHandler              Plugin            = null;
         internal static OpenSimBase               main              = null;
         internal static CommunicationsManager     Comms             = null;
         internal static IInventoryServices        InventoryServices = null;
@@ -66,9 +68,46 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal static bool                      Secure            = true;
         internal static bool                      ExtendedEscape    = true;
         internal static bool                      DumpAsset         = false;
+        internal static bool                      Fill              = true;
+        internal static bool                      FlushEnabled      = true;
         internal static string                    Realm             = "REST";
-        internal static int                       CreationDate      = (int) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
         internal static int                       DumpLineSize      = 32; // Should be a multiple of 16 or (possibly) 4
+
+        /// <summary>
+        /// HTTP requires that status information be generated for PUT
+        /// and POST opertaions. This is in support of that. The
+        /// operation verb gets substituted into the first string,
+        /// and the completion code is inserted into the tail. The 
+        /// strings are put here to encourage consistency.
+        /// </summary>
+
+        internal static string                    statusHead        = "<html><body><title>{0} status</title><break>";
+        internal static string                    statusTail        = "</body></html>";
+
+        internal static Dictionary<int,string> HttpStatusDesc;
+
+        static Rest()
+        {
+             HttpStatusDesc = new Dictionary<int,string>();
+            if (HttpStatusCodeArray.Length != HttpStatusDescArray.Length)
+            {
+                Log.ErrorFormat("{0} HTTP Status Code and Description arrays do not match");
+                throw new Exception("HTTP Status array discrepancy");
+            }
+
+            // Repackage the data into something more tractable. The sparse
+            // nature of HTTP return codes makes an array a bad choice.
+
+            for (int i=0; i<HttpStatusCodeArray.Length; i++)
+            {
+                HttpStatusDesc.Add(HttpStatusCodeArray[i], HttpStatusDescArray[i]);
+            }
+        }
+
+        internal static int CreationDate
+        {
+            get { return (int) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds; }
+        }
 
         internal static string MsgId
         {
@@ -104,7 +143,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// supported by all servers. See Respond
         /// to see how these are handled.
         /// </summary>
-
+        
         // REST AGENT 1.0 interpretations
         public const string GET     = "get";       // information retrieval - server state unchanged
         public const string HEAD    = "head";      // same as get except only the headers are returned.
@@ -136,7 +175,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         public   static   readonly char   C_PERIOD   = '.';
         public   static   readonly char   C_COMMA    = ',';
         public   static   readonly char   C_DQUOTE   = '"';
-
+        
         public   static   readonly string   CS_SPACE    = " ";
         public   static   readonly string   CS_SLASH    = "/";
         public   static   readonly string   CS_PATHSEP  = "/";
@@ -145,7 +184,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         public   static   readonly string   CS_PERIOD   = ".";
         public   static   readonly string   CS_COMMA    = ",";
         public   static   readonly string   CS_DQUOTE   = "\"";
-
+        
         public   static   readonly char[] CA_SPACE   = { C_SPACE   };
         public   static   readonly char[] CA_SLASH   = { C_SLASH   };
         public   static   readonly char[] CA_PATHSEP = { C_PATHSEP };
@@ -203,53 +242,97 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         public const int HttpStatusCodeGatewayTimeout     = 504;
         public const int HttpStatusCodeHttpVersionError   = 505;
 
+        public static readonly int[] HttpStatusCodeArray  = {
+            HttpStatusCodeContinue,
+            HttpStatusCodeSwitchingProtocols,
+            HttpStatusCodeOK,
+            HttpStatusCodeCreated,
+            HttpStatusCodeAccepted,
+            HttpStatusCodeNonAuthoritative,
+            HttpStatusCodeNoContent,
+            HttpStatusCodeResetContent,
+            HttpStatusCodePartialContent,
+            HttpStatusCodeMultipleChoices,
+            HttpStatusCodePermanentRedirect,
+            HttpStatusCodeFound,
+            HttpStatusCodeSeeOther,
+            HttpStatusCodeNotModified,
+            HttpStatusCodeUseProxy,
+            HttpStatusCodeReserved306,
+            HttpStatusCodeTemporaryRedirect,
+            HttpStatusCodeBadRequest,
+            HttpStatusCodeNotAuthorized,
+            HttpStatusCodePaymentRequired,
+            HttpStatusCodeForbidden,
+            HttpStatusCodeNotFound,
+            HttpStatusCodeMethodNotAllowed,
+            HttpStatusCodeNotAcceptable,
+            HttpStatusCodeProxyAuthenticate,
+            HttpStatusCodeTimeOut,
+            HttpStatusCodeConflict,
+            HttpStatusCodeGone,
+            HttpStatusCodeLengthRequired,
+            HttpStatusCodePreconditionFailed,
+            HttpStatusCodeEntityTooLarge,
+            HttpStatusCodeUriTooLarge,
+            HttpStatusCodeUnsupportedMedia,
+            HttpStatusCodeRangeNotSatsified,
+            HttpStatusCodeExpectationFailed,
+            HttpStatusCodeServerError,
+            HttpStatusCodeNotImplemented,
+            HttpStatusCodeBadGateway,
+            HttpStatusCodeServiceUnavailable,
+            HttpStatusCodeGatewayTimeout,
+            HttpStatusCodeHttpVersionError
+        };
+
         // HTTP Status Descriptions (in status code order)
+        // This array must be kept strictly consistent with respect
+        // to the status code array above.
 
-        public const string HttpStatusDescContinue            = "Continue Request";        // 100
-        public const string HttpStatusDescSwitchingProtocols  = "Switching Protocols";    // 101
-
-        public const string HttpStatusDescOK                  = "OK";
-        public const string HttpStatusDescCreated             = "CREATED";
-        public const string HttpStatusDescAccepted            = "ACCEPTED";
-        public const string HttpStatusDescNonAuthoritative    = "NON-AUTHORITATIVE INFORMATION";
-        public const string HttpStatusDescNoContent           = "NO CONTENT";
-        public const string HttpStatusDescResetContent        = "RESET CONTENT";
-        public const string HttpStatusDescPartialContent      = "PARTIAL CONTENT";
-
-        public const string HttpStatusDescMultipleChoices     = "MULTIPLE CHOICES";
-        public const string HttpStatusDescPermanentRedirect   = "PERMANENT REDIRECT";
-        public const string HttpStatusDescFound               = "FOUND";
-        public const string HttpStatusDescSeeOther            = "SEE OTHER";
-        public const string HttpStatusDescNotModified         = "NOT MODIFIED";
-        public const string HttpStatusDescUseProxy            = "USE PROXY";
-        public const string HttpStatusDescReserved306         = "RESERVED CODE 306";
-        public const string HttpStatusDescTemporaryRedirect   = "TEMPORARY REDIRECT";
-
-        public const string HttpStatusDescBadRequest          = "BAD REQUEST";
-        public const string HttpStatusDescNotAuthorized       = "NOT AUTHORIZED";
-        public const string HttpStatusDescPaymentRequired     = "PAYMENT REQUIRED";
-        public const string HttpStatusDescForbidden           = "FORBIDDEN";
-        public const string HttpStatusDescNotFound            = "NOT FOUND";
-        public const string HttpStatusDescMethodNotAllowed    = "METHOD NOT ALLOWED";
-        public const string HttpStatusDescNotAcceptable       = "NOT ACCEPTABLE";
-        public const string HttpStatusDescProxyAuthenticate   = "PROXY AUTHENTICATION REQUIRED";
-        public const string HttpStatusDescTimeOut             = "TIMEOUT";
-        public const string HttpStatusDescConflict            = "CONFLICT";
-        public const string HttpStatusDescGone                = "GONE";
-        public const string HttpStatusDescLengthRequired      = "LENGTH REQUIRED";
-        public const string HttpStatusDescPreconditionFailed  = "PRECONDITION FAILED";
-        public const string HttpStatusDescEntityTooLarge      = "ENTITY TOO LARGE";
-        public const string HttpStatusDescUriTooLarge         = "URI TOO LARGE";
-        public const string HttpStatusDescUnsupportedMedia    = "UNSUPPORTED MEDIA";
-        public const string HttpStatusDescRangeNotSatisfied   = "RANGE NOT SATISFIED";
-        public const string HttpStatusDescExpectationFailed   = "EXPECTATION FAILED";
-
-        public const string HttpStatusDescServerError         = "SERVER ERROR";
-        public const string HttpStatusDescNotImplemented      = "NOT IMPLEMENTED";
-        public const string HttpStatusDescBadGateway          = "BAD GATEWAY";
-        public const string HttpStatusDescServiceUnavailable  = "SERVICE UNAVAILABLE";
-        public const string HttpStatusDescGatewayTimeout      = "GATEWAY TIMEOUT";
-        public const string HttpStatusDescHttpVersionError    = "HTTP VERSION NOT SUPPORTED";
+        public static readonly string[] HttpStatusDescArray  = {
+            "Continue Request",
+            "Switching Protocols",
+            "OK",
+            "CREATED",
+            "ACCEPTED",
+            "NON-AUTHORITATIVE INFORMATION",
+            "NO CONTENT",
+            "RESET CONTENT",
+            "PARTIAL CONTENT",
+            "MULTIPLE CHOICES",
+            "PERMANENT REDIRECT",
+            "FOUND",
+            "SEE OTHER",
+            "NOT MODIFIED",
+            "USE PROXY",
+            "RESERVED CODE 306",
+            "TEMPORARY REDIRECT",
+            "BAD REQUEST",
+            "NOT AUTHORIZED",
+            "PAYMENT REQUIRED",
+            "FORBIDDEN",
+            "NOT FOUND",
+            "METHOD NOT ALLOWED",
+            "NOT ACCEPTABLE",
+            "PROXY AUTHENTICATION REQUIRED",
+            "TIMEOUT",
+            "CONFLICT",
+            "GONE",
+            "LENGTH REQUIRED",
+            "PRECONDITION FAILED",
+            "ENTITY TOO LARGE",
+            "URI TOO LARGE",
+            "UNSUPPORTED MEDIA",
+            "RANGE NOT SATISFIED",
+            "EXPECTATION FAILED",
+            "SERVER ERROR",
+            "NOT IMPLEMENTED",
+            "BAD GATEWAY",
+            "SERVICE UNAVAILABLE",
+            "GATEWAY TIMEOUT",
+            "HTTP VERSION NOT SUPPORTED"
+        };
 
         // HTTP Headers
 
@@ -309,7 +392,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         public const string AS_DIGEST                     = "Digest";
 
         /// Supported Digest algorithms
-
+ 
         public const string Digest_MD5                    = "MD5"; // assumedd efault if omitted
         public const string Digest_MD5Sess                = "MD5-sess";
 
@@ -357,7 +440,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             int    val = 0;
             int    sum = 0;
             string tmp = null;
-
+            
             if (hex != null)
             {
                 tmp = hex.ToLower();
@@ -372,40 +455,21 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             return sum;
-        }
 
-        public static string Int2Hex8(int val)
-        {
-            string res = String.Empty;
-            for (int i = 0; i < 8; i++)
-            {
-                res = (val % 16) + res;
-                val = val / 16;
-            }
-            return res;
-        }
-
-        public static string ToHex32(int val)
-        {
-            return String.Empty;
-        }
-
-        public static string ToHex32(string val)
-        {
-            return String.Empty;
         }
 
         // Nonce management
 
         public static string NonceGenerator()
         {
-            return StringToBase64(Guid.NewGuid().ToString());
+            return StringToBase64(CreationDate + Guid.NewGuid().ToString());
         }
 
         // Dump he specified data stream;
 
         public static void Dump(byte[] data)
         {
+
             char[] buffer = new char[Rest.DumpLineSize];
             int cc = 0;
 
@@ -415,7 +479,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 if (i % Rest.DumpLineSize == 0) Console.Write("\n{0}: ",i.ToString("d8"));
 
                 if (i % 4  == 0) Console.Write(" ");
-//                if (i%16 == 0) Console.Write(" ");
 
                 Console.Write("{0}",data[i].ToString("x2"));
 
@@ -431,6 +494,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     Console.Write(" |"+(new String(buffer))+"|");
                     cc = 0;
                 }
+
             }
 
             // Finish off any incomplete line
@@ -440,30 +504,33 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 for (int i = cc ; i < Rest.DumpLineSize; i++)
                 {
                     if (i % 4  == 0) Console.Write(" ");
-                    // if (i%16 == 0) Console.Write(" ");
-                    Console.Write("  ");
+                    Console.Write("  "); 
                     buffer[i % Rest.DumpLineSize] = ' ';
                 }
                 Console.WriteLine(" |"+(new String(buffer))+"|");
             }
             else
             {
-                Console.Write("\n");
+                Console.Write("\n"); 
             }
-        }
-    }
 
+        }
+
+    }
+  
     // Local exception type
 
     public class RestException : Exception
     {
+
         internal int    statusCode;
         internal string statusDesc;
         internal string httpmethod;
         internal string httppath;
 
-        public RestException(string msg) : base(msg)
-        {
+        public RestException(string msg) : base(msg) 
+        { 
         }
     }
+
 }

@@ -140,7 +140,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 if (!rdata.IsAuthenticated)
                 {
-                    rdata.Fail(Rest.HttpStatusCodeNotAuthorized, Rest.HttpStatusDescNotAuthorized);
+                    rdata.Fail(Rest.HttpStatusCodeNotAuthorized, 
+                          String.Format("user \"{0}\" could not be authenticated", rdata.userName));
                 }
             }
             catch (RestException e)
@@ -160,10 +161,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             // Check that a test was specified
 
-            if (rdata.parameters.Length < 1)
+            if (rdata.Parameters.Length < 1)
             {
                 Rest.Log.DebugFormat("{0} Insufficient parameters", MsgId);
-                rdata.Fail(Rest.HttpStatusCodeBadRequest, Rest.HttpStatusDescBadRequest);
+                rdata.Fail(Rest.HttpStatusCodeBadRequest, "not enough parameters");
             }
 
             // Select the test
@@ -180,8 +181,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         private static bool    testsLoaded = false;
         private static List<Type> classes  = new List<Type>();
         private static List<ITest>   tests = new List<ITest>();
-        private static Type[]        parms = new Type[1];
-        private static Object[]      args  = new Object[1];
+        private static Type[]        parms = new Type[0];
+        private static Object[]      args  = new Object[0];
 
         static RestTestServices()
         {
@@ -191,9 +192,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Type[] types = m.GetTypes();
                 foreach (Type t in types) 
                 {
-                    if (t.GetInterface("ITest") != null)
+                    try
                     {
-                        classes.Add(t);
+                        if (t.GetInterface("ITest") != null)
+                        {
+                            classes.Add(t);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Rest.Log.WarnFormat("[STATIC-TEST] Unable to include test {0} : {1}", t, e.Message);
                     }
                 }
             }
@@ -205,27 +213,38 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// registering itself with this handler.
         /// I was not able to make this code work in a constructor.
         /// </summary>
+
         private void loadTests()
         {
             lock (tests)
             {
                 if (!testsLoaded)
                 {
-                    parms[0]       = this.GetType();
-                    args[0]        = this;
 
                     ConstructorInfo ci;
                     Object          ht;
 
                     foreach (Type t in classes)
                     {
-                        ci = t.GetConstructor(parms);
-                        ht = ci.Invoke(args);
-                        tests.Add((ITest)ht);
+                        try
+                        {
+                            if (t.GetInterface("ITest") != null)
+                            {
+                                ci = t.GetConstructor(parms);
+                                ht = ci.Invoke(args);
+                                tests.Add((ITest)ht);
+                                Rest.Log.WarnFormat("{0} Test {1} added", MsgId, t);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Rest.Log.WarnFormat("{0} Unable to load test {1} : {2}", MsgId, t, e.Message);
+                        }
                     }
                     testsLoaded = true;
                 }
             }
         }
+
     }
 }

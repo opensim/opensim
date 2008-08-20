@@ -23,6 +23,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
  */
 
 using libsecondlife;
@@ -39,8 +40,10 @@ using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
+
     public class RestAssetServices : IRest
     {
+
         private bool    enabled = false;
         private string  qPrefix = "assets";
 
@@ -49,6 +52,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         public RestAssetServices()
         {
+
             Rest.Log.InfoFormat("{0} Asset services initializing", MsgId);
             Rest.Log.InfoFormat("{0} Using REST Implementation Version {1}", MsgId, Rest.Version);
 
@@ -69,6 +73,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             enabled = true;
 
             Rest.Log.InfoFormat("{0} Asset services initialization complete", MsgId);
+
         }
 
         // Post-construction, pre-enabled initialization opportunity
@@ -79,7 +84,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         }
 
         // Called by the plug-in to halt REST processing. Local processing is
-        // disabled, and control blocks until all current processing has
+        // disabled, and control blocks until all current processing has 
         // completed. No new processing will be started
 
         public void Close()
@@ -106,14 +111,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void DoAsset(RequestData rparm)
         {
-            if (!enabled)
-                return;
+
+            if (!enabled) return;
 
             AssetRequestData rdata = (AssetRequestData) rparm;
 
             Rest.Log.DebugFormat("{0} REST Asset handler ENTRY", MsgId);
 
-            // Now that we know this is a serious attempt to
+            // Now that we know this is a serious attempt to 
             // access inventory data, we should find out who
             // is asking, and make sure they are authorized
             // to do so. We need to validate the caller's
@@ -124,14 +129,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // With the present HTTP server we can't use the
             // builtin authentication mechanisms because they
             // would be enforced for all in-bound requests.
-            // Instead we look at the headers ourselves and
+            // Instead we look at the headers ourselves and 
             // handle authentication directly.
-
+ 
             try
             {
                 if (!rdata.IsAuthenticated)
                 {
-                    rdata.Fail(Rest.HttpStatusCodeNotAuthorized, Rest.HttpStatusDescNotAuthorized);
+                    rdata.Fail(Rest.HttpStatusCodeNotAuthorized, String.Format("user \"{0}\" could not be authenticated"));
                 }
             }
             catch (RestException e)
@@ -139,13 +144,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 if (e.statusCode == Rest.HttpStatusCodeNotAuthorized)
                 {
                     Rest.Log.WarnFormat("{0} User not authenticated", MsgId);
-                    Rest.Log.DebugFormat("{0} Authorization header: {1}", MsgId,
+                    Rest.Log.DebugFormat("{0} Authorization header: {1}", MsgId, 
                                          rdata.request.Headers.Get("Authorization"));
                 }
                 else
                 {
                     Rest.Log.ErrorFormat("{0} User authentication failed", MsgId);
-                    Rest.Log.DebugFormat("{0} Authorization header: {1}", MsgId,
+                    Rest.Log.DebugFormat("{0} Authorization header: {1}", MsgId, 
                                          rdata.request.Headers.Get("Authorization"));
                 }
                 throw (e);
@@ -155,7 +160,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // the parameters we need, fail the request. Parameters do NOT include
             // any supplied query values.
 
-            if (rdata.parameters.Length > 0)
+            if (rdata.Parameters.Length > 0)
             {
                 switch (rdata.method)
                 {
@@ -168,26 +173,27 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 case "post" :
                 case "delete" :
                 default :
-                    Rest.Log.WarnFormat("{0} Asset: Method not supported: {1}",
+                    Rest.Log.WarnFormat("{0} Asset: Method not supported: {1}", 
                                         MsgId, rdata.method);
-                    rdata.Fail(Rest.HttpStatusCodeBadRequest,
-                               Rest.HttpStatusDescBadRequest);
+                    rdata.Fail(Rest.HttpStatusCodeBadRequest,String.Format("method <{0}> not supported", rdata.method));
                     break;
                 }
             }
             else
             {
                 Rest.Log.WarnFormat("{0} Asset: No agent information provided", MsgId);
-                rdata.Fail(Rest.HttpStatusCodeBadRequest, Rest.HttpStatusDescBadRequest);
+                rdata.Fail(Rest.HttpStatusCodeBadRequest, "no agent information provided");
             }
 
             Rest.Log.DebugFormat("{0} REST Asset handler EXIT", MsgId);
+
         }
 
         #endregion Interface
 
         private void DoGet(AssetRequestData rdata)
         {
+
             bool istexture = false;
 
             Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
@@ -195,14 +201,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // The only parameter we accept is an LLUUID for
             // the asset
 
-            if (rdata.parameters.Length == 1)
+            if (rdata.Parameters.Length == 1)
             {
-                LLUUID uuid = new LLUUID(rdata.parameters[0]);
+
+                LLUUID uuid = new LLUUID(rdata.Parameters[0]);
                 AssetBase asset = Rest.AssetServices.GetAsset(uuid, istexture);
 
                 if (asset != null)
                 {
-                    Rest.Log.DebugFormat("{0}  Asset located <{1}>", MsgId, rdata.parameters[0]);
+                    
+                    Rest.Log.DebugFormat("{0}  Asset located <{1}>", MsgId, rdata.Parameters[0]);
 
                     rdata.initXmlWriter();
 
@@ -218,17 +226,18 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     rdata.writer.WriteBase64(asset.Data,0,asset.Data.Length);
 
                     rdata.writer.WriteFullEndElement();
+
                 }
                 else
                 {
                     Rest.Log.DebugFormat("{0} Invalid parameters: <{1}>", MsgId, rdata.path);
-                    rdata.Fail(Rest.HttpStatusCodeNotFound,
-                               Rest.HttpStatusDescNotFound);
+                    rdata.Fail(Rest.HttpStatusCodeNotFound, "invalid parameters");
                 }
             }
 
             rdata.Complete();
             rdata.Respond("Asset " + rdata.method + ": Normal completion");
+
         }
 
         private void DoPut(AssetRequestData rdata)
@@ -238,7 +247,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // The only parameter we accept is an LLUUID for
             // the asset
 
-            if (rdata.parameters.Length == 1)
+            if (rdata.Parameters.Length == 1)
             {
                 rdata.initXmlReader();
                 XmlReader xml = rdata.reader;
@@ -246,12 +255,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 if (!xml.ReadToFollowing("Asset"))
                 {
                     Rest.Log.DebugFormat("{0} Invalid request data: <{1}>", MsgId, rdata.path);
-                    rdata.Fail(Rest.HttpStatusCodeBadRequest,
-                               Rest.HttpStatusDescBadRequest);
+                    rdata.Fail(Rest.HttpStatusCodeBadRequest,"invalid request data"); 
                 }
 
                 AssetBase asset = new AssetBase();
-                asset.ID = rdata.parameters[0];
+                asset.ID = rdata.Parameters[0];
                 asset.Name = xml.GetAttribute("name");
                 asset.Description = xml.GetAttribute("desc");
                 asset.Type = SByte.Parse(xml.GetAttribute("type"));
@@ -264,12 +272,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             else
             {
                 Rest.Log.DebugFormat("{0} Invalid parameters: <{1}>", MsgId, rdata.path);
-                rdata.Fail(Rest.HttpStatusCodeNotFound,
-                           Rest.HttpStatusDescNotFound);
+                rdata.Fail(Rest.HttpStatusCodeNotFound, "invalid parameters"); 
             }
 
             rdata.Complete();
             rdata.Respond("Asset " + rdata.method + ": Normal completion");
+
         }
 
         internal class AssetRequestData : RequestData
@@ -279,5 +287,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
             }
         }
+
     }
 }

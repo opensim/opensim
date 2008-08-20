@@ -23,6 +23,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
  */
 
 using System;
@@ -41,22 +42,30 @@ using Nini.Config;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
+
     public class RestInventoryServices : IRest
     {
+
+        private static readonly int PARM_USERID = 0;    
+        private static readonly int PARM_PATH   = 1;
+
         private bool       enabled = false;
         private string     qPrefix = "inventory";
 
+        private static readonly string PRIVATE_ROOT_NAME = "My Inventory";
+
         /// <summary>
-        /// A simple constructor is used to handle any once-only
-        /// initialization of working classes.
+        /// The constructor makes sure that the service prefix is absolute
+        /// and the registers the service handler and the allocator.
         /// </summary>
 
         public RestInventoryServices()
         {
+
             Rest.Log.InfoFormat("{0} Inventory services initializing", MsgId);
             Rest.Log.InfoFormat("{0} Using REST Implementation Version {1}", MsgId, Rest.Version);
 
-            // If a relative path was specified for the handler's domain,
+            // If a relative path was specified for the handler's domain, 
             // add the standard prefix to make it absolute, e.g. /admin
 
             if (!qPrefix.StartsWith(Rest.UrlPathSeparator))
@@ -73,6 +82,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             enabled = true;
 
             Rest.Log.InfoFormat("{0} Inventory services initialization complete", MsgId);
+
         }
 
         /// <summary>
@@ -85,9 +95,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         }
 
         /// <summary>
-        /// Called by the plug-in to halt REST processing. Local processing is
-        /// disabled, and control blocks until all current processing has
-        /// completed. No new processing will be started
+        /// Called by the plug-in to halt service processing. Local processing is
+        /// disabled.
         /// </summary>
 
         public void Close()
@@ -114,6 +123,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// completes. All request-instance specific state is kept here. This
         /// is registered when this service provider is registered.
         /// </summary>
+        /// <param name=request>Inbound HTTP request information</param>
+        /// <param name=response>Outbound HTTP request information</param>
+        /// <param name=qPrefix>REST service domain prefix</param>
+        /// <returns>A RequestData instance suitable for this service</returns>
 
         private RequestData Allocate(OSHttpRequest request, OSHttpResponse response)
         {
@@ -123,12 +136,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// <summary>
         /// This method is registered with the handler when this service provider
         /// is initialized. It is called whenever the plug-in identifies this service
-        /// provider as the best match.
-        /// It handles all aspects of inventory REST processing.
+        /// provider as the best match for a given request.
+        /// It handles all aspects of inventory REST processing, i.e. /admin/inventory
         /// </summary>
+        /// <param name=hdata>A consolidated HTTP request work area</param>
 
         private void DoInventory(RequestData hdata)
         {
+
             InventoryRequestData rdata = (InventoryRequestData) hdata;
 
             Rest.Log.DebugFormat("{0} DoInventory ENTRY", MsgId);
@@ -140,7 +155,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 return;
             }
 
-            // Now that we know this is a serious attempt to
+            // Now that we know this is a serious attempt to 
             // access inventory data, we should find out who
             // is asking, and make sure they are authorized
             // to do so. We need to validate the caller's
@@ -151,14 +166,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // With the present HTTP server we can't use the
             // builtin authentication mechanisms because they
             // would be enforced for all in-bound requests.
-            // Instead we look at the headers ourselves and
+            // Instead we look at the headers ourselves and 
             // handle authentication directly.
-
+ 
             try
             {
                 if (!rdata.IsAuthenticated)
                 {
-                    rdata.Fail(Rest.HttpStatusCodeNotAuthorized, Rest.HttpStatusDescNotAuthorized);
+                    rdata.Fail(Rest.HttpStatusCodeNotAuthorized,String.Format("user \"{0}\" could not be authenticated", rdata.userName));
                 }
             }
             catch (RestException e)
@@ -178,43 +193,43 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             Rest.Log.DebugFormat("{0} Authenticated {1}", MsgId, rdata.userName);
 
-            /// <remarks>
-            /// We can only get here if we are authorized
-            ///
-            /// The requestor may have specified an LLUUID or
-            /// a conjoined FirstName LastName string. We'll
-            /// try both. If we fail with the first, UUID,
-            /// attempt, we try the other. As an example, the
-            /// URI for a valid inventory request might be:
-            ///
-            /// http://<host>:<port>/admin/inventory/Arthur Dent
-            ///
-            /// Indicating that this is an inventory request for
-            /// an avatar named Arthur Dent. This is ALl that is
-            /// required to designate a GET for an entire
-            /// inventory.
-            /// </remarks>
-
+            // We can only get here if we are authorized
+            //
+            // The requestor may have specified an LLUUID or
+            // a conjoined FirstName LastName string. We'll
+            // try both. If we fail with the first, UUID,
+            // attempt, we try the other. As an example, the
+            // URI for a valid inventory request might be:
+            //
+            // http://<host>:<port>/admin/inventory/Arthur Dent
+            //
+            // Indicating that this is an inventory request for
+            // an avatar named Arthur Dent. This is ALL that is
+            // required to designate a GET for an entire 
+            // inventory.
+            //
             // Do we have at least a user agent name?
 
-            if (rdata.parameters.Length < 1)
+            if (rdata.Parameters.Length < 1)
             {
                 Rest.Log.WarnFormat("{0} Inventory: No user agent identifier specified", MsgId);
-                rdata.Fail(Rest.HttpStatusCodeBadRequest, Rest.HttpStatusDescBadRequest+": No user identity specified");
+                rdata.Fail(Rest.HttpStatusCodeBadRequest, "no user identity specified");
             }
 
             // The first parameter MUST be the agent identification, either an LLUUID
-            // or a space-separated First-name Last-Name specification.
+            // or a space-separated First-name Last-Name specification. We check for
+            // an LLUUID first, if anyone names their character using a valid LLUUID
+            // that identifies another existing avatar will cause this a problem...
 
             try
             {
-                rdata.uuid = new LLUUID(rdata.parameters[0]);
+                rdata.uuid = new LLUUID(rdata.Parameters[PARM_USERID]);
                 Rest.Log.DebugFormat("{0} LLUUID supplied", MsgId);
                 rdata.userProfile = Rest.UserServices.GetUserProfile(rdata.uuid);
             }
             catch
             {
-                string[] names = rdata.parameters[0].Split(Rest.CA_SPACE);
+                string[] names = rdata.Parameters[PARM_USERID].Split(Rest.CA_SPACE);
                 if (names.Length == 2)
                 {
                     Rest.Log.DebugFormat("{0} Agent Name supplied [2]", MsgId);
@@ -222,23 +237,23 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 }
                 else
                 {
-                    Rest.Log.DebugFormat("{0} A Valid UUID or both first and last names must be specified", MsgId);
-                    rdata.Fail(Rest.HttpStatusCodeBadRequest, Rest.HttpStatusDescBadRequest+": invalid user identity");
+                    Rest.Log.WarnFormat("{0} A Valid UUID or both first and last names must be specified", MsgId);
+                    rdata.Fail(Rest.HttpStatusCodeBadRequest, "invalid user identity");
                 }
             }
 
-            // If the user rpofile is null then either the server is broken, or the
+            // If the user profile is null then either the server is broken, or the
             // user is not known. We always assume the latter case.
 
             if (rdata.userProfile != null)
             {
-                Rest.Log.DebugFormat("{0} Profile obtained for agent {1} {2}",
+                Rest.Log.DebugFormat("{0} Profile obtained for agent {1} {2}", 
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
             }
             else
             {
-                Rest.Log.DebugFormat("{0} No profile for {1}", MsgId, rdata.path);
-                rdata.Fail(Rest.HttpStatusCodeNotFound,Rest.HttpStatusDescNotFound+": unrecognized user identity");
+                Rest.Log.WarnFormat("{0} No profile for {1}", MsgId, rdata.path);
+                rdata.Fail(Rest.HttpStatusCodeNotFound, "unrecognized user identity");
             }
 
             // If we get to here, then we have effectively validated the user's
@@ -254,17 +269,18 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // response is not recieved in a timely fashion.
 
             rdata.uuid = rdata.userProfile.ID;
-
+            
             if (Rest.InventoryServices.HasInventoryForUser(rdata.uuid))
             {
+
                 rdata.root = Rest.InventoryServices.RequestRootFolder(rdata.uuid);
 
-                Rest.Log.DebugFormat("{0} Inventory Root retrieved for {1} {2}",
+                Rest.Log.DebugFormat("{0} Inventory Root retrieved for {1} {2}", 
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
 
                 Rest.InventoryServices.RequestInventoryForUser(rdata.uuid, rdata.GetUserInventory);
 
-                Rest.Log.DebugFormat("{0} Inventory catalog requested for {1} {2}",
+                Rest.Log.DebugFormat("{0} Inventory catalog requested for {1} {2}", 
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
 
                 lock (rdata)
@@ -277,16 +293,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 if (rdata.root == null)
                 {
-                    Rest.Log.DebugFormat("{0} Inventory is not available [1] for agent {1} {2}",
+                    Rest.Log.WarnFormat("{0} Inventory is not available [1] for agent {1} {2}", 
                                          MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
-                    rdata.Fail(Rest.HttpStatusCodeServerError,Rest.HttpStatusDescServerError+": inventory retrieval failed");
+                    rdata.Fail(Rest.HttpStatusCodeServerError, "inventory retrieval failed");
                 }
+
             }
             else
             {
-                Rest.Log.DebugFormat("{0} Inventory is not available for agent [3] {1} {2}",
+                Rest.Log.WarnFormat("{0} Inventory is not locally available for agent {1} {2}", 
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
-                rdata.Fail(Rest.HttpStatusCodeNotFound,Rest.HttpStatusDescNotFound+": no inventory for user");
+                rdata.Fail(Rest.HttpStatusCodeNotFound, "no local inventory for user");
             }
 
             // If we get here, then we have successfully retrieved the user's information
@@ -294,34 +311,35 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             switch (rdata.method)
             {
-            case Rest.HEAD   : // Do the processing, set the status code, suppress entity
-                DoGet(rdata);
-                rdata.buffer = null;
-                break;
 
-            case Rest.GET    : // Do the processing, set the status code, return entity
-                DoGet(rdata);
-                break;
+                case Rest.HEAD   : // Do the processing, set the status code, suppress entity
+                    DoGet(rdata);
+                    rdata.buffer = null;
+                    break;
 
-            case Rest.PUT    : // Add new information
-                DoPut(rdata);
-                break;
+                case Rest.GET    : // Do the processing, set the status code, return entity
+                    DoGet(rdata);
+                    break;
 
-            case Rest.POST   : // Update (replace)
-                DoPost(rdata);
-                break;
+                case Rest.PUT    : // Update named element
+                    DoUpdate(rdata);
+                    break;
 
-            case Rest.DELETE : // Delete information
-                DoDelete(rdata);
-                break;
+                case Rest.POST   : // Add new information to identified context.
+                    DoExtend(rdata);
+                    break;
 
-            default :
-                Rest.Log.DebugFormat("{0} Method {1} not supported for {2}",
-                                     MsgId, rdata.method, rdata.path);
-                rdata.Fail(Rest.HttpStatusCodeMethodNotAllowed,
-                           Rest.HttpStatusDescMethodNotAllowed+": "+rdata.method+" not supported");
-                break;
+                case Rest.DELETE : // Delete information
+                    DoDelete(rdata);
+                    break;
+
+                default :
+                    Rest.Log.WarnFormat("{0} Method {1} not supported for {2}", 
+                                         MsgId, rdata.method, rdata.path);
+                    rdata.Fail(Rest.HttpStatusCodeMethodNotAllowed, rdata.method+" not supported");
+                    break;        
             }
+
         }
 
         #endregion Interface
@@ -333,84 +351,97 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// Any remaining parameters are used to locate the
         /// corresponding subtree based upon node name.
         /// </summary>
+        /// <param name=rdata>HTTP service request work area</param>
 
         private void DoGet(InventoryRequestData rdata)
         {
+
             rdata.initXmlWriter();
 
             rdata.writer.WriteStartElement(String.Empty,"Inventory",String.Empty);
 
-            // If there was only one parameter, then the entire
-            // inventory is being requested.
-
-            if (rdata.parameters.Length == 1)
-            {
-                formatInventory(rdata, rdata.root, String.Empty);
-            }
-
             // If there are additional parameters, then these represent
             // a path relative to the root of the inventory. This path
-            // must be traversed before we format the sub-tree thus
+            // must be traversed before we format the sub-tree thus 
             // identified.
 
-            else
-            {
-                traverseInventory(rdata, rdata.root, 1);
-            }
+            traverse(rdata, rdata.root, PARM_PATH);
+           
+            // Close all open elements
 
             rdata.writer.WriteFullEndElement();
 
-            rdata.Complete();
-            rdata.Respond("Inventory " + rdata.method + ": Normal completion");
-        }
+            // Indicate a successful request
 
+            rdata.Complete();
+
+            // Send the response to the user. The body will be implicitly
+            // constructed from the result of the XML writer.
+
+            rdata.Respond(String.Format("Inventory {0} Normal completion", rdata.method));
+
+        }
+    
         /// <summary>
         /// In the case of the inventory, and probably in general,
         /// the distinction between PUT and POST is not always
-        /// easy to discern. Adding a directory can be viewed as
+        /// easy to discern. The standard is badly worded in places,
+        /// and adding a node to a hierarchy can be viewed as
         /// an addition, or as a modification to the inventory as
-        /// a whole. This is exacerbated by a lack of consistency
-        /// across different implementations.
+        /// a whole. This is exacerbated by an unjustified lack of
+        /// consistency across different implementations.
         ///
-        /// For OpenSim POST is an update and PUT is an addition.
+        /// For OpenSim PUT is an update and POST is an addition. This
+        /// is the behavior required by the HTTP specification and 
+        /// therefore as required by REST.
         ///
-        /// The best way to exaplain the distinction is to
+        /// The best way to explain the distinction is to
         /// consider the relationship between the URI and the
-        /// entity in question. For POST, the URI identifies the
-        /// entity to be modified or replaced.
-        /// If the operation is PUT,then the URI describes the
+        /// enclosed entity. For PUT, the URI identifies the
+        /// actual entity to be modified or replaced, i.e. the
+        /// enclosed entity.
+        ///
+        /// If the operation is POST,then the URI describes the 
         /// context into which the new entity will be added.
         ///
         /// As an example, suppose the URI contains:
         ///      /admin/inventory/Clothing
         ///
-        /// A POST request will result in some modification of
-        /// the folder or item named "Clothing". Whereas a PUT
-        /// request will add some new information into the
+        /// A PUT request will normally result in some modification of
+        /// the folder or item named "Clothing". Whereas a POST 
+        /// request will normally add some new information into the 
         /// content identified by Clothing. It follows from this
-        /// that for PUT, the element identified by the URI must
+        /// that for POST, the element identified by the URI MUST
         /// be a folder.
         /// </summary>
 
         /// <summary>
-        /// PUT adds new information to the inventory in the
+        /// POST adds new information to the inventory in the 
         /// context identified by the URI.
         /// </summary>
+        /// <param name=rdata>HTTP service request work area</param>
 
-        private void DoPut(InventoryRequestData rdata)
+        private void DoExtend(InventoryRequestData rdata)
         {
-            // Resolve the context node specified in the URI. Entity
-            // data will be ADDED beneath this node.
 
-            Object InventoryNode = getInventoryNode(rdata, rdata.root, 1);
+            bool  created  = false;
+            bool  modified = false;
+            string newnode = String.Empty;
+
+            // Resolve the context node specified in the URI. Entity
+            // data will be ADDED beneath this node. rdata already contains
+            // information about the current content of the user's 
+            // inventory.
+
+            Object InventoryNode = getInventoryNode(rdata, rdata.root, PARM_PATH, Rest.Fill);
 
             // Processing depends upon the type of inventory node
             // identified in the URI. This is the CONTEXT for the
-            // change. We either got a context or we threw an
+            // change. We either got a context or we threw an 
             // exception.
 
             // It follows that we can only add information if the URI
-            // has identified a folder. So only a type of folder is supported
+            // has identified a folder. So only a type of folder is supported 
             // in this case.
 
             if (typeof(InventoryFolderBase) == InventoryNode.GetType() ||
@@ -430,16 +461,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // [1] A (possibly empty) set of folders.
                 // [2] A (possibly empty) set of items.
                 // [3] A (possibly empty) set of assets.
-                // If all of these are empty, then the PUT is a harmless no-operation.
+                // If all of these are empty, then the POST is a harmless no-operation.
 
                 XmlInventoryCollection entity  = ReconstituteEntity(rdata);
 
                 // Inlined assets can be included in entity. These must be incorporated into
-                // the asset database before we attempt to update the inventory. If anything
+                // the asset database before we attempt to update the inventory. If anything 
                 // fails, return a failure to requestor.
 
                 if (entity.Assets.Count > 0)
                 {
+
                     Rest.Log.DebugFormat("{0} Adding {1} assets to server",
                                          MsgId, entity.Assets.Count);
 
@@ -449,11 +481,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                              MsgId, asset.ID, asset.Type, asset.Name);
                         Rest.AssetServices.AddAsset(asset);
 
-                        if (Rest.DumpAsset)
+                        created = true;
+                        rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1}<p>",
+                                        asset.Name, asset.ID));
+
+                        if (Rest.DEBUG && Rest.DumpAsset)
                         {
                             Rest.Dump(asset.Data);
                         }
+
                     }
+
                 }
 
                 // Modify the context using the collection of folders and items
@@ -461,6 +499,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 foreach (InventoryFolderBase folder in entity.Folders)
                 {
+
                     InventoryFolderBase found;
 
                     // If the parentID is zero, then this folder is going
@@ -468,9 +507,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     // may have already set the parent ID explicitly, in which
                     // case we don't have to do it here.
 
-                    if (folder.ParentID == LLUUID.Zero)
+                    if (folder.ParentID == LLUUID.Zero || folder.ParentID == context.ID)
                     {
+                        if (newnode != String.Empty)
+                        {
+                            Rest.Log.DebugFormat("{0} Too many resources", MsgId);
+                            rdata.Fail(Rest.HttpStatusCodeBadRequest, "only one root entity is allowed");
+                        }
                         folder.ParentID = context.ID;
+                        newnode = folder.Name;
                     }
 
                     // Search the existing inventory for an existing entry. If
@@ -496,12 +541,22 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     {
                         Rest.Log.DebugFormat("{0} Updating existing folder", MsgId);
                         Rest.InventoryServices.MoveFolder(folder);
+
+                        modified = true;
+                        rdata.appendStatus(String.Format("<p> Created folder {0}, UUID {1}<p>",
+                                        folder.Name, folder.ID));
                     }
                     else
                     {
                         Rest.Log.DebugFormat("{0} Adding new folder", MsgId);
                         Rest.InventoryServices.AddFolder(folder);
+
+                        created = true;
+                        rdata.appendStatus(String.Format("<p> Modified folder {0}, UUID {1}<p>",
+                                        folder.Name, folder.ID));
+
                     }
+
                 }
 
                 // Now we repeat a similar process for the items included
@@ -509,6 +564,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 foreach (InventoryItemBase item in entity.Items)
                 {
+
                     InventoryItemBase found = null;
 
                     // If the parentID is zero, then this is going
@@ -519,7 +575,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         item.Folder = context.ID;
                     }
 
-                    // Determine whether this is a new item or a
+                    // Determine whether this is a new item or a 
                     // replacement definition.
 
                     foreach (InventoryItemBase xi in rdata.items)
@@ -537,60 +593,90 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         Rest.Log.DebugFormat("{0} Updating item {1} {2} {3} {4} {5}",
                                              MsgId, item.ID, item.AssetID, item.InvType, item.AssetType, item.Name);
                         Rest.InventoryServices.UpdateItem(item);
+                        modified = true;
+                        rdata.appendStatus(String.Format("<p> Modified item {0}, UUID {1}<p>", item.Name, item.ID));
                     }
                     else
                     {
                         Rest.Log.DebugFormat("{0} Adding item {1} {2} {3} {4} {5}",
                                              MsgId, item.ID, item.AssetID, item.InvType, item.AssetType, item.Name);
                         Rest.InventoryServices.AddItem(item);
+                        created = true;
+                        rdata.appendStatus(String.Format("<p> Created item {2}, UUID {3}<p>", item.Name, item.ID));
+                    }
+
+                }
+
+                if (created)
+                {
+                    // Must include a location header with a URI that identifies the new resource.
+                    rdata.AddHeader(Rest.HttpHeaderLocation,String.Format("http://{0}{1}/{2}",
+                             rdata.hostname+":"+rdata.port,rdata.path,newnode));
+                    rdata.Complete(Rest.HttpStatusCodeCreated);
+                }
+                else
+                {
+                    if (modified)
+                    {
+                        rdata.Complete(Rest.HttpStatusCodeOK);
+                    }
+                    else
+                    {
+                        rdata.Complete(Rest.HttpStatusCodeNoContent);
                     }
                 }
+
+                rdata.Respond("Inventory " + rdata.method + ": Normal completion");
+
             }
             else
             {
                 Rest.Log.DebugFormat("{0} {1}: Resource {2} is not a valid context: {3}",
                                      MsgId, rdata.method, rdata.path, InventoryNode.GetType());
-                rdata.Fail(Rest.HttpStatusCodeBadRequest,
-                           Rest.HttpStatusDescBadRequest+": invalid resource context");
+                rdata.Fail(Rest.HttpStatusCodeBadRequest, "invalid resource context");
             }
 
-            rdata.Complete();
-            rdata.Respond("Inventory " + rdata.method + ": Normal completion");
         }
 
         /// <summary>
-        /// POST updates the URI-identified element in the inventory. This
+        /// PUT updates the URI-identified element in the inventory. This
         /// is actually far more flexible than it might at first sound. For
-        /// POST the URI serves two purposes:
-        ///     [1] It identifies the user whose inventory is to be
+        /// PUT the URI serves two purposes:
+        ///     [1] It identifies the user whose inventory is to be 
         ///         processed.
         ///     [2] It optionally specifies a subtree of the inventory
-        ///         that is to be used to resolve any relative subtree
+        ///         that is to be used to resolve any relative subtree 
         ///         specifications in the entity. If nothing is specified
-        ///         then the whole inventory is implied.
+        ///         then the whole of the private inventory is implied.
         /// Please note that the subtree specified by the URI is only relevant
         /// to an entity containing a URI relative specification, i.e. one or
-        /// more elements do not specify parent folder information. These
+        /// more elements do not specify parent folder information. These 
         /// elements will be implicitly referenced within the context identified
         /// by the URI.
         /// If an element in the entity specifies an explicit parent folder, then
         /// that parent is effective, regardless of any value specified in the
         /// URI. If the parent does not exist, then the element, and any dependent
-        /// elements, are ignored. This case is actually detected and handled
+        /// elements, are ignored. This case is actually detected and handled 
         /// during the reconstitution process.
         /// </summary>
+        /// <param name=rdata>HTTP service request work area</param>
 
-        private void DoPost(InventoryRequestData rdata)
+        private void DoUpdate(InventoryRequestData rdata)
         {
-            int count = 0;
+
+            int     count  = 0;
+            bool  created  = false;
+            bool  modified = false;
 
             // Resolve the inventory node that is to be modified.
+            // rdata already contains information about the current
+            // content of the user's inventory.
 
-            Object InventoryNode = getInventoryNode(rdata, rdata.root, 1);
+            Object InventoryNode = getInventoryNode(rdata, rdata.root, PARM_PATH, Rest.Fill);
 
             // As long as we have a node, then we have something
-            // meaningful to do, unlike PUT. So we reconstitute the
-            // subtree before doing anything else. Note that we
+            // meaningful to do, unlike POST. So we reconstitute the 
+            // subtree before doing anything else. Note that we 
             // etiher got a valid node or we threw an exception.
 
             XmlInventoryCollection entity = ReconstituteEntity(rdata);
@@ -612,46 +698,77 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     Rest.AssetServices.AddAsset(asset);
 
-                    if (Rest.DumpAsset)
+                    created = true;
+                    rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1}<p>", asset.Name, asset.ID));
+
+                    if (Rest.DEBUG && Rest.DumpAsset)
                     {
                         Rest.Dump(asset.Data);
                     }
+
                 }
             }
 
-            /// <summary>
-            /// The URI specifies either a folder or an item to be updated.
-            /// </summary>
-            /// <remarks>
-            /// The root node in the entity will replace the node identified
-            /// by the URI. This means the parent will remain the same, but
-            /// any or all attributes associated with the named element
-            /// will change.
-            ///
-            /// If the inventory collection contains an element with a zero
-            /// parent ID, then this is taken to be the replacement for the
-            /// named node. The collection MAY also specify an explicit
-            /// parent ID, in this case it MAY identify the same parent as
-            /// the current node, or it MAY specify a different parent,
-            /// indicating that the folder is being moved in addition to any
-            /// other modifications being made.
-            /// </remarks>
+            // The URI specifies either a folder or an item to be updated.
+            //
+            // The root node in the entity will replace the node identified
+            // by the URI. This means the parent will remain the same, but 
+            // any or all attributes associated with the named element
+            // will change.
+            //
+            // If the inventory collection contains an element with a zero
+            // parent ID, then this is taken to be the replacement for the 
+            // named node. The collection MAY also specify an explicit 
+            // parent ID, in this case it MAY identify the same parent as
+            // the current node, or it MAY specify a different parent, 
+            // indicating that the folder is being moved in addition to any
+            // other modifications being made.
 
             if (typeof(InventoryFolderBase) == InventoryNode.GetType() ||
                 typeof(InventoryFolderImpl) == InventoryNode.GetType())
             {
+
+                bool rfound = false;
                 InventoryFolderBase uri = (InventoryFolderBase) InventoryNode;
                 InventoryFolderBase xml = null;
+                
+                // If the entity to be replaced resolved to be the root
+                // directory itself (My Inventory), then make sure that
+                // the supplied data include as appropriately typed and
+                // named folder. Note that we can;t rule out the possibility
+                // of a sub-directory being called "My Inventory", so that
+                // is anticipated.
+
+                if (uri == rdata.root)
+                {
+
+                    foreach (InventoryFolderBase folder in entity.Folders)
+                    {
+                        if ((rfound = (folder.Name == PRIVATE_ROOT_NAME)))
+                        {
+                            if ((rfound = (folder.ParentID == LLUUID.Zero)))
+                                break;
+                        }
+                    }
+
+                    if (!rfound)
+                    {
+                        Rest.Log.DebugFormat("{0} {1}: Path <{2}> will result in loss of inventory",
+                                             MsgId, rdata.method, rdata.path);
+                        rdata.Fail(Rest.HttpStatusCodeBadRequest, "invalid inventory structure");
+                    }
+
+                }
 
                 // Scan the set of folders in the entity collection for an
                 // entry that matches the context folder. It is assumed that
-                // the only reliable indicator of this is a zero UUID (using
+                // the only reliable indicator of this is a zero UUID ( using
                 // implicit context), or the parent's UUID matches that of the
                 // URI designated node (explicit context). We don't allow
                 // ambiguity in this case because this is POST and we are
                 // supposed to be modifying a specific node.
                 // We assign any element IDs required as an economy; we don't
-                // want to iterate over the fodler set again if it can be
+                // want to iterate over the fodler set again if it can be 
                 // helped.
 
                 foreach (InventoryFolderBase folder in entity.Folders)
@@ -663,51 +780,60 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         xml = folder;
                         count++;
                     }
-                    if (xml.ID == LLUUID.Zero)
-                    {
-                        xml.ID = LLUUID.Random();
-                    }
                 }
 
                 // More than one entry is ambiguous. Other folders should be
-                // added using the PUT verb.
+                // added using the POST verb.
 
                 if (count > 1)
                 {
                     Rest.Log.DebugFormat("{0} {1}: Request for <{2}> is ambiguous",
                                          MsgId, rdata.method, rdata.path);
-                    rdata.Fail(Rest.HttpStatusCodeBadRequest,
-                               Rest.HttpStatusDescBadRequest+": context is ambiguous");
+                    rdata.Fail(Rest.HttpStatusCodeConflict, "context is ambiguous");
                 }
 
                 // Exactly one entry means we ARE replacing the node
                 // identified by the URI. So we delete the old folder
                 // by moving it to the trash and then purging it.
-                // We then add all of the folders and items we
+                // We then add all of the folders and items we 
                 // included in the entity. The subtree has been
                 // modified.
 
                 if (count == 1)
                 {
+
                     InventoryFolderBase TrashCan = GetTrashCan(rdata);
+
+                    // All went well, so we generate a UUID is one is
+                    // needed.
+
+                    if (xml.ID == LLUUID.Zero)
+                    {
+                        xml.ID = LLUUID.Random();
+                    }
 
                     uri.ParentID = TrashCan.ID;
                     Rest.InventoryServices.MoveFolder(uri);
                     Rest.InventoryServices.PurgeFolder(TrashCan);
+                    modified = true;
+
                 }
 
-                // Now, regardelss of what they represent, we
+                // Now, regardelss of what they represent, we 
                 // integrate all of the elements in the entity.
 
                 foreach (InventoryFolderBase f in entity.Folders)
                 {
+                    rdata.appendStatus(String.Format("<p>Moving folder {0} UUID {1}<p>", f.Name, f.ID));
                     Rest.InventoryServices.MoveFolder(f);
                 }
 
                 foreach (InventoryItemBase it in entity.Items)
                 {
+                    rdata.appendStatus(String.Format("<p>Storing item {0} UUID {1}<p>", it.Name, it.ID));
                     Rest.InventoryServices.AddItem(it);
                 }
+
             }
 
             /// <summary>
@@ -720,6 +846,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             else
             {
+
                 InventoryItemBase uri = (InventoryItemBase) InventoryNode;
                 InventoryItemBase xml = null;
 
@@ -727,20 +854,18 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 {
                     Rest.Log.DebugFormat("{0} {1}: Request should not contain any folders <{2}>",
                                          MsgId, rdata.method, rdata.path);
-                    rdata.Fail(Rest.HttpStatusCodeBadRequest,
-                               Rest.HttpStatusDescBadRequest+": folder is not allowed");
+                    rdata.Fail(Rest.HttpStatusCodeBadRequest, "folder is not allowed");
                 }
 
                 if (entity.Items.Count > 1)
                 {
                     Rest.Log.DebugFormat("{0} {1}: Entity contains too many items <{2}>",
                                          MsgId, rdata.method, rdata.path);
-                    rdata.Fail(Rest.HttpStatusCodeBadRequest,
-                               Rest.HttpStatusDescBadRequest+": too may items");
+                    rdata.Fail(Rest.HttpStatusCodeBadRequest, "too may items");
                 }
 
                 xml = entity.Items[0];
-
+                
                 if (xml.ID == LLUUID.Zero)
                 {
                     xml.ID = LLUUID.Random();
@@ -757,10 +882,29 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // Add the new item to the inventory
 
                 Rest.InventoryServices.AddItem(xml);
+
+                rdata.appendStatus(String.Format("<p>Storing item {0} UUID {1}<p>", xml.Name, xml.ID));
+
             }
 
-            rdata.Complete();
+            if (created)
+            {
+                rdata.Complete(Rest.HttpStatusCodeCreated);
+            }
+            else
+            {
+                if (modified)
+                {
+                    rdata.Complete(Rest.HttpStatusCodeOK);
+                }
+                else
+                {
+                    rdata.Complete(Rest.HttpStatusCodeNoContent);
+                }
+            }
+
             rdata.Respond("Inventory " + rdata.method + ": Normal completion");
+
         }
 
         /// <summary>
@@ -773,7 +917,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         ///
         /// Folders are deleted by moving them to another folder and then
         /// purging that folder. We'll do that by creating a temporary
-        /// sub-folder in the TrashCan and purging that folder's
+        /// sub-folder in the TrashCan and purging that folder's 
         /// contents. If we can't can it, we don't delete it...
         /// So, if no trashcan is available, the request does nothing.
         /// Items are summarily deleted.
@@ -782,14 +926,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// be performed using UUID, as a name might identify several
         /// elements.
         /// </summary>
+        /// <param name=rdata>HTTP service request work area</param>
 
         private void DoDelete(InventoryRequestData rdata)
         {
-            Object InventoryNode = getInventoryNode(rdata, rdata.root, 1);
+
+            Object InventoryNode = getInventoryNode(rdata, rdata.root, PARM_PATH, false);
 
             if (typeof(InventoryFolderBase) == InventoryNode.GetType() ||
                 typeof(InventoryFolderImpl) == InventoryNode.GetType())
             {
+
                 InventoryFolderBase TrashCan = GetTrashCan(rdata);
 
                 InventoryFolderBase folder = (InventoryFolderBase) InventoryNode;
@@ -798,6 +945,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 folder.ParentID = TrashCan.ID;
                 Rest.InventoryServices.MoveFolder(folder);
                 Rest.InventoryServices.PurgeFolder(TrashCan);
+
+                rdata.appendStatus(String.Format("<p>Deleted folder {0} UUID {1}<p>", folder.Name, folder.ID));
+
             }
 
             // Deleting items is much more straight forward.
@@ -808,21 +958,23 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.DebugFormat("{0} {1}: Item {2} will be deleted",
                                      MsgId, rdata.method, rdata.path);
                 Rest.InventoryServices.DeleteItem(item);
+                rdata.appendStatus(String.Format("<p>Deleted item {0} UUID {1}<p>", item.Name, item.ID));
             }
 
             rdata.Complete();
             rdata.Respond("Inventory " + rdata.method + ": Normal completion");
+
         }
 
-        #endregion method-specific processing
+#endregion method-specific processing
 
         /// <summary>
         /// This method is called to obtain the OpenSim inventory object identified
         /// by the supplied URI. This may be either an Item or a Folder, so a suitably
-        /// ambiguous return type is employed (Object). This method recurses as
+        /// ambiguous return type is employed (Object). This method recurses as 
         /// necessary to process the designated hierarchy.
-        ///
-        /// If we reach the end of the URI then we return the contextural folder to
+        /// 
+        /// If we reach the end of the URI then we return the contextual folder to 
         /// our caller.
         ///
         /// If we are not yet at the end of the URI we attempt to find a child folder
@@ -831,50 +983,79 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// If this is the last node, then we look to see if this is an item. If it is,
         /// we return that item.
         ///
+        /// If we reach the end of an inventory path and the URI si not yet exhausted,
+        /// then if 'fill' is specified, we create the intermediate nodes.
+        ///
         /// Otherwise we fail the request on the ground of an invalid URI.
         ///
-        /// <note>
-        /// This mechanism cannot detect the case where duplicate subtrees satisfy a
-        /// request. In such a case the 1st element gets processed. If this is a
-        /// problem, then UUID should be used to identify the end-node. This is basic
-        /// premise of normal inventory processing. The name is an informational, and
-        /// not a defining, attribute.
-        /// </note>
+        /// An ambiguous request causes the request to fail.
         ///
         /// </summary>
+        /// <param name=rdata>HTTP service request work area</param>
+        /// <param name=folder>The folder to be searched (parent)</param>
+        /// <param name=pi>URI parameter index</param>
+        /// <param name=fill>Should missing path members be created?</param>
 
-        private Object getInventoryNode(InventoryRequestData rdata, InventoryFolderBase folder, int pi)
+        private Object getInventoryNode(InventoryRequestData rdata,
+                                        InventoryFolderBase folder,
+                                        int pi, bool fill)
         {
+
+            InventoryFolderBase foundf = null;
+            int fk = 0;
+
             Rest.Log.DebugFormat("{0} Searching folder {1} {2} [{3}]", MsgId, folder.ID, folder.Name, pi);
 
             // We have just run off the end of the parameter sequence
 
-            if (pi >= rdata.parameters.Length)
+            if (pi >= rdata.Parameters.Length)
             {
                 return folder;
             }
 
-            // More names in the sequence, look for a folder that might
-            // get us there.
+            // There are more names in the parameter sequence, 
+            // look for the folder named by param[pi] as a 
+            // child of the folder supplied as an argument.
+            // Note that a UUID may have been supplied as the
+            // identifier (it is the ONLY guaranteed unambiguous
+            // option. 
 
             if (rdata.folders != null)
-            {
                 foreach (InventoryFolderBase f in rdata.folders)
                 {
                     // Look for the present node in the directory list
-                    if (f.ParentID == folder.ID &&
-                        (f.Name == rdata.parameters[pi] ||
-                         f.ID.ToString() == rdata.parameters[pi]))
+                    if (f.ParentID == folder.ID && 
+                        (f.Name == rdata.Parameters[pi] ||
+                         f.ID.ToString() == rdata.Parameters[pi]))
                     {
-                        return getInventoryNode(rdata, f, pi+1);
+                        foundf = f;
+                        fk++;
                     }
                 }
+            
+            // If more than one node matched, then the path, as specified
+            // is ambiguous.
+
+            if (fk > 1)
+            {
+                Rest.Log.DebugFormat("{0} {1}: Request for {2} is ambiguous",
+                                             MsgId, rdata.method, rdata.path);
+                rdata.Fail(Rest.HttpStatusCodeConflict, "request is ambiguous");
+            }
+
+            // If we find a match, then the method
+            // increment the parameter index, and calls itself
+            // passing the found folder as the new context.
+
+            if (foundf != null)
+            {
+                return getInventoryNode(rdata, foundf, pi+1, fill);
             }
 
             // No folders that match. Perhaps this parameter identifies an item? If
             // it does, then it MUST also be the last name in the sequence.
 
-            if (pi == rdata.parameters.Length-1)
+            if (pi == rdata.Parameters.Length-1)
             {
                 if (rdata.items != null)
                 {
@@ -882,9 +1063,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     InventoryItemBase li = null;
                     foreach (InventoryItemBase i in rdata.items)
                     {
-                        if (i.Folder == folder.ID &&
-                            (i.Name == rdata.parameters[pi] ||
-                             i.ID.ToString() == rdata.parameters[pi]))
+                        if (i.Folder == folder.ID && 
+                            (i.Name == rdata.Parameters[pi] ||
+                             i.ID.ToString() == rdata.Parameters[pi]))
                         {
                             li = i;
                             k++;
@@ -894,26 +1075,35 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     {
                         return li;
                     }
-                    else
+                    else if (k > 1)
                     {
                         Rest.Log.DebugFormat("{0} {1}: Request for {2} is ambiguous",
                                              MsgId, rdata.method, rdata.path);
-                        rdata.Fail(Rest.HttpStatusCodeNotFound, Rest.HttpStatusDescNotFound+": request is ambiguous");
+                        rdata.Fail(Rest.HttpStatusCodeConflict, "request is ambiguous");
                     }
                 }
             }
 
-            // No, so abandon the request
+            // If fill is enabled, then we must create the missing intermediate nodes.
+            // And of course, even this is not straightforward. All intermediate nodes
+            // are obviously folders, but the last node may be a folder or an item.
+
+            if (fill)
+            {
+            }
+
+            // No fill, so abandon the request
 
             Rest.Log.DebugFormat("{0} {1}: Resource {2} not found",
                                  MsgId, rdata.method, rdata.path);
-            rdata.Fail(Rest.HttpStatusCodeNotFound, Rest.HttpStatusDescNotFound+": resource "+rdata.path+" not found");
+            rdata.Fail(Rest.HttpStatusCodeNotFound, "resource "+rdata.path+" not found");
 
             return null; /* Never reached */
+
         }
 
         /// <summary>
-        /// This routine traverse the inventory's structure until the end-point identified
+        /// This routine traverse the inventory's structure until the end-point identified 
         /// in the URI is reached, the remainder of the inventory (if any) is then formatted
         /// and returned to the requestor.
         ///
@@ -923,57 +1113,142 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         ///
         /// Only the last element in the URI should identify an item.
         /// </summary>
+        /// <param name=rdata>HTTP service request work area</param>
+        /// <param name=folder>The folder to be searched (parent)</param>
+        /// <param name=pi>URI parameter index</param>
 
-        private void traverseInventory(InventoryRequestData rdata, InventoryFolderBase folder, int pi)
+        private void traverse(InventoryRequestData rdata, InventoryFolderBase folder, int pi)
         {
-            Rest.Log.DebugFormat("{0} Folder : {1} {2} [{3}]", MsgId, folder.ID, folder.Name, pi);
+
+            Rest.Log.DebugFormat("{0} Traverse[initial] : {1} {2} [{3}]", MsgId, folder.ID, folder.Name, pi);
 
             if (rdata.folders != null)
             {
-                foreach (InventoryFolderBase f in rdata.folders)
+
+                // If there was only one parameter (avatar name), then the entire 
+                // inventory is being requested.
+
+                if (rdata.Parameters.Length == 1)
                 {
-                    if (f.ParentID == folder.ID &&
-                        (f.Name == rdata.parameters[pi] ||
-                         f.ID.ToString() == rdata.parameters[pi]))
+                    formatInventory(rdata, rdata.root, String.Empty);
+                }
+
+                // Has the client specified the root directory name explicitly?
+                // if yes, then we just absorb the reference, because the folder
+                // we start looking in for a match *is* the root directory. If there
+                // are more parameters remaining we tarverse, otehrwise it's time
+                // to format. Otherwise,we consider the "My Inventory" to be implied
+                // and we just traverse normally.
+
+                else if (folder.ID.ToString() == rdata.Parameters[pi] ||
+                         folder.Name          == rdata.Parameters[pi])
+                {
+                    // Length is -1 because the avatar name is a parameter
+                    if (pi<(rdata.Parameters.Length-1))
                     {
-                        if (pi < rdata.parameters.Length-1)
-                        {
-                            traverseInventory(rdata, f, pi+1);
-                        }
-                        else
-                        {
-                            formatInventory(rdata, f, String.Empty);
-                        }
-                        return;
+                        traverseInventory(rdata, folder, pi+1);
                     }
+                    else
+                    {
+                        formatInventory(rdata, folder, String.Empty);
+                    }
+                }
+                else
+                {
+                    traverseInventory(rdata, folder, pi);
+                }
+
+                return;
+
+            }
+        }
+
+        /// <summary>
+        /// This is the recursive method. I've separated them in this way so that 
+        /// we do not have to waste cycles on any first-case-only processing.
+        /// </summary>
+
+        private void traverseInventory(InventoryRequestData rdata, InventoryFolderBase folder, int pi)
+        {
+
+            int fk = 0;
+            InventoryFolderBase ffound = null;
+            InventoryItemBase   ifound = null;
+
+            Rest.Log.DebugFormat("{0} Traverse Folder : {1} {2} [{3}]", MsgId, folder.ID, folder.Name, pi);
+
+            foreach (InventoryFolderBase f in rdata.folders)
+            {
+                if (f.ParentID == folder.ID && 
+                    (f.Name == rdata.Parameters[pi] ||
+                     f.ID.ToString() == rdata.Parameters[pi]))
+                {
+                    fk++;
+                    ffound = f;
                 }
             }
 
-            if (pi == rdata.parameters.Length-1)
+            // If this is the last element in the parameter sequence, then
+            // it is reasonable to check for an item. All intermediate nodes
+            // MUST be folders.
+
+            if (pi == rdata.Parameters.Length-1)
             {
+
+                // Only if there are any items, and there pretty much always are.
+
                 if (rdata.items != null)
                 {
                     foreach (InventoryItemBase i in rdata.items)
                     {
-                        if (i.Folder == folder.ID &&
-                            (i.Name == rdata.parameters[pi] ||
-                             i.ID.ToString() == rdata.parameters[pi]))
+                        if (i.Folder == folder.ID && 
+                            (i.Name == rdata.Parameters[pi] ||
+                             i.ID.ToString() == rdata.Parameters[pi]))
                         {
-                            // Fetching an Item has a special significance. In this
-                            // case we also want to fetch the associated asset.
-                            // To make it interesting, we'll d this via redirection.
-                            string asseturl = "http://" + rdata.hostname + ":" + rdata.port +
-                                "/admin/assets" + Rest.UrlPathSeparator + i.AssetID.ToString();
-                            rdata.Redirect(asseturl,Rest.PERMANENT);
-                            Rest.Log.DebugFormat("{0} Never Reached");
+                            fk++;
+                            ifound = i;
                         }
                     }
                 }
             }
 
-            Rest.Log.DebugFormat("{0} Inventory does not contain item/folder: <{1}>",
+            if (fk == 1)
+            {
+                if (ffound != null)
+                {
+                    if (pi < rdata.Parameters.Length-1)
+                    {
+                        traverseInventory(rdata, ffound, pi+1);
+                    }
+                    else
+                    {
+                        formatInventory(rdata, ffound, String.Empty);
+                    }
+                    return;
+                }
+                else
+                {
+                    // Fetching an Item has a special significance. In this
+                    // case we also want to fetch the associated asset.
+                    // To make it interesting, we'll d this via redirection. 
+                    string asseturl = "http://" + rdata.hostname + ":" + rdata.port +
+                        "/admin/assets" + Rest.UrlPathSeparator + ifound.AssetID.ToString();
+                    rdata.Redirect(asseturl,Rest.PERMANENT);
+                    Rest.Log.DebugFormat("{0} Never Reached", MsgId);
+                }
+            }
+            else if (fk > 1)
+            {
+                rdata.Fail(Rest.HttpStatusCodeConflict,
+                    String.Format("ambiguous element ({0}) in path specified: <{1}>", 
+                        pi, rdata.path));
+            }
+
+            Rest.Log.DebugFormat("{0} Inventory does not contain item/folder: <{1}>", 
                                  MsgId, rdata.path);
-            rdata.Fail(Rest.HttpStatusCodeNotFound,Rest.HttpStatusDescNotFound+": no such item/folder");
+            rdata.Fail(Rest.HttpStatusCodeNotFound,String.Format("no such item/folder : {0}",
+                        rdata.Parameters[pi]));
+
         }
 
         /// <summary>
@@ -983,12 +1258,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// The indentation parameter is solely for the benefit of trace record
         /// formatting.
         /// </summary>
+        /// <param name=rdata>HTTP service request work area</param>
+        /// <param name=folder>The folder to be searched (parent)</param>
+        /// <param name=indent>pretty print indentation</param>
 
         private void formatInventory(InventoryRequestData rdata, InventoryFolderBase folder, string indent)
         {
+
             if (Rest.DEBUG)
             {
-                Rest.Log.DebugFormat("{0} Folder : {1} {2} {3}", MsgId, folder.ID, indent, folder.Name);
+                Rest.Log.DebugFormat("{0} Folder : {1} {2} {3} type = {4}", 
+                        MsgId, folder.ID, indent, folder.Name, folder.Type);
                 indent += "\t";
             }
 
@@ -997,6 +1277,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             rdata.writer.WriteStartElement(String.Empty,"Folder",String.Empty);
             rdata.writer.WriteAttributeString("name",String.Empty,folder.Name);
             rdata.writer.WriteAttributeString("uuid",String.Empty,folder.ID.ToString());
+            rdata.writer.WriteAttributeString("parent",String.Empty,folder.ParentID.ToString());
             rdata.writer.WriteAttributeString("owner",String.Empty,folder.Owner.ToString());
             rdata.writer.WriteAttributeString("type",String.Empty,folder.Type.ToString());
             rdata.writer.WriteAttributeString("version",String.Empty,folder.Version.ToString());
@@ -1026,21 +1307,28 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // End folder item
 
             rdata.writer.WriteEndElement();
+
         }
 
         /// <summary>
         /// This method generates XML that describes an instance of InventoryItemBase.
         /// </summary>
+        /// <param name=rdata>HTTP service request work area</param>
+        /// <param name=i>The item to be formatted</param>
+        /// <param name=indent>Pretty print indentation</param>
 
         private void formatItem(InventoryRequestData rdata, InventoryItemBase i, string indent)
         {
-            Rest.Log.DebugFormat("{0}   Item : {1} {2} {3}", MsgId, i.ID, indent, i.Name);
+
+            Rest.Log.DebugFormat("{0}   Item : {1} {2} {3} Type = {4}, AssetType = {5}", 
+                    MsgId, i.ID, indent, i.Name, i.InvType, i.AssetType);
 
             rdata.writer.WriteStartElement(String.Empty,"Item",String.Empty);
 
             rdata.writer.WriteAttributeString("name",String.Empty,i.Name);
             rdata.writer.WriteAttributeString("desc",String.Empty,i.Description);
             rdata.writer.WriteAttributeString("uuid",String.Empty,i.ID.ToString());
+            rdata.writer.WriteAttributeString("folder",String.Empty,i.Folder.ToString());
             rdata.writer.WriteAttributeString("owner",String.Empty,i.Owner.ToString());
             rdata.writer.WriteAttributeString("creator",String.Empty,i.Creator.ToString());
             rdata.writer.WriteAttributeString("creationdate",String.Empty,i.CreationDate.ToString());
@@ -1062,10 +1350,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             rdata.writer.WriteElementString("Asset",i.AssetID.ToString());
 
             rdata.writer.WriteEndElement();
+
         }
 
         /// <summary>
-        /// This method creates a "trashcan" folder to support folder and item
+        /// This method creates a "trashcan" folder to support folder and item 
         /// deletions by this interface. The xisting trash folder is found and
         /// this folder is created within it. It is called "tmp" to indicate to
         /// the client that it is OK to delete this folder. The REST interface
@@ -1073,9 +1362,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// If the trash can cannot be created, then by implication the request
         /// that required it cannot be completed, and it fails accordingly.
         /// </summary>
+        /// <param name=rdata>HTTP service request work area</param>
 
         private InventoryFolderBase GetTrashCan(InventoryRequestData rdata)
         {
+
             InventoryFolderBase TrashCan = null;
 
             foreach (InventoryFolderBase f in rdata.folders)
@@ -1102,29 +1393,31 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     }
                 }
             }
-
+    
             if (TrashCan == null)
             {
                 Rest.Log.DebugFormat("{0} No Trash Can available", MsgId);
-                rdata.Fail(Rest.HttpStatusCodeServerError,
-                           Rest.HttpStatusDescServerError+": unable to create trash can");
+                rdata.Fail(Rest.HttpStatusCodeServerError, "unable to create trash can");
             }
 
             return TrashCan;
+
         }
 
         /// <summary>
         /// Make sure that an unchanged folder is not unnecessarily
         /// processed.
         /// </summary>
+        /// <param name=newf>Folder obtained from enclosed entity</param>
+        /// <param name=oldf>Folder obtained from the user's inventory</param>
 
         private bool FolderHasChanged(InventoryFolderBase newf, InventoryFolderBase oldf)
         {
-            return (newf.Name    != oldf.Name
-                    || newf.ParentID    != oldf.ParentID
-                    || newf.Owner       != oldf.Owner
-                    || newf.Type        != oldf.Type
-                    || newf.Version     != oldf.Version
+            return ( newf.Name    != oldf.Name
+                     || newf.ParentID    != oldf.ParentID 
+                     || newf.Owner       != oldf.Owner 
+                     || newf.Type        != oldf.Type 
+                     || newf.Version     != oldf.Version 
                 );
         }
 
@@ -1132,27 +1425,29 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// Make sure that an unchanged item is not unnecessarily
         /// processed.
         /// </summary>
+        /// <param name=newf>Item obtained from enclosed entity</param>
+        /// <param name=oldf>Item obtained from the user's inventory</param>
 
         private bool ItemHasChanged(InventoryItemBase newf, InventoryItemBase oldf)
         {
-            return (newf.Name    != oldf.Name
-                    || newf.Folder      != oldf.Description
-                    || newf.Description != oldf.Description
-                    || newf.Owner       != oldf.Owner
-                    || newf.Creator     != oldf.Creator
-                    || newf.AssetID     != oldf.AssetID
-                    || newf.GroupID     != oldf.GroupID
-                    || newf.GroupOwned  != oldf.GroupOwned
-                    || newf.InvType     != oldf.InvType
-                    || newf.AssetType   != oldf.AssetType
+            return ( newf.Name    != oldf.Name
+                     || newf.Folder      != oldf.Description 
+                     || newf.Description != oldf.Description 
+                     || newf.Owner       != oldf.Owner 
+                     || newf.Creator     != oldf.Creator 
+                     || newf.AssetID     != oldf.AssetID 
+                     || newf.GroupID     != oldf.GroupID 
+                     || newf.GroupOwned  != oldf.GroupOwned 
+                     || newf.InvType     != oldf.InvType 
+                     || newf.AssetType   != oldf.AssetType 
                 );
         }
 
         /// <summary>
         /// This method is called by PUT and POST to create an XmlInventoryCollection
         /// instance that reflects the content of the entity supplied on the request.
-        /// Any elements in the completed collection whose UUID is zero, are
-        /// considered to be located relative to the end-point identified int he
+        /// Any elements in the completed collection whose UUID is zero, are 
+        /// considered to be located relative to the end-point identified int he 
         /// URI. In this way, an entire sub-tree can be conveyed in a single REST
         /// PUT or POST request.
         ///
@@ -1160,24 +1455,27 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// has an entity, it is more completely initialized. thus, if no entity was
         /// provided the collection is valid, but empty.
         ///
-        /// The entity is then scanned and each tag is processed to produce the
+        /// The entity is then scanned and each tag is processed to produce the 
         /// appropriate inventory elements. At the end f the scan, teh XmlInventoryCollection
         /// will reflect the subtree described by the entity.
         ///
         /// This is a very flexible mechanism, the entity may contain arbitrary,
         /// discontiguous tree fragments, or may contain single element. The caller is
-        /// responsible for integrating this collection (and ensuring that any
+        /// responsible for integrating this collection (and ensuring that any 
         /// missing parent IDs are resolved).
         /// </summary>
+        /// <param name=rdata>HTTP service request work area</param>
 
         internal XmlInventoryCollection ReconstituteEntity(InventoryRequestData rdata)
         {
+
             Rest.Log.DebugFormat("{0} Reconstituting entity", MsgId);
 
             XmlInventoryCollection ic = new XmlInventoryCollection();
 
             if (rdata.request.HasEntityBody)
             {
+
                 Rest.Log.DebugFormat("{0} Entity present", MsgId);
 
                 ic.init(rdata);
@@ -1273,6 +1571,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     Rest.Log.WarnFormat("{0} Unexpected XML parsing error: {1}", MsgId, e.Message);
                     throw e;
                 }
+                
             }
             else
             {
@@ -1288,13 +1587,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             return ic;
+
         }
 
         /// <summary>
         /// This method creates an inventory Folder from the
         /// information supplied in the request's entity.
-        /// A folder instance is created and initialized to reflect
-        /// default values. These values are then overridden
+        /// A folder instance is created and initialized to reflect 
+        /// default values. These values are then overridden 
         /// by information supplied in the entity.
         /// If context was not explicitly provided, then the
         /// appropriate ID values are determined.
@@ -1302,6 +1602,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void CollectFolder(XmlInventoryCollection ic)
         {
+
             Rest.Log.DebugFormat("{0} Interpret folder element", MsgId);
 
             InventoryFolderBase result = new InventoryFolderBase();
@@ -1341,10 +1642,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         result.Version  =     UInt16.Parse(ic.xml.Value);
                         break;
                     default :
-                        Rest.Log.DebugFormat("{0} Folder: unrecognized attribute: {1}:{2}",
+                        Rest.Log.DebugFormat("{0} Folder: unrecognized attribute: {1}:{2}", 
                                              MsgId, ic.xml.Name, ic.xml.Value);
-                        ic.Fail(Rest.HttpStatusCodeBadRequest,
-                                Rest.HttpStatusDescBadRequest+": unrecognized attribute");
+                        ic.Fail(Rest.HttpStatusCodeBadRequest, String.Format("unrecognized attribute <{0}>",
+                                 ic.xml.Name));
                         break;
                     }
                 }
@@ -1363,11 +1664,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
             else
             {
+
                 bool found = false;
 
                 foreach (InventoryFolderBase parent in ic.rdata.folders)
                 {
-                    if (parent.ID == result.ParentID)
+                    if ( parent.ID == result.ParentID )
                     {
                         found = true;
                         break;
@@ -1376,11 +1678,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 if (!found)
                 {
-                    Rest.Log.ErrorFormat("{0} Invalid parent ID ({1}) in folder {2}",
+                    Rest.Log.ErrorFormat("{0} Invalid parent ID ({1}) in folder {2}", 
                                          MsgId, ic.Item.Folder, result.ID);
-                    ic.Fail(Rest.HttpStatusCodeBadRequest,
-                            Rest.HttpStatusDescBadRequest+": invalid parent");
+                    ic.Fail(Rest.HttpStatusCodeBadRequest, "invalid parent");
                 }
+
             }
 
             // This is a new folder, so no existing UUID is available
@@ -1395,14 +1697,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // obsolete as a consequence.
 
             ic.Push(result);
+
         }
 
         /// <summary>
         /// This method is called to handle the construction of an Item
-        /// instance from the supplied request entity. It is called
+        /// instance from the supplied request entity. It is called 
         /// whenever an Item start tag is detected.
         /// An instance of an Item is created and initialized to default
-        /// values. These values are then overridden from values supplied
+        /// values. These values are then overridden from values supplied 
         /// as attributes to the Item element.
         /// This item is then stored in the XmlInventoryCollection and
         /// will be verified by Validate.
@@ -1412,6 +1715,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void CollectItem(XmlInventoryCollection ic)
         {
+
             Rest.Log.DebugFormat("{0} Interpret item element", MsgId);
 
             InventoryItemBase result = new InventoryItemBase();
@@ -1432,6 +1736,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 for (int i = 0; i < ic.xml.AttributeCount; i++)
                 {
+
                     ic.xml.MoveToAttribute(i);
 
                     switch (ic.xml.Name)
@@ -1480,36 +1785,37 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         break;
 
                     default :
-                        Rest.Log.DebugFormat("{0} Item: Unrecognized attribute: {1}:{2}",
+                        Rest.Log.DebugFormat("{0} Item: Unrecognized attribute: {1}:{2}", 
                                              MsgId, ic.xml.Name, ic.xml.Value);
-                        ic.Fail(Rest.HttpStatusCodeBadRequest,
-                                Rest.HttpStatusDescBadRequest+": unrecognized attribute");
+                        ic.Fail(Rest.HttpStatusCodeBadRequest, String.Format("unrecognized attribute",
+                            ic.xml.Name));
                         break;
                     }
                 }
-            }
-
+            }   
+                
             ic.xml.MoveToElement();
 
             ic.Push(result);
+
         }
 
         /// <summary>
-        /// This method assembles an asset instance from the
-        /// information supplied in the request's entity. It is
-        /// called as a result of detecting a start tag for a
+        /// This method assembles an asset instance from the 
+        /// information supplied in the request's entity. It is 
+        /// called as a result of detecting a start tag for a 
         /// type of Asset.
         /// The information is collected locally, and an asset
         /// instance is created only if the basic XML parsing
         /// completes successfully.
-        /// Default values for all parts of the asset are
+        /// Default values for all parts of the asset are 
         /// established before overriding them from the supplied
         /// XML.
         /// If an asset has inline=true as an attribute, then
         /// the element contains the data representing the
         /// asset. This is saved as the data component.
         /// inline=false means that the element's payload is
-        /// simply the UUID of the asset referenced by the
+        /// simply the UUID of the asset referenced by the 
         /// item being constructed.
         /// An asset, if created is stored in the
         /// XmlInventoryCollection
@@ -1570,10 +1876,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         break;
 
                     default :
-                        Rest.Log.DebugFormat("{0} Asset: Unrecognized attribute: {1}:{2}",
+                        Rest.Log.DebugFormat("{0} Asset: Unrecognized attribute: {1}:{2}", 
                                              MsgId, ic.xml.Name, ic.xml.Value);
-                        ic.Fail(Rest.HttpStatusCodeBadRequest,
-                                Rest.HttpStatusDescBadRequest);
+                        ic.Fail(Rest.HttpStatusCodeBadRequest, 
+                                String.Format("unrecognized attribute <{0}>", ic.xml.Name));
                         break;
                     }
                 }
@@ -1583,7 +1889,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             // If this is a reference to an existing asset, just store the
             // asset ID into the item.
-
+            
             if (!inline)
             {
                 if (ic.Item != null)
@@ -1594,17 +1900,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 else
                 {
                     Rest.Log.DebugFormat("{0} LLUID unimbedded asset must be inline", MsgId);
-                    ic.Fail(Rest.HttpStatusCodeBadRequest,
-                            Rest.HttpStatusDescBadRequest+": no context for asset");
+                    ic.Fail(Rest.HttpStatusCodeBadRequest, "no context for asset");
                 }
             }
 
-            // Otherwise, generate an asset ID, store that into the item, and
+            // Otherwise, generate an asset ID, store that into the item, and 
             // create an entry in the asset list for the inlined asset. But
             // only if the size is non-zero.
 
             else
             {
+
                 string b64string = null;
 
                 // Generate a UUID of none were given, and generally none should
@@ -1617,17 +1923,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 // Create AssetBase entity to hold the inlined asset
 
-                asset = new AssetBase(uuid, name);
+                asset = new AssetBase(uuid, name);                                
 
                 asset.Description = desc;
                 asset.Type        = type; // type == 0 == texture
                 asset.Local       = local;
                 asset.Temporary   = temp;
-
+                
                 b64string         = ic.xml.ReadElementContentAsString();
 
                 Rest.Log.DebugFormat("{0} Data length is {1}", MsgId, b64string.Length);
-                Rest.Log.DebugFormat("{0} Data content starts with: \n\t<{1}>", MsgId,
+                Rest.Log.DebugFormat("{0} Data content starts with: \n\t<{1}>", MsgId, 
                                      b64string.Substring(0, b64string.Length > 132 ? 132 : b64string.Length));
 
                 asset.Data        = Convert.FromBase64String(b64string);
@@ -1646,19 +1952,22 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 {
                     ic.Item.AssetID = uuid;
                 }
+
             }
 
             ic.Push(asset);
+
         }
 
         /// <summary>
         /// Store any permissions information provided by the request.
-        /// This overrides the default permissions set when the
+        /// This overrides the default permissions set when the 
         /// XmlInventoryCollection object was created.
         /// </summary>
 
         private void CollectPermissions(XmlInventoryCollection ic)
         {
+
             if (ic.xml.HasAttributes)
             {
                 for (int i = 0; i < ic.xml.AttributeCount; i++)
@@ -1681,14 +1990,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     default :
                         Rest.Log.DebugFormat("{0} Permissions:  invalid attribute {1}:{2}",
                                              MsgId,ic.xml.Name, ic.xml.Value);
-                        ic.Fail(Rest.HttpStatusCodeBadRequest,
-                                Rest.HttpStatusDescBadRequest);
+                        ic.Fail(Rest.HttpStatusCodeBadRequest, 
+                                     String.Format("invalid attribute <{0}>", ic.xml.Name));
                         break;
                     }
                 }
             }
 
             ic.xml.MoveToElement();
+
         }
 
         /// <summary>
@@ -1703,35 +2013,35 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void Validate(XmlInventoryCollection ic)
         {
+
             // There really should be an item present if we've
             // called validate. So fail if there is not.
 
             if (ic.Item == null)
             {
                 Rest.Log.ErrorFormat("{0} Unable to parse request", MsgId);
-                ic.Fail(Rest.HttpStatusCodeBadRequest,
-                        Rest.HttpStatusDescBadRequest+": request parse error");
+                ic.Fail(Rest.HttpStatusCodeBadRequest, "request parse error");
             }
-
+ 
             // Every item is required to have a name (via REST anyway)
 
             if (ic.Item.Name == String.Empty)
             {
                 Rest.Log.ErrorFormat("{0} An item name MUST be specified", MsgId);
-                ic.Fail(Rest.HttpStatusCodeBadRequest,
-                        Rest.HttpStatusDescBadRequest+": item name required");
+                ic.Fail(Rest.HttpStatusCodeBadRequest, "item name required");
             }
-
-            // An item MUST have an asset ID. AssetID should never be zero
+ 
+            // An item MUST have an asset ID. AssetID should never be zero 
             // here. It should always get set from the information stored
             // when the Asset element was processed.
 
             if (ic.Item.AssetID == LLUUID.Zero)
             {
+
                 Rest.Log.ErrorFormat("{0} Unable to complete request", MsgId);
                 Rest.Log.InfoFormat("{0} Asset information is missing", MsgId);
-                ic.Fail(Rest.HttpStatusCodeBadRequest,
-                        Rest.HttpStatusDescBadRequest+": asset information required");
+                ic.Fail(Rest.HttpStatusCodeBadRequest, "asset information required");
+
             }
 
             // If the item is new, then assign it an ID
@@ -1744,18 +2054,19 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // If the context is being implied, obtain the current
             // folder item's ID. If it was specified explicitly, make
             // sure that theparent folder exists.
-
+ 
             if (ic.Item.Folder == LLUUID.Zero)
             {
                 ic.Item.Folder = ic.Parent();
             }
             else
             {
+
                 bool found = false;
 
                 foreach (InventoryFolderBase parent in ic.rdata.folders)
                 {
-                    if (parent.ID == ic.Item.Folder)
+                    if ( parent.ID == ic.Item.Folder )
                     {
                         found = true;
                         break;
@@ -1764,11 +2075,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 if (!found)
                 {
-                    Rest.Log.ErrorFormat("{0} Invalid parent ID ({1}) in item {2}",
+                    Rest.Log.ErrorFormat("{0} Invalid parent ID ({1}) in item {2}", 
                                          MsgId, ic.Item.Folder, ic.Item.ID);
-                    ic.Fail(Rest.HttpStatusCodeBadRequest,
-                            Rest.HttpStatusDescBadRequest+": parent information required");
+                    ic.Fail(Rest.HttpStatusCodeBadRequest, "parent information required");
                 }
+
             }
 
             // If this is an inline asset being constructed in the context
@@ -1790,12 +2101,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             ic.Item.NextPermissions     = ic.NextPermissions;
 
             // If no type was specified for this item, we can attempt to
-            // infer something from the file type maybe. This is NOT as
+            // infer something from the file type maybe. This is NOT as 
             // good as having type be specified in the XML.
 
             if (ic.Item.AssetType == (int) AssetType.Unknown ||
                 ic.Item.InvType   == (int) AssetType.Unknown)
             {
+
                 Rest.Log.DebugFormat("{0} Attempting to infer item type", MsgId);
 
                 string[] parts = ic.Item.Name.Split(Rest.CA_PERIOD);
@@ -1815,7 +2127,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 if (parts.Length > 1)
                 {
-                    Rest.Log.DebugFormat("{0} File type is {1}",
+                    Rest.Log.DebugFormat("{0} File type is {1}", 
                                          MsgId, parts[parts.Length - 1]);
                     switch (parts[parts.Length - 1])
                     {
@@ -1823,7 +2135,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     case "jpeg-2000" :
                     case "jpg2000" :
                     case "jpg-2000" :
-                        Rest.Log.DebugFormat("{0} Type {1} inferred",
+                        Rest.Log.DebugFormat("{0} Type {1} inferred", 
                                              MsgId, parts[parts.Length-1]);
                         if (ic.Item.AssetType == (int) AssetType.Unknown)
                             ic.Item.AssetType = (int) AssetType.ImageJPEG;
@@ -1832,7 +2144,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         break;
                     case "jpg" :
                     case "jpeg" :
-                        Rest.Log.DebugFormat("{0} Type {1} inferred",
+                        Rest.Log.DebugFormat("{0} Type {1} inferred", 
                                              MsgId, parts[parts.Length - 1]);
                         if (ic.Item.AssetType == (int) AssetType.Unknown)
                             ic.Item.AssetType = (int) AssetType.ImageJPEG;
@@ -1873,19 +2185,22 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 temp = OpenJPEGNet.LoadTGAClass.LoadTGA(tgadata);
                 ic.Asset.Data = OpenJPEGNet.OpenJPEG.EncodeFromImage(temp, true);
             }
-
+ 
             ic.reset();
+
         }
 
         #region Inventory RequestData extension
 
         internal class InventoryRequestData : RequestData
         {
+
             /// <summary>
             /// These are the inventory specific request/response state
             /// extensions.
             /// </summary>
 
+            internal LLUUID                              uuid = LLUUID.Zero;
             internal bool                       HaveInventory = false;
             internal ICollection<InventoryFolderImpl> folders = null;
             internal ICollection<InventoryItemBase>     items = null;
@@ -1898,7 +2213,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             /// <summary>
-            /// This is the callback method required by inventory services. The
+            /// This is the callback method required by inventory services. The 
             /// requestor issues an inventory request and then blocks until this
             /// method signals the monitor.
             /// </summary>
@@ -1914,6 +2229,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     Monitor.Pulse(this);
                 }
             }
+
         }
 
         #endregion Inventory RequestData extension
@@ -1926,6 +2242,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal class XmlInventoryCollection : InventoryCollection
         {
+
             internal InventoryRequestData       rdata;
             private  Stack<InventoryFolderBase> stk;
 
@@ -2014,10 +2331,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 initPermissions();
             }
 
-            internal void Fail(int code, string desc)
+            internal void Fail(int code, string addendum)
             {
-                rdata.Fail(code, desc);
+                rdata.Fail(code, addendum);
             }
+
         }
     }
 }

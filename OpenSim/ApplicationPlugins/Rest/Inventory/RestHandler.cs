@@ -23,6 +23,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
  */
 
 using System;
@@ -34,8 +35,27 @@ using OpenSim.ApplicationPlugins.Rest;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
-    public class RestHandler : RestPlugin, IHttpAgentHandler
+
+    /// <remarks>
+    /// The class signature reveals the roles that RestHandler plays.
+    ///
+    /// [1] It is a sub-class of RestPlugin. It inherits and extends
+    ///     the functionality of this class, constraining it to the
+    ///     specific needs of this REST implementation. This relates
+    ///     to the plug-in mechanism supported by OpenSim, the specifics
+    ///     of which are mostly hidden by RestPlugin.
+    /// [2] IRestHandler describes the interface that this class
+    ///     exports to service implementations. This is the services
+    ///     management interface.
+    /// [3] IHttpAgentHandler describes the interface that is exported
+    ///     to the BaseHttpServer in support of this particular HTTP
+    ///     processing model. This is the request interface of the
+    ///     handler.
+    /// </remarks>
+
+    public class RestHandler : RestPlugin, IRestHandler, IHttpAgentHandler
     {
+
         /// <remarks>
         /// The handler delegates are not noteworthy. The allocator allows
         /// a given handler to optionally subclass the base RequestData
@@ -43,8 +63,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// needed.
         /// </remarks>
 
-        internal delegate void        RestMethodHandler(RequestData rdata);
-        internal delegate RequestData RestMethodAllocator(OSHttpRequest request, OSHttpResponse response);
+        // internal delegate void          RestMethodHandler(RequestData rdata);
+        // internal delegate RequestData RestMethodAllocator(OSHttpRequest request, OSHttpResponse response);
 
         // Handler tables: both stream and REST are supported. The path handlers and their
         // respective allocators are stored in separate tables.
@@ -64,10 +84,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// <summary>
         /// This static initializer scans the ASSEMBLY for classes that
         /// export the IRest interface and builds a list of them. These
-        /// are later activated by the handler. To add a new handler it
+        /// are later activated by the handler. To add a new handler it 
         /// is only necessary to create a new services class that implements
         /// the IRest interface, and recompile the handler. This gives
-        /// all of the build-time flexibility of a modular approach
+        /// all of the build-time flexibility of a modular approach 
         /// while not introducing yet-another module loader. Note that
         /// multiple assembles can still be built, each with its own set
         /// of handlers. Examples of services classes are RestInventoryServices
@@ -76,12 +96,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         static RestHandler()
         {
+
             Module[] mods = Assembly.GetExecutingAssembly().GetModules();
 
             foreach (Module m in mods)
             {
                 Type[] types = m.GetTypes();
-                foreach (Type t in types)
+                foreach (Type t in types) 
                 {
                     try
                     {
@@ -97,6 +118,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     }
                 }
             }
+
         }
 
         #endregion local static state
@@ -105,13 +127,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         /// <summary>
         /// This routine loads all of the handlers discovered during
-        /// instance initialization.
+        /// instance initialization. 
         /// A table of all loaded and successfully constructed handlers
         /// is built, and this table is then used by the constructor to
         /// initialize each of the handlers in turn.
         /// NOTE: The loading process does not automatically imply that
-        /// the handler has registered any kind of an interface, that
-        /// may be (optionally) done by the handler either during
+        /// the handler has registered any kind of an interface, that 
+        /// may be (optionally) done by the handler either during 
         /// construction, or during initialization.
         ///
         /// I was not able to make this code work within a constructor
@@ -124,6 +146,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 if (!handlersLoaded)
                 {
+
                     ConstructorInfo ci;
                     Object          ht;
 
@@ -154,8 +177,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         // Name is used to differentiate the message header.
 
-        public override string Name
-        {
+        public override string Name 
+        { 
             get { return "HANDLER"; }
         }
 
@@ -168,15 +191,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         // We have to rename these because we want
         // to be able to share the values with other
-        // classes in our assembly and the base
+        // classes in our assembly and the base 
         // names are protected.
 
-        internal string MsgId
+        public string MsgId
         {
             get { return base.MsgID; }
         }
 
-        internal string RequestId
+        public string RequestId
         {
             get { return base.RequestID; }
         }
@@ -198,6 +221,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         {
             try
             {
+
                 // This plugin will only be enabled if the broader
                 // REST plugin mechanism is enabled.
 
@@ -208,7 +232,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // IsEnabled is implemented by the base class and
                 // reflects an overall RestPlugin status
 
-                if (!IsEnabled)
+                if (!IsEnabled)                     
                 {
                     Rest.Log.WarnFormat("{0} Plugins are disabled", MsgId);
                     return;
@@ -221,7 +245,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 Rest.main              = openSim;
                 Rest.Plugin            = this;
-                Rest.Comms             = App.CommunicationsManager;
+                Rest.Comms             = Rest.main.CommunicationsManager;
                 Rest.UserServices      = Rest.Comms.UserService;
                 Rest.InventoryServices = Rest.Comms.InventoryService;
                 Rest.AssetServices     = Rest.Comms.AssetCache;
@@ -234,7 +258,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.ExtendedEscape    = Rest.Config.GetBoolean("extended-escape",true);
                 Rest.Realm             = Rest.Config.GetString("realm","OpenSim REST");
                 Rest.DumpAsset         = Rest.Config.GetBoolean("dump-asset",false);
+                Rest.Fill              = Rest.Config.GetBoolean("path-fill",true);
                 Rest.DumpLineSize      = Rest.Config.GetInt("dump-line-size",32);
+                Rest.FlushEnabled      = Rest.Config.GetBoolean("flush-on-error",true);
 
                 Rest.Log.InfoFormat("{0} Authentication is {1}required", MsgId,
                                     (Rest.Authenticate ? "" : "not "));
@@ -248,6 +274,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.InfoFormat("{0} Dumping of asset data is {1}enabled", MsgId,
                                     (Rest.DumpAsset ? "" : "not "));
 
+                // The supplied prefix MUST be absolute
+
+                if (Rest.Prefix.Substring(0,1) != Rest.UrlPathSeparator)
+                    Rest.Prefix = Rest.UrlPathSeparator+Rest.Prefix;
+
                 // If data dumping is requested, report on the chosen line
                 // length.
 
@@ -257,15 +288,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                         Rest.DumpLineSize);
                 }
 
-                // Load all of the handlers present in the
+                // Load all of the handlers present in the 
                 // assembly
 
                 // In principle, as we're an application plug-in,
                 // most of what needs to be done could be done using
-                // static resources, however the Open Sim plug-in
-                // model makes this an instance, so that's what we
+                // static resources, however the Open Sim plug-in 
+                // model makes this an instance, so that's what we 
                 // need to be.
-                // There is only one Communications manager per
+                // There is only one Communications manager per 
                 // server, and by inference, only one each of the
                 // user, asset, and inventory servers. So we can cache
                 // those using a static initializer.
@@ -308,12 +339,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 Rest.Log.ErrorFormat("{0} Plugin initialization has failed: {1}", MsgId, e.Message);
             }
+
         }
 
         /// <summary>
         /// In the interests of efficiency, and because we cannot determine whether
         /// or not this instance will actually be harvested, we clobber the only
-        /// anchoring reference to the working state for this plug-in. What the
+        /// anchoring reference to the working state for this plug-in. What the 
         /// call to close does is irrelevant to this class beyond knowing that it
         /// can nullify the reference when it returns.
         /// To make sure everything is copacetic we make sure the primary interface
@@ -322,6 +354,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         public override void Close()
         {
+
             Rest.Log.InfoFormat("{0} Plugin is terminating", MsgId);
 
             try
@@ -329,11 +362,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 RemoveAgentHandler(Rest.Name, this);
             }
             catch (KeyNotFoundException){}
-
+            
             foreach (IRest handler in handlers)
             {
                 handler.Close();
             }
+
         }
 
         #endregion overriding methods
@@ -352,25 +386,57 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         {
             string path = request.RawUrl;
 
+            Rest.Log.DebugFormat("{0} Match ENTRY", MsgId);
+
             try
             {
                 foreach (string key in pathHandlers.Keys)
                 {
+                    Rest.Log.DebugFormat("{0} Match testing {1} against agent prefix <{2}>", MsgId, path, key);
+ 
+                    // Note that Match will not necessarily find the handler that will
+                    // actually be used - it does no test for the "closest" fit. It
+                    // simply reflects that at least one possible handler exists.
+
                     if (path.StartsWith(key))
                     {
-                        return (path.Length == key.Length ||
-                                path.Substring(key.Length, 1) == Rest.UrlPathSeparator);
+                        Rest.Log.DebugFormat("{0} Matched prefix <{1}>", MsgId, key);
+
+                        // This apparently odd evaluation is needed to prevent a match
+                        // on anything other than a URI token boundary. Otherwise we 
+                        // may match on URL's that were not intended for this handler.
+
+                        return ( path.Length == key.Length ||
+                                 path.Substring(key.Length,1) == Rest.UrlPathSeparator);
+
                     }
                 }
 
                 path = String.Format("{0}{1}{2}", request.HttpMethod, Rest.UrlMethodSeparator, path);
+
                 foreach (string key in streamHandlers.Keys)
                 {
+
+                    Rest.Log.DebugFormat("{0} Match testing {1} against stream prefix <{2}>", MsgId, path, key);
+ 
+                    // Note that Match will not necessarily find the handler that will
+                    // actually be used - it does no test for the "closest" fit. It
+                    // simply reflects that at least one possible handler exists.
+
                     if (path.StartsWith(key))
                     {
-                        return true;
+                        Rest.Log.DebugFormat("{0} Matched prefix <{1}>", MsgId, key);
+
+                        // This apparently odd evaluation is needed to prevent a match
+                        // on anything other than a URI token boundary. Otherwise we 
+                        // may match on URL's that were not intended for this handler.
+
+                        return ( path.Length == key.Length ||
+                                 path.Substring(key.Length,1) == Rest.UrlPathSeparator);
+
                     }
                 }
+
             }
             catch (Exception e)
             {
@@ -404,7 +470,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 for (int i = 0; i < request.Headers.Count; i++)
                 {
-                    Rest.Log.DebugFormat("{0} Header [{1}] : <{2}> = <{3}>",
+                    Rest.Log.DebugFormat("{0} Header [{1}] : <{2}> = <{3}>", 
                                          MsgId, i, request.Headers.GetKey(i), request.Headers.Get(i));
                 }
                 Rest.Log.DebugFormat("{0}    URI: {1}", MsgId, request.RawUrl);
@@ -415,8 +481,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             try
             {
-                handled = FindPathHandler(request, response) ||
-                    FindStreamHandler(request, response);
+                handled = ( FindPathHandler(request, response) ||
+                    FindStreamHandler(request, response) );
             }
             catch (Exception e)
             {
@@ -430,6 +496,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             Rest.Log.DebugFormat("{0} EXIT", MsgId);
 
             return handled;
+
         }
 
         #endregion interface methods
@@ -477,6 +544,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             return rdata.handled;
+
         }
 
         /// <summary>
@@ -489,12 +557,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         public void AddStreamHandler(string httpMethod, string path, RestMethod method)
         {
+
             if (!IsEnabled)
             {
                 return;
             }
 
-            if (!path.StartsWith(Rest.Prefix))
+            if (!path.StartsWith(Rest.Prefix)) 
             {
                 path = String.Format("{0}{1}", Rest.Prefix, path);
             }
@@ -512,6 +581,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 Rest.Log.WarnFormat("{0} Ignoring duplicate handler for {1}", MsgId, path);
             }
+
         }
 
         /// <summary>
@@ -526,9 +596,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal bool FindPathHandler(OSHttpRequest request, OSHttpResponse response)
         {
+
             RequestData rdata = null;
             string bestMatch = null;
-
+            
             if (!IsEnabled)
             {
                 return false;
@@ -551,6 +622,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (!String.IsNullOrEmpty(bestMatch))
             {
+
                 rdata = pathAllocators[bestMatch](request, response);
 
                 Rest.Log.DebugFormat("{0} Path based REST handler matched with <{1}>", MsgId, bestMatch);
@@ -559,7 +631,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 {
                     pathHandlers[bestMatch](rdata);
                 }
-
+ 
                 // A plugin generated error indicates a request-related error
                 // that has been handled by the plugin.
 
@@ -567,9 +639,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 {
                     Rest.Log.WarnFormat("{0} Request failed: {1}", MsgId, r.Message);
                 }
+
             }
 
             return (rdata == null) ? false : rdata.handled;
+
         }
 
         /// <summary>
@@ -577,8 +651,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// path as a key. If an entry already exists, it is replaced by the new one.
         /// </summary>
 
-        internal void AddPathHandler(RestMethodHandler mh, string path, RestMethodAllocator ra)
+        public void AddPathHandler(RestMethodHandler mh, string path, RestMethodAllocator ra)
         {
+
             if (!IsEnabled)
             {
                 return;
@@ -600,6 +675,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             pathHandlers.Add(path, mh);
             pathAllocators.Add(path, ra);
+
         }
     }
+
 }
