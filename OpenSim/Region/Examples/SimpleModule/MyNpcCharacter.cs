@@ -207,6 +207,10 @@ namespace OpenSim.Region.Examples.SimpleModule
        public event RegionHandleRequest OnRegionHandleRequest;
        public event ParcelInfoRequest OnParcelInfoRequest;
 
+       public event ActivateGesture OnActivateGesture;
+       public event DeactivateGesture OnDeactivateGesture;
+
+
 #pragma warning restore 67
 
         private LLUUID myID = LLUUID.Random();
@@ -294,6 +298,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
             get { return m_scene; }
         }
+
+        public virtual void ActivateGesture(LLUUID assetId, LLUUID gestureId)
+        {
+        }
+
 
         public virtual void OutPacket(Packet newPack, ThrottleOutPacketType packType)
         {

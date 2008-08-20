@@ -306,9 +306,19 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event RegionHandleRequest OnRegionHandleRequest;
         public event ParcelInfoRequest OnParcelInfoRequest;
 
+        public event ActivateGesture OnActivateGesture; 
+        public event DeactivateGesture OnDeactivateGesture;
+
 #pragma warning restore 67
 
         #endregion
+  
+        public void ActivateGesture(LLUUID assetId, LLUUID gestureId)
+        {
+        }
+        public void DeactivateGesture(LLUUID assetId, LLUUID gestureId)
+        {
+        }
 
         #region Overrriden Methods IGNORE
 

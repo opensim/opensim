@@ -299,7 +299,8 @@ namespace OpenSim.Framework
     public delegate void ScriptReset(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
     public delegate void GetScriptRunning(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
     public delegate void SetScriptRunning(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, bool running);
-
+    public delegate void ActivateGesture(IClientAPI client, LLUUID gestureid, LLUUID assetId);
+    public delegate void DeactivateGesture(IClientAPI client, LLUUID gestureid);
 
     public delegate void TerrainUnacked(IClientAPI remoteClient, int patchX, int patchY);
 
@@ -512,6 +513,10 @@ namespace OpenSim.Framework
         event UpdateVector OnAutoPilotGo;
 
         event TerrainUnacked OnUnackedTerrain;
+        event ActivateGesture OnActivateGesture;
+        event DeactivateGesture OnDeactivateGesture;
+       
+   //     void ActivateGesture(LLUUID assetId, LLUUID gestureId);
 
         // [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);

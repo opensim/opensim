@@ -1972,7 +1972,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 vel = m_velocity;
             ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
             SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
-            if (neighbourRegion != null)
+            if (neighbourRegion != null && ValidateAttachments())
             {
                 // When the neighbour is informed of the border crossing, it will set up CAPS handlers for the avatar
                 // This means we need to remove the current caps handler here and possibly compensate later,
@@ -2343,15 +2343,41 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void CrossAttachmentsIntoNewRegion(ulong regionHandle)
+        public bool ValidateAttachments()
+        {
+            lock (m_attachments)
+            {
+                // Validate
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    if(gobj == null)
+                        return false;
+
+                    if(gobj.RootPart == null)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        public bool CrossAttachmentsIntoNewRegion(ulong regionHandle)
         {
             m_attachmentsTransported = true;
             lock (m_attachments)
             {
+                // Validate
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    if(gobj == null || gobj.RootPart == null)
+                        return false;
+                }
+
                 foreach (SceneObjectGroup gobj in m_attachments)
                 {
                     // If the prim group is null then something must have happened to it!
-                    if (gobj != null)
+                    if (gobj != null && gobj.RootPart != null)
                     {
                         // Set the parent localID to 0 so it transfers over properly.
                         gobj.RootPart.SetParentLocalId(0);
@@ -2362,6 +2388,8 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
                 m_attachments.Clear();
+
+                return true;
             }
         }
 
@@ -2903,10 +2931,9 @@ namespace OpenSim.Region.Environment.Scenes
                 m_log.InfoFormat("[ATTACHEMENT] Attach from world {0}",
                         itemID.ToString());
 
-                // Attach from world
-                if (att.ParentGroup != null)
-                    m_scene.RezSingleAttachment(att.ParentGroup,
-                            ControllingClient, itemID, (uint)attachpoint, 0, 0);
+                // Attach from world, if not already attached
+                if (att.ParentGroup != null && !att.IsAttachment)
+                    m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, (uint)0, att.ParentGroup.GroupRotation, LLVector3.Zero);
             }
         }
     }

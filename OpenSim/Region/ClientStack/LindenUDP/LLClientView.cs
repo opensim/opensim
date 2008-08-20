@@ -247,6 +247,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private GetScriptRunning handlerGetScriptRunning = null;
         private SetScriptRunning handlerSetScriptRunning = null;
         private UpdateVector handlerAutoPilotGo = null;
+        //Gesture
+        private ActivateGesture handlerActivateGesture = null;
+        private DeactivateGesture handlerDeactivateGesture = null;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
 
@@ -931,6 +934,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public event TerrainUnacked OnUnackedTerrain;
 
+        public event ActivateGesture OnActivateGesture;
+        public event DeactivateGesture OnDeactivateGesture;
+
+
+        // voire si c'est necessaire
+        public void ActivateGesture(LLUUID assetId, LLUUID gestureId)
+        {
+        }
+        public void DeactivateGesture(LLUUID assetId, LLUUID gestureId)
+        {
+        }
         #region Scene/Avatar to Client
 
         /// <summary>
@@ -2064,6 +2078,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #endregion
+
+        // Gesture
+       
+
 
         #region Appearance/ Wearables Methods
 
@@ -5878,6 +5896,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
 
                     #endregion
+
+                    #region Gesture Managment
+
+                    case PacketType.ActivateGestures:
+                        ActivateGesturesPacket activateGesturePacket = (ActivateGesturesPacket)Pack;
+                        handlerActivateGesture = OnActivateGesture;
+                        if (handlerActivateGesture != null)
+                        {
+                            handlerActivateGesture(this,
+                                activateGesturePacket.Data[0].AssetID, 
+                                                        activateGesturePacket.Data[0].ItemID);
+                        }
+                        else m_log.Error("Null pointer for activateGesture");
+                        
+                        break;
+
+                    case PacketType.DeactivateGestures:
+                        DeactivateGesturesPacket deactivateGesturePacket = (DeactivateGesturesPacket)Pack;
+                        handlerDeactivateGesture = OnDeactivateGesture;
+                        if (handlerDeactivateGesture != null)
+                        {
+                            handlerDeactivateGesture(this, deactivateGesturePacket.Data[0].ItemID);
+                        }
+                        break;
+
+                    #endregion
+
 
                     #region unimplemented handlers
 

@@ -2020,7 +2020,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     // with the deeded object, it goes back to them
 
                                     grp.SetFromAssetID(grp.RootPart.LastOwnerID);
-                                    m_innerScene.AttachObject(sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition);
+                                    AttachObject(sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition);
                                 }
                             }
                         }
@@ -2161,7 +2161,54 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnUnackedTerrain += TerrainUnAcked;
 
+            //Gesture
+            client.OnActivateGesture += ActivateGesture;
+            client.OnDeactivateGesture += DeactivateGesture;
+
             // EventManager.TriggerOnNewClient(client);
+        }
+
+        // Gesture
+        public virtual void ActivateGesture(IClientAPI client,  LLUUID assetId, LLUUID gestureId)
+        {
+          //  UserProfileCacheService User = CommsManager.SecureInventoryService.UpdateItem(gestureid, agentID);
+            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(client.AgentId);
+
+            if (userInfo != null)
+            {
+
+                InventoryItemBase item = userInfo.RootFolder.FindItem(gestureId);
+                if (item != null)
+                {
+                    item.Flags = 1;
+                    userInfo.UpdateItem(item);
+                }
+                else m_log.Error("Unable to find gesture");
+            }
+            else m_log.Error("Gesture : Unable to find user ");
+
+            m_log.DebugFormat("Asset : {0} gesture :{1}", gestureId.ToString(), assetId.ToString());
+        }
+
+        public virtual void DeactivateGesture(IClientAPI client,  LLUUID gestureId)
+        {
+            //  UserProfileCacheService User = CommsManager.SecureInventoryService.UpdateItem(gestureid, agentID);
+            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(client.AgentId);
+
+            if (userInfo != null)
+            {
+
+                InventoryItemBase item = userInfo.RootFolder.FindItem(gestureId);
+                if (item != null)
+                {
+                    item.Flags = 0;
+                    userInfo.UpdateItem(item);
+                }
+                else m_log.Error("Unable to find gesture");
+            }
+            else m_log.Error("Gesture : Unable to find user ");
+
+            m_log.DebugFormat("gesture : {0} ", gestureId.ToString());
         }
 
         public virtual void TeleportClientHome(LLUUID agentId, IClientAPI client)

@@ -2343,6 +2343,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, LLQuaternion rot, LLVector3 pos)
+        {
+            m_innerScene.AttachObject(controllingClient, localID, attachPoint, rot, pos);
+        }
+
         public void DetachSingleAttachmentToInv(LLUUID itemID, IClientAPI remoteClient)
         {
             ScenePresence presence;

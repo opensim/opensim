@@ -615,6 +615,12 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (destRegionUp)
                     {
+                        if(!avatar.ValidateAttachments())
+                        {
+                            avatar.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
+                            return;
+                        }
+
                         avatar.Close();
 
                         // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
