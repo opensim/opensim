@@ -135,10 +135,17 @@ namespace OpenSim.Region.Communications.Local
             if (startLocationRequest == "last")
             {
                 currentRegion = theUser.CurrentAgent.Handle;
+                locX = (UInt32)theUser.CurrentAgent.Position.X;
+                locY = (UInt32)theUser.CurrentAgent.Position.Y;
+                locZ = (UInt32)theUser.CurrentAgent.Position.Z;
+                response.StartLocation = "last";
+                specificStartLocation = true;
             }
             else if (startLocationRequest == "home")
             {
                 currentRegion = theUser.HomeRegion;
+                response.StartLocation = "home";
+
             }
             else
             {
@@ -166,6 +173,8 @@ namespace OpenSim.Region.Communications.Local
                         locX = UInt32.Parse(uriMatch.Groups["x"].ToString());
                         locY = UInt32.Parse(uriMatch.Groups["y"].ToString());
                         locZ = UInt32.Parse(uriMatch.Groups["z"].ToString());
+                        // can be: last, home, safe, url
+                        response.StartLocation = "url";
                         specificStartLocation = true;
                     }
                 }
@@ -195,9 +204,6 @@ namespace OpenSim.Region.Communications.Local
 
                 m_log.DebugFormat(
                     "[CAPS][LOGIN]: RegionX {0} RegionY {0}", response.RegionX, response.RegionY);
-
-                // can be: last, home, safe, url
-                if (specificStartLocation) response.StartLocation = "url";
 
                 response.SeedCapability = "http://" + reg.ExternalHostName + ":" +
                                           serversInfo.HttpListenerPort.ToString() + "/CAPS/" + capsPath + "0000/";
