@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Timers;
 using libsecondlife;
 using log4net;
+using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
@@ -47,6 +48,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
         private OpenSimBase m_app;
         private BaseHttpServer m_httpd;
+        private IConfig m_config;
         private string requiredPassword = String.Empty;
 
         // TODO: required by IPlugin, but likely not at all right
@@ -69,8 +71,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (openSim.ConfigSource.Source.Configs["RemoteAdmin"] != null &&
                     openSim.ConfigSource.Source.Configs["RemoteAdmin"].GetBoolean("enabled", false))
                 {
+                    m_config = openSim.ConfigSource.Source.Configs["RemoteAdmin"];
                     m_log.Info("[RADMIN]: Remote Admin Plugin Enabled");
-                    requiredPassword = openSim.ConfigSource.Source.Configs["RemoteAdmin"].GetString("access_password", String.Empty);
+                    requiredPassword = m_config.GetString("access_password", String.Empty);
 
                     m_app = openSim;
                     m_httpd = openSim.HttpServer;
@@ -436,10 +439,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (persist)
                 {
                     string regionConfigPath = Path.Combine(Path.Combine(Util.configDir(), "Regions"),
-                                                           String.Format("{0}x{1}-{2}.xml",
+                                                           String.Format(m_config.GetString("region_file_template", "{0}x{1}-{2}.xml"),
                                                                          region.RegionLocX.ToString(),
                                                                          region.RegionLocY.ToString(),
-                                                                         regionID.ToString()));
+                                                                         regionID.ToString(),
+                                                                         region.InternalEndPoint.Port.ToString(),
+                                                                         region.RegionName.Replace(" ", "_").Replace(":", "_").Replace("/", "_")));
                     m_log.DebugFormat("[RADMIN] CreateRegion: persisting region {0} to {1}",
                                       region.RegionID, regionConfigPath);
                     region.SaveRegionToFile("dynamic region", regionConfigPath);

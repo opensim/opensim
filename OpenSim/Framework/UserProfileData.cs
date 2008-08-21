@@ -145,7 +145,9 @@ namespace OpenSim.Framework
         private LLUUID _partner;
 
         /// <summary>
-        /// The regionhandle of the users preffered home region. If multiple sims occupy the same spot, the grid may decide which region the user logs into
+        /// The regionhandle of the users preferred home region. If
+        /// multiple sims occupy the same spot, the grid may decide
+        /// which region the user logs into
         /// </summary>
         public virtual ulong HomeRegion
         {
@@ -159,7 +161,9 @@ namespace OpenSim.Framework
 
         private LLUUID _homeRegionID;
         /// <summary>
-        /// The regionID of the users home region. This is unique; even if the position of the region changes within the grid, this will refer to the same region.
+        /// The regionID of the users home region. This is unique;
+        /// even if the position of the region changes within the
+        /// grid, this will refer to the same region.
         /// </summary>
         public LLUUID HomeRegionID
         {
