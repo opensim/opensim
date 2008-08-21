@@ -1510,6 +1510,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
 
             SetPos(m_host, pos);
+
+            // sleep for 0.2 seconds
+            System.Threading.Thread.Sleep(200);
         }
 
         private void SetPos(SceneObjectPart part, LSL_Types.Vector3 pos)
@@ -1554,6 +1557,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
 
             SetRot(m_host, rot);
+
+            // sleep for 0.2 seconds
+            System.Threading.Thread.Sleep(200);
         }
 
         private void SetRot(SceneObjectPart part, LSL_Types.Quaternion rot)
