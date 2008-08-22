@@ -32,8 +32,8 @@ namespace OpenSim.Region.Physics.Meshing
 {
     internal class Extruder
     {
-        public float startParameter;
-        public float stopParameter;
+        //public float startParameter;
+        //public float stopParameter;
         public PhysicsVector size;
 
         public float taperTopFactorX = 1f;
