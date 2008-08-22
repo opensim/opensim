@@ -49,6 +49,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private OpenSimBase m_app;
         private BaseHttpServer m_httpd;
         private IConfig m_config;
+        private IConfigSource m_configSource;
         private string requiredPassword = String.Empty;
 
         // TODO: required by IPlugin, but likely not at all right
@@ -66,12 +67,13 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
         public void Initialise(OpenSimBase openSim)
         {
+            m_configSource = openSim.ConfigSource.Source;
             try
             {
-                if (openSim.ConfigSource.Source.Configs["RemoteAdmin"] != null &&
-                    openSim.ConfigSource.Source.Configs["RemoteAdmin"].GetBoolean("enabled", false))
+                if (m_configSource.Configs["RemoteAdmin"] != null &&
+                    m_configSource.Configs["RemoteAdmin"].GetBoolean("enabled", false))
                 {
-                    m_config = openSim.ConfigSource.Source.Configs["RemoteAdmin"];
+                    m_config = m_configSource.Configs["RemoteAdmin"];
                     m_log.Info("[RADMIN]: Remote Admin Plugin Enabled");
                     requiredPassword = m_config.GetString("access_password", String.Empty);
 
@@ -438,16 +440,29 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 bool persist = Convert.ToBoolean((string)requestData["persist"]);
                 if (persist)
                 {
-                    string regionConfigPath = Path.Combine(Path.Combine(Util.configDir(), "Regions"),
-                                                           String.Format(m_config.GetString("region_file_template", "{0}x{1}-{2}.xml"),
-                                                                         region.RegionLocX.ToString(),
-                                                                         region.RegionLocY.ToString(),
-                                                                         regionID.ToString(),
-                                                                         region.InternalEndPoint.Port.ToString(),
-                                                                         region.RegionName.Replace(" ", "_").Replace(":", "_").Replace("/", "_")));
+                    // default place for region XML files is in the
+                    // Regions directory of th config dir (aka /bin)
+                    string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
+                    try
+                    {
+                        // OpenSim.ini can specify a different regions dir
+                        IConfig startupConfig = (IConfig)m_configSource.Configs["Startup"];
+                        regionConfigPath = startupConfig.GetString("regionload_regionsdir", regionConfigPath).Trim();
+                    }
+                    catch (Exception)
+                    {
+                        // No INI setting recorded.
+                    }
+                    string regionXmlPath = Path.Combine(regionConfigPath,
+                                                        String.Format(m_config.GetString("region_file_template", "{0}x{1}-{2}.xml"),
+                                                                      region.RegionLocX.ToString(),
+                                                                      region.RegionLocY.ToString(),
+                                                                      regionID.ToString(),
+                                                                      region.InternalEndPoint.Port.ToString(),
+                                                                      region.RegionName.Replace(" ", "_").Replace(":", "_").Replace("/", "_")));
                     m_log.DebugFormat("[RADMIN] CreateRegion: persisting region {0} to {1}",
-                                      region.RegionID, regionConfigPath);
-                    region.SaveRegionToFile("dynamic region", regionConfigPath);
+                                      region.RegionID, regionXmlPath);
+                    region.SaveRegionToFile("dynamic region", regionXmlPath);
                 }
 
                 m_app.CreateRegion(region);

@@ -33,11 +33,11 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
 {
     public class RegionLoaderFileSystem : IRegionLoader
     {
-        private IConfigSource m_configSouce;
+        private IConfigSource m_configSource;
 
         public void SetIniConfigSource(IConfigSource configSource)
         {
-            m_configSouce = configSource;
+            m_configSource = configSource;
         }
 
         public RegionInfo[] LoadRegions()
@@ -46,7 +46,7 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
 
             try
             {
-                IConfig startupConfig = (IConfig)m_configSouce.Configs["Startup"];
+                IConfig startupConfig = (IConfig)m_configSource.Configs["Startup"];
                 regionConfigPath = startupConfig.GetString("regionload_regionsdir", regionConfigPath).Trim();
             }
             catch (Exception)
