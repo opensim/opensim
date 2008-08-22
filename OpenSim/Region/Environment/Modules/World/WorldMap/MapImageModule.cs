@@ -69,28 +69,46 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         private Scene m_scene;
         private IConfigSource m_config;
+        private IMapTileTerrainRenderer terrainRenderer;
 
         #region IMapImageGenerator Members
 
         public byte[] WriteJpeg2000Image(string gradientmap)
         {
             byte[] imageData = null;
-            Bitmap mapbmp = new Bitmap(256, 256);
-
-            //Bitmap bmp = TerrainToBitmap(gradientmap);
-            mapbmp = TerrainToBitmap2(m_scene,mapbmp);
 
             bool drawPrimVolume = true;
+            bool textureTerrain = true;
 
             try
             {
                 IConfig startupConfig = m_config.Configs["Startup"];
-                drawPrimVolume = startupConfig.GetBoolean("DrawPrimOnMapTile", true);
+                drawPrimVolume = startupConfig.GetBoolean("DrawPrimOnMapTile", drawPrimVolume);
+                textureTerrain = startupConfig.GetBoolean("TextureOnMapTile", textureTerrain);
             }
             catch (Exception)
             {
                 m_log.Warn("Failed to load StartupConfig");
             }
+
+            if (textureTerrain)
+            {
+                terrainRenderer = new TexturedMapTileRenderer();
+            }
+            else
+            {
+                terrainRenderer = new ShadedMapTileRenderer();
+            }
+            terrainRenderer.Initialise(m_scene, m_config);
+
+            Bitmap mapbmp = new Bitmap(256, 256);
+            //long t = System.Environment.TickCount;
+            //for(int i = 0; i < 10; ++i) {
+                terrainRenderer.TerrainToBitmap(mapbmp);
+            //}
+            //t = System.Environment.TickCount - t;
+            //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
+
 
             if (drawPrimVolume)
             {
@@ -180,181 +198,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 //                 }
 //             }
 //         }
-
-        private Bitmap TerrainToBitmap2(Scene whichScene, Bitmap mapbmp)
-        {
-            int tc = System.Environment.TickCount;
-            m_log.Info("[MAPTILE]: Generating Maptile Step 1: Terrain");
-
-            double[,] hm = whichScene.Heightmap.GetDoubles();
-            bool ShadowDebugContinue = true;
-
-            bool terraincorruptedwarningsaid = false;
-
-            float low = 255;
-            float high = 0;
-            for (int x = 0; x < 256; x++)
-            {
-                for (int y = 0; y < 256; y++)
-                {
-                    float hmval = (float)hm[x, y];
-                    if (hmval < low)
-                        low = hmval;
-                    if (hmval > high)
-                        high = hmval;
-                }
-            }
-
-            float mid = (high + low) * 0.5f;
-
-            // temporary initializer
-            float hfvalue = (float)whichScene.RegionInfo.RegionSettings.WaterHeight;
-            float hfvaluecompare = hfvalue;
-            float hfdiff = hfvalue;
-            int hfdiffi = 0;
-
-
-            for (int x = 0; x < 256; x++)
-            {
-                //int tc = System.Environment.TickCount;
-                for (int y = 0; y < 256; y++)
-                {
-                    float heightvalue = (float)hm[x, y];
-
-                    if (heightvalue > (float)whichScene.RegionInfo.RegionSettings.WaterHeight)
-                    {
-                        // scale height value
-                        heightvalue = low + mid * (heightvalue - low) / mid;
-
-                        if (heightvalue > 255)
-                            heightvalue = 255;
-
-                        if (heightvalue < 0)
-                            heightvalue = 0;
-
-                        if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
-                            heightvalue = 0;
-
-                        try
-                        {
-                            Color green = Color.FromArgb((int)heightvalue, 100, (int)heightvalue);
-
-                            // Y flip the cordinates
-                            mapbmp.SetPixel(x, (256 - y) - 1, green);
-
-                            //X
-                            // .
-                            //
-                            // Shade the terrain for shadows
-                            if ((x - 1 > 0) && (y - 1 > 0))
-                            {
-                                hfvalue = (float)hm[x, y];
-                                hfvaluecompare = (float)hm[x - 1, y - 1];
-
-                                if (Single.IsInfinity(hfvalue) || Single.IsNaN(hfvalue))
-                                    hfvalue = 0;
-
-                                if (Single.IsInfinity(hfvaluecompare) || Single.IsNaN(hfvaluecompare))
-                                    hfvaluecompare = 0;
-
-                                hfdiff = hfvaluecompare - hfvalue;
-
-                                if (hfdiff > 0.3f)
-                                {
-                                }
-                                else if (hfdiff < -0.3f)
-                                {
-                                    // We have to desaturate and blacken the land at the same time
-                                    // we use floats, colors use bytes, so shrink are space down to
-                                    // 0-255
-
-
-                                    try
-                                    {
-                                        hfdiffi = Math.Abs((int)((hfdiff * 4) + (hfdiff * 0.5))) + 1;
-                                        if (hfdiff % 1 != 0)
-                                        {
-                                            hfdiffi = hfdiffi + Math.Abs((int)(((hfdiff % 1) * 0.5f) * 10f) - 1);
-                                        }
-                                    }
-                                    catch (System.OverflowException)
-                                    {
-                                        m_log.Debug("[MAPTILE]: Shadow failed at value: " + hfdiff.ToString());
-                                        ShadowDebugContinue = false;
-                                    }
-
-                                    if (ShadowDebugContinue)
-                                    {
-                                        if ((256 - y) - 1 > 0)
-                                        {
-                                            Color Shade = mapbmp.GetPixel(x - 1, (256 - y) - 1);
-
-                                            int r = Shade.R;
-
-                                            int g = Shade.G;
-                                            int b = Shade.B;
-                                            Shade = Color.FromArgb((r - hfdiffi > 0) ? r - hfdiffi : 0, (g - hfdiffi > 0) ? g - hfdiffi : 0, (b - hfdiffi > 0) ? b - hfdiffi : 0);
-                                            mapbmp.SetPixel(x - 1, (256 - y) - 1, Shade);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        catch (System.ArgumentException)
-                        {
-                            if (!terraincorruptedwarningsaid)
-                            {
-                                m_log.WarnFormat("[MAPIMAGE]: Your terrain is corrupted in region {0}, it might take a few minutes to generate the map image depending on the corruption level", whichScene.RegionInfo.RegionName);
-                                terraincorruptedwarningsaid = true;
-                            }
-                            Color black = Color.Black;
-                            mapbmp.SetPixel(x, (256 - y) - 1, black);
-                        }
-                    }
-                    else
-                    {
-                        // We're under the water level with the terrain, so paint water instead of land
-
-                        // Y flip the cordinates
-                        heightvalue = (float)whichScene.RegionInfo.RegionSettings.WaterHeight - heightvalue;
-                        if (heightvalue > 19)
-                            heightvalue = 19;
-                        if (heightvalue < 0)
-                            heightvalue = 0;
-
-                        heightvalue = 100 - (heightvalue * 100) / 19;
-
-                        if (heightvalue > 255)
-                            heightvalue = 255;
-
-                        if (heightvalue < 0)
-                            heightvalue = 0;
-
-                        if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
-                            heightvalue = 0;
-
-                        try
-                        {
-                            Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
-                            mapbmp.SetPixel(x, (256 - y) - 1, water);
-                        }
-                        catch (System.ArgumentException)
-                        {
-                            if (!terraincorruptedwarningsaid)
-                            {
-                                m_log.WarnFormat("[MAPIMAGE]: Your terrain is corrupted in region {0}, it might take a few minutes to generate the map image depending on the corruption level", whichScene.RegionInfo.RegionName);
-                                terraincorruptedwarningsaid = true;
-                            }
-                            Color black = Color.Black;
-                            mapbmp.SetPixel(x, (256 - y) - 1, black);
-                        }
-                    }
-                }
-            }
-            m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (System.Environment.TickCount - tc) + " ms");
-
-            return mapbmp;
-        }
 
         private Bitmap DrawObjectVolume(Scene whichScene, Bitmap mapbmp)
         {

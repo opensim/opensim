@@ -25,6 +25,8 @@ region_info_source = "filesystem"
 ; Draw objects on maptile.   This step might take a long time if you've got a huge amount of 
 ; objects, so you can turn it off here if you'd like.
 DrawPrimOnMapTile = true
+; Use terrain texture for maptiles if true, use shaded green if false
+TextureOnMapTile = false
 
 ; Maximum total size, and maximum size where a prim can be physical
 NonPhysicalPrimMax = 256

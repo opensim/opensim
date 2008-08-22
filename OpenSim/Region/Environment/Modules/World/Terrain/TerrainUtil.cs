@@ -95,7 +95,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             return (x * (1.0 - z)) + (y * z);
         }
 
-        private static double InterpolatedNoise(double x, double y)
+        public static double InterpolatedNoise(double x, double y)
         {
             int integer_X = (int) (x);
             double fractional_X = x - integer_X;
