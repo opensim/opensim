@@ -39,7 +39,7 @@ namespace OpenSim.Region.Physics.Meshing
         public List<Triangle> triangles;
         GCHandle pinnedVirtexes;
         GCHandle pinnedIndex;
-        public float[] normals;
+        //public float[] normals;
 
         public Mesh()
         {

@@ -1760,66 +1760,66 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
 
-        public static void CalcNormals(Mesh mesh)
-        {
-            int iTriangles = mesh.triangles.Count;
+        //public static void CalcNormals(Mesh mesh)
+        //{
+        //    int iTriangles = mesh.triangles.Count;
 
-            mesh.normals = new float[iTriangles*3];
+        //    mesh.normals = new float[iTriangles*3];
 
-            int i = 0;
-            foreach (Triangle t in mesh.triangles)
-            {
-                float ux, uy, uz;
-                float vx, vy, vz;
-                float wx, wy, wz;
+        //    int i = 0;
+        //    foreach (Triangle t in mesh.triangles)
+        //    {
+        //        float ux, uy, uz;
+        //        float vx, vy, vz;
+        //        float wx, wy, wz;
 
-                ux = t.v1.X;
-                uy = t.v1.Y;
-                uz = t.v1.Z;
+        //        ux = t.v1.X;
+        //        uy = t.v1.Y;
+        //        uz = t.v1.Z;
 
-                vx = t.v2.X;
-                vy = t.v2.Y;
-                vz = t.v2.Z;
+        //        vx = t.v2.X;
+        //        vy = t.v2.Y;
+        //        vz = t.v2.Z;
 
-                wx = t.v3.X;
-                wy = t.v3.Y;
-                wz = t.v3.Z;
-
-
-                // Vectors for edges
-                float e1x, e1y, e1z;
-                float e2x, e2y, e2z;
-
-                e1x = ux - vx;
-                e1y = uy - vy;
-                e1z = uz - vz;
-
-                e2x = ux - wx;
-                e2y = uy - wy;
-                e2z = uz - wz;
+        //        wx = t.v3.X;
+        //        wy = t.v3.Y;
+        //        wz = t.v3.Z;
 
 
-                // Cross product for normal
-                float nx, ny, nz;
-                nx = e1y*e2z - e1z*e2y;
-                ny = e1z*e2x - e1x*e2z;
-                nz = e1x*e2y - e1y*e2x;
+        //        // Vectors for edges
+        //        float e1x, e1y, e1z;
+        //        float e2x, e2y, e2z;
 
-                // Length
-                float l = (float) Math.Sqrt(nx*nx + ny*ny + nz*nz);
+        //        e1x = ux - vx;
+        //        e1y = uy - vy;
+        //        e1z = uz - vz;
 
-                // Normalized "normal"
-                nx /= l;
-                ny /= l;
-                nz /= l;
+        //        e2x = ux - wx;
+        //        e2y = uy - wy;
+        //        e2z = uz - wz;
 
-                mesh.normals[i] = nx;
-                mesh.normals[i + 1] = ny;
-                mesh.normals[i + 2] = nz;
 
-                i += 3;
-            }
-        }
+        //        // Cross product for normal
+        //        float nx, ny, nz;
+        //        nx = e1y*e2z - e1z*e2y;
+        //        ny = e1z*e2x - e1x*e2z;
+        //        nz = e1x*e2y - e1y*e2x;
+
+        //        // Length
+        //        float l = (float) Math.Sqrt(nx*nx + ny*ny + nz*nz);
+
+        //        // Normalized "normal"
+        //        nx /= l;
+        //        ny /= l;
+        //        nz /= l;
+
+        //        //mesh.normals[i] = nx;
+        //        //mesh.normals[i + 1] = ny;
+        //        //mesh.normals[i + 2] = nz;
+
+        //        i += 3;
+        //    }
+        //}
 
         public static Vertex midUnitRadialPoint(Vertex a, Vertex b, float radius)
         {
@@ -1878,21 +1878,21 @@ namespace OpenSim.Region.Physics.Meshing
 
                 SculptMesh smesh = CreateSculptMesh(primName, primShape, size, lod);
                 mesh = (Mesh)smesh;
-                CalcNormals(mesh);
+                //CalcNormals(mesh);
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
             {
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
                 { // its a box
                     mesh = CreateBoxMesh(primName, primShape, size);
-                    CalcNormals(mesh);
+                    //CalcNormals(mesh);
                 }
                 else if (primShape.PathCurve == (byte)Extrusion.Curve1)
                 { // tube
                     // do a cylinder for now
                     //mesh = CreateCylinderMesh(primName, primShape, size);
                     mesh = CreateCircularPathMesh(primName, primShape, size);
-                    CalcNormals(mesh);
+                    //CalcNormals(mesh);
                 }
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
@@ -1900,14 +1900,14 @@ namespace OpenSim.Region.Physics.Meshing
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
                 {
                     mesh = CreateCylinderMesh(primName, primShape, size);
-                    CalcNormals(mesh);
+                    //CalcNormals(mesh);
                 }
 
                 // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
                 else if (primShape.PathCurve == (byte) Extrusion.Curve1)
                 {  // dahlia's favorite, a torus :)
                     mesh = CreateCircularPathMesh(primName, primShape, size);
-                    CalcNormals(mesh);
+                    //CalcNormals(mesh);
                 }
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
@@ -1916,7 +1916,7 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     //mesh = CreateSphereMesh(primName, primShape, size);
                     mesh = CreateCircularPathMesh(primName, primShape, size);
-                    CalcNormals(mesh);
+                    //CalcNormals(mesh);
                 }
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
@@ -1924,19 +1924,19 @@ namespace OpenSim.Region.Physics.Meshing
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
                 {
                     mesh = CreatePrismMesh(primName, primShape, size);
-                    CalcNormals(mesh);
+                    //CalcNormals(mesh);
                 }
                 else if (primShape.PathCurve == (byte) Extrusion.Curve1)
                 {  // a ring - do a cylinder for now
                     //mesh = CreateCylinderMesh(primName, primShape, size);
                     mesh = CreateCircularPathMesh(primName, primShape, size);
-                    CalcNormals(mesh);
+                    //CalcNormals(mesh);
                 }
             }
             else // just do a box
             {
                 mesh = CreateBoxMesh(primName, primShape, size);
-                CalcNormals(mesh);
+                //CalcNormals(mesh);
             }
 
             if (mesh != null)

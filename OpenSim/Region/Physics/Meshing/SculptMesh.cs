@@ -202,7 +202,7 @@ namespace OpenSim.Region.Physics.Meshing
         {
             this.triangles.Clear();
             this.vertices.Clear();
-            normals = new float[0];
+            //normals = new float[0];
 
         }
         public void processSculptTexture()
