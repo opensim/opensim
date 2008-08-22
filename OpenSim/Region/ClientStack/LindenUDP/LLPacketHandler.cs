@@ -745,37 +745,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Actually make the byte array and send it
-            try
-            {
-                byte[] sendbuffer = packet.ToBytes();
+            byte[] sendbuffer = packet.ToBytes();
 
-                if (packet.Header.Zerocoded)
-                {
-                    int packetsize = Helpers.ZeroEncode(sendbuffer,
-                            sendbuffer.Length, m_ZeroOutBuffer);
-                    m_PacketServer.SendPacketTo(m_ZeroOutBuffer, packetsize,
-                            SocketFlags.None, m_Client.CircuitCode);
-                }
-                else
-                {
-                    // Need some extra space in case we need to add proxy
-                    // information to the message later
-                    Buffer.BlockCopy(sendbuffer, 0, m_ZeroOutBuffer, 0,
-                            sendbuffer.Length);
-                    m_PacketServer.SendPacketTo(m_ZeroOutBuffer,
-                            sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
-                }
-
-                PacketPool.Instance.ReturnPacket(packet);
-            }
-            catch (Exception e)
+            if (packet.Header.Zerocoded)
             {
-                m_log.Warn("[client]: " +
-                       "PacketHandler:ProcessOutPacket() - WARNING: Socket "+
-                       "exception occurred  - killing thread");
-                m_log.Error(e.ToString());
-                m_Client.Close(true);
+                int packetsize = Helpers.ZeroEncode(sendbuffer,
+                        sendbuffer.Length, m_ZeroOutBuffer);
+                m_PacketServer.SendPacketTo(m_ZeroOutBuffer, packetsize,
+                        SocketFlags.None, m_Client.CircuitCode);
             }
+            else
+            {
+                // Need some extra space in case we need to add proxy
+                // information to the message later
+                Buffer.BlockCopy(sendbuffer, 0, m_ZeroOutBuffer, 0,
+                        sendbuffer.Length);
+                m_PacketServer.SendPacketTo(m_ZeroOutBuffer,
+                        sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
+            }
+
+            PacketPool.Instance.ReturnPacket(packet);
         }
     }
 }
