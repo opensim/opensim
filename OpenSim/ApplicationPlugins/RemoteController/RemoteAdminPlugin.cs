@@ -441,7 +441,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (persist)
                 {
                     // default place for region XML files is in the
-                    // Regions directory of th config dir (aka /bin)
+                    // Regions directory of the config dir (aka /bin)
                     string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
                     try
                     {

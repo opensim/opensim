@@ -55,51 +55,47 @@ namespace OpenSim.Framework.Communications
         /// anything else requires a general redesign of the config
         /// system. 
         /// </remarks>
-        public GridInfoService(string configPath)
+        public GridInfoService(IConfigSource configSource)
         {
             _info["platform"] = "OpenSim";
-            if (File.Exists(configPath))
+            try
             {
-                try
+                IConfig startupCfg = configSource.Configs["Startup"];
+                IConfig gridCfg = configSource.Configs["GridInfo"];
+                IConfig netCfg = configSource.Configs["Network"];
+                
+                bool grid = startupCfg.GetBoolean("gridmode", false);
+                
+                if (grid)
+                    _info["mode"] = "grid";
+                else 
+                    _info["mode"] = "standalone";
+                
+                
+                if (null != gridCfg)
                 {
-                    IConfigSource _configSource = new IniConfigSource(configPath);
-                    IConfig startupCfg = _configSource.Configs["Startup"];
-                    IConfig gridCfg = _configSource.Configs["GridInfo"];
-                    IConfig netCfg = _configSource.Configs["Network"];
-
-                    bool grid = startupCfg.GetBoolean("gridmode", false);
-
-                    if (grid)
-                        _info["mode"] = "grid";
-                    else 
-                        _info["mode"] = "standalone";
-
-
-                    if (null != gridCfg)
+                    foreach (string k in gridCfg.GetKeys())
                     {
-                        foreach (string k in gridCfg.GetKeys())
-                        {
-                            _info[k] = gridCfg.GetString(k);
-                        }
+                        _info[k] = gridCfg.GetString(k);
                     }
-                    else if (null != netCfg)
-                    {
-                        if (grid)
-                            _info["login"] = netCfg.GetString("user_server_url");
+                }
+                else if (null != netCfg)
+                {
+                    if (grid)
+                        _info["login"] = netCfg.GetString("user_server_url");
                         else
                             _info["login"] = String.Format("http://127.0.0.1:{0}/", netCfg.GetString("http_listener_port"));
-                        IssueWarning();
-                    }
-                    else
-                    {
-                        _info["login"] = "http://127.0.0.1:9000/";
-                        IssueWarning();
-                    }
+                    IssueWarning();
                 }
-                catch (Exception)
+                else
                 {
-                    _log.DebugFormat("[GridInfoService] cannot get grid info from {0}, using minimal defaults", configPath);
+                    _info["login"] = "http://127.0.0.1:9000/";
+                    IssueWarning();
                 }
+            }
+            catch (Exception)
+            {
+                _log.Debug("[GridInfoService] cannot get grid info from config source, using minimal defaults");
             }
             _log.InfoFormat("[GridInfoService] Grid info service initialized with {0} keys", _info.Count);
         }
@@ -107,7 +103,7 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// Default constructor, uses OpenSim.ini.
         /// </summary>
-        public GridInfoService() : this(Path.Combine(Util.configDir(), "OpenSim.ini"))
+        public GridInfoService() : this(new IniConfigSource(Path.Combine(Util.configDir(), "OpenSim.ini")))
         {
         }
 

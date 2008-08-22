@@ -387,7 +387,8 @@ namespace OpenSim
                 m_httpServer.SetLLSDHandler(m_loginService.LLSDLoginMethod);
 
                 // provide grid info
-                m_gridInfoService = new GridInfoService();
+                // m_gridInfoService = new GridInfoService(m_config.Source.Configs["Startup"].GetString("inifile", Path.Combine(Util.configDir(), "OpenSim.ini")));
+                m_gridInfoService = new GridInfoService(m_config.Source);
                 m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
                 m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
             }
