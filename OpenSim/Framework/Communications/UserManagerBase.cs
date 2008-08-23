@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using libsecondlife;
@@ -361,6 +362,13 @@ namespace OpenSim.Framework.Communications
 
             // User connection
             agent.AgentOnline = true;
+
+            if (request.Params.Count > 1)
+            {
+                IPEndPoint RemoteIPEndPoint = (IPEndPoint)request.Params[1];
+                agent.AgentIP = RemoteIPEndPoint.Address.ToString();
+                agent.AgentPort = (uint)RemoteIPEndPoint.Port;
+            }
 
             // Generate sessions
             RNGCryptoServiceProvider rand = new RNGCryptoServiceProvider();

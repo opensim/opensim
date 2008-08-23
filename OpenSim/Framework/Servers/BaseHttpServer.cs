@@ -380,6 +380,7 @@ namespace OpenSim.Framework.Servers
                 string methodName = xmlRprcRequest.MethodName;
                 if (methodName != null)
                 {
+                    xmlRprcRequest.Params.Add(request.RemoteIPEndPoint);
                     XmlRpcResponse xmlRpcResponse;
 
                     XmlRpcMethod method;
