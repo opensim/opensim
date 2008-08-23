@@ -718,7 +718,11 @@ namespace OpenSim.Grid.GridServer
             {
                 LLUUID regionID = new LLUUID((string)requestData["region_UUID"]);
                 simData = GetRegion(regionID);
-                if (simData == null) m_log.WarnFormat("[DATA] didn't find region for regionID {0}", regionID); 
+                if (simData == null)
+                {
+                    m_log.WarnFormat("[DATA] didn't find region for regionID {0} from {1}",
+                                     regionID, request.Params.Count > 1 ? request.Params[1] : "unknwon source");
+                }
             }
             else if (requestData.ContainsKey("region_handle"))
             {
@@ -726,13 +730,21 @@ namespace OpenSim.Grid.GridServer
                 //CFK: Console.WriteLine("requesting data for region " + (string) requestData["region_handle"]);
                 ulong regionHandle = Convert.ToUInt64((string)requestData["region_handle"]);
                 simData = GetRegion(regionHandle);
-                if (simData == null) m_log.WarnFormat("[DATA] didn't find region for regionHandle {0}", regionHandle); 
+                if (simData == null)
+                {
+                    m_log.WarnFormat("[DATA] didn't find region for regionHandle {0} from {1}",
+                                     regionHandle, request.Params.Count > 1 ? request.Params[1] : "unknwon source");
+                }
             }
             else if (requestData.ContainsKey("region_name_search"))
             {
                 string regionName = (string)requestData["region_name_search"];
                 simData = GetRegion(regionName);
-                if (simData == null) m_log.WarnFormat("[DATA] didn't find region for regionName {0}", regionName); 
+                if (simData == null)
+                {
+                    m_log.WarnFormat("[DATA] didn't find region for regionName {0} from {1}",
+                                     regionName, request.Params.Count > 1 ? request.Params[1] : "unknwon source");
+                }
             }
             else m_log.Warn("[DATA] regionlookup without regionID, regionHandle or regionHame");
 
