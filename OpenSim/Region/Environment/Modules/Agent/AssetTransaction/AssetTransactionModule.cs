@@ -262,10 +262,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type,
                                            byte[] data, bool storeLocal, bool tempFile)
         {
-            if ((AssetType)type == AssetType.Texture || 
+            if (((AssetType)type == AssetType.Texture || 
                 (AssetType)type == AssetType.Sound ||
                 (AssetType)type == AssetType.TextureTGA ||
-                (AssetType)type == AssetType.Animation)
+                (AssetType)type == AssetType.Animation) &&
+                tempFile == false)
             {
                 Scene scene = (Scene)remoteClient.Scene;
                 IMoneyModule mm = scene.RequestModuleInterface<IMoneyModule>();
