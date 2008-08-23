@@ -29,10 +29,10 @@ using System;
 using OpenSim.Framework;
 using libsecondlife;
 
-namespace OpenSim.Region.Environment.Interfaces
+namespace OpenSim.Region.Interfaces
 {
     public delegate void ObjectPaid(LLUUID objectID, LLUUID agentID, int amount);
-    public interface IMoneyModule : IRegionModule
+    public interface IMoneyModule
     {
         bool ObjectGiveMoney(LLUUID objectID, LLUUID fromID, LLUUID toID,
                 int amount);

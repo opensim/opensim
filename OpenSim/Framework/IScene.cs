@@ -63,5 +63,7 @@ namespace OpenSim.Framework
         bool PresenceChildStatus(LLUUID avatarID);
 
         string GetCapsPath(LLUUID agentId);
+
+        T RequestModuleInterface<T>();
     }
 }

@@ -38,6 +38,7 @@ using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications.Cache;
 
@@ -54,7 +55,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
     /// Centralized grid structure example using OpenSimWi Redux revision 9+
     /// svn co https://opensimwiredux.svn.sourceforge.net/svnroot/opensimwiredux
     /// </summary>
-    public class SampleMoneyModule : IMoneyModule
+    public class SampleMoneyModule : IMoneyModule, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

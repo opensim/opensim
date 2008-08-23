@@ -39,6 +39,7 @@ using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
 using OpenSim.Region.Environment.Modules.World.Land;

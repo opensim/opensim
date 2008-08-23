@@ -32,6 +32,7 @@ using libsecondlife;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 

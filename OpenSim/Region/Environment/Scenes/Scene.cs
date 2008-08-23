@@ -2963,7 +2963,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// For the given interface, retrieve the region module which implements it.
         /// </summary>
         /// <returns>null if there is no module implementing that interface</returns>
-        public T RequestModuleInterface<T>()
+        public override T RequestModuleInterface<T>()
         {
             if (ModuleInterfaces.ContainsKey(typeof(T)))
             {

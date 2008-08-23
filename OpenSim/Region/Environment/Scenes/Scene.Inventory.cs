@@ -35,6 +35,7 @@ using libsecondlife.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes

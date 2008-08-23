@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
