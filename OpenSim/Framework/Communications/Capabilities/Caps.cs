@@ -631,7 +631,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                 }
             }
 
-            //Console.WriteLine("asset upload request via CAPS" + llsdRequest.inventory_type +" , "+ llsdRequest.asset_type);
+            //System.Console.WriteLine("asset upload request via CAPS" + llsdRequest.inventory_type +" , "+ llsdRequest.asset_type);
 
             string assetName = llsdRequest.name;
             string assetDes = llsdRequest.description;
