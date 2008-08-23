@@ -266,11 +266,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             scene.SetObjectCapacity(ObjectCapacity);
         }
 
-        /// <summary>
-        /// New Client Event Handler
-        /// </summary>
-        /// <param name="client"></param>
-        private void OnNewClient(IClientAPI client)
+        private void GetClientFunds(IClientAPI client)
         {
             // Here we check if we're in grid mode
             // I imagine that the 'check balance'
@@ -342,6 +338,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             {
                 CheckExistAndRefreshFunds(client.AgentId);
             }
+
+        }
+
+        /// <summary>
+        /// New Client Event Handler
+        /// </summary>
+        /// <param name="client"></param>
+        private void OnNewClient(IClientAPI client)
+        {
+            GetClientFunds(client);
 
             // Subscribe to Money messages
             client.OnEconomyDataRequest += EconomyDataRequestHandler;
@@ -1523,6 +1529,27 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             }
             DeadAvatar.Health = 100;
             DeadAvatar.Scene.TeleportClientHome(DeadAvatar.UUID, DeadAvatar.ControllingClient);
+        }
+
+        public int GetBalance(IClientAPI client)
+        {
+            GetClientFunds(client);
+
+            lock(m_KnownClientFunds)
+            {
+                if (!m_KnownClientFunds.ContainsKey(client.AgentId))
+                    return 0;
+
+                return m_KnownClientFunds[client.AgentId];
+            }
+        }
+
+        public bool UploadCovered(IClientAPI client)
+        {
+            if (GetBalance(client) < PriceUpload)
+                return false;
+
+            return true;
         }
 
         #endregion

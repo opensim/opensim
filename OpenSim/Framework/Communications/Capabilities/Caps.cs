@@ -34,6 +34,9 @@ using libsecondlife;
 using log4net;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
@@ -606,6 +609,29 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <returns></returns>
         public LLSDAssetUploadResponse NewAgentInventoryRequest(LLSDAssetUploadRequest llsdRequest)
         {
+            if (llsdRequest.asset_type == "texture" || 
+                llsdRequest.asset_type == "animation" ||
+                llsdRequest.asset_type == "sound")
+            {
+                IClientAPI client = GetClient(m_agentID);
+                Scene scene = (Scene)client.Scene;
+
+                IMoneyModule mm = scene.RequestModuleInterface<IMoneyModule>();
+
+                if(mm != null)
+                {
+                    if(!mm.UploadCovered(client))
+                    {
+                        client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+
+                        LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
+                        errorResponse.uploader = "";
+                        errorResponse.state = "error";
+                        return errorResponse;
+                    }
+                }
+            }
+
             //Console.WriteLine("asset upload request via CAPS" + llsdRequest.inventory_type +" , "+ llsdRequest.asset_type);
 
             string assetName = llsdRequest.name;

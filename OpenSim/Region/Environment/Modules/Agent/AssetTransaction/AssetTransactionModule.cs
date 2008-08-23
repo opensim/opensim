@@ -261,6 +261,23 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type,
                                            byte[] data, bool storeLocal, bool tempFile)
         {
+            if ((AssetType)type == AssetType.Texture || 
+                (AssetType)type == AssetType.Sound ||
+                (AssetType)type == AssetType.TextureTGA ||
+                (AssetType)type == AssetType.Animation)
+            {
+                Scene scene = (Scene)remoteClient.Scene;
+                IMoneyModule mm = scene.RequestModuleInterface<IMoneyModule>();
+                if (mm != null)
+                {
+                    if (!mm.UploadCovered(remoteClient))
+                    {
+                        remoteClient.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+                        return;
+                    }
+                }
+            }
+
             // Console.WriteLine("asset upload of " + assetID);
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
 

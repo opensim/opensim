@@ -668,6 +668,7 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Web"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework.AssetLoader.Filesystem"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework.Servers"/>
