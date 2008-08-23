@@ -716,23 +716,29 @@ namespace OpenSim.Grid.GridServer
             RegionProfileData simData = null;
             if (requestData.ContainsKey("region_UUID"))
             {
-                simData = GetRegion(new LLUUID((string)requestData["region_UUID"]));
+                LLUUID regionID = new LLUUID((string)requestData["region_UUID"]);
+                simData = GetRegion(regionID);
+                if (simData == null) m_log.WarnFormat("[DATA] didn't find region for regionID {0}", regionID); 
             }
             else if (requestData.ContainsKey("region_handle"))
             {
                 //CFK: The if/else below this makes this message redundant.
                 //CFK: Console.WriteLine("requesting data for region " + (string) requestData["region_handle"]);
-                simData = GetRegion(Convert.ToUInt64((string)requestData["region_handle"]));
+                ulong regionHandle = Convert.ToUInt64((string)requestData["region_handle"]);
+                simData = GetRegion(regionHandle);
+                if (simData == null) m_log.WarnFormat("[DATA] didn't find region for regionHandle {0}", regionHandle); 
             }
             else if (requestData.ContainsKey("region_name_search"))
             {
-                simData = GetRegion((string)requestData["region_name_search"]);
+                string regionName = (string)requestData["region_name_search"];
+                simData = GetRegion(regionName);
+                if (simData == null) m_log.WarnFormat("[DATA] didn't find region for regionName {0}", regionName); 
             }
+            else m_log.Warn("[DATA] regionlookup without regionID, regionHandle or regionHame");
 
             if (simData == null)
             {
                 //Sim does not exist
-                Console.WriteLine("region not found");
                 responseData["error"] = "Sim does not exist";
             }
             else
