@@ -95,7 +95,7 @@ namespace OpenSim.Region.Physics.Meshing
         // this class should have a table of most commonly computed values
 	    // instead of all the trig function calls
 	    // most common would be for sides = 3, 4, or 24
-        AngleList( int sides, float startAngle, float stopAngle )
+        internal void makeAngles( int sides, float startAngle, float stopAngle )
         {
             angles = new List<Angle>();
             double twoPi = System.Math.PI * 2.0;
@@ -148,15 +148,87 @@ namespace OpenSim.Region.Physics.Meshing
         }
     }
 
-    internal class PrimProfile
+    internal class makeProfile
     {
-        internal List<vertex> vertices;
+        private float twoPi = 2.0f * (float)Math.PI;
+        internal List<vertex> coords;
+        internal List<vertex> hollowCoords;
         internal List<face> faces;
 
-        PrimProfile()
+        internal int sides = 4;
+        internal int hollowSides = 7;
+        internal vertex center = new vertex(0.0f, 0.0f, 0.0f);
+
+        makeProfile(int sides, float profileStart, float profileEnd, float hollow, int hollowSides)
         {
-            vertices = new List<vertex>();
+            coords = new List<vertex>();
+            hollowCoords = new List<vertex>();
             faces = new List<face>();
+
+            AngleList angles = new AngleList();
+            AngleList hollowAngles = new AngleList();
+
+            this.sides = sides;
+            this.hollowSides = hollowSides;
+
+            float xScale = 0.5f;
+            float yScale = 0.5f; 
+            if (sides == 4)  // corners of a square are sqrt(2) from center
+			{
+                xScale = 0.707f;
+			    yScale = 0.707f;
+            }
+
+            float startAngle = profileStart * twoPi;
+		    float stopAngle = profileEnd * twoPi;
+		    float stepSize = twoPi / this.sides;
+
+            angles.makeAngles(this.sides, startAngle, stopAngle);
+
+            if (hollow > 0.001f)
+            {
+                if (this.sides == this.hollowSides)
+                    hollowAngles = angles;
+                else
+                {
+                    hollowAngles = new AngleList();
+                    hollowAngles.makeAngles(this.hollowSides, startAngle, stopAngle);
+                }
+            }
+            else
+                this.coords.Add(center);
+
+            Angle angle;
+            vertex newVert = new vertex();
+
+            if ( hollow > 0.001f && this.hollowSides != this.sides)
+            {
+                int numHollowAngles = hollowAngles.angles.Count;
+                for (int i = 0; i < numHollowAngles; i++)
+                {
+                    angle = hollowAngles.angles[i];
+                    newVert.X = hollow * xScale * angle.X;
+                    newVert.Y = hollow * yScale * angle.Y;
+                    newVert.Z = 0.0f;
+                    this.hollowCoords.Add(newVert);
+                }
+            }
+
+            int numAngles = angles.angles.Count;
+            for (int i = 0; i < numAngles; i++)
+            {
+                angle = angles.angles[i];
+                newVert.X = angle.X * xScale;
+                newVert.Y = angle.Y * yScale;
+                newVert.Z = 0.0f;
+                this.coords.Add(newVert);
+            }
+ 
+            /*
+				continue at python source line 174
+			
+             */
+
         }
     }
 
