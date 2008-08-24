@@ -902,7 +902,7 @@ namespace OpenSim.Data.MySQL
             parameters["?webLoginKey"] = webLoginKey.ToString();
             parameters["?userFlags"] = userFlags.ToString();
             parameters["?godLevel"] = godLevel.ToString();
-            parameters["?customType"] = customType.ToString();
+            parameters["?customType"] = customType == null ? "" : customType.ToString();
             parameters["?partner"] = partner.ToString();
 
             bool returnval = false;
