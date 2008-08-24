@@ -3948,6 +3948,44 @@ namespace OpenSim.Region.Environment.Scenes
         public void PerformObjectBuy(IClientAPI remoteClient, LLUUID categoryID,
                 uint localID, byte saleType)
         {
+            SceneObjectPart part = GetSceneObjectPart(localID);
+
+            if(part == null)
+                return;
+
+            switch (saleType)
+            {
+            case 1: // Sell as original (in-place sale)
+                if(part.ParentGroup == null)
+                    return;
+
+                part.ParentGroup.SetOwnerId(remoteClient.AgentId);
+                part.ParentGroup.SetRootPartOwner(part, remoteClient.AgentId,
+                        remoteClient.ActiveGroupId);
+
+                List<SceneObjectPart> partList =
+                    new List<SceneObjectPart>(part.ParentGroup.Children.Values);
+
+                if (ExternalChecks.ExternalChecksPropagatePermissions())
+                {
+                    foreach (SceneObjectPart child in partList)
+                    {
+                        child.OwnerMask &= child.NextOwnerMask;
+                        child.GroupMask &= child.NextOwnerMask;
+                        child.EveryoneMask &= child.NextOwnerMask;
+                        child.BaseMask &= child.NextOwnerMask;
+                    }
+                }
+
+                part.ObjectSaleType = 0;
+                part.SalePrice = 10;
+
+                part.ParentGroup.HasGroupChanged = true;
+                part.GetProperties(remoteClient);
+                part.ScheduleFullUpdate();
+
+                break;
+            }
         }
     }
 }

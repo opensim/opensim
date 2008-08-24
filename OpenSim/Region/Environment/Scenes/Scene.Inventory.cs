@@ -1985,6 +1985,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                             if (rootPart.OwnerID != item.Owner)
                             {
+                                //Need to kill the for sale here
+                                rootPart.ObjectSaleType = 0;
+                                rootPart.SalePrice = 10;
+
                                 if (ExternalChecks.ExternalChecksPropagatePermissions())
                                 {
                                     if ((item.CurrentPermissions & 8) != 0)

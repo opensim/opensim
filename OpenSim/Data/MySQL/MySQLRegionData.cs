@@ -1554,6 +1554,11 @@ namespace OpenSim.Data.MySQL
                 row["LoopedSound"] = prim.Sound.ToString();
                 row["LoopedSoundGain"] = prim.SoundGain;
             }
+            else
+            {
+                row["LoopedSound"] = LLUUID.Zero;
+                row["LoopedSoundGain"] = 0.0f;
+            }
 
             row["TextureAnimation"] = prim.TextureAnimation;
 
@@ -1562,22 +1567,29 @@ namespace OpenSim.Data.MySQL
             row["OmegaZ"] = prim.RotationalVelocity.Z;
 
             row["CameraEyeOffsetX"] = prim.GetCameraEyeOffset().X;
-            row["CameraEyeOffsetX"] = prim.GetCameraEyeOffset().Y;
+            row["CameraEyeOffsetY"] = prim.GetCameraEyeOffset().Y;
             row["CameraEyeOffsetZ"] = prim.GetCameraEyeOffset().Z;
 
             row["CameraAtOffsetX"] = prim.GetCameraAtOffset().X;
-            row["CameraAtOffsetX"] = prim.GetCameraAtOffset().Y;
+            row["CameraAtOffsetY"] = prim.GetCameraAtOffset().Y;
             row["CameraAtOffsetZ"] = prim.GetCameraAtOffset().Z;
 
             if (prim.GetForceMouselook())
                 row["ForceMouselook"] = 1;
+            else
+                row["ForceMouselook"] = 0;
 
             row["ScriptAccessPin"] = prim.ScriptAccessPin;
 
             if (prim.AllowedDrop)
                 row["AllowedDrop"] = 1;
+            else
+                row["AllowedDrop"] = 0;
+
             if (prim.DIE_AT_EDGE)
                 row["DieAtEdge"] = 1;
+            else
+                row["DieAtEdge"] = 0;
 
             row["SalePrice"] = prim.SalePrice;
             row["SaleType"] = Convert.ToInt16(prim.ObjectSaleType);
