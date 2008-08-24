@@ -3321,12 +3321,114 @@ namespace OpenSim.Region.ScriptEngine.Common
             return result;
 
         }
+        // this function to understand which shape it is (taken from meshmerizer)
+        // quite useful can be used by meshmerizer to have a centralized point of understanding the shape
+        // except that it refers to scripting constants
+        private int getScriptPrimType(PrimitiveBaseShape primShape)
+        {
+
+            if (primShape.SculptEntry)
+                return BuiltIn_Commands_BaseClass.PRIM_TYPE_SCULPT;
+            if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
+            {
+                if (primShape.PathCurve == (byte)Extrusion.Straight)
+                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX;
+                else if (primShape.PathCurve == (byte)Extrusion.Curve1)
+                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_TUBE;
+            }
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
+            {
+                if (primShape.PathCurve == (byte)Extrusion.Straight)
+                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER;
+                // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
+                else if (primShape.PathCurve == (byte)Extrusion.Curve1)
+                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_TORUS;
+            }
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+            {
+                if (primShape.PathCurve == (byte)Extrusion.Curve1 || primShape.PathCurve == (byte)Extrusion.Curve2)
+                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_SPHERE;
+            }
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
+            {
+                if (primShape.PathCurve == (byte)Extrusion.Straight)
+                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM;
+                else if (primShape.PathCurve == (byte)Extrusion.Curve1)
+                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_RING;
+            }
+            return BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX;
+
+
+        }
+        // Helper functions to understand if object has cut, hollow, dimple, and other affecting number of faces
+        private void hasCutHollowDimpleProfileCut(PrimitiveBaseShape shape, out bool hasCut, out bool hasHollow,
+            out bool hasDimple, out bool hasProfileCut)
+        {
+            hasCut = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0);
+            hasHollow = shape.ProfileHollow > 0;
+            hasDimple = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0); // taken from llSetPrimitiveParms
+            hasProfileCut = (shape.PathBegin > 0) || (shape.PathEnd > 0); // is it the same thing?
+
+        }
 
         public LSL_Types.LSLInteger llGetNumberOfSides()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetNumberOfSides");
-            return 0;
+            int ret = 0;
+            bool hasCut;
+            bool hasHollow;
+            bool hasDimple;
+            bool hasProfileCut;
+
+            hasCutHollowDimpleProfileCut(m_host.Shape, out hasCut, out hasHollow, out hasDimple, out hasProfileCut);
+
+            switch (getScriptPrimType(m_host.Shape))
+            {
+                case BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX:
+                    ret = 6;
+                    if (hasCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER:
+                    ret = 3;
+                    if (hasCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM:
+                    ret = 5;
+                    if (hasCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case BuiltIn_Commands_BaseClass.PRIM_TYPE_SPHERE:
+                    ret = 1;
+                    if (hasProfileCut) ret += 2;
+                    if (hasDimple) ret += 2;
+                    if (hasHollow) ret += 1; // actually lsl adds 4!!!!!! is that a great mistake?                
+                    break;
+                case BuiltIn_Commands_BaseClass.PRIM_TYPE_TORUS:
+                    ret = 1;
+                    if (hasCut) ret += 2;
+                    if (hasProfileCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case BuiltIn_Commands_BaseClass.PRIM_TYPE_TUBE:
+                    ret = 4;
+                    if (hasCut) ret += 2;
+                    if (hasProfileCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case BuiltIn_Commands_BaseClass.PRIM_TYPE_RING:
+                    ret = 3;
+                    if (hasCut) ret += 2;
+                    if (hasProfileCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case BuiltIn_Commands_BaseClass.PRIM_TYPE_SCULPT:
+                    ret = 1;
+                    break;
+            }
+
+            return ret;
         }
 
 
