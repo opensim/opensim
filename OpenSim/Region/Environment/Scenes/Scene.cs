@@ -3940,7 +3940,8 @@ namespace OpenSim.Region.Environment.Scenes
             part.ObjectSaleType = saleType;
             part.SalePrice = salePrice;
 
-            m_log.DebugFormat("[SCENE] Set sale data of object {0} to {1} ${2}", part.UUID, saleType, salePrice);
+            part.ParentGroup.HasGroupChanged = true;
+
             part.GetProperties(client);
         }
 

@@ -979,6 +979,38 @@ namespace OpenSim.Data.MySQL
             createCol(prims, "SitTargetOrientY", typeof (Double));
             createCol(prims, "SitTargetOrientZ", typeof (Double));
 
+            createCol(prims, "PayPrice", typeof(Int32));
+            createCol(prims, "PayButton1", typeof(Int32));
+            createCol(prims, "PayButton2", typeof(Int32));
+            createCol(prims, "PayButton3", typeof(Int32));
+            createCol(prims, "PayButton4", typeof(Int32));
+
+            createCol(prims, "LoopedSound", typeof(String));
+            createCol(prims, "LoopedSoundGain", typeof(Double));
+            createCol(prims, "TextureAnimation", typeof(Byte[]));
+
+            createCol(prims, "OmegaX", typeof (Double));
+            createCol(prims, "OmegaY", typeof (Double));
+            createCol(prims, "OmegaZ", typeof (Double));
+
+            createCol(prims, "CameraEyeOffsetX", typeof (Double));
+            createCol(prims, "CameraEyeOffsetY", typeof (Double));
+            createCol(prims, "CameraEyeOffsetZ", typeof (Double));
+
+            createCol(prims, "CameraAtOffsetX", typeof (Double));
+            createCol(prims, "CameraAtOffsetY", typeof (Double));
+            createCol(prims, "CameraAtOffsetZ", typeof (Double));
+
+            createCol(prims, "ForceMouselook", typeof (Int16));
+
+            createCol(prims, "ScriptAccessPin", typeof(Int32));
+
+            createCol(prims, "AllowedDrop", typeof (Int16));
+            createCol(prims, "DieAtEdge", typeof (Int16));
+
+            createCol(prims, "SalePrice", typeof(Int32));
+            createCol(prims, "SaleType", typeof (Int16));
+
 
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] {prims.Columns["UUID"]};
@@ -1200,38 +1232,66 @@ namespace OpenSim.Data.MySQL
                 Convert.ToSingle(row["RotationZ"]),
                 Convert.ToSingle(row["RotationW"])
                 );
-            try
-            {
-                prim.SitTargetPositionLL = new LLVector3(
-                                                         Convert.ToSingle(row["SitTargetOffsetX"]),
-                                                         Convert.ToSingle(row["SitTargetOffsetY"]),
-                                                         Convert.ToSingle(row["SitTargetOffsetZ"]));
-                prim.SitTargetOrientationLL = new LLQuaternion(
-                                                               Convert.ToSingle(
-                                                                                row["SitTargetOrientX"]),
-                                                               Convert.ToSingle(
-                                                                                row["SitTargetOrientY"]),
-                                                               Convert.ToSingle(
-                                                                                row["SitTargetOrientZ"]),
-                                                               Convert.ToSingle(
-                                                                                row["SitTargetOrientW"]));
-            }
-            catch (InvalidCastException)
-            {
-                // Database table was created before we got here and needs to be created! :P
+            prim.SitTargetPositionLL = new LLVector3(
+                Convert.ToSingle(row["SitTargetOffsetX"]),
+                Convert.ToSingle(row["SitTargetOffsetY"]),
+                Convert.ToSingle(row["SitTargetOffsetZ"])
+                );
+            prim.SitTargetOrientationLL = new LLQuaternion(
+                Convert.ToSingle(row["SitTargetOrientX"]),
+                Convert.ToSingle(row["SitTargetOrientY"]),
+                Convert.ToSingle(row["SitTargetOrientZ"]),
+                Convert.ToSingle(row["SitTargetOrientW"])
+                );
 
-                lock (m_dataSet)
-                {
-                    using (
-                        MySqlCommand cmd =
-                            new MySqlCommand(
-                                "ALTER TABLE `prims` ADD COLUMN `SitTargetOffsetX` float NOT NULL default 0,  ADD COLUMN `SitTargetOffsetY` float NOT NULL default 0, ADD COLUMN `SitTargetOffsetZ` float NOT NULL default 0, ADD COLUMN `SitTargetOrientW` float NOT NULL default 0, ADD COLUMN `SitTargetOrientX` float NOT NULL default 0, ADD COLUMN `SitTargetOrientY` float NOT NULL default 0, ADD COLUMN `SitTargetOrientZ` float NOT NULL default 0;",
-                                m_connection))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-            }
+            prim.PayPrice[0] = Convert.ToInt32(row["PayPrice"]);
+            prim.PayPrice[1] = Convert.ToInt32(row["PayButton1"]);
+            prim.PayPrice[2] = Convert.ToInt32(row["PayButton2"]);
+            prim.PayPrice[3] = Convert.ToInt32(row["PayButton3"]);
+            prim.PayPrice[4] = Convert.ToInt32(row["PayButton4"]);
+
+            prim.Sound = new LLUUID(row["LoopedSound"].ToString());
+            prim.SoundGain = Convert.ToSingle(row["LoopedSoundGain"]);
+            prim.SoundFlags = 1; // If it's persisted at all, it's looped
+
+            if (!row.IsNull("TextureAnimation"))
+                prim.TextureAnimation = (Byte[])row["TextureAnimation"];
+
+            prim.RotationalVelocity = new LLVector3(
+                Convert.ToSingle(row["OmegaX"]),
+                Convert.ToSingle(row["OmegaY"]),
+                Convert.ToSingle(row["OmegaZ"])
+                );
+
+            // TODO: Rotation
+            // OmegaX, OmegaY, OmegaZ
+
+            prim.SetCameraEyeOffset(new LLVector3(
+                Convert.ToSingle(row["CameraEyeOffsetX"]),
+                Convert.ToSingle(row["CameraEyeOffsetY"]),
+                Convert.ToSingle(row["CameraEyeOffsetZ"])
+                ));
+
+            prim.SetCameraAtOffset(new LLVector3(
+                Convert.ToSingle(row["CameraAtOffsetX"]),
+                Convert.ToSingle(row["CameraAtOffsetY"]),
+                Convert.ToSingle(row["CameraAtOffsetZ"])
+                ));
+
+            if (Convert.ToInt16(row["ForceMouselook"]) != 0)
+                prim.SetForceMouselook(true);
+
+            prim.ScriptAccessPin = Convert.ToInt32(row["ScriptAccessPin"]);
+
+            if (Convert.ToInt16(row["AllowedDrop"]) != 0)
+                prim.AllowedDrop = true;
+
+            if (Convert.ToInt16(row["DieAtEdge"]) != 0)
+                prim.DIE_AT_EDGE = true;
+
+            prim.SalePrice = Convert.ToInt32(row["SalePrice"]);
+            prim.ObjectSaleType = Convert.ToByte(row["SaleType"]);
+
             return prim;
         }
 
@@ -1471,33 +1531,57 @@ namespace OpenSim.Data.MySQL
             row["RotationZ"] = prim.RotationOffset.Z;
             row["RotationW"] = prim.RotationOffset.W;
 
-            try
-            {
-                // Sit target
-                LLVector3 sitTargetPos = prim.SitTargetPositionLL;
-                row["SitTargetOffsetX"] = sitTargetPos.X;
-                row["SitTargetOffsetY"] = sitTargetPos.Y;
-                row["SitTargetOffsetZ"] = sitTargetPos.Z;
+            // Sit target
+            LLVector3 sitTargetPos = prim.SitTargetPositionLL;
+            row["SitTargetOffsetX"] = sitTargetPos.X;
+            row["SitTargetOffsetY"] = sitTargetPos.Y;
+            row["SitTargetOffsetZ"] = sitTargetPos.Z;
 
-                LLQuaternion sitTargetOrient = prim.SitTargetOrientationLL;
-                row["SitTargetOrientW"] = sitTargetOrient.W;
-                row["SitTargetOrientX"] = sitTargetOrient.X;
-                row["SitTargetOrientY"] = sitTargetOrient.Y;
-                row["SitTargetOrientZ"] = sitTargetOrient.Z;
-            }
-            catch (MySqlException)
-            {
-                // Database table was created before we got here and needs to be created! :P
+            LLQuaternion sitTargetOrient = prim.SitTargetOrientationLL;
+            row["SitTargetOrientW"] = sitTargetOrient.W;
+            row["SitTargetOrientX"] = sitTargetOrient.X;
+            row["SitTargetOrientY"] = sitTargetOrient.Y;
+            row["SitTargetOrientZ"] = sitTargetOrient.Z;
 
-                using (
-                    MySqlCommand cmd =
-                        new MySqlCommand(
-                            "ALTER TABLE `prims` ADD COLUMN `SitTargetOffsetX` float NOT NULL default 0,  ADD COLUMN `SitTargetOffsetY` float NOT NULL default 0, ADD COLUMN `SitTargetOffsetZ` float NOT NULL default 0, ADD COLUMN `SitTargetOrientW` float NOT NULL default 0, ADD COLUMN `SitTargetOrientX` float NOT NULL default 0, ADD COLUMN `SitTargetOrientY` float NOT NULL default 0, ADD COLUMN `SitTargetOrientZ` float NOT NULL default 0;",
-                            m_connection))
-                {
-                    cmd.ExecuteNonQuery();
-                }
+            row["PayPrice"] = prim.PayPrice[0];
+            row["PayButton1"] = prim.PayPrice[1];
+            row["PayButton2"] = prim.PayPrice[2];
+            row["PayButton3"] = prim.PayPrice[3];
+            row["PayButton4"] = prim.PayPrice[4];
+
+            if ((prim.SoundFlags & 1) != 0) // Looped
+            {
+                row["LoopedSound"] = prim.Sound.ToString();
+                row["LoopedSoundGain"] = prim.SoundGain;
             }
+
+            row["TextureAnimation"] = prim.TextureAnimation;
+
+            row["OmegaX"] = prim.RotationalVelocity.X;
+            row["OmegaY"] = prim.RotationalVelocity.Y;
+            row["OmegaZ"] = prim.RotationalVelocity.Z;
+
+            row["CameraEyeOffsetX"] = prim.GetCameraEyeOffset().X;
+            row["CameraEyeOffsetX"] = prim.GetCameraEyeOffset().Y;
+            row["CameraEyeOffsetZ"] = prim.GetCameraEyeOffset().Z;
+
+            row["CameraAtOffsetX"] = prim.GetCameraAtOffset().X;
+            row["CameraAtOffsetX"] = prim.GetCameraAtOffset().Y;
+            row["CameraAtOffsetZ"] = prim.GetCameraAtOffset().Z;
+
+            if (prim.GetForceMouselook())
+                row["ForceMouselook"] = 1;
+
+            row["ScriptAccessPin"] = prim.ScriptAccessPin;
+
+            if (prim.AllowedDrop)
+                row["AllowedDrop"] = 1;
+            if (prim.DIE_AT_EDGE)
+                row["DieAtEdge"] = 1;
+
+            row["SalePrice"] = prim.SalePrice;
+            row["SaleType"] = Convert.ToInt16(prim.ObjectSaleType);
+
         }
 
         /// <summary>

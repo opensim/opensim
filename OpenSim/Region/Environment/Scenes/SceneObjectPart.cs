@@ -428,6 +428,13 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_scriptAccessPin = (int)value; }
         }
 
+        [XmlIgnore]
+        public Byte[] TextureAnimation
+        {
+            get { return m_TextureAnimation; }
+            set { m_TextureAnimation = value; }
+        }
+
         public LLVector3 GroupPosition
         {
             get
