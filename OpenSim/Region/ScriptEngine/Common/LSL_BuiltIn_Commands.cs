@@ -1161,6 +1161,106 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
 
+        public void SetGlow(SceneObjectPart part, int face, float glow)
+        {
+          LLObject.TextureEntry tex = part.Shape.Textures;
+          if (face > -1)
+          {
+            tex.CreateFace((uint)face);
+            tex.FaceTextures[face].Glow = glow;
+            part.UpdateTexture(tex);
+            return;
+          }
+          else if (face == -1)
+          {
+            for (uint i = 0; i < 32; i++)
+            {
+              if (tex.FaceTextures[i] != null)
+              {
+                tex.FaceTextures[i].Glow = glow;
+              }
+              tex.DefaultTexture.Glow = glow;
+            }
+            part.UpdateTexture(tex);
+            return;
+          }
+        }
+
+        public void SetShiny(SceneObjectPart part, int face, int shiny, Bumpiness bump)
+        {
+
+          Shininess sval = new Shininess();
+
+          switch (shiny)
+          {
+            case 0:
+              sval = Shininess.None;
+              break;
+            case 1:
+              sval = Shininess.Low;
+              break;
+            case 2:
+              sval = Shininess.Medium;
+              break;
+            case 3:
+              sval = Shininess.High;
+              break;
+            default:
+              sval = Shininess.None;
+              break;
+          }
+
+          LLObject.TextureEntry tex = part.Shape.Textures;
+          if (face > -1)
+          {
+            tex.CreateFace((uint)face);
+            tex.FaceTextures[face].Shiny = sval;
+            tex.FaceTextures[face].Bump = bump;
+            part.UpdateTexture(tex);
+            return;
+          }
+          else if (face == -1)
+          {
+            for (uint i = 0; i < 32; i++)
+            {
+              if (tex.FaceTextures[i] != null)
+              {
+                tex.FaceTextures[i].Shiny = sval;
+                tex.FaceTextures[i].Bump = bump; ;
+              }
+              tex.DefaultTexture.Shiny = sval;
+              tex.DefaultTexture.Bump = bump;
+            }
+            part.UpdateTexture(tex);
+            return;
+          }
+        }
+
+        public void SetFullBright(SceneObjectPart part, int face, bool bright)
+        {
+          LLObject.TextureEntry tex = part.Shape.Textures;
+          if (face > -1)
+          {
+            tex.CreateFace((uint)face);
+            tex.FaceTextures[face].Fullbright = bright;
+            part.UpdateTexture(tex);
+            return;
+          }
+          else if (face == -1)
+          {
+            for (uint i = 0; i < 32; i++)
+            {
+              if (tex.FaceTextures[i] != null)
+              {
+                tex.FaceTextures[i].Fullbright = bright;
+              }
+            }
+            tex.DefaultTexture.Fullbright = bright;
+            part.UpdateTexture(tex);
+            return;
+          }
+        }
+
         public double llGetAlpha(int face)
         {
             m_host.AddScriptLPS(1);
@@ -5772,6 +5872,80 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                         SetPointLight(part, (light == 1), lightcolor, intensity, radius, falloff);
 
+                        break;
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_GLOW:
+                        if (remain < 2)
+                          return;
+                        face = Convert.ToInt32(rules.Data[idx++]);
+                        float glow = (float)Convert.ToDouble(rules.Data[idx++]);
+
+                        SetGlow(part, face, glow);
+
+                        break;
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_BUMP_SHINY:
+                        if (remain < 3)
+                          return;
+                        face = Convert.ToInt32(rules.Data[idx++]);
+                        int shiny = Convert.ToInt32(rules.Data[idx++]);
+                        Bumpiness bump = (Bumpiness)Convert.ToByte(rules.Data[idx++]);
+
+                        SetShiny(part, face, shiny, bump);
+
+                        break;
+                      case (int)BuiltIn_Commands_BaseClass.PRIM_FULLBRIGHT:
+                        if (remain < 2)
+                          return;
+                        face = Convert.ToInt32(rules.Data[idx++]);
+                        string bv = rules.Data[idx++].ToString();
+                        bool st;
+                        if (bv.Equals("1"))
+                          st = true;
+                        else
+                          st = false;
+
+                        SetFullBright(part, face, st);
+                        break;
+                      case (int)BuiltIn_Commands_BaseClass.PRIM_MATERIAL:
+                        if (remain < 1)
+                          return;
+                        if (part != null)
+                        {
+                          /* Unhandled at this time - sends "Unhandled" message
+                             will enable when available
+                          byte material = (byte)Convert.ToByte( rules.Data[idx++]);
+                          part.Material =  material;
+                          */
+                          return;
+                        }
+                        break;
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_PHANTOM:
+                        if (remain < 1)
+                          return;
+
+                        string ph = rules.Data[idx++].ToString();
+                        bool phantom;
+
+                        if (ph.Equals("1"))
+                          phantom = true;
+                        else
+                          phantom = false;
+
+                        part.ScriptSetPhantomStatus(phantom);
+                        part.ScheduleFullUpdate();
+                        break;
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_PHYSICS:
+                        if (remain < 1)
+                          return;
+                        string phy = rules.Data[idx++].ToString();
+                        bool physics;
+
+                        if (phy.Equals("1"))
+                          physics = true;
+                        else
+                          physics = false;
+
+                        m_host.ScriptSetPhysicsStatus(physics);
+                        part.ScheduleFullUpdate();
                         break;
                 }
             }
