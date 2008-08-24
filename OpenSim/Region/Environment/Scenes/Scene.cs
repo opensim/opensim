@@ -4036,6 +4036,14 @@ namespace OpenSim.Region.Environment.Scenes
                     remoteClient.SendInventoryItemCreateUpdate(item);
                 }
                 break;
+
+            case 3: // Sell contents
+                List<LLUUID> invList = part.GetInventoryList();
+
+                if (invList.Count > 0)
+                    MoveTaskInventoryItems(remoteClient.AgentId, part.Name,
+                            part, invList);
+                break;
             }
         }
     }

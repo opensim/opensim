@@ -743,5 +743,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return false;
         }
+
+        public List<LLUUID> GetInventoryList()
+        {
+            List<LLUUID> ret = new List<LLUUID>();
+
+            foreach (TaskInventoryItem item in m_taskInventory.Values)
+                ret.Add(item.ItemID);
+
+            return ret;
+        }
     }
 }
