@@ -3953,18 +3953,20 @@ namespace OpenSim.Region.Environment.Scenes
             if(part == null)
                 return;
 
+            if(part.ParentGroup == null)
+                return;
+
+            SceneObjectGroup group = part.ParentGroup;
+
             switch (saleType)
             {
             case 1: // Sell as original (in-place sale)
-                if(part.ParentGroup == null)
-                    return;
-
-                part.ParentGroup.SetOwnerId(remoteClient.AgentId);
-                part.ParentGroup.SetRootPartOwner(part, remoteClient.AgentId,
+                group.SetOwnerId(remoteClient.AgentId);
+                group.SetRootPartOwner(part, remoteClient.AgentId,
                         remoteClient.ActiveGroupId);
 
                 List<SceneObjectPart> partList =
-                    new List<SceneObjectPart>(part.ParentGroup.Children.Values);
+                    new List<SceneObjectPart>(group.Children.Values);
 
                 if (ExternalChecks.ExternalChecksPropagatePermissions())
                 {
@@ -3980,10 +3982,59 @@ namespace OpenSim.Region.Environment.Scenes
                 part.ObjectSaleType = 0;
                 part.SalePrice = 10;
 
-                part.ParentGroup.HasGroupChanged = true;
+                group.HasGroupChanged = true;
                 part.GetProperties(remoteClient);
                 part.ScheduleFullUpdate();
 
+                break;
+
+            case 2: // Sell a copy
+                string sceneObjectXml = group.ToXmlString();
+
+                CachedUserInfo userInfo =
+                    CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+
+                if (userInfo != null)
+                {
+                    AssetBase asset = CreateAsset(
+                        group.GetPartName(localID),
+                        group.GetPartDescription(localID),
+                        (sbyte)AssetType.Object,
+                        Helpers.StringToField(sceneObjectXml));
+                    AssetCache.AddAsset(asset);
+
+                    InventoryItemBase item = new InventoryItemBase();
+                    item.Creator = part.CreatorID;
+
+                    item.ID = LLUUID.Random();
+                    item.Owner = remoteClient.AgentId;
+                    item.AssetID = asset.FullID;
+                    item.Description = asset.Description;
+                    item.Name = asset.Name;
+                    item.AssetType = asset.Type;
+                    item.InvType = (int)InventoryType.Object;
+                    item.Folder = categoryID;
+
+                    uint perms=group.GetEffectivePermissions();
+                    uint nextPerms=(perms & 7) << 13;
+                    if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                        perms &= ~(uint)PermissionMask.Copy;
+                    if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                        perms &= ~(uint)PermissionMask.Transfer;
+                    if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                        perms &= ~(uint)PermissionMask.Modify;
+
+                    item.BasePermissions = perms & part.NextOwnerMask;
+                    item.CurrentPermissions = perms & part.NextOwnerMask;
+                    item.NextPermissions = part.NextOwnerMask;
+                    item.EveryOnePermissions = part.EveryoneMask &
+                                               part.NextOwnerMask;
+                    item.CurrentPermissions |= 8; // Slam!
+                    item.CreationDate = Util.UnixTimeSinceEpoch();
+
+                    userInfo.AddItem(item);
+                    remoteClient.SendInventoryItemCreateUpdate(item);
+                }
                 break;
             }
         }
