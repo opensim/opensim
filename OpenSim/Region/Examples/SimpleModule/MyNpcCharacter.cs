@@ -176,6 +176,9 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public event ScriptAnswer OnScriptAnswer;
         public event RequestPayPrice OnRequestPayPrice;
+        public event ObjectSaleInfo OnObjectSaleInfo;
+        public event ObjectBuy OnObjectBuy;
+        public event BuyObjectInventory OnBuyObjectInventory;
         public event AgentSit OnUndo;
 
         public event ForceReleaseControls OnForceReleaseControls;
@@ -615,7 +618,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                                               LLUUID GroupUUID, short InventorySerial, LLUUID LastOwnerUUID, LLUUID ObjectUUID,
                                               LLUUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName,
                                               string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask,
-                                              uint BaseMask)
+                                              uint BaseMask, byte saleType, int salePrice)
         {
         }
 

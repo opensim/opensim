@@ -233,6 +233,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private ScriptAnswer handlerScriptAnswer = null;
         private RequestPayPrice handlerRequestPayPrice = null;
+        private ObjectSaleInfo handlerObjectSaleInfo = null;
+        private ObjectBuy handlerObjectBuy = null;
+        private BuyObjectInventory handlerBuyObjectInventory = null;
         private ObjectDeselect handlerObjectDetach = null;
         private AgentSit handlerOnUndo = null;
 
@@ -905,6 +908,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event UUIDNameRequest OnUUIDGroupNameRequest;
         public event ScriptAnswer OnScriptAnswer;
         public event RequestPayPrice OnRequestPayPrice;
+        public event ObjectSaleInfo OnObjectSaleInfo;
+        public event ObjectBuy OnObjectBuy;
+        public event BuyObjectInventory OnBuyObjectInventory;
         public event AgentSit OnUndo;
         public event ForceReleaseControls OnForceReleaseControls;
         public event GodLandStatRequest OnLandStatRequest;
@@ -2523,7 +2529,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                               LLUUID GroupUUID, short InventorySerial, LLUUID LastOwnerUUID, LLUUID ObjectUUID,
                                               LLUUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName,
                                               string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask,
-                                              uint BaseMask)
+                                              uint BaseMask, byte saleType, int salePrice)
         {
             ObjectPropertiesPacket proper = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
             // TODO: don't create new blocks if recycling an old packet
@@ -2556,6 +2562,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //            proper.ObjectData[0].AggregatePerms = 53;
             //            proper.ObjectData[0].AggregatePermTextures = 0;
             //            proper.ObjectData[0].AggregatePermTexturesOwner = 0;
+            proper.ObjectData[0].SaleType = saleType;
+            proper.ObjectData[0].SalePrice = salePrice;
             proper.Header.Zerocoded = true;
             OutPacket(proper, ThrottleOutPacketType.Task);
         }
@@ -5861,6 +5869,45 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (handlerRequestPayPrice != null)
                         {
                             handlerRequestPayPrice(this, requestPayPricePacket.ObjectData.ObjectID);
+                        }
+                        break;
+
+                    case PacketType.ObjectSaleInfo:
+                        ObjectSaleInfoPacket objectSaleInfoPacket = (ObjectSaleInfoPacket)Pack;
+                        handlerObjectSaleInfo = OnObjectSaleInfo;
+                        if (handlerObjectSaleInfo != null)
+                        {
+                            foreach (ObjectSaleInfoPacket.ObjectDataBlock d
+                                    in objectSaleInfoPacket.ObjectData)
+                            {
+                                handlerObjectSaleInfo(this,
+                                    objectSaleInfoPacket.AgentData.AgentID,
+                                    objectSaleInfoPacket.AgentData.SessionID,
+                                    d.LocalID,
+                                    d.SaleType,
+                                    d.SalePrice);
+                            }
+                        }
+                        break;
+
+                    case PacketType.ObjectBuy:
+                        ObjectBuyPacket objectBuyPacket = (ObjectBuyPacket)Pack;
+                        handlerObjectBuy = OnObjectBuy;
+                        Console.WriteLine(objectBuyPacket.ToString());
+                        if (handlerObjectBuy != null)
+                        {
+                            foreach (ObjectBuyPacket.ObjectDataBlock d
+                                    in objectBuyPacket.ObjectData)
+                            {
+                                handlerObjectBuy(this,
+                                    objectBuyPacket.AgentData.AgentID,
+                                    objectBuyPacket.AgentData.SessionID,
+                                    objectBuyPacket.AgentData.GroupID,
+                                    objectBuyPacket.AgentData.CategoryID,
+                                    d.ObjectLocalID,
+                                    d.SaleType,
+                                    d.SalePrice);
+                            }
                         }
                         break;
 

@@ -354,6 +354,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             client.OnEconomyDataRequest += EconomyDataRequestHandler;
             client.OnMoneyBalanceRequest += SendMoneyBalance;
             client.OnRequestPayPrice += requestPayPrice;
+            client.OnObjectBuy += ObjectBuy;
             client.OnLogout += ClientClosed;
         }
 
@@ -1554,6 +1555,40 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         }
 
         #endregion
+
+        public void ObjectBuy(IClientAPI remoteClient, LLUUID agentID,
+                LLUUID sessionID, LLUUID groupID, LLUUID categoryID,
+                uint localID, byte saleType, int salePrice)
+        {
+            GetClientFunds(remoteClient);
+
+            if (!m_KnownClientFunds.ContainsKey(remoteClient.AgentId))
+            {
+                remoteClient.SendAgentAlertMessage("Unable to buy now. Your account balance was not found.", false);
+                return;
+            }
+
+            int funds = m_KnownClientFunds[remoteClient.AgentId];
+
+            if(salePrice != 0 && funds < salePrice)
+            {
+                remoteClient.SendAgentAlertMessage("Unable to buy now. You don't have sufficient funds.", false);
+                return;
+            }
+
+            Scene s = LocateSceneClientIn(remoteClient.AgentId);
+
+            SceneObjectPart part = s.GetSceneObjectPart(localID);
+            if (part == null)
+            {
+                remoteClient.SendAgentAlertMessage("Unable to buy now. The object was not found.", false);
+                return;
+            }
+
+            bool transactionresult = doMoneyTransfer(remoteClient.AgentId, part.OwnerID, salePrice, 5000, "Object buy");
+
+            s.PerformObjectBuy(remoteClient, categoryID, localID, saleType);
+        }
     }
 
     public enum TransactionType : int

@@ -271,6 +271,9 @@ namespace OpenSim.Framework
     public delegate void ScriptAnswer(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, int answer);
 
     public delegate void RequestPayPrice(IClientAPI remoteClient, LLUUID objectID);
+    public delegate void ObjectSaleInfo(IClientAPI remoteClient, LLUUID agentID, LLUUID sessionID, uint localID, byte saleType, int salePrice);
+    public delegate void ObjectBuy(IClientAPI remoteClient, LLUUID agentID, LLUUID sessionID, LLUUID groupID, LLUUID categoryID, uint localID, byte saleType, int salePrice);
+    public delegate void BuyObjectInventory(IClientAPI remoteClient, LLUUID agentID, LLUUID sessionID, LLUUID objectID, LLUUID itemID, LLUUID folderID);
 
     public delegate void ForceReleaseControls(IClientAPI remoteClient, LLUUID agentID);
 
@@ -475,6 +478,9 @@ namespace OpenSim.Framework
         event UpdateAvatarProperties OnUpdateAvatarProperties;
         event ParcelBuy OnParcelBuy;
         event RequestPayPrice OnRequestPayPrice;
+        event ObjectSaleInfo OnObjectSaleInfo;
+        event ObjectBuy OnObjectBuy;
+        event BuyObjectInventory OnBuyObjectInventory;
 
         event ObjectIncludeInSearch OnObjectIncludeInSearch;
 
@@ -688,7 +694,7 @@ namespace OpenSim.Framework
                                               LLUUID GroupUUID, short InventorySerial, LLUUID LastOwnerUUID, LLUUID ObjectUUID,
                                               LLUUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName,
                                               string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask,
-                                              uint BaseMask);
+                                              uint BaseMask, byte saleType, int salePrice);
         void SendAgentOffline(LLUUID[] agentIDs);
 
         void SendAgentOnline(LLUUID[] agentIDs);

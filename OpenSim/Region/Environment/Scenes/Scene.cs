@@ -2153,6 +2153,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUndo += m_innerScene.HandleUndo;
             client.OnObjectGroupRequest += m_innerScene.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
+            client.OnObjectSaleInfo += ObjectSaleInfo;
             client.OnScriptReset += ProcessScriptReset;
             client.OnGetScriptRunning += GetScriptRunning;
             client.OnSetScriptRunning += SetScriptRunning;
@@ -3923,6 +3924,29 @@ namespace OpenSim.Region.Environment.Scenes
                 return true;
 
             return inv.NeedSceneCacheClear(agentID, this);
+        }
+
+        public void ObjectSaleInfo(IClientAPI client, LLUUID agentID, LLUUID sessionID, uint localID, byte saleType, int salePrice)
+        {
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            if(part == null || part.ParentGroup == null)
+                return;
+
+            if(part.ParentGroup.RootPart == null)
+                return;
+
+            part = part.ParentGroup.RootPart;
+
+            part.ObjectSaleType = saleType;
+            part.SalePrice = salePrice;
+
+            m_log.DebugFormat("[SCENE] Set sale data of object {0} to {1} ${2}", part.UUID, saleType, salePrice);
+            part.GetProperties(client);
+        }
+
+        public void PerformObjectBuy(IClientAPI remoteClient, LLUUID categoryID,
+                uint localID, byte saleType)
+        {
         }
     }
 }
