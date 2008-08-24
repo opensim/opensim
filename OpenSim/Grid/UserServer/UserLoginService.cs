@@ -140,9 +140,27 @@ namespace OpenSim.Grid.UserServer
             try
             {
                 RegionProfileData SimInfo = null;
+                RegionProfileData HomeInfo = null;
                 int start_x = -1;
                 int start_y = -1;
                 int start_z = -1;
+
+                // use the homeRegionID if it is stored already. If not, use the regionHandle as before
+                if (theUser.HomeRegionID != LLUUID.Zero)
+                {
+                    HomeInfo =
+                        RegionProfileData.RequestSimProfileData(
+                            theUser.HomeRegionID, m_config.GridServerURL,
+                            m_config.GridSendKey, m_config.GridRecvKey);
+                }
+                else
+                {
+                    HomeInfo =
+                        RegionProfileData.RequestSimProfileData(
+                            theUser.HomeRegion, m_config.GridServerURL,
+                            m_config.GridSendKey, m_config.GridRecvKey);
+                }
+                
                 if (startLocationRequest == "last")
                 {
                     SimInfo =
@@ -152,21 +170,7 @@ namespace OpenSim.Grid.UserServer
                 }
                 else if (startLocationRequest == "home")
                 {
-                    // use the homeRegionID if it is stored already. If not, use the regionHandle as before
-                    if (theUser.HomeRegionID != LLUUID.Zero)
-                    {
-                        SimInfo =
-                            RegionProfileData.RequestSimProfileData(
-                                theUser.HomeRegionID, m_config.GridServerURL,
-                                m_config.GridSendKey, m_config.GridRecvKey);
-                    }
-                    else
-                    {
-                        SimInfo =
-                            RegionProfileData.RequestSimProfileData(
-                                theUser.HomeRegion, m_config.GridServerURL,
-                                m_config.GridSendKey, m_config.GridRecvKey);
-                    }
+                    SimInfo = HomeInfo;
                 }
                 else
                 {
@@ -191,10 +195,7 @@ namespace OpenSim.Grid.UserServer
                         if (SimInfo == null)
                         {
                             m_log.Info("[LOGIN]: Didn't find region with a close name match sending to home location");
-                            SimInfo =
-                                RegionProfileData.RequestSimProfileData(
-                                    theUser.HomeRegion, m_config.GridServerURL,
-                                    m_config.GridSendKey, m_config.GridRecvKey);
+                            SimInfo = HomeInfo;
                         }
                         else
                         {
@@ -208,8 +209,8 @@ namespace OpenSim.Grid.UserServer
                 // Customise the response
                 //CFK: This is redundant and the next message should always appear.
                 //CFK: m_log.Info("[LOGIN]: Home Location");
-                response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * Constants.RegionSize).ToString() + ",r" +
-                                (SimInfo.regionLocY * Constants.RegionSize).ToString() + "], " +
+                response.Home = "{'region_handle':[r" + (HomeInfo.regionLocX * Constants.RegionSize).ToString() + ",r" +
+                                (HomeInfo.regionLocY * Constants.RegionSize).ToString() + "], " +
                                 "'position':[r" + theUser.HomeLocation.X.ToString() + ",r" +
                                 theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "], " +
                                 "'look_at':[r" + theUser.HomeLookAt.X.ToString() + ",r" +
