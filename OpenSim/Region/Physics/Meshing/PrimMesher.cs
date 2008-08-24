@@ -151,25 +151,19 @@ namespace OpenSim.Region.Physics.Meshing
     internal class makeProfile
     {
         private float twoPi = 2.0f * (float)Math.PI;
+
         internal List<vertex> coords;
-        internal List<vertex> hollowCoords;
         internal List<face> faces;
 
-        internal int sides = 4;
-        internal int hollowSides = 7;
-        internal vertex center = new vertex(0.0f, 0.0f, 0.0f);
-
-        makeProfile(int sides, float profileStart, float profileEnd, float hollow, int hollowSides)
+        internal makeProfile(int sides, float profileStart, float profileEnd, float hollow, int hollowSides)
         {
-            coords = new List<vertex>();
-            hollowCoords = new List<vertex>();
-            faces = new List<face>();
+            this.coords = new List<vertex>();
+            List<vertex> hollowCoords = new List<vertex>();
+            this.faces = new List<face>();
+            vertex center = new vertex(0.0f, 0.0f, 0.0f);
 
             AngleList angles = new AngleList();
             AngleList hollowAngles = new AngleList();
-
-            this.sides = sides;
-            this.hollowSides = hollowSides;
 
             float xScale = 0.5f;
             float yScale = 0.5f; 
@@ -181,18 +175,18 @@ namespace OpenSim.Region.Physics.Meshing
 
             float startAngle = profileStart * twoPi;
 		    float stopAngle = profileEnd * twoPi;
-		    float stepSize = twoPi / this.sides;
-
-            angles.makeAngles(this.sides, startAngle, stopAngle);
+            float stepSize = twoPi / sides;
+            
+            angles.makeAngles(sides, startAngle, stopAngle);
 
             if (hollow > 0.001f)
             {
-                if (this.sides == this.hollowSides)
+                if (sides == hollowSides)
                     hollowAngles = angles;
                 else
                 {
                     hollowAngles = new AngleList();
-                    hollowAngles.makeAngles(this.hollowSides, startAngle, stopAngle);
+                    hollowAngles.makeAngles(hollowSides, startAngle, stopAngle);
                 }
             }
             else
@@ -201,7 +195,7 @@ namespace OpenSim.Region.Physics.Meshing
             Angle angle;
             vertex newVert = new vertex();
 
-            if ( hollow > 0.001f && this.hollowSides != this.sides)
+            if (hollow > 0.001f && hollowSides != sides)
             {
                 int numHollowAngles = hollowAngles.angles.Count;
                 for (int i = 0; i < numHollowAngles; i++)
@@ -210,25 +204,194 @@ namespace OpenSim.Region.Physics.Meshing
                     newVert.X = hollow * xScale * angle.X;
                     newVert.Y = hollow * yScale * angle.Y;
                     newVert.Z = 0.0f;
-                    this.hollowCoords.Add(newVert);
+
+                    hollowCoords.Add(newVert);
                 }
             }
 
             int numAngles = angles.angles.Count;
-            for (int i = 0; i < numAngles; i++)
+            int index;
+            for (index = 0; index < numAngles; index++)
             {
-                angle = angles.angles[i];
+                angle = angles.angles[index];
                 newVert.X = angle.X * xScale;
                 newVert.Y = angle.Y * yScale;
                 newVert.Z = 0.0f;
                 this.coords.Add(newVert);
-            }
- 
-            /*
-				continue at python source line 174
-			
-             */
 
+                if (hollow > 0.0f)
+                {
+                    newVert.X = angle.X *= hollow;
+                    newVert.Y = angle.Y *= hollow;
+                    newVert.Z = 0.0f;
+                    hollowCoords.Add(newVert);
+                }
+                else if (angle.angle > 0.0001f)
+                {
+                    face newFace = new face();
+                    newFace.v1 = 0;
+                    newFace.v2 = index;
+                    newFace.v3 = index;
+                    this.faces.Add(newFace);
+                }
+            }
+
+            if (hollow > 0.0)
+            {
+                hollowCoords.Reverse();
+
+                int numOuterVerts = this.coords.Count;
+                int numHollowVerts = hollowCoords.Count;
+                int numTotalVerts = numOuterVerts + numHollowVerts;
+
+                if (numOuterVerts == numHollowVerts)
+                {
+                    face newFace = new face();
+
+                    for (int coordIndex = 0; coordIndex < numOuterVerts - 1; coordIndex++)
+                    {
+                        newFace.v1 = coordIndex;
+                        newFace.v2 = coordIndex + 1;
+                        newFace.v3 = numTotalVerts - coordIndex - 1;
+
+                        this.faces.Add(newFace);
+
+                        newFace.v1 = coordIndex + 1;
+                        newFace.v2 = numTotalVerts - coordIndex - 2;
+                        newFace.v3 = numTotalVerts - coordIndex - 1;
+
+                        this.faces.Add(newFace);
+                    }
+                }
+
+                else
+                {
+                    if (numOuterVerts < numHollowVerts)
+                    {
+                        face newFace = new face();
+                        int j = 0; // j is the index for outer vertices
+                        int maxJ = numOuterVerts - 1;
+                        for (int i = 0; i < numHollowVerts; i++) // i is the index for inner vertices
+                        {
+                            if (j < maxJ)
+                                if (angles.angles[j + 1].angle - hollowAngles.angles[i].angle <= hollowAngles.angles[i].angle - angles.angles[j].angle)
+                                {
+                                    newFace.v1 = numTotalVerts - i - 2;
+                                    newFace.v2 = j;
+                                    newFace.v3 = j + 1;
+
+                                    this.faces.Add(newFace);
+                                    j += 1;
+                                }
+
+                            newFace.v1 = j;
+                            newFace.v2 = numTotalVerts - i - 2;
+                            newFace.v3 = numTotalVerts - i - 1;
+
+                            this.faces.Add(newFace);
+                        }
+                    }
+                    else // numHollowVerts < numOuterVerts
+                    {
+                        face newFace = new face();
+                        int j = 0; // j is the index for inner vertices
+                        int maxJ = numHollowVerts - 1;
+                        for (int i = 0; i < numOuterVerts; i++)
+                        {
+                            if (j < maxJ)
+                                if (hollowAngles.angles[j + 1].angle - angles.angles[i].angle <= angles.angles[i].angle - hollowAngles.angles[j].angle)
+                                {
+                                    newFace.v1 = i;
+                                    newFace.v2 = numTotalVerts - j - 2;
+                                    newFace.v3 = numTotalVerts - j - 1;
+
+                                    this.faces.Add(newFace);
+                                    j += 1;
+                                }
+
+                            newFace.v1 = numTotalVerts - j - 1;
+                            newFace.v2 = i;
+                            newFace.v3 = i + 1;
+
+                            this.faces.Add(newFace);
+                        }
+                    }
+                    
+                }
+
+                this.coords.AddRange(hollowCoords);
+            }
+        }
+
+        internal void addPos(vertex v)
+        {
+            this.addPos(v.X, v.Y, v.Z);
+        }
+
+        internal void addPos(float x, float y, float z)
+        {
+            int i;
+            int numVerts = this.coords.Count;
+            vertex vert;
+
+            for (i = 0; i < numVerts; i++)
+            {
+                vert = this.coords[i];
+                vert.X += x;
+                vert.Y += y;
+                vert.Z += z;
+            }
+        }
+
+        internal void addRot(Quaternion q)
+        {
+            int i;
+            int numVerts = this.coords.Count;
+            vertex vert;
+
+            for (i = 0; i < numVerts; i++)
+            {
+                vert = this.coords[i];
+                Vertex v = new Vertex(vert.X, vert.Y, vert.Z);
+                
+                v = v * q;
+                
+                vert.X = v.X;
+                vert.Y = v.Y;
+                vert.Z = v.Z;
+            }
+        }
+
+        internal void scale(float x, float y, float z)
+        {
+            int i;
+            int numVerts = this.coords.Count;
+            vertex vert;
+
+            for (i = 0; i < numVerts; i++)
+            {
+                vert = this.coords[i];
+
+                vert.X *= x;
+                vert.Y *= y;
+                vert.Z *= z;
+            }
+        }
+
+        internal void flipNormals()
+        {
+            int i;
+            int numFaces = this.faces.Count;
+            face tmpFace;
+            int tmp;
+
+            for (i = 0; i < numFaces; i++)
+            {
+                tmpFace = this.faces[i];
+                tmp = tmpFace.v3;
+                tmpFace.v3 = tmpFace.v1;
+                tmpFace.v1 = tmp;
+            }
         }
     }
 
