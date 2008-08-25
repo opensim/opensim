@@ -72,6 +72,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             //m_log.Info(ScriptEngineName, "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
 
+
             IConfigSource config = new IniConfigSource(Application.iniFilePath);
             if (config.Configs["LL-Functions"] == null)
                 config.AddConfig("LL-Functions");
@@ -89,7 +90,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         private void ScriptSleep(int delay)
         {
             delay = (int)((float)delay * m_delayFactor);
-            if(delay == 0)
+            if (delay == 0)
                 return;
             System.Threading.Thread.Sleep(delay);
         }
@@ -128,15 +129,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         // Object never expires
         public override Object InitializeLifetimeService()
         {
-            //Console.WriteLine("LSL_BuiltIn_Commands: InitializeLifetimeService()");
-            //            return null;
             ILease lease = (ILease)base.InitializeLifetimeService();
 
             if (lease.CurrentState == LeaseState.Initial)
             {
-                lease.InitialLeaseTime = TimeSpan.Zero; // TimeSpan.FromMinutes(1);
-                //                lease.SponsorshipTimeout = TimeSpan.FromMinutes(2);
-                //                lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
+                lease.InitialLeaseTime = TimeSpan.Zero;
             }
             return lease;
         }
@@ -154,13 +151,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private LLUUID InventorySelf()
         {
-            LLUUID invItemID=new LLUUID();
+            LLUUID invItemID = new LLUUID();
 
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
                 if (inv.Value.Type == 10 && inv.Value.ItemID == m_itemID)
                 {
-                    invItemID=inv.Key;
+                    invItemID = inv.Key;
                     break;
                 }
             }
@@ -350,7 +347,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             return angle;
         }
 
-
         // Old implementation of llRot2Euler, now normalized
 
         public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
@@ -441,8 +437,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
         {
             m_host.AddScriptLPS(1);
-            double x,y,z,s;
-            int f=0;
+            double x, y, z, s;
+            int f = 0;
             // Important Note: q1=<x,y,z,s> is equal to q2=<-x,-y,-z,-s>
             // Computing quaternion x,y,z,s values
             x = ((fwd.x - left.y - up.z + 1) / 4);
@@ -459,9 +455,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             s = Math.Sqrt(Math.Sqrt(s));
 
             // Set f for signs detection
-            if (fwd.y+left.x >= 0){f+=1;}
-            if (fwd.z+up.x >= 0){f+=2;}
-            if (left.z-up.y >= 0){f+=4;}
+            if (fwd.y + left.x >= 0) { f += 1; }
+            if (fwd.z + up.x >= 0) { f += 2; }
+            if (left.z - up.y >= 0) { f += 4; }
             // Set correct quaternion signs based on f value
             if (f == 0) { x = -x; }
             if (f == 1) { x = -x; y = -y; }
@@ -549,7 +545,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             // Fast Algebric Calculations instead of Vectors & Quaternions Product
             x = 2 * (r.x * r.z + r.y * r.s);
-            y = 2*(-r.x * r.s + r.y * r.z);
+            y = 2 * (-r.x * r.s + r.y * r.z);
             z = -r.x * r.x - r.y * r.y + r.z * r.z + r.s * r.s;
             return (new LSL_Types.Vector3(x, y, z));
         }
@@ -571,6 +567,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llWhisper(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
+
+            if (text.Length > 1023)
+                text = text.Substring(0, 1023);
+
             World.SimChat(Helpers.StringToField(text),
                           ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
@@ -581,6 +581,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSay(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
+
+            if (text.Length > 1023)
+                text = text.Substring(0, 1023);
+
             World.SimChat(Helpers.StringToField(text),
                           ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
@@ -591,8 +595,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llShout(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
+
+            if (text.Length > 1023)
+                text = text.Substring(0, 1023);
+
             World.SimChat(Helpers.StringToField(text),
-                          ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
+                          ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, true);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             wComm.DeliverMessage(ChatTypeEnum.Shout, channelID, m_host.Name, m_host.UUID, text);
@@ -605,6 +613,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                 LSLError("Cannot use llRegionSay() on channel 0");
                 return;
             }
+
+            if (text.Length > 1023)
+                text = text.Substring(0, 1023);
 
             m_host.AddScriptLPS(1);
 
@@ -637,7 +648,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSensor(string name, string id, int type, double range, double arc)
         {
-            m_host.AddScriptLPS(300);
+            m_host.AddScriptLPS(1);
             LLUUID keyID = LLUUID.Zero;
             LLUUID.TryParse(id, out keyID);
 
@@ -651,7 +662,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             LLUUID.TryParse(id, out keyID);
 
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
-       }
+        }
 
         public void llSensorRemove()
         {
@@ -685,7 +696,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (SensedObject == null)
                 return String.Empty;
             return SensedObject.Name;
-
         }
 
         public string llDetectedName(int number)
@@ -821,7 +831,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             LLUUID SensedUUID = uuidDetectedKey(number);
             if (SensedUUID == LLUUID.Zero)
                 return String.Empty;
-
             return SensedUUID.ToString();
         }
 
@@ -869,7 +878,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 mask |= 0x02; // active moving
             if (SensedObject is IScript) mask |= 0x08; // Scripted. It COULD have one hidden ...
             return mask;
-
         }
 
         public LSL_Types.Vector3 llDetectedPos(int number)
@@ -878,7 +886,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             EntityBase SensedObject = entityDetectedKey(number);
             if (SensedObject == null)
                 return new LSL_Types.Vector3(0, 0, 0);
-
             return new LSL_Types.Vector3(SensedObject.AbsolutePosition.X,SensedObject.AbsolutePosition.Y,SensedObject.AbsolutePosition.Z);
         }
 
@@ -888,7 +895,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             EntityBase SensedObject = entityDetectedKey(number);
             if (SensedObject == null)
                 return new LSL_Types.Vector3(0, 0, 0);
-
             return new LSL_Types.Vector3(SensedObject.Velocity.X, SensedObject.Velocity.Y, SensedObject.Velocity.Z);
         }
 
@@ -911,7 +917,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             EntityBase SensedObject = entityDetectedKey(number);
             if (SensedObject == null)
                 return new LSL_Types.Quaternion();
-
             return new LSL_Types.Quaternion(SensedObject.Rotation.x, SensedObject.Rotation.y, SensedObject.Rotation.z, SensedObject.Rotation.w);
         }
 
@@ -986,8 +991,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
                 else
                     m_host.ScriptSetPhysicsStatus(false);
-
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_PHANTOM) == BuiltIn_Commands_BaseClass.STATUS_PHANTOM)
             {
                 if (value == 1)
@@ -995,27 +1000,32 @@ namespace OpenSim.Region.ScriptEngine.Common
                 else
                     m_host.ScriptSetPhantomStatus(false);
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS) == BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS)
             {
                 m_host.AddFlag(LLObject.ObjectFlags.CastShadows);
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_X) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_X)
             {
                 statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_X;
-
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y)
             {
                 statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y;
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z)
             {
                 statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z;
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB) == BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB)
             {
                 NotImplemented("llSetStatus - STATUS_BLOCK_GRAB");
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE) == BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE)
             {
                 if (value == 1)
@@ -1023,18 +1033,20 @@ namespace OpenSim.Region.ScriptEngine.Common
                 else
                     m_host.SetDieAtEdge(false);
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE) == BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE)
             {
                 NotImplemented("llSetStatus - STATUS_RETURN_AT_EDGE");
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_SANDBOX) == BuiltIn_Commands_BaseClass.STATUS_SANDBOX)
             {
                 NotImplemented("llSetStatus - STATUS_SANDBOX");
             }
+
             if (statusrotationaxis != 0)
             {
                 m_host.SetAxisRotation(statusrotationaxis, value);
-
             }
         }
 
@@ -1050,23 +1062,26 @@ namespace OpenSim.Region.ScriptEngine.Common
                         return 1;
                     }
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_PHANTOM:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Phantom) == (uint)LLObject.ObjectFlags.Phantom)
                     {
                         return 1;
                     }
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.CastShadows) == (uint)LLObject.ObjectFlags.CastShadows)
                     {
                         return 1;
                     }
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB:
                     NotImplemented("llGetStatus - STATUS_BLOCK_GRAB");
                     return 0;
-                case BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE:
 
+                case BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE:
                     if (m_host.GetDieAtEdge())
                         return 1;
                     else
@@ -1075,15 +1090,19 @@ namespace OpenSim.Region.ScriptEngine.Common
                 case BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE:
                     NotImplemented("llGetStatus - STATUS_RETURN_AT_EDGE");
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_ROTATE_X:
                     NotImplemented("llGetStatus - STATUS_ROTATE_X");
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y:
                     NotImplemented("llGetStatus - STATUS_ROTATE_Y");
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z:
                     NotImplemented("llGetStatus - STATUS_ROTATE_Z");
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_SANDBOX:
                     NotImplemented("llGetStatus - STATUS_SANDBOX");
                     return 0;
@@ -1179,103 +1198,103 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void SetGlow(SceneObjectPart part, int face, float glow)
         {
-          LLObject.TextureEntry tex = part.Shape.Textures;
-          if (face > -1)
-          {
-            tex.CreateFace((uint)face);
-            tex.FaceTextures[face].Glow = glow;
-            part.UpdateTexture(tex);
-            return;
-          }
-          else if (face == -1)
-          {
-            for (uint i = 0; i < 32; i++)
+            LLObject.TextureEntry tex = part.Shape.Textures;
+            if (face > -1)
             {
-              if (tex.FaceTextures[i] != null)
-              {
-                tex.FaceTextures[i].Glow = glow;
-              }
-              tex.DefaultTexture.Glow = glow;
+                tex.CreateFace((uint) face);
+                tex.FaceTextures[face].Glow = glow;
+                part.UpdateTexture(tex);
+                return;
             }
-            part.UpdateTexture(tex);
-            return;
-          }
+            else if (face == -1)
+            {
+                for (uint i = 0; i < 32; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        tex.FaceTextures[i].Glow = glow;
+                    }
+                    tex.DefaultTexture.Glow = glow;
+                }
+                part.UpdateTexture(tex);
+                return;
+            }
         }
 
         public void SetShiny(SceneObjectPart part, int face, int shiny, Bumpiness bump)
         {
 
-          Shininess sval = new Shininess();
+            Shininess sval = new Shininess();
 
-          switch (shiny)
-          {
-            case 0:
-              sval = Shininess.None;
-              break;
-            case 1:
-              sval = Shininess.Low;
-              break;
-            case 2:
-              sval = Shininess.Medium;
-              break;
-            case 3:
-              sval = Shininess.High;
-              break;
-            default:
-              sval = Shininess.None;
-              break;
-          }
-
-          LLObject.TextureEntry tex = part.Shape.Textures;
-          if (face > -1)
-          {
-            tex.CreateFace((uint)face);
-            tex.FaceTextures[face].Shiny = sval;
-            tex.FaceTextures[face].Bump = bump;
-            part.UpdateTexture(tex);
-            return;
-          }
-          else if (face == -1)
-          {
-            for (uint i = 0; i < 32; i++)
+            switch (shiny)
             {
-              if (tex.FaceTextures[i] != null)
-              {
-                tex.FaceTextures[i].Shiny = sval;
-                tex.FaceTextures[i].Bump = bump; ;
-              }
-              tex.DefaultTexture.Shiny = sval;
-              tex.DefaultTexture.Bump = bump;
+            case 0:
+                sval = Shininess.None;
+                break;
+            case 1:
+                sval = Shininess.Low;
+                break;
+            case 2:
+                sval = Shininess.Medium;
+                break;
+            case 3:
+                sval = Shininess.High;
+                break;
+            default:
+                sval = Shininess.None;
+                break;
             }
-            part.UpdateTexture(tex);
-            return;
-          }
+
+            LLObject.TextureEntry tex = part.Shape.Textures;
+            if (face > -1)
+            {
+                tex.CreateFace((uint) face);
+                tex.FaceTextures[face].Shiny = sval;
+                tex.FaceTextures[face].Bump = bump;
+                part.UpdateTexture(tex);
+                return;
+            }
+            else if (face == -1)
+            {
+                for (uint i = 0; i < 32; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        tex.FaceTextures[i].Shiny = sval;
+                        tex.FaceTextures[i].Bump = bump;;
+                    }
+                    tex.DefaultTexture.Shiny = sval;
+                    tex.DefaultTexture.Bump = bump;
+                }
+                part.UpdateTexture(tex);
+                return;
+            }
         }
 
         public void SetFullBright(SceneObjectPart part, int face, bool bright)
         {
-          LLObject.TextureEntry tex = part.Shape.Textures;
-          if (face > -1)
-          {
-            tex.CreateFace((uint)face);
-            tex.FaceTextures[face].Fullbright = bright;
-            part.UpdateTexture(tex);
-            return;
-          }
-          else if (face == -1)
-          {
-            for (uint i = 0; i < 32; i++)
-            {
-              if (tex.FaceTextures[i] != null)
-              {
-                tex.FaceTextures[i].Fullbright = bright;
-              }
-            }
-            tex.DefaultTexture.Fullbright = bright;
-            part.UpdateTexture(tex);
-            return;
-          }
-        }
+             LLObject.TextureEntry tex = part.Shape.Textures;
+             if (face > -1)
+             {
+                 tex.CreateFace((uint) face);
+                 tex.FaceTextures[face].Fullbright = bright;
+                 part.UpdateTexture(tex);
+                 return;
+             }
+             else if (face == -1)
+             {
+                 for (uint i = 0; i < 32; i++)
+                 {
+                     if (tex.FaceTextures[i] != null)
+                     {
+                         tex.FaceTextures[i].Fullbright = bright;
+                     }
+                 }
+                 tex.DefaultTexture.Fullbright = bright;
+                 part.UpdateTexture(tex);
+                 return;
+             }
+         }
 
         public double llGetAlpha(int face)
         {
@@ -1426,8 +1445,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             part.ScheduleFullUpdate();
         }
 
-
-
         public LSL_Types.Vector3 llGetColor(int face)
         {
             m_host.AddScriptLPS(1);
@@ -1460,6 +1477,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             SetTexture(m_host, texture, face);
+            // ScriptSleep(200);
         }
 
         private void SetTexture(SceneObjectPart part, string texture, int face)
@@ -1504,6 +1522,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
 
             ScaleTexture(m_host, u, v, face);
+            // ScriptSleep(200);
         }
 
         private void ScaleTexture(SceneObjectPart part, double u, double v, int face)
@@ -1539,6 +1558,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             OffsetTexture(m_host, u, v, face);
+            // ScriptSleep(200);
         }
 
         private void OffsetTexture(SceneObjectPart part, double u, double v, int face)
@@ -1574,6 +1594,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             RotateTexture(m_host, rotation, face);
+            // ScriptSleep(200);
         }
 
         private void RotateTexture(SceneObjectPart part, double rotation, int face)
@@ -1628,19 +1649,25 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             SetPos(m_host, pos);
 
-            // sleep for 0.2 seconds
             ScriptSleep(200);
         }
 
-        private void SetPos(SceneObjectPart part, LSL_Types.Vector3 pos)
+        private void SetPos(SceneObjectPart part, LSL_Types.Vector3 targetPos)
         {
+            // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
+            LSL_Types.Vector3 currentPos = llGetLocalPos();
+            if (llVecDist(currentPos, targetPos) > 10)
+            {
+                targetPos = currentPos + 10 * llVecNorm(targetPos - currentPos);
+            }
+
             if (part.ParentID != 0)
             {
-                part.UpdateOffSet(new LLVector3((float)pos.x, (float)pos.y, (float)pos.z));
+                part.UpdateOffSet(new LLVector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z));
             }
             else
             {
-                part.UpdateGroupPosition(new LLVector3((float)pos.x, (float)pos.y, (float)pos.z));
+                part.UpdateGroupPosition(new LLVector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z));
             }
         }
 
@@ -1675,7 +1702,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             SetRot(m_host, rot);
 
-            // sleep for 0.2 seconds
             ScriptSleep(200);
         }
 
@@ -1954,6 +1980,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             m_host.PreloadSound(sound);
+            // ScriptSleep(1000);
         }
 
         /// <summary>
@@ -2237,24 +2264,28 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             Deprecated("llMakeExplosion");
+            // ScriptSleep(100);
         }
 
         public void llMakeFountain()
         {
             m_host.AddScriptLPS(1);
             Deprecated("llMakeFountain");
+            // ScriptSleep(100);
         }
 
         public void llMakeSmoke()
         {
             m_host.AddScriptLPS(1);
             Deprecated("llMakeSmoke");
+            // ScriptSleep(100);
         }
 
         public void llMakeFire()
         {
             m_host.AddScriptLPS(1);
             Deprecated("llMakeFire");
+            // ScriptSleep(100);
         }
 
         public void llRezAtRoot(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
@@ -2305,8 +2336,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                     //Recoil.
                     llApplyImpulse(new LSL_Types.Vector3(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
                     found = true;
-                    //script delay
+                    // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
                     ScriptSleep((int)((groupmass * velmag) / 10));
+                    // ScriptSleep(100);
                     break;
                 }
             }
@@ -2340,8 +2372,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSleep(double sec)
         {
-            m_host.AddScriptLPS((int)(sec * 100));
-            System.Threading.Thread.Sleep((int)(sec * 1000));
+            m_host.AddScriptLPS(1);
+            Thread.Sleep((int)(sec * 1000));
         }
 
         public double llGetMass()
@@ -2460,8 +2492,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             msg.fromAgentSession = new Guid(friendTransactionID.ToString());// fromAgentSession.UUID;
             msg.toAgentID = new Guid(user); // toAgentID.UUID;
             msg.imSessionID = new Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
-            Console.WriteLine("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
-            Console.WriteLine("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
+//            Console.WriteLine("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
+//            Console.WriteLine("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
             msg.timestamp = (uint)Util.UnixTimeSinceEpoch();// timestamp;
             //if (client != null)
             //{
@@ -2480,6 +2512,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             msg.RegionID = World.RegionInfo.RegionID.UUID;//RegionID.UUID;
             msg.binaryBucket = new byte[0];// binaryBucket;
             World.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
+            // ScriptSleep(2000);
+
             //  NotImplemented("llInstantMessage");
       }
 
@@ -2491,6 +2525,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return;
 
             emailModule.SendEmail(m_host.UUID, address, subject, message);
+            // ScriptSleep(20000);
         }
 
         public void llGetNextEmail(string address, string subject)
@@ -2914,7 +2949,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             SceneObjectGroup parentPrim = null, childPrim = null;
             if (targetPart != null)
             {
-                if (parent == BuiltIn_Commands_BaseClass.TRUE) {
+                if (parent != 0) {
                     parentPrim = m_host.ParentGroup;
                     childPrim = targetPart.ParentGroup;
                 }
@@ -2932,9 +2967,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             parentPrim.RootPart.AddFlag(LLObject.ObjectFlags.CreateSelected);
             parentPrim.GetProperties(client);
 
-            // sleep for 1 second
             ScriptSleep(1000);
-
         }
 
         public void llBreakLink(int linknum)
@@ -3096,6 +3129,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 // destination is an object
                 World.MoveTaskInventoryItem(destId, m_host, objId);
             }
+            // ScriptSleep(3000);
         }
 
         public void llRemoveInventory(string name)
@@ -3134,12 +3168,14 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llRequestAgentData");
+            // ScriptSleep(100);
             return String.Empty;
         }
 
         public string llRequestInventoryData(string name)
         {
             m_host.AddScriptLPS(1);
+
             foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
             {
                 if (item.Type == 3 && item.Name == name)
@@ -3167,9 +3203,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                                                              reply);
                         }, false);
 
+                    // ScriptSleep(1000);
                     return tid.ToString();
                 }
             }
+            // ScriptSleep(1000);
             return String.Empty;
         }
 
@@ -3193,6 +3231,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         World.TeleportClientHome(agentId, presence.ControllingClient);
                 }
             }
+            // ScriptSleep(5000);
         }
 
         public void llModifyLand(int action, int brush)
@@ -3256,7 +3295,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                             m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
                                 partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
                             );
-
                         }
                     }
 
@@ -3363,7 +3401,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                             m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
                                 m_localID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
                             );
-
                         }
                     }
 
@@ -3437,12 +3474,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             return result;
 
         }
+
         // this function to understand which shape it is (taken from meshmerizer)
         // quite useful can be used by meshmerizer to have a centralized point of understanding the shape
         // except that it refers to scripting constants
         private int getScriptPrimType(PrimitiveBaseShape primShape)
         {
-
             if (primShape.SculptEntry)
                 return BuiltIn_Commands_BaseClass.PRIM_TYPE_SCULPT;
             if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
@@ -3473,9 +3510,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                     return BuiltIn_Commands_BaseClass.PRIM_TYPE_RING;
             }
             return BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX;
-
-
         }
+
         // Helper functions to understand if object has cut, hollow, dimple, and other affecting number of faces
         private void hasCutHollowDimpleProfileCut(int primType, PrimitiveBaseShape shape, out bool hasCut, out bool hasHollow,
             out bool hasDimple, out bool hasProfileCut)
@@ -3553,9 +3589,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                     ret = 1;
                     break;
             }
-
             return ret;
         }
+
 
         /* The new / changed functions were tested with the following LSL script:
 
@@ -3714,7 +3750,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_host.ParentGroup.RootPart.AllowedDrop = true;
             else
                 m_host.ParentGroup.RootPart.AllowedDrop = false;
-
         }
 
         public LSL_Types.Vector3 llGetSunDirection()
@@ -4069,16 +4104,16 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 switch (src[i])
                 {
-                    case '<' :
+                    case '<':
                         parens++;
                         length++;
                         break;
-                    case '>' :
+                    case '>':
                         if (parens > 0)
                             parens--;
                         length++;
                         break;
-                    case ',' :
+                    case ',':
                         if (parens == 0)
                         {
                             result.Add(src.Substring(start,length).Trim());
@@ -4090,7 +4125,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                             length++;
                         }
                         break;
-                    default  :
+                    default:
                         length++;
                         break;
                 }
@@ -4099,7 +4134,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             result.Add(src.Substring(start,length).Trim());
 
             return result;
-
         }
 
         ///  <summary>
@@ -4115,7 +4149,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.list llListRandomize(LSL_Types.list src, int stride)
         {
-
             LSL_Types.list result;
             Random rand           = new Random();
 
@@ -4174,7 +4207,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
             return result;
-
         }
 
         /// <summary>
@@ -4398,6 +4430,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             m_host.AdjustSoundGain(volume);
+            // ScriptSleep(100);
         }
 
         public void llSetSoundQueueing(int queue)
@@ -4548,81 +4581,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             return World.GetLandOwner((float)pos.x, (float)pos.y).ToString();
-        }
-
-        public string llGetNotecardLine(string name, int line)
-        {
-            m_host.AddScriptLPS(1);
-
-            // TODO: this script function should actually return
-            // the requested notecard line via the dataserver event
-            // once it is implemented - krtaylor
-
-            String[] notecardLines = GetNotecardLines(name);
-
-            line--; // array starts at 0
-            if ((!String.IsNullOrEmpty(notecardLines[0])) &&
-                (line >= 0) &&
-                (line < notecardLines.Length))
-            {
-                return notecardLines[line];
-            }
-            else
-            {
-                return String.Empty;
-            }
-        }
-
-        private String[] GetNotecardLines(string name)
-        {
-            // bool found = false;
-            int notecardIndex = 0;
-            String[] notecardLines = { "0" };
-            notecardLines[0] = String.Empty;
-
-            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if ((inv.Value.Name == name) && (inv.Value.InvType == (int)InventoryType.Notecard))
-                {
-                    // OK, it has the right name and it is a notecard
-                    // so get the asset that contains the notecard raw data
-                    // and convert it into a string
-                    AssetBase notecardAsset = World.AssetCache.GetAsset(inv.Value.AssetID, false);
-                    String dataString = System.Text.Encoding.ASCII.GetString(notecardAsset.Data);
-
-                    if (!String.IsNullOrEmpty(dataString))
-                    {
-                        // good, we have the notecard data as a string
-                        // now parse the text lines using the Linden Text delimiters
-                        notecardIndex = dataString.IndexOf("}\nText length ");
-                        if (notecardIndex > 0)
-                        {
-                            notecardIndex = notecardIndex + 2; //get past delimiter
-                            notecardIndex = dataString.IndexOf("\n", notecardIndex);
-                            if (notecardIndex > 0)
-                            {
-                                // Finally got to the first line of the notecard
-                                // now find the end of the notecard text delimited by }<LF>
-                                // parse the lines, delimited by <LF>
-                                notecardIndex = dataString.IndexOf("\n", notecardIndex);
-                                notecardIndex++; // get past delimiter
-
-                                int notecardLength = dataString.Length - notecardIndex - 3;
-
-                                // create new string to parse that only consists of the actual lines in the asset
-                                Char[] notecardCharArray = dataString.ToCharArray(notecardIndex, notecardLength);
-                                String notecardString = new String(notecardCharArray);
-
-                                // split the lines of the notecard into separate strings
-                                char[] delimChar = { '\n' };
-                                notecardLines = notecardString.Split(delimChar);
-                                return notecardLines;
-                            }
-                        }
-                    }
-                }
-            }
-            return notecardLines;
         }
 
         public LSL_Types.Vector3 llGetAgentSize(string id)
@@ -5071,6 +5029,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     land.ParcelAccessList.Add(entry);
                 }
             }
+            // ScriptSleep(100);
         }
 
         public void llSetTouchText(string text)
@@ -5158,6 +5117,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 buts[i] = buttons.Data[i].ToString();
             }
             World.SendDialogToUser(av, m_host.Name, m_host.UUID, m_host.OwnerID, message, new LLUUID("00000000-0000-2222-3333-100000001000"), chat_channel, buts);
+            // ScriptSleep(1000);
         }
 
         public void llVolumeDetect(int detect)
@@ -5232,12 +5192,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             Deprecated("llRemoteLoadScript");
+            // ScriptSleep(3000);
         }
 
         public void llSetRemoteScriptAccessPin(int pin)
         {
             m_host.AddScriptLPS(1);
-
             m_host.ScriptAccessPin = pin;
         }
 
@@ -5287,11 +5247,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             ScriptSleep(3000);
         }
 
-        //  remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval)
-        // Not sure where these constants should live:
-        // REMOTE_DATA_CHANNEL = 1
-        // REMOTE_DATA_REQUEST = 2
-        // REMOTE_DATA_REPLY = 3
         public void llOpenRemoteDataChannel()
         {
             m_host.AddScriptLPS(1);
@@ -5302,12 +5257,14 @@ namespace OpenSim.Region.ScriptEngine.Common
                 object[] resobj = new object[] { new LSL_Types.LSLInteger(1), new LSL_Types.LSLString(channelID.ToString()), new LSL_Types.LSLString(LLUUID.Zero.ToString()), new LSL_Types.LSLString(String.Empty), new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(String.Empty) };
                 m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj);
             }
+            // ScriptSleep(1000);
         }
 
         public string llSendRemoteData(string channel, string dest, int idata, string sdata)
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
+            // ScriptSleep(3000);
             return (xmlrpcMod.SendRemoteData(m_localID, m_itemID, channel, dest, idata, sdata)).ToString();
         }
 
@@ -5316,6 +5273,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             xmlrpcMod.RemoteDataReply(channel, message_id, sdata, idata);
+            // ScriptSleep(3000);
         }
 
         public void llCloseRemoteDataChannel(string channel)
@@ -5323,6 +5281,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             xmlrpcMod.CloseXMLRPCChannel(channel);
+            // ScriptSleep(1000);
         }
 
         public string llMD5String(string src, int nonce)
@@ -5900,7 +5859,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
                     case (int)BuiltIn_Commands_BaseClass.PRIM_GLOW:
                         if (remain < 2)
-                          return;
+                            return;
                         face = Convert.ToInt32(rules.Data[idx++]);
                         float glow = (float)Convert.ToDouble(rules.Data[idx++]);
 
@@ -5909,7 +5868,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
                     case (int)BuiltIn_Commands_BaseClass.PRIM_BUMP_SHINY:
                         if (remain < 3)
-                          return;
+                            return;
                         face = Convert.ToInt32(rules.Data[idx++]);
                         int shiny = Convert.ToInt32(rules.Data[idx++]);
                         Bumpiness bump = (Bumpiness)Convert.ToByte(rules.Data[idx++]);
@@ -5918,58 +5877,58 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                         break;
                       case (int)BuiltIn_Commands_BaseClass.PRIM_FULLBRIGHT:
-                        if (remain < 2)
-                          return;
-                        face = Convert.ToInt32(rules.Data[idx++]);
-                        string bv = rules.Data[idx++].ToString();
-                        bool st;
-                        if (bv.Equals("1"))
-                          st = true;
-                        else
-                          st = false;
+                         if (remain < 2)
+                             return;
+                         face = Convert.ToInt32(rules.Data[idx++]);
+                         string bv = rules.Data[idx++].ToString();
+                         bool st;
+                         if (bv.Equals("1"))
+                             st = true;
+                         else
+                             st = false;
 
-                        SetFullBright(part, face, st);
-                        break;
+                         SetFullBright(part, face , st);
+                         break;
                       case (int)BuiltIn_Commands_BaseClass.PRIM_MATERIAL:
-                        if (remain < 1)
-                          return;
+                         if (remain < 1)
+                             return;
                         if (part != null)
                         {
-                          /* Unhandled at this time - sends "Unhandled" message
-                             will enable when available
-                          byte material = (byte)Convert.ToByte( rules.Data[idx++]);
-                          part.Material =  material;
-                          */
-                          return;
+                            /* Unhandled at this time - sends "Unhandled" message
+                               will enable when available
+                            byte material = (byte)Convert.ToByte( rules.Data[idx++]);
+                            part.Material =  material;
+                            */
+                            return;
                         }
                         break;
                     case (int)BuiltIn_Commands_BaseClass.PRIM_PHANTOM:
                         if (remain < 1)
-                          return;
+                             return;
 
-                        string ph = rules.Data[idx++].ToString();
-                        bool phantom;
+                         string ph = rules.Data[idx++].ToString();
+                         bool phantom;
 
-                        if (ph.Equals("1"))
-                          phantom = true;
-                        else
-                          phantom = false;
+                         if (ph.Equals("1"))
+                             phantom = true;
+                         else
+                             phantom = false;
 
-                        part.ScriptSetPhantomStatus(phantom);
+                         part.ScriptSetPhantomStatus(phantom);
                         part.ScheduleFullUpdate();
                         break;
                     case (int)BuiltIn_Commands_BaseClass.PRIM_PHYSICS:
                         if (remain < 1)
-                          return;
-                        string phy = rules.Data[idx++].ToString();
-                        bool physics;
+                             return;
+                         string phy = rules.Data[idx++].ToString();
+                         bool physics;
 
-                        if (phy.Equals("1"))
-                          physics = true;
-                        else
-                          physics = false;
+                         if (phy.Equals("1"))
+                             physics = true;
+                         else
+                             physics = false;
 
-                        m_host.ScriptSetPhysicsStatus(physics);
+                         m_host.ScriptSetPhysicsStatus(physics);
                         part.ScheduleFullUpdate();
                         break;
                 }
@@ -6016,6 +5975,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             Deprecated("llXorBase64Strings");
+            // ScriptSleep(300);
         }
 
         public void llRemoteDataSetRegion()
@@ -6064,6 +6024,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return;
             }
             World.SetLandMusicURL(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, url);
+            // ScriptSleep(2000);
         }
 
         public void osSetParcelMediaURL(string url)
@@ -6203,25 +6164,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_host.ParentGroup.PrimCount;
         }
 
-        public int llGetNumberOfNotecardLines(string name)
-        {
-            m_host.AddScriptLPS(1);
-
-            // TODO: this script function should actually return
-            // the number of lines via the dataserver event
-            // once it is implemented - krtaylor
-
-            String[] notecardLines = GetNotecardLines(name);
-            if (!String.IsNullOrEmpty(notecardLines[0]))
-            {
-                return notecardLines.Length;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
         public LSL_Types.list llGetBoundingBox(string obj)
         {
             m_host.AddScriptLPS(1);
@@ -6292,22 +6234,20 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
 
                     case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE:
-                        
                         // implementing box
-                        PrimitiveBaseShape Shape=m_host.Shape;
-                        int primType=getScriptPrimType(m_host.Shape);
+                        PrimitiveBaseShape Shape = m_host.Shape;
+                        int primType = getScriptPrimType(m_host.Shape);
                         res.Add(new LSL_Types.LSLInteger(primType));
-                        switch(primType)
+                        switch (primType)
                         {
                             case BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX:
                             case BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER:                               
                             case BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM:
-                               
                                 res.Add(new LSL_Types.LSLInteger(Shape.ProfileCurve));
                                 res.Add(new LSL_Types.Vector3(Shape.ProfileBegin / 50000.0, 1 - Shape.ProfileEnd / 50000.0, 0));
                                 res.Add(new LSL_Types.LSLFloat(Shape.ProfileHollow / 50000.0));
-                                res.Add(new LSL_Types.Vector3(Shape.PathTwistBegin / 100.0,Shape.PathTwist / 100.0,0));
-                                res.Add(new LSL_Types.Vector3(1 - (Shape.PathScaleX / 100.0-1), 1 - (Shape.PathScaleY / 100.0-1), 0));
+                                res.Add(new LSL_Types.Vector3(Shape.PathTwistBegin / 100.0, Shape.PathTwist / 100.0, 0));
+                                res.Add(new LSL_Types.Vector3(1 - (Shape.PathScaleX / 100.0 - 1), 1 - (Shape.PathScaleY / 100.0 - 1), 0));
                                 res.Add(new LSL_Types.Vector3(Shape.PathShearX / 100.0, Shape.PathShearY / 100.0, 0));
                                 break;
 
@@ -6317,24 +6257,21 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 res.Add(new LSL_Types.LSLFloat(Shape.ProfileHollow / 50000.0));
                                 res.Add(new LSL_Types.Vector3(Shape.PathTwistBegin / 100.0, Shape.PathTwist / 100.0, 0));
                                 res.Add(new LSL_Types.Vector3(Shape.ProfileBegin / 50000.0, 1 - Shape.ProfileEnd / 50000.0, 0));
-
                                 break;
 
-                            
-                                
                             case BuiltIn_Commands_BaseClass.PRIM_TYPE_SCULPT:
                                 res.Add(Shape.SculptTexture.ToString());
                                 res.Add(new LSL_Types.LSLInteger(Shape.SculptType));
-
                                 break;
+
                             case BuiltIn_Commands_BaseClass.PRIM_TYPE_RING:
                             case BuiltIn_Commands_BaseClass.PRIM_TYPE_TUBE:
                             case BuiltIn_Commands_BaseClass.PRIM_TYPE_TORUS:
                                 // holeshape
-                                res.Add(new LSL_Types.LSLInteger(Shape.ProfileCurve)); 
+                                res.Add(new LSL_Types.LSLInteger(Shape.ProfileCurve));
 
                                 // cut
-                                res.Add(new LSL_Types.Vector3(Shape.PathBegin / 50000.0, 1 - Shape.PathEnd / 50000.0, 0)); 
+                                res.Add(new LSL_Types.Vector3(Shape.PathBegin / 50000.0, 1 - Shape.PathEnd / 50000.0, 0));
 
                                 // hollow
                                 res.Add(new LSL_Types.LSLFloat(Shape.ProfileHollow / 50000.0));
@@ -6344,29 +6281,27 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                                 // vector holesize
                                 res.Add(new LSL_Types.Vector3(1 - (Shape.PathScaleX / 100.0 - 1), 1 - (Shape.PathScaleY / 100.0 - 1), 0));
-                                
+
                                 // vector topshear
                                 res.Add(new LSL_Types.Vector3(Shape.PathShearX / 100.0, Shape.PathShearY / 100.0, 0));
 
                                 // vector profilecut
-                                res.Add(new LSL_Types.Vector3(Shape.ProfileBegin/ 50000.0, 1 - Shape.ProfileEnd / 50000.0,0));
+                                res.Add(new LSL_Types.Vector3(Shape.ProfileBegin / 50000.0, 1 - Shape.ProfileEnd / 50000.0, 0));
 
 
                                 // vector tapera
-                                res.Add(new LSL_Types.Vector3(Shape.PathTaperX / 100.0,Shape.PathTaperY / 100.0,0));
+                                res.Add(new LSL_Types.Vector3(Shape.PathTaperX / 100.0, Shape.PathTaperY / 100.0, 0));
 
                                 // float revolutions, 
-                                res.Add(new LSL_Types.LSLFloat(Shape.PathRevolutions/50.0)); // needs fixing :(
+                                res.Add(new LSL_Types.LSLFloat(Shape.PathRevolutions / 50.0)); // needs fixing :(
 
                                 // float radiusoffset, 
-                                res.Add(new LSL_Types.LSLFloat(Shape.PathRadiusOffset/100.0));
+                                res.Add(new LSL_Types.LSLFloat(Shape.PathRadiusOffset / 100.0));
 
                                 // float skew
-                                res.Add(new LSL_Types.LSLFloat(Shape.PathSkew/100.0)); 
+                                res.Add(new LSL_Types.LSLFloat(Shape.PathSkew / 100.0));
                                 break;
-                            
 
-                            
                         }
                         break;
 
@@ -6374,7 +6309,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         if (remain < 1)
                             return res;
 
-                        int face=Convert.ToInt32(""+rules.Data[idx++]);
+                        int face = Convert.ToInt32("" + rules.Data[idx++]);
                         if (face == -1)
                             face = 0;
 
@@ -6395,7 +6330,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         if (remain < 1)
                             return res;
 
-                        face=Convert.ToInt32(""+rules.Data[idx++]);
+                        face=Convert.ToInt32("" + rules.Data[idx++]);
 
                         tex = m_host.Shape.Textures;
                         LLColor texcolor;
@@ -6753,6 +6688,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             m_host.RotationOffset = new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
+            // ScriptSleep(200);
         }
 
         //  <summary>
@@ -6872,7 +6808,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         if (active[j])
                         {
                             // scan all of the markers
-                            if ((offset[j] = src.IndexOf((string)spcarray[j-seplen],beginning)) == -1)
+                            if ((offset[j] = src.IndexOf((string)spcarray[j-seplen], beginning)) == -1)
                             {
                                 // not present at all
                                 active[j] = false;
@@ -6896,7 +6832,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     // no markers were found on this pass
                     // so we're pretty much done
-                    tokens.Add(src.Substring(beginning, srclen-beginning));
+                    tokens.Add(src.Substring(beginning, srclen - beginning));
                     break;
                 }
 
@@ -6907,14 +6843,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 if (best < seplen)
                 {
-                    beginning = offset[best]+((string)separray[best]).Length;
+                    beginning = offset[best] + ((string)separray[best]).Length;
                 }
                 else
                 {
-                    beginning = offset[best]+((string)spcarray[best-seplen]).Length;
-                    tokens.Add(spcarray[best-seplen]);
+                    beginning = offset[best] + ((string)spcarray[best - seplen]).Length;
+                    tokens.Add(spcarray[best - seplen]);
                 }
-
             }
 
             //    This an awkward an not very intuitive boundary case. If the
@@ -7053,65 +6988,78 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llOwnerSay(string msg)
         {
             m_host.AddScriptLPS(1);
-            World.SimChatBroadcast(Helpers.StringToField(msg),
-                                   ChatTypeEnum.Owner, 0, m_host.AbsolutePosition,
-                                   m_host.Name, m_host.UUID, false);
 
-            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
+            World.SimChatBroadcast(Helpers.StringToField(msg), ChatTypeEnum.Owner, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
+//            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+//            wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
         }
 
         public string llRequestSimulatorData(string simulator, int data)
         {
-            m_host.AddScriptLPS(1);
-
-            string reply = String.Empty;
-
-            RegionInfo info = m_ScriptEngine.World.RequestClosestRegion(simulator);
-
-            switch (data)
+            try
             {
-            case 5: // DATA_SIM_POS
-                if (info == null)
-                    return LLUUID.Zero.ToString();
-                reply = new LSL_Types.Vector3(
-                        info.RegionLocX * Constants.RegionSize,
-                        info.RegionLocY * Constants.RegionSize,
-                        0).ToString();
-                break;
-            case 6: // DATA_SIM_STATUS
-                if (info != null)
-                    reply = "up"; // Duh!
-                else
-                    reply = "unknown";
-                break;
-            case 7: // DATA_SIM_RATING
-                if (info == null)
-                    return LLUUID.Zero.ToString();
-                int access = info.RegionSettings.Maturity;
-                if (access == 0)
-                    reply = "PG";
-                else if (access == 1)
-                    reply = "MATURE";
-                else
-                    reply = "UNKNOWN";
-                break;
-             case 128: // SIM_RELEASE
-                reply = m_ScriptEngine.World.GetSimulatorVersion();
-             break;
-            default:
-                return LLUUID.Zero.ToString(); // Raise no event
+                m_host.AddScriptLPS(1);
+
+                string reply = String.Empty;
+
+                RegionInfo info = m_ScriptEngine.World.RequestClosestRegion(simulator);
+
+                switch (data)
+                {
+                    case 5: // DATA_SIM_POS
+                        if (info == null)
+		                {
+		                    // ScriptSleep(1000);
+		                    return LLUUID.Zero.ToString();
+		                }
+                        reply = new LSL_Types.Vector3(
+                            info.RegionLocX * Constants.RegionSize,
+                            info.RegionLocY * Constants.RegionSize,
+                            0).ToString();
+                        break;
+                    case 6: // DATA_SIM_STATUS
+                        if (info != null)
+                            reply = "up"; // Duh!
+                        else
+                            reply = "unknown";
+                        break;
+                    case 7: // DATA_SIM_RATING
+                        if (info == null)
+		                {
+		                    // ScriptSleep(1000);
+		                    return LLUUID.Zero.ToString();
+		                }
+                        int access = info.RegionSettings.Maturity;
+                        if (access == 0)
+                            reply = "PG";
+                        else if (access == 1)
+                            reply = "MATURE";
+                        else
+                            reply = "UNKNOWN";
+                        break;
+                    case 128: // SIM_RELEASE
+                        reply = m_ScriptEngine.World.GetSimulatorVersion();
+                        break;
+                    default:
+		                // ScriptSleep(1000);
+                        return LLUUID.Zero.ToString(); // Raise no event
+                }
+                LLUUID rq = LLUUID.Random();
+
+	            LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
+	                    m_Dataserver.RegisterRequest(m_localID, m_itemID, rq.ToString());
+
+	            m_ScriptEngine.m_ASYNCLSLCommandManager.
+	            m_Dataserver.DataserverReply(rq.ToString(), reply);
+
+	            // ScriptSleep(1000);
+                return tid.ToString();
             }
-            LLUUID rq = LLUUID.Random();
-
-            LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
-                    m_Dataserver.RegisterRequest(m_localID,
-                    m_itemID, rq.ToString());
-
-            m_ScriptEngine.m_ASYNCLSLCommandManager.
-            m_Dataserver.DataserverReply(rq.ToString(), reply);
-
-            return tid.ToString();
+            catch(Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return LLUUID.Zero.ToString();
+            }
         }
 
         public void llForceMouselook(int mouselook)
@@ -7145,7 +7093,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end)
         {
-
             LSL_Types.list pref = null;
 
             m_host.AddScriptLPS(1);
@@ -7175,9 +7122,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                     pref = dest.GetSublist(0,start-1);
                     // Only add a suffix if there is something
                     // beyond the end index (it's inclusive too).
-                    if (end+1 < dest.Length)
+                    if (end + 1 < dest.Length)
                     {
-                        return pref + src + dest.GetSublist(end+1,-1);
+                        return pref + src + dest.GetSublist(end + 1, -1);
                     }
                     else
                     {
@@ -7192,9 +7139,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                 // is removed.
                 else
                 {
-                    if (end+1 < dest.Length)
+                    if (end + 1 < dest.Length)
                     {
-                        return src + dest.GetSublist(end+1,-1);
+                        return src + dest.GetSublist(end + 1, -1);
                     }
                     else
                     {
@@ -7210,7 +7157,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             // might have been negative.
             else
             {
-                return dest.GetSublist(end+1,start-1)+src;
+                return dest.GetSublist(end + 1, start - 1) + src;
             }
         }
 
@@ -7220,6 +7167,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             LLUUID avatarId = new LLUUID(avatar_id);
             m_ScriptEngine.World.SendUrlToUser(avatarId, m_host.Name, m_host.UUID, m_host.ObjectOwner, false, message,
                                                url);
+            // ScriptSleep(10000);
         }
 
         public void llParcelMediaCommandList(LSL_Types.list commandList)
@@ -7306,7 +7254,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }//end switch
 
             }
-
+            // ScriptSleep(2000);
 
             //NotImplemented("llParcelMediaCommandList");
         }
@@ -7346,8 +7294,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 }
             }
+            // ScriptSleep(2000);
             return list;
-
         }
 
         public LSL_Types.LSLInteger llModPow(int a, int b, int c)
@@ -7355,6 +7303,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             Int64 tmp = 0;
             Math.DivRem(Convert.ToInt64(Math.Pow(a, b)), c, out tmp);
+            // ScriptSleep(1000);
             return Convert.ToInt32(tmp);
         }
 
@@ -7420,12 +7369,14 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llSetPrimURL");
+            // ScriptSleep(2000);
         }
 
         public void llRefreshPrimURL()
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llRefreshPrimURL");
+            // ScriptSleep(20000);
         }
 
         public string llEscapeURL(string url)
@@ -7458,6 +7409,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llMapDestination");
+            // ScriptSleep(1000);
         }
 
         public void llAddToLandBanList(string avatar, double hours)
@@ -7476,6 +7428,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     land.ParcelAccessList.Add(entry);
                 }
             }
+            // ScriptSleep(100);
         }
 
         public void llRemoveFromLandPassList(string avatar)
@@ -7497,6 +7450,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                 }
             }
+            // ScriptSleep(100);
         }
 
         public void llRemoveFromLandBanList(string avatar)
@@ -7518,6 +7472,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                 }
             }
+            // ScriptSleep(100);
         }
 
         public void llSetCameraParams(LSL_Types.list rules)
@@ -7647,7 +7602,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
             if (estate == null)
                 return 67108864;
-            return estate.GetRegionFlags();
+            return (int)estate.GetRegionFlags();
         }
 
         public string llXorBase64StringsCorrect(string str1, string str2)
@@ -7725,6 +7680,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                 }
             }
+            // ScriptSleep(100);
         }
 
         public void llResetLandPassList()
@@ -7741,6 +7697,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                 }
             }
+            // ScriptSleep(100);
         }
 
         public LSL_Types.LSLInteger llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide)
@@ -7819,6 +7776,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     ret.Add(d.Value);
                 }
             }
+            // ScriptSleep(2000);
             return ret;
         }
 
@@ -7915,6 +7873,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return;
 
             SetTexture(part, texture, face);
+            // ScriptSleep(200);
         }
 
         public string llStringTrim(string src, int type)
@@ -8041,5 +8000,102 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             throw new Exception("LSL Runtime Error: " + msg);
         }
+        public int llGetNumberOfNotecardLines(string name)
+        {
+            m_host.AddScriptLPS(1);
+
+            // TODO: this script function should actually return
+            // the number of lines via the dataserver event
+            // once it is implemented - krtaylor
+
+            String[] notecardLines = GetNotecardLines(name);
+            if (!String.IsNullOrEmpty(notecardLines[0]))
+            {
+                return notecardLines.Length;
+            }
+            else
+            {
+                return 0;
+            }
+            // ScriptSleep(100);
+        }
+
+        public string llGetNotecardLine(string name, int line)
+        {
+            m_host.AddScriptLPS(1);
+
+            // TODO: this script function should actually return
+            // the requested notecard line via the dataserver event
+            // once it is implemented - krtaylor
+
+            String[] notecardLines = GetNotecardLines(name);
+
+            line--; // array starts at 0
+            if ((!String.IsNullOrEmpty(notecardLines[0])) &&
+                (line >= 0) &&
+                (line < notecardLines.Length))
+            {
+	            // ScriptSleep(100);
+                return notecardLines[line];
+            }
+            else
+            {
+	            // ScriptSleep(100);
+                return String.Empty;
+            }
+        }
+
+        private String[] GetNotecardLines(string name)
+        {
+            // bool found = false;
+            int notecardIndex = 0;
+            String[] notecardLines = { "0" };
+            notecardLines[0] = String.Empty;
+
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if ((inv.Value.Name == name) && (inv.Value.InvType == (int)InventoryType.Notecard))
+                {
+                    // OK, it has the right name and it is a notecard
+                    // so get the asset that contains the notecard raw data
+                    // and convert it into a string
+                    AssetBase notecardAsset = World.AssetCache.GetAsset(inv.Value.AssetID, false);
+                    String dataString = System.Text.Encoding.ASCII.GetString(notecardAsset.Data);
+
+                    if (!String.IsNullOrEmpty(dataString))
+                    {
+                        // good, we have the notecard data as a string
+                        // now parse the text lines using the Linden Text delimiters
+                        notecardIndex = dataString.IndexOf("}\nText length ");
+                        if (notecardIndex > 0)
+                        {
+                            notecardIndex = notecardIndex + 2; //get past delimiter
+                            notecardIndex = dataString.IndexOf("\n", notecardIndex);
+                            if (notecardIndex > 0)
+                            {
+                                // Finally got to the first line of the notecard
+                                // now find the end of the notecard text delimited by }<LF>
+                                // parse the lines, delimited by <LF>
+                                notecardIndex = dataString.IndexOf("\n", notecardIndex);
+                                notecardIndex++; // get past delimiter
+
+                                int notecardLength = dataString.Length - notecardIndex - 3;
+
+                                // create new string to parse that only consists of the actual lines in the asset
+                                Char[] notecardCharArray = dataString.ToCharArray(notecardIndex, notecardLength);
+                                String notecardString = new String(notecardCharArray);
+
+                                // split the lines of the notecard into separate strings
+                                char[] delimChar = { '\n' };
+                                notecardLines = notecardString.Split(delimChar);
+                                return notecardLines;
+                            }
+                        }
+                    }
+                }
+            }
+            return notecardLines;
+        }
+
     }
 }
