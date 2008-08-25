@@ -107,6 +107,9 @@ namespace OpenSim.Framework.Servers
             {
                 sb.Append(m_stats.Report());
             }
+            
+            sb.Append(Environment.NewLine);            
+            sb.Append(GetThreadsReport());
 
             m_log.Debug(sb);
         }
@@ -114,7 +117,7 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Get a report about the registered threads in this server.
         /// </summary>
-        protected string GetThreadReport()
+        protected string GetThreadsReport()
         {
             StringBuilder sb = new StringBuilder();
             
@@ -334,7 +337,7 @@ namespace OpenSim.Framework.Servers
                     break;
 
                 case "threads":
-                    Notice(GetThreadReport());
+                    Notice(GetThreadsReport());
                     break;
 
                 case "uptime":
