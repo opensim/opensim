@@ -735,10 +735,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             return Util.UIntsToLong(reg.RegionLocX, reg.RegionLocY);
         }
 
-        private ulong GetOSCompatibleRegionHandle(uint x, uint y)
-        {
-            return Util.UIntsToLong(x, y);
-        }
+//        private ulong GetOSCompatibleRegionHandle(uint x, uint y)
+//        {
+//            return Util.UIntsToLong(x, y);
+//        }
 
 //        private ulong GetOSCompatibleRegionHandle(ulong regionhandle)
 //        {
@@ -753,10 +753,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 //            return Util.UIntsToLong((reg.RegionLocX * (uint)Constants.RegionSize), (reg.RegionLocY * (uint)Constants.RegionSize));
 //        }
 
-        private ulong GetOGPCompatibleRegionHandle(uint x, uint y)
-        {
-            return Util.UIntsToLong((x * (uint)Constants.RegionSize), (y * (uint)Constants.RegionSize));
-        }
+//        private ulong GetOGPCompatibleRegionHandle(uint x, uint y)
+//        {
+//            return Util.UIntsToLong((x * (uint)Constants.RegionSize), (y * (uint)Constants.RegionSize));
+//        }
 
 //        private ulong GetOGPCompatibleRegionHandle(ulong regionhandle)
 //        {
