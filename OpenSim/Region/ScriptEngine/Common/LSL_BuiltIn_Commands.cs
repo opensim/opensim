@@ -71,12 +71,28 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_itemID = itemID;
 
             //m_log.Info(ScriptEngineName, "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
+
+            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            if (config.Configs["LL-Functions"] == null)
+                config.AddConfig("LL-Functions");
+
+            m_delayFactor = config.Configs["LL-Functions"].GetFloat("ScriptDelayFactor", 1.0f);
+
         }
 
         private DateTime m_timer = DateTime.Now;
         private string m_state = "default";
         private bool m_waitingForScriptAnswer=false;
+        private float m_delayFactor = 1.0f;
 
+
+        private void ScriptSleep(int delay)
+        {
+            delay = (int)((float)delay * m_delayFactor);
+            if(delay == 0)
+                return;
+            System.Threading.Thread.Sleep(delay);
+        }
 
         public string State
         {
@@ -1613,7 +1629,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             SetPos(m_host, pos);
 
             // sleep for 0.2 seconds
-            System.Threading.Thread.Sleep(200);
+            ScriptSleep(200);
         }
 
         private void SetPos(SceneObjectPart part, LSL_Types.Vector3 pos)
@@ -1660,7 +1676,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             SetRot(m_host, rot);
 
             // sleep for 0.2 seconds
-            System.Threading.Thread.Sleep(200);
+            ScriptSleep(200);
         }
 
         private void SetRot(SceneObjectPart part, LSL_Types.Quaternion rot)
@@ -2290,7 +2306,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     llApplyImpulse(new LSL_Types.Vector3(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
                     found = true;
                     //script delay
-                    System.Threading.Thread.Sleep((int)((groupmass * velmag) / 10));
+                    ScriptSleep((int)((groupmass * velmag) / 10));
                     break;
                 }
             }
@@ -2325,7 +2341,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSleep(double sec)
         {
             m_host.AddScriptLPS((int)(sec * 100));
-            Thread.Sleep((int)(sec * 1000));
+            System.Threading.Thread.Sleep((int)(sec * 1000));
         }
 
         public double llGetMass()
@@ -2917,7 +2933,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             parentPrim.GetProperties(client);
 
             // sleep for 1 second
-            System.Threading.Thread.Sleep(1000);
+            ScriptSleep(1000);
 
         }
 
@@ -5268,7 +5284,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             // the rest of the permission checks are done in RezScript, so check the pin there as well
             World.RezScript(srcId, m_host, destId, pin, running, start_param);
             // this will cause the delay even if the script pin or permissions were wrong - seems ok
-            System.Threading.Thread.Sleep(3000);
+            ScriptSleep(3000);
         }
 
         //  remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval)
