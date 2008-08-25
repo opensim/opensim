@@ -697,3 +697,8 @@ help = http://127.0.0.1/help
 
 ; password help: optional: page providing password assistance for users of your grid
 password = http://127.0.0.1/password
+
+;These are the settings for the Open Grid Protocol..  the Agent Domain, Region Domain,   you know..  
+[OpenGridProtocol]
+;On/true or Off/false
+ogp_enabled=false

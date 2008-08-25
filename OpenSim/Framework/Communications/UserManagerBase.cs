@@ -339,6 +339,11 @@ namespace OpenSim.Framework.Communications
         public void ClearUserAgent(LLUUID agentID)
         {
             UserProfileData profile = GetUserProfile(agentID);
+
+            if (profile == null)
+            {
+                return;
+            }
             profile.CurrentAgent = null;
 
             UpdateUserProfile(profile);

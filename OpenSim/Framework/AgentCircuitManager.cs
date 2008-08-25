@@ -103,8 +103,39 @@ namespace OpenSim.Framework
                 AgentCircuits[(uint) agentData.circuitcode].firstname = agentData.firstname;
                 AgentCircuits[(uint) agentData.circuitcode].lastname = agentData.lastname;
                 AgentCircuits[(uint) agentData.circuitcode].startpos = agentData.startpos;
+
+                // Updated for when we don't know them before calling Scene.NewUserConnection
+                AgentCircuits[(uint) agentData.circuitcode].SecureSessionID = agentData.SecureSessionID;
+                AgentCircuits[(uint) agentData.circuitcode].SessionID = agentData.SessionID;
+
                 // Console.WriteLine("update user start pos is " + agentData.startpos.X + " , " + agentData.startpos.Y + " , " + agentData.startpos.Z);
             }
+        }
+
+        
+        /// <summary>
+        /// Sometimes the circuitcode may not be known before setting up the connection
+        /// </summary>
+        /// <param name="circuitcode"></param>
+        /// <param name="newcircuitcode"></param>
+
+        public bool TryChangeCiruitCode(uint circuitcode, uint newcircuitcode)
+        {
+            lock (AgentCircuits)
+            {
+                if (AgentCircuits.ContainsKey((uint)circuitcode) && !AgentCircuits.ContainsKey((uint)newcircuitcode))
+                {
+                    AgentCircuitData agentData = AgentCircuits[(uint)circuitcode];
+                    
+                    agentData.circuitcode = newcircuitcode;
+
+                    AgentCircuits.Remove((uint)circuitcode);
+                    AgentCircuits.Add(newcircuitcode, agentData);
+                    return true;
+                }
+            }
+            return false;
+
         }
 
         public void UpdateAgentChildStatus(uint circuitcode, bool childstatus)

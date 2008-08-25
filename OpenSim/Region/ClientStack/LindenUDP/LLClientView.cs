@@ -92,6 +92,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private Dictionary<string, LLUUID> m_defaultAnimations = new Dictionary<string, LLUUID>();
 
+        private bool m_SendLogoutPacketWhenClosing = true;
+
         /* protected variables */
 
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers =
@@ -368,6 +370,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set { m_IsActive = value; }
         }
 
+        public bool SendLogoutPacketWhenClosing
+        {
+            set { m_SendLogoutPacketWhenClosing = value; }
+        } 
+
         /* METHODS */
 
         public LLClientView(EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
@@ -451,7 +458,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!(shutdownCircuit))
             {
                 GC.Collect();
-                m_clientThread.Abort();
+
+                // Sends a KillPacket object, with which, the 
+                // blockingqueue dequeues and sees it's a killpacket 
+                // and terminates within the context of the client thread.
+                // This ensures that it's done from within the context 
+                // of the client thread regardless of where Close() is called.
+                KillEndDone();
             }
         }
 
@@ -752,7 +765,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     ClientLoop();
                 }
             }
-            catch (Exception e)
+            catch (System.Exception e)
             {
                 if (e is ThreadAbortException)
                     throw e;
@@ -3740,6 +3753,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler.InPacket((Packet) NewPack);
         }
 
+
         /// <summary>
         /// The dreaded OutPacket. This should only be called from within
         /// the ClientStack itself right now
@@ -6093,15 +6107,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendLogoutPacket()
         {
-            LogoutReplyPacket logReply = (LogoutReplyPacket)PacketPool.Instance.GetPacket(PacketType.LogoutReply);
-            // TODO: don't create new blocks if recycling an old packet
-            logReply.AgentData.AgentID = AgentId;
-            logReply.AgentData.SessionID = SessionId;
-            logReply.InventoryData = new LogoutReplyPacket.InventoryDataBlock[1];
-            logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
-            logReply.InventoryData[0].ItemID = LLUUID.Zero;
+            // I know this is a bit of a hack, however there are times when you don't
+            // want to send this, but still need to do the rest of the shutdown process
+            // this method gets called from the packet server..   which makes it practically
+            // impossible to do any other way.
 
-            OutPacket(logReply, ThrottleOutPacketType.Task);
+            if (m_SendLogoutPacketWhenClosing)
+            {
+                LogoutReplyPacket logReply = (LogoutReplyPacket)PacketPool.Instance.GetPacket(PacketType.LogoutReply);
+                // TODO: don't create new blocks if recycling an old packet
+                logReply.AgentData.AgentID = AgentId;
+                logReply.AgentData.SessionID = SessionId;
+                logReply.InventoryData = new LogoutReplyPacket.InventoryDataBlock[1];
+                logReply.InventoryData[0] = new LogoutReplyPacket.InventoryDataBlock();
+                logReply.InventoryData[0].ItemID = LLUUID.Zero;
+
+                OutPacket(logReply, ThrottleOutPacketType.Task);
+            }
         }
 
         public void SendHealth(float health)
@@ -6442,6 +6464,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.Data.AuctionID = (int)land.AuctionID;
 
             OutPacket(reply, ThrottleOutPacketType.Land);
+        }
+
+        public void KillEndDone()
+        {
+            KillPacket kp = new KillPacket();
+            OutPacket(kp, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
         }
     }
 }

@@ -107,7 +107,7 @@ namespace OpenSim.Region.Communications.Local
                 // connectivity errors.
                 // Don't change this line below to 'm_regions[regionInfo.RegionHandle] = regionInfo' unless you
                 // *REALLY* know what you are doing here.
-                m_regions.Remove(regionInfo.RegionHandle);
+                m_regions[regionInfo.RegionHandle] = regionInfo;
 
                 m_log.Warn("[INTERREGION STANDALONE]: Region registered twice. Region went down and came back up.");
 

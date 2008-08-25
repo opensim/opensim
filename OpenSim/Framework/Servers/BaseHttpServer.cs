@@ -47,8 +47,9 @@ namespace OpenSim.Framework.Servers
 
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
-        protected Dictionary<string, XmlRpcMethod> m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
-        protected LLSDMethod m_llsdHandler = null;
+        protected Dictionary<string, XmlRpcMethod> m_rpcHandlers        = new Dictionary<string, XmlRpcMethod>();
+        protected DefaultLLSDMethod m_defaultLlsdHandler = null; // <--   Moving away from the monolithic..  and going to /registered/
+        protected Dictionary<string, LLSDMethod> m_llsdHandlers         = new Dictionary<string, LLSDMethod>();
         protected Dictionary<string, IRequestHandler> m_streamHandlers  = new Dictionary<string, IRequestHandler>();
         protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
         protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
@@ -148,9 +149,28 @@ namespace OpenSim.Framework.Servers
             return false;
         }
 
-        public bool SetLLSDHandler(LLSDMethod handler)
+        /// <summary>
+        /// Adds a LLSD handler, yay.
+        /// </summary>
+        /// <param name="path">/resource/ path</param>
+        /// <param name="handler">handle the LLSD response</param>
+        /// <returns></returns>
+        public bool AddLLSDHandler(string path, LLSDMethod handler)
         {
-            m_llsdHandler = handler;
+            lock (m_llsdHandlers)
+            {
+                if (!m_llsdHandlers.ContainsKey(path))
+                {
+                    m_llsdHandlers.Add(path, handler);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool SetDefaultLLSDHandler(DefaultLLSDMethod handler)
+        {
+            m_defaultLlsdHandler = handler;
             return true;
         }
 
@@ -239,20 +259,21 @@ namespace OpenSim.Framework.Servers
 
                 switch (request.ContentType)
                 {
-                case null:
-                case "text/html":
-                    HandleHTTPRequest(request, response);
-                    return;
+                    case null:
+                    case "text/html":
+                        HandleHTTPRequest(request, response);
+                        return;
 
-                case "application/xml+llsd":
-                    HandleLLSDRequests(request, response);
-                    return;
+                    case "application/llsd+xml":
+                    case "application/xml+llsd":
+                        HandleLLSDRequests(request, response);
+                        return;
 
-                case "text/xml":
-                case "application/xml":
-                default:
-                    HandleXmlRpcRequests(request, response);
-                    return;
+                    case "text/xml":
+                    case "application/xml":
+                    default:
+                        HandleXmlRpcRequests(request, response);
+                        return;
                 }
             }
             catch (SocketException e)
@@ -456,17 +477,37 @@ namespace OpenSim.Framework.Servers
                 m_log.Warn("[HTTPD]: Error - " + ex.Message);
             }
 
-            if (llsdRequest != null && m_llsdHandler != null)
+            if (llsdRequest != null)// && m_defaultLlsdHandler != null)
             {
-                llsdResponse = m_llsdHandler(llsdRequest);
+
+                LLSDMethod llsdhandler = null;
+
+                if (TryGetLLSDHandler(request.RawUrl, out llsdhandler))
+                {
+                    // we found a registered llsd handler to service this request
+                    llsdResponse = llsdhandler(request.RawUrl, llsdRequest, request.RemoteIPEndPoint.ToString());
+                }
+                else
+                {
+                    // we didn't find a registered llsd handler to service this request
+                    // check if we have a default llsd handler
+                    
+                    if (m_defaultLlsdHandler != null)
+                    {
+                        // LibOMV path
+                        llsdResponse = m_defaultLlsdHandler(llsdRequest);
+                    }
+                    else
+                    {
+                        // Oops, no handler for this..   give em the failed message
+                        llsdResponse = GenerateNoLLSDHandlerResponse();
+                    }
+                }
+
             }
             else
             {
-                LLSDMap map = new LLSDMap();
-                map["reason"] = LLSD.FromString("LLSDRequest");
-                map["message"] = LLSD.FromString("No handler registered for LLSD Requests");
-                map["login"] = LLSD.FromString("false");
-                llsdResponse = map;
+                llsdResponse = GenerateNoLLSDHandlerResponse();
             }
 
             response.ContentType = "application/xml+llsd";
@@ -491,6 +532,68 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+        private bool TryGetLLSDHandler(string path, out LLSDMethod llsdHandler)
+        {
+            llsdHandler = null;
+            // Pull out the first part of the path
+            // splitting the path by '/' means we'll get the following return.. 
+            // {0}/{1}/{2}
+            // where {0} isn't something we really control 100%
+
+            string[] pathbase = path.Split('/');
+            string searchquery = "/";
+
+            if (pathbase.Length < 1)
+                return false;
+
+            for (int i=1; i<pathbase.Length; i++)
+            {   
+                searchquery += pathbase[i];
+                if (pathbase.Length-1 != i)
+                    searchquery += "/";
+            }
+
+            // while the matching algorithm below doesn't require it, we're expecting a query in the form
+            //
+            //   [] = optional
+            //   /resource/UUID/action[/action]
+            // 
+            // now try to get the closest match to the reigstered path
+            // at least for OGP, registered path would probably only consist of the /resource/
+
+            string bestMatch = null;
+
+            foreach (string pattern in m_llsdHandlers.Keys)
+            {
+                if (searchquery.StartsWith(searchquery))
+                {
+                    if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
+                    {
+                        bestMatch = pattern;
+                    }
+                }
+            }
+
+            if (String.IsNullOrEmpty(bestMatch))
+            {
+                llsdHandler = null;
+                return false;
+            }
+            else
+            {
+                llsdHandler = m_llsdHandlers[bestMatch];
+                return true;
+            }
+        }
+
+        private LLSDMap GenerateNoLLSDHandlerResponse()
+        {
+            LLSDMap map = new LLSDMap();
+            map["reason"] = LLSD.FromString("LLSDRequest");
+            map["message"] = LLSD.FromString("No handler registered for LLSD Requests");
+            map["login"] = LLSD.FromString("false");
+            return map;
+        }
         /// <summary>
         /// A specific agent handler was provided. Such a handler is expecetd to have an
         /// intimate, and highly specific relationship with the client. Consequently,
@@ -809,6 +912,25 @@ namespace OpenSim.Framework.Servers
 
             return false;
         }
+        public bool RemoveLLSDHandler(string path, LLSDMethod handler)
+        {
+
+            try
+            {
+                if (handler == m_llsdHandlers[path])
+                {
+                    m_llsdHandlers.Remove(path);
+                    return true;
+                }
+            }
+            catch (KeyNotFoundException)
+            {
+                // This is an exception to prevent crashing because of invalid code
+            }
+
+            return false;
+        }
+
 
         public string GetHTTP404(string host)
         {

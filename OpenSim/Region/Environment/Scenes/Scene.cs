@@ -2599,6 +2599,17 @@ namespace OpenSim.Region.Environment.Scenes
                     "[CONNECTION DEBUGGING]: Skipping this region for welcoming avatar {0} [{1}] at {2}",
                     agent.AgentID, regionHandle, RegionInfo.RegionName);
             }
+           
+        }
+
+        public void UpdateCircuitData(AgentCircuitData data)
+        {
+            m_authenticateHandler.UpdateAgentData(data);
+        }
+
+        public bool ChangeCircuitCode(uint oldcc, uint newcc)
+        {
+            return m_authenticateHandler.TryChangeCiruitCode(oldcc, newcc);
         }
 
         protected void HandleLogOffUserFromGrid(ulong regionHandle, LLUUID AvatarID, LLUUID RegionSecret, string message)
@@ -2662,6 +2673,18 @@ namespace OpenSim.Region.Environment.Scenes
             cap.CAPSFetchInventoryDescendents = CommsManager.UserProfileCacheService.HandleFetchInventoryDescendentsCAPS;
             cap.GetClient = m_innerScene.GetControllingClient;
             m_capsHandlers[agentId] = cap;
+        }
+
+        public Caps GetCapsHandlerForUser(LLUUID agentId)
+        {
+            lock (m_capsHandlers)
+            {
+                if (m_capsHandlers.ContainsKey(agentId))
+                {
+                    return m_capsHandlers[agentId];
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -3838,6 +3861,12 @@ namespace OpenSim.Region.Environment.Scenes
             m_httpListener.AddStreamHandler(handler);
         }
 
+        public bool AddLLSDHandler(string path, LLSDMethod handler)
+        {
+           return m_httpListener.AddLLSDHandler(path, handler);
+        }
+
+
         public void RemoveStreamHandler(string httpMethod, string path)
         {
             m_httpListener.RemoveStreamHandler(httpMethod, path);
@@ -3846,6 +3875,11 @@ namespace OpenSim.Region.Environment.Scenes
         public void RemoveHTTPHandler(string httpMethod, string path)
         {
             m_httpListener.RemoveHTTPHandler(httpMethod, path);
+        }
+
+        public bool RemoveLLSDHandler(string path, LLSDMethod handler)
+        {
+           return m_httpListener.RemoveLLSDHandler(path, handler);
         }
 
         #endregion

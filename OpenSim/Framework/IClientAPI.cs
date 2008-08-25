@@ -349,6 +349,11 @@ namespace OpenSim.Framework
             set;
         }
 
+        bool SendLogoutPacketWhenClosing
+        {
+            set; 
+        } 
+
         // [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
         uint CircuitCode { get; }
         // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
@@ -741,5 +746,6 @@ namespace OpenSim.Framework
 
         void SendRegionHandle(LLUUID regoinID, ulong handle);
         void SendParcelInfo(RegionInfo info, LandData land, LLUUID parcelID, uint x, uint y);
+        void KillEndDone();
     }
 }

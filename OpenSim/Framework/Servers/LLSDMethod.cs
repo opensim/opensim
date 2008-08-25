@@ -29,5 +29,6 @@ using libsecondlife.StructuredData;
 
 namespace OpenSim.Framework.Servers
 {
-    public delegate LLSD LLSDMethod(LLSD request);
+    public delegate LLSD LLSDMethod( string path, LLSD request, string endpoint );
+    public delegate LLSD DefaultLLSDMethod(LLSD request);
 }

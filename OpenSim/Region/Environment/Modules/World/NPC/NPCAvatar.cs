@@ -43,6 +43,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         private readonly LLUUID m_uuid = LLUUID.Random();
         private readonly Scene m_scene;
 
+
         public NPCAvatar(string firstname, string lastname, LLVector3 position, Scene scene)
         {
             m_firstname = firstname;
@@ -122,6 +123,11 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
             get { return m_scene.Entities[m_uuid].AbsolutePosition; }
             set { m_scene.Entities[m_uuid].AbsolutePosition = value; }
+        }
+
+        public bool SendLogoutPacketWhenClosing
+        {
+            set { }
         }
 
         #region Internal Functions
@@ -855,6 +861,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
 
         public void SendParcelInfo (RegionInfo info, LandData land, LLUUID parcelID, uint x, uint y)
+        {
+        }
+
+        public void KillEndDone()
         {
         }
     }

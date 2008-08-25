@@ -160,6 +160,31 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
+        /// Preloads User data into the region cache. Modules may use this service to add non-standard clients
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="userData"></param>
+        public void PreloadUserCache(LLUUID userID, UserProfileData userData)
+        {
+            if (userID == LLUUID.Zero)
+                return;
+            
+            lock (m_userProfiles)
+            {
+                if (m_userProfiles.ContainsKey(userID))
+                {
+                    return;
+                }
+                else
+                {
+
+                    CachedUserInfo userInfo = new CachedUserInfo(m_commsManager, userData);
+                    m_userProfiles.Add(userID, userInfo);
+                }
+            }
+        }
+
+        /// <summary>
         /// Handle an inventory folder creation request from the client.
         /// </summary>
         /// <param name="remoteClient"></param>

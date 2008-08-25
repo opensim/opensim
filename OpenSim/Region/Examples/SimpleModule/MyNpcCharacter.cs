@@ -302,6 +302,11 @@ namespace OpenSim.Region.Examples.SimpleModule
             get { return m_scene; }
         }
 
+        public bool SendLogoutPacketWhenClosing
+        {
+            set { }
+        }
+
         public virtual void ActivateGesture(LLUUID assetId, LLUUID gestureId)
         {
         }
@@ -853,6 +858,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public void SendParcelInfo (RegionInfo info, LandData land, LLUUID parcelID, uint x, uint y)
+        {
+        }
+
+        public void KillEndDone()
         {
         }
     }

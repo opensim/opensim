@@ -49,6 +49,9 @@ namespace OpenSim.Region.Communications.Local
             m_log.InfoFormat("[LOCAL INVENTORY SERVICE]: Requesting inventory for user {0}", userID);
 
             List<InventoryFolderBase> skeletonFolders = GetInventorySkeleton(userID);
+            if (skeletonFolders == null)
+                return;
+
             InventoryFolderImpl rootFolder = null;
 
             List<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();

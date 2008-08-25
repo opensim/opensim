@@ -35,7 +35,7 @@ Patches
 
 * BigFootAg
 * CharlieO
-* jhurliman (LLSD Login)
+* jhurliman
 * kinoc (Daxtron Labs)
 * dmiles (Daxtron Labs)
 * daTwitch 

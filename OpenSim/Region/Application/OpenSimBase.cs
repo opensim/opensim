@@ -384,7 +384,7 @@ namespace OpenSim
                 m_httpServer.AddHTTPHandler("login", m_loginService.ProcessHTMLLogin);
 
                 // Provides the LLSD login
-                m_httpServer.SetLLSDHandler(m_loginService.LLSDLoginMethod);
+                m_httpServer.SetDefaultLLSDHandler(m_loginService.LLSDLoginMethod);
 
                 // provide grid info
                 // m_gridInfoService = new GridInfoService(m_config.Source.Configs["Startup"].GetString("inifile", Path.Combine(Util.configDir(), "OpenSim.ini")));

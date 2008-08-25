@@ -128,7 +128,7 @@ namespace OpenSim.Grid.UserServer
 
             if (Cfg.EnableLLSDLogin)
             {
-                m_httpServer.SetLLSDHandler(m_loginService.LLSDLoginMethod);
+                m_httpServer.SetDefaultLLSDHandler(m_loginService.LLSDLoginMethod);
             }
 
             m_httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
