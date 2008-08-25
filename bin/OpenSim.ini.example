@@ -657,6 +657,8 @@ EventLimit = 30
 KillTimedOutScripts = false
 ; Allow OS console command functionality (VERY DANGEROUS!!)
 AllowosConsoleCommand = false
+; Sets the multiplier for the scripting delays
+ScriptDelayFactor = 1.0
 
 
 [GridInfo]

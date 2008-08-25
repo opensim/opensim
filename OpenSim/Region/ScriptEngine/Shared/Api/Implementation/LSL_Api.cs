@@ -66,6 +66,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal LLUUID m_itemID;
         internal bool throwErrorOnNotImplemented = true;
         internal AsyncCommandManager AsyncCommands = null;
+        internal float m_ScriptDelayFactor = 1.0f;
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
         {
@@ -74,7 +75,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_localID = localID;
             m_itemID = itemID;
 
+            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            if (config.Configs["XEngine"] == null)
+                config.AddConfig("XEngine");
+
+            m_ScriptDelayFactor = config.Configs["XEngine"].
+                    GetFloat("ScriptDelayFactor", 1.0f);
+
             AsyncCommands = (AsyncCommandManager)ScriptEngine.AsyncCommands;
+        }
+
+        private void ScriptSleep(int delay)
+        {
+            delay = (int)((float)delay * m_ScriptDelayFactor);
+            if (delay == 0)
+                return;
+            System.Threading.Thread.Sleep(delay);
         }
 
         private DateTime m_timer = DateTime.Now;
@@ -2142,7 +2158,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     llApplyImpulse(new LSL_Types.Vector3(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
                     found = true;
                     //script delay
-                    System.Threading.Thread.Sleep((int)((groupmass * velmag) / 10));
+                    ScriptSleep((int)((groupmass * velmag) / 10));
                     break;
                 }
             }
@@ -2798,7 +2814,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             parentPrim.GetProperties(client);
 
             // sleep for 1 second
-            System.Threading.Thread.Sleep(1000);
+            ScriptSleep(1000);
 
         }
 
