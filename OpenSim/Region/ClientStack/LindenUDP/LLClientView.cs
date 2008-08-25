@@ -237,7 +237,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private RequestPayPrice handlerRequestPayPrice = null;
         private ObjectSaleInfo handlerObjectSaleInfo = null;
         private ObjectBuy handlerObjectBuy = null;
-        private BuyObjectInventory handlerBuyObjectInventory = null;
+        //private BuyObjectInventory handlerBuyObjectInventory = null;
         private ObjectDeselect handlerObjectDetach = null;
         private AgentSit handlerOnUndo = null;
 

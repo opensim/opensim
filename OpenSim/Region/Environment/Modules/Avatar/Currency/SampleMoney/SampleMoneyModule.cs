@@ -1584,8 +1584,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 remoteClient.SendAgentAlertMessage("Unable to buy now. The object was not found.", false);
                 return;
             }
-
-            bool transactionresult = doMoneyTransfer(remoteClient.AgentId, part.OwnerID, salePrice, 5000, "Object buy");
+            
+            doMoneyTransfer(remoteClient.AgentId, part.OwnerID, salePrice, 5000, "Object buy");
 
             s.PerformObjectBuy(remoteClient, categoryID, localID, saleType);
         }

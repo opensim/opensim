@@ -206,8 +206,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             RegionInfo reg = homeScene.RegionInfo;
             ulong regionhandle = GetOSCompatibleRegionHandle(reg);
-            string RegionURI = reg.ServerURI;
-            int RegionPort = (int)reg.HttpPort;
+            //string RegionURI = reg.ServerURI;
+            //int RegionPort = (int)reg.HttpPort;
 
             LLUUID RemoteAgentID = requestMap["agent_id"].AsUUID();
 
@@ -325,7 +325,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             homeScene.NewUserConnection(reg.RegionHandle, agentData);
 
 
-            string raCap = string.Empty;
+            //string raCap = string.Empty;
 
             LLUUID AvatarRezCapUUID = LLUUID.Random();
             string rezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar";
@@ -474,7 +474,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             m_log.ErrorFormat("DerezPath: {0}, Request: {1}", path, request.ToString());
             
-            LLSD llsdResponse = null;
+            //LLSD llsdResponse = null;
             LLSDMap responseMap = new LLSDMap();
             
 
@@ -497,7 +497,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 if (userState.agent_id != LLUUID.Zero)
                 {
 
-                    LLSDMap outboundRequestMap = new LLSDMap();
+                    //LLSDMap outboundRequestMap = new LLSDMap();
                     LLSDMap inboundRequestMap = (LLSDMap)request;
                     string rezAvatarString = inboundRequestMap["rez_avatar"].AsString();
 
@@ -580,7 +580,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 return GenerateNoHandlerMessage();
             }
 
-            return responseMap;
+            //return responseMap;
         }
 
         private LLSDMap invokeRezAvatarCap(LLSDMap responseMap, string CapAddress, OGPState userState)
@@ -740,30 +740,30 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             return Util.UIntsToLong(x, y);
         }
 
-        private ulong GetOSCompatibleRegionHandle(ulong regionhandle)
-        {
-            uint x,y;
-            Helpers.LongToUInts(regionhandle,out x, out y);
-            return GetOSCompatibleRegionHandle(x,y);
-        }
+//        private ulong GetOSCompatibleRegionHandle(ulong regionhandle)
+//        {
+//            uint x,y;
+//            Helpers.LongToUInts(regionhandle,out x, out y);
+//            return GetOSCompatibleRegionHandle(x,y);
+//        }
 
 
-        private ulong GetOGPCompatibleRegionHandle(RegionInfo reg)
-        {
-            return Util.UIntsToLong((reg.RegionLocX * (uint)Constants.RegionSize), (reg.RegionLocY * (uint)Constants.RegionSize));
-        }
+//        private ulong GetOGPCompatibleRegionHandle(RegionInfo reg)
+//        {
+//            return Util.UIntsToLong((reg.RegionLocX * (uint)Constants.RegionSize), (reg.RegionLocY * (uint)Constants.RegionSize));
+//        }
 
         private ulong GetOGPCompatibleRegionHandle(uint x, uint y)
         {
             return Util.UIntsToLong((x * (uint)Constants.RegionSize), (y * (uint)Constants.RegionSize));
         }
 
-        private ulong GetOGPCompatibleRegionHandle(ulong regionhandle)
-        {
-            uint x, y;
-            Helpers.LongToUInts(regionhandle, out x, out y);
-            return GetOGPCompatibleRegionHandle(x, y);
-        }
+//        private ulong GetOGPCompatibleRegionHandle(ulong regionhandle)
+//        {
+//            uint x, y;
+//            Helpers.LongToUInts(regionhandle, out x, out y);
+//            return GetOGPCompatibleRegionHandle(x, y);
+//        }
 
         private OGPState InitializeNewState()
         {
