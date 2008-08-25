@@ -3461,13 +3461,22 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         }
         // Helper functions to understand if object has cut, hollow, dimple, and other affecting number of faces
-        private void hasCutHollowDimpleProfileCut(PrimitiveBaseShape shape, out bool hasCut, out bool hasHollow,
+        private void hasCutHollowDimpleProfileCut(int primType, PrimitiveBaseShape shape, out bool hasCut, out bool hasHollow,
             out bool hasDimple, out bool hasProfileCut)
         {
-            hasCut = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0);
+            if (primType == BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX
+                ||
+                primType == BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER
+                ||
+                primType == BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM)
+
+                hasCut = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0);
+            else
+                hasCut = (shape.PathBegin > 0) || (shape.PathEnd > 0);
+
             hasHollow = shape.ProfileHollow > 0;
             hasDimple = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0); // taken from llSetPrimitiveParms
-            hasProfileCut = (shape.PathBegin > 0) || (shape.PathEnd > 0); // is it the same thing?
+            hasProfileCut = hasDimple; // is it the same thing?
 
         }
 
@@ -3480,9 +3489,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             bool hasDimple;
             bool hasProfileCut;
 
-            hasCutHollowDimpleProfileCut(m_host.Shape, out hasCut, out hasHollow, out hasDimple, out hasProfileCut);
+            int primType = getScriptPrimType(m_host.Shape);
+            hasCutHollowDimpleProfileCut(primType, m_host.Shape, out hasCut, out hasHollow, out hasDimple, out hasProfileCut);
 
-            switch (getScriptPrimType(m_host.Shape))
+            switch (primType)
             {
                 case BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX:
                     ret = 6;
@@ -3501,9 +3511,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                     break;
                 case BuiltIn_Commands_BaseClass.PRIM_TYPE_SPHERE:
                     ret = 1;
-                    if (hasProfileCut) ret += 2;
+                    if (hasCut) ret += 2;
                     if (hasDimple) ret += 2;
-                    if (hasHollow) ret += 1; // actually lsl adds 4!!!!!! is that a great mistake?                
+                    if (hasHollow) ret += 3; // Emulate lsl on secondlife (according to documentation it should have added only +1)
                     break;
                 case BuiltIn_Commands_BaseClass.PRIM_TYPE_TORUS:
                     ret = 1;
@@ -3530,7 +3540,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             return ret;
         }
-
 
         /* The new / changed functions were tested with the following LSL script:
 
@@ -6267,15 +6276,89 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
 
                     case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE:
-                        // TODO--------------
-                        res.Add(new LSL_Types.LSLInteger(0));
+                        
+                        // implementing box
+                        PrimitiveBaseShape Shape=m_host.Shape;
+                        int primType=getScriptPrimType(m_host.Shape);
+                        res.Add(new LSL_Types.LSLInteger(primType));
+                        switch(primType)
+                        {
+                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX:
+                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER:                               
+                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM:
+                               
+                                res.Add(new LSL_Types.LSLInteger(Shape.ProfileCurve));
+                                res.Add(new LSL_Types.Vector3(Shape.ProfileBegin / 50000.0, 1 - Shape.ProfileEnd / 50000.0, 0));
+                                res.Add(new LSL_Types.LSLFloat(Shape.ProfileHollow / 50000.0));
+                                res.Add(new LSL_Types.Vector3(Shape.PathTwistBegin / 100.0,Shape.PathTwist / 100.0,0));
+                                res.Add(new LSL_Types.Vector3(1 - (Shape.PathScaleX / 100.0-1), 1 - (Shape.PathScaleY / 100.0-1), 0));
+                                res.Add(new LSL_Types.Vector3(Shape.PathShearX / 100.0, Shape.PathShearY / 100.0, 0));
+                                break;
+
+                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_SPHERE:
+                                res.Add(new LSL_Types.LSLInteger(Shape.ProfileCurve));
+                                res.Add(new LSL_Types.Vector3(Shape.PathBegin / 50000.0, 1 - Shape.PathEnd / 50000.0, 0));
+                                res.Add(new LSL_Types.LSLFloat(Shape.ProfileHollow / 50000.0));
+                                res.Add(new LSL_Types.Vector3(Shape.PathTwistBegin / 100.0, Shape.PathTwist / 100.0, 0));
+                                res.Add(new LSL_Types.Vector3(Shape.ProfileBegin / 50000.0, 1 - Shape.ProfileEnd / 50000.0, 0));
+
+                                break;
+
+                            
+                                
+                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_SCULPT:
+                                res.Add(Shape.SculptTexture.ToString());
+                                res.Add(new LSL_Types.LSLInteger(Shape.SculptType));
+
+                                break;
+                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_RING:
+                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_TUBE:
+                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_TORUS:
+                                // holeshape
+                                res.Add(new LSL_Types.LSLInteger(Shape.ProfileCurve)); 
+
+                                // cut
+                                res.Add(new LSL_Types.Vector3(Shape.PathBegin / 50000.0, 1 - Shape.PathEnd / 50000.0, 0)); 
+
+                                // hollow
+                                res.Add(new LSL_Types.LSLFloat(Shape.ProfileHollow / 50000.0));
+
+                                // twist
+                                res.Add(new LSL_Types.Vector3(Shape.PathTwistBegin / 100.0, Shape.PathTwist / 100.0, 0));
+
+                                // vector holesize
+                                res.Add(new LSL_Types.Vector3(1 - (Shape.PathScaleX / 100.0 - 1), 1 - (Shape.PathScaleY / 100.0 - 1), 0));
+                                
+                                // vector topshear
+                                res.Add(new LSL_Types.Vector3(Shape.PathShearX / 100.0, Shape.PathShearY / 100.0, 0));
+
+                                // vector profilecut
+                                res.Add(new LSL_Types.Vector3(Shape.ProfileBegin/ 50000.0, 1 - Shape.ProfileEnd / 50000.0,0));
+
+
+                                // vector tapera
+                                res.Add(new LSL_Types.Vector3(Shape.PathTaperX / 100.0,Shape.PathTaperY / 100.0,0));
+
+                                // float revolutions, 
+                                res.Add(new LSL_Types.LSLFloat(Shape.PathRevolutions/50.0)); // needs fixing :(
+
+                                // float radiusoffset, 
+                                res.Add(new LSL_Types.LSLFloat(Shape.PathRadiusOffset/100.0));
+
+                                // float skew
+                                res.Add(new LSL_Types.LSLFloat(Shape.PathSkew/100.0)); 
+                                break;
+                            
+
+                            
+                        }
                         break;
 
                     case (int)BuiltIn_Commands_BaseClass.PRIM_TEXTURE:
                         if (remain < 1)
                             return res;
 
-                        int face=Convert.ToInt32(rules.Data[idx++]);
+                        int face=Convert.ToInt32(""+rules.Data[idx++]);
                         if (face == -1)
                             face = 0;
 
@@ -6296,7 +6379,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         if (remain < 1)
                             return res;
 
-                        face=Convert.ToInt32(rules.Data[idx++]);
+                        face=Convert.ToInt32(""+rules.Data[idx++]);
 
                         tex = m_host.Shape.Textures;
                         LLColor texcolor;
