@@ -318,7 +318,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatar];
-                target.AddAnimation(avatar);
+                target.AddAnimation(animation);
             }
         }
 
