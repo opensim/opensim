@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         //                ~ClientView()
         //                {
-        //                    m_log.Info("[CLIENTVIEW]: Destructor called");
+        //                    m_log.Info("[CLIENT]: LLClientView destructor called");
         //                }
 
         /* static variables */

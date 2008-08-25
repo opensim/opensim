@@ -602,7 +602,7 @@ namespace OpenSim
             }
         }
 
-        public override void ShowHelp(string[] helpArgs)
+        protected override void ShowHelp(string[] helpArgs)
         {
             base.ShowHelp(helpArgs);
 

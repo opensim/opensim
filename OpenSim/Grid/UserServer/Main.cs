@@ -248,7 +248,6 @@ namespace OpenSim.Grid.UserServer
                     break;
 
                 case "logoff-user":
-
                     if (cmdparams.Length >= 3)
                     {
                         string firstname = cmdparams[0];

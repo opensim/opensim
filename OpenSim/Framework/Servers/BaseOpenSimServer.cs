@@ -110,6 +110,32 @@ namespace OpenSim.Framework.Servers
 
             m_log.Debug(sb);
         }
+                
+        /// <summary>
+        /// Get a report about the registered threads in this server.
+        /// </summary>
+        protected string GetThreadReport()
+        {
+            StringBuilder sb = new StringBuilder();
+            
+            List<Thread> threads = ThreadTracker.GetThreads();
+            if (threads == null)
+            {
+                sb.Append("Thread tracking is only enabled in DEBUG mode.");
+            }
+            else
+            {
+                sb.Append(threads.Count + " threads are being tracked:" + Environment.NewLine);
+                foreach (Thread t in threads)
+                {
+                    sb.Append(
+                        "ID: " + t.ManagedThreadId + ", Name: " + t.Name + ", Alive: " + t.IsAlive 
+                        + ", Pri: " + t.Priority + ", State: " + t.ThreadState + Environment.NewLine);
+                }
+            }   
+            
+            return sb.ToString();
+        }        
 
         /// <summary>
         /// Return a report about the uptime of this server
@@ -261,7 +287,7 @@ namespace OpenSim.Framework.Servers
         /// Show help information
         /// </summary>
         /// <param name="helpArgs"></param>
-        public virtual void ShowHelp(string[] helpArgs)
+        protected virtual void ShowHelp(string[] helpArgs)
         {
             if (helpArgs.Length == 0)
             {
@@ -283,7 +309,7 @@ namespace OpenSim.Framework.Servers
 
                 return;
             }
-        }
+        }                
 
         /// <summary>
         /// Outputs to the console information about the region
@@ -308,19 +334,7 @@ namespace OpenSim.Framework.Servers
                     break;
 
                 case "threads":
-                    List<Thread> threads = ThreadTracker.GetThreads();
-                    if (threads == null)
-                    {
-                        Notice("Thread tracking is only enabled in DEBUG mode.");
-                    }
-                    else
-                    {
-                        Notice(threads.Count + " threads are being tracked:");
-                        foreach (Thread t in threads)
-                        {
-                            Notice("ID: " + t.ManagedThreadId.ToString() + ", Name: " + t.Name + ", Alive: " + t.IsAlive.ToString() + ", Pri: " + t.Priority.ToString() + ", State: " + t.ThreadState.ToString());
-                        }
-                    }
+                    Notice(GetThreadReport());
                     break;
 
                 case "uptime":
