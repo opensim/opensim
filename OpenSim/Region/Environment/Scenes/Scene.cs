@@ -2897,12 +2897,14 @@ namespace OpenSim.Region.Environment.Scenes
         public void RequestTeleportLandmark(IClientAPI remoteClient, LLUUID regionID, LLVector3 position)
         {
             RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(regionID);
+            
             if (info == null)
             {
                 // can't find the region: Tell viewer and abort
                 remoteClient.SendTeleportFailed("The teleport destination could not be found.");
                 return;
             }
+            
             lock (m_scenePresences)
             {
                 if (m_scenePresences.ContainsKey(remoteClient.AgentId))

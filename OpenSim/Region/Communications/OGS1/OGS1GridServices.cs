@@ -282,10 +282,14 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         /// <summary>
-        ///
+        /// Request information about a region.
         /// </summary>
         /// <param name="regionHandle"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// null on a failure to contact or get a response from the grid server
+        /// FIXME: Might be nicer to return a proper exception here since we could inform the client more about the
+        /// nature of the faiulre.
+        /// </returns>
         public RegionInfo RequestNeighbourInfo(LLUUID Region_UUID)
         {
             RegionInfo regionInfo;
@@ -294,10 +298,23 @@ namespace OpenSim.Region.Communications.OGS1
             requestData["authkey"] = serversInfo.GridSendKey;
             ArrayList SendParams = new ArrayList();
             SendParams.Add(requestData);
-            XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
-            XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 3000);
+            XmlRpcRequest gridReq = new XmlRpcRequest("simulator_data_request", SendParams);
+            XmlRpcResponse gridResp = null;
+            
+            try
+            {
+                gridResp = gridReq.Send(serversInfo.GridURL, 3000);
+            }
+            catch (WebException e)
+            {
+                m_log.ErrorFormat(
+                    "[OGS1 GRID SERVICES]: Communication with the grid server at {0} failed, {1}", 
+                    serversInfo.GridURL, e);
+                
+                return null;
+            }
 
-            Hashtable responseData = (Hashtable) GridResp.Value;
+            Hashtable responseData = (Hashtable)gridResp.Value;
 
             if (responseData.ContainsKey("error"))
             {
@@ -335,7 +352,7 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         /// <summary>
-        ///
+        /// Request information about a region.
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <returns></returns>

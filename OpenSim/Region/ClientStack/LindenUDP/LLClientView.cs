@@ -1355,7 +1355,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        ///
+        /// Inform the client that a teleport attempt has failed
         /// </summary>
         public void SendTeleportFailed(string reason)
         {
