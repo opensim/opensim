@@ -162,7 +162,8 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 string errorstring = (string) GridRespData["error"];
 
-                Exception e = new Exception(String.Format("Unable to connect to grid at {0}: {1}", serversInfo.GridURL, errorstring));
+                Exception e = new Exception(
+                    String.Format("Unable to connect to grid at {0}: {1}", serversInfo.GridURL, errorstring));
 
                 throw e;
             }
@@ -258,7 +259,10 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         catch (SocketException e)
                         {
-                            m_log.WarnFormat("RequestNeighbours(): Lookup of neighbour {0} failed!  Not including in neighbours list.  {1}", simIp, e);
+                            m_log.WarnFormat(
+                                "[OGS1 GRID SERVICES]: RequestNeighbours(): Lookup of neighbour {0} failed!  Not including in neighbours list.  {1}", 
+                                simIp, e);
+                            
                             continue;
                         }
 
@@ -1573,6 +1577,13 @@ namespace OpenSim.Region.Communications.OGS1
 
         int timeOut = 10; //10 seconds
 
+        /// <summary>
+        /// Check that a region is available for TCP comms.  This is necessary for .NET remoting between regions.
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
+        /// <param name="retry"></param>
+        /// <returns></returns>
         public bool CheckRegion(string address, uint port, bool retry)
         {
             bool available = false;
@@ -1593,7 +1604,8 @@ namespace OpenSim.Region.Communications.OGS1
                 }
                 catch (Exception e)
                 {
-                    m_log.DebugFormat("Callback EndConnect exception: {0}:{1}", e.Message, e.StackTrace);
+                    m_log.DebugFormat(
+                        "[OGS1 GRID SERVICES]: Callback EndConnect exception: {0}:{1}", e.Message, e.StackTrace);
                 }
 
                 s.Close();
@@ -1607,13 +1619,17 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("CheckRegion Socket Setup exception: {0}:{1}", e.Message, e.StackTrace);
+                m_log.DebugFormat(
+                    "[OGS1 GRID SERVICES]: CheckRegion Socket Setup exception: {0}:{1}", e.Message, e.StackTrace);
+                
                 return false;
             }
 
             if (timed_out)
             {
-                m_log.DebugFormat("socket [{0}] timed out ({1}) waiting to obtain a connection.", m_EndPoint, timeOut * 1000);
+                m_log.DebugFormat(
+                    "[OGS1 GRID SERVICES]: socket [{0}] timed out ({1}) waiting to obtain a connection.", 
+                    m_EndPoint, timeOut * 1000);
 
                 if (retry)
                 {
