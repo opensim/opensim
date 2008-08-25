@@ -5822,8 +5822,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         break;
                     case PacketType.GodKickUser:
-                        m_log.Warn("[CLIENT]: unhandled GodKickUser packet");
-
                         GodKickUserPacket gkupack = (GodKickUserPacket)Pack;
 
                         if (gkupack.UserInfo.GodSessionID == SessionId && AgentId == gkupack.UserInfo.GodID)
@@ -6000,12 +5998,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     case PacketType.ViewerStats:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled ViewerStats packet");
+                        //m_log.Warn("[CLIENT]: unhandled ViewerStats packet");
                         break;
 
                     case PacketType.CreateGroupRequest:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled CreateGroupRequest packet");
+                        //m_log.Warn("[CLIENT]: unhandled CreateGroupRequest packet");
                         break;
                     //case PacketType.GenericMessage:
                     // TODO: handle this packet
@@ -6013,19 +6011,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //break;
                     case PacketType.MapItemRequest:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled MapItemRequest packet");
+                        //m_log.Warn("[CLIENT]: unhandled MapItemRequest packet");
                         break;
                     case PacketType.TransferAbort:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled TransferAbort packet");
+                        //m_log.Warn("[CLIENT]: unhandled TransferAbort packet");
                         break;
                     case PacketType.MuteListRequest:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled MuteListRequest packet");
+                        //m_log.Warn("[CLIENT]: unhandled MuteListRequest packet");
                         break;
                     case PacketType.ParcelDwellRequest:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled ParcelDwellRequest packet");
+                        //m_log.Warn("[CLIENT]: unhandled ParcelDwellRequest packet");
                         break;
                     case PacketType.UseCircuitCode:
                         // TODO: Don't display this one, we handle it at a lower level
@@ -6034,19 +6032,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     case PacketType.AgentHeightWidth:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled AgentHeightWidth packet");
+                        //m_log.Warn("[CLIENT]: unhandled AgentHeightWidth packet");
                         break;
                     case PacketType.ObjectSpinStop:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled ObjectSpinStop packet");
+                        //m_log.Warn("[CLIENT]: unhandled ObjectSpinStop packet");
                         break;
                     case PacketType.SoundTrigger:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled SoundTrigger packet");
+                        //m_log.Warn("[CLIENT]: unhandled SoundTrigger packet");
                         break;
                     case PacketType.InventoryDescendents:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
+                        //m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
                         break;
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
