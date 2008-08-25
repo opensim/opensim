@@ -551,8 +551,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     responseMap["sim_ip"] = LLSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
                     responseMap["sim_host"] = LLSD.FromString(Util.GetHostFromDNS(rezRespSim_host).ToString());
                     responseMap["sim_port"] = LLSD.FromInteger(rrPort);
-                    responseMap["region_x"] = LLSD.FromInteger(rrX * (int)Constants.RegionSize);
-                    responseMap["region_y"] = LLSD.FromInteger(rrY * (int)Constants.RegionSize);
+                    responseMap["region_x"] = LLSD.FromInteger(rrX );
+                    responseMap["region_y"] = LLSD.FromInteger(rrY );
                     responseMap["region_id"] = LLSD.FromUUID(rrRID);
                     responseMap["sim_access"] = LLSD.FromString(rrAccess);
 
