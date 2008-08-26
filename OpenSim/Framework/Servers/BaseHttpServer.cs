@@ -272,6 +272,13 @@ namespace OpenSim.Framework.Servers
                     case "text/xml":
                     case "application/xml":
                     default:
+                        if (DoWeHaveALLSDHandler(request.RawUrl))
+                        {
+                            m_log.ErrorFormat("[BASE HTTP SERVER]: Potentially incorrect content type on Registered LLSD CAP: Content Type:{0}", request.ContentType);
+                            HandleLLSDRequests(request, response);
+
+                            return;
+                        }   
                         HandleXmlRpcRequests(request, response);
                         return;
                 }
@@ -529,6 +536,47 @@ namespace OpenSim.Framework.Servers
             finally
             {
                 response.OutputStream.Close();
+            }
+        }
+
+        private bool DoWeHaveALLSDHandler(string path)
+        {
+            
+            string[] pathbase = path.Split('/');
+            string searchquery = "/";
+
+            if (pathbase.Length < 1)
+                return false;
+
+            for (int i = 1; i < pathbase.Length; i++)
+            {
+                searchquery += pathbase[i];
+                if (pathbase.Length - 1 != i)
+                    searchquery += "/";
+            }
+
+            string bestMatch = null;
+
+            foreach (string pattern in m_llsdHandlers.Keys)
+            {
+                if (searchquery.StartsWith(searchquery))
+                {
+                    if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
+                    {
+                        bestMatch = pattern;
+                    }
+                }
+            }
+
+            if (String.IsNullOrEmpty(bestMatch))
+            {
+                
+                return false;
+            }
+            else
+            {
+                
+                return true;
             }
         }
 

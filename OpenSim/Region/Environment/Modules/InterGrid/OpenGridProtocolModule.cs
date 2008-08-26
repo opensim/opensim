@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -113,6 +114,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                         if (m_scene.Count == 0)
                         {
                             scene.AddLLSDHandler("/agent/", ProcessAgentDomainMessage);
+                            ServicePointManager.ServerCertificateValidationCallback += customXertificateValidation;
                         }
 
                         if (!m_scene.Contains(scene))
@@ -585,10 +587,12 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
         private LLSDMap invokeRezAvatarCap(LLSDMap responseMap, string CapAddress, OGPState userState)
         {
+            
 
             WebRequest DeRezRequest = WebRequest.Create(CapAddress);
             DeRezRequest.Method = "POST";
             DeRezRequest.ContentType = "application/xml+llsd";
+            
 
             LLSDMap RAMap = new LLSDMap();
             LLSDMap AgentParms = new LLSDMap();
@@ -842,6 +846,22 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 ta.Start();
             }
         }
+        // Temporary hack to allow teleporting to and from Vaak
+        private static bool customXertificateValidation(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
+        {
+
+            //if (cert.Subject == "E=root@lindenlab.com, CN=*.vaak.lindenlab.com, O=\"Linden Lab, Inc.\", L=San Francisco, S=California, C=US")
+            //{
+
+                return true;
+
+            //}
+
+            //return false;
+
+        }
+
+
     }
 
     public class KillAUser
