@@ -183,19 +183,37 @@ namespace OpenSim.Region.Communications.Local
             RegionInfo homeReg = m_Parent.GridService.RequestNeighbourInfo(theUser.HomeRegion);
             RegionInfo reg = m_Parent.GridService.RequestNeighbourInfo(currentRegion);
 
-            if ((homeReg != null) && (reg != null))
+            if ((homeReg != null) || (reg != null))
             {
-                response.Home = "{'region_handle':[r" +
-                    (homeReg.RegionLocX * Constants.RegionSize).ToString() + ",r" +
-                    (homeReg.RegionLocY * Constants.RegionSize).ToString() + "], " +
-                    "'position':[r" +
-                    theUser.HomeLocation.X.ToString() + ",r" +
-                    theUser.HomeLocation.Y.ToString() + ",r" +
-                    theUser.HomeLocation.Z.ToString() + "], " +
-                    "'look_at':[r" +
-                    theUser.HomeLocation.X.ToString() + ",r" +
-                    theUser.HomeLocation.Y.ToString() + ",r" +
-                    theUser.HomeLocation.Z.ToString() + "]}";
+                if (homeReg != null)
+                {
+                    response.Home = "{'region_handle':[r" +
+                        (homeReg.RegionLocX * Constants.RegionSize).ToString() + ",r" +
+                        (homeReg.RegionLocY * Constants.RegionSize).ToString() + "], " +
+                        "'position':[r" +
+                        theUser.HomeLocation.X.ToString() + ",r" +
+                        theUser.HomeLocation.Y.ToString() + ",r" +
+                        theUser.HomeLocation.Z.ToString() + "], " +
+                        "'look_at':[r" +
+                        theUser.HomeLocation.X.ToString() + ",r" +
+                        theUser.HomeLocation.Y.ToString() + ",r" +
+                        theUser.HomeLocation.Z.ToString() + "]}";
+                }
+                else
+                {
+                    m_log.Warn("[LOGIN]: Your home region doesn't exist");
+                    response.Home = "{'region_handle':[r" +
+                        (reg.RegionLocX * Constants.RegionSize).ToString() + ",r" +
+                        (reg.RegionLocY * Constants.RegionSize).ToString() + "], " +
+                        "'position':[r" +
+                        theUser.HomeLocation.X.ToString() + ",r" +
+                        theUser.HomeLocation.Y.ToString() + ",r" +
+                        theUser.HomeLocation.Z.ToString() + "], " +
+                        "'look_at':[r" +
+                        theUser.HomeLocation.X.ToString() + ",r" +
+                        theUser.HomeLocation.Y.ToString() + ",r" +
+                        theUser.HomeLocation.Z.ToString() + "]}";
+                }
                 string capsPath = Util.GetRandomCapsPath();
                 response.SimAddress = reg.ExternalEndPoint.Address.ToString();
                 response.SimPort = (uint) reg.ExternalEndPoint.Port;
