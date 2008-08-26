@@ -560,12 +560,11 @@ namespace OpenSim.Framework.Servers
             foreach (string pattern in m_llsdHandlers.Keys)
             {
                 
-                if (pattern.StartsWith(searchquery) && searchquery.Length >= pattern.Length)
+                if (searchquery.StartsWith(pattern) && searchquery.Length >= pattern.Length)
                 {
-                    if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
-                    {
+                    
                         bestMatch = pattern;
-                    }
+                   
                 }
             }
 
