@@ -559,7 +559,8 @@ namespace OpenSim.Framework.Servers
 
             foreach (string pattern in m_llsdHandlers.Keys)
             {
-                if (searchquery.StartsWith(searchquery))
+                
+                if (pattern.StartsWith(searchquery) && searchquery.Length >= pattern.Length)
                 {
                     if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
                     {
@@ -567,6 +568,10 @@ namespace OpenSim.Framework.Servers
                     }
                 }
             }
+
+            // extra kicker to remove the default XMLRPC login case..  just in case..  
+            if (path == "/")
+                return false;
 
             if (String.IsNullOrEmpty(bestMatch))
             {

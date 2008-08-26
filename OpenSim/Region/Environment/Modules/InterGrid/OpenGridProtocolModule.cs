@@ -114,7 +114,14 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                         if (m_scene.Count == 0)
                         {
                             scene.AddLLSDHandler("/agent/", ProcessAgentDomainMessage);
-                            ServicePointManager.ServerCertificateValidationCallback += customXertificateValidation;
+                            try
+                            {
+                                ServicePointManager.ServerCertificateValidationCallback += customXertificateValidation;
+                            }
+                            catch (NotImplementedException)
+                            {
+                                m_log.Error("[OGP]: Certificate validation handler change not supported.  You may get ssl certificate validation errors teleporting from your region to some SSL regions.");
+                            }
                         }
 
                         if (!m_scene.Contains(scene))
