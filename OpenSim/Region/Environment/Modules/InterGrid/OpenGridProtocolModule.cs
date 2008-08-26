@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -745,36 +746,6 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         {
             return Util.UIntsToLong(reg.RegionLocX, reg.RegionLocY);
         }
-
-//        private ulong GetOSCompatibleRegionHandle(uint x, uint y)
-//        {
-//            return Util.UIntsToLong(x, y);
-//        }
-
-//        private ulong GetOSCompatibleRegionHandle(ulong regionhandle)
-//        {
-//            uint x,y;
-//            Helpers.LongToUInts(regionhandle,out x, out y);
-//            return GetOSCompatibleRegionHandle(x,y);
-//        }
-
-
-//        private ulong GetOGPCompatibleRegionHandle(RegionInfo reg)
-//        {
-//            return Util.UIntsToLong((reg.RegionLocX * (uint)Constants.RegionSize), (reg.RegionLocY * (uint)Constants.RegionSize));
-//        }
-
-//        private ulong GetOGPCompatibleRegionHandle(uint x, uint y)
-//        {
-//            return Util.UIntsToLong((x * (uint)Constants.RegionSize), (y * (uint)Constants.RegionSize));
-//        }
-
-//        private ulong GetOGPCompatibleRegionHandle(ulong regionhandle)
-//        {
-//            uint x, y;
-//            Helpers.LongToUInts(regionhandle, out x, out y);
-//            return GetOGPCompatibleRegionHandle(x, y);
-//        }
 
         private OGPState InitializeNewState()
         {
