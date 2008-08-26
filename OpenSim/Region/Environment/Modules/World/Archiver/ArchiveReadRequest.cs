@@ -211,7 +211,18 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             // Right now we're nastily obtaining the lluuid from the filename
             string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
-            string extension = filename.Substring(filename.LastIndexOf("_"));
+            int i = filename.LastIndexOf(ArchiveConstants.ASSET_EXTENSION_SEPARATOR);
+            
+            if (i == -1)
+            {
+                m_log.ErrorFormat(
+                    "[ARCHIVER]: Could not find extension information in asset path {0} since it's missing the separator {1}.  Skipping",
+                    assetPath, ArchiveConstants.ASSET_EXTENSION_SEPARATOR);
+                
+                return false;
+            }
+            
+            string extension = filename.Substring(i);
             string uuid = filename.Remove(filename.Length - extension.Length);
 
             if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))

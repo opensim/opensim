@@ -59,6 +59,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// Path for terrains.  Technically these may be assets, but I think it's quite nice to split them out.
         /// </summary>
         public static readonly string TERRAINS_PATH = "terrains/";
+        
+        /// <summary>
+        /// The character the separates the uuid from extension information in an archived asset filename
+        /// </summary>
+        public static readonly string ASSET_EXTENSION_SEPARATOR = "_";
 
         /// <summary>
         /// Extensions used for asset types in the archive
@@ -68,59 +73,59 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         static ArchiveConstants()
         {
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Animation]           = "_animation.bvh";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Bodypart]            = "_bodypart.txt";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.CallingCard]         = "_callingcard.txt";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Clothing]            = "_clothing.txt";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Folder]              = "_folder.txt";   // Not sure if we'll ever see this
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Gesture]             = "_gesture.txt";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageJPEG]           = "_image.jpg";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageTGA]            = "_image.tga";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LostAndFoundFolder]  = "_lostandfoundfolder.txt";   // Not sure if we'll ever see this
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLBytecode]         = "_bytecode.lso";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLText]             = "_script.lsl";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Notecard]            = "_notecard.txt";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Object]              = "_object.xml";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.RootFolder]          = "_rootfolder.txt";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Animation]           = ASSET_EXTENSION_SEPARATOR + "animation.bvh";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Bodypart]            = ASSET_EXTENSION_SEPARATOR + "bodypart.txt";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.CallingCard]         = ASSET_EXTENSION_SEPARATOR + "callingcard.txt";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Clothing]            = ASSET_EXTENSION_SEPARATOR + "clothing.txt";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Folder]              = ASSET_EXTENSION_SEPARATOR + "folder.txt";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Gesture]             = ASSET_EXTENSION_SEPARATOR + "gesture.txt";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageJPEG]           = ASSET_EXTENSION_SEPARATOR + "image.jpg";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageTGA]            = ASSET_EXTENSION_SEPARATOR + "image.tga";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LostAndFoundFolder]  = ASSET_EXTENSION_SEPARATOR + "lostandfoundfolder.txt";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLBytecode]         = ASSET_EXTENSION_SEPARATOR + "bytecode.lso";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLText]             = ASSET_EXTENSION_SEPARATOR + "script.lsl";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Notecard]            = ASSET_EXTENSION_SEPARATOR + "notecard.txt";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Object]              = ASSET_EXTENSION_SEPARATOR + "object.xml";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.RootFolder]          = ASSET_EXTENSION_SEPARATOR + "rootfolder.txt";   // Not sure if we'll ever see this
 // disable warning: we know Script is obsolete, but need to support it
 // anyhow
 #pragma warning disable 0612
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Script]              = "_script.txt";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Script]              = ASSET_EXTENSION_SEPARATOR + "script.txt";   // Not sure if we'll ever see this
 #pragma warning restore 0612
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Simstate]            = "_simstate.bin";   // Not sure if we'll ever see this
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SnapshotFolder]      = "_snapshotfolder.txt";   // Not sure if we'll ever see this
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Sound]               = "_sound.ogg";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV]            = "_sound.wav";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Texture]             = "_texture.jp2";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TextureTGA]          = "_texture.tga";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TrashFolder]         = "_trashfolder.txt";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Simstate]            = ASSET_EXTENSION_SEPARATOR + "simstate.bin";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SnapshotFolder]      = ASSET_EXTENSION_SEPARATOR + "snapshotfolder.txt";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Sound]               = ASSET_EXTENSION_SEPARATOR + "sound.ogg";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV]            = ASSET_EXTENSION_SEPARATOR + "sound.wav";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Texture]             = ASSET_EXTENSION_SEPARATOR + "texture.jp2";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TextureTGA]          = ASSET_EXTENSION_SEPARATOR + "texture.tga";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TrashFolder]         = ASSET_EXTENSION_SEPARATOR + "trashfolder.txt";   // Not sure if we'll ever see this
 
-            EXTENSION_TO_ASSET_TYPE["_animation.bvh"] = (sbyte)AssetType.Animation;
-            EXTENSION_TO_ASSET_TYPE["_bodypart.txt"] = (sbyte)AssetType.Bodypart;
-            EXTENSION_TO_ASSET_TYPE["_callingcard.txt"] = (sbyte)AssetType.CallingCard;
-            EXTENSION_TO_ASSET_TYPE["_clothing.txt"] = (sbyte)AssetType.Clothing;
-            EXTENSION_TO_ASSET_TYPE["_folder.txt"] = (sbyte)AssetType.Folder;
-            EXTENSION_TO_ASSET_TYPE["_gesture.txt"] = (sbyte)AssetType.Gesture;
-            EXTENSION_TO_ASSET_TYPE["_image.jpg"] = (sbyte)AssetType.ImageJPEG;
-            EXTENSION_TO_ASSET_TYPE["_image.tga"] = (sbyte)AssetType.ImageTGA;
-            EXTENSION_TO_ASSET_TYPE["_lostandfoundfolder.txt"] = (sbyte)AssetType.LostAndFoundFolder;
-            EXTENSION_TO_ASSET_TYPE["_bytecode.lso"] = (sbyte)AssetType.LSLBytecode;
-            EXTENSION_TO_ASSET_TYPE["_script.lsl"] = (sbyte)AssetType.LSLText;
-            EXTENSION_TO_ASSET_TYPE["_notecard.txt"] = (sbyte)AssetType.Notecard;
-            EXTENSION_TO_ASSET_TYPE["_object.xml"] = (sbyte)AssetType.Object;
-            EXTENSION_TO_ASSET_TYPE["_rootfolder.txt"] = (sbyte)AssetType.RootFolder;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "animation.bvh"]            = (sbyte)AssetType.Animation;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "bodypart.txt"]             = (sbyte)AssetType.Bodypart;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "callingcard.txt"]          = (sbyte)AssetType.CallingCard;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "clothing.txt"]             = (sbyte)AssetType.Clothing;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "folder.txt"]               = (sbyte)AssetType.Folder;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "gesture.txt"]              = (sbyte)AssetType.Gesture;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "image.jpg"]                = (sbyte)AssetType.ImageJPEG;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "image.tga"]                = (sbyte)AssetType.ImageTGA;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "lostandfoundfolder.txt"]   = (sbyte)AssetType.LostAndFoundFolder;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "bytecode.lso"]             = (sbyte)AssetType.LSLBytecode;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "script.lsl"]               = (sbyte)AssetType.LSLText;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "notecard.txt"]             = (sbyte)AssetType.Notecard;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "object.xml"]               = (sbyte)AssetType.Object;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "rootfolder.txt"]           = (sbyte)AssetType.RootFolder;
 // disable warning: we know Script is obsolete, but need to support it
 // anyhow
 #pragma warning disable 0612
-            EXTENSION_TO_ASSET_TYPE["_script.txt"] = (sbyte)AssetType.Script;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "script.txt"]               = (sbyte)AssetType.Script;
 #pragma warning restore 0612
-            EXTENSION_TO_ASSET_TYPE["_simstate.bin"] = (sbyte)AssetType.Simstate;
-            EXTENSION_TO_ASSET_TYPE["_snapshotfolder.txt"] = (sbyte)AssetType.SnapshotFolder;
-            EXTENSION_TO_ASSET_TYPE["_sound.ogg"] = (sbyte)AssetType.Sound;
-            EXTENSION_TO_ASSET_TYPE["_sound.wav"] = (sbyte)AssetType.SoundWAV;
-            EXTENSION_TO_ASSET_TYPE["_texture.jp2"] = (sbyte)AssetType.Texture;
-            EXTENSION_TO_ASSET_TYPE["_texture.tga"] = (sbyte)AssetType.TextureTGA;
-            EXTENSION_TO_ASSET_TYPE["_trashfolder.txt"] = (sbyte)AssetType.TrashFolder;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "simstate.bin"]             = (sbyte)AssetType.Simstate;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "snapshotfolder.txt"]       = (sbyte)AssetType.SnapshotFolder;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "sound.ogg"]                = (sbyte)AssetType.Sound;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "sound.wav"]                = (sbyte)AssetType.SoundWAV;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.jp2"]              = (sbyte)AssetType.Texture;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.tga"]              = (sbyte)AssetType.TextureTGA;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "trashfolder.txt"]          = (sbyte)AssetType.TrashFolder;
         }
     }
 }
