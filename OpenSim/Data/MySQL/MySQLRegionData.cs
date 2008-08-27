@@ -138,12 +138,8 @@ namespace OpenSim.Data.MySQL
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(m_connection, assem, "RegionStore");
-
-            // TODO: After rev 6000, remove this.  People should have
-            // been rolled onto the new migration code by then.
-            TestTables(m_connection, m);
-
             m.Update();
+
 
             MySqlCommand primSelectCmd = new MySqlCommand(m_primSelect, m_connection);
             m_primDataAdapter = new MySqlDataAdapter(primSelectCmd);
@@ -166,6 +162,7 @@ namespace OpenSim.Data.MySQL
             MySqlCommand regionSettingsSelectCmd = new MySqlCommand(m_regionSettingsSelect, m_connection);
             m_regionSettingsDataAdapter = new MySqlDataAdapter(regionSettingsSelectCmd);
 
+            // TODO: move out the ADO.NET pieces here and just go to the db directly
             lock (m_dataSet)
             {
                 m_primTable = createPrimTable();
@@ -294,18 +291,6 @@ namespace OpenSim.Data.MySQL
                 }
             }
         }
-        // private void TestTablesVersionable(MySqlConnection dbconn)
-        // {
-        //     Dictionary<string, string> tableList = new Dictionary<string, string>();
-
-        //     tableList["land"] = null;
-        //     dbconn.Open();
-        //     GetTableVersion(tableList,dbconn);
-
-        //     UpgradeLandTable(tableList["land"], dbconn);
-        //     //database.Close();
-
-        // }
 
         /// <summary>
         /// Execute a SQL statement stored in a resource, as a string
@@ -344,28 +329,6 @@ namespace OpenSim.Data.MySQL
             }
             throw new Exception(string.Format("Resource '{0}' was not found", name));
         }
-
-        /// <summary>
-        /// <list type="bullet">
-        /// <item>Execute CreateLandTable.sql if oldVersion == null</item>
-        /// <item>Execute UpgradeLandTable.sqm if oldVersion contain "Rev."</item>
-        /// </list>
-        /// </summary>
-        /// <param name="oldVersion"></param>
-        /// <param name="dbconn">The database connection handler</param>
-        // private void UpgradeLandTable(string oldVersion, MySqlConnection dbconn)
-        // {
-        //     // null as the version, indicates that the table didn't exist
-        //     if (oldVersion == null)
-        //     {
-        //         ExecuteResourceSql("CreateLandTable.sql",dbconn);
-        //         oldVersion = "Rev. 2; InnoDB free: 0 kB";
-        //     }
-        //     if (!oldVersion.Contains("Rev."))
-        //     {
-        //         ExecuteResourceSql("UpgradeLandTableToVersion2.sql", dbconn);
-        //     }
-        // }
 
         /// <summary>
         /// Adds an object into region storage
@@ -816,7 +779,7 @@ namespace OpenSim.Data.MySQL
                 m_primDataAdapter.Update(m_primTable);
                 m_shapeDataAdapter.Update(m_shapeTable);
 
-                    m_itemsDataAdapter.Update(m_itemsTable);
+                m_itemsDataAdapter.Update(m_itemsTable);
 
                 m_terrainDataAdapter.Update(m_terrainTable);
                 m_landDataAdapter.Update(m_landTable);
@@ -2005,36 +1968,6 @@ namespace OpenSim.Data.MySQL
             return cmd;
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="dt"></param>
-        /// <returns></returns>
-        // private static string defineTable(DataTable dt)
-        // {
-        //     string sql = "create table " + dt.TableName + "(";
-        //     string subsql = String.Empty;
-        //     foreach (DataColumn col in dt.Columns)
-        //     {
-        //         if (subsql.Length > 0)
-        //         {
-        //             // a map function would rock so much here
-        //             subsql += ",\n";
-        //         }
-        //         subsql += col.ColumnName + " " + MySqlType(col.DataType);
-        //         if (dt.PrimaryKey.Length > 0 && col == dt.PrimaryKey[0])
-        //         {
-        //             subsql += " primary key";
-        //         }
-        //     }
-        //     sql += subsql;
-        //     sql += ")";
-
-        //     //m_log.InfoFormat("[DATASTORE]: defineTable() sql {0}", sql);
-
-        //     return sql;
-        // }
-
         /***********************************************************************
          *
          *  Database Binding functions
@@ -2176,206 +2109,6 @@ namespace OpenSim.Data.MySQL
             da.DeleteCommand = delete;
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="conn">MySQL connection handler</param>
-        // private static void InitDB(MySqlConnection conn)
-        // {
-        //     string createPrims = defineTable(createPrimTable());
-        //     string createShapes = defineTable(createShapeTable());
-        //     string createItems = defineTable(createItemsTable());
-        //     string createTerrain = defineTable(createTerrainTable());
-
-        //     // Land table is created from the Versionable Test Table routine now.
-        //     //string createLand = defineTable(createLandTable());
-        //     string createLandAccessList = defineTable(createLandAccessListTable());
-
-        //     MySqlCommand pcmd = new MySqlCommand(createPrims, conn);
-        //     MySqlCommand scmd = new MySqlCommand(createShapes, conn);
-        //     MySqlCommand icmd = new MySqlCommand(createItems, conn);
-        //     MySqlCommand tcmd = new MySqlCommand(createTerrain, conn);
-        //     //MySqlCommand lcmd = new MySqlCommand(createLand, conn);
-        //     MySqlCommand lalcmd = new MySqlCommand(createLandAccessList, conn);
-
-        //     if (conn.State != ConnectionState.Open)
-        //     {
-        //         try
-        //         {
-        //             conn.Open();
-        //         }
-        //         catch (Exception ex)
-        //         {
-        //             m_log.Error("[REGION DB]: Error connecting to MySQL server: " + ex.Message);
-        //             m_log.Error("[REGION DB]: Application is terminating!");
-        //             Thread.CurrentThread.Abort();
-        //         }
-        //     }
-
-        //     try
-        //     {
-        //         pcmd.ExecuteNonQuery();
-        //     }
-        //     catch (MySqlException e)
-        //     {
-        //         m_log.WarnFormat("[REGION DB]: Primitives Table Already Exists: {0}", e);
-        //     }
-
-        //     try
-        //     {
-        //         scmd.ExecuteNonQuery();
-        //     }
-        //     catch (MySqlException e)
-        //     {
-        //         m_log.WarnFormat("[REGION DB]: Shapes Table Already Exists: {0}", e);
-        //     }
-
-        //     try
-        //     {
-        //         icmd.ExecuteNonQuery();
-        //     }
-        //     catch (MySqlException e)
-        //     {
-        //         m_log.WarnFormat("[REGION DB]: Items Table Already Exists: {0}", e);
-        //     }
-
-        //     try
-        //     {
-        //         tcmd.ExecuteNonQuery();
-        //     }
-        //     catch (MySqlException e)
-        //     {
-        //         m_log.WarnFormat("[REGION DB]: Terrain Table Already Exists: {0}", e);
-        //     }
-
-        //     //try
-        //     //{
-        //         //lcmd.ExecuteNonQuery();
-        //     //}
-        //     //catch (MySqlException e)
-        //     //{
-        //         //m_log.WarnFormat("[MySql]: Land Table Already Exists: {0}", e);
-        //     //}
-
-        //     try
-        //     {
-        //         lalcmd.ExecuteNonQuery();
-        //     }
-        //     catch (MySqlException e)
-        //     {
-        //         m_log.WarnFormat("[REGION DB]: LandAccessList Table Already Exists: {0}", e);
-        //     }
-        //     conn.Close();
-        // }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="conn"></param>
-        /// <param name="m"></param>
-        /// <returns></returns>
-        private bool TestTables(MySqlConnection conn, Migration m)
-        {
-            // we already have migrations, get out of here
-            if (m.Version > 0)
-                return false;
-
-            MySqlCommand primSelectCmd = new MySqlCommand(m_primSelect, conn);
-            MySqlDataAdapter pDa = new MySqlDataAdapter(primSelectCmd);
-            MySqlCommand shapeSelectCmd = new MySqlCommand(m_shapeSelect, conn);
-            MySqlDataAdapter sDa = new MySqlDataAdapter(shapeSelectCmd);
-            MySqlCommand itemsSelectCmd = new MySqlCommand(m_itemsSelect, conn);
-            MySqlDataAdapter iDa = new MySqlDataAdapter(itemsSelectCmd);
-            MySqlCommand terrainSelectCmd = new MySqlCommand(m_terrainSelect, conn);
-            MySqlDataAdapter tDa = new MySqlDataAdapter(terrainSelectCmd);
-            MySqlCommand landSelectCmd = new MySqlCommand(m_landSelect, conn);
-            MySqlDataAdapter lDa = new MySqlDataAdapter(landSelectCmd);
-            MySqlCommand landAccessListSelectCmd = new MySqlCommand(m_landAccessListSelect, conn);
-            MySqlDataAdapter lalDa = new MySqlDataAdapter(landAccessListSelectCmd);
-
-            DataSet tmpDS = new DataSet();
-            try
-            {
-                pDa.Fill(tmpDS, "prims");
-                sDa.Fill(tmpDS, "primshapes");
-
-                iDa.Fill(tmpDS, "primitems");
-
-                tDa.Fill(tmpDS, "terrain");
-                lDa.Fill(tmpDS, "land");
-                lalDa.Fill(tmpDS, "landaccesslist");
-            }
-            catch (MySqlException)
-            {
-                m_log.Info("[DATASTORE]: MySql Database doesn't exist... creating");
-                return false;
-            }
-
-            // we have tables, but not a migration model yet
-            if (m.Version == 0)
-                m.Version = 1;
-
-            return true;
-
-            // pDa.Fill(tmpDS, "prims");
-            // sDa.Fill(tmpDS, "primshapes");
-
-            //     iDa.Fill(tmpDS, "primitems");
-
-            // tDa.Fill(tmpDS, "terrain");
-            // lDa.Fill(tmpDS, "land");
-            // lalDa.Fill(tmpDS, "landaccesslist");
-
-            // foreach (DataColumn col in createPrimTable().Columns)
-            // {
-            //     if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
-            //     {
-            //         m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
-            //         return false;
-            //     }
-            // }
-
-            // foreach (DataColumn col in createShapeTable().Columns)
-            // {
-            //     if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
-            //     {
-            //         m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
-            //         return false;
-            //     }
-            // }
-
-            // // XXX primitems should probably go here eventually
-
-            // foreach (DataColumn col in createTerrainTable().Columns)
-            // {
-            //     if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
-            //     {
-            //         m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
-            //         return false;
-            //     }
-            // }
-
-            // foreach (DataColumn col in createLandTable().Columns)
-            // {
-            //     if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
-            //     {
-            //         m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
-            //         return false;
-            //     }
-            // }
-
-            // foreach (DataColumn col in createLandAccessListTable().Columns)
-            // {
-            //     if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
-            //     {
-            //         m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
-            //         return false;
-            //     }
-            // }
-
-            // return true;
-        }
-
         /***********************************************************************
          *
          *  Type conversion functions
@@ -2419,37 +2152,5 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        /// <summary>
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        /// <remarks>this is something we'll need to implement for each db slightly differently.</remarks>
-        // private static string MySqlType(Type type)
-        // {
-        //     if (type == typeof (String))
-        //     {
-        //         return "varchar(255)";
-        //     }
-        //     else if (type == typeof (Int32))
-        //     {
-        //         return "integer";
-        //     }
-        //     else if (type == typeof (Int64))
-        //     {
-        //         return "bigint";
-        //     }
-        //     else if (type == typeof (Double))
-        //     {
-        //         return "float";
-        //     }
-        //     else if (type == typeof (Byte[]))
-        //     {
-        //         return "longblob";
-        //     }
-        //     else
-        //     {
-        //         return "string";
-        //     }
-        // }
     }
 }
