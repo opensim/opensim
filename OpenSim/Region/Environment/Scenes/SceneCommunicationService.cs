@@ -586,6 +586,23 @@ namespace OpenSim.Region.Environment.Scenes
             if (regionHandle == m_regionInfo.RegionHandle)
             {
                 // Teleport within the same region
+                if (position.X < 0 || position.X > Constants.RegionSize || position.Y < 0 || position.Y > Constants.RegionSize || position.Z < 0)
+                {
+                    LLVector3 emergencyPos = new LLVector3(128, 128, 128);
+
+                    m_log.WarnFormat(
+                        "[SCENE COMMUNICATION SERVICE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
+                        position, avatar.Name, avatar.UUID, emergencyPos);
+                    position = emergencyPos;
+                }
+                // TODO: Get proper AVG Height
+                float localAVHeight = 1.56f;
+                float posZLimit = (float)avatar.Scene.GetLandHeight((int)position.X, (int)position.Y);
+                float newPosZ = posZLimit + localAVHeight;
+                if (posZLimit >= (position.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
+                {
+                    position.Z = newPosZ;
+                }
                 avatar.ControllingClient.SendTeleportLocationStart();
                 avatar.ControllingClient.SendLocalTeleport(position, lookAt, flags);
                 avatar.Teleport(position);
