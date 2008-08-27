@@ -121,8 +121,17 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                             }
                             catch (NotImplementedException)
                             {
-                                m_log.Error("[OGP]: Certificate validation handler change not supported.  You may get ssl certificate validation errors teleporting from your region to some SSL regions.");
+                                try
+                                {
+                                    // Mono does not implement the ServicePointManager.ServerCertificateValidationCallback yet!  Don't remove this!
+                                    ServicePointManager.CertificatePolicy = new MonoCert();
+                                }
+                                catch (Exception)
+                                {
+                                    m_log.Error("[OGP]: Certificate validation handler change not supported.  You may get ssl certificate validation errors teleporting from your region to some SSL regions.");
+                                }
                             }
+                            
                         }
 
                         if (!m_scene.Contains(scene))
@@ -268,7 +277,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             agentData.lastname = LastName;
             agentData.SecureSessionID=LLUUID.Random();
             agentData.SessionID=LLUUID.Random();
-            agentData.startpos=LLVector3.Zero;
+            agentData.startpos = new LLVector3(128f, 128f, 100f);
 
             // Pre-Fill our region cache with information on the agent.
             UserAgentData useragent = new UserAgentData();
@@ -556,6 +565,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     string rrAccess = rezResponseMap["sim_access"].AsString();
                     
                     LLSDArray RezResponsePositionArray = (LLSDArray)rezResponseMap["position"];
+                    
 
                     responseMap["seed_capability"] = LLSD.FromString(rezRespSeedCap);
                     responseMap["sim_ip"] = LLSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
@@ -875,5 +885,18 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             }
         }
         
+    }
+    public class MonoCert : ICertificatePolicy
+    {
+
+
+        #region ICertificatePolicy Members
+
+        public bool CheckValidationResult(ServicePoint srvPoint, X509Certificate certificate, WebRequest request, int certificateProblem)
+        {
+            return true;
+        }
+
+        #endregion
     }
 }
