@@ -52,6 +52,8 @@ namespace OpenSim.Region.Physics.Meshing
 
     public class Meshmerizer : IMesher
     {
+        private bool usePrimMesher = false;
+
         //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // Setting baseDir to a path will enable the dumping of raw files
@@ -2010,7 +2012,7 @@ namespace OpenSim.Region.Physics.Meshing
                 //CalcNormals(mesh);
             }
 
-            else if (true)
+            else if (usePrimMesher)
             {
                 mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
             }
@@ -2018,15 +2020,15 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
                 { // its a box
-                    //mesh = CreateBoxMesh(primName, primShape, size);
-                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
+                    mesh = CreateBoxMesh(primName, primShape, size);
+                    //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
                 else if (primShape.PathCurve == (byte)Extrusion.Curve1)
                 { // tube
                     // do a cylinder for now
-                    //mesh = CreateCylinderMesh(primName, primShape, size);
-                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
+                    mesh = CreateCylinderMesh(primName, primShape, size);
+                    //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
             }
@@ -2034,16 +2036,16 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
                 {
-                    //mesh = CreateCylinderMesh(primName, primShape, size);
-                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
+                    mesh = CreateCylinderMesh(primName, primShape, size);
+                    //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
 
                 // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
                 else if (primShape.PathCurve == (byte) Extrusion.Curve1)
                 {  // dahlia's favorite, a torus :)
-                    //mesh = CreateCircularPathMesh(primName, primShape, size);
-                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
+                    mesh = CreateCircularPathMesh(primName, primShape, size);
+                    //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
             }
@@ -2052,8 +2054,8 @@ namespace OpenSim.Region.Physics.Meshing
                 if (primShape.PathCurve == (byte)Extrusion.Curve1 || primShape.PathCurve == (byte) Extrusion.Curve2)
                 {
                     //mesh = CreateSphereMesh(primName, primShape, size);
-                    //mesh = CreateCircularPathMesh(primName, primShape, size);
-                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
+                    mesh = CreateCircularPathMesh(primName, primShape, size);
+                    //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
             }
@@ -2061,15 +2063,15 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
                 {
-                    //mesh = CreatePrismMesh(primName, primShape, size);
-                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
+                    mesh = CreatePrismMesh(primName, primShape, size);
+                    //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
                 else if (primShape.PathCurve == (byte) Extrusion.Curve1)
                 {  // a ring - do a cylinder for now
                     //mesh = CreateCylinderMesh(primName, primShape, size);
-                    //mesh = CreateCircularPathMesh(primName, primShape, size);
-                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
+                    mesh = CreateCircularPathMesh(primName, primShape, size);
+                    //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
             }
