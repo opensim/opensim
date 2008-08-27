@@ -806,7 +806,7 @@ namespace OpenSim.Data.SQLite
             row["webLoginKey"] = user.WebLoginKey;
             row["userFlags"] = user.UserFlags;
             row["godLevel"] = user.GodLevel;
-            row["customType"] = user.CustomType;
+            row["customType"] = user.CustomType == null ? "" : user.CustomType;
             row["partner"] = user.Partner.ToString();
 
             // ADO.NET doesn't handle NULL very well
