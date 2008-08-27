@@ -78,10 +78,6 @@ namespace OpenSim.Data.MySQL
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(_dbConnection.Connection, assem, "AssetStore");
 
-            // TODO: After rev 6000, remove this.  People should have
-            // been rolled onto the new migration code by then.
-            TestTables(m);
-
             m.Update();
         }
 
@@ -113,44 +109,6 @@ namespace OpenSim.Data.MySQL
         override public void Dispose() { }
 
         #region IAssetProviderPlugin Members
-
-        /// <summary>
-        /// <list type="bullet">
-        /// <item>Execute CreateAssetsTable.sql if oldVersion == null</item>
-        /// <item>do nothing if oldVersion != null</item>
-        /// </list>
-        /// </summary>
-        /// <param name="oldVersion"></param>
-        // private void UpgradeAssetsTable(string oldVersion)
-        // {
-        //     // null as the version, indicates that the table didn't exist
-        //     if (oldVersion == null)
-        //     {
-        //         m_log.Info("[ASSETS DB]: Creating new database tables");
-        //         _dbConnection.ExecuteResourceSql("CreateAssetsTable.sql");
-        //         return;
-        //     }
-        // }
-
-        /// <summary>
-        /// Ensure that the assets related tables exists and are at the latest version
-        /// </summary>
-        /// <param name="m"></param>
-        private void TestTables(Migration m)
-        {
-            Dictionary<string, string> tableList = new Dictionary<string, string>();
-
-            tableList["assets"] = null;
-            _dbConnection.GetTableVersion(tableList);
-
-            // if there is no table, return, migrations will handle it.
-            if (tableList["assets"] == null)
-                return;
-
-            // if there is a table, and we don't have a migration, set it to 1
-            if (m.Version == 0)
-                m.Version = 1;
-        }
 
         /// <summary>
         /// Fetch Asset <paramref name="assetID"/> from database
