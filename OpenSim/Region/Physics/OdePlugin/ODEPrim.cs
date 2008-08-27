@@ -683,6 +683,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             float[] vertexList = primMesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
             int[] indexList = primMesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
 
+            primMesh.releaseSourceMeshData(); // free up the original mesh data to save memory
+
             int VertexCount = vertexList.GetLength(0)/3;
             int IndexCount = indexList.GetLength(0);
 
