@@ -191,15 +191,29 @@ namespace OpenSim.Region.Physics.Meshing
             float startAngle = profileStart * twoPi;
 		    float stopAngle = profileEnd * twoPi;
             float stepSize = twoPi / sides;
-            
-            angles.makeAngles(sides, startAngle, stopAngle);
+
+            try { angles.makeAngles(sides, startAngle, stopAngle); }
+            catch (Exception ex)
+            {
+                Console.WriteLine("makeAngles failed: Exception: " + ex.ToString());
+                Console.WriteLine("sides: " + sides.ToString() + " startAngle: " + startAngle.ToString() + " stopAngle: " + stopAngle.ToString());
+                return;
+            }
 
             if (hollow > 0.001f)
             {
                 if (sides == hollowSides)
                     hollowAngles = angles;
                 else
-                    hollowAngles.makeAngles(hollowSides, startAngle, stopAngle);
+                {
+                    try { hollowAngles.makeAngles(hollowSides, startAngle, stopAngle); }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("makeAngles failed: Exception: " + ex.ToString());
+                        Console.WriteLine("sides: " + sides.ToString() + " startAngle: " + startAngle.ToString() + " stopAngle: " + stopAngle.ToString());
+                        return;
+                    }
+                }
             }
             else
                 this.coords.Add(center);
