@@ -25,41 +25,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using log4net;
 using System;
-using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Region.Environment.Scenes;
+using System.Collections;
+using System.Collections.Generic;
 using libsecondlife;
-using Nini.Config;
+using log4net;
+using OpenSim.Framework;
+using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Interfaces;
-using Amib.Threading;
 
 namespace OpenSim.Region.ScriptEngine.Interfaces
 {
-    public interface IScriptEngine
+    public enum StateSource
     {
-        //
-        // An interface for a script API module to communicate with
-        // the engine it's running under
-        //
+        NewRez = 0,
+        PrimCrossing = 1,
+        AttachmentCrossing = 2
+    }
 
-        Scene World { get; }
-        IConfig Config { get; }
-        Object AsyncCommands { get; }
-        ILog Log { get; }
-        string ScriptEngineName { get; }
-        int MaxScriptQueue { get; }
+    public interface IScriptInstance
+    {
+        bool Running { get; set; }
+        string State { get; set; }
+        IScriptEngine Engine { get; }
+        LLUUID AppDomain { get; set; }
+        string PrimName { get; }
+        string ScriptName { get; }
+        LLUUID ItemID { get; }
+        LLUUID ObjectID { get; }
+        uint LocalID { get; }
+        LLUUID AssetID { get; }
+        Queue EventQueue { get; }
 
-        bool PostScriptEvent(LLUUID itemID, EventParams parms);
-        bool PostObjectEvent(uint localID, EventParams parms);
-        void ApiResetScript(LLUUID itemID);
-        void ResetScript(LLUUID itemID);
-        void SetScriptState(LLUUID itemID, bool state);
-        bool GetScriptState(LLUUID itemID);
-        void SetState(LLUUID itemID, string newState);
-        int GetStartParameter(LLUUID itemID);
-        IWorkItemResult QueueEventHandler(object parms);
+        void ClearQueue();
+        int StartParam { get; set; }
 
-        DetectParams GetDetectParams(LLUUID item, int number);
+        void RemoveState();
+
+        void Start();
+        bool Stop(int timeout);
+        void SetState(string state);
+
+        void PostEvent(EventParams data);
+        object EventProcessor();
+
+        int EventTime();
+        void ResetScript();
+        void ApiResetScript();
+        Dictionary<string, object> GetVars();
+        void SetVars(Dictionary<string, object> vars);
+        DetectParams GetDetectParams(int idx);
+        LLUUID GetDetectID(int idx);
+        void SaveState(string assembly);
     }
 }
