@@ -1864,6 +1864,115 @@ namespace OpenSim.Region.Physics.Meshing
             }
         }
 
+        public Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
+        {
+            //reportPrimParams(primName, primShape);
+            Mesh mesh = new Mesh();
+
+            float pathShearX = primShape.PathShearX < 128 ? (float)primShape.PathShearX * 0.01f : (float)(primShape.PathShearX - 256) * 0.01f;
+            float pathShearY = primShape.PathShearY < 128 ? (float)primShape.PathShearY * 0.01f : (float)(primShape.PathShearY - 256) * 0.01f;
+            float pathBegin = (float)primShape.PathBegin * 2.0e-5f;
+            float pathEnd = 1.0f - (float)primShape.PathEnd * 2.0e-5f;
+            float pathScaleX = (float)(primShape.PathScaleX - 100) * 0.01f;
+            float pathScaleY = (float)(primShape.PathScaleY - 100) * 0.01f;
+
+            float profileBegin = (float)primShape.ProfileBegin * 2.0e-5f;
+            float profileEnd = 1.0f - (float)primShape.ProfileEnd * 2.0e-5f;
+            float profileHollow = (float)primShape.ProfileHollow * 2.0e-5f;
+
+            int sides = 4;
+            if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
+                sides = 3;
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
+                sides = 24;
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+            { // half circle, prim is a sphere
+                sides = 24;
+                
+				profileBegin = 0.5f * profileBegin + 0.5f;
+				profileEnd = 0.5f * profileEnd + 0.5f;
+
+                //profileHollow = 0.0f; // debugging only
+            }
+
+            int hollowSides = sides;
+            if (primShape.HollowShape == HollowShape.Circle)
+                hollowSides = 24;
+            else if (primShape.HollowShape == HollowShape.Square)
+                hollowSides = 4;
+            else if (primShape.HollowShape == HollowShape.Triangle)
+                hollowSides = 3;
+                
+
+            PrimMesh primMesh = new PrimMesh(sides, profileBegin, profileEnd, profileHollow, hollowSides);
+            //PrimMesh primMesh = new PrimMesh(sides, profileBegin, profileEnd, 0.0f, 4);
+
+            Profile testProfile = new Profile(sides, profileBegin, profileEnd, profileHollow, hollowSides);
+            testProfile.DumpRaw(baseDir, primName, "Profile");
+
+            primMesh.topShearX = pathShearX;
+            primMesh.topShearY = pathShearY;
+            primMesh.pathCutBegin = pathBegin;
+            primMesh.pathCutEnd = pathEnd;
+            //primMesh.pathCutBegin = 0.0f;
+            //primMesh.pathCutEnd = 1.0f;
+
+            if (primShape.PathCurve == (byte)Extrusion.Straight)
+            {
+                primMesh.twistBegin = primShape.PathTwistBegin * 18 / 10;
+                primMesh.twistEnd = primShape.PathTwist * 18 / 10;
+                primMesh.taperX = pathScaleX;
+                primMesh.taperY = pathScaleY;
+#if SPAM
+                Console.WriteLine("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
+#endif
+                primMesh.ExtrudeLinear();
+            }
+            else
+            {
+                //return null;
+                primMesh.holeSizeX = (200 - primShape.PathScaleX) * 0.01f;
+                primMesh.holeSizeY = (200 - primShape.PathScaleY) * 0.01f;
+                primMesh.radius = 0.01f * primShape.PathRadiusOffset;
+                primMesh.revolutions = 1.0f + 0.015f * primShape.PathRevolutions;
+                primMesh.skew = 0.01f * primShape.PathSkew;
+                primMesh.twistBegin = primShape.PathTwistBegin * 36 / 10;
+                primMesh.twistEnd = primShape.PathTwist * 36 / 10;
+                primMesh.taperX = primShape.PathTaperX * 0.01f;
+                primMesh.taperY = primShape.PathTaperY * 0.01f;
+#if SPAM
+                Console.WriteLine("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());
+#endif
+                primMesh.ExtrudeCircular();
+            }
+
+            primMesh.DumpRaw(baseDir, primName, "primMesh");
+
+            primMesh.Scale(size.X, size.Y, size.Z);
+
+            //int numFaces = primMesh.faces.Count;
+            //for (int i = 0; i < numFaces; i++)
+            //{
+            //    Face f = primMesh.faces[i];
+            //    Coord vert = primMesh.coords[f.v1];
+            //    Vertex v1 = new Vertex(vert.X, vert.Y, vert.Z);
+            //    mesh.vertices.Add(v1);
+            //    vert = primMesh.coords[f.v2];
+            //    Vertex v2 = new Vertex(vert.X, vert.Y, vert.Z);
+            //    mesh.vertices.Add(v2);
+            //    vert = primMesh.coords[f.v3];
+            //    Vertex v3 = new Vertex(vert.X, vert.Y, vert.Z);
+            //    mesh.vertices.Add(v3);
+            //    mesh.triangles.Add(new Triangle(v1, v2, v3));
+            //}
+
+            //mesh.DumpRaw(baseDir, primName, "Mesh");
+
+            mesh.primMesh = primMesh;
+
+            return mesh;
+        }
+
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
         {
             return CreateMesh(primName, primShape, size, lod, false);
@@ -1880,18 +1989,24 @@ namespace OpenSim.Region.Physics.Meshing
                 mesh = (Mesh)smesh;
                 //CalcNormals(mesh);
             }
+
+            else if (true)
+            {
+                mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
+            }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
             {
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
                 { // its a box
-                    mesh = CreateBoxMesh(primName, primShape, size);
+                    //mesh = CreateBoxMesh(primName, primShape, size);
+                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
                 else if (primShape.PathCurve == (byte)Extrusion.Curve1)
                 { // tube
                     // do a cylinder for now
                     //mesh = CreateCylinderMesh(primName, primShape, size);
-                    mesh = CreateCircularPathMesh(primName, primShape, size);
+                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
             }
@@ -1899,14 +2014,16 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
                 {
-                    mesh = CreateCylinderMesh(primName, primShape, size);
+                    //mesh = CreateCylinderMesh(primName, primShape, size);
+                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
 
                 // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
                 else if (primShape.PathCurve == (byte) Extrusion.Curve1)
                 {  // dahlia's favorite, a torus :)
-                    mesh = CreateCircularPathMesh(primName, primShape, size);
+                    //mesh = CreateCircularPathMesh(primName, primShape, size);
+                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
             }
@@ -1915,7 +2032,8 @@ namespace OpenSim.Region.Physics.Meshing
                 if (primShape.PathCurve == (byte)Extrusion.Curve1 || primShape.PathCurve == (byte) Extrusion.Curve2)
                 {
                     //mesh = CreateSphereMesh(primName, primShape, size);
-                    mesh = CreateCircularPathMesh(primName, primShape, size);
+                    //mesh = CreateCircularPathMesh(primName, primShape, size);
+                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
             }
@@ -1923,13 +2041,15 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
                 {
-                    mesh = CreatePrismMesh(primName, primShape, size);
+                    //mesh = CreatePrismMesh(primName, primShape, size);
+                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
                 else if (primShape.PathCurve == (byte) Extrusion.Curve1)
                 {  // a ring - do a cylinder for now
                     //mesh = CreateCylinderMesh(primName, primShape, size);
-                    mesh = CreateCircularPathMesh(primName, primShape, size);
+                    //mesh = CreateCircularPathMesh(primName, primShape, size);
+                    mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
                     //CalcNormals(mesh);
                 }
             }
@@ -1967,9 +2087,12 @@ namespace OpenSim.Region.Physics.Meshing
             float pathShearY = primShape.PathShearY < 128 ? (float)primShape.PathShearY * 0.01f : (float)(primShape.PathShearY - 256) * 0.01f;
             float pathBegin = (float)primShape.PathBegin * 2.0e-5f;
             float pathEnd = 1.0f - (float)primShape.PathEnd * 2.0e-5f;
+            float pathScaleX = (float)(primShape.PathScaleX - 100) * 0.01f;
+            float pathScaleY = (float)(primShape.PathScaleY - 100) * 0.01f;
 
             float profileBegin = (float)primShape.ProfileBegin * 2.0e-5f;
             float profileEnd = 1.0f - (float)primShape.ProfileEnd * 2.0e-5f;
+            float profileHollow = (float)primShape.ProfileHollow * 2.0e-5f;
 
             Console.WriteLine("********************* PrimitiveBaseShape Parameters *******************\n"
                 + "Name.............: " + name.ToString() + "\n"
@@ -1979,8 +2102,8 @@ namespace OpenSim.Region.Physics.Meshing
                 + "PathEnd..........: " + primShape.PathEnd.ToString() + " " + pathEnd.ToString() + "\n"
                 + "PathRadiusOffset.: " + primShape.PathRadiusOffset.ToString() + "\n"
                 + "PathRevolutions..: " + primShape.PathRevolutions.ToString() + "\n"
-                + "PathScaleX.......: " + primShape.PathScaleX.ToString() + "\n"
-                + "PathScaleY.......: " + primShape.PathScaleY.ToString() + "\n"
+                + "PathScaleX.......: " + primShape.PathScaleX.ToString() + " " + pathScaleX.ToString() + "\n"
+                + "PathScaleY.......: " + primShape.PathScaleY.ToString() + " " + pathScaleY.ToString() + "\n"
                 + "PathShearX.......: " + primShape.PathShearX.ToString() + " (" + pathShearX.ToString() + ")\n"
                 + "PathShearY.......: " + primShape.PathShearY.ToString() + " (" + pathShearY.ToString() + ")\n"
                 + "PathSkew.........: " + primShape.PathSkew.ToString() + "\n"
@@ -1991,7 +2114,7 @@ namespace OpenSim.Region.Physics.Meshing
                 + "ProfileBegin.....: " + primShape.ProfileBegin.ToString() + " " + profileBegin.ToString() + "\n"
                 + "ProfileCurve.....: " + primShape.ProfileCurve.ToString() + "\n"
                 + "ProfileEnd.......: " + primShape.ProfileEnd.ToString() + " " + profileEnd.ToString() + "\n"
-                + "ProfileHollow....: " + primShape.ProfileHollow.ToString() + "\n"
+                + "ProfileHollow....: " + primShape.ProfileHollow.ToString() + " " + profileHollow.ToString() + "\n"
                 + "ProfileShape.....: " + primShape.ProfileShape.ToString() + "\n"
                 );
         }
