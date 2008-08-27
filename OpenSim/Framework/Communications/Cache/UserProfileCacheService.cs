@@ -440,7 +440,13 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (userProfile.HasReceivedInventory)
                 {
-                    InventoryItemBase item = userProfile.RootFolder.FindItem(itemID);
+                    InventoryItemBase item = null;
+                    if ( userProfile.RootFolder == null )
+                        m_log.ErrorFormat(
+                            "[AGENT INVENTORY]: User {0} {1} does not have a root folder.",
+                            remoteClient.Name, remoteClient.AgentId);
+                    else
+                        item = userProfile.RootFolder.FindItem(itemID);
                     if (item != null)
                     {
                         remoteClient.SendInventoryItemDetails(ownerID, item);

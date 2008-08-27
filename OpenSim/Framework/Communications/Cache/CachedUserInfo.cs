@@ -150,6 +150,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+
         /// <summary>
         /// Add any pending folders which were received before the given folder
         /// </summary>
@@ -160,20 +161,24 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if (pendingCategorizationFolders.ContainsKey(newFolder.ID))
             {
+                List<InventoryFolderImpl> resolvedFolders = new List<InventoryFolderImpl>(); // Folders we've resolved with this invocation
                 foreach (InventoryFolderImpl folder in pendingCategorizationFolders[newFolder.ID])
                 {
                     //                    m_log.DebugFormat(
                     //                        "[INVENTORY CACHE]: Resolving pending received folder {0} {1} into {2} {3}",
                     //                        folder.name, folder.folderID, parent.name, parent.folderID);
-
                     lock (newFolder.SubFolders)
                     {
                         if (!newFolder.SubFolders.ContainsKey(folder.ID))
                         {
+                            resolvedFolders.Add(folder);
                             newFolder.SubFolders.Add(folder.ID, folder);
                         }
                     }
                 }
+                pendingCategorizationFolders.Remove(newFolder.ID);
+                foreach (InventoryFolderImpl folder in resolvedFolders)
+                   ResolvePendingFolders(folder);
             }
         }
 
@@ -201,13 +206,19 @@ namespace OpenSim.Framework.Communications.Cache
         {
             // FIXME: Exceptions thrown upwards never appear on the console.  Could fix further up if these
             // are simply being swallowed
+
             try
             {
                 foreach (InventoryFolderImpl folder in folders)
                 {
                     FolderReceive(folder);
                 }
-
+                // Generate a warning for folders that are not part of the heirarchy
+                foreach ( KeyValuePair<LLUUID, IList<InventoryFolderImpl>> folderList in pendingCategorizationFolders)
+                {
+                    foreach (InventoryFolderImpl folder in folderList.Value)
+                        m_log.WarnFormat("[INVENTORY CACHE]: Malformed Database: Unresolved Pending Folder {0}", folder.Name);
+                }
                 foreach (InventoryItemBase item in items)
                 {
                     ItemReceive(item);
@@ -258,7 +269,11 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 InventoryFolderImpl parentFolder = RootFolder.FindFolder(newFolder.ParentID);
 
-                if (parentFolder != null)
+                if (parentFolder == null)
+                {
+                    AddPendingFolder(newFolder);
+                }
+                else
                 {
                     lock (parentFolder.SubFolders)
                     {
@@ -274,12 +289,7 @@ namespace OpenSim.Framework.Communications.Cache
                         }
                     }
                 }
-                else
-                {
-                    AddPendingFolder(newFolder);
-                }
             }
-
             ResolvePendingFolders(newFolder);
         }
 
@@ -295,7 +305,10 @@ namespace OpenSim.Framework.Communications.Cache
             //            m_log.DebugFormat(
             //                "[INVENTORY CACHE]: Received item {0} {1} for user {2}",
             //                itemInfo.Name, itemInfo.ID, userID);
-            InventoryFolderImpl folder = RootFolder.FindFolder(itemInfo.Folder);
+            InventoryFolderImpl folder = null;
+            
+            if ( RootFolder != null )
+                folder = RootFolder.FindFolder(itemInfo.Folder);
 
             if (null == folder)
             {
