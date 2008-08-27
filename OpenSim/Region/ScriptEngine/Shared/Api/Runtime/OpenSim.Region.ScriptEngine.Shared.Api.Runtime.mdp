@@ -17,6 +17,7 @@
     <excludeFiles />
   </DeploymentInformation>
   <Contents>
+    <File name="./Executor.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./LSL_Constants.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./LSL_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./OSSL_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />

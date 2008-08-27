@@ -863,7 +863,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private LLUUID m_ObjectID;
         private LLUUID m_AssetID;
         private IScript m_Script;
-        private Executor m_Executor;
         private LLUUID m_AppDomain;
         private DetectParams[] m_DetectParams;
         private bool m_TimerQueued;
@@ -1009,12 +1008,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_Script.InitApi(kv.Key, kv.Value);
                 }
 
-                m_Executor = new Executor(m_Script);
-
 //                m_Engine.Log.Debug("[XEngine] Script instance created");
 
                 part.SetScriptEvents(m_ItemID,
-                                     (int)m_Executor.GetStateEventFlags(State));
+                                     (int)m_Script.GetStateEventFlags(State));
             }
             catch (Exception e)
             {
@@ -1274,7 +1271,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (part != null)
                 {
                     part.SetScriptEvents(m_ItemID,
-                                         (int)m_Executor.GetStateEventFlags(State));
+                                         (int)m_Script.GetStateEventFlags(State));
                 }
             }
             else
@@ -1290,7 +1287,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_EventStart = DateTime.Now;
                     m_InEvent = true;
 
-                    m_Executor.ExecuteEvent(State, data.EventName, data.Params);
+                    m_Script.ExecuteEvent(State, data.EventName, data.Params);
 
                     m_InEvent = false;
                     m_CurrentEvent = String.Empty;

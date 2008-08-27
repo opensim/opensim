@@ -27,14 +27,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.Remoting.Lifetime;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Region.ScriptEngine.Interfaces;
 
-namespace OpenSim.Region.ScriptEngine.XEngine
+namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
-    public abstract class ExecutorBase : MarshalByRefObject
+    public class Executor : MarshalByRefObject
     {
         /// <summary>
         /// Contains the script to execute functions in.
@@ -76,13 +76,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             object_rez = 4194304
         }
 
-        /// <summary>
-        /// Create a new instance of ExecutorBase
-        /// </summary>
-        /// <param name="Script"></param>
-        public ExecutorBase(IScript Script)
+        // Cache functions by keeping a reference to them in a dictionary
+        private Dictionary<string, MethodInfo> Events = new Dictionary<string, MethodInfo>();
+        private Dictionary<string, scriptEvents> m_stateEvents = new Dictionary<string, scriptEvents>();
+
+        public Executor(IScript script)
         {
-            m_Script = Script;
+            m_Script = script;
             initEventFlags();
         }
 
@@ -90,7 +90,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// Make sure our object does not timeout when in AppDomain. (Called by ILease base class)
         /// </summary>
         /// <returns></returns>
-        public override Object InitializeLifetimeService()
+        public Object InitializeLifetimeService()
         {
             //Console.WriteLine("Executor: InitializeLifetimeService()");
             //            return null;
@@ -105,37 +105,94 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return lease;
         }
 
-        /// <summary>
-        /// Get current AppDomain
-        /// </summary>
-        /// <returns>Current AppDomain</returns>
-        public AppDomain GetAppDomain()
-        {
-            return AppDomain.CurrentDomain;
-        }
 
-        /// <summary>
-        /// Execute a specific function/event in script.
-        /// </summary>
-        /// <param name="FunctionName">Name of function to execute</param>
-        /// <param name="args">Arguments to pass to function</param>
-        public void ExecuteEvent(string state, string FunctionName, object[] args)
-        {
-            DoExecuteEvent(state, FunctionName, args);
-        }
-
-        protected abstract void DoExecuteEvent(string state, string FunctionName, object[] args);
-
-        /// <summary>
-        ///  Compute the events handled by the current state of the script
-        /// </summary>
-        /// <returns>state mask</returns>
         public scriptEvents GetStateEventFlags(string state)
         {
-            return DoGetStateEventFlags(state);
+            //Console.WriteLine("Get event flags for " + state);
+
+            // Check to see if we've already computed the flags for this state
+            scriptEvents eventFlags = scriptEvents.None;
+            if (m_stateEvents.ContainsKey(state))
+            {
+                m_stateEvents.TryGetValue(state, out eventFlags);
+                return eventFlags;
+            }
+
+            Type type=m_Script.GetType();
+
+            // Fill in the events for this state, cache the results in the map
+            foreach (KeyValuePair<string, scriptEvents> kvp in m_eventFlagsMap)
+            {
+                string evname = state + "_event_" + kvp.Key;
+                //Console.WriteLine("Trying event "+evname);
+                try
+                {
+                    MethodInfo mi = type.GetMethod(evname);
+                    if (mi != null)
+                    {
+                        //Console.WriteLine("Found handler for " + kvp.Key);
+                        eventFlags |= kvp.Value;
+                    }
+                }
+                catch(Exception)
+                {
+                    //Console.WriteLine("Exeption in GetMethod:\n"+e.ToString());
+                }
+            }
+
+            // Save the flags we just computed and return the result
+            if (eventFlags != 0)
+                m_stateEvents.Add(state, eventFlags);
+
+            //Console.WriteLine("Returning {0:x}", eventFlags);
+            return (eventFlags);
         }
 
-        protected abstract scriptEvents DoGetStateEventFlags(string state);
+        public void ExecuteEvent(string state, string FunctionName, object[] args)
+        {
+            // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
+            // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
+
+            string EventName = state + "_event_" + FunctionName;
+
+//#if DEBUG
+//            Console.WriteLine("ScriptEngine: Script event function name: " + EventName);
+//#endif
+
+            if (Events.ContainsKey(EventName) == false)
+            {
+                // Not found, create
+                Type type = m_Script.GetType();
+                try
+                {
+                    MethodInfo mi = type.GetMethod(EventName);
+                    Events.Add(EventName, mi);
+                }
+                catch
+                {
+                    Console.WriteLine("Event {0}not found", EventName);
+                    // Event name not found, cache it as not found
+                    Events.Add(EventName, null);
+                }
+            }
+
+            // Get event
+            MethodInfo ev = null;
+            Events.TryGetValue(EventName, out ev);
+
+            if (ev == null) // No event by that name!
+            {
+                //Console.WriteLine("ScriptEngine Can not find any event named: \String.Empty + EventName + "\String.Empty);
+                return;
+            }
+
+//cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
+#if DEBUG
+            //Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
+#endif
+            // Found
+            ev.Invoke(m_Script, args);
+        }
 
         protected void initEventFlags()
         {

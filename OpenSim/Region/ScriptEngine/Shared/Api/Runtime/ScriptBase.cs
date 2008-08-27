@@ -56,6 +56,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public ScriptBaseClass()
         {
+            m_Executor = new Executor(this);
+
             MethodInfo[] myArrayMethodInfo = GetType().GetMethods(BindingFlags.Public|BindingFlags.Instance);
 
             foreach (MethodInfo mi in myArrayMethodInfo)
@@ -66,6 +68,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                     inits[type]=mi;
                 }
             }
+        }
+
+        private Executor m_Executor = null;
+
+        public int GetStateEventFlags(string state)
+        {
+            return (int)m_Executor.GetStateEventFlags(state);
+        }
+
+        public void ExecuteEvent(string state, string FunctionName, object[] args)
+        {
+            m_Executor.ExecuteEvent(state, FunctionName, args);
         }
 
         public string[] GetApis()
