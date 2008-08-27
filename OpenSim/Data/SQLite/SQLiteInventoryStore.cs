@@ -77,9 +77,6 @@ namespace OpenSim.Data.SQLite
 
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(conn, assem, "InventoryStore");
-            // TODO: remove this line after changeset 6000
-            TestTables(conn, m);
-
             m.Update();
 
             SqliteCommand itemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
@@ -827,114 +824,6 @@ namespace OpenSim.Data.SQLite
         {
             row["UUID"] = Util.ToRawUuidString(folder.ID);
             row["parentID"] = Util.ToRawUuidString(folder.ParentID);
-        }
-
-        /***********************************************************************
-         *
-         *  Test and Initialization code
-         *
-         **********************************************************************/
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="conn"></param>
-        // private static void InitDB(SqliteConnection conn)
-        // {
-        //     string createInventoryItems = defineTable(createInventoryItemsTable());
-        //     string createInventoryFolders = defineTable(createInventoryFoldersTable());
-
-        //     SqliteCommand pcmd = new SqliteCommand(createInventoryItems, conn);
-        //     SqliteCommand scmd = new SqliteCommand(createInventoryFolders, conn);
-
-        //     pcmd.ExecuteNonQuery();
-        //     scmd.ExecuteNonQuery();
-        // }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="conn"></param>
-        /// <param name="m"></param>
-        /// <returns></returns>
-        private static bool TestTables(SqliteConnection conn, Migration m)
-        {
-            SqliteCommand invItemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
-            SqliteDataAdapter pDa = new SqliteDataAdapter(invItemsSelectCmd);
-            SqliteCommand invFoldersSelectCmd = new SqliteCommand(invFoldersSelect, conn);
-            SqliteDataAdapter sDa = new SqliteDataAdapter(invFoldersSelectCmd);
-
-            DataSet tmpDS = new DataSet();
-            try
-            {
-                pDa.Fill(tmpDS, "inventoryitems");
-                sDa.Fill(tmpDS, "inventoryfolders");
-            }
-            catch (SqliteSyntaxException)
-            {
-                m_log.Info("[INVENTORY DB]: SQLite Database doesn't exist... creating");
-                return false;
-            }
-
-            if (m.Version == 0)
-                m.Version = 1;
-
-            return true;
-
-            // pDa.Fill(tmpDS, "inventoryitems");
-            // sDa.Fill(tmpDS, "inventoryfolders");
-
-            // // Very clumsy way of checking whether we need to upgrade the database table version and then updating.  Only
-            // // putting up with this because this code should be blown away soon by nhibernate...
-            // conn.Open();
-
-            // SqliteCommand cmd;
-            // try
-            // {
-            //     cmd = new SqliteCommand("select salePrice from inventoryitems limit 1;", conn);
-            //     cmd.ExecuteNonQuery();
-            // }
-            // catch (SqliteSyntaxException)
-            // {
-            //     m_log.Info("[INVENTORY DB]: Upgrading sqlite inventory database to version 2");
-
-            //     cmd = new SqliteCommand("alter table inventoryitems add column salePrice integer default 99;", conn);
-            //     cmd.ExecuteNonQuery();
-            //     cmd = new SqliteCommand("alter table inventoryitems add column saleType integer default 0;", conn);
-            //     cmd.ExecuteNonQuery();
-            //     cmd = new SqliteCommand("alter table inventoryitems add column creationDate integer default 2000;", conn);
-            //     cmd.ExecuteNonQuery();
-            //     cmd = new SqliteCommand("alter table inventoryitems add column groupID varchar(255) default '00000000-0000-0000-0000-000000000000';", conn);
-            //     cmd.ExecuteNonQuery();
-            //     cmd = new SqliteCommand("alter table inventoryitems add column groupOwned integer default 0;", conn);
-            //     cmd.ExecuteNonQuery();
-            //     cmd = new SqliteCommand("alter table inventoryitems add column flags integer default 0;", conn);
-            //     cmd.ExecuteNonQuery();
-
-            //     pDa.Fill(tmpDS, "inventoryitems");
-            // }
-            // finally
-            // {
-            //     conn.Close();
-            // }
-
-            // foreach (DataColumn col in createInventoryItemsTable().Columns)
-            // {
-            //     if (! tmpDS.Tables["inventoryitems"].Columns.Contains(col.ColumnName))
-            //     {
-            //         m_log.Info("[INVENTORY DB]: Missing required column:" + col.ColumnName);
-            //         return false;
-            //     }
-            // }
-            // foreach (DataColumn col in createInventoryFoldersTable().Columns)
-            // {
-            //     if (! tmpDS.Tables["inventoryfolders"].Columns.Contains(col.ColumnName))
-            //     {
-            //         m_log.Info("[INVENTORY DB]: Missing required column:" + col.ColumnName);
-            //         return false;
-            //     }
-            // }
-            // return true;
         }
     }
 }
