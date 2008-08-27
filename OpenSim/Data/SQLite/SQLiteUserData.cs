@@ -93,10 +93,6 @@ namespace OpenSim.Data.SQLite
 
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(g_conn, assem, "UserStore");
-
-            // TODO: remove this after rev 6000
-            TestTables(conn, m);
-
             m.Update();
 
 
@@ -114,17 +110,7 @@ namespace OpenSim.Data.SQLite
                 da.Fill(ds.Tables["users"]);
 
                 setupUserFriendsCommands(daf, conn);
-                try
-                {
-                    daf.Fill(ds.Tables["userfriends"]);
-                }
-                catch (SqliteSyntaxException)
-                {
-                    m_log.Info("[USER DB]: userfriends table not found, creating.... ");
-                    InitDB(conn);
-                    daf.Fill(ds.Tables["userfriends"]);
-                }
-
+                daf.Fill(ds.Tables["userfriends"]);
             }
 
             return;
@@ -918,94 +904,6 @@ namespace OpenSim.Data.SQLite
             delete.Connection = conn;
             daf.DeleteCommand = delete;
 
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="conn"></param>
-        private static void InitDB(SqliteConnection conn)
-        {
-            string createUsers = SQLiteUtil.defineTable(createUsersTable());
-            string createFriends = SQLiteUtil.defineTable(createUserFriendsTable());
-
-            SqliteCommand pcmd = new SqliteCommand(createUsers, conn);
-            SqliteCommand fcmd = new SqliteCommand(createFriends, conn);
-
-            conn.Open();
-
-            try
-            {
-
-                pcmd.ExecuteNonQuery();
-            }
-            catch (Exception)
-            {
-                m_log.Info("[USER DB]: users table already exists");
-            }
-
-            try
-            {
-                fcmd.ExecuteNonQuery();
-            }
-            catch (Exception)
-            {
-                m_log.Info("[USER DB]: userfriends table already exists");
-            }
-
-            conn.Close();
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="conn"></param>
-        /// <param name="m"></param>
-        /// <returns></returns>
-        private static bool TestTables(SqliteConnection conn, Migration m)
-        {
-            SqliteCommand cmd = new SqliteCommand(userSelect, conn);
-            // SqliteCommand fcmd = new SqliteCommand(userFriendsSelect, conn);
-            SqliteDataAdapter pDa = new SqliteDataAdapter(cmd);
-            SqliteDataAdapter fDa = new SqliteDataAdapter(cmd);
-
-            DataSet tmpDS = new DataSet();
-            DataSet tmpDS2 = new DataSet();
-
-            try
-            {
-                pDa.Fill(tmpDS, "users");
-                fDa.Fill(tmpDS2, "userfriends");
-            }
-            catch (SqliteSyntaxException)
-            {
-                m_log.Info("[USER DB]: SQLite Database doesn't exist... creating");
-                return false;
-            }
-
-            if (m.Version == 0)
-                m.Version = 1;
-
-            return true;
-
-            // conn.Open();
-            // try
-            // {
-            //     cmd = new SqliteCommand("select webLoginKey from users limit 1;", conn);
-            //     cmd.ExecuteNonQuery();
-            // }
-            // catch (SqliteSyntaxException)
-            // {
-            //     cmd = new SqliteCommand("alter table users add column webLoginKey text default '00000000-0000-0000-0000-000000000000';", conn);
-            //     cmd.ExecuteNonQuery();
-            //     pDa.Fill(tmpDS, "users");
-            // }
-            // finally
-            // {
-            //     conn.Close();
-            // }
-
-            // return true;
         }
 
         override public void ResetAttachments(LLUUID userID)
