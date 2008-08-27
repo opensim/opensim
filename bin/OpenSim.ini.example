@@ -529,6 +529,7 @@ AllowosConsoleCommand=false
 AllowGodFunctions = false
 
 ScriptDelayFactor = 1.0
+ScriptDistanceLimitFactor = 1.0
 
 ; Maximum number of llListen events we allow per script
 ; Set this to 0 to have no limit imposed.

@@ -78,6 +78,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 config.AddConfig("LL-Functions");
 
             m_delayFactor = config.Configs["LL-Functions"].GetFloat("ScriptDelayFactor", 1.0f);
+            m_distanceFactor = config.Configs["LL-Functions"].GetFloat("ScriptDistanceLimitFactor", 1.0f);
 
         }
 
@@ -85,6 +86,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         private string m_state = "default";
         private bool m_waitingForScriptAnswer=false;
         private float m_delayFactor = 1.0f;
+        private float m_distanceFactor = 1.0f;
 
 
         private void ScriptSleep(int delay)
@@ -1658,7 +1660,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             LSL_Types.Vector3 currentPos = llGetLocalPos();
             if (llVecDist(currentPos, targetPos) > 10)
             {
-                targetPos = currentPos + 10 * llVecNorm(targetPos - currentPos);
+                targetPos = currentPos + m_distanceFactor * 10.0f * llVecNorm(targetPos - currentPos);
             }
 
             if (part.ParentID != 0)
@@ -2292,6 +2294,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             bool found = false;
+
+            float dist = (float)llVecDist(llGetPos(), pos);
+            if(dist > m_distanceFactor * 10.0f)
+                return;
 
             // Instead of using return;, I'm using continue; because in our TaskInventory implementation
             // it's possible to have two items with the same task inventory name.
