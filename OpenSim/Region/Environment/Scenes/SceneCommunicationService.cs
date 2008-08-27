@@ -615,6 +615,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (destRegionUp)
                     {
+                        // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
+                        // both regions
+                        if (avatar.ParentID != (uint)0)
+                            avatar.StandUp();
                         if(!avatar.ValidateAttachments())
                         {
                             avatar.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
