@@ -1926,7 +1926,17 @@ namespace OpenSim.Region.Physics.Meshing
 #if SPAM
                 Console.WriteLine("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
 #endif
-                primMesh.ExtrudeLinear();
+                try
+                {
+                    primMesh.ExtrudeLinear();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Extrusion failure: exception: " + ex.ToString());
+                    Console.WriteLine("\n Prim Name: " + primName);
+                    Console.WriteLine("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
+                    return null;
+                }
             }
             else
             {
@@ -1943,7 +1953,17 @@ namespace OpenSim.Region.Physics.Meshing
 #if SPAM
                 Console.WriteLine("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());
 #endif
-                primMesh.ExtrudeCircular();
+                try
+                {
+                    primMesh.ExtrudeCircular();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Extrusion failure: exception: " + ex.ToString());
+                    Console.WriteLine("\n Prim Name: " + primName);
+                    Console.WriteLine("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());
+                    return null;
+                }
             }
 
             primMesh.DumpRaw(baseDir, primName, "primMesh");
