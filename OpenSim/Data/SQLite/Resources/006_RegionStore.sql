@@ -1,24 +1,20 @@
 BEGIN TRANSACTION;
 
-drop table if exists estate_groups;
 CREATE TABLE estate_groups (
   EstateID int(10) NOT NULL,
   uuid char(36) NOT NULL
 );
 
-drop table if exists estate_managers;
 CREATE TABLE estate_managers (
   EstateID int(10) NOT NULL,
   uuid char(36) NOT NULL
 );
 
-drop table if exists estate_map;
 CREATE TABLE estate_map (
   RegionID char(36) NOT NULL default '00000000-0000-0000-0000-000000000000',
   EstateID int(11) NOT NULL
 );
 
-drop table if exists estate_settings;
 CREATE TABLE estate_settings (
   EstateID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   EstateName varchar(64) default NULL,
@@ -49,7 +45,6 @@ CREATE TABLE estate_users (
   uuid char(36) NOT NULL
 );
 
-drop table if exists estateban;
 CREATE TABLE estateban (
   EstateID int(10) NOT NULL,
   bannedUUID varchar(36) NOT NULL,
@@ -58,7 +53,6 @@ CREATE TABLE estateban (
   bannedNameMask varchar(64) default NULL
 );
 
-drop table if exists regionsettings;
 CREATE TABLE regionsettings (
   regionUUID char(36) NOT NULL,
   block_terraform int(11) NOT NULL,
