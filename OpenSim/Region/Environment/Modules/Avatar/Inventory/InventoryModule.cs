@@ -233,13 +233,49 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
         public bool NeedSceneCacheClear(LLUUID agentID, Scene scene)
         {
             if (!m_AgentRegions.ContainsKey(agentID))
-                return true;
+            {
+                // Since we can get here two ways, we need to scan
+                // the scenes here. This is somewhat more expensive
+                // but helps avoid a nasty bug
+                //
 
+                foreach (Scene s in m_Scenelist)
+                {
+                    ScenePresence presence;
+
+                    if (s.TryGetAvatar(agentID, out presence))
+                    {
+                        // If the agent is in this scene, then we
+                        // are being called twice in a single
+                        // teleport. This is wasteful of cycles
+                        // but harmless due to this 2nd level check
+                        //
+                        // If the agent is found in another scene
+                        // then the list wasn't current
+                        //
+                        // If the agent is totally unknown, then what
+                        // are we even doing here??
+                        //
+                        if (s == scene)
+                            return true;
+                        else
+                            return false;
+                    }
+                }
+                return true;
+            }
+
+            // The agent is left in current Scene, so we must be
+            // going to another instance
+            //
             if (m_AgentRegions[agentID] == scene)
             {
                 m_AgentRegions.Remove(agentID);
                 return true;
             }
+
+            // Another region has claimed the agent
+            //
             return false;
         }
 
