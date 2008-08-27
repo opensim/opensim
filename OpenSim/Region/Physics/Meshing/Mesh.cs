@@ -185,7 +185,7 @@ namespace OpenSim.Region.Physics.Meshing
                     result[resultIndex] = c.Z;
 
                 }
-                primMesh.coords = null;
+                //primMesh.coords = null;
                 pinnedVirtexes = GCHandle.Alloc(result, GCHandleType.Pinned);
             }
             return result;
@@ -218,18 +218,20 @@ namespace OpenSim.Region.Physics.Meshing
                     result[resultIndex++] = f.v2;
                     result[resultIndex] = f.v3;
                 }
-                primMesh.faces = null;
+                //primMesh.faces = null;
             }
             return result;
         }
 
+        /// <summary>
+        /// creates a list of index values that defines triangle faces. THIS METHOD FREES ALL NON-PINNED MESH DATA
+        /// </summary>
+        /// <returns></returns>
         public int[] getIndexListAsIntLocked()
         {
             int[] result = getIndexListAsInt();
             pinnedIndex = GCHandle.Alloc(result, GCHandleType.Pinned);
-            //triangles = null;
-            //vertices = null;
-            //primMesh = null;
+            
             return result;
         }
 
@@ -238,6 +240,16 @@ namespace OpenSim.Region.Physics.Meshing
             pinnedVirtexes.Free();
             pinnedIndex.Free();
 
+        }
+
+        /// <summary>
+        /// frees up the source mesh data to minimize memory - call this method after calling get*Locked() functions
+        /// </summary>
+        public void releaseSourceMeshData()
+        {
+            triangles = null;
+            vertices = null;
+            primMesh = null;
         }
 
 
