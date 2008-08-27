@@ -265,7 +265,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 asset.Type = SByte.Parse(xml.GetAttribute("type"));
                 asset.Local = Int32.Parse(xml.GetAttribute("local")) != 0;
                 asset.Temporary = Int32.Parse(xml.GetAttribute("temporary")) != 0;
-                asset.Data = (new System.Text.ASCIIEncoding()).GetBytes(Rest.Base64ToString(xml.ReadElementContentAsString("Asset", "")));
+                asset.Data = Convert.FromBase64String(xml.ReadElementContentAsString("Asset", ""));
 
                 Rest.AssetServices.AddAsset(asset);
             }
