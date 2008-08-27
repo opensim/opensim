@@ -1494,7 +1494,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
             LSL_Types.Vector3 currentPos = llGetLocalPos();
-            if (llVecDist(currentPos, targetPos) > 10)
+            if (llVecDist(currentPos, targetPos) > 10.0f * m_ScriptDistanceFactor)
             {
                 targetPos = currentPos + m_ScriptDistanceFactor * 10 * llVecNorm(targetPos - currentPos);
             }
