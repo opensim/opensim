@@ -77,11 +77,6 @@ namespace OpenSim.Data.SQLite
 
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(m_conn, assem, "AssetStore");
-            // TODO: remove this next line after changeset 6000,
-            // people should have all gotten into the migration swing
-            // again.
-            TestTables(m_conn, m);
-
             m.Update();
 
             return;
@@ -232,42 +227,6 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        /***********************************************************************
-         *
-         *  Database Definition Functions
-         *
-         *  This should be db agnostic as we define them in ADO.NET terms
-         *
-         **********************************************************************/
-
-        /// <summary>
-        /// Create the "assets" table
-        /// </summary>
-        /// <returns></returns>
-        // private static DataTable createAssetsTable()
-        // {
-        //     DataTable assets = new DataTable("assets");
-
-        //     SQLiteUtil.createCol(assets, "UUID", typeof (String));
-        //     SQLiteUtil.createCol(assets, "Name", typeof (String));
-        //     SQLiteUtil.createCol(assets, "Description", typeof (String));
-        //     SQLiteUtil.createCol(assets, "Type", typeof (Int32));
-        //     SQLiteUtil.createCol(assets, "Local", typeof (Boolean));
-        //     SQLiteUtil.createCol(assets, "Temporary", typeof (Boolean));
-        //     SQLiteUtil.createCol(assets, "Data", typeof (Byte[]));
-        //     // Add in contraints
-        //     assets.PrimaryKey = new DataColumn[] {assets.Columns["UUID"]};
-        //     return assets;
-        // }
-
-        /***********************************************************************
-         *
-         *  Convert between ADO.NET <=> OpenSim Objects
-         *
-         *  These should be database independant
-         *
-         **********************************************************************/
-
         /// <summary>
         ///
         /// </summary>
@@ -299,46 +258,6 @@ namespace OpenSim.Data.SQLite
          *  in databases.
          *
          **********************************************************************/
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="conn"></param>
-        // private static void InitDB(SqliteConnection conn)
-        // {
-        //     string createAssets = SQLiteUtil.defineTable(createAssetsTable());
-        //     SqliteCommand pcmd = new SqliteCommand(createAssets, conn);
-        //     pcmd.ExecuteNonQuery();
-        // }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="conn"></param>
-        /// <param name="m"></param>
-        /// <returns></returns>
-        private static bool TestTables(SqliteConnection conn, Migration m)
-        {
-            SqliteCommand cmd = new SqliteCommand(assetSelect, conn);
-            SqliteDataAdapter pDa = new SqliteDataAdapter(cmd);
-            DataSet tmpDS = new DataSet();
-            try
-            {
-                pDa.Fill(tmpDS, "assets");
-            }
-            catch (SqliteSyntaxException)
-            {
-                m_log.Info("[ASSET DB]: SQLite Database doesn't exist... creating");
-                return false;
-            }
-
-            // if the tables are here, and we don't have a migration,
-            // set it to 1, as we're migrating off of legacy bits
-            if (m.Version == 0)
-                m.Version = 1;
-
-            return true;
-        }
 
         #region IPlugin interface
 
