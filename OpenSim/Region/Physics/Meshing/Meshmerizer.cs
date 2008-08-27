@@ -52,7 +52,7 @@ namespace OpenSim.Region.Physics.Meshing
 
     public class Meshmerizer : IMesher
     {
-        private bool usePrimMesher = false;
+        private bool usePrimMesher = true;
 
         //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -1972,25 +1972,25 @@ namespace OpenSim.Region.Physics.Meshing
 
             primMesh.Scale(size.X, size.Y, size.Z);
 
-            //int numFaces = primMesh.faces.Count;
-            //for (int i = 0; i < numFaces; i++)
-            //{
-            //    Face f = primMesh.faces[i];
-            //    Coord vert = primMesh.coords[f.v1];
-            //    Vertex v1 = new Vertex(vert.X, vert.Y, vert.Z);
-            //    mesh.vertices.Add(v1);
-            //    vert = primMesh.coords[f.v2];
-            //    Vertex v2 = new Vertex(vert.X, vert.Y, vert.Z);
-            //    mesh.vertices.Add(v2);
-            //    vert = primMesh.coords[f.v3];
-            //    Vertex v3 = new Vertex(vert.X, vert.Y, vert.Z);
-            //    mesh.vertices.Add(v3);
-            //    mesh.triangles.Add(new Triangle(v1, v2, v3));
-            //}
+            int numFaces = primMesh.faces.Count;
+            for (int i = 0; i < numFaces; i++)
+            {
+                Face f = primMesh.faces[i];
+                Coord vert = primMesh.coords[f.v1];
+                Vertex v1 = new Vertex(vert.X, vert.Y, vert.Z);
+                mesh.vertices.Add(v1);
+                vert = primMesh.coords[f.v2];
+                Vertex v2 = new Vertex(vert.X, vert.Y, vert.Z);
+                mesh.vertices.Add(v2);
+                vert = primMesh.coords[f.v3];
+                Vertex v3 = new Vertex(vert.X, vert.Y, vert.Z);
+                mesh.vertices.Add(v3);
+                mesh.triangles.Add(new Triangle(v1, v2, v3));
+            }
 
             //mesh.DumpRaw(baseDir, primName, "Mesh");
 
-            mesh.primMesh = primMesh;
+            //mesh.primMesh = primMesh;
 
             return mesh;
         }
