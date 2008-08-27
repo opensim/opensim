@@ -67,6 +67,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal bool throwErrorOnNotImplemented = true;
         internal AsyncCommandManager AsyncCommands = null;
         internal float m_ScriptDelayFactor = 1.0f;
+        internal float m_ScriptDistanceFactor = 1.0f;
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
         {
@@ -81,6 +82,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_ScriptDelayFactor = config.Configs["XEngine"].
                     GetFloat("ScriptDelayFactor", 1.0f);
+            m_ScriptDistanceFactor = config.Configs["XEngine"].
+                    GetFloat("ScriptDistanceLimitFactor", 1.0f);
 
             AsyncCommands = (AsyncCommandManager)ScriptEngine.AsyncCommands;
         }
@@ -1493,7 +1496,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_Types.Vector3 currentPos = llGetLocalPos();
             if (llVecDist(currentPos, targetPos) > 10)
             {
-                targetPos = currentPos + 10 * llVecNorm(targetPos - currentPos);
+                targetPos = currentPos + m_ScriptDistanceFactor * 10 * llVecNorm(targetPos - currentPos);
             }
 
             if (part.ParentID != 0)
@@ -2125,6 +2128,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llRezAtRoot(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
         {
+            float dist = (float)llVecMag(llGetPos() - pos);
+
+            if(dist > m_ScriptDistanceFactor * 10.0f)
+                return;
+
             m_host.AddScriptLPS(1);
             bool found = false;
 

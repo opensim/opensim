@@ -660,6 +660,8 @@ KillTimedOutScripts = false
 AllowosConsoleCommand = false
 ; Sets the multiplier for the scripting delays
 ScriptDelayFactor = 1.0
+; The factor the 10 m distances llimits are multiplied by
+ScriptDistanceLimitFactor = 1.0
 
 
 [GridInfo]
