@@ -1756,11 +1756,19 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
 
-            if (rootPart.PhysActor != null)
+            foreach (SceneObjectPart part in group.Children.Values)
             {
-                PhysicsScene.RemovePrim(rootPart.PhysActor);
-                rootPart.PhysActor = null;
+                if (part.PhysActor != null)
+                {
+                    PhysicsScene.RemovePrim(part.PhysActor);
+                    part.PhysActor = null;
+                }
             }
+//            if (rootPart.PhysActor != null)
+//            {
+//                PhysicsScene.RemovePrim(rootPart.PhysActor);
+//                rootPart.PhysActor = null;
+//            }
 
             if (UnlinkSceneObject(group.UUID, false))
             {
