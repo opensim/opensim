@@ -48,7 +48,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         Object AsyncCommands { get; }
         ILog Log { get; }
         string ScriptEngineName { get; }
-        int MaxScriptQueue { get; }
 
         bool PostScriptEvent(LLUUID itemID, EventParams parms);
         bool PostObjectEvent(uint localID, EventParams parms);

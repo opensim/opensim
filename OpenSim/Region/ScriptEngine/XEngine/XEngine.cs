@@ -319,14 +319,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return false; }
         }
 
-        //
-        // XEngine functions
-        //
-        public int MaxScriptQueue
-        {
-            get { return m_MaxScriptQueue; }
-        }
-
         public void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez)
         {
             Object[] parms = new Object[]
@@ -508,7 +500,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                            m_AppDomains[appDomain],
                            part.ParentGroup.RootPart.Name,
                            item.Name, startParam, postOnRez,
-                           StateSource.NewRez);
+                           StateSource.NewRez, m_MaxScriptQueue);
 
                     m_log.DebugFormat("[XEngine] Loaded script {0}.{1}",
                             part.ParentGroup.RootPart.Name, item.Name);

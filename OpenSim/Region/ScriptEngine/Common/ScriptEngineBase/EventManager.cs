@@ -117,7 +117,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "state_entry", EventQueueManager.llDetectNull, new object[] { });
         }
 
-        public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
+        public void touch_start(uint localID, uint originalID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
             EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
@@ -152,7 +152,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", detstruct, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
-        public void touch_end(uint localID, IClientAPI remoteClient)
+        public void touch_end(uint localID, uint originalID, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
             EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
@@ -220,12 +220,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "state_exit", EventQueueManager.llDetectNull, new object[] { });
         }
 
-        public void touch(uint localID, LLUUID itemID)
+        public void touch(uint localID, uint originalID, LLUUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch", EventQueueManager.llDetectNull);
         }
 
-        public void touch_end(uint localID, LLUUID itemID)
+        public void touch_end(uint localID, uint originalID, LLUUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
         }

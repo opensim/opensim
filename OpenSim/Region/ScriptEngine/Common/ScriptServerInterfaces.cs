@@ -38,12 +38,12 @@ namespace OpenSim.Region.ScriptEngine.Common
     {
         public interface RemoteEvents
         {
-            void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient);
+            void touch_start(uint localID, uint originalID, LLVector3 offsetPos, IClientAPI remoteClient);
             void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez);
             void OnRemoveScript(uint localID, LLUUID itemID);
             void state_exit(uint localID);
-            void touch(uint localID, LLUUID itemID);
-            void touch_end(uint localID, LLUUID itemID);
+            void touch(uint localID, uint originalID, LLUUID itemID);
+            void touch_end(uint localID, uint originalID, LLUUID itemID);
             void collision_start(uint localID, ColliderArgs col);
             void collision(uint localID, ColliderArgs col);
             void collision_end(uint localID, ColliderArgs col);

@@ -72,6 +72,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private int m_StartParam = 0;
         private string m_CurrentEvent = String.Empty;
         private bool m_InSelfDelete = false;
+        private int m_MaxScriptQueue;
 
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
 
@@ -153,7 +154,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public ScriptInstance(IScriptEngine engine, uint localID,
                 LLUUID objectID, LLUUID itemID, LLUUID assetID, string assembly,
                 AppDomain dom, string primName, string scriptName,
-                int startParam, bool postOnRez, StateSource stateSource)
+                int startParam, bool postOnRez, StateSource stateSource,
+                int maxScriptQueue)
         {
             m_Engine = engine;
 
@@ -165,6 +167,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_ScriptName = scriptName;
             m_Assembly = assembly;
             m_StartParam = startParam;
+            m_MaxScriptQueue = maxScriptQueue;
 
             ApiManager am = new ApiManager();
 
@@ -411,7 +414,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             lock (m_EventQueue)
             {
-                if (m_EventQueue.Count >= m_Engine.MaxScriptQueue)
+                if (m_EventQueue.Count >= m_MaxScriptQueue)
                     return;
 
                 m_EventQueue.Enqueue(data);

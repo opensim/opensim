@@ -80,7 +80,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        public void touch_start(uint localID, LLVector3 offsetPos,
+        public void touch_start(uint localID, uint originalID, LLVector3 offsetPos,
                 IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
@@ -89,19 +89,27 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             det[0].Key = remoteClient.AgentId;
             det[0].Populate(myScriptEngine.World);
 
-            SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
-                    localID);
-            if (part == null)
-                return;
+            
+            if (originalID == 0)
+            {
+                SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(localID);
+                if (part == null)
+                    return;
 
-            det[0].LinkNum = part.LinkNum;
-
+                det[0].LinkNum = part.LinkNum;
+            }
+            else
+            {
+                SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
+                det[0].LinkNum = originalPart.LinkNum;
+            }
+            
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "touch_start", new Object[] { new LSL_Types.LSLInteger(1) },
                     det));
         }
 
-        public void touch(uint localID, LLVector3 offsetPos,
+        public void touch(uint localID, uint originalID, LLVector3 offsetPos,
                 IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
@@ -113,19 +121,26 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                      offsetPos.Y,
                                                      offsetPos.Z);
 
-            SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
-                    localID);
-            if (part == null)
-                return;
+            if (originalID == 0)
+            {
+                SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(localID);
+                if (part == null)
+                    return;
 
-            det[0].LinkNum = part.LinkNum;
+                det[0].LinkNum = part.LinkNum;
+            }
+            else
+            {
+                SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
+                det[0].LinkNum = originalPart.LinkNum;
+            }
 
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "touch", new Object[] { new LSL_Types.LSLInteger(1) },
                     det));
         }
 
-        public void touch_end(uint localID, IClientAPI remoteClient)
+        public void touch_end(uint localID, uint originalID, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
             DetectParams[] det = new DetectParams[1];
@@ -133,12 +148,19 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             det[0].Key = remoteClient.AgentId;
             det[0].Populate(myScriptEngine.World);
 
-            SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
-                    localID);
-            if (part == null)
-                return;
+            if (originalID == 0)
+            {
+                SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(localID);
+                if (part == null)
+                    return;
 
-            det[0].LinkNum = part.LinkNum;
+                det[0].LinkNum = part.LinkNum;
+            }
+            else
+            {
+                SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
+                det[0].LinkNum = originalPart.LinkNum;
+            }
 
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "touch_end", new Object[] { new LSL_Types.LSLInteger(1) },
