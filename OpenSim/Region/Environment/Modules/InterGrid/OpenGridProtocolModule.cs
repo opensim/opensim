@@ -78,6 +78,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         public string inventory_host;
         public bool src_can_see_mainland;
         public int src_estate_id;
+        public int src_version;
+        public int src_parent_estate_id;
+        public bool visible_to_parent;
     }
 
 
@@ -390,7 +393,44 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 LLUUID SecureSessionID=requestMap["secure_session_id"].AsUUID();
                 LLUUID SessionID = requestMap["session_id"].AsUUID();
                 int circuitcode = requestMap["circuit_code"].AsInteger();
+                LLSDArray Parameter = new LLSDArray();
+                if (requestMap.ContainsKey("parameter"))
+                {
+                   Parameter = (LLSDArray)((LLSD)requestMap["parameter"]);
+                }
 
+                int version = 1;
+                int estateID = 1;
+                int parentEstateID = 1;
+                LLUUID regionID = LLUUID.Zero;
+                bool visibleToParent = true;
+
+                for (int i = 0; i < Parameter.Count; i++)
+                {
+                    LLSDMap item = (LLSDMap)Parameter[i];
+                    if (item.ContainsKey("version"))
+                    {
+                        version = item["version"].AsInteger();
+                    }
+                    if (item.ContainsKey("estate_id"))
+                    {
+                        estateID = item["estate_id"].AsInteger();
+                    }
+                    if (item.ContainsKey("parent_estate_id"))
+                    {
+                        parentEstateID = item["parent_estate_id"].AsInteger();
+                        
+                    }
+                    if (item.ContainsKey("region_id"))
+                    {
+                        regionID = item["region_id"].AsUUID();
+
+                    }
+                    if (item.ContainsKey("visible_to_parent"))
+                    {
+                        visibleToParent = item["visible_to_parent"].AsBoolean();
+                    }
+                }
                 //Update our Circuit data with the real values
                 userData.SecureSessionID = SecureSessionID;
                 userData.SessionID = SessionID;
@@ -426,6 +466,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     userState.god_overide = requestMap["god_override"].AsBoolean();
                     userState.circuit_code = (uint)requestMap["circuit_code"].AsInteger();
                     userState.limited_to_estate = requestMap["limited_to_estate"].AsInteger();
+                    userState.src_estate_id = estateID;
+                    userState.region_id = regionID;
+                    userState.src_parent_estate_id = parentEstateID;
+                    userState.visible_to_parent = visibleToParent;
                     
                     // Save state changes
                     UpdateOGPState(userData.AgentID, userState);
@@ -605,7 +649,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
         private LLSDMap invokeRezAvatarCap(LLSDMap responseMap, string CapAddress, OGPState userState)
         {
-            
+
+            Scene reg = GetRootScene();
 
             WebRequest DeRezRequest = WebRequest.Create(CapAddress);
             DeRezRequest.Method = "POST";
@@ -615,8 +660,20 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             LLSDMap RAMap = new LLSDMap();
             LLSDMap AgentParms = new LLSDMap();
             LLSDMap RegionParms = new LLSDMap();
+            
+            LLSDArray Parameter = new LLSDArray(2);
+            
+            LLSDMap version = new LLSDMap();
+            version["version"] = LLSD.FromInteger(userState.src_version);
+            Parameter.Add((LLSD)version);
 
-
+            LLSDMap SrcData = new LLSDMap();
+            SrcData["estate_id"] = LLSD.FromInteger(reg.RegionInfo.EstateSettings.EstateID);
+            SrcData["parent_estate_id"] = LLSD.FromInteger(reg.RegionInfo.EstateSettings.ParentEstateID);
+            SrcData["region_id"] = LLSD.FromUUID(reg.RegionInfo.originRegionID);
+            SrcData["visible_to_parent"] = LLSD.FromBoolean(userState.visible_to_parent);
+            Parameter.Add((LLSD)SrcData);
+            
             AgentParms["first_name"] = LLSD.FromString(userState.first_name);
             AgentParms["last_name"] = LLSD.FromString(userState.last_name);
             AgentParms["agent_id"] = LLSD.FromUUID(userState.agent_id);
@@ -632,14 +689,23 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             AgentParms["age_verified"] = LLSD.FromBoolean(userState.age_verified);
             AgentParms["limited_to_estate"] = LLSD.FromInteger(userState.limited_to_estate);
             AgentParms["inventory_host"] = LLSD.FromString(userState.inventory_host);
-            RAMap["agent_params"] = AgentParms;
-            RAMap["region_params"] = RegionParms;
+            
+            // version 1 
+            RAMap = AgentParms;
+            
+            // Planned for version 2
+            // RAMap["agent_params"] = AgentParms;
+            
 
-            string RAMapString = AgentParms.ToString();
+            RAMap["region_params"] = RegionParms;
+            RAMap["parameter"] = Parameter;
+
+            string RAMapString = RAMap.ToString();
             m_log.InfoFormat("[OGP] RAMap string {0}", RAMapString);
-            LLSD LLSDofRAMap = AgentParms; // RENAME if this works
+            LLSD LLSDofRAMap = RAMap; // RENAME if this works
 
             m_log.InfoFormat("[OGP]: LLSD of map as string  was {0}", LLSDofRAMap.ToString());
+            //m_log.InfoFormat("[OGP]: LLSD+XML: {0}", LLSDParser.SerializeXmlString(LLSDofRAMap));
             byte[] buffer = LLSDParser.SerializeXmlBytes(LLSDofRAMap);
 
             //string bufferDump = System.Text.Encoding.ASCII.GetString(buffer);
@@ -780,6 +846,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             returnState.sim_access = "";
             returnState.src_can_see_mainland = true;
             returnState.src_estate_id = 1;
+            returnState.src_version = 1;
+            returnState.src_parent_estate_id = 1;
+            returnState.visible_to_parent = true;
             
             return returnState;
         }
