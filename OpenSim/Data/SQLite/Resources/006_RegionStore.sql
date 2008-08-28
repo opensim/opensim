@@ -53,6 +53,7 @@ CREATE TABLE estateban (
   bannedNameMask varchar(64) default NULL
 );
 
+drop table regionsettings;
 CREATE TABLE regionsettings (
   regionUUID char(36) NOT NULL,
   block_terraform int(11) NOT NULL,
