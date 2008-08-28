@@ -65,6 +65,7 @@ namespace OpenSim.Region.Communications.Local
                     rootFolder = new InventoryFolderImpl(folder);
                     folders.Add(rootFolder);
                     items.AddRange(RequestFolderItems(rootFolder.ID));
+                    break; // Only 1 root folder per user
                 }
             }
 

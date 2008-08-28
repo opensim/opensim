@@ -84,12 +84,6 @@ namespace OpenSim.Framework.Communications.Cache
         public InventoryFolderImpl RootFolder { get { return m_rootFolder; } }
         private InventoryFolderImpl m_rootFolder;
 
-        /// <summary>
-        /// FIXME: This could be contained within a local variable - it doesn't need to be a field
-        /// </summary>
-        private IDictionary<LLUUID, IList<InventoryFolderImpl>> pendingCategorizationFolders
-            = new Dictionary<LLUUID, IList<InventoryFolderImpl>>();
-
         public LLUUID SessionID
         {
             get { return m_session_id; }
@@ -130,55 +124,58 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Store a folder pending arrival of its parent
+        /// Helper function for InventoryReceive() - Store a folder temporarily until we've received entire folder list
         /// </summary>
         /// <param name="folder"></param>
-        private void AddPendingFolder(InventoryFolderImpl folder)
+        private void AddFolderToDictionary(InventoryFolderImpl folder, IDictionary<LLUUID, IList<InventoryFolderImpl>> dictionary)
         {
             LLUUID parentFolderId = folder.ParentID;
 
-            if (pendingCategorizationFolders.ContainsKey(parentFolderId))
-            {
-                pendingCategorizationFolders[parentFolderId].Add(folder);
-            }
+            if (dictionary.ContainsKey(parentFolderId))
+                dictionary[parentFolderId].Add(folder);
             else
             {
                 IList<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
                 folders.Add(folder);
-
-                pendingCategorizationFolders[parentFolderId] = folders;
+                dictionary[parentFolderId] = folders;
             }
         }
 
 
         /// <summary>
-        /// Add any pending folders which were received before the given folder
+        /// Recursively, in depth-first order, add all the folders we've received (stored 
+        /// in a dictionary indexed by parent ID) into the tree that describes user folder
+        /// heirarchy
         /// </summary>
         /// <param name="parentId">
         /// A <see cref="LLUUID"/>
         /// </param>
-        private void ResolvePendingFolders(InventoryFolderImpl newFolder)
+        private void ResolveReceivedFolders(InventoryFolderImpl parentFolder, IDictionary<LLUUID, IList<InventoryFolderImpl>> folderDictionary)
         {
-            if (pendingCategorizationFolders.ContainsKey(newFolder.ID))
+            if (folderDictionary.ContainsKey(parentFolder.ID))
             {
                 List<InventoryFolderImpl> resolvedFolders = new List<InventoryFolderImpl>(); // Folders we've resolved with this invocation
-                foreach (InventoryFolderImpl folder in pendingCategorizationFolders[newFolder.ID])
+                foreach (InventoryFolderImpl folder in folderDictionary[parentFolder.ID])
                 {
-                    //                    m_log.DebugFormat(
-                    //                        "[INVENTORY CACHE]: Resolving pending received folder {0} {1} into {2} {3}",
-                    //                        folder.name, folder.folderID, parent.name, parent.folderID);
-                    lock (newFolder.SubFolders)
+                    lock (parentFolder.SubFolders)
                     {
-                        if (!newFolder.SubFolders.ContainsKey(folder.ID))
+                        if (parentFolder.SubFolders.ContainsKey(folder.ID))
+                        {
+                            m_log.WarnFormat(
+                                "[INVENTORY CACHE]: Received folder {0} {1} from inventory service which has already been received",
+                                folder.Name, folder.ID);
+                        }
+                        else
                         {
                             resolvedFolders.Add(folder);
-                            newFolder.SubFolders.Add(folder.ID, folder);
+                            parentFolder.SubFolders.Add(folder.ID, folder);
                         }
                     }
-                }
-                pendingCategorizationFolders.Remove(newFolder.ID);
+                } // foreach (folder in pendingCategorizationFolders[parentFolder.ID])
+
+                folderDictionary.Remove(parentFolder.ID);
                 foreach (InventoryFolderImpl folder in resolvedFolders)
-                   ResolvePendingFolders(folder);
+                    ResolveReceivedFolders(folder, folderDictionary);
             }
         }
 
@@ -204,25 +201,56 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="inventoryCollection"></param>
         public void InventoryReceive(ICollection<InventoryFolderImpl> folders, ICollection<InventoryItemBase> items)
         {
+
             // FIXME: Exceptions thrown upwards never appear on the console.  Could fix further up if these
             // are simply being swallowed
 
             try
             {
+                // collection of all received folders, indexed by their parent ID
+                IDictionary<LLUUID, IList<InventoryFolderImpl>> receivedFolders =
+                    new Dictionary<LLUUID, IList<InventoryFolderImpl>>();
+
+                // Take all received folders, find the root folder, and put ther rest into
+                // the pendingCategorizationFolders collection
                 foreach (InventoryFolderImpl folder in folders)
+                    AddFolderToDictionary(folder, receivedFolders);
+
+                if (!receivedFolders.ContainsKey(LLUUID.Zero))
+                    throw new Exception("Database did not return a root inventory folder");
+                else
                 {
-                    FolderReceive(folder);
+                    IList<InventoryFolderImpl> rootFolderList = receivedFolders[LLUUID.Zero];
+                    m_rootFolder = rootFolderList[0];
+                    if (rootFolderList.Count > 1)
+                    {
+                        for (int i = 1; i < rootFolderList.Count; i++)
+                        {
+                            m_log.WarnFormat(
+                                "[INVENTORY CACHE]: Discarding extra root folder {0}. Using previously received root folder {1}",
+                                rootFolderList[i].ID, RootFolder.ID);
+                        }
+                    }
+                    receivedFolders.Remove(LLUUID.Zero);
                 }
+
+                // Now take the pendingCategorizationFolders collection, and turn that into a tree,
+                // with the root being RootFolder
+                if (RootFolder != null)
+                    ResolveReceivedFolders(RootFolder, receivedFolders);
+
                 // Generate a warning for folders that are not part of the heirarchy
-                foreach ( KeyValuePair<LLUUID, IList<InventoryFolderImpl>> folderList in pendingCategorizationFolders)
+                foreach (KeyValuePair<LLUUID, IList<InventoryFolderImpl>> folderList in receivedFolders)
                 {
                     foreach (InventoryFolderImpl folder in folderList.Value)
                         m_log.WarnFormat("[INVENTORY CACHE]: Malformed Database: Unresolved Pending Folder {0}", folder.Name);
                 }
+
+                // Take all ther received items and put them into the folder tree heirarchy
+                // TBD: This operation is O(n^2), if we made a dictionary of all folders indexed by their ID, we could make
+                //      this O(n)
                 foreach (InventoryItemBase item in items)
-                {
                     ItemReceive(item);
-                }
             }
             catch (Exception e)
             {
@@ -241,56 +269,6 @@ namespace OpenSim.Framework.Communications.Cache
                     request.Execute();
                 }
             }
-        }
-
-        /// <summary>
-        /// Callback invoked when a folder is received from an async request to the inventory service.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="folderInfo"></param>
-        private void FolderReceive(InventoryFolderImpl newFolder)
-        {
-            //            m_log.DebugFormat(
-            //                "[INVENTORY CACHE]: Received folder {0} {1} for user {2}",
-            //                folderInfo.Name, folderInfo.ID, userID);
-
-            if (RootFolder == null)
-            {
-                if (newFolder.ParentID == LLUUID.Zero)
-                {
-                    m_rootFolder = newFolder;
-                }
-                else
-                {
-                    AddPendingFolder(newFolder);
-                }
-            }
-            else
-            {
-                InventoryFolderImpl parentFolder = RootFolder.FindFolder(newFolder.ParentID);
-
-                if (parentFolder == null)
-                {
-                    AddPendingFolder(newFolder);
-                }
-                else
-                {
-                    lock (parentFolder.SubFolders)
-                    {
-                        if (!parentFolder.SubFolders.ContainsKey(newFolder.ID))
-                        {
-                            parentFolder.SubFolders.Add(newFolder.ID, newFolder);
-                        }
-                        else
-                        {
-                            m_log.WarnFormat(
-                                "[INVENTORY CACHE]: Received folder {0} {1} from inventory service which has already been received",
-                                newFolder.Name, newFolder.ID);
-                        }
-                    }
-                }
-            }
-            ResolvePendingFolders(newFolder);
         }
 
         /// <summary>
