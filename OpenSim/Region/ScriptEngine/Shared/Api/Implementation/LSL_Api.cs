@@ -2997,7 +2997,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRemoveInventory(string name)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRemoveInventory");
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            {
+                if (item.Name == name)
+                {
+                    m_host.RemoveInventoryItem(item.ItemID);
+                    return;
+                }
+            }
         }
 
         public void llSetText(string text, LSL_Types.Vector3 color, double alpha)
@@ -3384,7 +3391,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // except that it refers to scripting constants
         private int getScriptPrimType(PrimitiveBaseShape primShape)
         {
-            if (primShape.SculptEntry && primShape.SculptType != (byte)0 && primShape.SculptData.Length > 0)
+            if (primShape.SculptEntry)
                 return ScriptBaseClass.PRIM_TYPE_SCULPT;
             if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
             {
@@ -5082,7 +5089,46 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRemoteLoadScriptPin");
+            bool found = false;
+            LLUUID destId = LLUUID.Zero;
+            LLUUID srcId = LLUUID.Zero;
+
+            if (!LLUUID.TryParse(target, out destId))
+            {
+                llSay(0, "Could not parse key " + target);
+                return;
+            }
+
+            // target must be a different prim than the one containing the script
+            if (m_host.UUID == destId)
+            {
+                return;
+            }
+
+            // copy the first script found with this inventory name
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.Name == name)
+                {
+                    // make sure the object is a script
+                    if (10 == inv.Value.Type)
+                    {
+                        found = true;
+                        srcId = inv.Key;
+                        break;
+                    }
+                }
+            }
+
+            if (!found)
+            {
+                llSay(0, "Could not find script " + name);
+                return;
+            }
+
+            // the rest of the permission checks are done in RezScript, so check the pin there as well
+            World.RezScript(srcId, m_host, destId, pin, running, start_param);
+            // this will cause the delay even if the script pin or permissions were wrong - seems ok
             ScriptSleep(3000);
         }
 
@@ -6150,7 +6196,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 1)
                             return res;
 
-                        int face = Convert.ToInt32("" + rules.Data[idx++]);
+                        int face = Convert.ToInt32(rules.Data[idx++].ToString());
                         if (face == -1)
                             face = 0;
 
@@ -6171,7 +6217,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 1)
                             return res;
 
-                        face=Convert.ToInt32("" + rules.Data[idx++]);
+                        face=Convert.ToInt32(rules.Data[idx++].ToString());
 
                         tex = m_host.Shape.Textures;
                         LLColor texcolor;
