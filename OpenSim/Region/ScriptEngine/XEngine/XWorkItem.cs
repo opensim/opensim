@@ -26,63 +26,40 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using libsecondlife;
-using log4net;
-using OpenSim.Framework;
-using OpenSim.Region.ScriptEngine.Shared;
+using System.IO;
+using System.Threading;
+using Amib.Threading;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
-namespace OpenSim.Region.ScriptEngine.Interfaces
+namespace OpenSim.Region.ScriptEngine.XEngine
 {
-    public enum StateSource
+    public class XWorkItem : IScriptWorkItem
     {
-        NewRez = 0,
-        PrimCrossing = 1,
-        AttachmentCrossing = 2
-    }
+        private IWorkItemResult wr;
 
-    public interface IScriptWorkItem
-    {
-        bool Cancel();
-        void Abort();
-        bool Wait(TimeSpan t);
-    }
+        public IWorkItemResult WorkItem
+        {
+            get { return wr; }
+        }
 
-    public interface IScriptInstance
-    {
-        bool Running { get; set; }
-        string State { get; set; }
-        IScriptEngine Engine { get; }
-        LLUUID AppDomain { get; set; }
-        string PrimName { get; }
-        string ScriptName { get; }
-        LLUUID ItemID { get; }
-        LLUUID ObjectID { get; }
-        uint LocalID { get; }
-        LLUUID AssetID { get; }
-        Queue EventQueue { get; }
+        public XWorkItem(IWorkItemResult w)
+        {
+            wr = w;
+        }
 
-        void ClearQueue();
-        int StartParam { get; set; }
+        public bool Cancel()
+        {
+            return wr.Cancel();
+        }
 
-        void RemoveState();
+        public void Abort()
+        {
+            wr.Abort();
+        }
 
-        void Start();
-        bool Stop(int timeout);
-        void SetState(string state);
-
-        void PostEvent(EventParams data);
-        object EventProcessor();
-
-        int EventTime();
-        void ResetScript();
-        void ApiResetScript();
-        Dictionary<string, object> GetVars();
-        void SetVars(Dictionary<string, object> vars);
-        DetectParams GetDetectParams(int idx);
-        LLUUID GetDetectID(int idx);
-        void SaveState(string assembly);
+        public bool Wait(TimeSpan t)
+        {
+            return SmartThreadPool.WaitAll(new IWorkItemResult[] {wr}, t, false);
+        }
     }
 }

@@ -655,10 +655,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         //
         // Used by script instances to queue event handler jobs
         //
-        public IWorkItemResult QueueEventHandler(object parms)
+        public IScriptWorkItem QueueEventHandler(object parms)
         {
-            return m_ThreadPool.QueueWorkItem(new WorkItemCallback(
-                                                  this.ProcessEventHandler), parms);
+            return new XWorkItem(m_ThreadPool.QueueWorkItem(new WorkItemCallback(
+                                                  this.ProcessEventHandler), parms));
         }
 
         //

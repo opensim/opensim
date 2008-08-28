@@ -53,7 +53,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
     public class ScriptInstance : IScriptInstance
     {
         private IScriptEngine m_Engine;
-        private IWorkItemResult m_CurrentResult=null;
+        private IScriptWorkItem m_CurrentResult=null;
         private Queue m_EventQueue = new Queue(32);
         private bool m_RunEvents = false;
         private LLUUID m_ItemID;
@@ -346,7 +346,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public bool Stop(int timeout)
         {
-            IWorkItemResult result;
+            IScriptWorkItem result;
 
             lock (m_EventQueue)
             {
@@ -370,7 +370,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 m_RunEvents = false;
             }
 
-            if (SmartThreadPool.WaitAll(new IWorkItemResult[] {result}, new TimeSpan((long)timeout * 100000), false))
+            if (result.Wait(new TimeSpan((long)timeout * 100000)))
             {
                 return true;
             }
