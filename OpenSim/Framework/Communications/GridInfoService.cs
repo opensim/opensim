@@ -57,6 +57,27 @@ namespace OpenSim.Framework.Communications
         /// </remarks>
         public GridInfoService(IConfigSource configSource)
         {
+            loadGridInfo(configSource);
+        }
+
+        /// <summary>
+        /// Default constructor, uses OpenSim.ini.
+        /// </summary>
+        public GridInfoService()
+        {
+            try 
+            {
+                IConfigSource configSource = new IniConfigSource(Path.Combine(Util.configDir(), "OpenSim.ini"));
+                loadGridInfo(configSource);
+            }
+            catch (FileNotFoundException)
+            {
+                _log.Warn("[GridInfoService] no OpenSim.ini file found --- GridInfoServices WILL NOT BE AVAILABLE to your users");
+            }
+        }
+
+        private void loadGridInfo(IConfigSource configSource)
+        {
             _info["platform"] = "OpenSim";
             try
             {
@@ -98,13 +119,7 @@ namespace OpenSim.Framework.Communications
                 _log.Debug("[GridInfoService] cannot get grid info from config source, using minimal defaults");
             }
             _log.InfoFormat("[GridInfoService] Grid info service initialized with {0} keys", _info.Count);
-        }
 
-        /// <summary>
-        /// Default constructor, uses OpenSim.ini.
-        /// </summary>
-        public GridInfoService() : this(new IniConfigSource(Path.Combine(Util.configDir(), "OpenSim.ini")))
-        {
         }
 
         private void IssueWarning()
