@@ -542,13 +542,13 @@ namespace OpenSim.Region.Environment.Scenes
                 if (remoteClient.AgentId == oldAgentID)
                 {
                     CreateNewInventoryItem(
-                        remoteClient, newFolderID, item.Name, item.Flags, callbackID, asset, (sbyte)item.InvType,
+                        remoteClient, newFolderID, newName, item.Flags, callbackID, asset, (sbyte)item.InvType,
                         item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions, Util.UnixTimeSinceEpoch());
                 }
                 else
                 {
                     CreateNewInventoryItem(
-                        remoteClient, newFolderID, item.Name, item.Flags, callbackID, asset, (sbyte)item.InvType,
+                        remoteClient, newFolderID, newName, item.Flags, callbackID, asset, (sbyte)item.InvType,
                         item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions, Util.UnixTimeSinceEpoch());
                 }
             }
