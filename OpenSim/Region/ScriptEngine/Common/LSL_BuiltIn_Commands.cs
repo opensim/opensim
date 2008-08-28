@@ -2296,7 +2296,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             bool found = false;
 
             float dist = (float)llVecDist(llGetPos(), pos);
-            if(dist > m_distanceFactor * 10.0f)
+            if (dist > m_distanceFactor * 10.0f)
                 return;
 
             // Instead of using return;, I'm using continue; because in our TaskInventory implementation
@@ -6247,7 +6247,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         switch (primType)
                         {
                             case BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX:
-                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER:                               
+                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER:
                             case BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM:
                                 res.Add(new LSL_Types.LSLInteger(Shape.ProfileCurve));
                                 res.Add(new LSL_Types.Vector3(Shape.ProfileBegin / 50000.0, 1 - Shape.ProfileEnd / 50000.0, 0));
@@ -6298,10 +6298,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 // vector tapera
                                 res.Add(new LSL_Types.Vector3(Shape.PathTaperX / 100.0, Shape.PathTaperY / 100.0, 0));
 
-                                // float revolutions, 
+                                // float revolutions,
                                 res.Add(new LSL_Types.LSLFloat(Shape.PathRevolutions / 50.0)); // needs fixing :(
 
-                                // float radiusoffset, 
+                                // float radiusoffset,
                                 res.Add(new LSL_Types.LSLFloat(Shape.PathRadiusOffset / 100.0));
 
                                 // float skew
@@ -7014,10 +7014,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     case 5: // DATA_SIM_POS
                         if (info == null)
-		                {
-		                    // ScriptSleep(1000);
-		                    return LLUUID.Zero.ToString();
-		                }
+                        {
+                            // ScriptSleep(1000);
+                            return LLUUID.Zero.ToString();
+                        }
                         reply = new LSL_Types.Vector3(
                             info.RegionLocX * Constants.RegionSize,
                             info.RegionLocY * Constants.RegionSize,
@@ -7031,10 +7031,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
                     case 7: // DATA_SIM_RATING
                         if (info == null)
-		                {
-		                    // ScriptSleep(1000);
-		                    return LLUUID.Zero.ToString();
-		                }
+                        {
+                            // ScriptSleep(1000);
+                            return LLUUID.Zero.ToString();
+                        }
                         int access = info.RegionSettings.Maturity;
                         if (access == 0)
                             reply = "PG";
@@ -7047,18 +7047,18 @@ namespace OpenSim.Region.ScriptEngine.Common
                         reply = m_ScriptEngine.World.GetSimulatorVersion();
                         break;
                     default:
-		                // ScriptSleep(1000);
+                        // ScriptSleep(1000);
                         return LLUUID.Zero.ToString(); // Raise no event
                 }
                 LLUUID rq = LLUUID.Random();
 
-	            LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
-	                    m_Dataserver.RegisterRequest(m_localID, m_itemID, rq.ToString());
+                LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
+                    m_Dataserver.RegisterRequest(m_localID, m_itemID, rq.ToString());
 
-	            m_ScriptEngine.m_ASYNCLSLCommandManager.
-	            m_Dataserver.DataserverReply(rq.ToString(), reply);
+                m_ScriptEngine.m_ASYNCLSLCommandManager.
+                m_Dataserver.DataserverReply(rq.ToString(), reply);
 
-	            // ScriptSleep(1000);
+                // ScriptSleep(1000);
                 return tid.ToString();
             }
             catch(Exception e)
@@ -8041,12 +8041,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                 (line >= 0) &&
                 (line < notecardLines.Length))
             {
-	            // ScriptSleep(100);
+                // ScriptSleep(100);
                 return notecardLines[line];
             }
             else
             {
-	            // ScriptSleep(100);
+                // ScriptSleep(100);
                 return String.Empty;
             }
         }

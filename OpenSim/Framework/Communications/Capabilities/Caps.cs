@@ -617,9 +617,9 @@ namespace OpenSim.Framework.Communications.Capabilities
 
                 IMoneyModule mm = scene.RequestModuleInterface<IMoneyModule>();
 
-                if(mm != null)
+                if (mm != null)
                 {
-                    if(!mm.UploadCovered(client))
+                    if (!mm.UploadCovered(client))
                     {
                         client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
 

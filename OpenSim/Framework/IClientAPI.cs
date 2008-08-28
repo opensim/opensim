@@ -351,8 +351,8 @@ namespace OpenSim.Framework
 
         bool SendLogoutPacketWhenClosing
         {
-            set; 
-        } 
+            set;
+        }
 
         // [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
         uint CircuitCode { get; }
@@ -526,7 +526,7 @@ namespace OpenSim.Framework
         event TerrainUnacked OnUnackedTerrain;
         event ActivateGesture OnActivateGesture;
         event DeactivateGesture OnDeactivateGesture;
-       
+
    //     void ActivateGesture(LLUUID assetId, LLUUID gestureId);
 
         // [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]

@@ -99,8 +99,8 @@ namespace OpenSim.Region.Physics.Meshing
         internal List<Angle> angles;
 
         // this class should have a table of most commonly computed values
-	    // instead of all the trig function calls
-	    // most common would be for sides = 3, 4, or 24
+        // instead of all the trig function calls
+        // most common would be for sides = 3, 4, or 24
         internal void makeAngles( int sides, float startAngle, float stopAngle )
         {
             angles = new List<Angle>();
@@ -134,7 +134,7 @@ namespace OpenSim.Region.Physics.Meshing
                 newAngle.Y = (float) System.Math.Sin(angle);
                 angles.Add(newAngle);
                 step += 1;
-		        angle = stepSize * step;
+                angle = stepSize * step;
             }
 
             if (startAngle > angles[0].angle)
@@ -187,15 +187,15 @@ namespace OpenSim.Region.Physics.Meshing
             AngleList hollowAngles = new AngleList();
 
             float xScale = 0.5f;
-            float yScale = 0.5f; 
+            float yScale = 0.5f;
             if (sides == 4)  // corners of a square are sqrt(2) from center
-			{
+            {
                 xScale = 0.707f;
-			    yScale = 0.707f;
+                yScale = 0.707f;
             }
 
             float startAngle = profileStart * twoPi;
-		    float stopAngle = profileEnd * twoPi;
+            float stopAngle = profileEnd * twoPi;
             float stepSize = twoPi / sides;
 
             try { angles.makeAngles(sides, startAngle, stopAngle); }
@@ -397,7 +397,7 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 vert = this.coords[i];
                 Vertex v = new Vertex(vert.X, vert.Y, vert.Z) * q;
-                
+
                 vert.X = v.X;
                 vert.Y = v.Y;
                 vert.Z = v.Z;
@@ -507,23 +507,23 @@ namespace OpenSim.Region.Physics.Meshing
             s += "sides..................: " + this.sides.ToString();
             s += "\nhollowSides..........: " + this.hollowSides.ToString();
             s += "\nprofileStart.........: " + this.profileStart.ToString();
-	        s += "\nprofileEnd...........: " + this.profileEnd.ToString();
-	        s += "\nhollow...............: " + this.hollow.ToString();
-	        s += "\ntwistBegin...........: " + this.twistBegin.ToString();
-	        s += "\ntwistEnd.............: " + this.twistEnd.ToString();
-	        s += "\ntopShearX............: " + this.topShearX.ToString();
-	        s += "\ntopShearY............: " + this.topShearY.ToString();
-	        s += "\npathCutBegin.........: " + this.pathCutBegin.ToString();
-	        s += "\npathCutEnd...........: " + this.pathCutEnd.ToString();
-	        s += "\ndimpleBegin..........: " + this.dimpleBegin.ToString();
-	        s += "\ndimpleEnd............: " + this.dimpleEnd.ToString();
-	        s += "\nskew.................: " + this.skew.ToString();
-	        s += "\nholeSizeX............: " + this.holeSizeX.ToString();
-	        s += "\nholeSizeY............: " + this.holeSizeY.ToString();
-	        s += "\ntaperX...............: " + this.taperX.ToString();
-	        s += "\ntaperY...............: " + this.taperY.ToString();
-	        s += "\nradius...............: " + this.radius.ToString();
-	        s += "\nrevolutions..........: " + this.revolutions.ToString();
+            s += "\nprofileEnd...........: " + this.profileEnd.ToString();
+            s += "\nhollow...............: " + this.hollow.ToString();
+            s += "\ntwistBegin...........: " + this.twistBegin.ToString();
+            s += "\ntwistEnd.............: " + this.twistEnd.ToString();
+            s += "\ntopShearX............: " + this.topShearX.ToString();
+            s += "\ntopShearY............: " + this.topShearY.ToString();
+            s += "\npathCutBegin.........: " + this.pathCutBegin.ToString();
+            s += "\npathCutEnd...........: " + this.pathCutEnd.ToString();
+            s += "\ndimpleBegin..........: " + this.dimpleBegin.ToString();
+            s += "\ndimpleEnd............: " + this.dimpleEnd.ToString();
+            s += "\nskew.................: " + this.skew.ToString();
+            s += "\nholeSizeX............: " + this.holeSizeX.ToString();
+            s += "\nholeSizeY............: " + this.holeSizeY.ToString();
+            s += "\ntaperX...............: " + this.taperX.ToString();
+            s += "\ntaperY...............: " + this.taperY.ToString();
+            s += "\nradius...............: " + this.radius.ToString();
+            s += "\nrevolutions..........: " + this.revolutions.ToString();
             s += "\nstepsPerRevolution...: " + this.stepsPerRevolution.ToString();
 
             return s;
@@ -542,20 +542,20 @@ namespace OpenSim.Region.Physics.Meshing
             this.hollowSides = hollowSides;
 
             if (sides < 3)
-			    this.sides = 3;
+                this.sides = 3;
             if ( hollowSides < 3)
-			    this.hollowSides = 3;
-		    if (profileStart < 0.0f)
+                this.hollowSides = 3;
+            if (profileStart < 0.0f)
                 this.profileStart = 0.0f;
-		    if (profileEnd > 1.0f)
+            if (profileEnd > 1.0f)
                 this.profileEnd = 1.0f;
-		    if (profileEnd < 0.02f)
+            if (profileEnd < 0.02f)
                 this.profileEnd = 0.02f;
-		    if (profileStart >= profileEnd)
+            if (profileStart >= profileEnd)
                 this.profileStart = profileEnd - 0.02f;
-		    if (hollow > 1.0f)
+            if (hollow > 1.0f)
                 this.hollow = 1.0f;
-		    if (hollow < 0.0f)
+            if (hollow < 0.0f)
                 this.hollow = 0.0f;
         }
 
@@ -578,7 +578,7 @@ namespace OpenSim.Region.Physics.Meshing
                     steps = (int)(steps * 4.5 * length);
             }
 #endif
-            
+
             float twistBegin = this.twistBegin / 360.0f * twoPi;
             float twistEnd = this.twistEnd / 360.0f * twoPi;
             float twistTotal = twistEnd - twistBegin;
@@ -661,7 +661,7 @@ namespace OpenSim.Region.Physics.Meshing
                 newLayer.AddValue2Faces(coordsLen);
 
                 this.coords.AddRange(newLayer.coords);
-                this.faces.AddRange(newLayer.faces); 
+                this.faces.AddRange(newLayer.faces);
 
                 // fill faces between layers
 
@@ -707,7 +707,6 @@ namespace OpenSim.Region.Physics.Meshing
                 else done = true;
             }
         }
-        
 
         public void ExtrudeCircular()
         {
@@ -721,9 +720,9 @@ namespace OpenSim.Region.Physics.Meshing
             float twistEnd = this.twistEnd / 360.0f * twoPi;
             float twistTotal = twistEnd - twistBegin;
 
-		    // if the profile has a lot of twist, add more layers otherwise the layers may overlap
-		    // and the resulting mesh may be quite inaccurate. This method is arbitrary and doesn't
-		    // accurately match the viewer
+            // if the profile has a lot of twist, add more layers otherwise the layers may overlap
+            // and the resulting mesh may be quite inaccurate. This method is arbitrary and doesn't
+            // accurately match the viewer
             float twistTotalAbs = Math.Abs(twistTotal);
             if (twistTotalAbs > 0.01f)
             {
@@ -732,19 +731,19 @@ namespace OpenSim.Region.Physics.Meshing
                 if (twistTotalAbs > Math.PI * 3.0f)
                     steps *= 2;
             }
-            
+
             float yPathScale = this.holeSizeY * 0.5f;
             float pathLength = this.pathCutEnd - this.pathCutBegin;
             float totalSkew = this.skew * 2.0f * pathLength;
             float skewStart = this.pathCutBegin * 2.0f * this.skew - this.skew;
 
             // It's not quite clear what pushY (Y top shear) does, but subtracting it from the start and end
-	        // angles appears to approximate it's effects on path cut. Likewise, adding it to the angle used
-	        // to calculate the sine for generating the path radius appears to approximate it's effects there
-	        // too, but there are some subtle differences in the radius which are noticeable as the prim size 
-	        // increases and it may affect megaprims quite a bit. The effect of the Y top shear parameter on
-	        // the meshes generated with this technique appear nearly identical in shape to the same prims when
-	        // displayed by the viewer.
+            // angles appears to approximate it's effects on path cut. Likewise, adding it to the angle used
+            // to calculate the sine for generating the path radius appears to approximate it's effects there
+            // too, but there are some subtle differences in the radius which are noticeable as the prim size
+            // increases and it may affect megaprims quite a bit. The effect of the Y top shear parameter on
+            // the meshes generated with this technique appear nearly identical in shape to the same prims when
+            // displayed by the viewer.
 
             float startAngle = (twoPi * this.pathCutBegin * this.revolutions) - this.topShearY * 0.9f;
             float endAngle = (twoPi * this.pathCutEnd * this.revolutions) - this.topShearY * 0.9f;
@@ -784,7 +783,7 @@ namespace OpenSim.Region.Physics.Meshing
                     hollow /= 0.7f;
                 }
             }
-            
+
             Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides);
 
             if (initialProfileRot != 0.0f)
@@ -834,7 +833,7 @@ namespace OpenSim.Region.Physics.Meshing
                     newLayer.AddRot(new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), twist));
 
                 // now orient the rotation of the profile layer relative to it's position on the path
-		        // adding taperY to the angle used to generate the quat appears to approximate the viewer
+                // adding taperY to the angle used to generate the quat appears to approximate the viewer
                 newLayer.AddRot(new Quaternion(new Vertex(1.0f, 0.0f, 0.0f), angle + this.topShearY * 0.9f));
                 newLayer.AddPos(xOffset, yOffset, zOffset);
 
@@ -959,7 +958,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                 sw.WriteLine(s);
             }
-            
+
             sw.Close();
         }
     }

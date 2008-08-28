@@ -231,7 +231,7 @@ namespace OpenSim.Region.Physics.Meshing
         {
             int[] result = getIndexListAsInt();
             pinnedIndex = GCHandle.Alloc(result, GCHandleType.Pinned);
-            
+
             return result;
         }
 

@@ -53,7 +53,7 @@ namespace OpenSim.Framework.Communications
         /// GridInfoService uses the [GridInfo] section of the
         /// standard OpenSim.ini file --- which is not optimal, but
         /// anything else requires a general redesign of the config
-        /// system. 
+        /// system.
         /// </remarks>
         public GridInfoService(IConfigSource configSource)
         {
@@ -65,7 +65,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         public GridInfoService()
         {
-            try 
+            try
             {
                 IConfigSource configSource = new IniConfigSource(Path.Combine(Util.configDir(), "OpenSim.ini"));
                 loadGridInfo(configSource);
@@ -84,15 +84,15 @@ namespace OpenSim.Framework.Communications
                 IConfig startupCfg = configSource.Configs["Startup"];
                 IConfig gridCfg = configSource.Configs["GridInfo"];
                 IConfig netCfg = configSource.Configs["Network"];
-                
+
                 bool grid = startupCfg.GetBoolean("gridmode", false);
-                
+
                 if (grid)
                     _info["mode"] = "grid";
-                else 
+                else
                     _info["mode"] = "standalone";
-                
-                
+
+
                 if (null != gridCfg)
                 {
                     foreach (string k in gridCfg.GetKeys())

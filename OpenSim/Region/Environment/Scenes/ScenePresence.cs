@@ -2350,10 +2350,10 @@ namespace OpenSim.Region.Environment.Scenes
                 // Validate
                 foreach (SceneObjectGroup gobj in m_attachments)
                 {
-                    if(gobj == null)
+                    if (gobj == null)
                         return false;
 
-                    if(gobj.RootPart == null)
+                    if (gobj.RootPart == null)
                     {
                         return false;
                     }
@@ -2370,7 +2370,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // Validate
                 foreach (SceneObjectGroup gobj in m_attachments)
                 {
-                    if(gobj == null || gobj.RootPart == null)
+                    if (gobj == null || gobj.RootPart == null)
                         return false;
                 }
 

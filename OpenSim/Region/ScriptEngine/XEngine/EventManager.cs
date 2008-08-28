@@ -89,7 +89,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             det[0].Key = remoteClient.AgentId;
             det[0].Populate(myScriptEngine.World);
 
-            
             if (originalID == 0)
             {
                 SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(localID);
@@ -103,7 +102,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
                 det[0].LinkNum = originalPart.LinkNum;
             }
-            
+
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "touch_start", new Object[] { new LSL_Types.LSLInteger(1) },
                     det));

@@ -82,10 +82,10 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         // (for info about algorithm, see http://en.wikipedia.org/wiki/HSL_and_HSV)
         public Color toColor()
         {
-            if(s < 0f) Console.WriteLine("S < 0: " + s);
-            else if(s > 1f) Console.WriteLine("S > 1: " + s);
-            if(v < 0f) Console.WriteLine("V < 0: " + v);
-            else if(v > 1f) Console.WriteLine("V > 1: " + v);
+            if (s < 0f) Console.WriteLine("S < 0: " + s);
+            else if (s > 1f) Console.WriteLine("S > 1: " + s);
+            if (v < 0f) Console.WriteLine("V < 0: " + v);
+            else if (v > 1f) Console.WriteLine("V > 1: " + v);
 
             float f = h / 60f;
             int sector = (int)f % 6;
@@ -95,7 +95,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             int ti = (int)(v * (1f - (1f - f) * s) * 255f);
             int vi = (int)(v * 255f);
 
-            switch(sector)
+            switch (sector)
             {
             case 0:
                 return Color.FromArgb(vi, ti, pi);
@@ -168,7 +168,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         {
             AssetBase asset = m_scene.AssetCache.GetAsset(id, true);
             m_log.DebugFormat("Fetched texture {0}, found: {1}", id, asset != null);
-            if(asset == null) return null;
+            if (asset == null) return null;
             return new Bitmap(OpenJPEG.DecodeToImage(asset.Data));
         }
 
@@ -179,9 +179,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             // color-channel, so 2^24 is the maximum value we can get, adding everything.
             // int is be big enough for that.
             int r = 0, g = 0, b = 0;
-            for(int y = 0; y < bmp.Height; ++y)
+            for (int y = 0; y < bmp.Height; ++y)
             {
-                for(int x = 0; x < bmp.Width; ++x)
+                for (int x = 0; x < bmp.Width; ++x)
                 {
                     Color c = bmp.GetPixel(x, y);
                     r += (int)c.R & 0xff;
@@ -218,14 +218,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         // interpolate two colors in HSV space and return the resulting color
         private HSV interpolateHSV(ref HSV c1, ref HSV c2, float ratio) {
-            if(ratio <= 0f) return c1;
-            if(ratio >= 1f) return c2;
+            if (ratio <= 0f) return c1;
+            if (ratio >= 1f) return c2;
 
             // make sure we are on the same side on the hue-circle for interpolation
             // We change the hue of the parameters here, but we don't change the color
             // represented by that value
-            if(c1.h - c2.h > 180f) c1.h -= 360f;
-            else if(c2.h - c1.h > 180f) c1.h += 360f;
+            if (c1.h - c2.h > 180f) c1.h -= 360f;
+            else if (c2.h - c1.h > 180f) c1.h += 360f;
 
             return new HSV(c1.h * (1f - ratio) + c2.h * ratio,
                            c1.s * (1f - ratio) + c2.s * ratio,
@@ -321,16 +321,16 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                         }
 
                         HSV hsv;
-                        if(hmod <= low) hsv = hsv1; // too low
-                        else if(hmod >= high) hsv = hsv4; // too high
+                        if (hmod <= low) hsv = hsv1; // too low
+                        else if (hmod >= high) hsv = hsv4; // too high
                         else
                         {
                             // HSV-interpolate along the colors
                             // first, rescale h to 0.0 - 1.0
                             hmod = (hmod - low) / (high - low);
                             // now we have to split: 0.00 => color1, 0.33 => color2, 0.67 => color3, 1.00 => color4
-                            if(hmod < 1f/3f) hsv = interpolateHSV(ref hsv1, ref hsv2, hmod * 3f);
-                            else if(hmod < 2f/3f) hsv = interpolateHSV(ref hsv2, ref hsv3, (hmod * 3f) - 1f);
+                            if (hmod < 1f/3f) hsv = interpolateHSV(ref hsv1, ref hsv2, hmod * 3f);
+                            else if (hmod < 2f/3f) hsv = interpolateHSV(ref hsv2, ref hsv3, (hmod * 3f) - 1f);
                             else hsv = interpolateHSV(ref hsv3, ref hsv4, (hmod * 3f) - 2f);
                         }
 

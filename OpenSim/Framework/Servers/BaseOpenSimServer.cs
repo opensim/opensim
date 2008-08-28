@@ -107,20 +107,20 @@ namespace OpenSim.Framework.Servers
             {
                 sb.Append(m_stats.Report());
             }
-            
-            sb.Append(Environment.NewLine);            
+
+            sb.Append(Environment.NewLine);
             sb.Append(GetThreadsReport());
 
             m_log.Debug(sb);
         }
-                
+
         /// <summary>
         /// Get a report about the registered threads in this server.
         /// </summary>
         protected string GetThreadsReport()
         {
             StringBuilder sb = new StringBuilder();
-            
+
             List<Thread> threads = ThreadTracker.GetThreads();
             if (threads == null)
             {
@@ -132,13 +132,13 @@ namespace OpenSim.Framework.Servers
                 foreach (Thread t in threads)
                 {
                     sb.Append(
-                        "ID: " + t.ManagedThreadId + ", Name: " + t.Name + ", Alive: " + t.IsAlive 
+                        "ID: " + t.ManagedThreadId + ", Name: " + t.Name + ", Alive: " + t.IsAlive
                         + ", Pri: " + t.Priority + ", State: " + t.ThreadState + Environment.NewLine);
                 }
-            }   
-            
+            }
+
             return sb.ToString();
-        }        
+        }
 
         /// <summary>
         /// Return a report about the uptime of this server
@@ -312,7 +312,7 @@ namespace OpenSim.Framework.Servers
 
                 return;
             }
-        }                
+        }
 
         /// <summary>
         /// Outputs to the console information about the region

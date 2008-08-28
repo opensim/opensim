@@ -306,7 +306,7 @@ namespace OpenSim.Framework.Communications.Cache
             //                "[INVENTORY CACHE]: Received item {0} {1} for user {2}",
             //                itemInfo.Name, itemInfo.ID, userID);
             InventoryFolderImpl folder = null;
-            
+
             if ( RootFolder != null )
                 folder = RootFolder.FindFolder(itemInfo.Folder);
 

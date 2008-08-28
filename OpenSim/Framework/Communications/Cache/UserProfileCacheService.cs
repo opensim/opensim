@@ -168,7 +168,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if (userID == LLUUID.Zero)
                 return;
-            
+
             lock (m_userProfiles)
             {
                 if (m_userProfiles.ContainsKey(userID))

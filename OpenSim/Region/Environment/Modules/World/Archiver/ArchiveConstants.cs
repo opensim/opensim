@@ -59,7 +59,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// Path for terrains.  Technically these may be assets, but I think it's quite nice to split them out.
         /// </summary>
         public static readonly string TERRAINS_PATH = "terrains/";
-        
+
         /// <summary>
         /// The character the separates the uuid from extension information in an archived asset filename
         /// </summary>

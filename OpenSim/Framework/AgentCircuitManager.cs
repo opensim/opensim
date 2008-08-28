@@ -112,7 +112,7 @@ namespace OpenSim.Framework
             }
         }
 
-        
+
         /// <summary>
         /// Sometimes the circuitcode may not be known before setting up the connection
         /// </summary>
@@ -126,7 +126,7 @@ namespace OpenSim.Framework
                 if (AgentCircuits.ContainsKey((uint)circuitcode) && !AgentCircuits.ContainsKey((uint)newcircuitcode))
                 {
                     AgentCircuitData agentData = AgentCircuits[(uint)circuitcode];
-                    
+
                     agentData.circuitcode = newcircuitcode;
 
                     AgentCircuits.Remove((uint)circuitcode);

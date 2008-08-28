@@ -260,9 +260,9 @@ namespace OpenSim.Region.Communications.OGS1
                         catch (SocketException e)
                         {
                             m_log.WarnFormat(
-                                "[OGS1 GRID SERVICES]: RequestNeighbours(): Lookup of neighbour {0} failed!  Not including in neighbours list.  {1}", 
+                                "[OGS1 GRID SERVICES]: RequestNeighbours(): Lookup of neighbour {0} failed!  Not including in neighbours list.  {1}",
                                 simIp, e);
-                            
+
                             continue;
                         }
 
@@ -304,7 +304,7 @@ namespace OpenSim.Region.Communications.OGS1
             SendParams.Add(requestData);
             XmlRpcRequest gridReq = new XmlRpcRequest("simulator_data_request", SendParams);
             XmlRpcResponse gridResp = null;
-            
+
             try
             {
                 gridResp = gridReq.Send(serversInfo.GridURL, 3000);
@@ -312,9 +312,9 @@ namespace OpenSim.Region.Communications.OGS1
             catch (WebException e)
             {
                 m_log.ErrorFormat(
-                    "[OGS1 GRID SERVICES]: Communication with the grid server at {0} failed, {1}", 
+                    "[OGS1 GRID SERVICES]: Communication with the grid server at {0} failed, {1}",
                     serversInfo.GridURL, e);
-                
+
                 return null;
             }
 
@@ -1621,14 +1621,14 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 m_log.DebugFormat(
                     "[OGS1 GRID SERVICES]: CheckRegion Socket Setup exception: {0}:{1}", e.Message, e.StackTrace);
-                
+
                 return false;
             }
 
             if (timed_out)
             {
                 m_log.DebugFormat(
-                    "[OGS1 GRID SERVICES]: socket [{0}] timed out ({1}) waiting to obtain a connection.", 
+                    "[OGS1 GRID SERVICES]: socket [{0}] timed out ({1}) waiting to obtain a connection.",
                     m_EndPoint, timeOut * 1000);
 
                 if (retry)

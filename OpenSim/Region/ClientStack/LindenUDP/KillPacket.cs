@@ -34,7 +34,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     /// <summary>
     /// When packetqueue dequeues this packet in the outgoing stream, it thread aborts
-    /// Ensures that the thread abort happens from within the client thread 
+    /// Ensures that the thread abort happens from within the client thread
     /// regardless of where the close method is called
     /// </summary>
     class KillPacket : Packet
@@ -42,20 +42,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Header header;
         public override void FromBytes(Header header, byte[] bytes, ref int i, ref int packetEnd, byte[] zeroBuffer)
         {
-            
         }
 
         public override void FromBytes(byte[] bytes, ref int i, ref int packetEnd, byte[] zeroBuffer)
         {
-            
         }
- 
+
         public override Header Header { get { return header; } set { header = value; }}
 
         public override byte[] ToBytes()
         {
             return new byte[0];
         }
+
         public KillPacket()
         {
             Header = new LowHeader();

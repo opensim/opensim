@@ -278,7 +278,7 @@ namespace OpenSim.Framework.Servers
                             HandleLLSDRequests(request, response);
 
                             return;
-                        }   
+                        }
                         HandleXmlRpcRequests(request, response);
                         return;
                 }
@@ -498,7 +498,7 @@ namespace OpenSim.Framework.Servers
                 {
                     // we didn't find a registered llsd handler to service this request
                     // check if we have a default llsd handler
-                    
+
                     if (m_defaultLlsdHandler != null)
                     {
                         // LibOMV path
@@ -541,7 +541,7 @@ namespace OpenSim.Framework.Servers
 
         private bool DoWeHaveALLSDHandler(string path)
         {
-            
+
             string[] pathbase = path.Split('/');
             string searchquery = "/";
 
@@ -559,27 +559,27 @@ namespace OpenSim.Framework.Servers
 
             foreach (string pattern in m_llsdHandlers.Keys)
             {
-                
+
                 if (searchquery.StartsWith(pattern) && searchquery.Length >= pattern.Length)
                 {
-                    
+
                         bestMatch = pattern;
-                   
+
                 }
             }
 
-            // extra kicker to remove the default XMLRPC login case..  just in case..  
+            // extra kicker to remove the default XMLRPC login case..  just in case..
             if (path == "/")
                 return false;
 
             if (String.IsNullOrEmpty(bestMatch))
             {
-                
+
                 return false;
             }
             else
             {
-                
+
                 return true;
             }
         }
@@ -588,7 +588,7 @@ namespace OpenSim.Framework.Servers
         {
             llsdHandler = null;
             // Pull out the first part of the path
-            // splitting the path by '/' means we'll get the following return.. 
+            // splitting the path by '/' means we'll get the following return..
             // {0}/{1}/{2}
             // where {0} isn't something we really control 100%
 
@@ -599,7 +599,7 @@ namespace OpenSim.Framework.Servers
                 return false;
 
             for (int i=1; i<pathbase.Length; i++)
-            {   
+            {
                 searchquery += pathbase[i];
                 if (pathbase.Length-1 != i)
                     searchquery += "/";
@@ -609,7 +609,7 @@ namespace OpenSim.Framework.Servers
             //
             //   [] = optional
             //   /resource/UUID/action[/action]
-            // 
+            //
             // now try to get the closest match to the reigstered path
             // at least for OGP, registered path would probably only consist of the /resource/
 

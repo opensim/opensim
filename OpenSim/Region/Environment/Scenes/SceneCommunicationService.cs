@@ -636,7 +636,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // both regions
                         if (avatar.ParentID != (uint)0)
                             avatar.StandUp();
-                        if(!avatar.ValidateAttachments())
+                        if (!avatar.ValidateAttachments())
                         {
                             avatar.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
                             return;

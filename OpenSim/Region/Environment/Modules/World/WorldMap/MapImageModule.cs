@@ -103,7 +103,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             Bitmap mapbmp = new Bitmap(256, 256);
             //long t = System.Environment.TickCount;
-            //for(int i = 0; i < 10; ++i) {
+            //for (int i = 0; i < 10; ++i) {
                 terrainRenderer.TerrainToBitmap(mapbmp);
             //}
             //t = System.Environment.TickCount - t;

@@ -83,16 +83,13 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         public bool visible_to_parent;
     }
 
-
     public class OpenGridProtocolModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<Scene> m_scene = new List<Scene>();
-        
+
         private Dictionary<string, AgentCircuitData> CapsLoginID = new Dictionary<string, AgentCircuitData>();
         private Dictionary<LLUUID, OGPState> m_OGPState = new Dictionary<LLUUID, OGPState>();
-        
-        
 
         #region IRegionModule Members
 
@@ -134,7 +131,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                                     m_log.Error("[OGP]: Certificate validation handler change not supported.  You may get ssl certificate validation errors teleporting from your region to some SSL regions.");
                                 }
                             }
-                            
+
                         }
 
                         if (!m_scene.Contains(scene))
@@ -217,14 +214,11 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             m_log.WarnFormat("[REQUESTREZAVATAR]: {0}", request.ToString());
 
             LLSDMap requestMap = (LLSDMap)request;
-            
+
             Scene homeScene = GetRootScene();
-            
-           
 
             if (homeScene == null)
                 return GenerateNoHandlerMessage();
-
 
             RegionInfo reg = homeScene.RegionInfo;
             ulong regionhandle = GetOSCompatibleRegionHandle(reg);
@@ -234,14 +228,13 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             LLUUID RemoteAgentID = requestMap["agent_id"].AsUUID();
 
             // will be used in the future.  The client always connects with the aditi agentid currently
-            LLUUID LocalAgentID = RemoteAgentID; 
+            LLUUID LocalAgentID = RemoteAgentID;
 
             string FirstName = requestMap["first_name"].AsString();
             string LastName = requestMap["last_name"].AsString();
 
-
             OGPState userState = GetOGPState(LocalAgentID);
-            
+
             userState.first_name = requestMap["first_name"].AsString();
             userState.last_name = requestMap["last_name"].AsString();
             userState.age_verified = requestMap["age_verified"].AsBoolean();
@@ -268,7 +261,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             responseMap["region_Y"] = LLSD.FromInteger(reg.RegionLocY * (uint)Constants.RegionSize); // LLY
             responseMap["region_id"] = LLSD.FromUUID(reg.originRegionID);
             responseMap["sim_access"] = LLSD.FromString((reg.RegionSettings.Maturity == 1) ? "Mature" : "PG");
-            
+
             // Generate a dummy agent for the user so we can get back a CAPS path
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.AgentID = LocalAgentID;
@@ -299,7 +292,6 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             useragent.SecureSessionID=agentData.SecureSessionID;
             useragent.SessionID = agentData.SessionID;
 
-            
             UserProfileData userProfile = new UserProfileData();
             userProfile.AboutText = "OGP User";
             userProfile.CanDoMask = (uint)0;
@@ -338,14 +330,12 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             // Do caps registration
             // get seed cap
-            
-            
+
             // Stick our data in the cache so the region will know something about us
             homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(agentData.AgentID, userProfile);
 
             // Call 'new user' event handler
             homeScene.NewUserConnection(reg.RegionHandle, agentData);
-
 
             //string raCap = string.Empty;
 
@@ -379,16 +369,16 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         public LLSD RezAvatarMethod(string path, LLSD request)
         {
             m_log.WarnFormat("[REZAVATAR]: {0}", request.ToString());
-            
+
             LLSDMap responseMap = new LLSDMap();
-            
+
             AgentCircuitData userData = null;
-            
+
             // Only people we've issued a cap can go further
             if (TryGetAgentCircuitData(path,out userData))
             {
                 LLSDMap requestMap = (LLSDMap)request;
-                
+
                 // take these values to start.  There's a few more
                 LLUUID SecureSessionID=requestMap["secure_session_id"].AsUUID();
                 LLUUID SessionID = requestMap["session_id"].AsUUID();
@@ -419,7 +409,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     if (item.ContainsKey("parent_estate_id"))
                     {
                         parentEstateID = item["parent_estate_id"].AsInteger();
-                        
+
                     }
                     if (item.ContainsKey("region_id"))
                     {
@@ -437,11 +427,11 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
                 // Locate a home scene suitable for the user.
                 Scene homeScene = GetRootScene();
-                
+
                 if (homeScene != null)
                 {
                     // Get a reference to their Cap object so we can pull out the capobjectroot
-                    OpenSim.Framework.Communications.Capabilities.Caps userCap = 
+                    OpenSim.Framework.Communications.Capabilities.Caps userCap =
                                                 homeScene.GetCapsHandlerForUser(userData.AgentID);
 
                     //Update the circuit data in the region so this user is authorized
@@ -470,7 +460,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     userState.region_id = regionID;
                     userState.src_parent_estate_id = parentEstateID;
                     userState.visible_to_parent = visibleToParent;
-                    
+
                     // Save state changes
                     UpdateOGPState(userData.AgentID, userState);
 
@@ -481,8 +471,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     LLSDArray PositionArray = new LLSDArray();
                     PositionArray.Add(LLSD.FromInteger(128));
                     PositionArray.Add(LLSD.FromInteger(128));
-                    PositionArray.Add(LLSD.FromInteger(40)); 
- 
+                    PositionArray.Add(LLSD.FromInteger(40));
+
                     LLSDArray LookAtArray = new LLSDArray();
                     LookAtArray.Add(LLSD.FromInteger(1));
                     LookAtArray.Add(LLSD.FromInteger(1));
@@ -503,44 +493,36 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     responseMap["seed_capability"] = LLSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
                     responseMap["region"] = LLSD.FromUUID(reg.originRegionID);
                     responseMap["look_at"] = LookAtArray;
-                    
+
                     responseMap["sim_port"] = LLSD.FromInteger(reg.InternalEndPoint.Port);
                     responseMap["sim_host"] = LLSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());// + ":" + reg.InternalEndPoint.Port.ToString());
                     responseMap["sim_ip"] = LLSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
-                    
+
                     responseMap["session_id"] = LLSD.FromUUID(SessionID);
                     responseMap["secure_session_id"] = LLSD.FromUUID(SecureSessionID);
                     responseMap["circuit_code"] = LLSD.FromInteger(circuitcode);
-                    
+
                     responseMap["position"] = PositionArray;
-                    
+
                     responseMap["region_id"] = LLSD.FromUUID(reg.originRegionID);
-                    
+
                     responseMap["sim_access"] = LLSD.FromString("Mature");
-                    
+
                     responseMap["connect"] = LLSD.FromBoolean(true);
 
                     m_log.InfoFormat("[OGP]: host: {0}, IP {1}", responseMap["sim_host"].ToString(), responseMap["sim_ip"].ToString());
-
                 }
-
             }
 
-            return responseMap; 
+            return responseMap;
         }
-
-   
 
         public LLSD DerezAvatarMethod(string path, LLSD request)
         {
-
-
             m_log.ErrorFormat("DerezPath: {0}, Request: {1}", path, request.ToString());
-            
+
             //LLSD llsdResponse = null;
             LLSDMap responseMap = new LLSDMap();
-            
-
 
             string[] PathArray = path.Split('/');
             m_log.InfoFormat("[OGP]: prefix {0}, uuid {1}, suffix {2}", PathArray[1], PathArray[2], PathArray[3]);
@@ -549,17 +531,15 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             LLUUID userUUID = LLUUID.Zero;
             if (Helpers.TryParse(uuidString, out userUUID))
             {
-
                 LLUUID RemoteID = uuidString;
                 LLUUID LocalID = RemoteID;
                 // FIXME: TODO: Routine to map RemoteUUIDs to LocalUUIds
-                //         would be done already..  but the client connects with the Aditi UUID 
+                //         would be done already..  but the client connects with the Aditi UUID
                 //         regardless over the UDP stack
 
                 OGPState userState = GetOGPState(LocalID);
                 if (userState.agent_id != LLUUID.Zero)
                 {
-
                     //LLSDMap outboundRequestMap = new LLSDMap();
                     LLSDMap inboundRequestMap = (LLSDMap)request;
                     string rezAvatarString = inboundRequestMap["rez_avatar"].AsString();
@@ -569,12 +549,11 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     LookAtArray.Add(LLSD.FromInteger(1));
                     LookAtArray.Add(LLSD.FromInteger(1));
 
-
                     LLSDArray PositionArray = new LLSDArray();
                     PositionArray.Add(LLSD.FromInteger(128));
                     PositionArray.Add(LLSD.FromInteger(128));
                     PositionArray.Add(LLSD.FromInteger(40));
-                    
+
                     LLSDArray lookArray = new LLSDArray();
                     lookArray.Add(LLSD.FromInteger(128));
                     lookArray.Add(LLSD.FromInteger(128));
@@ -582,11 +561,11 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
                     responseMap["connect"] = LLSD.FromBoolean(true);// it's okay to give this user up
                     responseMap["look_at"] = LookAtArray;
-                    
+
                     m_log.WarnFormat("[OGP]: Invoking rez_avatar on host:{0} for avatar: {1} {2}", rezAvatarString, userState.first_name, userState.last_name);
 
                     LLSDMap rezResponseMap = invokeRezAvatarCap(responseMap, rezAvatarString,userState);
-                    
+
                     // If invoking it returned an error, parse and end
                     if (rezResponseMap.ContainsKey("connect"))
                     {
@@ -599,17 +578,16 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     string rezRespSeedCap = rezResponseMap["seed_capability"].AsString();
                     string rezRespSim_ip = rezResponseMap["sim_ip"].AsString();
                     string rezRespSim_host = rezResponseMap["sim_host"].AsString();
-                    
+
                     int rrPort = rezResponseMap["sim_port"].AsInteger();
                     int rrX = rezResponseMap["region_x"].AsInteger();
                     int rrY = rezResponseMap["region_y"].AsInteger();
                     m_log.ErrorFormat("X:{0}, Y:{1}", rrX, rrY);
                     LLUUID rrRID = rezResponseMap["region_id"].AsUUID();
-                    
+
                     string rrAccess = rezResponseMap["sim_access"].AsString();
-                    
+
                     LLSDArray RezResponsePositionArray = (LLSDArray)rezResponseMap["position"];
-                    
 
                     responseMap["seed_capability"] = LLSD.FromString(rezRespSeedCap);
                     responseMap["sim_ip"] = LLSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
@@ -619,23 +597,17 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     responseMap["region_y"] = LLSD.FromInteger(rrY );
                     responseMap["region_id"] = LLSD.FromUUID(rrRID);
                     responseMap["sim_access"] = LLSD.FromString(rrAccess);
-
-                   
-
                     responseMap["position"] = RezResponsePositionArray;
                     responseMap["look_at"] = lookArray;
                     responseMap["connect"] = LLSD.FromBoolean(true);
 
                     ShutdownConnection(LocalID,this);
 
-
                     m_log.Warn("RESPONSEDEREZ: " + responseMap.ToString());
                     return responseMap;
-
                 }
-                else 
+                else
                 {
-
                     return GenerateNoHandlerMessage();
                 }
             }
@@ -649,20 +621,18 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
         private LLSDMap invokeRezAvatarCap(LLSDMap responseMap, string CapAddress, OGPState userState)
         {
-
             Scene reg = GetRootScene();
 
             WebRequest DeRezRequest = WebRequest.Create(CapAddress);
             DeRezRequest.Method = "POST";
             DeRezRequest.ContentType = "application/xml+llsd";
-            
 
             LLSDMap RAMap = new LLSDMap();
             LLSDMap AgentParms = new LLSDMap();
             LLSDMap RegionParms = new LLSDMap();
-            
+
             LLSDArray Parameter = new LLSDArray(2);
-            
+
             LLSDMap version = new LLSDMap();
             version["version"] = LLSD.FromInteger(userState.src_version);
             Parameter.Add((LLSD)version);
@@ -673,7 +643,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             SrcData["region_id"] = LLSD.FromUUID(reg.RegionInfo.originRegionID);
             SrcData["visible_to_parent"] = LLSD.FromBoolean(userState.visible_to_parent);
             Parameter.Add((LLSD)SrcData);
-            
+
             AgentParms["first_name"] = LLSD.FromString(userState.first_name);
             AgentParms["last_name"] = LLSD.FromString(userState.last_name);
             AgentParms["agent_id"] = LLSD.FromUUID(userState.agent_id);
@@ -689,13 +659,12 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             AgentParms["age_verified"] = LLSD.FromBoolean(userState.age_verified);
             AgentParms["limited_to_estate"] = LLSD.FromInteger(userState.limited_to_estate);
             AgentParms["inventory_host"] = LLSD.FromString(userState.inventory_host);
-            
-            // version 1 
+
+            // version 1
             RAMap = AgentParms;
-            
+
             // Planned for version 2
             // RAMap["agent_params"] = AgentParms;
-            
 
             RAMap["region_params"] = RegionParms;
             RAMap["parameter"] = Parameter;
@@ -770,15 +739,13 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             return responseMap;
         }
 
-
-
         public LLSD GenerateNoHandlerMessage()
         {
             LLSDMap map = new LLSDMap();
             map["reason"] = LLSD.FromString("LLSDRequest");
             map["message"] = LLSD.FromString("No handler registered for LLSD Requests");
             map["login"] = LLSD.FromString("false");
-            
+
             return map;
         }
 
@@ -802,7 +769,6 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             CapsLoginID.Remove(path);
         }
 
-        
         private Scene GetRootScene()
         {
             Scene ReturnScene = null;
@@ -815,9 +781,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             }
 
             return ReturnScene;
-
         }
-        
+
         private ulong GetOSCompatibleRegionHandle(RegionInfo reg)
         {
             return Util.UIntsToLong(reg.RegionLocX, reg.RegionLocY);
@@ -849,7 +814,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             returnState.src_version = 1;
             returnState.src_parent_estate_id = 1;
             returnState.visible_to_parent = true;
-            
+
             return returnState;
         }
 
@@ -871,9 +836,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         public void DeleteOGPState(LLUUID agentId)
         {
             lock (m_OGPState)
+            {
                 if (m_OGPState.ContainsKey(agentId))
                     m_OGPState.Remove(agentId);
-
+            }
         }
 
         private void UpdateOGPState(LLUUID agentId, OGPState state)
@@ -884,12 +850,13 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 {
                     m_OGPState[agentId] = state;
                 }
-                else 
+                else
                 {
                     m_OGPState.Add(agentId,state);
                 }
             }
         }
+
         public void ShutdownConnection(LLUUID avatarId, OpenGridProtocolModule mod)
         {
             Scene homeScene = GetRootScene();
@@ -903,22 +870,17 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 ta.Start();
             }
         }
+
         // Temporary hack to allow teleporting to and from Vaak
         private static bool customXertificateValidation(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
         {
-
             //if (cert.Subject == "E=root@lindenlab.com, CN=*.vaak.lindenlab.com, O=\"Linden Lab, Inc.\", L=San Francisco, S=California, C=US")
             //{
-
                 return true;
-
             //}
 
             //return false;
-
         }
-
-
     }
 
     public class KillAUser
@@ -944,7 +906,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 avToBeKilled.ControllingClient.SendLogoutPacketWhenClosing = false;
 
                 Thread.Sleep(30000);
-                
+
                 // test for child agent because they might have come back
                 if (avToBeKilled.IsChildAgent)
                 {
@@ -953,12 +915,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 }
             }
         }
-        
     }
+
     public class MonoCert : ICertificatePolicy
     {
-
-
         #region ICertificatePolicy Members
 
         public bool CheckValidationResult(ServicePoint srvPoint, X509Certificate certificate, WebRequest request, int certificateProblem)

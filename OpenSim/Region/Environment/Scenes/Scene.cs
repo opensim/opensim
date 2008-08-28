@@ -276,8 +276,6 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_storageManager.EstateDataStore != null)
                 m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID);
 
-
-
             //Bind Storage Manager functions to some land manager functions for this scene
             EventManager.OnLandObjectAdded +=
                 new EventManager.LandObjectAdded(m_storageManager.DataStore.StoreLandObject);
@@ -322,7 +320,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_log.Warn("Failed to load StartupConfig");
             }
-
         }
 
         #endregion
@@ -350,7 +347,6 @@ namespace OpenSim.Region.Environment.Scenes
             // Agents may have draw distance values that cross two regions though, so
             // we add it to the notify list regardless of distance.
             // We'll check the agent's draw distance before notifying them though.
-
 
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
@@ -386,8 +382,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 int resultX = Math.Abs((int)otherRegion.RegionLocX - (int)RegionInfo.RegionLocX);
                 int resultY = Math.Abs((int)otherRegion.RegionLocY - (int)RegionInfo.RegionLocY);
-                if ((resultX <= 1) &&
-                    (resultY <= 1))
+                if (resultX <= 1 && resultY <= 1)
                 {
                     try
                     {
@@ -584,8 +579,6 @@ namespace OpenSim.Region.Environment.Scenes
                             }
                         }
                     }
-
-
                 }
                 m_scripts_enabled = !ScriptEngine;
                 m_log.Info("[TOTEDD]: Here is the method to trigger disabling of the scripting engine");
@@ -600,7 +593,9 @@ namespace OpenSim.Region.Environment.Scenes
         public int GetInaccurateNeighborCount()
         {
             lock (m_neighbours)
+            {
                 return m_neighbours.Count;
+            }
         }
 
         // This is the method that shuts down the scene.
@@ -1062,7 +1057,6 @@ namespace OpenSim.Region.Environment.Scenes
                 float hfdiff = hfvalue;
                 int hfdiffi = 0;
 
-
                 for (int x = 0; x < 256; x++)
                 {
                     //int tc = System.Environment.TickCount;
@@ -1087,10 +1081,8 @@ namespace OpenSim.Region.Environment.Scenes
                         //float tmpval = (float)hm[x, y];
                         float heightvalue = (float)hm[x, y];
 
-
                         if (heightvalue > (float)m_regInfo.RegionSettings.WaterHeight)
                         {
-
                             // scale height value
                             heightvalue = low + mid * (heightvalue - low) / mid;
 
@@ -1102,6 +1094,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                             if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
                                 heightvalue = 0;
+
                             try
                             {
                                 Color green = Color.FromArgb((int)heightvalue, 100, (int)heightvalue);
@@ -1136,7 +1129,6 @@ namespace OpenSim.Region.Environment.Scenes
                                         // we use floats, colors use bytes, so shrink are space down to
                                         // 0-255
 
-
                                         try
                                         {
                                             hfdiffi = Math.Abs((int)((hfdiff * 4) + (hfdiff * 0.5))) + 1;
@@ -1166,15 +1158,8 @@ namespace OpenSim.Region.Environment.Scenes
                                                 mapbmp.SetPixel(x - 1, (256 - y) - 1, Shade);
                                             }
                                         }
-
-
                                     }
-
                                 }
-
-
-
-
                             }
                             catch (System.ArgumentException)
                             {
@@ -1263,7 +1248,6 @@ namespace OpenSim.Region.Environment.Scenes
                                 {
                                     if (part == null)
                                         continue;
-
 
                                     // Draw if the object is at least 1 meter wide in any direction
                                     if (part.Scale.X > 1f || part.Scale.Y > 1f || part.Scale.Z > 1f)
@@ -1426,6 +1410,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
         public void LazySaveGeneratedMaptile(byte[] data, bool temporary)
         {
             // Overwrites the local Asset cache with new maptile data
@@ -1482,6 +1467,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Temporary = temporary;
             AssetCache.AddAsset(asset);
         }
+
         #endregion
 
         #region Load Land
@@ -1556,6 +1542,7 @@ namespace OpenSim.Region.Environment.Scenes
                 pos = RayEnd;
                 return pos;
             }
+
             if (RayTargetID != LLUUID.Zero)
             {
                 SceneObjectPart target = GetSceneObjectPart(RayTargetID);
@@ -1921,9 +1908,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (position.X > Constants.RegionSize + 0.1f)
             {
                 pos.X = ((pos.X - Constants.RegionSize));
-
                 newRegionHandle = Util.UIntsToLong((uint)((thisx + 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
-
                 // x + 1
             }
             else if (position.X < -0.1f)
@@ -2165,9 +2150,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnScriptReset += ProcessScriptReset;
             client.OnGetScriptRunning += GetScriptRunning;
             client.OnSetScriptRunning += SetScriptRunning;
-
             client.OnRegionHandleRequest += RegionHandleRequest;
-
             client.OnUnackedTerrain += TerrainUnAcked;
 
             //Gesture
@@ -2185,7 +2168,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (userInfo != null)
             {
-
                 InventoryItemBase item = userInfo.RootFolder.FindItem(gestureId);
                 if (item != null)
                 {
@@ -2206,7 +2188,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (userInfo != null)
             {
-
                 InventoryItemBase item = userInfo.RootFolder.FindItem(gestureId);
                 if (item != null)
                 {
@@ -2607,7 +2588,6 @@ namespace OpenSim.Region.Environment.Scenes
                     "[CONNECTION DEBUGGING]: Skipping this region for welcoming avatar {0} [{1}] at {2}",
                     agent.AgentID, regionHandle, RegionInfo.RegionName);
             }
-           
         }
 
         public void UpdateCircuitData(AgentCircuitData data)
@@ -2645,9 +2625,8 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.InfoFormat("[USERLOGOFF]: Got a logoff request for {0} but the user isn't here.  The user might already have been logged out", AvatarID.ToString());
                 }
             }
-
-
         }
+
         /// <summary>
         /// Add a caps handler for the given agent.  If the CAPS handler already exists for this agent,
         /// then it is replaced by a new CAPS handler.
@@ -2905,14 +2884,14 @@ namespace OpenSim.Region.Environment.Scenes
         public void RequestTeleportLandmark(IClientAPI remoteClient, LLUUID regionID, LLVector3 position)
         {
             RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(regionID);
-            
+
             if (info == null)
             {
                 // can't find the region: Tell viewer and abort
                 remoteClient.SendTeleportFailed("The teleport destination could not be found.");
                 return;
             }
-            
+
             lock (m_scenePresences)
             {
                 if (m_scenePresences.ContainsKey(remoteClient.AgentId))
@@ -3016,7 +2995,6 @@ namespace OpenSim.Region.Environment.Scenes
                 m_statsReporter.SetObjectCapacity(objects);
             }
             objectCapacity = objects;
-
         }
 
         public List<FriendListItem> GetFriendList(LLUUID avatarID)
@@ -3089,7 +3067,6 @@ namespace OpenSim.Region.Environment.Scenes
             return LLUUID.Zero;
         }
 
-
         /// <summary>
         /// This method is a way for the Friends Module to create an instant
         /// message to the avatar and for Instant Messages that travel across
@@ -3104,7 +3081,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_eventManager.TriggerGridInstantMessage(message, options);
         }
-
 
         public virtual void StoreAddFriendship(LLUUID ownerID, LLUUID friendID, uint perms)
         {
@@ -3123,6 +3099,7 @@ namespace OpenSim.Region.Environment.Scenes
             // TODO: m_sceneGridService.DoStuff;
             m_sceneGridService.RemoveUserFriend(ownerID, ExfriendID);
         }
+
         public virtual List<FriendListItem> StoreGetFriendsForUser(LLUUID ownerID)
         {
             // TODO: m_sceneGridService.DoStuff;
@@ -3135,11 +3112,13 @@ namespace OpenSim.Region.Environment.Scenes
             m_statsReporter.AddOutPackets(outPackets);
             m_statsReporter.AddunAckedBytes(unAckedBytes);
         }
+
         public void AddAgentTime(int ms)
         {
             m_statsReporter.addFrameMS(ms);
             m_statsReporter.addAgentMS(ms);
         }
+
         public void AddAgentUpdates(int count)
         {
             m_statsReporter.AddAgentUpdates(count);
@@ -3239,7 +3218,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="Message">The Message being sent to the user</param>
         public void SendRegionMessageFromEstateTools(LLUUID FromAvatarID, LLUUID fromSessionID, String FromAvatarName, String Message)
         {
-
             List<ScenePresence> presenceList = GetScenePresences();
 
             foreach (ScenePresence presence in presenceList)
@@ -3359,7 +3337,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (ScenePresence presence in presenceList)
             {
-                if ((presence.Firstname == firstName) && (presence.Lastname == lastName))
+                if (presence.Firstname == firstName && presence.Lastname == lastName)
                 {
                     presence.ControllingClient.SendAgentAlertMessage(message, modal);
                     break;
@@ -3876,7 +3854,6 @@ namespace OpenSim.Region.Environment.Scenes
            return m_httpListener.AddLLSDHandler(path, handler);
         }
 
-
         public void RemoveStreamHandler(string httpMethod, string path)
         {
             m_httpListener.RemoveStreamHandler(httpMethod, path);
@@ -3945,7 +3922,6 @@ namespace OpenSim.Region.Environment.Scenes
                 client.SendRegionHandle(regionID, info.RegionHandle);
         }
 
-
         public void TerrainUnAcked(IClientAPI client, int patchX, int patchY)
         {
             //Console.WriteLine("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
@@ -3973,10 +3949,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void ObjectSaleInfo(IClientAPI client, LLUUID agentID, LLUUID sessionID, uint localID, byte saleType, int salePrice)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
-            if(part == null || part.ParentGroup == null)
+            if (part == null || part.ParentGroup == null)
                 return;
 
-            if(part.ParentGroup.RootPart == null)
+            if (part.ParentGroup.RootPart == null)
                 return;
 
             part = part.ParentGroup.RootPart;
@@ -3994,10 +3970,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
 
-            if(part == null)
+            if (part == null)
                 return;
 
-            if(part.ParentGroup == null)
+            if (part.ParentGroup == null)
                 return;
 
             SceneObjectGroup group = part.ParentGroup;

@@ -2130,7 +2130,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             float dist = (float)llVecMag(llGetPos() - pos);
 
-            if(dist > m_ScriptDistanceFactor * 10.0f)
+            if (dist > m_ScriptDistanceFactor * 10.0f)
                 return;
 
             m_host.AddScriptLPS(1);
@@ -5735,8 +5735,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
                         if (remain < 5)
                             return;
-                        LSL_Types.LSLInteger light =  new LSL_Types.LSLInteger(rules.Data[idx++].ToString());
-                        LSL_Types.Vector3 lightcolor =new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                        LSL_Types.LSLInteger light = new LSL_Types.LSLInteger(rules.Data[idx++].ToString());
+                        LSL_Types.Vector3 lightcolor = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                         float intensity = (float)Convert.ToDouble(rules.Data[idx++]);
                         float radius = (float)Convert.ToDouble(rules.Data[idx++]);
                         float falloff = (float)Convert.ToDouble(rules.Data[idx++]);
@@ -6895,10 +6895,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     case 5: // DATA_SIM_POS
                         if (info == null)
-		                {
-		                    // ScriptSleep(1000);
-		                    return LLUUID.Zero.ToString();
-		                }
+                        {
+                            // ScriptSleep(1000);
+                            return LLUUID.Zero.ToString();
+                        }
                         reply = new LSL_Types.Vector3(
                             info.RegionLocX * Constants.RegionSize,
                             info.RegionLocY * Constants.RegionSize,
@@ -6912,10 +6912,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
                     case 7: // DATA_SIM_RATING
                         if (info == null)
-		                {
-		                    // ScriptSleep(1000);
-		                    return LLUUID.Zero.ToString();
-		                }
+                        {
+                            // ScriptSleep(1000);
+                            return LLUUID.Zero.ToString();
+                        }
                         int access = info.RegionSettings.Maturity;
                         if (access == 0)
                             reply = "PG";
@@ -6928,7 +6928,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         reply = m_ScriptEngine.World.GetSimulatorVersion();
                         break;
                     default:
-		                // ScriptSleep(1000);
+                        // ScriptSleep(1000);
                         return LLUUID.Zero.ToString(); // Raise no event
                 }
                 LLUUID rq = LLUUID.Random();
@@ -6939,7 +6939,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 AsyncCommands.
                     DataserverPlugin.DataserverReply(rq.ToString(), reply);
 
-	            // ScriptSleep(1000);
+                // ScriptSleep(1000);
                 return tid.ToString();
             }
             catch(Exception e)
@@ -7910,7 +7910,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         AsyncCommands.
                         DataserverPlugin.DataserverReply(item.AssetID.ToString(),
                                 NotecardCache.GetLines(item.AssetID).ToString());
-			            // ScriptSleep(100);
+                        // ScriptSleep(100);
                         return tid.ToString();
                     }
                     WithNotecard(item.AssetID, delegate (LLUUID id, AssetBase a)
@@ -7924,7 +7924,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 DataserverPlugin.DataserverReply(id.ToString(),
                                 NotecardCache.GetLines(id).ToString());
                     });
-		            // ScriptSleep(100);
+                    // ScriptSleep(100);
                     return tid.ToString();
                 }
             }
@@ -7948,7 +7948,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         AsyncCommands.
                         DataserverPlugin.DataserverReply(item.AssetID.ToString(),
                                 NotecardCache.GetLine(item.AssetID, line));
-			            // ScriptSleep(100);
+                        // ScriptSleep(100);
                         return tid.ToString();
                     }
                     WithNotecard(item.AssetID, delegate (LLUUID id, AssetBase a)
@@ -7963,7 +7963,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 NotecardCache.GetLine(id, line));
                     });
 
-		            // ScriptSleep(100);
+                    // ScriptSleep(100);
                     return tid.ToString();
                 }
             }

@@ -1890,9 +1890,9 @@ namespace OpenSim.Region.Physics.Meshing
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
             { // half circle, prim is a sphere
                 sides = 24;
-                
-				profileBegin = 0.5f * profileBegin + 0.5f;
-				profileEnd = 0.5f * profileEnd + 0.5f;
+
+                profileBegin = 0.5f * profileBegin + 0.5f;
+                profileEnd = 0.5f * profileEnd + 0.5f;
 
                 //profileHollow = 0.0f; // debugging only
             }
@@ -1904,7 +1904,6 @@ namespace OpenSim.Region.Physics.Meshing
                 hollowSides = 4;
             else if (primShape.HollowShape == HollowShape.Triangle)
                 hollowSides = 3;
-                
 
             PrimMesh primMesh = new PrimMesh(sides, profileBegin, profileEnd, profileHollow, hollowSides);
             //PrimMesh primMesh = new PrimMesh(sides, profileBegin, profileEnd, 0.0f, 4);

@@ -23,7 +23,6 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
  */
 
 using libsecondlife;
@@ -41,10 +40,8 @@ using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
 {
-
     public class Remote : ITest
     {
-
         private static readonly int PARM_TESTID      = 0;
         private static readonly int PARM_COMMAND     = 1;
 
@@ -72,7 +69,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
         }
 
         // Called by the plug-in to halt REST processing. Local processing is
-        // disabled, and control blocks until all current processing has 
+        // disabled, and control blocks until all current processing has
         // completed. No new processing will be started
 
         public void Close()
@@ -91,11 +88,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
         // Remote Handler
         // Key information of interest here is the Parameters array, each
         // entry represents an element of the URI, with element zero being
-        // the 
+        // the
 
         public void Execute(RequestData rdata)
         {
-
             if (!enabled) return;
 
             // If we can't relate to what's there, leave it for others.
@@ -125,7 +121,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
             {
                 DoHelp(rdata);
             }
-        } 
+        }
 
         private void DoHelp(RequestData rdata)
         {
@@ -138,7 +134,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
         {
             if (rdata.Parameters.Length >= 6)
             {
-
                 string[] names = rdata.Parameters[PARM_MOVE_AVATAR].Split(Rest.CA_SPACE);
                 ScenePresence avatar = null;
                 Scene scene = null;
@@ -149,7 +144,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
                         String.Format("invalid avatar name: <{0}>",rdata.Parameters[PARM_MOVE_AVATAR]));
                 }
 
-                Rest.Log.WarnFormat("{0} '{1}' command received for {2} {3}", 
+                Rest.Log.WarnFormat("{0} '{1}' command received for {2} {3}",
                             MsgId, rdata.Parameters[0], names[0], names[1]);
 
                 // The first parameter should be an avatar name, look for the
@@ -171,8 +166,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
 
                 if (avatar != null)
                 {
-                    
-                    Rest.Log.DebugFormat("{0} Move : Avatar {1} located in region {2}", 
+                    Rest.Log.DebugFormat("{0} Move : Avatar {1} located in region {2}",
                                 MsgId, rdata.Parameters[PARM_MOVE_AVATAR], scene.RegionInfo.RegionName);
 
                     try
@@ -185,16 +179,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
                     }
                     catch (Exception e)
                     {
-                    rdata.Fail(Rest.HttpStatusCodeBadRequest, 
-                            String.Format("invalid parameters: {0}", e.Message));
+                        rdata.Fail(Rest.HttpStatusCodeBadRequest,
+                                   String.Format("invalid parameters: {0}", e.Message));
                     }
 
                 }
                 else
                 {
-                    rdata.Fail(Rest.HttpStatusCodeBadRequest, 
+                    rdata.Fail(Rest.HttpStatusCodeBadRequest,
                             String.Format("avatar {0} not present", rdata.Parameters[PARM_MOVE_AVATAR]));
-                } 
+                }
 
                 rdata.Complete();
                 rdata.Respond("OK");
@@ -205,7 +199,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
                 Rest.Log.WarnFormat("{0} Move: No movement information provided", MsgId);
                 rdata.Fail(Rest.HttpStatusCodeBadRequest, "no movement information provided");
             }
-
         }
 
         private static readonly string Help =
@@ -220,6 +213,5 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
               + "</body>"
               + "</html>"
         ;
-   
     }
 }

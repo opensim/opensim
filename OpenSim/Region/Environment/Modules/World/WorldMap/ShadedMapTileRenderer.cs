@@ -97,8 +97,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                         // No, that doesn't scale it:
                         // heightvalue = low + mid * (heightvalue - low) / mid; => low + (heightvalue - low) * mid / mid = low + (heightvalue - low) * 1 = low + heightvalue - low = heightvalue
 
-                        
-
                         if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
                             heightvalue = 0;
                         else if (heightvalue > 255f)
@@ -136,7 +134,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                 int hfdiffi = 0;
                                 int hfdiffihighlight = 0;
                                 float highlightfactor = 0.18f;
-                                
+
                                 try
                                 {
                                     // hfdiffi = Math.Abs((int)((hfdiff * 4) + (hfdiff * 0.5))) + 1;
@@ -146,7 +144,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                         // hfdiffi = hfdiffi + Math.Abs((int)(((hfdiff % 1) * 0.5f) * 10f) - 1);
                                         hfdiffi = hfdiffi + Math.Abs((int)((hfdiff % 1f) * 5f) - 1);
                                     }
-                                    
+
                                     hfdiffihighlight = Math.Abs((int)((hfdiff * highlightfactor) * 4.5f)) + 1;
                                     if (hfdiff % 1f != 0)
                                     {
@@ -195,10 +193,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                             color = Color.FromArgb((r - hfdiffi > 0) ? r - hfdiffi : 0,
                                                                    (g - hfdiffi > 0) ? g - hfdiffi : 0,
                                                                    (b - hfdiffi > 0) ? b - hfdiffi : 0);
-                                            
+
                                             mapbmp.SetPixel(x-1, yr+1, color);
                                         }
-                                    
                                     }
                                 }
                             }
@@ -213,7 +210,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                             color = Color.Black;
                             mapbmp.SetPixel(x, yr, color);
                         }
-                        
                     }
                     else
                     {

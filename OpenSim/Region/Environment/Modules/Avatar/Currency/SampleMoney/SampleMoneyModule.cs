@@ -1537,7 +1537,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         {
             GetClientFunds(client);
 
-            lock(m_KnownClientFunds)
+            lock (m_KnownClientFunds)
             {
                 if (!m_KnownClientFunds.ContainsKey(client.AgentId))
                     return 0;
@@ -1570,7 +1570,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
 
             int funds = m_KnownClientFunds[remoteClient.AgentId];
 
-            if(salePrice != 0 && funds < salePrice)
+            if (salePrice != 0 && funds < salePrice)
             {
                 remoteClient.SendAgentAlertMessage("Unable to buy now. You don't have sufficient funds.", false);
                 return;
@@ -1584,7 +1584,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 remoteClient.SendAgentAlertMessage("Unable to buy now. The object was not found.", false);
                 return;
             }
-            
+
             doMoneyTransfer(remoteClient.AgentId, part.OwnerID, salePrice, 5000, "Object buy");
 
             s.PerformObjectBuy(remoteClient, categoryID, localID, saleType);

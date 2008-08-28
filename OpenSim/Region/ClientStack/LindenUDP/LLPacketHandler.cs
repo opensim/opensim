@@ -234,7 +234,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // to. Packet drop notifies will not be triggered in this
             // configuration!
             //
-            
+
             if ((m_SynchronizeClient != null) && (!m_Client.IsActive))
             {
                 if (m_SynchronizeClient(m_Client.Scene, packet,
@@ -749,7 +749,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If we sent a killpacket
             if (packet is KillPacket)
                 Thread.CurrentThread.Abort();
-            
+
             // Actually make the byte array and send it
             byte[] sendbuffer = packet.ToBytes();
 

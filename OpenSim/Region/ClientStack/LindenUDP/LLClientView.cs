@@ -373,7 +373,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public bool SendLogoutPacketWhenClosing
         {
             set { m_SendLogoutPacketWhenClosing = value; }
-        } 
+        }
 
         /* METHODS */
 
@@ -459,10 +459,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 GC.Collect();
 
-                // Sends a KillPacket object, with which, the 
-                // blockingqueue dequeues and sees it's a killpacket 
+                // Sends a KillPacket object, with which, the
+                // blockingqueue dequeues and sees it's a killpacket
                 // and terminates within the context of the client thread.
-                // This ensures that it's done from within the context 
+                // This ensures that it's done from within the context
                 // of the client thread regardless of where Close() is called.
                 KillEndDone();
             }
@@ -2099,8 +2099,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #endregion
 
         // Gesture
-       
-
 
         #region Appearance/ Wearables Methods
 
@@ -5964,11 +5962,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (handlerActivateGesture != null)
                         {
                             handlerActivateGesture(this,
-                                activateGesturePacket.Data[0].AssetID, 
+                                activateGesturePacket.Data[0].AssetID,
                                                         activateGesturePacket.Data[0].ItemID);
                         }
                         else m_log.Error("Null pointer for activateGesture");
-                        
+
                         break;
 
                     case PacketType.DeactivateGestures:

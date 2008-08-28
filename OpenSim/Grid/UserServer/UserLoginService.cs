@@ -160,7 +160,7 @@ namespace OpenSim.Grid.UserServer
                             theUser.HomeRegion, m_config.GridServerURL,
                             m_config.GridSendKey, m_config.GridRecvKey);
                 }
-                
+
                 if (startLocationRequest == "last")
                 {
                     SimInfo =

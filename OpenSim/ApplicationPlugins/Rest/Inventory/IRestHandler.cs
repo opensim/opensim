@@ -23,7 +23,6 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
  */
 
 using System;
@@ -41,11 +40,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
     public delegate void        RestMethodHandler(RequestData rdata);
     public delegate RequestData RestMethodAllocator(OSHttpRequest request, OSHttpResponse response, string path);
- 
+
     /// <summary>
     /// This interface represents the boundary between the general purpose
     /// REST plugin handling, and the functionally specific handlers. The
-    /// handler knows only to initialize and terminate all such handlers 
+    /// handler knows only to initialize and terminate all such handlers
     /// that it finds. Implementing this interface identifies the class as
     /// a REST handler implementation.
     /// </summary>
@@ -55,7 +54,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         string MsgId     { get; }
         string RequestId { get; }
-    
+
         void   AddPathHandler(RestMethodHandler mh, string path, RestMethodAllocator ma);
         void AddStreamHandler(string httpMethod, string path, RestMethod method);
 
