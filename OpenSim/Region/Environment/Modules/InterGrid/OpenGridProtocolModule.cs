@@ -669,7 +669,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             LLSDMap SrcData = new LLSDMap();
             SrcData["estate_id"] = LLSD.FromInteger(reg.RegionInfo.EstateSettings.EstateID);
-            SrcData["parent_estate_id"] = LLSD.FromInteger(reg.RegionInfo.EstateSettings.ParentEstateID);
+            SrcData["parent_estate_id"] = LLSD.FromInteger((reg.RegionInfo.EstateSettings.ParentEstateID == 100 ? 1 : reg.RegionInfo.EstateSettings.ParentEstateID));
             SrcData["region_id"] = LLSD.FromUUID(reg.RegionInfo.originRegionID);
             SrcData["visible_to_parent"] = LLSD.FromBoolean(userState.visible_to_parent);
             Parameter.Add((LLSD)SrcData);
