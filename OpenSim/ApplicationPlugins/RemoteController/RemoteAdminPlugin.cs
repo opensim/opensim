@@ -39,6 +39,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Modules.World.Archiver;
 
 namespace OpenSim.ApplicationPlugins.RemoteController
 {
@@ -88,6 +89,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_httpd.AddXmlRPCHandler("admin_create_user", XmlRpcCreateUserMethod);
                     m_httpd.AddXmlRPCHandler("admin_update_user", XmlRpcUpdateUserAccountMethod);
                     m_httpd.AddXmlRPCHandler("admin_load_xml", XmlRpcLoadXMLMethod);
+                    m_httpd.AddXmlRPCHandler("admin_load_oar", XmlRpcLoadOARMethod);
                 }
             }
             catch (NullReferenceException)
@@ -685,6 +687,99 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
+        /// <summary>
+        /// Load an OAR file into a region..
+        /// <summary>
+        /// <param name="request">incoming XML RPC request</param>
+        /// <remarks>
+        /// XmlRpcLoadOARMethod takes the following XMLRPC
+        /// parameters
+        /// <list type="table">
+        /// <listheader><term>parameter name</term><description>description</description></listheader>
+        /// <item><term>password</term>
+        ///       <description>admin password as set in OpenSim.ini</description></item>
+        /// <item><term>filename</term>
+        ///       <description>file name of the OAR file</description></item>
+        /// <item><term>region_uuid</term>
+        ///       <description>UUID of the region</description></item>
+        /// <item><term>region_name</term>
+        ///       <description>region name</description></item>
+        /// </list>
+        ///
+        /// <code>region_uuid</code> takes precedence over
+        /// <code>region_name</code> if both are present; one of both
+        /// must be present.
+        ///
+        /// XmlRpcLoadOARMethod returns
+        /// <list type="table">
+        /// <listheader><term>name</term><description>description</description></listheader>
+        /// <item><term>success</term>
+        ///       <description>true or false</description></item>
+        /// <item><term>error</term>
+        ///       <description>error message if success is false</description></item>
+        /// </list>
+        /// </remarks>
+        public XmlRpcResponse XmlRpcLoadOARMethod(XmlRpcRequest request)
+        {
+            m_log.Info("[RADMIN]: Received Load OAR Administrator Request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                Hashtable requestData = (Hashtable) request.Params[0];
+
+                // check completeness
+                foreach (string p in new string[] { "password", "filename" })
+                {
+                    if (!requestData.Contains(p))
+                        throw new Exception(String.Format("missing parameter {0}", p));
+                    if (String.IsNullOrEmpty((string)requestData[p]))
+                        throw new Exception(String.Format("parameter {0} is empty"));
+                }
+
+                // check password
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                string filename = (string)requestData["filename"];
+                Scene scene = null;
+                if (requestData.Contains("region_uuid"))
+                {
+                    LLUUID region_uuid = (string)requestData["region_uuid"];
+                    if (!m_app.SceneManager.TryGetScene(region_uuid, out scene))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+                }
+                else if (requestData.Contains("region_name"))
+                {
+                    string region_name = (string)requestData["region_name"];
+                    if (!m_app.SceneManager.TryGetScene(region_name, out scene))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                }
+                else throw new Exception("neither region_name nor region_uuid given");
+
+                responseData["switched"] = "true";
+
+                new ArchiveReadRequest(scene, filename);
+                responseData["loaded"]   = "true";
+
+                response.Value           = responseData;
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[RADMIN] LoadOAR: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] LoadOAR: {0}", e.ToString());
+
+                responseData["loaded"]  = "false";
+                responseData["switched"] = "false";
+                responseData["error"]   = e.Message;
+
+                response.Value          = responseData;
+            }
+
+            return response;
+        }
+
         public XmlRpcResponse XmlRpcLoadXMLMethod(XmlRpcRequest request)
         {
             m_log.Info("[RADMIN]: Received Load XML Administrator Request");
@@ -765,6 +860,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             return response;
         }
+
 
         public void Dispose()
         {
