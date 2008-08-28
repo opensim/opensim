@@ -5735,13 +5735,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
                         if (remain < 5)
                             return;
-                        int light = Convert.ToInt32(rules.Data[idx++]);
+                        LSL_Types.LSLInteger light =  new LSL_Types.LSLInteger(rules.Data[idx++].ToString());
                         LSL_Types.Vector3 lightcolor =new LSL_Types.Vector3(rules.Data[idx++].ToString());
                         float intensity = (float)Convert.ToDouble(rules.Data[idx++]);
                         float radius = (float)Convert.ToDouble(rules.Data[idx++]);
                         float falloff = (float)Convert.ToDouble(rules.Data[idx++]);
 
-                        SetPointLight(part, (light == 1), lightcolor, intensity, radius, falloff);
+                        SetPointLight(part, light, lightcolor, intensity, radius, falloff);
 
                         break;
                     case (int)ScriptBaseClass.PRIM_GLOW:
