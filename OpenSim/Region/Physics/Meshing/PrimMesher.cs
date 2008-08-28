@@ -105,6 +105,12 @@ namespace OpenSim.Region.Physics.Meshing
         {
             angles = new List<Angle>();
             double twoPi = System.Math.PI * 2.0;
+
+            if (sides < 1)
+                throw new Exception("number of sides not greater than zero");
+            if (stopAngle <= startAngle)
+                throw new Exception("stopAngle not greater than startAngle");
+
             double stepSize = twoPi / sides;
 
             int startStep = (int) (startAngle / stepSize);
