@@ -348,7 +348,8 @@ namespace OpenSim
                     break;
 
                 case "create-region":
-                    CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1],false), true);
+                    string regionsDir = ConfigSource.Source.Configs["Startup"].GetString("regionload_regionsdir", "Regions").Trim();
+                    CreateRegion(new RegionInfo(cmdparams[0], String.Format("{0}/{1}", regionsDir, cmdparams[1]), false), true);
                     break;
 
                 case "remove-region":
