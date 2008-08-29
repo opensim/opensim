@@ -179,13 +179,14 @@ namespace OpenSim.Region.Physics.Meshing
                 for (int i = 0; i < count; i++)
                 {
                     Coord c = primMesh.coords[i];
-                    int resultIndex = 3 * i;
-                    result[resultIndex++] = c.X;
-                    result[resultIndex++] = c.Y;
-                    result[resultIndex] = c.Z;
+                    {
+                        int resultIndex = 3 * i;
+                        result[resultIndex] = c.X;
+                        result[resultIndex + 1] = c.Y;
+                        result[resultIndex + 2] = c.Z;
+                    }
 
                 }
-                //primMesh.coords = null;
                 pinnedVirtexes = GCHandle.Alloc(result, GCHandleType.Pinned);
             }
             return result;
@@ -213,12 +214,15 @@ namespace OpenSim.Region.Physics.Meshing
                 for (int i = 0; i < numFaces; i++)
                 {
                     Face f = primMesh.faces[i];
+                    Coord c1 = primMesh.coords[f.v1];
+                    Coord c2 = primMesh.coords[f.v2];
+                    Coord c3 = primMesh.coords[f.v3];
+
                     int resultIndex = i * 3;
-                    result[resultIndex++] = f.v1;
-                    result[resultIndex++] = f.v2;
-                    result[resultIndex] = f.v3;
+                    result[resultIndex] = f.v1;
+                    result[resultIndex + 1] = f.v2;
+                    result[resultIndex + 2] = f.v3;
                 }
-                //primMesh.faces = null;
             }
             return result;
         }

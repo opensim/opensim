@@ -1971,21 +1971,39 @@ namespace OpenSim.Region.Physics.Meshing
 
             primMesh.Scale(size.X, size.Y, size.Z);
 
+            int numCoords = primMesh.coords.Count;
             int numFaces = primMesh.faces.Count;
+
+            List<Coord> coords = primMesh.coords;
+            for (int i = 0; i < numCoords; i++)
+            {
+                Coord c = coords[i];
+                mesh.vertices.Add(new Vertex(c.X, c.Y, c.Z));
+            }
+
+            List<Face> faces = primMesh.faces;
+            List<Vertex> vertices = mesh.vertices;
+
             for (int i = 0; i < numFaces; i++)
             {
-                Face f = primMesh.faces[i];
-                Coord vert = primMesh.coords[f.v1];
-                Vertex v1 = new Vertex(vert.X, vert.Y, vert.Z);
-                mesh.vertices.Add(v1);
-                vert = primMesh.coords[f.v2];
-                Vertex v2 = new Vertex(vert.X, vert.Y, vert.Z);
-                mesh.vertices.Add(v2);
-                vert = primMesh.coords[f.v3];
-                Vertex v3 = new Vertex(vert.X, vert.Y, vert.Z);
-                mesh.vertices.Add(v3);
-                mesh.triangles.Add(new Triangle(v1, v2, v3));
+                Face f = faces[i];
+                mesh.triangles.Add(new Triangle(vertices[f.v1], vertices[f.v2], vertices[f.v3]));
             }
+            
+            //for (int i = 0; i < numFaces; i++)
+            //{
+            //    Face f = primMesh.faces[i];
+            //    Coord vert = primMesh.coords[f.v1];
+            //    Vertex v1 = new Vertex(vert.X, vert.Y, vert.Z);
+            //    mesh.vertices.Add(v1);
+            //    vert = primMesh.coords[f.v2];
+            //    Vertex v2 = new Vertex(vert.X, vert.Y, vert.Z);
+            //    mesh.vertices.Add(v2);
+            //    vert = primMesh.coords[f.v3];
+            //    Vertex v3 = new Vertex(vert.X, vert.Y, vert.Z);
+            //    mesh.vertices.Add(v3);
+            //    mesh.triangles.Add(new Triangle(v1, v2, v3));
+            //}
 
             //mesh.DumpRaw(baseDir, primName, "Mesh");
 
