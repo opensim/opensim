@@ -538,6 +538,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     asset.Name = newName;
                 }
+                else
+                {
+                    newName = item.Name;
+                }
 
                 if (remoteClient.AgentId == oldAgentID)
                 {
