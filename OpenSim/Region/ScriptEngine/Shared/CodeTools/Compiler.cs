@@ -543,6 +543,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 string errtext = String.Empty;
                 foreach (CompilerError CompErr in results.Errors)
                 {
+                    string severity = "Error";
+                    if ( CompErr.IsWarning )
+                    {
+                        severity = "Warning";
+                    }
+
                     if (m_UseCompiler)
                     {
                         KeyValuePair<int, int> lslPos;
@@ -559,16 +565,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
                         // The Second Life viewer's script editor begins
                         // countingn lines and columns at 0, so we subtract 1.
-                        errtext += String.Format("Line {0}, column {1}, Error Number: {2}, '{3}'\r\n", lslPos.Key - 1, lslPos.Value - 1, CompErr.ErrorNumber, CompErr.ErrorText);
+                        errtext += String.Format("Line {0}, column {1}, {4} Number: {2}, '{3}'\r\n", lslPos.Key - 1, lslPos.Value - 1, CompErr.ErrorNumber, CompErr.ErrorText, severity);
+
                     }
                     else
                     {
                         errtext += "Line number " + (CompErr.Line - LinesToRemoveOnError) +
-                            ", Error Number: " + CompErr.ErrorNumber +
+                            ", " + severity + " Number: " + CompErr.ErrorNumber +
                             ", '" + CompErr.ErrorText + "'\r\n";
                     }
                 }
-                Console.WriteLine("[COMPILER ERROR]:" + errtext);
+                Console.WriteLine("[COMPILER MESSAGES]: " + errtext);
                 if (!File.Exists(OutFile))
                 {
                     throw new Exception(errtext);
