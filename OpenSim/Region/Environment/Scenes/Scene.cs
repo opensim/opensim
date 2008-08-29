@@ -2767,14 +2767,15 @@ namespace OpenSim.Region.Environment.Scenes
                 ScenePresence presence = m_innerScene.GetScenePresence(agentID);
                 if (presence != null)
                 {
-                    if (presence.IsChildAgent)
-                    {
-                        m_innerScene.removeUserCount(false);
-                    }
-                    else
-                    {
-                        m_innerScene.removeUserCount(true);
-                    }
+                    // Nothing is removed here, so down count it as such
+                    // if (presence.IsChildAgent)
+                    // {
+                    //    m_innerScene.removeUserCount(false);
+                    // }
+                    // else
+                    // {
+                    //    m_innerScene.removeUserCount(true);
+                    // }
 
                     // Tell a single agent to disconnect from the region.
                     presence.ControllingClient.SendShutdownConnectionNotice();
