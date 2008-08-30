@@ -8,7 +8,7 @@ namespace OpenSim.Data.MySQL
     class MySQLSuperManager
     {
         public bool Locked;
-        private Mutex m_lock;
+        private Mutex m_lock = new Mutex(false);
         public MySQLManager Manager;
 
         public void GetLock()
