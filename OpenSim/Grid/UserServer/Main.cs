@@ -44,6 +44,7 @@ using OpenSim.Grid.Communications.OGS1;
 namespace OpenSim.Grid.UserServer
 {
     /// <summary>
+    /// Grid user server main class
     /// </summary>
     public class OpenUser_Main : BaseOpenSimServer, conscmd_callback
     {
