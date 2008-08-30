@@ -412,7 +412,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             AbsolutePosition = m_controllingClient.StartPos;
 
-            TrySetMovementAnimation("STAND");
+            TrySetMovementAnimation("STAND"); // TODO: I think, this won't send anything, as we are still a child here...
+
+            // we created a new ScenePresence (a new child agent) in a fresh region.
+            // Request info about all the (root) agents in this region
+            // Note: This won't send data *to* other clients in that region (children don't send)
+            SendInitialFullUpdateToAllClients();
 
             RegisterToEvents();
             SetDirectionVectors();
@@ -1674,11 +1679,15 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = m_scene.GetScenePresences();
             foreach (ScenePresence avatar in avatars)
             {
-                SendFullUpdateToOtherClient(avatar);
+                // only send if this is the root (children are only "listening posts" in a foreign region)
+                if (!IsChildAgent)
+                {
+                    SendFullUpdateToOtherClient(avatar);
+                }
 
                 if (avatar.LocalId != LocalId)
                 {
-                    if (!avatar.m_isChildAgent || m_scene.m_seeIntoRegionFromNeighbor)
+                    if (!avatar.IsChildAgent)
                     {
                         avatar.SendFullUpdateToOtherClient(this);
                         avatar.SendAppearanceToOtherAgent(this);
@@ -1694,7 +1703,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_perfMonMS = System.Environment.TickCount;
 
-            List<ScenePresence> avatars = m_scene.GetScenePresences();
+            // only send update from root agents to other clients; children are only "listening posts"
+            List<ScenePresence> avatars = m_scene.GetAvatars();
             foreach (ScenePresence avatar in avatars)
             {
                 SendFullUpdateToOtherClient(avatar);
@@ -2008,9 +2018,13 @@ namespace OpenSim.Region.Environment.Scenes
                     m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath);
                     MakeChildAgent();
+                    // now we have a child agent in this region. Request all interesting data about other (root) agents
+                    SendInitialFullUpdateToAllClients();
+
                     CrossAttachmentsIntoNewRegion(neighbourHandle);
 
                     m_scene.SendKillObject(m_localId);
+
                     m_scene.NotifyMyCoarseLocationChange();
                     // the user may change their profile information in other region,
                     // so the userinfo in UserProfileCache is not reliable any more, delete it
