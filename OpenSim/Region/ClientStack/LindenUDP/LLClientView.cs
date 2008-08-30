@@ -1014,7 +1014,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             mov.AgentData.SessionID = m_sessionId;
             mov.AgentData.AgentID = AgentId;
             mov.Data.RegionHandle = regInfo.RegionHandle;
-            mov.Data.Timestamp = 1172750370; // TODO - dynamicalise this
+            mov.Data.Timestamp = (uint)Util.UnixTimeSinceEpoch();
 
             if ((pos.X == 0) && (pos.Y == 0) && (pos.Z == 0))
             {
