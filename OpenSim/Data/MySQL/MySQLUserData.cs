@@ -162,6 +162,15 @@ namespace OpenSim.Data.MySQL
                 m_usersTableName = "users";
                 m_userFriendsTableName = "userfriends";
                 database = new MySQLManager(m_connectString);
+
+                m_log.Info("Creating " + m_maxConnections + " DB connections...");
+                for (int i = 0; i < m_maxConnections; i++)
+                {
+                    m_log.Info("Connecting to DB... [" + i + "]");
+                    MySQLSuperManager msm = new MySQLSuperManager();
+                    msm.Manager = new MySQLManager(m_connectString);
+                    m_dbconnections.Add(i, msm);
+                }
             }
 
             // This actually does the roll forward assembly stuff
