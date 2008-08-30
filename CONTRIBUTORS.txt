@@ -16,7 +16,7 @@ OpenSim Developers
 * CW
 * Babblefrog
 * Tedd
-* justincc (IBM)
+* justincc
 * Teravus (w3z)
 * Johan Berntsson (3Di)
 * Ckrinke (Charles Krinke)
@@ -61,6 +61,7 @@ Patches
 * Junta Kohime
 * Homer_Horwitz
 * Zha Ewry
+* Mic Bowman
 
 
 LSL Devs

@@ -4526,12 +4526,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     int index = str.IndexOf(delimiters[i].ToString());
                     bool found = index != -1;
-                    if (found && String.Empty != (string)delimiters[i])
+                    if (found && String.Empty != delimiters[i].ToString())
                     {
                         if ((cindex > index) || (cindex == -1))
                         {
                             cindex = index;
-                            cdeli = (string)delimiters[i];
+                            cdeli = delimiters[i].ToString();
                         }
                         dfound = dfound || found;
                     }
@@ -4541,9 +4541,14 @@ namespace OpenSim.Region.ScriptEngine.Common
                     if (cindex > 0)
                     {
                         ret.Add(str.Substring(0, cindex));
-                        if (spacers.Contains(cdeli))
+                        // Cannot use spacers.Contains() because spacers may be either type String or LSLString
+                        for (int j = 0; j < spacers.Length; j++)
                         {
-                            ret.Add(cdeli);
+                            if (spacers.Data[j].ToString() == cdeli)
+                            {
+                                ret.Add(cdeli);
+                                break;
+                            }
                         }
                     }
                     if (cindex == 0 && spacers.Contains(cdeli))
@@ -6786,7 +6791,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     if (active[j])
                     {
                         // scan all of the markers
-                        if ((offset[j] = src.IndexOf((string)separray[j],beginning)) == -1)
+                        if ((offset[j] = src.IndexOf(separray[j].ToString(),beginning)) == -1)
                         {
                             // not present at all
                             active[j] = false;
@@ -6814,7 +6819,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         if (active[j])
                         {
                             // scan all of the markers
-                            if ((offset[j] = src.IndexOf((string)spcarray[j-seplen], beginning)) == -1)
+                            if ((offset[j] = src.IndexOf(spcarray[j-seplen].ToString(), beginning)) == -1)
                             {
                                 // not present at all
                                 active[j] = false;
@@ -6849,11 +6854,11 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 if (best < seplen)
                 {
-                    beginning = offset[best] + ((string)separray[best]).Length;
+                    beginning = offset[best] + (separray[best].ToString()).Length;
                 }
                 else
                 {
-                    beginning = offset[best] + ((string)spcarray[best - seplen]).Length;
+                    beginning = offset[best] + (spcarray[best - seplen].ToString()).Length;
                     tokens.Add(spcarray[best - seplen]);
                 }
             }
