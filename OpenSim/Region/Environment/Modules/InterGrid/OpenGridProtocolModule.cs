@@ -123,8 +123,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                             {
                                 try
                                 {
+#pragma warning disable 0612
                                     // Mono does not implement the ServicePointManager.ServerCertificateValidationCallback yet!  Don't remove this!
                                     ServicePointManager.CertificatePolicy = new MonoCert();
+#pragma warning restore 0612
                                 }
                                 catch (Exception)
                                 {
@@ -389,7 +391,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                    Parameter = (LLSDArray)((LLSD)requestMap["parameter"]);
                 }
 
-                int version = 1;
+                //int version = 1;
                 int estateID = 1;
                 int parentEstateID = 1;
                 LLUUID regionID = LLUUID.Zero;
@@ -398,10 +400,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 for (int i = 0; i < Parameter.Count; i++)
                 {
                     LLSDMap item = (LLSDMap)Parameter[i];
-                    if (item.ContainsKey("version"))
-                    {
-                        version = item["version"].AsInteger();
-                    }
+//                    if (item.ContainsKey("version"))
+//                    {
+//                        version = item["version"].AsInteger();
+//                    }
                     if (item.ContainsKey("estate_id"))
                     {
                         estateID = item["estate_id"].AsInteger();
