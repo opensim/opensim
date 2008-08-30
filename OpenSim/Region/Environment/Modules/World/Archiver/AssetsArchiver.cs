@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// </summary>
     public class AssetsArchiver
     {
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Archive assets
@@ -126,6 +126,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
                 {
                     extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
+                }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "[ARCHIVER]: Unrecognized asset type {0} with uuid {1}.  This asset will be saved but not reloaded",
+                        asset.Type, asset.ID);
                 }
 
                 archive.AddFile(

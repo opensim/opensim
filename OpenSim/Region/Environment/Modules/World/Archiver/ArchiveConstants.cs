@@ -81,6 +81,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Gesture]             = ASSET_EXTENSION_SEPARATOR + "gesture.txt";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageJPEG]           = ASSET_EXTENSION_SEPARATOR + "image.jpg";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageTGA]            = ASSET_EXTENSION_SEPARATOR + "image.tga";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Landmark]            = ASSET_EXTENSION_SEPARATOR + "landmark.txt";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LostAndFoundFolder]  = ASSET_EXTENSION_SEPARATOR + "lostandfoundfolder.txt";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLBytecode]         = ASSET_EXTENSION_SEPARATOR + "bytecode.lso";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLText]             = ASSET_EXTENSION_SEPARATOR + "script.lsl";
@@ -108,6 +109,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "gesture.txt"]              = (sbyte)AssetType.Gesture;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "image.jpg"]                = (sbyte)AssetType.ImageJPEG;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "image.tga"]                = (sbyte)AssetType.ImageTGA;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "landmark.txt"]             = (sbyte)AssetType.Landmark;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "lostandfoundfolder.txt"]   = (sbyte)AssetType.LostAndFoundFolder;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "bytecode.lso"]             = (sbyte)AssetType.LSLBytecode;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "script.lsl"]               = (sbyte)AssetType.LSLText;
