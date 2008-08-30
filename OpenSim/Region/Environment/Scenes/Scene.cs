@@ -1741,7 +1741,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="group"></param>
         public void DeleteSceneObject(SceneObjectGroup group)
         {
-            SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+            //SceneObjectPart rootPart = group.GetChildPart(group.UUID);
 
             foreach (SceneObjectPart part in group.Children.Values)
             {

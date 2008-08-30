@@ -214,9 +214,9 @@ namespace OpenSim.Region.Physics.Meshing
                 for (int i = 0; i < numFaces; i++)
                 {
                     Face f = primMesh.faces[i];
-                    Coord c1 = primMesh.coords[f.v1];
-                    Coord c2 = primMesh.coords[f.v2];
-                    Coord c3 = primMesh.coords[f.v3];
+//                    Coord c1 = primMesh.coords[f.v1];
+//                    Coord c2 = primMesh.coords[f.v2];
+//                    Coord c3 = primMesh.coords[f.v3];
 
                     int resultIndex = i * 3;
                     result[resultIndex] = f.v1;
