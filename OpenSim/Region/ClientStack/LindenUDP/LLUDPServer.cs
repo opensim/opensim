@@ -158,7 +158,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             try
             {
                 numBytes = m_socket.EndReceiveFrom(result, ref epSender);
- ok = true;
+                ok = true;
             }
             catch (SocketException e)
             {
@@ -250,20 +250,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendPacketTo(ack_it.ToBytes(),ack_it.ToBytes().Length,SocketFlags.None,p.CircuitCode.Code);
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    m_log.Error("[UDPSERVER]: Exception in processing packet.");
-                    m_log.Debug("[UDPSERVER]: Adding New Client");
-                    try
-                    {
-                        AddNewClient(packet);
-                    }
-                    catch (Exception e3)
-                    {
-                        m_log.Error("[UDPSERVER]: Adding New Client threw exception " + e3.ToString());
-                        m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
-                                                ReceivedData, null);
-                    }
+                    m_log.Error("[UDPSERVER]: Exception in processing packet - ignoring: ", e);
                 }
             }
         }
