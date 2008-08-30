@@ -72,18 +72,26 @@ namespace OpenSim.Data.MySQL
 
         public MySQLSuperManager GetLockedConnection()
         {
+            int lockedCons = 0;
             while (true)
             {
                 m_lastConnect++;
+
+                // Overflow protection
+                if(m_lastConnect == int.MaxValue)
+                    m_lastConnect = 0;
+
                 MySQLSuperManager x = m_dbconnections[m_lastConnect%m_maxConnections];
                 if (!x.Locked)
                 {
                     x.GetLock();
                     return x;
                 }
-                if (m_lastConnect > m_maxConnections)
+
+                lockedCons++;
+                if (lockedCons > m_maxConnections)
                 {
-                    m_lastConnect = 0;
+                    lockedCons = 0;
                     System.Threading.Thread.Sleep(1000); // Wait some time before searching them again.
                     m_log.Debug(
                         "WARNING: All threads are in use. Probable cause: Something didnt release a mutex properly, or high volume of requests inbound.");
