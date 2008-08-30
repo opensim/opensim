@@ -362,6 +362,16 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
+        /// Converts a URL to a IPAddress
+        /// </summary>
+        /// <param name="url">URL Standard Format</param>
+        /// <returns>A resolved IP Address</returns>
+        public static IPAddress GetHostFromURL(string url)
+        {
+            return GetHostFromDNS(url.Split(new char[] {'/', ':'})[3]);
+        }
+
+        /// <summary>
         /// Returns a IP address from a specified DNS, favouring IPv4 addresses.
         /// </summary>
         /// <param name="dnsAddress">DNS Hostname</param>
