@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 
 namespace OpenSim.Data.MySQL
 {
-    class MySQLSuperManager
+    public class MySQLSuperManager
     {
         public bool Locked;
-        private Mutex m_lock = new Mutex(false);
+        private readonly Mutex m_lock = new Mutex(false);
         public MySQLManager Manager;
 
         public void GetLock()

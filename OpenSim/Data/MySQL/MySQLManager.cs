@@ -41,7 +41,7 @@ namespace OpenSim.Data.MySQL
     /// <summary>
     /// A MySQL Database manager
     /// </summary>
-    internal class MySQLManager
+    public class MySQLManager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
