@@ -104,7 +104,7 @@ namespace OpenSim.Grid.UserServer
             m_interServiceInventoryService = new OGS1InterServiceInventoryService(Cfg.InventoryUrl);
 
             m_loginService = new UserLoginService(
-                 m_userManager, m_interServiceInventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
+                m_userManager, m_interServiceInventoryService, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
 
             m_messagesService = new MessageServersConnector();
 
@@ -136,7 +136,8 @@ namespace OpenSim.Grid.UserServer
             m_httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", m_userManager.XmlRPCGetAvatarPickerAvatar);
             m_httpServer.AddXmlRPCHandler("add_new_user_friend", m_userManager.XmlRpcResponseXmlRPCAddUserFriend);
             m_httpServer.AddXmlRPCHandler("remove_user_friend", m_userManager.XmlRpcResponseXmlRPCRemoveUserFriend);
-            m_httpServer.AddXmlRPCHandler("update_user_friend_perms", m_userManager.XmlRpcResponseXmlRPCUpdateUserFriendPerms);
+            m_httpServer.AddXmlRPCHandler("update_user_friend_perms",
+                                          m_userManager.XmlRpcResponseXmlRPCUpdateUserFriendPerms);
             m_httpServer.AddXmlRPCHandler("get_user_friend_list", m_userManager.XmlRpcResponseXmlRPCGetUserFriendList);
             m_httpServer.AddXmlRPCHandler("get_avatar_appearance", m_userManager.XmlRPCGetAvatarAppearance);
             m_httpServer.AddXmlRPCHandler("update_avatar_appearance", m_userManager.XmlRPCUpdateAvatarAppearance);
@@ -149,7 +150,8 @@ namespace OpenSim.Grid.UserServer
             m_httpServer.AddXmlRPCHandler("agent_change_region", m_messagesService.XmlRPCUserMovedtoRegion);
             m_httpServer.AddXmlRPCHandler("deregister_messageserver", m_messagesService.XmlRPCDeRegisterMessageServer);
 
-            m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
+            m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info",
+                                                                m_gridInfoService.RestGetGridInfoMethod));
             m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
 
             m_httpServer.AddStreamHandler(
@@ -163,18 +165,12 @@ namespace OpenSim.Grid.UserServer
             switch (what)
             {
                 case "user":
-                    string tempfirstname;
-                    string templastname;
-                    string tempMD5Passwd;
-                    uint regX = 1000;
-                    uint regY = 1000;
-
-                    tempfirstname = m_console.CmdPrompt("First name");
-                    templastname = m_console.CmdPrompt("Last name");
+                    string tempfirstname = m_console.CmdPrompt("First name");
+                    string templastname = m_console.CmdPrompt("Last name");
                     //tempMD5Passwd = m_console.PasswdPrompt("Password");
-                    tempMD5Passwd = m_console.CmdPrompt("Password");
-                    regX = Convert.ToUInt32(m_console.CmdPrompt("Start Region X"));
-                    regY = Convert.ToUInt32(m_console.CmdPrompt("Start Region Y"));
+                    string tempMD5Passwd = m_console.CmdPrompt("Password");
+                    uint regX = Convert.ToUInt32(m_console.CmdPrompt("Start Region X"));
+                    uint regY = Convert.ToUInt32(m_console.CmdPrompt("Start Region Y"));
 
                     if (null != m_userManager.GetUserProfile(tempfirstname, templastname))
                     {
@@ -204,7 +200,7 @@ namespace OpenSim.Grid.UserServer
                             throw new Exception(
                                 String.Format(
                                     "The inventory creation request for user {0} did not succeed."
-                                        + "  Please contact your inventory service provider for more information.",
+                                    + "  Please contact your inventory service provider for more information.",
                                     userID));
                         }
                     }
@@ -232,7 +228,8 @@ namespace OpenSim.Grid.UserServer
             {
                 case "help":
                     m_console.Notice("create user - create a new user");
-                    m_console.Notice("logoff-user <firstname> <lastname> <message> - logs off the specified user from the grid");
+                    m_console.Notice(
+                        "logoff-user <firstname> <lastname> <message> - logs off the specified user from the grid");
                     break;
 
                 case "create":
@@ -282,7 +279,8 @@ namespace OpenSim.Grid.UserServer
                                 }
                                 else
                                 {
-                                    m_log.Info("[LOGOFF]: User Doesn't appear to be online, sending the logoff message anyway.");
+                                    m_log.Info(
+                                        "[LOGOFF]: User Doesn't appear to be online, sending the logoff message anyway.");
                                     m_loginService.LogOffUser(theUser, message);
 
                                     theUser.CurrentAgent.AgentOnline = false;
@@ -292,9 +290,9 @@ namespace OpenSim.Grid.UserServer
                             }
                             else
                             {
-                                m_log.Error("[LOGOFF]: Unable to logoff-user.  User doesn't have an agent record so I can't find the simulator to notify");
+                                m_log.Error(
+                                    "[LOGOFF]: Unable to logoff-user.  User doesn't have an agent record so I can't find the simulator to notify");
                             }
-
                         }
                         else
                         {
@@ -303,7 +301,8 @@ namespace OpenSim.Grid.UserServer
                     }
                     else
                     {
-                        m_log.Error("[LOGOFF]: Invalid amount of parameters.  logoff-user takes at least three.  Firstname, Lastname, and message");
+                        m_log.Error(
+                            "[LOGOFF]: Invalid amount of parameters.  logoff-user takes at least three.  Firstname, Lastname, and message");
                     }
 
                     break;
@@ -328,12 +327,11 @@ namespace OpenSim.Grid.UserServer
         }
 
         public void NotifyMessageServersUserLoggedInToLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
-                                                                ulong regionhandle, float positionX, float positionY,
-                                                                float positionZ, string firstname, string lastname)
+                                                               ulong regionhandle, float positionX, float positionY,
+                                                               float positionZ, string firstname, string lastname)
         {
-
             m_messagesService.TellMessageServersAboutUser(agentID, sessionID, RegionID, regionhandle, positionX,
-                                                          positionY,  positionZ, firstname, lastname);
+                                                          positionY, positionZ, firstname, lastname);
         }
     }
 }
