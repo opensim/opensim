@@ -3142,7 +3142,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Send an alert messages to all avatars in this scene.
         /// </summary>
         /// <param name="message"></param>
         public void SendGeneralAlert(string message)
@@ -3151,12 +3151,13 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (ScenePresence presence in presenceList)
             {
-                presence.ControllingClient.SendAlertMessage(message);
+                if (!presence.IsChildAgent)
+                    presence.ControllingClient.SendAlertMessage(message);
             }
         }
 
         /// <summary>
-        ///
+        /// Send an alert message to a particular agent.
         /// </summary>
         /// <param name="agentID"></param>
         /// <param name="message"></param>
@@ -3347,7 +3348,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Handle an alert command from the console.
+        /// FIXME: Command parsing code really shouldn't be in this core Scene class.
         /// </summary>
         /// <param name="commandParams"></param>
         public void HandleAlertCommand(string[] commandParams)
