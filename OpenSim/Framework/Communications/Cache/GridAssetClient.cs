@@ -63,6 +63,9 @@ namespace OpenSim.Framework.Communications.Cache
 
             Stream s = rc.Request();
 
+            if (s == null)
+                return null;
+
             if (s.Length > 0)
             {
                 XmlSerializer xs = new XmlSerializer(typeof (AssetBase));

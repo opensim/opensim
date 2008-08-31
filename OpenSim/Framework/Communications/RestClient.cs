@@ -286,7 +286,18 @@ namespace OpenSim.Framework.Communications
                 _asyncException = null;
 
 //                IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
-                _response = (HttpWebResponse) _request.GetResponse();
+                try
+                {
+                    _response = (HttpWebResponse) _request.GetResponse();
+                }
+                catch (System.Net.WebException e)
+                {
+                    m_log.ErrorFormat("[ASSET] Error fetching asset from asset server");
+                    m_log.Debug(e.ToString());
+
+                    return null;
+                }
+
                 Stream src = _response.GetResponseStream();
                 int length = src.Read(_readbuf, 0, BufferSize);
                 while (length > 0)
