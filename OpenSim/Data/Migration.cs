@@ -103,7 +103,7 @@ namespace OpenSim.Data
         private void Initialize()
         {
             // clever, eh, we figure out which migrations version we are
-            int migration_version = FindVersion("migrations");
+            int migration_version = FindVersion(_conn, "migrations");
 
             if (migration_version > 0)
                 return;
@@ -119,7 +119,7 @@ namespace OpenSim.Data
         public void Update()
         {
             int version = 0;
-            version = FindVersion(_type);
+            version = FindVersion(_conn, _type);
 
             SortedList<int, string> migrations = GetMigrationsAfter(version);
             if (migrations.Count < 1)
@@ -170,7 +170,7 @@ namespace OpenSim.Data
 
         public int Version
         {
-            get { return FindVersion(_type); }
+            get { return FindVersion(_conn, _type); }
             set {
                 if (Version < 1)
                 {
@@ -183,10 +183,10 @@ namespace OpenSim.Data
             }
         }
 
-        private int FindVersion(string type)
+        protected virtual int FindVersion(DbConnection conn, string type)
         {
             int version = 0;
-            DbCommand cmd = _conn.CreateCommand();
+            DbCommand cmd = conn.CreateCommand();
             try
             {
                 cmd.CommandText = "select version from migrations where name='" + type + "' limit 1";

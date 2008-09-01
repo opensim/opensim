@@ -64,9 +64,20 @@ namespace OpenSim.Data.MSSQL
             connectionString = builder.ToString();
         }
 
-        private SqlConnection createConnection()
+        /// <summary>
+        /// Initialize the manager and set the connectionstring
+        /// </summary>
+        /// <param name="connection"></param>
+        public MSSQLManager(string connection)
+        {
+            connectionString = connection;
+        }
+
+        public SqlConnection DatabaseConnection()
         {
             SqlConnection conn = new SqlConnection(connectionString);
+
+            //TODO is this good??? Opening connection here
             conn.Open();
 
             return conn;
@@ -186,6 +197,105 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Type conversion to a SQLDbType functions
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        internal SqlDbType DbtypeFromType(Type type)
+        {
+            if (type == typeof(string))
+            {
+                return SqlDbType.VarChar;
+            }
+            if (type == typeof(double))
+            {
+                return SqlDbType.Float;
+            }
+            if (type == typeof(int))
+            {
+                return SqlDbType.Int;
+            }
+            if (type == typeof(bool))
+            {
+                return SqlDbType.Bit;
+            }
+            if (type == typeof(LLUUID))
+            {
+                return SqlDbType.VarChar;
+            }
+            if (type == typeof(Byte[]))
+            {
+                return SqlDbType.Image;
+            }
+            if (type == typeof(uint))
+            {
+                return SqlDbType.Int;
+            }
+            return SqlDbType.VarChar;
+        }
+
+        /// <summary>
+        /// Creates value for parameter.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        private static object CreateParameterValue(object value)
+        {
+            Type valueType = value.GetType();
+
+            if (valueType == typeof(LLUUID))
+            {
+                return value.ToString();
+            }
+            if (valueType == typeof(bool))
+            {
+                return (bool)value ? 1 : 0;
+            }
+            if (valueType == typeof(Byte[]))
+            {
+                return value;
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Create a parameter for a command
+        /// </summary>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <param name="parameterObject">parameter object.</param>
+        /// <returns></returns>
+        internal SqlParameter CreateParameter(string parameterName, object parameterObject)
+        {
+            return CreateParameter(parameterName, parameterObject, false);
+        }
+
+        /// <summary>
+        /// Creates the parameter for a command.
+        /// </summary>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <param name="parameterObject">parameter object.</param>
+        /// <param name="parameterOut">if set to <c>true</c> parameter is a output parameter</param>
+        /// <returns></returns>
+        internal SqlParameter CreateParameter(string parameterName, object parameterObject, bool parameterOut)
+        {
+            //Tweak so we dont always have to add @ sign
+            if (!parameterName.StartsWith("@")) parameterName = "@" + parameterName;
+
+            SqlParameter parameter = new SqlParameter(parameterName, DbtypeFromType(parameterObject.GetType()));
+
+            if (parameterOut)
+            {
+                parameter.Direction = ParameterDirection.Output;
+            }
+            else
+            {
+                parameter.Direction = ParameterDirection.Input;
+                parameter.Value = CreateParameterValue(parameterObject);
+            }
+
+            return parameter;
+        }
 
         private static readonly Dictionary<string, string> emptyDictionary = new Dictionary<string, string>();
         internal AutoClosingSqlCommand Query(string sql)
@@ -201,7 +311,7 @@ namespace OpenSim.Data.MSSQL
         /// <returns>A Sql DB Command</returns>
         internal AutoClosingSqlCommand Query(string sql, Dictionary<string, string> parameters)
         {
-            SqlCommand dbcommand = createConnection().CreateCommand();
+            SqlCommand dbcommand = DatabaseConnection().CreateCommand();
             dbcommand.CommandText = sql;
             foreach (KeyValuePair<string, string> param in parameters)
             {
@@ -210,8 +320,6 @@ namespace OpenSim.Data.MSSQL
 
             return new AutoClosingSqlCommand(dbcommand);
         }
-
-
 
         /// <summary>
         /// Runs a database reader object and returns a region row
