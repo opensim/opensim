@@ -5509,7 +5509,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             while (idx < rules.Length)
             {
-                int code = Convert.ToInt32(rules.Data[idx++]);
+                int code = Convert.ToInt32(rules.Data[idx++].ToString());
 
                 int remain = rules.Length - idx;
 
@@ -5547,7 +5547,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 3)
                             return;
 
-                        code = Convert.ToInt32(rules.Data[idx++]);
+                        code = Convert.ToInt32(rules.Data[idx++].ToString());
 
                         remain = rules.Length - idx;
                         float hollow;
@@ -5566,7 +5566,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (remain < 6)
                                     return;
 
-                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape
+                                face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // cut
                                 hollow = (float)Convert.ToDouble(rules.Data[idx++]);
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5580,7 +5580,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (remain < 6)
                                     return;
 
-                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape
+                                face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // cut
                                 hollow = (float)Convert.ToDouble(rules.Data[idx++]);
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5595,7 +5595,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (remain < 6)
                                     return;
 
-                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape
+                                face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
                                 hollow = (float)Convert.ToDouble(rules.Data[idx++]);
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5609,7 +5609,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (remain < 5)
                                     return;
 
-                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape
+                                face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // cut
                                 hollow = (float)Convert.ToDouble(rules.Data[idx++]);
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5622,7 +5622,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (remain < 11)
                                     return;
 
-                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape
+                                face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
                                 hollow = (float)Convert.ToDouble(rules.Data[idx++]);
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5641,7 +5641,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (remain < 11)
                                     return;
 
-                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape
+                                face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
                                 hollow = (float)Convert.ToDouble(rules.Data[idx++]);
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5660,7 +5660,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (remain < 11)
                                     return;
 
-                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape
+                                face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
                                 hollow = (float)Convert.ToDouble(rules.Data[idx++]);
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5680,7 +5680,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     return;
 
                                 string map = rules.Data[idx++].ToString();
-                                face = Convert.ToInt32(rules.Data[idx++]); // type
+                                face = Convert.ToInt32(rules.Data[idx++].ToString()); // type
                                 m_host.Shape.PathCurve = (byte) Extrusion.Curve1;
                                 SetPrimitiveShapeParams(map, face);
                                 break;
@@ -5692,7 +5692,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 5)
                             return;
 
-                        face=Convert.ToInt32(rules.Data[idx++]);
+                        face=Convert.ToInt32(rules.Data[idx++].ToString());
                         string tex=rules.Data[idx++].ToString();
                         LSL_Types.Vector3 repeats=new LSL_Types.Vector3(rules.Data[idx++].ToString());
                         LSL_Types.Vector3 offsets=new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5709,7 +5709,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 3)
                             return;
 
-                        face=Convert.ToInt32(rules.Data[idx++]);
+                        face=Convert.ToInt32(rules.Data[idx++].ToString());
                         LSL_Types.Vector3 color=new LSL_Types.Vector3(rules.Data[idx++].ToString());
                         double alpha=Convert.ToDouble(rules.Data[idx++]);
 
@@ -5721,8 +5721,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 7)
                             return;
 
-                        int flexi = Convert.ToInt32(rules.Data[idx++]);
-                        int softness = Convert.ToInt32(rules.Data[idx++]);
+                        int flexi = Convert.ToInt32(rules.Data[idx++].ToString());
+                        int softness = Convert.ToInt32(rules.Data[idx++].ToString());
                         float gravity = (float)Convert.ToDouble(rules.Data[idx++]);
                         float friction = (float)Convert.ToDouble(rules.Data[idx++]);
                         float wind = (float)Convert.ToDouble(rules.Data[idx++]);
@@ -5747,7 +5747,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 2)
                             return;
-                        face = Convert.ToInt32(rules.Data[idx++]);
+                        face = Convert.ToInt32(rules.Data[idx++].ToString());
                         float glow = (float)Convert.ToDouble(rules.Data[idx++]);
 
                         SetGlow(part, face, glow);
@@ -5756,8 +5756,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 3)
                             return;
-                        face = Convert.ToInt32(rules.Data[idx++]);
-                        int shiny = Convert.ToInt32(rules.Data[idx++]);
+                        face = Convert.ToInt32(rules.Data[idx++].ToString());
+                        int shiny = Convert.ToInt32(rules.Data[idx++].ToString());
                         Bumpiness bump = (Bumpiness)Convert.ToByte(rules.Data[idx++]);
 
                         SetShiny(part, face, shiny, bump);
@@ -5766,7 +5766,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                      case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                          if (remain < 2)
                              return;
-                         face = Convert.ToInt32(rules.Data[idx++]);
+                         face = Convert.ToInt32(rules.Data[idx++].ToString());
                          string bv = rules.Data[idx++].ToString();
                          bool st;
                          if (bv.Equals("1"))
@@ -6071,7 +6071,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int idx=0;
             while (idx < rules.Length)
             {
-                int code=Convert.ToInt32(rules.Data[idx++]);
+                int code=Convert.ToInt32(rules.Data[idx++].ToString());
                 int remain=rules.Length-idx;
 
                 switch (code)
@@ -6236,7 +6236,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 1)
                             return res;
 
-                        face=Convert.ToInt32(rules.Data[idx++]);
+                        face=Convert.ToInt32(rules.Data[idx++].ToString());
 
                         res.Add(new LSL_Types.LSLInteger(0));
                         res.Add(new LSL_Types.LSLInteger(0));
@@ -6247,7 +6247,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 1)
                             return res;
 
-                        face=Convert.ToInt32(rules.Data[idx++]);
+                        face=Convert.ToInt32(rules.Data[idx++].ToString());
 
                         res.Add(new LSL_Types.LSLInteger(0));
                         break;
@@ -6275,7 +6275,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 1)
                             return res;
 
-                        face=Convert.ToInt32(rules.Data[idx++]);
+                        face=Convert.ToInt32(rules.Data[idx++].ToString());
 
                         res.Add(new LSL_Types.LSLInteger(0));
                         break;
@@ -6300,7 +6300,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 1)
                             return res;
 
-                        face=Convert.ToInt32(rules.Data[idx++]);
+                        face=Convert.ToInt32(rules.Data[idx++].ToString());
 
                         res.Add(new LSL_Types.LSLFloat(0));
                         break;
@@ -7387,7 +7387,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SortedDictionary<int, float> parameters = new SortedDictionary<int, float>();
             object[] data = rules.Data;
             for (int i = 0; i < data.Length; ++i) {
-                int type = Convert.ToInt32(data[i++]);
+                int type = Convert.ToInt32(data[i++].ToString());
                 if (i >= data.Length) break; // odd number of entries => ignore the last
 
                 // some special cases: Vector parameters are split into 3 float parameters (with type+1, type+2, type+3)

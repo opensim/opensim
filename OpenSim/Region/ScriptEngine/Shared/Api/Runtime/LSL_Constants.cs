@@ -35,8 +35,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
     public partial class ScriptBaseClass : MarshalByRefObject
     {
         // LSL CONSTANTS
-        public LSLInteger TRUE = new LSLInteger(1);
-        public LSLInteger FALSE = new LSLInteger(0);
+        public static readonly LSLInteger TRUE = new LSLInteger(1);
+        public static readonly LSLInteger FALSE = new LSLInteger(0);
 
         public const int STATUS_PHYSICS = 1;
         public const int STATUS_ROTATE_X = 2;
