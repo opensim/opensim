@@ -1304,24 +1304,24 @@ public class ReturnStatement_2 : ReturnStatement {
   public ReturnStatement_2(Parser yyq):base(yyq){}}
 
 public class Constant_1 : Constant {
-  public Constant_1(Parser yyq):base(yyq,"integer", 
+  public Constant_1(Parser yyq):base(yyq,"integer", "new LSL_Types.LSLInteger("+
 	((INTEGER_CONSTANT)(yyq.StackAt(0).m_value))
-	.yytext){}}
+	.yytext+")"){}}
 
 public class Constant_2 : Constant {
-  public Constant_2(Parser yyq):base(yyq,"integer", 
+  public Constant_2(Parser yyq):base(yyq,"integer", "new LSL_Types.LSLInteger("+
 	((HEX_INTEGER_CONSTANT)(yyq.StackAt(0).m_value))
-	.yytext){}}
+	.yytext+")"){}}
 
 public class Constant_3 : Constant {
-  public Constant_3(Parser yyq):base(yyq,"float", 
+  public Constant_3(Parser yyq):base(yyq,"float", "new LSL_Types.LSLFloat("+
 	((FLOAT_CONSTANT)(yyq.StackAt(0).m_value))
-	.yytext){}}
+	.yytext+")"){}}
 
 public class Constant_4 : Constant {
-  public Constant_4(Parser yyq):base(yyq,"string", 
+  public Constant_4(Parser yyq):base(yyq,"string", "new LSL_Types.LSLString(\""+
 	((STRING_CONSTANT)(yyq.StackAt(0).m_value))
-	.yytext){}}
+	.yytext+"\")"){}}
 
 public class ListConstant_1 : ListConstant {
   public ListConstant_1(Parser yyq):base(yyq,

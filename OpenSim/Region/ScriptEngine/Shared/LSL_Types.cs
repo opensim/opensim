@@ -1453,25 +1453,25 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLInteger(i1.value / i2);
             }
 
-            static public LSLFloat operator +(LSLInteger i1, double f)
-            {
-                return new LSLFloat((double)i1.value + f);
-            }
-
-            static public LSLFloat operator -(LSLInteger i1, double f)
-            {
-                return new LSLFloat((double)i1.value - f);
-            }
-
-            static public LSLFloat operator *(LSLInteger i1, double f)
-            {
-                return new LSLFloat((double)i1.value * f);
-            }
-
-            static public LSLFloat operator /(LSLInteger i1, double f)
-            {
-                return new LSLFloat((double)i1.value / f);
-            }
+//            static public LSLFloat operator +(LSLInteger i1, double f)
+//            {
+//                return new LSLFloat((double)i1.value + f);
+//            }
+//
+//            static public LSLFloat operator -(LSLInteger i1, double f)
+//            {
+//                return new LSLFloat((double)i1.value - f);
+//            }
+//
+//            static public LSLFloat operator *(LSLInteger i1, double f)
+//            {
+//                return new LSLFloat((double)i1.value * f);
+//            }
+//
+//            static public LSLFloat operator /(LSLInteger i1, double f)
+//            {
+//                return new LSLFloat((double)i1.value / f);
+//            }
 
             static public LSLInteger operator -(LSLInteger i)
             {
