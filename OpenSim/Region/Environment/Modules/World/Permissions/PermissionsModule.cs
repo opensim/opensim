@@ -659,7 +659,20 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             private bool CanMoveObject(LLUUID objectID, LLUUID moverID, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+                if (m_bypassPermissions)
+                {
+                    SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+                    if (part.OwnerID != moverID)
+                    {
+                        if (part.ParentGroup != null &&
+                            part.ParentGroup.RootPart != null)
+                        {
+                            if (part.ParentGroup.RootPart.IsAttachment)
+                                return false;
+                        }
+                    }
+                    return m_bypassPermissionsValue;
+                }
 
                 bool permission = GenericObjectPermission(moverID, objectID, true);
                 if (!permission)
