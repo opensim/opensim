@@ -823,7 +823,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                 float xOffset = 0.5f * (skewStart + totalSkew * percentOfAngles);
 
-                xOffset += (float)Math.Sin(angle) * this.topShearX * 0.45f;
+                xOffset += (float)Math.Sin(angle) * this.topShearX * 0.225f;
                 float yOffset = (float)Math.Cos(angle) * (0.5f - yPathScale) * radiusScale;
 
                 float zOffset = (float)Math.Sin(angle + this.topShearY * 0.9f) * (0.5f - yPathScale) * radiusScale;
