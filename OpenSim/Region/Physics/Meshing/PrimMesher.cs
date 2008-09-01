@@ -736,6 +736,7 @@ namespace OpenSim.Region.Physics.Meshing
             float pathLength = this.pathCutEnd - this.pathCutBegin;
             float totalSkew = this.skew * 2.0f * pathLength;
             float skewStart = this.pathCutBegin * 2.0f * this.skew - this.skew;
+            float xOffsetTopShearXFactor = this.topShearX * (0.25f + 0.5f * (0.5f - this.holeSizeY));
 
             // It's not quite clear what pushY (Y top shear) does, but subtracting it from the start and end
             // angles appears to approximate it's effects on path cut. Likewise, adding it to the angle used
@@ -822,8 +823,8 @@ namespace OpenSim.Region.Physics.Meshing
                 float twist = twistBegin + twistTotal * percentOfPath;
 
                 float xOffset = 0.5f * (skewStart + totalSkew * percentOfAngles);
+                xOffset += (float)Math.Sin(angle) * xOffsetTopShearXFactor;
 
-                xOffset += (float)Math.Sin(angle) * this.topShearX * 0.225f;
                 float yOffset = (float)Math.Cos(angle) * (0.5f - yPathScale) * radiusScale;
 
                 float zOffset = (float)Math.Sin(angle + this.topShearY * 0.9f) * (0.5f - yPathScale) * radiusScale;
