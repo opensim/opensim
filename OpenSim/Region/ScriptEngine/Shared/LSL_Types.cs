@@ -1394,8 +1394,15 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public explicit operator LSLInteger(string s)
             {
+                Regex r = new Regex("^[0-9][0-9]*");
+                Match m = r.Match(s);
+                string v = m.Groups[0].Value;
+
+                if (v == String.Empty)
+                    v = "0";
+
                 // double.Parse() used because s could be "123.9" for example.
-                return new LSLInteger(double.Parse(s));
+                return new LSLInteger(int.Parse(v));
             }
 
             static public implicit operator LSLInteger(uint u)

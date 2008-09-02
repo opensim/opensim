@@ -432,8 +432,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     // DISPLAY ERROR INWORLD
                     string text = "Error compiling script:\r\n" + e.Message.ToString();
-                    if (text.Length > 1400)
-                        text = text.Substring(0, 1400);
+                    if (text.Length > 1000)
+                        text = text.Substring(0, 1000);
                     World.SimChat(Helpers.StringToField(text),
                                   ChatTypeEnum.DebugChannel, 2147483647,
                                   part.AbsolutePosition,

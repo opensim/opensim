@@ -517,9 +517,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         try
                         {
                             // DISPLAY ERROR INWORLD
-                            string text = "Runtime error:\n" + e.ToString();
-                            if (text.Length > 1400)
-                                text = text.Substring(0, 1400);
+                            string text = "Runtime error:\n" + e.InnerException.ToString();
+                            if (text.Length > 1000)
+                                text = text.Substring(0, 1000);
                             m_Engine.World.SimChat(Helpers.StringToField(text),
                                                    ChatTypeEnum.DebugChannel, 2147483647,
                                                    part.AbsolutePosition,

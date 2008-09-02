@@ -161,6 +161,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             string message = e.Message;
             LLUUID fromID = e.SenderUUID;
 
+            if(message.Length >= 1000) // libomv limit
+                message = message.Substring(0, 1000);
+
             if (e.Sender != null)
             {
                 avatar = scene.GetScenePresence(e.Sender.AgentId);
