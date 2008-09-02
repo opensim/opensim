@@ -470,9 +470,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             string retstr = String.Empty;
 
-            retstr += GenerateIndented("if (", ifs);
+            retstr += GenerateIndented("if ((bool)(", ifs);
             retstr += GenerateNode((SYMBOL) ifs.kids.Pop());
-            retstr += GenerateLine(")");
+            retstr += GenerateLine("))");
 
             // CompoundStatement handles indentation itself but we need to do it
             // otherwise.
