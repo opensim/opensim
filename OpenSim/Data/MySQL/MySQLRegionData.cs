@@ -254,45 +254,6 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// Given a list of tables, return the version of the tables, as seen in the database
-        /// </summary>
-        /// <param name="tableList">The list of table</param>
-        /// <param name="dbcon">The database connection handler</param>
-        public void GetTableVersion(Dictionary<string, string> tableList, MySqlConnection dbcon)
-        {
-            lock (dbcon)
-            {
-                MySqlCommand tablesCmd =
-                    new MySqlCommand(
-                        "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname",
-                        dbcon);
-                tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
-
-                CheckConnection();
-                using (MySqlDataReader tables = tablesCmd.ExecuteReader())
-                {
-                    while (tables.Read())
-                    {
-                        try
-                        {
-                            string tableName = (string)tables["TABLE_NAME"];
-                            string comment = (string)tables["TABLE_COMMENT"];
-                            if (tableList.ContainsKey(tableName))
-                            {
-                                tableList[tableName] = comment;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Error(e.ToString());
-                        }
-                    }
-                    tables.Close();
-                }
-            }
-        }
-
-        /// <summary>
         /// Execute a SQL statement stored in a resource, as a string
         /// </summary>
         /// <param name="name">the ressource name</param>
