@@ -37,7 +37,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
     /// Each test has some LSL code as input and C# code as expected output.
     /// The generated C# code is compared against the expected C# code.
     /// </summary>
-    //(TestFixture)
+    [TestFixture]
     public class CSCodeGeneratorTest
     {
         [Test]
@@ -827,56 +827,56 @@ default
             string expected = @"
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
-            LSL_Types.LSLInteger x = 1;
-            LSL_Types.LSLInteger y = 0;
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);
+            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);
             if (x && y)
-                llSay(0, ""Hello"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Hello""));
             if (x || y)
             {
-                llSay(0, ""Hi"");
-                LSL_Types.LSLInteger r = 3;
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Hi""));
+                LSL_Types.LSLInteger r = new LSL_Types.LSLInteger(3);
                 return ;
             }
             if (x && y || z)
-                llSay(0, ""x is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""x is true""));
             else
-                llSay(0, ""x is false"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""x is false""));
             if (x == y)
-                llSay(0, ""x is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""x is true""));
             else
             if (y < x)
-                llSay(0, ""y is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""y is true""));
             else
-                llSay(0, ""Who needs x and y anyway?"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Who needs x and y anyway?""));
             if (x > y)
-                llSay(0, ""x is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""x is true""));
             else
             if (y <= x)
             {
-                llSay(0, ""uh-oh, y is true, exiting"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""uh-oh, y is true, exiting""));
                 return ;
             }
             else
-                llSay(0, ""Who needs x and y anyway?"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Who needs x and y anyway?""));
             if (x >= y)
-                llSay(0, ""x is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""x is true""));
             else
             if (y != x)
-                llSay(0, ""y is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""y is true""));
             else
             if (!z)
-                llSay(0, ""z is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""z is true""));
             else
             if (!(a && b))
-                llSay(0, ""a is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""a is true""));
             else
             if (b)
-                llSay(0, ""b is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""b is true""));
             else
             if (v)
-                llSay(0, ""v is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""v is true""));
             else
-                llSay(0, ""Everything is lies!"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Everything is lies!""));
         }
 ";
 
@@ -909,13 +909,13 @@ default
             string expected = @"
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
-            LSL_Types.LSLInteger x = 1;
-            LSL_Types.LSLInteger y = 0;
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);
+            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);
             while (x)
-                llSay(0, ""To infinity, and beyond!"");
-            while (0 || (x && 0))
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""To infinity, and beyond!""));
+            while (new LSL_Types.LSLInteger(0) || (x && new LSL_Types.LSLInteger(0)))
             {
-                llSay(0, ""Never say never."");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Never say never.""));
                 return ;
             }
         }
@@ -952,14 +952,14 @@ default
             string expected = @"
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
-            LSL_Types.LSLInteger x = 1;
-            LSL_Types.LSLInteger y = 0;
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);
+            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);
             do
-                llSay(0, ""And we're doing..."");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""And we're doing...""));
             while (x);
             do
             {
-                llSay(0, ""I like it here. I wish we could stay here forever."");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""I like it here. I wish we could stay here forever.""));
                 y--;
             }
             while (y);
@@ -997,17 +997,17 @@ default
             string expected = @"
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
-            LSL_Types.LSLInteger x = 1;
-            LSL_Types.LSLInteger y = 0;
-            for (x = 10; x >= 0; x--)
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);
+            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);
+            for (x = new LSL_Types.LSLInteger(10); x >= new LSL_Types.LSLInteger(0); x--)
             {
-                llOwnerSay(""Launch in T minus "" + x);
+                llOwnerSay(new LSL_Types.LSLString(""Launch in T minus "") + x);
                 IncreaseRocketPower();
             }
-            for (x = 0, y = 6; y > 0 && x != y; x++, y--)
-                llOwnerSay(""Hi "" + x + "", "" + y);
-            for (x = 0, y = 6; !y; x++, y--)
-                llOwnerSay(""Hi "" + x + "", "" + y);
+            for (x = new LSL_Types.LSLInteger(0), y = new LSL_Types.LSLInteger(6); y > new LSL_Types.LSLInteger(0) && x != y; x++, y--)
+                llOwnerSay(new LSL_Types.LSLString(""Hi "") + x + new LSL_Types.LSLString("", "") + y);
+            for (x = new LSL_Types.LSLInteger(0), y = new LSL_Types.LSLInteger(6); !y; x++, y--)
+                llOwnerSay(new LSL_Types.LSLString(""Hi "") + x + new LSL_Types.LSLString("", "") + y);
         }
 ";
 
@@ -1046,21 +1046,21 @@ default
             string expected = @"
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
-            LSL_Types.LSLFloat y = 1.0;
-            y = 1.0E3;
-            y = 1.0e3;
-            y = 1.0E+3;
-            y = 1.0e+3;
-            y = 1.0E-3;
-            y = 1.0e-3;
-            y = -1.0E3;
-            y = -1.0e3;
-            y = -1.0E+3;
-            y = -1.0e+3;
-            y = -1.0E-3;
-            y = -1.0e-3;
-            y = 12.0 + -1.0E3 - 1.0e-2;
-            LSL_Types.Vector3 v = new LSL_Types.Vector3(0.0, 0.0, 0.0);
+            LSL_Types.LSLFloat y = new LSL_Types.LSLFloat(1.0);
+            y = new LSL_Types.LSLFloat(1.0E3);
+            y = new LSL_Types.LSLFloat(1.0e3);
+            y = new LSL_Types.LSLFloat(1.0E+3);
+            y = new LSL_Types.LSLFloat(1.0e+3);
+            y = new LSL_Types.LSLFloat(1.0E-3);
+            y = new LSL_Types.LSLFloat(1.0e-3);
+            y = -new LSL_Types.LSLFloat(1.0E3);
+            y = -new LSL_Types.LSLFloat(1.0e3);
+            y = -new LSL_Types.LSLFloat(1.0E+3);
+            y = -new LSL_Types.LSLFloat(1.0e+3);
+            y = -new LSL_Types.LSLFloat(1.0E-3);
+            y = -new LSL_Types.LSLFloat(1.0e-3);
+            y = new LSL_Types.LSLFloat(12.0) + -new LSL_Types.LSLFloat(1.0E3) - new LSL_Types.LSLFloat(1.0e-2);
+            LSL_Types.Vector3 v = new LSL_Types.Vector3(new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0));
         }
 ";
 
@@ -1091,8 +1091,8 @@ default
             string expected = @"
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
-            LSL_Types.LSLInteger x = 2;
-            LSL_Types.LSLInteger y = 1;
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(2);
+            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(1);
             LSL_Types.LSLInteger z = x ^ y;
             x = ~z;
             x = ~(y && z);
@@ -1133,17 +1133,17 @@ default
             string expected = @"
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
-            LSL_Types.LSLString s = """";
-            LSL_Types.LSLInteger x = 1;
+            LSL_Types.LSLString s = new LSL_Types.LSLString("""");
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);
             s = (LSL_Types.LSLString) (x++);
             s = (LSL_Types.LSLString) (x);
-            s = (LSL_Types.LSLString) (new LSL_Types.Vector3(0.0, 0.0, 0.0));
-            s = (LSL_Types.LSLString) (new LSL_Types.Quaternion(1.0, 1.0, 1.0, 1.0));
-            s = (LSL_Types.LSLInteger) (""1"");
+            s = (LSL_Types.LSLString) (new LSL_Types.Vector3(new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0)));
+            s = (LSL_Types.LSLString) (new LSL_Types.Quaternion(new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(1.0)));
+            s = (LSL_Types.LSLInteger) (new LSL_Types.LSLString(""1""));
             s = (LSL_Types.LSLString) (llSomethingThatReturnsInteger());
-            s = (LSL_Types.LSLString) (134);
-            s = (LSL_Types.LSLString) (x ^ y | (z && l)) + (LSL_Types.LSLString) (x + y - 13);
-            llOwnerSay(""s is: "" + s);
+            s = (LSL_Types.LSLString) (new LSL_Types.LSLInteger(134));
+            s = (LSL_Types.LSLString) (x ^ y | (z && l)) + (LSL_Types.LSLString) (x + y - new LSL_Types.LSLInteger(13));
+            llOwnerSay(new LSL_Types.LSLString(""s is: "") + s);
         }
 ";
 
@@ -1178,12 +1178,12 @@ state statetwo
             string expected = @"
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
-            llSay(0, ""Going to state 'statetwo'"");
+            llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Going to state 'statetwo'""));
             state(""statetwo"");
         }
         public void statetwo_event_state_entry()
         {
-            llSay(0, ""Going to the default state"");
+            llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Going to the default state""));
             state(""default"");
         }
 ";
@@ -1213,11 +1213,11 @@ default
             string expected = @"
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
-            LSL_Types.LSLInteger x = 0x23;
-            LSL_Types.LSLInteger x = 0x2f34B;
-            LSL_Types.LSLInteger x = 0x2F34b;
-            LSL_Types.LSLInteger x = 0x2F34B;
-            LSL_Types.LSLInteger x = 0x2f34b;
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x23);
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2f34B);
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2F34b);
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2F34B);
+            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2f34b);
         }
 ";
 
@@ -1246,9 +1246,9 @@ default
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
             goto here;
-            llOwnerSay(""Uh oh, the jump didn't work"");
+            llOwnerSay(new LSL_Types.LSLString(""Uh oh, the jump didn't work""));
             here:
-            llOwnerSay(""After the jump"");
+            llOwnerSay(new LSL_Types.LSLString(""After the jump""));
         }
 ";
 
@@ -1280,19 +1280,19 @@ default
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
             LSL_Types.LSLInteger i = 0;
-            LSL_Types.LSLInteger j = 14;
+            LSL_Types.LSLInteger j = new LSL_Types.LSLInteger(14);
             LSL_Types.LSLFloat f = 0.0;
-            LSL_Types.LSLFloat g = 14.0;
+            LSL_Types.LSLFloat g = new LSL_Types.LSLFloat(14.0);
             LSL_Types.LSLString s = """";
-            LSL_Types.LSLString t = ""Hi there"";
+            LSL_Types.LSLString t = new LSL_Types.LSLString(""Hi there"");
             LSL_Types.list l = new LSL_Types.list();
-            LSL_Types.list m = new LSL_Types.list(1, 2, 3);
+            LSL_Types.list m = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger(2), new LSL_Types.LSLInteger(3));
             LSL_Types.Vector3 v = new LSL_Types.Vector3(0.0, 0.0, 0.0);
-            LSL_Types.Vector3 w = new LSL_Types.Vector3(1.0, 0.1, 0.5);
+            LSL_Types.Vector3 w = new LSL_Types.Vector3(new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(0.1), new LSL_Types.LSLFloat(0.5));
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(0.0, 0.0, 0.0, 0.0);
-            LSL_Types.Quaternion u = new LSL_Types.Quaternion(0.8, 0.7, 0.6, llSomeFunc());
+            LSL_Types.Quaternion u = new LSL_Types.Quaternion(new LSL_Types.LSLFloat(0.8), new LSL_Types.LSLFloat(0.7), new LSL_Types.LSLFloat(0.6), llSomeFunc());
             LSL_Types.LSLString k = """";
-            LSL_Types.LSLString n = ""ping"";
+            LSL_Types.LSLString n = new LSL_Types.LSLString(""ping"");
         }
 ";
 
@@ -1323,9 +1323,9 @@ default
         {
             LSL_Types.LSLInteger x = 0;
             LSL_Types.LSLInteger y = 0;
-            x = y = 5;
-            x += y -= 5;
-            llOwnerSay(""x is: "" + (LSL_Types.LSLString) (x) + "", y is: "" + (LSL_Types.LSLString) (y));
+            x = y = new LSL_Types.LSLInteger(5);
+            x += y -= new LSL_Types.LSLInteger(5);
+            llOwnerSay(new LSL_Types.LSLString(""x is: "") + (LSL_Types.LSLString) (x) + new LSL_Types.LSLString("", y is: "") + (LSL_Types.LSLString) (y));
         }
 ";
 
@@ -1350,7 +1350,7 @@ default
             string expected = @"
         public void default_event_state_entry()
         {
-            LSL_Types.Vector3 v = new LSL_Types.Vector3(x, y, -0.5);
+            LSL_Types.Vector3 v = new LSL_Types.Vector3(x, y, -new LSL_Types.LSLFloat(0.5));
         }
 ";
 
@@ -1381,11 +1381,11 @@ default
         public void default_event_state_entry()
         {
             LSL_Types.Vector3 v = llGetPos();
-            v.z += 4;
-            v.z -= 4;
-            v.z *= 4;
-            v.z /= 4;
-            v.z %= 4;
+            v.z += new LSL_Types.LSLInteger(4);
+            v.z -= new LSL_Types.LSLInteger(4);
+            v.z *= new LSL_Types.LSLInteger(4);
+            v.z /= new LSL_Types.LSLInteger(4);
+            v.z %= new LSL_Types.LSLInteger(4);
         }
 ";
 
@@ -1408,7 +1408,7 @@ default
             string expected = @"
         public void default_event_state_entry()
         {
-            while (1 < 0)
+            while (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0))
                 ;
         }
 ";
@@ -1435,7 +1435,7 @@ default
         {
             do
                 ;
-            while (1 < 0);
+            while (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0));
         }
 ";
 
@@ -1458,7 +1458,7 @@ default
             string expected = @"
         public void default_event_state_entry()
         {
-            if (1 < 0)
+            if (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0))
                 ;
         }
 ";
@@ -1483,7 +1483,7 @@ default
             string expected = @"
         public void default_event_state_entry()
         {
-            if (1 < 0)
+            if (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0))
                 ;
             else
                 ;
@@ -1509,7 +1509,7 @@ default
             string expected = @"
         public void default_event_state_entry()
         {
-            for (x = 4; 1 < 0; x += 2)
+            for (x = new LSL_Types.LSLInteger(4); new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0); x += new LSL_Types.LSLInteger(2))
                 ;
         }
 ";
@@ -1542,13 +1542,13 @@ default
         public void default_event_state_entry()
         {
             LSL_Types.LSLInteger x = 0;
-            while (x = 14)
-                llOwnerSay(""x is: "" + (LSL_Types.LSLString) (x));
-            if (x = 24)
-                llOwnerSay(""x is: "" + (LSL_Types.LSLString) (x));
+            while (x = new LSL_Types.LSLInteger(14))
+                llOwnerSay(new LSL_Types.LSLString(""x is: "") + (LSL_Types.LSLString) (x));
+            if (x = new LSL_Types.LSLInteger(24))
+                llOwnerSay(new LSL_Types.LSLString(""x is: "") + (LSL_Types.LSLString) (x));
             do
-                llOwnerSay(""x is: "" + (LSL_Types.LSLString) (x));
-            while (x = 44);
+                llOwnerSay(new LSL_Types.LSLString(""x is: "") + (LSL_Types.LSLString) (x));
+            while (x = new LSL_Types.LSLInteger(44));
         }
 ";
 
@@ -1572,8 +1572,8 @@ default
             string expected = @"
         public void default_event_state_entry()
         {
-            LSL_Types.list l = new LSL_Types.list(""hello"");
-            l = (l = new LSL_Types.list()) + l + ""world"";
+            LSL_Types.list l = new LSL_Types.list(new LSL_Types.LSLString(""hello""));
+            l = (l = new LSL_Types.list()) + l + new LSL_Types.LSLString(""world"");
         }
 ";
 
@@ -1631,8 +1631,7 @@ default
             }
             catch (Tools.CSToolsException e)
             {
-                // The syntax error is on line 6, char 5 (expected ';', found
-                // '}').
+                // The syntax error is on line 5, char 14 (Syntax error)
                 Regex r = new Regex("Line ([0-9]+), char ([0-9]+)");
                 Match m = r.Match(e.Message);
                 Assert.AreEqual("5", m.Groups[1].Value);
