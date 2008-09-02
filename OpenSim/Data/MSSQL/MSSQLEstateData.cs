@@ -137,7 +137,9 @@ namespace OpenSim.Data.MSSQL
                             }
                             else
                             {
-                                _FieldMap[name].SetValue(es, reader[name]);
+                                es.EstateID = Convert.ToUInt32(reader["EstateID"].ToString());
+                                //Problems converting a Int32 to a UInt32
+                                //_FieldMap[name].SetValue(es, reader["EstateID"]);
                             }
                         }
                     }
@@ -188,7 +190,6 @@ namespace OpenSim.Data.MSSQL
                             }
                         }
 
-
                         SqlParameter idParameter = new SqlParameter("@ID", SqlDbType.Int);
                         idParameter.Direction = ParameterDirection.Output;
                         insertCommand.Parameters.Add(idParameter);
@@ -199,16 +200,16 @@ namespace OpenSim.Data.MSSQL
                     }
                 }
 
-                using (AutoClosingSqlCommand cmd = _Database.Query("insert into estate_map values (@RegionID, @EstateID)"))
+                using (AutoClosingSqlCommand cmd = _Database.Query("INSERT INTO [estate_map] ([RegionID] ,[EstateID]) VALUES (@RegionID, @EstateID)"))
                 {
-                    cmd.Parameters.AddWithValue("@RegionID", regionID.ToString());
-                    cmd.Parameters.AddWithValue("@EstateID", es.EstateID);
+                    cmd.Parameters.Add(_Database.CreateParameter("@RegionID", regionID.ToString()));
+                    cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
                     // This will throw on dupe key
                     try
                     {
                        cmd.ExecuteNonQuery();
                     }
-                    catch (Exception)
+                    catch (Exception Ex)
                     {
                         _Log.Debug("[ESTATE DB]: Error inserting regionID and EstateID in estate_map");
                     }
@@ -220,7 +221,7 @@ namespace OpenSim.Data.MSSQL
                 sql = string.Format("insert into estateban select {0}, bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = @UUID", es.EstateID);
                 using (AutoClosingSqlCommand cmd = _Database.Query(sql))
                 {
-                    cmd.Parameters.AddWithValue("@UUID", regionID);
+                    cmd.Parameters.Add(_Database.CreateParameter("@UUID", regionID));
                     try
                     {
 

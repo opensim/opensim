@@ -644,7 +644,7 @@ VALUES
             RegionSettings regionSettings;
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                cmd.Parameters.AddWithValue("@regionUUID", regionUUID.ToString());
+                cmd.Parameters.Add(_Database.CreateParameter("@regionUUID", regionUUID.ToString()));
                 using(SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
@@ -678,6 +678,7 @@ VALUES
             string regionUUID = null;
             using (AutoClosingSqlCommand cmd = _Database.Query("SELECT regionUUID FROM regionsettings WHERE regionUUID = @regionUUID"))
             {
+                cmd.Parameters.Add(_Database.CreateParameter("@regionUUID", regionSettings.RegionUUID));
                 regionUUID = cmd.ExecuteScalar().ToString();
             }
 
