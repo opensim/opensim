@@ -4436,7 +4436,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if ((cindex > index) || (cindex == -1))
                         {
                             cindex = index;
-                            cdeli = (string)delimiters[i];
+                            cdeli = delimiters[i].ToString();
                         }
                         dfound = dfound || found;
                     }
