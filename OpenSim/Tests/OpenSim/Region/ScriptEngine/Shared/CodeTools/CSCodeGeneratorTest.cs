@@ -37,7 +37,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
     /// Each test has some LSL code as input and C# code as expected output.
     /// The generated C# code is compared against the expected C# code.
     /// </summary>
-    [TestFixture]
+    //(TestFixture)
     public class CSCodeGeneratorTest
     {
         [Test]
@@ -663,8 +663,8 @@ default
         public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
         {
             LSL_Types.list l = new LSL_Types.list();
-            LSL_Types.list m = new LSL_Types.list(1, two, ""three"", new LSL_Types.Vector3(4.0, 4.0, 4.0), 5 + 5);
-            llCallSomeFunc(1, llAnotherFunc(), new LSL_Types.list(1, 2, 3));
+            LSL_Types.list m = new LSL_Types.list(new LSL_Types.LSLInteger(1), two, new LSL_Types.LSLString(""three""), new LSL_Types.Vector3(new LSL_Types.LSLFloat(4.0), new LSL_Types.LSLFloat(4.0), new LSL_Types.LSLFloat(4.0)), new LSL_Types.LSLInteger(5) + new LSL_Types.LSLInteger(5));
+            llCallSomeFunc(new LSL_Types.LSLInteger(1), llAnotherFunc(), new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger(2), new LSL_Types.LSLInteger(3)));
         }
 ";
 
@@ -723,53 +723,53 @@ default
         {
             LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);
             if (x)
-                llSay(new LSL_Types.LSLInteger(0), ""Hello"");
-            if (1)
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Hello""));
+            if (new LSL_Types.LSLInteger(1))
             {
-                llSay(new LSL_Types.LSLInteger(0), ""Hi"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Hi""));
                 LSL_Types.LSLInteger r = new LSL_Types.LSLInteger(3);
                 return ;
             }
             if (f(x))
-                llSay(new LSL_Types.LSLInteger(0), ""f(x) is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""f(x) is true""));
             else
-                llSay(new LSL_Types.LSLInteger(0), ""f(x) is false"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""f(x) is false""));
             if (x + y)
-                llSay(new LSL_Types.LSLInteger(0), ""x + y is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""x + y is true""));
             else
             if (y - x)
-                llSay(new LSL_Types.LSLInteger(0), ""y - x is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""y - x is true""));
             else
-                llSay(new LSL_Types.LSLInteger(0), ""Who needs x and y anyway?"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Who needs x and y anyway?""));
             if (x * y)
-                llSay(new LSL_Types.LSLInteger(0), ""x * y is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""x * y is true""));
             else
             if (y / x)
             {
-                llSay(new LSL_Types.LSLInteger(0), ""uh-oh, y / x is true, exiting"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""uh-oh, y / x is true, exiting""));
                 return ;
             }
             else
-                llSay(new LSL_Types.LSLInteger(0), ""Who needs x and y anyway?"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Who needs x and y anyway?""));
             if (x % y)
-                llSay(new LSL_Types.LSLInteger(0), ""x is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""x is true""));
             else
             if (y & x)
-                llSay(new LSL_Types.LSLInteger(0), ""y is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""y is true""));
             else
             if (z | x)
-                llSay(new LSL_Types.LSLInteger(0), ""z is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""z is true""));
             else
             if (a * (b + x))
-                llSay(new LSL_Types.LSLInteger(0), ""a is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""a is true""));
             else
             if (b)
-                llSay(new LSL_Types.LSLInteger(0), ""b is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""b is true""));
             else
             if (v)
-                llSay(new LSL_Types.LSLInteger(0), ""v is true"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""v is true""));
             else
-                llSay(new LSL_Types.LSLInteger(0), ""Everything is lies!"");
+                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Everything is lies!""));
         }
 ";
 
