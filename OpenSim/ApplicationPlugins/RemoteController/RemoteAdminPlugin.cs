@@ -416,10 +416,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                       scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
                                                       scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
 
-                // Security risk [and apparently not used]
-                // if (requestData.ContainsKey("datastore"))
-                //     region.DataStore = (string) requestData["datastore"];
-
                 region.InternalEndPoint =
                     new IPEndPoint(IPAddress.Parse((string) requestData["listen_ip"]), 0);
 

@@ -164,10 +164,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public void CreateScriptInstance(TaskInventoryItem item, int startParam, bool postOnRez)
         {
-            //            m_log.InfoFormat(
-            //                "[PRIM INVENTORY]: " +
-            //                "Starting script {0}, {1} in prim {2}, {3}",
-            //                item.Name, item.ItemID, Name, UUID);
+            // m_log.InfoFormat(
+            //     "[PRIM INVENTORY]: " +
+            //     "Starting script {0}, {1} in prim {2}, {3}",
+            //     item.Name, item.ItemID, Name, UUID);
+
             if (!m_parentGroup.Scene.ExternalChecks.ExternalChecksCanRunScript(item.ItemID, UUID, item.OwnerID))
                 return;
 
@@ -178,24 +179,25 @@ namespace OpenSim.Region.Environment.Scenes
                 AssetCache cache = m_parentGroup.Scene.AssetCache;
 
                 cache.GetAsset(item.AssetID, delegate(LLUUID assetID, AssetBase asset)
-                   {
-                       if (null == asset)
-                       {
-                           m_log.ErrorFormat(
-                               "[PRIM INVENTORY]: " +
-                               "Couldn't start script {0}, {1} since asset ID {2} could not be found",
-                               item.Name, item.ItemID, item.AssetID);
-                       }
-                       else
-                       {
-                           m_taskInventory[item.ItemID].PermsMask = 0;
-                           m_taskInventory[item.ItemID].PermsGranter = LLUUID.Zero;
-                           string script = Helpers.FieldToUTF8String(asset.Data);
-                           m_parentGroup.Scene.EventManager.TriggerRezScript(LocalId, item.ItemID,script, startParam, postOnRez);
-                           m_parentGroup.AddActiveScriptCount(1);
-                           ScheduleFullUpdate();
-                       }
-                   }, false);
+                               {
+                                   if (null == asset)
+                                   {
+                                       m_log.ErrorFormat(
+                                           "[PRIM INVENTORY]: " +
+                                           "Couldn't start script {0}, {1} since asset ID {2} could not be found",
+                                           item.Name, item.ItemID, item.AssetID);
+                                   }
+                                   else
+                                   {
+                                       m_taskInventory[item.ItemID].PermsMask = 0;
+                                       m_taskInventory[item.ItemID].PermsGranter = LLUUID.Zero;
+                                       string script = Helpers.FieldToUTF8String(asset.Data);
+                                       m_parentGroup.Scene.EventManager.TriggerRezScript(LocalId, item.ItemID, script, 
+                                                                                         startParam, postOnRez);
+                                       m_parentGroup.AddActiveScriptCount(1);
+                                       ScheduleFullUpdate();
+                                   }
+                               }, false);
             }
         }
 

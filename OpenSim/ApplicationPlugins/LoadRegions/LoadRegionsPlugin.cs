@@ -52,7 +52,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         public void Initialise()
         {
             m_log.Info("[LOADREGIONS]: " + Name + " cannot be default-initialized!");
-            throw new PluginNotInitialisedException (Name);
+            throw new PluginNotInitialisedException(Name);
         }
 
         public void Initialise(OpenSimBase openSim)

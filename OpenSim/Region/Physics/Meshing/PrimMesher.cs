@@ -196,7 +196,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             float startAngle = profileStart * twoPi;
             float stopAngle = profileEnd * twoPi;
-            float stepSize = twoPi / sides;
+            // float stepSize = twoPi / sides;
 
             try { angles.makeAngles(sides, startAngle, stopAngle); }
             catch (Exception ex)

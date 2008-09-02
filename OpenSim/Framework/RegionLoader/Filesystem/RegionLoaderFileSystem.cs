@@ -70,7 +70,7 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
             RegionInfo[] regionInfos = new RegionInfo[configFiles.Length];
             for (int i = 0; i < configFiles.Length; i++)
             {
-                RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), configFiles[i],false);
+                RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), configFiles[i], false);
                 regionInfos[i] = regionInfo;
             }
 

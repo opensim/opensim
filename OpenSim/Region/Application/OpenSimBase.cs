@@ -475,7 +475,7 @@ namespace OpenSim
         {
             int port = regionInfo.InternalEndPoint.Port;
 
-            // set initial RegionID to originRegionID in RegionInfo. (it needs for loding prims)
+            // set initial originRegionID to RegionID in RegionInfo. (it needs for loding prims)
             regionInfo.originRegionID = regionInfo.RegionID;
 
             // set initial ServerURI
@@ -517,7 +517,7 @@ namespace OpenSim
                     m_log.Info("[MODULES]: Loading scripting engine: " + mod);
                     try
                     {
-                        m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", mod), scene);
+                        modules.AddRange(m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", mod), scene));
                     }
                     catch (Exception ex)
                     {
@@ -540,11 +540,13 @@ namespace OpenSim
             {
                 m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e);
 
-                // Carrying on now causes a lot of confusion down the line - we need to get the user's attention
+                // Carrying on now causes a lot of confusion down the
+                // line - we need to get the user's attention
                 System.Environment.Exit(1);
             }
 
-            // We need to do this after we've initialized the scripting engines.
+            // We need to do this after we've initialized the
+            // scripting engines.
             scene.CreateScriptInstances();
 
             scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);

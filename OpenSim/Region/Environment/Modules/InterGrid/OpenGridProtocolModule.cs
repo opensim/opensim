@@ -123,10 +123,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                             {
                                 try
                                 {
-#pragma warning disable 0612
+#pragma warning disable 0612, 0618
                                     // Mono does not implement the ServicePointManager.ServerCertificateValidationCallback yet!  Don't remove this!
                                     ServicePointManager.CertificatePolicy = new MonoCert();
-#pragma warning restore 0612
+#pragma warning restore 0612, 0618
                                 }
                                 catch (Exception)
                                 {

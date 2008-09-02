@@ -90,7 +90,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         /// Make sure our object does not timeout when in AppDomain. (Called by ILease base class)
         /// </summary>
         /// <returns></returns>
-        public Object InitializeLifetimeService()
+        public override Object InitializeLifetimeService()
         {
             //Console.WriteLine("Executor: InitializeLifetimeService()");
             //            return null;
