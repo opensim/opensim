@@ -737,6 +737,7 @@ namespace OpenSim.Region.Physics.Meshing
             float totalSkew = this.skew * 2.0f * pathLength;
             float skewStart = this.pathCutBegin * 2.0f * this.skew - this.skew;
             float xOffsetTopShearXFactor = this.topShearX * (0.25f + 0.5f * (0.5f - this.holeSizeY));
+            float yShearCompensation = 1.0f + Math.Abs(this.topShearY) * 0.25f;
 
             // It's not quite clear what pushY (Y top shear) does, but subtracting it from the start and end
             // angles appears to approximate it's effects on path cut. Likewise, adding it to the angle used
@@ -825,9 +826,9 @@ namespace OpenSim.Region.Physics.Meshing
                 float xOffset = 0.5f * (skewStart + totalSkew * percentOfAngles);
                 xOffset += (float)Math.Sin(angle) * xOffsetTopShearXFactor;
 
-                float yOffset = (float)Math.Cos(angle) * (0.5f - yPathScale) * radiusScale;
+                float yOffset = yShearCompensation * (float)Math.Cos(angle) * (0.5f - yPathScale) * radiusScale;
 
-                float zOffset = (float)Math.Sin(angle + this.topShearY * 0.9f) * (0.5f - yPathScale) * radiusScale;
+                float zOffset = (float)Math.Sin(angle + this.topShearY) * (0.5f - yPathScale) * radiusScale;
 
                 // next apply twist rotation to the profile layer
                 if (twistTotal != 0.0f || twistBegin != 0.0f)
@@ -835,7 +836,8 @@ namespace OpenSim.Region.Physics.Meshing
 
                 // now orient the rotation of the profile layer relative to it's position on the path
                 // adding taperY to the angle used to generate the quat appears to approximate the viewer
-                newLayer.AddRot(new Quaternion(new Vertex(1.0f, 0.0f, 0.0f), angle + this.topShearY * 0.9f));
+                //newLayer.AddRot(new Quaternion(new Vertex(1.0f, 0.0f, 0.0f), angle + this.topShearY * 0.9f));
+                newLayer.AddRot(new Quaternion(new Vertex(1.0f, 0.0f, 0.0f), angle + this.topShearY));
                 newLayer.AddPos(xOffset, yOffset, zOffset);
 
                 if (angle == startAngle)
