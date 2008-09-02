@@ -38,10 +38,10 @@ PhysicalPrimMax = 10
 
 ; *** Prim Storage - only leave one storage_plugin uncommented ***
 ; --- Null stores nothing - effectively disabling persistence:
-storage_plugin = "OpenSim.Data.Null.dll"
+;storage_plugin = "OpenSim.Data.Null.dll"
 
 ; --- To use sqlite as region storage:
-;storage_plugin = "OpenSim.Data.SQLite.dll"
+storage_plugin = "OpenSim.Data.SQLite.dll"
 storage_connection_string="URI=file:OpenSim.db,version=3";
 
 ; --- To use MySQL storage, supply your own connectionstring (this is only an example):
