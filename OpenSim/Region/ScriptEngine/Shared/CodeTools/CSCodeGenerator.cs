@@ -732,7 +732,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     c.Value = c.Value.Insert(dotIndex, "0");
             }
 
-            // commencted because the parser does it now
+            // commented because the parser does it now
             // need to quote strings
             // if ("LSL_Types.LSLString" == c.Type)
             //     retstr += Generate("\"");
