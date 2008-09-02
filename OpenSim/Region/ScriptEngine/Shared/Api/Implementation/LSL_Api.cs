@@ -5729,7 +5729,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         float tension = (float)Convert.ToDouble(rules.Data[idx++]);
                         LSL_Types.Vector3 force =new LSL_Types.Vector3(rules.Data[idx++].ToString());
 
-                        SetFlexi(part, flexi, softness, gravity, friction, wind, tension, force);
+                        SetFlexi(part, (flexi==1), softness, gravity, friction, wind, tension, force);
 
                         break;
                     case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
