@@ -1394,7 +1394,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public explicit operator LSLInteger(string s)
             {
-                Regex r = new Regex("^[0-9][0-9]*");
+                Regex r = new Regex("^[ ]*-?[0-9][0-9]*");
                 Match m = r.Match(s);
                 string v = m.Groups[0].Value;
 
