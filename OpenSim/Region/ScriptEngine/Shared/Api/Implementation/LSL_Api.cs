@@ -5721,15 +5721,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 7)
                             return;
 
-                        int flexi = Convert.ToInt32(rules.Data[idx++].ToString());
-                        int softness = Convert.ToInt32(rules.Data[idx++].ToString());
+                        LSL_Types.LSLInteger flexi = new LSL_Types.LSLInteger(rules.Data[idx++].ToString());
+                        int softness = Convert.ToInt32(rules.Data[idx++]);
                         float gravity = (float)Convert.ToDouble(rules.Data[idx++]);
                         float friction = (float)Convert.ToDouble(rules.Data[idx++]);
                         float wind = (float)Convert.ToDouble(rules.Data[idx++]);
                         float tension = (float)Convert.ToDouble(rules.Data[idx++]);
                         LSL_Types.Vector3 force =new LSL_Types.Vector3(rules.Data[idx++].ToString());
 
-                        SetFlexi(part, (flexi==1), softness, gravity, friction, wind, tension, force);
+                        SetFlexi(part, flexi, softness, gravity, friction, wind, tension, force);
 
                         break;
                     case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
