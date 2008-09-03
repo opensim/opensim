@@ -389,12 +389,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if ((q.Count == 0) && (throttle.UnderLimit()))
             {
-                Monitor.Enter(this);
-                throttle.Add(item.Packet.ToBytes().Length);
-                TotalThrottle.Add(item.Packet.ToBytes().Length);
-                SendQueue.Enqueue(item);
-                Monitor.Pulse(this);
-                Monitor.Exit(this);
+                try
+                {
+                    Monitor.Enter(this);
+                    throttle.Add(item.Packet.ToBytes().Length);
+                    TotalThrottle.Add(item.Packet.ToBytes().Length);
+                    SendQueue.Enqueue(item);
+                }
+                catch (Exception e)
+                {
+                    // Probably a serialization exception
+                    m_log.WarnFormat("ThrottleCheck: {0}", e.ToString());
+                }
+                finally
+                {
+                    Monitor.Pulse(this);
+                    Monitor.Exit(this);
+                }
             }
             else
             {
