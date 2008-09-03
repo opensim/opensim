@@ -94,6 +94,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool m_SendLogoutPacketWhenClosing = true;
 
+        private int m_inPacketsChecked = 0;
+
         /* protected variables */
 
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers =
@@ -670,11 +672,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="e"></param>
         protected void CheckClientConnectivity(object sender, ElapsedEventArgs e)
         {
-            if (m_PacketHandler.PacketsReceived == m_PacketHandler.PacketsReceivedReported)
+            if (m_PacketHandler.PacketsReceived == m_inPacketsChecked)
             {
+                // no packet came in since the last time we checked...
+                
                 m_probesWithNoIngressPackets++;
-                if ((m_probesWithNoIngressPackets > 30 && !m_clientBlocked)
-                    || (m_probesWithNoIngressPackets > 90 && m_clientBlocked))
+                if ((m_probesWithNoIngressPackets > 30 && !m_clientBlocked)    // agent active
+                    || (m_probesWithNoIngressPackets > 90 && m_clientBlocked)) // agent paused 
                 {
                     m_clientPingTimer.Enabled = false;
 
@@ -697,6 +701,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // Something received in the meantime - we can reset the counters
                 m_probesWithNoIngressPackets = 0;
+                // ... and store the current number of packets received to find out if another one got in on the next cycle 
+                m_inPacketsChecked = m_PacketHandler.PacketsReceived;
             }
 
         }
