@@ -396,6 +396,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         }
 
         /// <summary>
+        /// Tests LSLFloat is correctly cast explicitly to float
+        /// </summary>
+        [Test]
+        public void TestExplicitCastLSLFloatToFloat()
+        {
+          float testFloat;
+          float numberAsFloat;
+          LSL_Types.LSLFloat testLSLFloat;
+          foreach (double number in m_doubleList)
+          {
+            testLSLFloat = new LSL_Types.LSLFloat(number);
+            numberAsFloat = (float)number;
+            testFloat = (float)testLSLFloat;
+
+            Assert.That((double)testFloat, new DoubleToleranceConstraint((double)numberAsFloat, _lowPrecisionTolerance));
+          }
+        }
+
+
+        /// <summary>
         /// Tests the equality (==) operator.
         /// </summary>
         [Test]

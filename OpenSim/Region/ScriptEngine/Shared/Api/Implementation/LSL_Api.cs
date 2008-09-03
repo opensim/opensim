@@ -5721,13 +5721,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 7)
                             return;
 
-                        LSL_Types.LSLInteger flexi = new LSL_Types.LSLInteger(rules.Data[idx++].ToString());
-                        int softness = Convert.ToInt32(rules.Data[idx++]);
-                        float gravity = (float)Convert.ToDouble(rules.Data[idx++]);
-                        float friction = (float)Convert.ToDouble(rules.Data[idx++]);
-                        float wind = (float)Convert.ToDouble(rules.Data[idx++]);
-                        float tension = (float)Convert.ToDouble(rules.Data[idx++]);
-                        LSL_Types.Vector3 force =new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                        bool flexi = (LSL_Types.LSLInteger)rules.Data[idx++];
+                        int softness = (LSL_Types.LSLInteger)rules.Data[idx++];
+                        float gravity = (float)(LSL_Types.LSLFloat)rules.Data[idx++];
+                        float friction = (float)(LSL_Types.LSLFloat)rules.Data[idx++];
+                        float wind = (float)(LSL_Types.LSLFloat)rules.Data[idx++];
+                        float tension = (float)(LSL_Types.LSLFloat)rules.Data[idx++];
+                        LSL_Types.Vector3 force = (LSL_Types.Vector3)rules.Data[idx++];
 
                         SetFlexi(part, flexi, softness, gravity, friction, wind, tension, force);
 

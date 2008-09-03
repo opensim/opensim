@@ -84,18 +84,79 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestConcatenateDouble()
         {
-            LSL_Types.list testList = new LSL_Types.list(1, 'a', "test");
-            testList += 2.0;
+          LSL_Types.list testList = new LSL_Types.list(1, 'a', "test");
+          testList += 2.0;
 
-            Assert.AreEqual(4, testList.Length);
-            Assert.AreEqual(2.0, testList.Data[3]);
-            Assert.AreEqual(typeof(double), testList.Data[3].GetType());
+          Assert.AreEqual(4, testList.Length);
+          Assert.AreEqual(2.0, testList.Data[3]);
+          Assert.AreEqual(typeof(double), testList.Data[3].GetType());
 
-            LSL_Types.list secondTestList = testList + 0.04;
+          LSL_Types.list secondTestList = testList + 0.04;
 
-            Assert.AreEqual(5, secondTestList.Length);
-            Assert.AreEqual(0.04, secondTestList.Data[4]);
-            Assert.AreEqual(typeof(double), secondTestList.Data[4].GetType());
+          Assert.AreEqual(5, secondTestList.Length);
+          Assert.AreEqual(0.04, secondTestList.Data[4]);
+          Assert.AreEqual(typeof(double), secondTestList.Data[4].GetType());
         }
+
+        /// <summary>
+        /// Tests casting LSLInteger item to LSLInteger.
+        /// </summary>
+        [Test]
+        public void TestCastLSLIntegerItemToLSLInteger()
+        {
+          LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(123);
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, (LSL_Types.LSLInteger)testList.Data[0]);
+        }
+
+        /// <summary>
+        /// Tests casting LSLFloat item to LSLFloat.
+        /// </summary>
+        [Test]
+        public void TestCastLSLFloatItemToLSLFloat()
+        {
+          LSL_Types.LSLFloat testValue = new LSL_Types.LSLFloat(123.45678987);
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, (LSL_Types.LSLFloat)testList.Data[0]);
+        }
+
+        /// <summary>
+        /// Tests casting LSLString item to LSLString.
+        /// </summary>
+        [Test]
+        public void TestCastLSLStringItemToLSLString()
+        {
+          LSL_Types.LSLString testValue = new LSL_Types.LSLString("hello there");
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, (LSL_Types.LSLString)testList.Data[0]);
+        }
+
+        /// <summary>
+        /// Tests casting Vector3 item to Vector3.
+        /// </summary>
+        [Test]
+        public void TestCastVector3ItemToVector3()
+        {
+          LSL_Types.Vector3 testValue = new LSL_Types.Vector3(12.34, 56.987654, 0.00987);
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, (LSL_Types.Vector3)testList.Data[0]);
+        }
+        /// <summary>
+        /// Tests casting Quaternion item to Quaternion.
+        /// </summary>
+        [Test]
+        public void TestCastQuaternionItemToQuaternion()
+        {
+          LSL_Types.Quaternion testValue = new LSL_Types.Quaternion(12.34, 56.44323, 765.983421, 0.00987);
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, (LSL_Types.Quaternion)testList.Data[0]);
+        }
+
+
     }
 }

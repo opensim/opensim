@@ -1569,9 +1569,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             #region Operators
 
+            static public explicit operator float(LSLFloat f)
+            {
+              return (float)f.value;
+            }
+
             static public explicit operator int(LSLFloat f)
             {
-                return (int)f.value;
+              return (int)f.value;
             }
 
             static public explicit operator uint(LSLFloat f)
