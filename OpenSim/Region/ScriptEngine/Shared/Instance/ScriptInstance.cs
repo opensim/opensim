@@ -571,8 +571,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void ResetScript()
         {
-            if (m_script == null)
+            if (m_Script == null)
                 return;
+
             bool running = Running;
 
             RemoveState();

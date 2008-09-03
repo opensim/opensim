@@ -299,7 +299,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             // Outside of this method, they should never be added to objectflags!
             // -teravus
 
-            SceneObjectPart task=m_scene.GetSceneObjectPart(objID);
+            SceneObjectPart task = m_scene.GetSceneObjectPart(objID);
 
             // this shouldn't ever happen..     return no permissions/objectflags.
             if (task == null)
