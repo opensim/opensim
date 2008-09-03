@@ -280,6 +280,19 @@ namespace OpenSim.Data.MySQL
             cmd.ExecuteNonQuery();
         }
 
+        public void ExecuteParameterizedSql(string sql, Dictionary<string, string> parameters)
+        {
+            CheckConnection();
+
+            MySqlCommand cmd = (MySqlCommand)dbcon.CreateCommand();
+            cmd.CommandText = sql;
+            foreach (KeyValuePair<string, string> param in parameters)
+            {
+                cmd.Parameters.AddWithValue(param.Key, param.Value);
+            }
+            cmd.ExecuteNonQuery();
+        }
+
         /// <summary>
         /// Given a list of tables, return the version of the tables, as seen in the database
         /// </summary>

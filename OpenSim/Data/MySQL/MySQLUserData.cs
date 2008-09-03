@@ -62,6 +62,7 @@ namespace OpenSim.Data.MySQL
         private string m_usersTableName;
         private string m_userFriendsTableName;
         private string m_appearanceTableName = "avatarappearance";
+        private string m_attachmentsTableName = "avatarattachments";
         private string m_connectString;
 
         public override void Initialise()
@@ -542,12 +543,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                IDbCommand updater =
-                    dbm.Manager.Query(
+               dbm.Manager.ExecuteParameterizedSql(
                         "update " + m_usersTableName + " SET webLoginKey = ?webLoginKey " +
                         "where UUID = ?UUID",
                         param);
-                updater.ExecuteNonQuery();
             }
             catch (Exception e)
             {
@@ -788,18 +787,26 @@ namespace OpenSim.Data.MySQL
         {
             MySQLSuperManager dbm = GetLockedConnection();
 
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["?uuid"] = agentID.ToString();
+
             try
             {
-                MySqlCommand cmd = dbm.Manager.Connection.CreateCommand();
-                cmd.CommandText = "select attachpoint, item, asset from avatarattachments where UUID = ?uuid";
-                cmd.Parameters.AddWithValue("?uuid", agentID.ToString());
+                IDbCommand result = dbm.Manager.Query(
+                    "SELECT attachpoint, item, asset from " + m_attachmentsTableName + " WHERE UUID = ?uuid", param);
+                IDataReader reader = result.ExecuteReader();
 
-                IDataReader r = cmd.ExecuteReader();
+                Hashtable ret = dbm.Manager.readAttachments(reader);
 
-                Hashtable ret = dbm.Manager.readAttachments(r);
-
-                r.Close();
+                reader.Dispose();
+                result.Dispose();
                 return ret;
+            }
+            catch (Exception e)
+            {
+                dbm.Manager.Reconnect();
+                m_log.Error(e.ToString());
+                return null;
             }
             finally
             {
@@ -823,14 +830,16 @@ namespace OpenSim.Data.MySQL
         public override void ResetAttachments(LLUUID userID)
         {
             MySQLSuperManager dbm = GetLockedConnection();
+
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["?uuid"] = userID.ToString();
+
             try
             {
-                MySqlCommand cmd = dbm.Manager.Connection.CreateCommand();
-                cmd.CommandText =
-                    "update avatarattachments set asset = '00000000-0000-0000-0000-000000000000' where UUID = ?uuid";
-                cmd.Parameters.AddWithValue("?uuid", userID.ToString());
-
-                cmd.ExecuteNonQuery();
+                dbm.Manager.ExecuteParameterizedSql(
+                    "UPDATE " + m_attachmentsTableName + 
+                    " SET asset = '00000000-0000-0000-0000-000000000000' WHERE UUID = ?uuid",
+                    param);
             }
             finally
             {
