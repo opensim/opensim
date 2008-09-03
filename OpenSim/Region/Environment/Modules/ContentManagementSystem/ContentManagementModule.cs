@@ -1,31 +1,69 @@
+﻿#region Header
+
 // ContentManagementModule.cs 
 // User: bongiojp
 
+#endregion Header
+
 using System;
 using System.Collections.Generic;
+using System.Threading;
+
 using libsecondlife;
+
 using Nini.Config;
+
 using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using log4net;
 using OpenSim.Region.Physics.Manager;
+
+using log4net;
+
 using Axiom.Math;
-using System.Threading;
-	
+
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
     public class ContentManagementModule : IRegionModule
     {
+        #region Static Fields
+
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        CMController m_control = null;
-        CMModel m_model = null;
-        CMView m_view = null;
+
+        #endregion Static Fields
+
+        #region Fields
+
         bool initialised = false;
-        bool m_posted = false;
+        CMController m_control = null;
         bool m_enabled = false;
-	
+        CMModel m_model = null;
+        bool m_posted = false;
+        CMView m_view = null;
+
+        #endregion Fields
+
+        #region Public Properties
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
+        public string Name
+        {
+            get { return "ContentManagementModule"; }
+        }
+
+        #endregion Public Properties
+
+        #region Public Methods
+
+        public void Close()
+        {
+        }
+
         public void Initialise(Scene scene, IConfigSource source)
         {
             string databaseDir = "./";
@@ -52,13 +90,13 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 m_log.ErrorFormat("[Content Management]: Exception thrown while reading parameters from configuration file. Message: " + e);
                 m_enabled = false;
             }
-            
+
             if (!m_enabled)
             {
                 m_log.Info("[Content Management]: Content Management System is not Enabled.");
                 return;
             }
-            
+
             lock(this)
             {
                 if (!initialised) //only init once
@@ -79,12 +117,12 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 }
             }
         }
-	
+
         public void PostInitialise()
         {
             if (! m_enabled)
                 return;
-            
+
             lock(this)
             {
                 if (!m_posted) //only post once
@@ -94,18 +132,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 }
             }
         }
-	
-        public void Close()
-        {}
-        
-        public string Name
-        {
-            get { return "ContentManagementModule"; }
-        }
 
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
+        #endregion Public Methods
     }
 }
