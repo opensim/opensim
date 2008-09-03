@@ -435,6 +435,19 @@ namespace OpenSim.Region.Environment.Scenes
             return avatars;
         }
 
+        public List<ScenePresence> GetCurrentScenePresences()
+        {
+            List<ScenePresence> presences = new List<ScenePresence>();
+
+            ForEachCurrentScene(delegate(Scene scene)
+            {
+                List<ScenePresence> scenePresences = scene.GetScenePresences();
+                presences.AddRange(scenePresences);
+            });
+
+            return presences;
+        }
+
         public RegionInfo GetRegionInfo(ulong regionHandle)
         {
             foreach (Scene scene in m_localScenes)

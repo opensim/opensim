@@ -661,13 +661,13 @@ namespace OpenSim
                     break;
 
                 case "users":
-                    IList agents = m_sceneManager.GetCurrentSceneAvatars();
+                    IList agents = m_sceneManager.GetCurrentScenePresences();
 
                     m_console.Notice(String.Format("\nAgents connected: {0}\n", agents.Count));
 
                     m_console.Notice(
-                        String.Format("{0,-16}{1,-16}{2,-37}{3,-16}", "Firstname", "Lastname",
-                                      "Agent ID","Region"));
+                        String.Format("{0,-16}{1,-16}{2,-37}{3,-11}{4,-16}", "Firstname", "Lastname",
+                                      "Agent ID", "Root/Child", "Region"));
 
                     foreach (ScenePresence presence in agents)
                     {
@@ -685,11 +685,12 @@ namespace OpenSim
 
                         m_console.Notice(
                             String.Format(
-                                 "{0,-16}{1,-16}{2,-37}{3,-16}",
-                                 presence.Firstname,
-                                 presence.Lastname,
-                                 presence.UUID,
-                                 regionName));
+                                "{0,-16}{1,-16}{2,-37}{3,-11}{4,-16}",
+                                presence.Firstname,
+                                presence.Lastname,
+                                presence.UUID,
+                                presence.IsChildAgent ? "Child" : "Root",
+                                regionName));
                     }
 
                     m_console.Notice("");
