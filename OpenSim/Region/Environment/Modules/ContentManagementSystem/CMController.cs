@@ -180,8 +180,8 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 					NewClient(view, (IClientAPI) currentJob.Data1);
 					break;
 				case WorkType.SIMCHAT:
-					m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- Message received:  " + ((ChatFromViewerArgs) currentJob.Data1).Message);
-					SimChat(model, view, (ChatFromViewerArgs) currentJob.Data1, channel);
+					m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- Message received:  " + ((OSChatMessage) currentJob.Data1).Message);
+					SimChat(model, view, (OSChatMessage) currentJob.Data1, channel);
 					break;
 				default:
 					m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- uuuuuuuuuh, what?");
@@ -265,7 +265,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 		/// <summary>
 		/// Only called by the MainLoop. Takes the message from a user sent to the channel and executes the proper command.
 		/// </summary>
-		public void SimChat(CMModel model, CMView view, ChatFromViewerArgs e, int channel)
+		public void SimChat(CMModel model, CMView view, OSChatMessage e, int channel)
         {
 			if (e.Channel != channel)
 				return;
@@ -565,7 +565,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 		}		
 		
 		//This is stupid, the same information is contained in the first and second argument
-		protected void SimChatSent(Object x, ChatFromViewerArgs e)
+		protected void SimChatSent(Object x, OSChatMessage e)
 		{
 			m_log.Debug("[CONTENT MANAGEMENT] SIMCHAT SENT !!!!!!!");
 			m_log.Debug("[CONTENT MANAGEMENT] message was: " + e.Message);
