@@ -105,6 +105,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected Dictionary<LLUUID, SceneObjectPart> m_parts = new Dictionary<LLUUID, SceneObjectPart>();
 
+        private bool m_deleted = false;
         protected ulong m_regionHandle;
         protected SceneObjectPart m_rootPart;
         // private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
@@ -948,7 +949,8 @@ namespace OpenSim.Region.Environment.Scenes
                             avatars[i].StandUp();
                         }
 
-                        avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
+                        if (m_rootPart != null && part == m_rootPart)
+                            avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                     }
                 }
 
@@ -959,6 +961,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void FakeDeleteGroup()
         {
+            m_deleted = true;
+
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 List<ScenePresence> avatars = Scene.GetScenePresences();
@@ -969,7 +973,8 @@ namespace OpenSim.Region.Environment.Scenes
                         avatars[i].StandUp();
                     }
 
-                    avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
+                    if (m_rootPart != null && part == m_rootPart)
+                        avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                 }
             }
         }
@@ -1543,6 +1548,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
+            // If we wre in the delete queue, this will be set
+            // A full update now would make the prim reappear
+            // after KillObject was sent via FakeDeleteGroup
+            // causing flickering and delays in deletion.
+            // This leads to users clicking delete multiple times
+            // which can crash the session. So, avoid it.
+            //
+            if (m_deleted)
+                return;
+
             checkAtTargets();
             lock (m_parts)
             {

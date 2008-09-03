@@ -2496,6 +2496,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendKillObject(uint localID)
         {
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            if (part != null) // It is a prim
+            {
+                if (part.ParentGroup != null && part.ParentGroup.RootPart != null) // Valid
+                {
+                    if (part.ParentGroup.RootPart != part) // Child part
+                        return;
+                }
+            }
             Broadcast(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, localID); });
         }
 
