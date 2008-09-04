@@ -57,8 +57,8 @@ namespace OpenSim.Region.Environment.Scenes
         //
         // Add(SOG)
         // Add(SP)
-        // Remove(SOG)
-        // Remove(SP)
+        // RemoveObject(SOG)
+        // RemovePresence(SP)
         // List()
         // ListObjects()
         // ListPresenes()
@@ -76,6 +76,37 @@ namespace OpenSim.Region.Environment.Scenes
         public void Add(ScenePresence pres)
         {
             m_pres_by_uuid[pres.UUID] = pres;
+        }
+
+        public SceneObjectGroup RemoveObject(LLUUID uuid)
+        {
+            SceneObjectGroup sog = null;
+            try 
+            {
+                sog = (SceneObjectGroup)m_obj_by_uuid[uuid];
+                m_obj_by_uuid.Remove(uuid);
+                m_obj_by_local.Remove(sog.LocalId);
+            }
+            catch (Exception e)
+            {
+                sog = null;
+            }
+            return sog;
+        }
+        
+        public ScenePresence RemovePresence(LLUUID uuid)
+        {
+            ScenePresence sp = null;
+            try 
+            {
+                sp = (ScenePresence)m_pres_by_uuid[uuid];
+                m_pres_by_uuid.Remove(uuid);
+            }
+            catch (Exception e)
+            {
+                sp = null;
+            }
+            return sp;   
         }
     }
 }
