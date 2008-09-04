@@ -41,10 +41,16 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public class EntityList
     {
-           
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        // we are intentionally using non generics here as testing has
+        // shown synchronized collections are faster than manually
+        // locked generics.
+
         private Hashtable m_obj_by_uuid;
-        private Hashtable m_pres_by_uuid;
         private Hashtable m_obj_by_local;
+
+        private Hashtable m_pres_by_uuid;
 
         public EntityList()
         {
@@ -89,6 +95,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
+                m_log.ErrorFormat("RemoveObject failed for {0}", uuid, e);
                 sog = null;
             }
             return sog;
@@ -104,9 +111,52 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
+                m_log.ErrorFormat("RemovePresence failed for {0}", uuid, e);
                 sp = null;
             }
             return sp;   
+        }
+
+        public SceneObjectGroup FindObject(LLUUID uuid)
+        {
+            try
+            {
+                SceneObjectGroup sog = (SceneObjectGroup)m_obj_by_uuid[uuid];
+                return sog;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("FindObject failed for {0}", uuid, e);
+                return null;
+            }
+        }
+
+        public SceneObjectGroup FindObject(int local)
+        {
+            try 
+            {
+                LLUUID uuid = (LLUUID)m_obj_by_local[local];
+                SceneObjectGroup sog = (SceneObjectGroup)m_obj_by_uuid[uuid];
+                return sog;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("FindObject failed for {0}", local, e);
+                return null;
+            }
+        }
+
+        public ScenePresence FindPresense(LLUUID uuid)
+        {
+            try
+            {
+                ScenePresence sp = (ScenePresence)m_pres_by_uuid[uuid];
+                return sp;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
     }
 }
