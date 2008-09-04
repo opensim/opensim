@@ -133,6 +133,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             string menu = "Menu:\n";
             menu += "commit (ci) - saves current state of the region to a database on the server\n";
             menu += "diff-mode (dm) - displays those aspects of region that have not been saved but changed since the very last revision. Will dynamically update as you change environment.\n";
+            menu += "rollback (rb) - rollback to last commit.  HIGHLY EXPERIMENTAL, may break everything.\n";
             SendSimChatMessage(scene, menu);
         }
 
