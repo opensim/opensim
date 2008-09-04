@@ -101,10 +101,10 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 if (source.Configs["CMS"] == null)
                     return;
                     
-                m_enabled = source.Configs["CMS"].GetBoolean("Enabled", false);
-                databaseDir = source.Configs["CMS"].GetString("Directory", databaseDir);
-                database = source.Configs["CMS"].GetString("Database", database);
-                channel = source.Configs["CMS"].GetInt("Channel", channel);
+                m_enabled = source.Configs["CMS"].GetBoolean("enabled", false);
+                databaseDir = source.Configs["CMS"].GetString("directory", databaseDir);
+                database = source.Configs["CMS"].GetString("database", database);
+                channel = source.Configs["CMS"].GetInt("channel", channel);
 
                 if (database != "FileSystemDatabase" && database != "GitDatabase")
                 {
