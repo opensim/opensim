@@ -410,29 +410,29 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             foreach(Object sceneobj in m_sceneList.Values)
             {
             	ScenePresence presence = ((Scene)sceneobj).GetScenePresence(clientUUID);
-            		if (presence != null)
-            		{
-            			IClientAPI client = presence.ControllingClient;
-            			m_log.Debug("[CONTENT MANAGEMENT] Unregistering channel with chat services.");
-            			client.OnChatFromViewer -= SimChatSent;	
-            			
-            			m_log.Debug("[CONTENT MANAGEMENT] Removing handlers to client");
-            			client.OnUpdatePrimScale -= UpdateSingleScale;
-            			client.OnUpdatePrimGroupScale -= UpdateMultipleScale;
-            			client.OnUpdatePrimGroupPosition -= UpdateMultiplePosition;
-            			client.OnUpdatePrimSinglePosition -= UpdateSinglePosition;
-            			client.OnUpdatePrimGroupRotation -= UpdateMultipleRotation;
-            			client.OnUpdatePrimSingleRotation -= UpdateSingleRotation;
-            			client.OnAddPrim -= UpdateNewParts;
-            			client.OnObjectDuplicate -= ObjectDuplicated;
-            			client.OnObjectDuplicateOnRay -= ObjectDuplicatedOnRay;
-            			client.OnUndo -= OnUnDid;
-            			//client.OnUpdatePrimGroupMouseRotation += m_innerScene.UpdatePrimRotation;
-            			return;
+                if (presence != null)
+                {
+                    IClientAPI client = presence.ControllingClient;
+                    m_log.Debug("[CONTENT MANAGEMENT] Unregistering channel with chat services.");
+                    client.OnChatFromViewer -= SimChatSent;	
+                    
+                    m_log.Debug("[CONTENT MANAGEMENT] Removing handlers to client");
+                    client.OnUpdatePrimScale -= UpdateSingleScale;
+                    client.OnUpdatePrimGroupScale -= UpdateMultipleScale;
+                    client.OnUpdatePrimGroupPosition -= UpdateMultiplePosition;
+                    client.OnUpdatePrimSinglePosition -= UpdateSinglePosition;
+                    client.OnUpdatePrimGroupRotation -= UpdateMultipleRotation;
+                    client.OnUpdatePrimSingleRotation -= UpdateSingleRotation;
+                    client.OnAddPrim -= UpdateNewParts;
+                    client.OnObjectDuplicate -= ObjectDuplicated;
+                    client.OnObjectDuplicateOnRay -= ObjectDuplicatedOnRay;
+                    client.OnUndo -= OnUnDid;
+                    //client.OnUpdatePrimGroupMouseRotation += m_innerScene.UpdatePrimRotation;
+                    return;
             	}
             }
         }
-
+        
         protected void UpdateMultiplePosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
         {
             Work moreWork = new Work();
