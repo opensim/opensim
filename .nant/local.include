@@ -27,6 +27,21 @@
    <touch file="${projectdir}/bin/startup_commands.txt" />
 </target>
 
+<target name="test" depends="build">
+      <nunit2 failonerror="true" verbose="true">
+      <formatter type="Plain" />
+      <test>
+        <assemblies>
+          <include name="./bin/OpenSim.Tests.Framework.dll" />
+          <include name="./bin/OpenSim.Tests.Region.ScriptEngine.Common.Tests.dll" />
+          <include name="./bin/OpenSim.Tests.Region.ScriptEngine.Shared.Tests.dll" />
+          <include name="./bin/OpenSim.Tests.Region.ScriptEngine.Shared.CodeTools.dll" />
+          <include name="./bin/OpenSim.Region.Environment.dll" />
+        </assemblies>
+      </test>
+    </nunit2>
+</target>
+
 <target name="dist" depends="distdir">
     <zip zipfile="${projectdir}.zip">
     <fileset basedir=".">
