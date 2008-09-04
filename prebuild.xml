@@ -124,19 +124,19 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Tests" path="OpenSim/Tests/OpenSim/Framework" type="Library">
+    <Project name="OpenSim.Tests.Framework" path="OpenSim/Tests/Framework" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../../bin/</OutputPath>
+          <OutputPath>../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../bin/</ReferencePath>
+      <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
