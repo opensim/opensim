@@ -215,13 +215,33 @@ namespace OpenSim.Grid.UserServer
                 // Customise the response
                 //CFK: This is redundant and the next message should always appear.
                 //CFK: m_log.Info("[LOGIN]: Home Location");
-                response.Home =
-                    string.Format(
-                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
-                        (HomeInfo.regionLocX*Constants.RegionSize),
-                        (HomeInfo.regionLocY*Constants.RegionSize),
-                        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
-                        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+                if (HomeInfo != null)
+                {
+                    response.Home =
+                        string.Format(
+                            "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                            (HomeInfo.regionLocX*Constants.RegionSize),
+                            (HomeInfo.regionLocY*Constants.RegionSize),
+                            theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                            theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+                }
+                else
+                {
+                    // Emergency mode: Home-region isn't available, so we can't request the region info.
+                    // Use the stored home regionHandle instead.
+                    // NOTE: If the home-region moves, this will be wrong until the users update their user-profile again
+                    ulong regionX = theUser.HomeRegion >> 32;
+                    ulong regionY = theUser.HomeRegion & 0xffffffff;
+                    response.Home =
+                        string.Format(
+                            "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                            regionX, regionY,
+                            theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                            theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+                    m_log.InfoFormat("[LOGIN] Home region of user {0} {1} is not available; using computed region position {2} {3}",
+                                     theUser.FirstName, theUser.SurName,
+                                     regionX, regionY);
+                }
 
                 // Destination
                 //CFK: The "Notifying" message always seems to appear, so subsume the data from this message into
