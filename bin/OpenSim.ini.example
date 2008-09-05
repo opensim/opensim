@@ -349,14 +349,28 @@ access_password = unknown
 region_file_template = "{0}x{1}-{2}.xml"
 
 [RestPlugins]
+; Change this to true to enable REST Plugins. This must be true if you wish to use 
+; REST Region or REST Asset and Inventory Plugins
 enabled = false
 password = unknown
 prefix = /admin
 
 
 [RestRegionPlugin]
+; Change this to true to enable the REST Region Plugin
 enabled = false
 
+[RestHandler]
+; Change this to true to enable the REST Asset and Inventory Plugin
+enabled = false
+authenticate=true
+secured=true
+extended-escape=true
+realm=OpenSim REST
+dump-asset=false
+path-fill=true
+dump-line-size=32
+flush-on-error=true
 
 ; Uncomment the following for IRC bridge
 ; experimental, so if it breaks... keep both parts... yada yada
