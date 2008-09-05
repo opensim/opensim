@@ -6441,8 +6441,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.AgentData.AgentID = m_agentId;
             reply.Data.ParcelID = parcelID;
             reply.Data.OwnerID = land.OwnerID;
-            reply.Data.Name = Helpers.StringToField(land.Name);
-            reply.Data.Desc = Helpers.StringToField(land.Description);
+            reply.Data.Name = Helpers.StringToField(land.Name != null ? land.Name : "");
+            reply.Data.Desc = Helpers.StringToField(land.Description != null ? land.Description : "");
             reply.Data.ActualArea = land.Area;
             reply.Data.BillableArea = land.Area; // TODO: what is this?
 
@@ -6459,7 +6459,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.Data.GlobalX = info.RegionLocX * Constants.RegionSize + x;
             reply.Data.GlobalY = info.RegionLocY * Constants.RegionSize + y;
             reply.Data.GlobalZ = pos.Z;
-            reply.Data.SimName = Helpers.StringToField(info.RegionName);
+            reply.Data.SimName = Helpers.StringToField(info.RegionName != null ? info.RegionName : "");
             reply.Data.SnapshotID = land.SnapshotID;
             reply.Data.Dwell = 0; // TODO: not implemented yet
             reply.Data.SalePrice = land.SalePrice;
