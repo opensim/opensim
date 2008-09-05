@@ -4431,7 +4431,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     int index = str.IndexOf(delimiters[i].ToString());
                     bool found = index != -1;
-                    if (found)
+                    if (found && String.Empty != delimiters[i].ToString())
                     {
                         if ((cindex > index) || (cindex == -1))
                         {
@@ -4446,9 +4446,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (cindex > 0)
                     {
                         ret.Add(str.Substring(0, cindex));
-                        if (spacers.Contains(cdeli))
+                        // Cannot use spacers.Contains() because spacers may be either type String or LSLString
+                        for (int j = 0; j < spacers.Length; j++)
                         {
-                            ret.Add(cdeli);
+                            if (spacers.Data[j].ToString() == cdeli)
+                            {
+                                ret.Add(cdeli);
+                                break;
+                            }
                         }
                     }
                     if (cindex == 0 && spacers.Contains(cdeli))
