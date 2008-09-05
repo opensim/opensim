@@ -421,6 +421,58 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
+        // Member functions to obtain item as specific types.
+        // For cases where implicit conversions would apply if items
+        // were not in a list (e.g. integer to float, but not float
+        // to integer) functions check for alternate types so as to
+        // down-cast from Object to the correct type.
+        // Note: no checks for item index being valid are performed
+
+            public LSL_Types.LSLFloat GetLSLFloatItem( int itemIndex )
+            {
+                if (m_data[itemIndex] is LSL_Types.LSLInteger)
+                {
+                    return (LSL_Types.LSLInteger)m_data[itemIndex];
+                }
+                else
+                {
+                    return (LSL_Types.LSLFloat)m_data[itemIndex];
+                }
+            }
+
+            public LSL_Types.LSLString GetLSLStringItem(int itemIndex)
+            {
+              if (m_data[itemIndex] is LSL_Types.key)
+              {
+                return (LSL_Types.key)m_data[itemIndex];
+              }
+              else
+              {
+                return (LSL_Types.LSLString)m_data[itemIndex];
+              }
+            }
+
+            public LSL_Types.LSLInteger GetLSLIntegerItem(int itemIndex)
+            {
+              return (LSL_Types.LSLInteger)m_data[itemIndex];
+            }
+
+            public LSL_Types.Vector3 GetVector3Item(int itemIndex)
+            {
+              return (LSL_Types.Vector3)m_data[itemIndex];
+            }
+
+            public LSL_Types.Quaternion GetQuaternionItem(int itemIndex)
+            {
+              return (LSL_Types.Quaternion)m_data[itemIndex];
+            }
+
+            public LSL_Types.key GetKeyItem(int itemIndex)
+            {
+              return (LSL_Types.key)m_data[itemIndex];
+            }
+
+
             public static list operator +(list a, list b)
             {
                 object[] tmp;
@@ -1164,7 +1216,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public implicit operator String(key k)
             {
-                return k.value;
+              return k.value;
+            }
+
+            static public implicit operator LSLString(key k)
+            {
+              return k.value;
             }
 
             public static bool operator ==(key k1, key k2)
@@ -1188,6 +1245,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public override int GetHashCode()
             {
                 return value.GetHashCode();
+            }
+
+            public override string ToString()
+            {
+                return value;
             }
 
             #endregion

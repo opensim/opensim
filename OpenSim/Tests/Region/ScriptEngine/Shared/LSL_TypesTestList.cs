@@ -157,6 +157,105 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
           Assert.AreEqual(testValue, (LSL_Types.Quaternion)testList.Data[0]);
         }
 
+//====================================================================================
 
+        /// <summary>
+        /// Tests GetLSLIntegerItem for LSLInteger item.
+        /// </summary>
+        [Test]
+        public void TestGetLSLIntegerItemForLSLIntegerItem()
+        {
+          LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(999911);
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, testList.GetLSLIntegerItem(0));
+        }
+
+        /// <summary>
+        /// Tests GetLSLFloatItem for LSLFloat item.
+        /// </summary>
+        [Test]
+        public void TestGetLSLFloatItemForLSLFloatItem()
+        {
+          LSL_Types.LSLFloat testValue = new LSL_Types.LSLFloat(321.45687876);
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, testList.GetLSLFloatItem(0));
+        }
+
+        /// <summary>
+        /// Tests GetLSLFloatItem for LSLInteger item.
+        /// </summary>
+        [Test]
+        public void TestGetLSLFloatItemForLSLIntegerItem()
+        {
+          LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(3060987);
+          LSL_Types.LSLFloat testFloatValue = new LSL_Types.LSLFloat(testValue);
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testFloatValue, testList.GetLSLFloatItem(0));
+        }
+
+        /// <summary>
+        /// Tests GetLSLStringItem for LSLString item.
+        /// </summary>
+        [Test]
+        public void TestGetLSLStringItemForLSLStringItem()
+        {
+          LSL_Types.LSLString testValue = new LSL_Types.LSLString("hello all");
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, testList.GetLSLStringItem(0));
+        }
+
+        /// <summary>
+        /// Tests GetLSLStringItem for key item.
+        /// </summary>
+        [Test]
+        public void TestGetLSLStringItemForKeyItem()
+        {
+          LSL_Types.key testValue
+                = new LSL_Types.key("98000000-0000-2222-3333-100000001000");
+          LSL_Types.LSLString testStringValue = new LSL_Types.LSLString(testValue);
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testStringValue, testList.GetLSLStringItem(0));
+        }
+
+        /// <summary>
+        /// Tests GetVector3Item for Vector3 item.
+        /// </summary>
+        [Test]
+        public void TestGetVector3ItemForVector3Item()
+        {
+          LSL_Types.Vector3 testValue = new LSL_Types.Vector3(92.34, 58.98754, -0.10987);
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, testList.GetVector3Item(0));
+        }
+        /// <summary>
+        /// Tests GetQuaternionItem for Quaternion item.
+        /// </summary>
+        [Test]
+        public void TestGetQuaternionItemForQuaternionItem()
+        {
+          LSL_Types.Quaternion testValue = new LSL_Types.Quaternion(12.64, 59.43723, 765.3421, 4.00987);
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, testList.GetQuaternionItem(0));
+        }
+
+        /// <summary>
+        /// Tests GetKeyItem for key item.
+        /// </summary>
+        [Test]
+        public void TestGetKeyItemForKeyItem()
+        {
+          LSL_Types.key testValue
+                = new LSL_Types.key("00000000-0000-2222-3333-100000001012");
+          LSL_Types.list testList = new LSL_Types.list(testValue);
+
+          Assert.AreEqual(testValue, testList.GetKeyItem(0));
+        }
     }
 }
