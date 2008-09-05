@@ -715,3 +715,7 @@ password = http://127.0.0.1/password
 [OpenGridProtocol]
 ;On/true or Off/false
 ogp_enabled=false
+
+;Name Prefix/suffix when using OGP
+ogp_firstname_prefix=""
+ogp_lastname_suffix="_EXTERNAL"

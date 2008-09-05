@@ -90,6 +90,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
         private Dictionary<string, AgentCircuitData> CapsLoginID = new Dictionary<string, AgentCircuitData>();
         private Dictionary<LLUUID, OGPState> m_OGPState = new Dictionary<LLUUID, OGPState>();
+        private string LastNameSuffix = "_EXTERNAL";
+        private string FirstNamePrefix = "";
 
         #region IRegionModule Members
 
@@ -107,6 +109,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             if (cfg != null)
             {
                 enabled = cfg.GetBoolean("ogp_enabled", false);
+                LastNameSuffix = cfg.GetString("ogp_lastname_suffix", "_EXTERNAL");
+                FirstNamePrefix = cfg.GetString("ogp_firstname_prefix", "");
                 if (enabled)
                 {
                     m_log.Warn("[OGP]: Open Grid Protocol is on, Listening for Clients on /agent/");
@@ -234,6 +238,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             string FirstName = requestMap["first_name"].AsString();
             string LastName = requestMap["last_name"].AsString();
+
+            FirstName = FirstNamePrefix + FirstName;
+            LastName = LastName + LastNameSuffix;
 
             OGPState userState = GetOGPState(LocalAgentID);
 
