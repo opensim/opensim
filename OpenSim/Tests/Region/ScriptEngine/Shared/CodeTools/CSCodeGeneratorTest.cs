@@ -349,15 +349,27 @@ default
     }
 }
 ";
-            string expected =
-                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
-                "\n        {" +
-                "\n            LSL_Types.LSLString s1 = new LSL_Types.LSLString(\"this is a string.\");" +
-                "\n            LSL_Types.LSLString s2 = new LSL_Types.LSLString(\"this is a string \") + new LSL_Types.LSLString(\"with an escaped \\\" inside it.\");" +
-                "\n            s1 = s2 + new LSL_Types.LSLString(\" and this \") + new LSL_Types.LSLString(\"is a string with // comments.\");" +
-                "\n            LSL_Types.LSLString onemore = new LSL_Types.LSLString(\"[^@]\");" +
-                "\n            LSL_Types.LSLString multiline = new LSL_Types.LSLString(\"Good evening Sir,\n        my name is Steve.\n        I come from a rough area.\n        I used to be addicted to crack\n        but now I am off it and trying to stay clean.\n        That is why I am selling magazine subscriptions.\");" +
-                "\n        }\n";
+
+            string expected = @"
+        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
+        {
+            LSL_Types.LSLString s1 = new LSL_Types.LSLString(""this is a string."");
+            LSL_Types.LSLString s2 = new LSL_Types.LSLString(""this is a string "") + new LSL_Types.LSLString(""with an escaped \"" inside it."");
+            s1 = s2 + new LSL_Types.LSLString("" and this "") + new LSL_Types.LSLString(""is a string with // comments."");
+            LSL_Types.LSLString onemore = new LSL_Types.LSLString(""[\^@]"");
+            LSL_Types.LSLString multiline = new LSL_Types.LSLString(""Good evening Sir,\n        my name is Steve.\n        I come from a rough area.\n        I used to be addicted to crack\n        but now I am off it and trying to stay clean.\n        That is why I am selling magazine subscriptions."");
+        }
+";
+
+            //string expected =
+            //    "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+            //    "\n        {" +
+            //    "\n            LSL_Types.LSLString s1 = new LSL_Types.LSLString(\"this is a string.\");" +
+            //    "\n            LSL_Types.LSLString s2 = new LSL_Types.LSLString(\"this is a string \") + new LSL_Types.LSLString(\"with an escaped \\\" inside it.\");" +
+            //    "\n            s1 = s2 + new LSL_Types.LSLString(\" and this \") + new LSL_Types.LSLString(\"is a string with // comments.\");" +
+            //    "\n            LSL_Types.LSLString onemore = new LSL_Types.LSLString(\"[\\^@]\");" +
+            //    "\n            LSL_Types.LSLString multiline = new LSL_Types.LSLString(\"Good evening Sir,\n        my name is Steve.\n        I come from a rough area.\n        I used to be addicted to crack\n        but now I am off it and trying to stay clean.\n        That is why I am selling magazine subscriptions.\");" +
+            //    "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
