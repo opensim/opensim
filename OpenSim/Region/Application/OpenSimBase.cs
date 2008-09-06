@@ -532,18 +532,18 @@ namespace OpenSim
             // and has to happen before the region is registered with the grid.
             scene.CreateTerrainTexture(false);
 
-            //try
-            //{
+            try
+            {
                 scene.RegisterRegionWithGrid();
-            //}
-            //catch (Exception e)
-            //{
-           //     m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e);
 
                 // Carrying on now causes a lot of confusion down the
                 // line - we need to get the user's attention
-           //     System.Environment.Exit(1);
-            //}
+                System.Environment.Exit(1);
+            }
 
             // We need to do this after we've initialized the
             // scripting engines.
