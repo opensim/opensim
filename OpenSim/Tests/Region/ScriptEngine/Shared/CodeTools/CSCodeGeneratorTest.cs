@@ -50,11 +50,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
     }
 }
 ";
-            string expected = @"
-        public void default_event_state_entry()
-        {
-        }
-";
+            string expected = 
+                "\n        public void default_event_state_entry()" +
+                "\n        {" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -899,20 +898,19 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);
-            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);
-            while (x)
-                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""To infinity, and beyond!""));
-            while (new LSL_Types.LSLInteger(0) || (x && new LSL_Types.LSLInteger(0)))
-            {
-                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Never say never.""));
-                return ;
-            }
-        }
-";
+            string expected =
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);" +
+                "\n            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);" +
+                "\n            while (x)" +
+                "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"To infinity, and beyond!\"));" +
+                "\n            while (new LSL_Types.LSLInteger(0) || (x && new LSL_Types.LSLInteger(0)))" +
+                "\n            {" +
+                "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"Never say never.\"));" +
+                "\n                return ;" +
+                "\n            }" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -942,22 +940,21 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);
-            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);
-            do
-                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""And we're doing...""));
-            while (x);
-            do
-            {
-                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""I like it here. I wish we could stay here forever.""));
-                y--;
-            }
-            while (y);
-        }
-";
+            string expected = 
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);" +
+                "\n            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);" +
+                "\n            do" +
+                "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"And we're doing...\"));" +
+                "\n            while (x);" +
+                "\n            do" +
+                "\n            {" +
+                "\n                llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"I like it here. I wish we could stay here forever.\"));" +
+                "\n                y--;" +
+                "\n            }" +
+                "\n            while (y);" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -987,22 +984,21 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);
-            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);
-            for (x = new LSL_Types.LSLInteger(10); x >= new LSL_Types.LSLInteger(0); x--)
-            {
-                llOwnerSay(new LSL_Types.LSLString(""Launch in T minus "") + x);
-                IncreaseRocketPower();
-            }
-            for (x = new LSL_Types.LSLInteger(0), y = new LSL_Types.LSLInteger(6); y > new LSL_Types.LSLInteger(0) && x != y; x++, y--)
-                llOwnerSay(new LSL_Types.LSLString(""Hi "") + x + new LSL_Types.LSLString("", "") + y);
-            for (x = new LSL_Types.LSLInteger(0), y = new LSL_Types.LSLInteger(6); !y; x++, y--)
-                llOwnerSay(new LSL_Types.LSLString(""Hi "") + x + new LSL_Types.LSLString("", "") + y);
-        }
-";
+            string expected = 
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);" +
+                "\n            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(0);" +
+                "\n            for (x = new LSL_Types.LSLInteger(10); x >= new LSL_Types.LSLInteger(0); x--)" +
+                "\n            {" +
+                "\n                llOwnerSay(new LSL_Types.LSLString(\"Launch in T minus \") + x);" +
+                "\n                IncreaseRocketPower();" +
+                "\n            }" +
+                "\n            for (x = new LSL_Types.LSLInteger(0), y = new LSL_Types.LSLInteger(6); y > new LSL_Types.LSLInteger(0) && x != y; x++, y--)" +
+                "\n                llOwnerSay(new LSL_Types.LSLString(\"Hi \") + x + new LSL_Types.LSLString(\", \") + y);" +
+                "\n            for (x = new LSL_Types.LSLInteger(0), y = new LSL_Types.LSLInteger(6); !y; x++, y--)" +
+                "\n                llOwnerSay(new LSL_Types.LSLString(\"Hi \") + x + new LSL_Types.LSLString(\", \") + y);" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1036,26 +1032,25 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            LSL_Types.LSLFloat y = new LSL_Types.LSLFloat(1.0);
-            y = new LSL_Types.LSLFloat(1.0E3);
-            y = new LSL_Types.LSLFloat(1.0e3);
-            y = new LSL_Types.LSLFloat(1.0E+3);
-            y = new LSL_Types.LSLFloat(1.0e+3);
-            y = new LSL_Types.LSLFloat(1.0E-3);
-            y = new LSL_Types.LSLFloat(1.0e-3);
-            y = -new LSL_Types.LSLFloat(1.0E3);
-            y = -new LSL_Types.LSLFloat(1.0e3);
-            y = -new LSL_Types.LSLFloat(1.0E+3);
-            y = -new LSL_Types.LSLFloat(1.0e+3);
-            y = -new LSL_Types.LSLFloat(1.0E-3);
-            y = -new LSL_Types.LSLFloat(1.0e-3);
-            y = new LSL_Types.LSLFloat(12.0) + -new LSL_Types.LSLFloat(1.0E3) - new LSL_Types.LSLFloat(1.0e-2);
-            LSL_Types.Vector3 v = new LSL_Types.Vector3(new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0));
-        }
-";
+            string expected =
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            LSL_Types.LSLFloat y = new LSL_Types.LSLFloat(1.0);" +
+                "\n            y = new LSL_Types.LSLFloat(1.0E3);" +
+                "\n            y = new LSL_Types.LSLFloat(1.0e3);" +
+                "\n            y = new LSL_Types.LSLFloat(1.0E+3);" +
+                "\n            y = new LSL_Types.LSLFloat(1.0e+3);" +
+                "\n            y = new LSL_Types.LSLFloat(1.0E-3);" +
+                "\n            y = new LSL_Types.LSLFloat(1.0e-3);" +
+                "\n            y = -new LSL_Types.LSLFloat(1.0E3);" +
+                "\n            y = -new LSL_Types.LSLFloat(1.0e3);" +
+                "\n            y = -new LSL_Types.LSLFloat(1.0E+3);" +
+                "\n            y = -new LSL_Types.LSLFloat(1.0e+3);" +
+                "\n            y = -new LSL_Types.LSLFloat(1.0E-3);" +
+                "\n            y = -new LSL_Types.LSLFloat(1.0e-3);" +
+                "\n            y = new LSL_Types.LSLFloat(12.0) + -new LSL_Types.LSLFloat(1.0E3) - new LSL_Types.LSLFloat(1.0e-2);" +
+                "\n            LSL_Types.Vector3 v = new LSL_Types.Vector3(new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0));" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1081,18 +1076,17 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(2);
-            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(1);
-            LSL_Types.LSLInteger z = x ^ y;
-            x = ~z;
-            x = ~(y && z);
-            y = x >> z;
-            z = y << x;
-        }
-";
+            string expected =
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(2);" +
+                "\n            LSL_Types.LSLInteger y = new LSL_Types.LSLInteger(1);" +
+                "\n            LSL_Types.LSLInteger z = x ^ y;" +
+                "\n            x = ~z;" +
+                "\n            x = ~(y && z);" +
+                "\n            y = x >> z;" +
+                "\n            z = y << x;" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1123,22 +1117,21 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            LSL_Types.LSLString s = new LSL_Types.LSLString("""");
-            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);
-            s = (LSL_Types.LSLString) (x++);
-            s = (LSL_Types.LSLString) (x);
-            s = (LSL_Types.LSLString) (new LSL_Types.Vector3(new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0)));
-            s = (LSL_Types.LSLString) (new LSL_Types.Quaternion(new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(1.0)));
-            s = (LSL_Types.LSLInteger) (new LSL_Types.LSLString(""1""));
-            s = (LSL_Types.LSLString) (llSomethingThatReturnsInteger());
-            s = (LSL_Types.LSLString) (new LSL_Types.LSLInteger(134));
-            s = (LSL_Types.LSLString) (x ^ y | (z && l)) + (LSL_Types.LSLString) (x + y - new LSL_Types.LSLInteger(13));
-            llOwnerSay(new LSL_Types.LSLString(""s is: "") + s);
-        }
-";
+            string expected =
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            LSL_Types.LSLString s = new LSL_Types.LSLString(\"\");" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);" +
+                "\n            s = (LSL_Types.LSLString) (x++);" +
+                "\n            s = (LSL_Types.LSLString) (x);" +
+                "\n            s = (LSL_Types.LSLString) (new LSL_Types.Vector3(new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0)));" +
+                "\n            s = (LSL_Types.LSLString) (new LSL_Types.Quaternion(new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(1.0)));" +
+                "\n            s = (LSL_Types.LSLInteger) (new LSL_Types.LSLString(\"1\"));" +
+                "\n            s = (LSL_Types.LSLString) (llSomethingThatReturnsInteger());" +
+                "\n            s = (LSL_Types.LSLString) (new LSL_Types.LSLInteger(134));" +
+                "\n            s = (LSL_Types.LSLString) (x ^ y | (z && l)) + (LSL_Types.LSLString) (x + y - new LSL_Types.LSLInteger(13));" +
+                "\n            llOwnerSay(new LSL_Types.LSLString(\"s is: \") + s);" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1168,18 +1161,17 @@ state statetwo
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Going to state 'statetwo'""));
-            state(""statetwo"");
-        }
-        public void statetwo_event_state_entry()
-        {
-            llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(""Going to the default state""));
-            state(""default"");
-        }
-";
+            string expected = 
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"Going to state 'statetwo'\"));" +
+                "\n            state(\"statetwo\");" +
+                "\n        }" +
+                "\n        public void statetwo_event_state_entry()" +
+                "\n        {" +
+                "\n            llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"Going to the default state\"));" +
+                "\n            state(\"default\");" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1203,16 +1195,15 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x23);
-            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2f34B);
-            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2F34b);
-            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2F34B);
-            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2f34b);
-        }
-";
+            string expected = 
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x23);" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2f34B);" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2F34b);" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2F34B);" +
+                "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x2f34b);" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1235,15 +1226,14 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            goto here;
-            llOwnerSay(new LSL_Types.LSLString(""Uh oh, the jump didn't work""));
-            here:
-            llOwnerSay(new LSL_Types.LSLString(""After the jump""));
-        }
-";
+            string expected =
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            goto here;" +
+                "\n            llOwnerSay(new LSL_Types.LSLString(\"Uh oh, the jump didn't work\"));" +
+                "\n            here:" +
+                "\n            llOwnerSay(new LSL_Types.LSLString(\"After the jump\"));" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1269,25 +1259,24 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            LSL_Types.LSLInteger i = 0;
-            LSL_Types.LSLInteger j = new LSL_Types.LSLInteger(14);
-            LSL_Types.LSLFloat f = 0.0;
-            LSL_Types.LSLFloat g = new LSL_Types.LSLFloat(14.0);
-            LSL_Types.LSLString s = """";
-            LSL_Types.LSLString t = new LSL_Types.LSLString(""Hi there"");
-            LSL_Types.list l = new LSL_Types.list();
-            LSL_Types.list m = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger(2), new LSL_Types.LSLInteger(3));
-            LSL_Types.Vector3 v = new LSL_Types.Vector3(0.0, 0.0, 0.0);
-            LSL_Types.Vector3 w = new LSL_Types.Vector3(new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(0.1), new LSL_Types.LSLFloat(0.5));
-            LSL_Types.Quaternion r = new LSL_Types.Quaternion(0.0, 0.0, 0.0, 0.0);
-            LSL_Types.Quaternion u = new LSL_Types.Quaternion(new LSL_Types.LSLFloat(0.8), new LSL_Types.LSLFloat(0.7), new LSL_Types.LSLFloat(0.6), llSomeFunc());
-            LSL_Types.LSLString k = """";
-            LSL_Types.LSLString n = new LSL_Types.LSLString(""ping"");
-        }
-";
+            string expected = 
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            LSL_Types.LSLInteger i = 0;" +
+                "\n            LSL_Types.LSLInteger j = new LSL_Types.LSLInteger(14);" +
+                "\n            LSL_Types.LSLFloat f = 0.0;" +
+                "\n            LSL_Types.LSLFloat g = new LSL_Types.LSLFloat(14.0);" +
+                "\n            LSL_Types.LSLString s = \"\";" +
+                "\n            LSL_Types.LSLString t = new LSL_Types.LSLString(\"Hi there\");" +
+                "\n            LSL_Types.list l = new LSL_Types.list();" +
+                "\n            LSL_Types.list m = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger(2), new LSL_Types.LSLInteger(3));" +
+                "\n            LSL_Types.Vector3 v = new LSL_Types.Vector3(0.0, 0.0, 0.0);" +
+                "\n            LSL_Types.Vector3 w = new LSL_Types.Vector3(new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(0.1), new LSL_Types.LSLFloat(0.5));" +
+                "\n            LSL_Types.Quaternion r = new LSL_Types.Quaternion(0.0, 0.0, 0.0, 0.0);" +
+                "\n            LSL_Types.Quaternion u = new LSL_Types.Quaternion(new LSL_Types.LSLFloat(0.8), new LSL_Types.LSLFloat(0.7), new LSL_Types.LSLFloat(0.6), llSomeFunc());" +
+                "\n            LSL_Types.LSLString k = \"\";" +
+                "\n            LSL_Types.LSLString n = new LSL_Types.LSLString(\"ping\");" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1311,16 +1300,15 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
-        {
-            LSL_Types.LSLInteger x = 0;
-            LSL_Types.LSLInteger y = 0;
-            x = y = new LSL_Types.LSLInteger(5);
-            x += y -= new LSL_Types.LSLInteger(5);
-            llOwnerSay(new LSL_Types.LSLString(""x is: "") + (LSL_Types.LSLString) (x) + new LSL_Types.LSLString("", y is: "") + (LSL_Types.LSLString) (y));
-        }
-";
+            string expected = 
+                "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
+                "\n        {" +
+                "\n            LSL_Types.LSLInteger x = 0;" +
+                "\n            LSL_Types.LSLInteger y = 0;" +
+                "\n            x = y = new LSL_Types.LSLInteger(5);" +
+                "\n            x += y -= new LSL_Types.LSLInteger(5);" +
+                "\n            llOwnerSay(new LSL_Types.LSLString(\"x is: \") + (LSL_Types.LSLString) (x) + new LSL_Types.LSLString(\", y is: \") + (LSL_Types.LSLString) (y));" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1340,12 +1328,11 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_state_entry()
-        {
-            LSL_Types.Vector3 v = new LSL_Types.Vector3(x, y, -new LSL_Types.LSLFloat(0.5));
-        }
-";
+            string expected = 
+                "\n        public void default_event_state_entry()" +
+                "\n        {" +
+                "\n            LSL_Types.Vector3 v = new LSL_Types.Vector3(x, y, -new LSL_Types.LSLFloat(0.5));" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1370,17 +1357,16 @@ default
     }
 }
 ";
-            string expected = @"
-        public void default_event_state_entry()
-        {
-            LSL_Types.Vector3 v = llGetPos();
-            v.z += new LSL_Types.LSLInteger(4);
-            v.z -= new LSL_Types.LSLInteger(4);
-            v.z *= new LSL_Types.LSLInteger(4);
-            v.z /= new LSL_Types.LSLInteger(4);
-            v.z %= new LSL_Types.LSLInteger(4);
-        }
-";
+            string expected = 
+                "\n        public void default_event_state_entry()" +
+                "\n        {" +
+                "\n            LSL_Types.Vector3 v = llGetPos();" +
+                "\n            v.z += new LSL_Types.LSLInteger(4);" +
+                "\n            v.z -= new LSL_Types.LSLInteger(4);" +
+                "\n            v.z *= new LSL_Types.LSLInteger(4);" +
+                "\n            v.z /= new LSL_Types.LSLInteger(4);" +
+                "\n            v.z %= new LSL_Types.LSLInteger(4);" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1398,13 +1384,12 @@ default
     }
 }";
 
-            string expected = @"
-        public void default_event_state_entry()
-        {
-            while (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0))
-                ;
-        }
-";
+            string expected =
+                "\n        public void default_event_state_entry()" +
+                "\n        {" +
+                "\n            while (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0))" +
+                "\n                ;" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1423,14 +1408,13 @@ default
     }
 }";
 
-            string expected = @"
-        public void default_event_state_entry()
-        {
-            do
-                ;
-            while (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0));
-        }
-";
+            string expected =
+                "\n        public void default_event_state_entry()" +
+                "\n        {" +
+                "\n            do" +
+                "\n                ;" +
+                "\n            while (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0));" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1448,13 +1432,12 @@ default
     }
 }";
 
-            string expected = @"
-        public void default_event_state_entry()
-        {
-            if (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0))
-                ;
-        }
-";
+            string expected = 
+                "\n        public void default_event_state_entry()" +
+                "\n        {" +
+                "\n            if (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0))" +
+                "\n                ;" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1473,15 +1456,14 @@ default
     }
 }";
 
-            string expected = @"
-        public void default_event_state_entry()
-        {
-            if (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0))
-                ;
-            else
-                ;
-        }
-";
+            string expected =
+                "\n        public void default_event_state_entry()" +
+                "\n        {" +
+                "\n            if (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0))" +
+                "\n                ;" +
+                "\n            else" +
+                "\n                ;" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
@@ -1499,13 +1481,12 @@ default
     }
 }";
 
-            string expected = @"
-        public void default_event_state_entry()
-        {
-            for (x = new LSL_Types.LSLInteger(4); new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0); x += new LSL_Types.LSLInteger(2))
-                ;
-        }
-";
+            string expected = 
+                "\n        public void default_event_state_entry()" +
+                "\n        {" +
+                "\n            for (x = new LSL_Types.LSLInteger(4); new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0); x += new LSL_Types.LSLInteger(2))" +
+                "\n                ;" +
+                "\n        }\n";
 
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
