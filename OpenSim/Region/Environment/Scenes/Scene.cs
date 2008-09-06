@@ -760,7 +760,6 @@ namespace OpenSim.Region.Environment.Scenes
                     if (m_frame % m_update_backup == 0)
                     {
                         UpdateStorageBackup();
-
                     }
 
                     if (m_frame % m_update_terrain == 0)

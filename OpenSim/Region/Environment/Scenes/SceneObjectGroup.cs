@@ -105,7 +105,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected Dictionary<LLUUID, SceneObjectPart> m_parts = new Dictionary<LLUUID, SceneObjectPart>();
 
-        private bool m_deleted = false;
         protected ulong m_regionHandle;
         protected SceneObjectPart m_rootPart;
         // private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
@@ -961,7 +960,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void FakeDeleteGroup()
         {
-            m_deleted = true;
+			// If there are any updates queued for this object when the 'fake' delete happens, then make sure
+			// that they don't happen, otherwise the deleted objects will reappear
+            m_isDeleted = true;
 
             foreach (SceneObjectPart part in m_parts.Values)
             {
@@ -1499,10 +1500,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //if (part.UpdateFlag == 0) part.UpdateFlag = 1;
                     //}
 
-
-
-                    checkAtTargets();
-
+                checkAtTargets();
 
                 if ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
@@ -1548,16 +1546,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
-            // If we wre in the delete queue, this will be set
-            // A full update now would make the prim reappear
-            // after KillObject was sent via FakeDeleteGroup
-            // causing flickering and delays in deletion.
-            // This leads to users clicking delete multiple times
-            // which can crash the session. So, avoid it.
-            //
-            if (m_deleted)
-                return;
-
             checkAtTargets();
             lock (m_parts)
             {
@@ -1572,7 +1560,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Schedule a terse update for this scene object
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
-        {
+        {		
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)

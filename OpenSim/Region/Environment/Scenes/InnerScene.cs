@@ -142,7 +142,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (EntityBase entity in updateEntities)
             {
-                entity.Update();
+                if (!entity.IsDeleted)                        				
+					entity.Update();
             }
         }
 
