@@ -960,8 +960,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void FakeDeleteGroup()
         {
-			// If there are any updates queued for this object when the 'fake' delete happens, then make sure
-			// that they don't happen, otherwise the deleted objects will reappear
+            // If there are any updates queued for this object when the 'fake' delete happens, then make sure
+            // that they don't happen, otherwise the deleted objects will reappear
             m_isDeleted = true;
 
             foreach (SceneObjectPart part in m_parts.Values)
