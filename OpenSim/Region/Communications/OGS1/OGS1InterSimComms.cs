@@ -202,13 +202,13 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
 
-        public bool ExpectAvatarCrossing(ulong regionHandle, Guid agentID, Vector3 position, bool isFlying)
+        public bool ExpectAvatarCrossing(ulong regionHandle, Guid agentID, sLLVector3 position, bool isFlying)
         {
             try
             {
                 return
                     InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, new UUID(agentID),
-                                                                       position,
+                                                                       new Vector3(position.x, position.y, position.z),
                                                                        isFlying);
             }
             catch (RemotingException e)
@@ -218,13 +218,13 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool InformRegionPrim(ulong regionHandle, Guid SceneObjectGroupID, Vector3 position, bool isPhysical)
+        public bool InformRegionPrim(ulong regionHandle, Guid SceneObjectGroupID, sLLVector3 position, bool isPhysical)
         {
             try
             {
                 return
                     InterRegionSingleton.Instance.InformRegionPrim(regionHandle, new UUID(SceneObjectGroupID),
-                                                                   position,
+                                                                   new Vector3(position.x, position.y, position.z),
                                                                    isPhysical);
             }
             catch (RemotingException e)

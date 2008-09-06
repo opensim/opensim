@@ -1862,12 +1862,12 @@ namespace OpenSim.Region.Environment.Scenes
                 cadu.AgentID = UUID.Guid;
                 cadu.alwaysrun = m_setAlwaysRun;
                 cadu.AVHeight = m_avHeight;
-                Vector3 tempCameraCenter = new Vector3(m_CameraCenter.X, m_CameraCenter.Y, m_CameraCenter.Z);
+                sLLVector3 tempCameraCenter = new sLLVector3(new Vector3(m_CameraCenter.X, m_CameraCenter.Y, m_CameraCenter.Z));
                 cadu.cameraPosition = tempCameraCenter;
                 cadu.drawdistance = m_DrawDistance;
                 cadu.godlevel = m_godlevel;
                 cadu.GroupAccess = 0;
-                cadu.Position = AbsolutePosition;
+                cadu.Position = new sLLVector3(AbsolutePosition);
                 cadu.regionHandle = m_scene.RegionInfo.RegionHandle;
                 float multiplier = 1;
                 int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
@@ -1887,7 +1887,7 @@ namespace OpenSim.Region.Environment.Scenes
 
 
 
-                cadu.Velocity = Velocity;
+                cadu.Velocity = new sLLVector3(Velocity);
                 m_scene.SendOutChildAgentUpdates(cadu,this);
                 m_LastChildAgentUpdatePosition.X = AbsolutePosition.X;
                 m_LastChildAgentUpdatePosition.Y = AbsolutePosition.Y;
@@ -2070,11 +2070,11 @@ namespace OpenSim.Region.Environment.Scenes
             int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
 
             m_DrawDistance = cAgentData.drawdistance;
-            m_pos = new Vector3(cAgentData.Position.X + shiftx, cAgentData.Position.Y + shifty, cAgentData.Position.Z);
+            m_pos = new Vector3(cAgentData.Position.x + shiftx, cAgentData.Position.y + shifty, cAgentData.Position.z);
 
             // It's hard to say here..   We can't really tell where the camera position is unless it's in world cordinates from the sending region
             m_CameraCenter =
-                new Vector3(cAgentData.cameraPosition.X, cAgentData.cameraPosition.Y, cAgentData.cameraPosition.Z);
+                new Vector3(cAgentData.cameraPosition.x, cAgentData.cameraPosition.y, cAgentData.cameraPosition.z);
 
 
             m_godlevel = cAgentData.godlevel;

@@ -1212,7 +1212,7 @@ namespace OpenSim.Region.Communications.OGS1
                     if (remObject != null)
                     {
                         retValue =
-                            remObject.ExpectAvatarCrossing(regionHandle, agentID.Guid, position,
+                            remObject.ExpectAvatarCrossing(regionHandle, agentID.Guid, new sLLVector3(position),
                                                            isFlying);
                     }
                     else
@@ -1269,7 +1269,7 @@ namespace OpenSim.Region.Communications.OGS1
                     if (remObject != null)
                     {
                         retValue =
-                            remObject.ExpectAvatarCrossing(regionHandle, agentID.Guid, position,
+                            remObject.ExpectAvatarCrossing(regionHandle, agentID.Guid, new sLLVector3(position),
                                                            isPhysical);
                     }
                     else
@@ -1739,7 +1739,7 @@ namespace OpenSim.Region.Communications.OGS1
             if (landData != null)
             {
                 // for now, only push out the data we need for answering a ParcelInfoReqeust
-                // FIXME: these Replace calls are necessary as Vector3.Parse can't parse vectors with spaces in them. Can be removed as soon as we switch to a newer version
+                // FIXME: these Replace calls are necessary as LLVector3.Parse can't parse vectors with spaces in them. Can be removed as soon as we switch to a newer version
                 hash["AABBMax"] = landData.AABBMax.ToString().Replace(" ", "");
                 hash["AABBMin"] = landData.AABBMin.ToString().Replace(" ", "");
                 hash["Area"] = landData.Area.ToString();

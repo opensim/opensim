@@ -242,8 +242,8 @@ namespace OpenSim.Region.Communications.OGS1
         public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
             Hashtable param = new Hashtable();
-            param["avatar_uuid"] = userid.ToString();
-            param["region_uuid"] = regionid.ToString();
+            param["avatar_uuid"] = userid.Guid.ToString();
+            param["region_uuid"] = regionid.Guid.ToString();
             param["region_handle"] = regionhandle.ToString();
             param["region_pos_x"] = posx.ToString();
             param["region_pos_y"] = posy.ToString();
@@ -528,8 +528,8 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 Hashtable param = new Hashtable();
-                param["ownerID"] = friendlistowner.ToString();
-                param["friendID"] = friend.ToString();
+                param["ownerID"] = friendlistowner.Guid.ToString();
+                param["friendID"] = friend.Guid.ToString();
                 param["friendPerms"] = perms.ToString();
                 IList parameters = new ArrayList();
                 parameters.Add(param);
@@ -580,8 +580,8 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 Hashtable param = new Hashtable();
-                param["ownerID"] = friendlistowner.ToString();
-                param["friendID"] = friend.ToString();
+                param["ownerID"] = friendlistowner.Guid.ToString();
+                param["friendID"] = friend.Guid.ToString();
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
@@ -632,8 +632,8 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 Hashtable param = new Hashtable();
-                param["ownerID"] = friendlistowner.ToString();
-                param["friendID"] = friend.ToString();
+                param["ownerID"] = friendlistowner.Guid.ToString();
+                param["friendID"] = friend.Guid.ToString();
                 param["friendPerms"] = perms.ToString();
                 IList parameters = new ArrayList();
                 parameters.Add(param);
@@ -672,7 +672,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
         /// <summary>
-        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
+        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
         public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
@@ -682,7 +682,7 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 Hashtable param = new Hashtable();
-                param["ownerID"] = friendlistowner.ToString();
+                param["ownerID"] = friendlistowner.Guid.ToString();
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
