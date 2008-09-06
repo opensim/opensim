@@ -141,9 +141,8 @@ namespace OpenSim.Region.Environment.Scenes
             List<EntityBase> updateEntities = GetEntities();
 
             foreach (EntityBase entity in updateEntities)
-            {
-                if (!entity.IsDeleted)                        				
-                    entity.Update();
+            {                       				
+                entity.Update();
             }
         }
 
@@ -327,15 +326,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // Don't abort the whole update if one entity happens to give us an exception.
                     try
                     {
-                        // Check that the group was not deleted before the scheduled update
-                        // FIXME: This is merely a temporary measure to reduce the incidence of failure, when
-                        // an object has been deleted from a scene before update was processed.
-                        // A more fundamental overhaul of the update mechanism is required to eliminate all
-                        // the race conditions.
-                        if (!entity.IsDeleted)
-                        {
-                            m_updateList[i].Update();
-                        }
+                        m_updateList[i].Update();       
                     }
                     catch (Exception e)
                     {

@@ -1478,6 +1478,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
+            // Check that the group was not deleted before the scheduled update
+            // FIXME: This is merely a temporary measure to reduce the incidence of failure when
+            // an object has been deleted from a scene before update was processed.
+            // A more fundamental overhaul of the update mechanism is required to eliminate all
+            // the race conditions.
+            if (m_isDeleted)
+                return;
 
             lock (m_parts)
             {
