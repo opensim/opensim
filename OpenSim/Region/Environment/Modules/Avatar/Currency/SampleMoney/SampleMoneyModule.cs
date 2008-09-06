@@ -811,24 +811,33 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
 
             LLUUID agentId = LLUUID.Zero;
             LLUUID soundId = LLUUID.Zero;
+            LLUUID regionId = LLUUID.Zero;
 
             Helpers.TryParse((string) requestData["agentId"], out agentId);
             Helpers.TryParse((string) requestData["soundId"], out soundId);
+            Helpers.TryParse((string) requestData["regionId"], out regionId);
             string text = (string) requestData["text"];
             string secret = (string) requestData["secret"];
 
-            Scene userScene = GetRandomScene();
-            if (userScene.RegionInfo.regionSecret.ToString() == secret)
+            Scene userScene = GetSceneByUUID(regionId);
+            if(userScene != null)
             {
-                IClientAPI client = LocateClientObject(agentId);
-
-                if (client != null)
+                if (userScene.RegionInfo.regionSecret.ToString() == secret)
                 {
-                    if (soundId != LLUUID.Zero)
-                        client.SendPlayAttachedSound(soundId, LLUUID.Zero, LLUUID.Zero, 1.0f, 0);
-                    client.SendBlueBoxMessage(LLUUID.Zero, LLUUID.Zero, "", text);
-                    retparam.Add("success", true);
-                }
+
+                    IClientAPI client = LocateClientObject(agentId);
+       	            if (client != null)
+       	            {
+       	                if (soundId != LLUUID.Zero)
+       	                    client.SendPlayAttachedSound(soundId, LLUUID.Zero, LLUUID.Zero, 1.0f, 0);
+       	                client.SendBlueBoxMessage(LLUUID.Zero, LLUUID.Zero, "", text);
+       	                retparam.Add("success", true);
+       	            }
+                    else
+                    {
+                        retparam.Add("success", false);
+                    }
+        		}
                 else
                 {
                     retparam.Add("success", false);
@@ -839,7 +848,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 retparam.Add("success", false);
             }
             ret.Value = retparam;
-
             return ret;
         }
 

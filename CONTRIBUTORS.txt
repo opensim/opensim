@@ -45,6 +45,7 @@ Patches
 * alex_carnell
 * webmage (IBM)
 * jimbo2120 (IBM)
+* nornalbion
 * awebb (IBM)
 * brianw/Sir_Ahzz
 * ChrisDown
@@ -54,7 +55,7 @@ Patches
 * A_Biondi
 * lulurun 
 * Melanie Thielker
-* John R Sohn(XenReborn)
+* John R Sohn (XenReborn)
 * Xantor
 * YZh
 * Grumly57
