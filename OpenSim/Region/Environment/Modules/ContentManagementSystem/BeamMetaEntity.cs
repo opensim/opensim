@@ -80,7 +80,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             //Scale size of particles to distance objects are apart (for better visibility)
             LLVector3 FromPos = From.GetWorldPosition();
             LLVector3 ToPos = From.GetWorldPosition();
-            LLUUID toUUID = To.UUID;
+//            LLUUID toUUID = To.UUID;
             float distance = (float) (Math.Sqrt(Math.Pow(FromPos.X-ToPos.X, 2) + 
                                                 Math.Pow(FromPos.X-ToPos.Y, 2) + 
                                                 Math.Pow(FromPos.X-ToPos.Z, 2)

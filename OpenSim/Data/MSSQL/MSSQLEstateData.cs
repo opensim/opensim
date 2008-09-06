@@ -209,9 +209,9 @@ namespace OpenSim.Data.MSSQL
                     {
                        cmd.ExecuteNonQuery();
                     }
-                    catch (Exception Ex)
+                    catch (Exception e)
                     {
-                        _Log.Debug("[ESTATE DB]: Error inserting regionID and EstateID in estate_map");
+                        _Log.DebugFormat("[ESTATE DB]: Error inserting regionID and EstateID in estate_map: {0}", e);
                     }
                 }
 

@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Fields
 
-        bool init = false;
+        //bool init = false;
         int m_channel = -1;
 
         /// <value>
@@ -122,9 +122,9 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         #region Private Methods
 
         //------------------------------------------------ EVENTS ----------------------------------------------------//
-        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
-        {
-        }
+//        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
+//        {
+//        }
 
         /// <summary>
         /// Searches in all scenes for a SceneObjectGroup that contains a part with a specific localID. If found, the object is returned. Else null is returned.
@@ -384,7 +384,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
             m_log.Debug("[CONTENT MANAGEMENT] Registering channel with chat services.");
             client.OnChatFromViewer += SimChatSent;	
-            init = true;
+            //init = true;
 
             OnNewClient(client);
 

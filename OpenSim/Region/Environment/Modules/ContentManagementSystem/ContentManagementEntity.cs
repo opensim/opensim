@@ -57,8 +57,8 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
     {
         #region Static Fields
 
-        static float TimeToDiff = 0;
-        static float TimeToCreateEntities = 0;
+//        static float TimeToDiff = 0;
+//        static float TimeToCreateEntities = 0;
 
         #endregion Static Fields
 

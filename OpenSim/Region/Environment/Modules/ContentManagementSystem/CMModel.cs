@@ -193,10 +193,10 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             System.Collections.ArrayList xmllist = null;
             SceneObjectGroup temp = null;
             System.Collections.Hashtable deleteListUUIDs = new Hashtable();
-            Dictionary<LLUUID, EntityBase> SearchList = new Dictionary<LLUUID,EntityBase>();
+//            Dictionary<LLUUID, EntityBase> SearchList = new Dictionary<LLUUID,EntityBase>();
             Dictionary<LLUUID, EntityBase> ReplacementList = new Dictionary<LLUUID,EntityBase>();
             int revision = m_database.GetMostRecentRevision(scene.RegionInfo.RegionID);
-            EntityBase[] searchArray;
+//            EntityBase[] searchArray;
 
             xmllist = m_database.GetRegionObjectXMLList(scene.RegionInfo.RegionID, revision);
             if (xmllist == null)

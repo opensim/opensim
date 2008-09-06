@@ -93,7 +93,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         #region Static Fields
 
         static float TimeToDiff = 0;
-        private static readonly ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         #endregion Static Fields
 

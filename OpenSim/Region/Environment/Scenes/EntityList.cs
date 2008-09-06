@@ -153,7 +153,7 @@ namespace OpenSim.Region.Environment.Scenes
                 ScenePresence sp = (ScenePresence)m_pres_by_uuid[uuid];
                 return sp;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
