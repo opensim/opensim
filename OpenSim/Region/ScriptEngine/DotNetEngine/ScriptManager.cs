@@ -168,9 +168,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public override void _StopScript(uint localID, UUID itemID)
         {
             // Stop script
-#if DEBUG
-            m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Stop script localID: " + localID + " LLUID: " + itemID.ToString());
-#endif
+//#if DEBUG
+//            m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Stop script localID: " + localID + " LLUID: " + itemID.ToString());
+//#endif
 
             // Stop long command on script
             m_scriptEngine.m_ASYNCLSLCommandManager.RemoveScript(localID, itemID);

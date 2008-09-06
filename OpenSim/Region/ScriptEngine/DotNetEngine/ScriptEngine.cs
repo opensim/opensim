@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Original code: Tedd Hansen */
 using System;
 using Nini.Config;
 using OpenSim.Region.Environment.Scenes;
