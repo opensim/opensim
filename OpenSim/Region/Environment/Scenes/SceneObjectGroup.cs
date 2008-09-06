@@ -410,6 +410,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public SceneObjectGroup(string xmlData)
         {
+            // libomv.types changes UUID to Guid
+            xmlData = xmlData.Replace("<UUID>", "<Guid>");
+            xmlData = xmlData.Replace("</UUID>", "</Guid>");
+
+            // Handle Nested <UUID><UUID> property
+            xmlData = xmlData.Replace("<Guid><Guid>", "<UUID><Guid>");
+            xmlData = xmlData.Replace("</Guid></Guid>", "</Guid></UUID>");
+
             StringReader sr = new StringReader(xmlData);
             XmlTextReader reader = new XmlTextReader(sr);
             reader.Read();
