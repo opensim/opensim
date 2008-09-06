@@ -28,7 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -55,13 +55,13 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         bool Running { get; set; }
         string State { get; set; }
         IScriptEngine Engine { get; }
-        LLUUID AppDomain { get; set; }
+        UUID AppDomain { get; set; }
         string PrimName { get; }
         string ScriptName { get; }
-        LLUUID ItemID { get; }
-        LLUUID ObjectID { get; }
+        UUID ItemID { get; }
+        UUID ObjectID { get; }
         uint LocalID { get; }
-        LLUUID AssetID { get; }
+        UUID AssetID { get; }
         Queue EventQueue { get; }
 
         void ClearQueue();
@@ -82,7 +82,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         Dictionary<string, object> GetVars();
         void SetVars(Dictionary<string, object> vars);
         DetectParams GetDetectParams(int idx);
-        LLUUID GetDetectID(int idx);
+        UUID GetDetectID(int idx);
         void SaveState(string assembly);
     }
 }

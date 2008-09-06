@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -50,8 +50,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// <summary>
         /// Each user has their own texture download service.
         /// </summary>
-        private readonly Dictionary<LLUUID, UserTextureDownloadService> m_userTextureServices =
-            new Dictionary<LLUUID, UserTextureDownloadService>();
+        private readonly Dictionary<UUID, UserTextureDownloadService> m_userTextureServices =
+            new Dictionary<UUID, UserTextureDownloadService>();
 
         private Scene m_scene;
         private List<Scene> m_scenes = new List<Scene>();
@@ -109,7 +109,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// Cleanup the texture service related objects for the removed presence.
         /// </summary>
         /// <param name="agentId"> </param>
-        private void EventManager_OnRemovePresence(LLUUID agentId)
+        private void EventManager_OnRemovePresence(UUID agentId)
         {
             UserTextureDownloadService textureService;
 

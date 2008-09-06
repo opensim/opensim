@@ -120,7 +120,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //System.Console.WriteLine("SCRIPT:" + checkscript);
 
             // checks for alpha.alpha way of referring to objects in C#
-            // ignores alpha.x alpha.y, alpha.z for refering to vector components
+            // ignores alpha.X alpha.Y, alpha.Z for refering to vector components
             Match SecurityM;
 
 

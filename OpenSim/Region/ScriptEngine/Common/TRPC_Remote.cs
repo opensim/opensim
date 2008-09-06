@@ -31,7 +31,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Web;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Region.ScriptEngine.Common.TRPC;
 
 namespace OpenSim.Region.ScriptEngine.Common
@@ -53,7 +53,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             typeof(Double),
             typeof(Decimal),
             typeof(Array),
-            typeof(LLUUID),
+            typeof(UUID),
             typeof(UInt16),
             typeof(UInt32),
             typeof(UInt64)

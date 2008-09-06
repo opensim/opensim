@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Configuration.XML
         {
             rootNode = doc.SelectSingleNode("Root");
             if (null == rootNode)
-                throw new Exception("Error: Invalid .xml File. Missing <Root>");
+                throw new Exception("Error: Invalid .Xml File. Missing <Root>");
 
             configNode = rootNode.SelectSingleNode("Config");
             if (null == configNode)

@@ -28,7 +28,7 @@
 using System;
 using System.Reflection;
 using System.Xml.Serialization;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 
 namespace OpenSim.Framework
@@ -74,7 +74,7 @@ namespace OpenSim.Framework
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly LLObject.TextureEntry m_defaultTexture;
+        private static readonly Primitive.TextureEntry m_defaultTexture;
 
         private byte[] m_textureEntry;
 
@@ -96,13 +96,13 @@ namespace OpenSim.Framework
         private ushort _profileBegin;
         private ushort _profileEnd;
         private ushort _profileHollow;
-        private LLVector3 _scale;
+        private Vector3 _scale;
         private byte _state;
         private ProfileShape _profileShape;
         private HollowShape _hollowShape;
 
         // Sculpted
-        [XmlIgnore] private LLUUID _sculptTexture = LLUUID.Zero;
+        [XmlIgnore] private UUID _sculptTexture = UUID.Zero;
         [XmlIgnore] private byte _sculptType = (byte)0;
         [XmlIgnore] private byte[] _sculptData = new byte[0];
 
@@ -172,7 +172,7 @@ namespace OpenSim.Framework
         static PrimitiveBaseShape()
         {
             m_defaultTexture =
-                new LLObject.TextureEntry(new LLUUID("89556747-24cb-43ed-920b-47caed15465f"));
+                new Primitive.TextureEntry(new UUID("89556747-24cb-43ed-920b-47caed15465f"));
         }
 
         public PrimitiveBaseShape()
@@ -183,12 +183,12 @@ namespace OpenSim.Framework
         }
 
         [XmlIgnore]
-        public LLObject.TextureEntry Textures
+        public Primitive.TextureEntry Textures
         {
             get
             {
                 //m_log.DebugFormat("[PRIMITIVE BASE SHAPE]: get m_textureEntry length {0}", m_textureEntry.Length);
-                return new LLObject.TextureEntry(m_textureEntry, 0, m_textureEntry.Length);
+                return new Primitive.TextureEntry(m_textureEntry, 0, m_textureEntry.Length);
             }
 
             set { m_textureEntry = value.ToBytes(); }
@@ -252,7 +252,7 @@ namespace OpenSim.Framework
 
         public void SetScale(float side)
         {
-            _scale = new LLVector3(side, side, side);
+            _scale = new Vector3(side, side, side);
         }
 
         public void SetHeigth(float heigth)
@@ -285,22 +285,22 @@ namespace OpenSim.Framework
             return shape;
         }
 
-        public void SetPathRange(LLVector3 pathRange)
+        public void SetPathRange(Vector3 pathRange)
         {
-            _pathBegin = LLObject.PackBeginCut(pathRange.X);
-            _pathEnd = LLObject.PackEndCut(pathRange.Y);
+            _pathBegin = Primitive.PackBeginCut(pathRange.X);
+            _pathEnd = Primitive.PackEndCut(pathRange.Y);
         }
 
-        public void SetSculptData(byte sculptType, LLUUID SculptTextureUUID)
+        public void SetSculptData(byte sculptType, UUID SculptTextureUUID)
         {
             _sculptType = sculptType;
             _sculptTexture = SculptTextureUUID;
         }
 
-        public void SetProfileRange(LLVector3 profileRange)
+        public void SetProfileRange(Vector3 profileRange)
         {
-            _profileBegin = LLObject.PackBeginCut(profileRange.X);
-            _profileEnd = LLObject.PackEndCut(profileRange.Y);
+            _profileBegin = Primitive.PackBeginCut(profileRange.X);
+            _profileEnd = Primitive.PackEndCut(profileRange.Y);
         }
 
         public byte[] ExtraParams
@@ -477,7 +477,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLVector3 Scale {
+        public Vector3 Scale {
             get {
                 return _scale;
             }
@@ -513,7 +513,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID SculptTexture {
+        public UUID SculptTexture {
             get {
                 return _sculptTexture;
             }
@@ -904,7 +904,7 @@ namespace OpenSim.Framework
         public void ReadSculptData(byte[] data, int pos)
         {
             byte[] SculptTextureUUID = new byte[16];
-            LLUUID SculptUUID = LLUUID.Zero;
+            UUID SculptUUID = UUID.Zero;
             byte SculptTypel = data[16+pos];
 
             if (data.Length+pos >= 17)
@@ -913,12 +913,12 @@ namespace OpenSim.Framework
                 SculptTextureUUID = new byte[16];
                 SculptTypel = data[16 + pos];
                 Array.Copy(data, pos, SculptTextureUUID,0, 16);
-                SculptUUID = new LLUUID(SculptTextureUUID, 0);
+                SculptUUID = new UUID(SculptTextureUUID, 0);
             }
             else
             {
                 _sculptEntry = false;
-                SculptUUID = LLUUID.Zero;
+                SculptUUID = UUID.Zero;
                 SculptTypel = 0x00;
             }
 
@@ -953,7 +953,7 @@ namespace OpenSim.Framework
                 _flexiDrag = (float)(data[pos++] & 0x7F) / 10.0f;
                 _flexiGravity = (float)(data[pos++] / 10.0f) - 10.0f;
                 _flexiWind = (float)data[pos++] / 10.0f;
-                LLVector3 lForce = new LLVector3(data, pos);
+                Vector3 lForce = new Vector3(data, pos);
                 _flexiForceX = lForce.X;
                 _flexiForceY = lForce.Y;
                 _flexiForceZ = lForce.Z;
@@ -986,7 +986,7 @@ namespace OpenSim.Framework
             data[i++] |= (byte)((byte)(_flexiDrag * 10.01f) & 0x7F);
             data[i++] = (byte)((_flexiGravity + 10.0f) * 10.01f);
             data[i++] = (byte)(_flexiWind * 10.01f);
-            LLVector3 lForce = new LLVector3(_flexiForceX, _flexiForceY, _flexiForceZ);
+            Vector3 lForce = new Vector3(_flexiForceX, _flexiForceY, _flexiForceZ);
             lForce.GetBytes().CopyTo(data, i);
 
             return data;
@@ -997,7 +997,7 @@ namespace OpenSim.Framework
             if (data.Length - pos >= 16)
             {
                 _lightEntry = true;
-                LLColor lColor = new LLColor(data, pos, false);
+                Color4 lColor = new Color4(data, pos, false);
                 _lightIntensity = lColor.A;
                 _lightColorA = 1f;
                 _lightColorR = lColor.R;
@@ -1027,7 +1027,7 @@ namespace OpenSim.Framework
             byte[] data = new byte[16];
 
             // Alpha channel in color is intensity
-            LLColor tmpColor = new LLColor(_lightColorR,_lightColorG,_lightColorB,_lightIntensity);
+            Color4 tmpColor = new Color4(_lightColorR,_lightColorG,_lightColorB,_lightIntensity);
 
             tmpColor.GetBytes().CopyTo(data, 0);
             Helpers.FloatToBytes(_lightRadius).CopyTo(data, 4);

@@ -27,7 +27,7 @@
 
 using System;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -90,7 +90,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="avatarID"></param>
-        public void RequestAvatarProperty(IClientAPI remoteClient, LLUUID avatarID)
+        public void RequestAvatarProperty(IClientAPI remoteClient, UUID avatarID)
         {
             // FIXME: finish adding fields such as url, masking, etc.
             UserProfileData profile = m_scene.CommsManager.UserService.GetUserProfile(avatarID);
@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
                 }
                 else
                 {
-                    charterMember = Helpers.StringToField(profile.CustomType);
+                    charterMember = Utils.StringToBytes(profile.CustomType);
                 }
 
                 remoteClient.SendAvatarProperties(profile.ID, profile.AboutText,

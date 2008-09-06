@@ -25,24 +25,24 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Region.Environment.Modules.Scripting.XMLRPC;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IXMLRPC
     {
-        LLUUID OpenXMLRPCChannel(uint localID, LLUUID itemID, LLUUID channelID);
-        void CloseXMLRPCChannel(LLUUID channelKey);
+        UUID OpenXMLRPCChannel(uint localID, UUID itemID, UUID channelID);
+        void CloseXMLRPCChannel(UUID channelKey);
         bool hasRequests();
         void RemoteDataReply(string channel, string message_id, string sdata, int idata);
         bool IsEnabled();
         RPCRequestInfo GetNextCompletedRequest();
-        void RemoveCompletedRequest(LLUUID id);
-        void DeleteChannels(LLUUID itemID);
-        LLUUID SendRemoteData(uint localID, LLUUID itemID, string channel, string dest, int idata, string sdata);
+        void RemoveCompletedRequest(UUID id);
+        void DeleteChannels(UUID itemID);
+        UUID SendRemoteData(uint localID, UUID itemID, string channel, string dest, int idata, string sdata);
         SendRemoteDataRequest GetNextCompletedSRDRequest();
-        void RemoveCompletedSRDRequest(LLUUID id);
-        void CancelSRDRequests(LLUUID itemID);
+        void RemoveCompletedSRDRequest(UUID id);
+        void CancelSRDRequests(UUID itemID);
     }
 }

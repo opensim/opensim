@@ -27,7 +27,7 @@
 
 using System;
 using OpenSim.Framework;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
@@ -35,7 +35,7 @@ namespace OpenSim.Region.Environment.Interfaces
     {
         void Initialise(string connectstring);
 
-        EstateSettings LoadEstateSettings(LLUUID regionID);
+        EstateSettings LoadEstateSettings(UUID regionID);
         void StoreEstateSettings(EstateSettings es);
     }
 }

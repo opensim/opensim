@@ -31,7 +31,7 @@ using System.Collections;
 using System.Data;
 using System.IO;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework;
@@ -384,8 +384,8 @@ namespace OpenSim.Data.MySQL
                 {
                     retval.regionHandle = tmp64;
                 }
-                LLUUID tmp_uuid;
-                if (!LLUUID.TryParse((string)reader["uuid"], out tmp_uuid))
+                UUID tmp_uuid;
+                if (!UUID.TryParse((string)reader["uuid"], out tmp_uuid))
                 {
                     return null;
                 }
@@ -396,7 +396,7 @@ namespace OpenSim.Data.MySQL
 
                 // non-critical parts
                 retval.regionName = (string)reader["regionName"];
-                retval.originUUID = new LLUUID((string) reader["originUUID"]);
+                retval.originUUID = new UUID((string) reader["originUUID"]);
 
                 // Secrets
                 retval.regionRecvKey = (string) reader["regionRecvKey"];
@@ -434,8 +434,8 @@ namespace OpenSim.Data.MySQL
                 retval.regionUserSendKey = (string) reader["regionUserSendKey"];
 
                 // World Map Addition
-                LLUUID.TryParse((string)reader["regionMapTexture"], out retval.regionMapTextureID);
-                LLUUID.TryParse((string)reader["owner_uuid"], out retval.owner_uuid);
+                UUID.TryParse((string)reader["regionMapTexture"], out retval.regionMapTextureID);
+                UUID.TryParse((string)reader["owner_uuid"], out retval.owner_uuid);
             }
             else
             {
@@ -463,8 +463,8 @@ namespace OpenSim.Data.MySQL
                 retval.reservationMinY = Convert.ToInt32(reader["resYMin"].ToString());
                 retval.reservationName = (string) reader["resName"];
                 retval.status = Convert.ToInt32(reader["status"].ToString()) == 1;
-                LLUUID tmp;
-                LLUUID.TryParse((string) reader["userUUID"], out tmp);
+                UUID tmp;
+                UUID.TryParse((string) reader["userUUID"], out tmp);
                 retval.userUUID = tmp;
             }
             else
@@ -486,15 +486,15 @@ namespace OpenSim.Data.MySQL
             if (reader.Read())
             {
                 // Agent IDs
-                LLUUID tmp;
-                if (!LLUUID.TryParse((string)reader["UUID"], out tmp))
+                UUID tmp;
+                if (!UUID.TryParse((string)reader["UUID"], out tmp))
                     return null;
                 retval.ProfileID = tmp;
 
-                LLUUID.TryParse((string) reader["sessionID"], out tmp);
+                UUID.TryParse((string) reader["sessionID"], out tmp);
                 retval.SessionID = tmp;
 
-                LLUUID.TryParse((string)reader["secureSessionID"], out tmp);
+                UUID.TryParse((string)reader["secureSessionID"], out tmp);
                 retval.SecureSessionID = tmp;
 
                 // Agent Who?
@@ -507,10 +507,10 @@ namespace OpenSim.Data.MySQL
                 retval.LogoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
 
                 // Current position
-                retval.Region = new LLUUID((string)reader["currentRegion"]);
+                retval.Region = new UUID((string)reader["currentRegion"]);
                 retval.Handle = Convert.ToUInt64(reader["currentHandle"].ToString());
-                LLVector3 tmp_v;
-                LLVector3.TryParse((string) reader["currentPos"], out tmp_v);
+                Vector3 tmp_v;
+                Vector3.TryParse((string) reader["currentPos"], out tmp_v);
                 retval.Position = tmp_v;
             }
             else
@@ -531,8 +531,8 @@ namespace OpenSim.Data.MySQL
 
             if (reader.Read())
             {
-                LLUUID id;
-                if (!LLUUID.TryParse((string)reader["UUID"], out id))
+                UUID id;
+                if (!UUID.TryParse((string)reader["UUID"], out id))
                     return null;
 
                 retval.ID = id;
@@ -543,17 +543,17 @@ namespace OpenSim.Data.MySQL
                 retval.PasswordSalt = (string) reader["passwordSalt"];
 
                 retval.HomeRegion = Convert.ToUInt64(reader["homeRegion"].ToString());
-                retval.HomeLocation = new LLVector3(
+                retval.HomeLocation = new Vector3(
                     Convert.ToSingle(reader["homeLocationX"].ToString()),
                     Convert.ToSingle(reader["homeLocationY"].ToString()),
                     Convert.ToSingle(reader["homeLocationZ"].ToString()));
-                retval.HomeLookAt = new LLVector3(
+                retval.HomeLookAt = new Vector3(
                     Convert.ToSingle(reader["homeLookAtX"].ToString()),
                     Convert.ToSingle(reader["homeLookAtY"].ToString()),
                     Convert.ToSingle(reader["homeLookAtZ"].ToString()));
 
-                LLUUID regionID = LLUUID.Zero;
-                LLUUID.TryParse(reader["homeRegionID"].ToString(), out regionID); // it's ok if it doesn't work; just use LLUUID.Zero
+                UUID regionID = UUID.Zero;
+                UUID.TryParse(reader["homeRegionID"].ToString(), out regionID); // it's ok if it doesn't work; just use UUID.Zero
                 retval.HomeRegionID = regionID;
 
                 retval.Created = Convert.ToInt32(reader["created"].ToString());
@@ -576,29 +576,29 @@ namespace OpenSim.Data.MySQL
                     retval.FirstLifeAboutText = (string)reader["profileFirstText"];
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileImage")))
-                    retval.Image = LLUUID.Zero;
+                    retval.Image = UUID.Zero;
                 else {
-                    LLUUID tmp;
-                    LLUUID.TryParse((string)reader["profileImage"], out tmp);
+                    UUID tmp;
+                    UUID.TryParse((string)reader["profileImage"], out tmp);
                     retval.Image = tmp;
                 }
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileFirstImage")))
-                    retval.FirstLifeImage = LLUUID.Zero;
+                    retval.FirstLifeImage = UUID.Zero;
                 else {
-                    LLUUID tmp;
-                    LLUUID.TryParse((string)reader["profileFirstImage"], out tmp);
+                    UUID tmp;
+                    UUID.TryParse((string)reader["profileFirstImage"], out tmp);
                     retval.FirstLifeImage = tmp;
                 }
 
                 if (reader.IsDBNull(reader.GetOrdinal("webLoginKey")))
                 {
-                    retval.WebLoginKey = LLUUID.Zero;
+                    retval.WebLoginKey = UUID.Zero;
                 }
                 else
                 {
-                    LLUUID tmp;
-                    LLUUID.TryParse((string)reader["webLoginKey"], out tmp);
+                    UUID tmp;
+                    UUID.TryParse((string)reader["webLoginKey"], out tmp);
                     retval.WebLoginKey = tmp;
                 }
 
@@ -611,12 +611,12 @@ namespace OpenSim.Data.MySQL
 
                 if (reader.IsDBNull(reader.GetOrdinal("partner")))
                 {
-                    retval.Partner = LLUUID.Zero;
+                    retval.Partner = UUID.Zero;
                 }
                 else
                 {
-                    LLUUID tmp;
-                    LLUUID.TryParse((string)reader["partner"], out tmp);
+                    UUID tmp;
+                    UUID.TryParse((string)reader["partner"], out tmp);
                     retval.Partner = tmp;
                 }
             }
@@ -638,37 +638,37 @@ namespace OpenSim.Data.MySQL
             if (reader.Read())
             {
                 appearance = new AvatarAppearance();
-                appearance.Owner = new LLUUID((string)reader["owner"]);
+                appearance.Owner = new UUID((string)reader["owner"]);
                 appearance.Serial = Convert.ToInt32(reader["serial"]);
                 appearance.VisualParams = (byte[])reader["visual_params"];
-                appearance.Texture = new LLObject.TextureEntry((byte[])reader["texture"], 0, ((byte[])reader["texture"]).Length);
+                appearance.Texture = new Primitive.TextureEntry((byte[])reader["texture"], 0, ((byte[])reader["texture"]).Length);
                 appearance.AvatarHeight = (float)Convert.ToDouble(reader["avatar_height"]);
-                appearance.BodyItem = new LLUUID((string)reader["body_item"]);
-                appearance.BodyAsset = new LLUUID((string)reader["body_asset"]);
-                appearance.SkinItem = new LLUUID((string)reader["skin_item"]);
-                appearance.SkinAsset = new LLUUID((string)reader["skin_asset"]);
-                appearance.HairItem = new LLUUID((string)reader["hair_item"]);
-                appearance.HairAsset = new LLUUID((string)reader["hair_asset"]);
-                appearance.EyesItem = new LLUUID((string)reader["eyes_item"]);
-                appearance.EyesAsset = new LLUUID((string)reader["eyes_asset"]);
-                appearance.ShirtItem = new LLUUID((string)reader["shirt_item"]);
-                appearance.ShirtAsset = new LLUUID((string)reader["shirt_asset"]);
-                appearance.PantsItem = new LLUUID((string)reader["pants_item"]);
-                appearance.PantsAsset = new LLUUID((string)reader["pants_asset"]);
-                appearance.ShoesItem = new LLUUID((string)reader["shoes_item"]);
-                appearance.ShoesAsset = new LLUUID((string)reader["shoes_asset"]);
-                appearance.SocksItem = new LLUUID((string)reader["socks_item"]);
-                appearance.SocksAsset = new LLUUID((string)reader["socks_asset"]);
-                appearance.JacketItem = new LLUUID((string)reader["jacket_item"]);
-                appearance.JacketAsset = new LLUUID((string)reader["jacket_asset"]);
-                appearance.GlovesItem = new LLUUID((string)reader["gloves_item"]);
-                appearance.GlovesAsset = new LLUUID((string)reader["gloves_asset"]);
-                appearance.UnderShirtItem = new LLUUID((string)reader["undershirt_item"]);
-                appearance.UnderShirtAsset = new LLUUID((string)reader["undershirt_asset"]);
-                appearance.UnderPantsItem = new LLUUID((string)reader["underpants_item"]);
-                appearance.UnderPantsAsset = new LLUUID((string)reader["underpants_asset"]);
-                appearance.SkirtItem = new LLUUID((string)reader["skirt_item"]);
-                appearance.SkirtAsset = new LLUUID((string)reader["skirt_asset"]);
+                appearance.BodyItem = new UUID((string)reader["body_item"]);
+                appearance.BodyAsset = new UUID((string)reader["body_asset"]);
+                appearance.SkinItem = new UUID((string)reader["skin_item"]);
+                appearance.SkinAsset = new UUID((string)reader["skin_asset"]);
+                appearance.HairItem = new UUID((string)reader["hair_item"]);
+                appearance.HairAsset = new UUID((string)reader["hair_asset"]);
+                appearance.EyesItem = new UUID((string)reader["eyes_item"]);
+                appearance.EyesAsset = new UUID((string)reader["eyes_asset"]);
+                appearance.ShirtItem = new UUID((string)reader["shirt_item"]);
+                appearance.ShirtAsset = new UUID((string)reader["shirt_asset"]);
+                appearance.PantsItem = new UUID((string)reader["pants_item"]);
+                appearance.PantsAsset = new UUID((string)reader["pants_asset"]);
+                appearance.ShoesItem = new UUID((string)reader["shoes_item"]);
+                appearance.ShoesAsset = new UUID((string)reader["shoes_asset"]);
+                appearance.SocksItem = new UUID((string)reader["socks_item"]);
+                appearance.SocksAsset = new UUID((string)reader["socks_asset"]);
+                appearance.JacketItem = new UUID((string)reader["jacket_item"]);
+                appearance.JacketAsset = new UUID((string)reader["jacket_asset"]);
+                appearance.GlovesItem = new UUID((string)reader["gloves_item"]);
+                appearance.GlovesAsset = new UUID((string)reader["gloves_asset"]);
+                appearance.UnderShirtItem = new UUID((string)reader["undershirt_item"]);
+                appearance.UnderShirtAsset = new UUID((string)reader["undershirt_asset"]);
+                appearance.UnderPantsItem = new UUID((string)reader["underpants_item"]);
+                appearance.UnderPantsAsset = new UUID((string)reader["underpants_asset"]);
+                appearance.SkirtItem = new UUID((string)reader["skirt_item"]);
+                appearance.SkirtAsset = new UUID((string)reader["skirt_asset"]);
             }
             return appearance;
         }
@@ -766,12 +766,12 @@ namespace OpenSim.Data.MySQL
         /// <param name="firstImage">UUID for firstlife image</param>
         /// <param name="webLoginKey">Ignored</param>
         /// <returns>Success?</returns>
-        public bool insertUserRow(LLUUID uuid, string username, string lastname, string passwordHash,
+        public bool insertUserRow(UUID uuid, string username, string lastname, string passwordHash,
                                   string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
                                   float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
                                   string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
                                   string aboutText, string firstText,
-                                  LLUUID profileImage, LLUUID firstImage, LLUUID webLoginKey)
+                                  UUID profileImage, UUID firstImage, UUID webLoginKey)
         {
             m_log.Debug("[MySQLManager]: Fetching profile for " + uuid.ToString());
             string sql =
@@ -867,12 +867,12 @@ namespace OpenSim.Data.MySQL
         /// <param name="firstImage">UUID for firstlife image</param>
         /// <param name="webLoginKey">UUID for weblogin Key</param>
         /// <returns>Success?</returns>
-        public bool updateUserRow(LLUUID uuid, string username, string lastname, string passwordHash,
-                                  string passwordSalt, UInt64 homeRegion, LLUUID homeRegionID, float homeLocX, float homeLocY, float homeLocZ,
+        public bool updateUserRow(UUID uuid, string username, string lastname, string passwordHash,
+                                  string passwordSalt, UInt64 homeRegion, UUID homeRegionID, float homeLocX, float homeLocY, float homeLocZ,
                                   float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
                                   string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
                                   string aboutText, string firstText,
-                                  LLUUID profileImage, LLUUID firstImage, LLUUID webLoginKey, int userFlags, int godLevel, string customType, LLUUID partner)
+                                  UUID profileImage, UUID firstImage, UUID webLoginKey, int userFlags, int godLevel, string customType, UUID partner)
         {
             string sql = "UPDATE users SET `username` = ?username , `lastname` = ?lastname ";
             sql += ", `passwordHash` = ?passwordHash , `passwordSalt` = ?passwordSalt , ";
@@ -1211,7 +1211,7 @@ namespace OpenSim.Data.MySQL
 
         }
 
-        public void writeAttachments(LLUUID agentID, Hashtable data)
+        public void writeAttachments(UUID agentID, Hashtable data)
         {
             string sql = "delete from avatarattachments where UUID = ?uuid";
 

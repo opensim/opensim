@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -46,49 +46,49 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="parentID">The folder to get subfolders for</param>
         /// <returns>A list of inventory folders</returns>
-        List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID);
+        List<InventoryFolderBase> getFolderHierarchy(UUID parentID);
 
         /// <summary>
         /// Returns a list of inventory items contained within the specified folder
         /// </summary>
         /// <param name="folderID">The UUID of the target folder</param>
         /// <returns>A List of InventoryItemBase items</returns>
-        List<InventoryItemBase> getInventoryInFolder(LLUUID folderID);
+        List<InventoryItemBase> getInventoryInFolder(UUID folderID);
 
         /// <summary>
         /// Returns a list of the root folders within a users inventory
         /// </summary>
         /// <param name="user">The user whos inventory is to be searched</param>
         /// <returns>A list of folder objects</returns>
-        List<InventoryFolderBase> getUserRootFolders(LLUUID user);
+        List<InventoryFolderBase> getUserRootFolders(UUID user);
 
         /// <summary>
         /// Returns the users inventory root folder.
         /// </summary>
         /// <param name="user">The UUID of the user who is having inventory being returned</param>
         /// <returns>Root inventory folder, null if no root inventory folder was found</returns>
-        InventoryFolderBase getUserRootFolder(LLUUID user);
+        InventoryFolderBase getUserRootFolder(UUID user);
 
         /// <summary>
         /// Returns a list of inventory folders contained in the folder 'parentID'
         /// </summary>
         /// <param name="parentID">The folder to get subfolders for</param>
         /// <returns>A list of inventory folders</returns>
-        List<InventoryFolderBase> getInventoryFolders(LLUUID parentID);
+        List<InventoryFolderBase> getInventoryFolders(UUID parentID);
 
         /// <summary>
         /// Returns an inventory item by its UUID
         /// </summary>
         /// <param name="item">The UUID of the item to be returned</param>
         /// <returns>A class containing item information</returns>
-        InventoryItemBase getInventoryItem(LLUUID item);
+        InventoryItemBase getInventoryItem(UUID item);
 
         /// <summary>
         /// Returns a specified inventory folder by its UUID
         /// </summary>
         /// <param name="folder">The UUID of the folder to be returned</param>
         /// <returns>A class containing folder information</returns>
-        InventoryFolderBase getInventoryFolder(LLUUID folder);
+        InventoryFolderBase getInventoryFolder(UUID folder);
 
         /// <summary>
         /// Creates a new inventory item based on item
@@ -106,7 +106,7 @@ namespace OpenSim.Framework
         ///
         /// </summary>
         /// <param name="item"></param>
-        void deleteInventoryItem(LLUUID item);
+        void deleteInventoryItem(UUID item);
 
         /// <summary>
         /// Adds a new folder specified by folder
@@ -130,7 +130,7 @@ namespace OpenSim.Framework
         /// Deletes a folder.  Thie will delete both the folder itself and its contents (items and descendent folders)
         /// </summary>
         /// <param name="folder">The id of the folder</param>
-        void deleteInventoryFolder(LLUUID folder);
+        void deleteInventoryFolder(UUID folder);
     }
 
     public class InventoryDataInitialiser : PluginInitialiserBase

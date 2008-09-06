@@ -36,7 +36,7 @@ using System.Text.RegularExpressions;
 using System.Timers;
 using System.Xml;
 using System.Xml.Serialization;
-using libsecondlife;
+using OpenMetaverse;
 using Mono.Addins;
 using Nwc.XmlRpc;
 using Nini.Config;
@@ -76,10 +76,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                 // Parse region ID and other parameters
                 param = param.TrimEnd(new char[]{'/'});
                 string[] comps = param.Split('/');
-                LLUUID regionID = (LLUUID)comps[0];
+                UUID regionID = (UUID)comps[0];
 
                 m_log.DebugFormat("{0} POST region UUID {1}", MsgID, regionID.ToString());
-                if (LLUUID.Zero == regionID) throw new Exception("missing region ID");
+                if (UUID.Zero == regionID) throw new Exception("missing region ID");
 
                 Scene scene = null;
                 App.SceneManager.TryGetScene(regionID, out scene);

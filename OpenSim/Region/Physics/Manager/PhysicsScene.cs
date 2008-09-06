@@ -27,10 +27,10 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using Axiom.Math;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.Manager
 {

@@ -36,11 +36,8 @@
 #endregion Header
 
 using System;
-
-using libsecondlife;
-
+using OpenMetaverse;
 using OpenSim.Region.Environment.Scenes;
-
 using Nini.Config;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement
@@ -52,18 +49,18 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// <summary>
         /// Returns the most recent revision number of a region.
         /// </summary>
-        int GetMostRecentRevision(LLUUID regionid);
+        int GetMostRecentRevision(UUID regionid);
 
-        string GetRegionObjectHeightMap(LLUUID regionid);
+        string GetRegionObjectHeightMap(UUID regionid);
 
-        string GetRegionObjectHeightMap(LLUUID regionid, int revision);
+        string GetRegionObjectHeightMap(UUID regionid, int revision);
 
         /// <summary>
         /// Retrieves the xml that describes each individual object from the last revision or specific revision of the given region.
         /// </summary>
-        System.Collections.ArrayList GetRegionObjectXMLList(LLUUID regionid);
+        System.Collections.ArrayList GetRegionObjectXMLList(UUID regionid);
 
-        System.Collections.ArrayList GetRegionObjectXMLList(LLUUID regionid, int revision);
+        System.Collections.ArrayList GetRegionObjectXMLList(UUID regionid, int revision);
 
         /// <summary>
         /// Similar to the IRegionModule function. This is the function to be called before attempting to interface with the database.
@@ -75,12 +72,12 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// <summary>
         /// Returns a list of the revision numbers and corresponding log messages for a given region.
         /// </summary>
-        System.Collections.Generic.SortedDictionary<string, string> ListOfRegionRevisions(LLUUID id);
+        System.Collections.Generic.SortedDictionary<string, string> ListOfRegionRevisions(UUID id);
 
         /// <summary>
         /// Returns the total number of revisions saved for a specific region. 
         /// </summary>
-        int NumOfRegionRev(LLUUID regionid);
+        int NumOfRegionRev(UUID regionid);
 
         /// <summary>
         /// Should be called once after Initialise has been called.
@@ -90,7 +87,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// <summary>
         /// Saves the Region terrain map and objects within the region as xml to the database.
         /// </summary>
-        void SaveRegion(LLUUID regionid, string regionName, string logMessage);
+        void SaveRegion(UUID regionid, string regionName, string logMessage);
 
         #endregion Methods
     }

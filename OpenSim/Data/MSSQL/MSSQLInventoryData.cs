@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 
@@ -167,7 +167,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="folderID">The folder to search</param>
         /// <returns>A list containing inventory items</returns>
-        public List<InventoryItemBase> getInventoryInFolder(LLUUID folderID)
+        public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
         {
             try
             {
@@ -201,13 +201,13 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="user">The user whos inventory is to be searched</param>
         /// <returns>A list of folder objects</returns>
-        public List<InventoryFolderBase> getUserRootFolders(LLUUID user)
+        public List<InventoryFolderBase> getUserRootFolders(UUID user)
         {
             try
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 param["uuid"] = user.ToString();
-                param["zero"] = LLUUID.Zero.ToString();
+                param["zero"] = UUID.Zero.ToString();
 
                 using (IDbCommand result =
                     database.Query(
@@ -235,13 +235,13 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="user">the User UUID</param>
         /// <returns></returns>
-        public InventoryFolderBase getUserRootFolder(LLUUID user)
+        public InventoryFolderBase getUserRootFolder(UUID user)
         {
             try
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 param["uuid"] = user.ToString();
-                param["zero"] = LLUUID.Zero.ToString();
+                param["zero"] = UUID.Zero.ToString();
 
                 using (IDbCommand result =
                     database.Query(
@@ -281,7 +281,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="parentID">The folder to search</param>
         /// <returns>A list of inventory folders</returns>
-        public List<InventoryFolderBase> getInventoryFolders(LLUUID parentID)
+        public List<InventoryFolderBase> getInventoryFolders(UUID parentID)
         {
             try
             {
@@ -318,23 +318,23 @@ namespace OpenSim.Data.MSSQL
             {
                 InventoryItemBase item = new InventoryItemBase();
 
-                item.ID = new LLUUID((string) reader["inventoryID"]);
-                item.AssetID = new LLUUID((string) reader["assetID"]);
+                item.ID = new UUID((string) reader["inventoryID"]);
+                item.AssetID = new UUID((string) reader["assetID"]);
                 item.AssetType = (int) reader["assetType"];
-                item.Folder = new LLUUID((string) reader["parentFolderID"]);
-                item.Owner = new LLUUID((string) reader["avatarID"]);
+                item.Folder = new UUID((string) reader["parentFolderID"]);
+                item.Owner = new UUID((string) reader["avatarID"]);
                 item.Name = (string) reader["inventoryName"];
                 item.Description = (string) reader["inventoryDescription"];
                 item.NextPermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryNextPermissions"]);
                 item.CurrentPermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryCurrentPermissions"]);
                 item.InvType = (int) reader["invType"];
-                item.Creator = new LLUUID((string) reader["creatorID"]);
+                item.Creator = new UUID((string) reader["creatorID"]);
                 item.BasePermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryBasePermissions"]);
                 item.EveryOnePermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryEveryOnePermissions"]);
                 item.SalePrice = (int) reader["salePrice"];
                 item.SaleType = Convert.ToByte(reader["saleType"]);
                 item.CreationDate = (int) reader["creationDate"];
-                item.GroupID = new LLUUID(reader["groupID"].ToString());
+                item.GroupID = new UUID(reader["groupID"].ToString());
                 item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
                 item.Flags = ConvertInt32BitFieldToUint32((int)reader["flags"]);
 
@@ -353,7 +353,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="item">The item to return</param>
         /// <returns>An inventory item</returns>
-        public InventoryItemBase getInventoryItem(LLUUID itemID)
+        public InventoryItemBase getInventoryItem(UUID itemID)
         {
             try
             {
@@ -389,9 +389,9 @@ namespace OpenSim.Data.MSSQL
             try
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
-                folder.Owner = new LLUUID((string) reader["agentID"]);
-                folder.ParentID = new LLUUID((string) reader["parentFolderID"]);
-                folder.ID = new LLUUID((string) reader["folderID"]);
+                folder.Owner = new UUID((string) reader["agentID"]);
+                folder.ParentID = new UUID((string) reader["parentFolderID"]);
+                folder.ID = new UUID((string) reader["folderID"]);
                 folder.Name = (string) reader["folderName"];
                 folder.Type = (short) reader["type"];
                 folder.Version = Convert.ToUInt16(reader["version"]);
@@ -410,7 +410,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="folder">The folder to return</param>
         /// <returns>A folder class</returns>
-        public InventoryFolderBase getInventoryFolder(LLUUID folderID)
+        public InventoryFolderBase getInventoryFolder(UUID folderID)
         {
             try
             {
@@ -556,7 +556,7 @@ namespace OpenSim.Data.MSSQL
         /// Delete an item in inventory database
         /// </summary>
         /// <param name="item">the item UUID</param>
-        public void deleteInventoryItem(LLUUID itemID)
+        public void deleteInventoryItem(UUID itemID)
         {
             try
             {
@@ -679,7 +679,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="folders">list where folders will be appended</param>
         /// <param name="parentID">ID of parent</param>
-        protected void getInventoryFolders(ref List<InventoryFolderBase> folders, LLUUID parentID)
+        protected void getInventoryFolders(ref List<InventoryFolderBase> folders, UUID parentID)
         {
             List<InventoryFolderBase> subfolderList = getInventoryFolders(parentID);
 
@@ -688,7 +688,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         // See IInventoryDataPlugin
-        public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
+        public List<InventoryFolderBase> getFolderHierarchy(UUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
             getInventoryFolders(ref folders, parentID);
@@ -703,7 +703,7 @@ namespace OpenSim.Data.MSSQL
         /// Delete a folder in inventory databasae
         /// </summary>
         /// <param name="folderID">the folder UUID</param>
-        protected void deleteOneFolder(LLUUID folderID)
+        protected void deleteOneFolder(UUID folderID)
         {
             try
             {
@@ -725,7 +725,7 @@ namespace OpenSim.Data.MSSQL
         /// Delete an item in inventory database
         /// </summary>
         /// <param name="folderID">the item ID</param>
-        protected void deleteItemsInFolder(LLUUID folderID)
+        protected void deleteItemsInFolder(UUID folderID)
         {
             try
             {
@@ -749,7 +749,7 @@ namespace OpenSim.Data.MSSQL
         /// Delete an inventory folder
         /// </summary>
         /// <param name="folderId">Id of folder to delete</param>
-        public void deleteInventoryFolder(LLUUID folderID)
+        public void deleteInventoryFolder(UUID folderID)
         {
             // lock (database)
             {

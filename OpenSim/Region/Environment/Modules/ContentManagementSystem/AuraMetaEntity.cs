@@ -39,7 +39,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using Nini.Config;
 
@@ -50,8 +50,6 @@ using OpenSim.Region.Physics.Manager;
 
 using log4net;
 
-using Axiom.Math;
-
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
     public class AuraMetaEntity : PointMetaEntity
@@ -59,13 +57,13 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         #region Constructors
 
         //transparency of root part, NOT particle system. Should probably add support for changing particle system transparency.
-        public AuraMetaEntity(Scene scene, uint LocalId, LLVector3 groupPos, float transparency, LLVector3 color, LLVector3 scale)
+        public AuraMetaEntity(Scene scene, uint LocalId, Vector3 groupPos, float transparency, Vector3 color, Vector3 scale)
             : base(scene, LocalId, groupPos, transparency)
         {
             SetAura(color, scale);
         }
 
-        public AuraMetaEntity(Scene scene, LLUUID uuid, uint LocalId, LLVector3 groupPos, float transparency, LLVector3 color, LLVector3 scale)
+        public AuraMetaEntity(Scene scene, UUID uuid, uint LocalId, Vector3 groupPos, float transparency, Vector3 color, Vector3 scale)
             : base(scene, uuid, LocalId, groupPos, transparency)
         {
             SetAura(color, scale);
@@ -75,7 +73,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Private Methods
 
-        private float Average(LLVector3 values)
+        private float Average(Vector3 values)
         {
             return (values.X + values.Y + values.Z)/3f;
         }
@@ -84,12 +82,12 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Public Methods
 
-        public void SetAura(LLVector3 color, LLVector3 scale)
+        public void SetAura(Vector3 color, Vector3 scale)
         {
             SetAura(color, Average(scale) * 2.0f);
         }
 
-        public void SetAura(LLVector3 color, float radius)
+        public void SetAura(Vector3 color, float radius)
         {
             SceneObjectPart From = m_Entity.RootPart;
             	
@@ -110,7 +108,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             SetAura(From, color, radius, burstRadius, age, burstRate, patternFlags);
         }
 
-        public void SetAura(SceneObjectPart From, LLVector3 color, float radius, float burstRadius, float age, float burstRate, libsecondlife.Primitive.ParticleSystem.SourcePattern patternFlags)
+        public void SetAura(SceneObjectPart From, Vector3 color, float radius, float burstRadius, float age, float burstRate, Primitive.ParticleSystem.SourcePattern patternFlags)
         {
             Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
             //prules.PartDataFlags = Primitive.ParticleSystem.ParticleDataFlags.Emissive |                                                                                                                    
@@ -139,7 +137,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             prules.PartAcceleration.Y = 0.0f;
             prules.PartAcceleration.Z = 0.0f;
             prules.Pattern = patternFlags;                 //PSYS_SRC_PATTERN                                                                                                           
-            //prules.Texture = LLUUID.Zero;//= LLUUID                                                     //PSYS_SRC_TEXTURE, default used if blank                                                           
+            //prules.Texture = UUID.Zero;//= UUID                                                     //PSYS_SRC_TEXTURE, default used if blank                                                           
             prules.BurstRate = burstRate;                                                      //PSYS_SRC_BURST_RATE                                              
             prules.BurstPartCount = 2;                                                   //PSYS_SRC_BURST_PART_COUNT                                                                                                      
             //prules.BurstRadius = radius;                                                    //PSYS_SRC_BURST_RADIUS  

@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications
 {
@@ -53,7 +53,7 @@ namespace OpenSim.Framework.Communications
         List<SimpleRegionInfo> RequestNeighbours(uint x, uint y);
 
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
-        RegionInfo RequestNeighbourInfo(LLUUID regionID);
+        RegionInfo RequestNeighbourInfo(UUID regionID);
         RegionInfo RequestClosestRegion(string regionName);
         Dictionary<string, string> GetGridSettings();
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);

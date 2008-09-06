@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -52,7 +52,7 @@ namespace OpenSim.Framework
         event restart OnRestart;
 
         void AddNewClient(IClientAPI client, bool child);
-        void RemoveClient(LLUUID agentID);
+        void RemoveClient(UUID agentID);
         void CloseAllAgents(uint circuitcode);
 
         void Restart(int seconds);
@@ -60,9 +60,9 @@ namespace OpenSim.Framework
 
         string GetSimulatorVersion();
 
-        bool PresenceChildStatus(LLUUID avatarID);
+        bool PresenceChildStatus(UUID avatarID);
 
-        string GetCapsPath(LLUUID agentId);
+        string GetCapsPath(UUID agentId);
 
         T RequestModuleInterface<T>();
     }

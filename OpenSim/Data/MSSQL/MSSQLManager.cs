@@ -31,7 +31,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 
@@ -220,7 +220,7 @@ namespace OpenSim.Data.MSSQL
             {
                 return SqlDbType.Bit;
             }
-            if (type == typeof(LLUUID))
+            if (type == typeof(UUID))
             {
                 return SqlDbType.VarChar;
             }
@@ -244,7 +244,7 @@ namespace OpenSim.Data.MSSQL
         {
             Type valueType = value.GetType();
 
-            if (valueType == typeof(LLUUID))
+            if (valueType == typeof(UUID))
             {
                 return value.ToString();
             }
@@ -335,7 +335,7 @@ namespace OpenSim.Data.MSSQL
                 // Region Main
                 regionprofile.regionHandle = Convert.ToUInt64(reader["regionHandle"]);
                 regionprofile.regionName = (string)reader["regionName"];
-                regionprofile.UUID = new LLUUID((string)reader["uuid"]);
+                regionprofile.UUID = new UUID((string)reader["uuid"]);
 
                 // Secrets
                 regionprofile.regionRecvKey = (string)reader["regionRecvKey"];
@@ -372,16 +372,16 @@ namespace OpenSim.Data.MSSQL
                 regionprofile.regionUserURI = (string)reader["regionUserURI"];
                 regionprofile.regionUserRecvKey = (string)reader["regionUserRecvKey"];
                 regionprofile.regionUserSendKey = (string)reader["regionUserSendKey"];
-                regionprofile.owner_uuid = new LLUUID((string) reader["owner_uuid"]);
+                regionprofile.owner_uuid = new UUID((string) reader["owner_uuid"]);
                 // World Map Addition
                 string tempRegionMap = reader["regionMapTexture"].ToString();
                 if (tempRegionMap != String.Empty)
                 {
-                    regionprofile.regionMapTextureID = new LLUUID(tempRegionMap);
+                    regionprofile.regionMapTextureID = new UUID(tempRegionMap);
                 }
                 else
                 {
-                    regionprofile.regionMapTextureID = new LLUUID();
+                    regionprofile.regionMapTextureID = new UUID();
                 }
             }
             else
@@ -403,7 +403,7 @@ namespace OpenSim.Data.MSSQL
 
             if (reader.Read())
             {
-                retval.ID = new LLUUID((string)reader["UUID"]);
+                retval.ID = new UUID((string)reader["UUID"]);
                 retval.FirstName = (string)reader["username"];
                 retval.SurName = (string)reader["lastname"];
 
@@ -411,11 +411,11 @@ namespace OpenSim.Data.MSSQL
                 retval.PasswordSalt = (string)reader["passwordSalt"];
 
                 retval.HomeRegion = Convert.ToUInt64(reader["homeRegion"].ToString());
-                retval.HomeLocation = new LLVector3(
+                retval.HomeLocation = new Vector3(
                     Convert.ToSingle(reader["homeLocationX"].ToString()),
                     Convert.ToSingle(reader["homeLocationY"].ToString()),
                     Convert.ToSingle(reader["homeLocationZ"].ToString()));
-                retval.HomeLookAt = new LLVector3(
+                retval.HomeLookAt = new Vector3(
                     Convert.ToSingle(reader["homeLookAtX"].ToString()),
                     Convert.ToSingle(reader["homeLookAtY"].ToString()),
                     Convert.ToSingle(reader["homeLookAtZ"].ToString()));
@@ -432,9 +432,9 @@ namespace OpenSim.Data.MSSQL
                 retval.AboutText = (string)reader["profileAboutText"];
                 retval.FirstLifeAboutText = (string)reader["profileFirstText"];
 
-                retval.Image = new LLUUID((string)reader["profileImage"]);
-                retval.FirstLifeImage = new LLUUID((string)reader["profileFirstImage"]);
-                retval.WebLoginKey = new LLUUID((string)reader["webLoginKey"]);
+                retval.Image = new UUID((string)reader["profileImage"]);
+                retval.FirstLifeImage = new UUID((string)reader["profileFirstImage"]);
+                retval.WebLoginKey = new UUID((string)reader["webLoginKey"]);
             }
             else
             {
@@ -455,9 +455,9 @@ namespace OpenSim.Data.MSSQL
             if (reader.Read())
             {
                 // Agent IDs
-                retval.ProfileID = new LLUUID((string)reader["UUID"]);
-                retval.SessionID = new LLUUID((string)reader["sessionID"]);
-                retval.SecureSessionID = new LLUUID((string)reader["secureSessionID"]);
+                retval.ProfileID = new UUID((string)reader["UUID"]);
+                retval.SessionID = new UUID((string)reader["sessionID"]);
+                retval.SecureSessionID = new UUID((string)reader["secureSessionID"]);
 
                 // Agent Who?
                 retval.AgentIP = (string)reader["agentIP"];
@@ -471,8 +471,8 @@ namespace OpenSim.Data.MSSQL
                 // Current position
                 retval.Region = (string)reader["currentRegion"];
                 retval.Handle = Convert.ToUInt64(reader["currentHandle"].ToString());
-                LLVector3 tmp_v;
-                LLVector3.TryParse((string)reader["currentPos"], out tmp_v);
+                Vector3 tmp_v;
+                Vector3.TryParse((string)reader["currentPos"], out tmp_v);
                 retval.Position = tmp_v;
 
             }
@@ -497,7 +497,7 @@ namespace OpenSim.Data.MSSQL
                 asset = new AssetBase();
                 asset.Data = (byte[])reader["data"];
                 asset.Description = (string)reader["description"];
-                asset.FullID = new LLUUID((string)reader["id"]);
+                asset.FullID = new UUID((string)reader["id"]);
                 asset.Local = Convert.ToBoolean(reader["local"]); // ((sbyte)reader["local"]) != 0 ? true : false;
                 asset.Name = (string)reader["name"];
                 asset.Type = Convert.ToSByte(reader["assetType"]);

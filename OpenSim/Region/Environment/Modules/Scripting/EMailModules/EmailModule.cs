@@ -29,7 +29,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -161,7 +161,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
             }
         }
 
-        private SceneObjectPart findPrim(LLUUID objectID, out string ObjectRegionName)
+        private SceneObjectPart findPrim(UUID objectID, out string ObjectRegionName)
         {
             lock (m_Scenes)
             {
@@ -179,7 +179,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
             return null;
         }
 
-        private void resolveNamePositionRegionName(LLUUID objectID, out string ObjectName, out string ObjectAbsolutePosition, out string ObjectRegionName)
+        private void resolveNamePositionRegionName(UUID objectID, out string ObjectName, out string ObjectAbsolutePosition, out string ObjectRegionName)
         {
             string m_ObjectRegionName;
             SceneObjectPart part = findPrim(objectID, out m_ObjectRegionName);
@@ -203,7 +203,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
         /// <param name="address"></param>
         /// <param name="subject"></param>
         /// <param name="body"></param>
-        public void SendEmail(LLUUID objectID, string address, string subject, string body)
+        public void SendEmail(UUID objectID, string address, string subject, string body)
         {
             //Check if address is empty
             if (address == string.Empty)
@@ -240,7 +240,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
                 //Creation EmailMessage
                 EmailMessage emailMessage = new EmailMessage();
                 //From
-                emailMessage.FromAddress = new EmailAddress(objectID.UUID.ToString()+"@"+m_HostName);
+                emailMessage.FromAddress = new EmailAddress(objectID.ToString()+"@"+m_HostName);
                 //To - Only One
                 emailMessage.AddToAddress(new EmailAddress(address));
                 //Subject
@@ -264,7 +264,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
                 //Send Email Message
                 emailMessage.Send(smtpServer);
                 //Log
-                m_log.Info("[EMAIL] EMail sent to: " + address + " from object: " + objectID.UUID.ToString());
+                m_log.Info("[EMAIL] EMail sent to: " + address + " from object: " + objectID.ToString());
             }
             catch (Exception e)
             {
@@ -280,7 +280,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
         /// <param name="sender"></param>
         /// <param name="subject"></param>
         /// <returns></returns>
-        public Email GetNextEmail(LLUUID objectID, string sender, string subject)
+        public Email GetNextEmail(UUID objectID, string sender, string subject)
         {
             return null;
         }

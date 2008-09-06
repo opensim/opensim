@@ -27,7 +27,7 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -46,10 +46,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
         /// occurs in the initial offer message, not the accept message.  So this dictionary links
         /// IM Session Ids to ItemIds
         /// </summary>
-        private IDictionary<LLUUID, LLUUID> m_pendingOffers = new Dictionary<LLUUID, LLUUID>();
+        private IDictionary<UUID, UUID> m_pendingOffers = new Dictionary<UUID, UUID>();
 
         private List<Scene> m_Scenelist = new List<Scene>();
-        private Dictionary<LLUUID, Scene> m_AgentRegions = new Dictionary<LLUUID, Scene>();
+        private Dictionary<UUID, Scene> m_AgentRegions = new Dictionary<UUID, Scene>();
 
         #region IRegionModule Members
 
@@ -92,11 +92,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
             client.OnInstantMessage += OnInstantMessage;
         }
 
-        private void OnInstantMessage(IClientAPI client, LLUUID fromAgentID,
-                                      LLUUID fromAgentSession, LLUUID toAgentID,
-                                      LLUUID imSessionID, uint timestamp, string fromAgentName,
+        private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
+                                      UUID fromAgentSession, UUID toAgentID,
+                                      UUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog, bool fromGroup, byte offline,
-                                      uint ParentEstateID, LLVector3 Position, LLUUID RegionID,
+                                      uint ParentEstateID, Vector3 Position, UUID RegionID,
                                       byte[] binaryBucket)
         {
             if (dialog == (byte) InstantMessageDialog.InventoryOffered)
@@ -117,8 +117,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
                         // Next 16 bytes are the UUID
                         //Array.Copy(binaryBucket, 1, rawId, 0, 16);
 
-                        //LLUUID itemId = new LLUUID(new Guid(rawId));
-                        LLUUID itemId = new LLUUID(binaryBucket, 1);
+                        //UUID itemId = new UUID(new Guid(rawId));
+                        UUID itemId = new UUID(binaryBucket, 1);
 
                         m_log.DebugFormat(
                             "[AGENT INVENTORY]: ItemId for giving is {0}", itemId);
@@ -225,12 +225,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
             }
         }
 
-        public void SetRootAgentScene(LLUUID agentID, Scene scene)
+        public void SetRootAgentScene(UUID agentID, Scene scene)
         {
             m_AgentRegions[agentID] = scene;
         }
 
-        public bool NeedSceneCacheClear(LLUUID agentID, Scene scene)
+        public bool NeedSceneCacheClear(UUID agentID, Scene scene)
         {
             if (!m_AgentRegions.ContainsKey(agentID))
             {
@@ -279,7 +279,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
             return false;
         }
 
-        public void ClientLoggedOut(LLUUID agentID)
+        public void ClientLoggedOut(UUID agentID)
         {
             if (m_AgentRegions.ContainsKey(agentID))
                 m_AgentRegions.Remove(agentID);

@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Types
@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Types
     {
         private Queue<SceneObjectPart> m_queue;
 
-        private List<LLUUID> m_ids;
+        private List<UUID> m_ids;
 
         private object m_syncObject = new object();
 
@@ -51,7 +51,7 @@ namespace OpenSim.Region.Environment.Types
         public UpdateQueue()
         {
             m_queue = new Queue<SceneObjectPart>();
-            m_ids = new List<LLUUID>();
+            m_ids = new List<UUID>();
         }
 
         public void Clear()
@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Types
 
             foreach (Guid guid in ids_work)
             {
-                m_ids.Add(new LLUUID(guid));
+                m_ids.Add(new UUID(guid));
             }
 
             //System.Console.WriteLine("UpdateQueue Deserialize END");
@@ -122,9 +122,9 @@ namespace OpenSim.Region.Environment.Types
 
             List<Guid> ids_work = new List<Guid>();
 
-            foreach (LLUUID uuid in m_ids)
+            foreach (UUID uuid in m_ids)
             {
-                ids_work.Add(uuid.UUID);
+                ids_work.Add(uuid.Guid);
             }
 
             info.AddValue("m_queue", m_queue);

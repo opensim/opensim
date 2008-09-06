@@ -28,7 +28,7 @@
 using System;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework.AssetLoader.Filesystem;
 using OpenSim.Framework.Statistics;
@@ -146,7 +146,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_receiver = receiver;
         }
 
-        public void RequestAsset(LLUUID assetID, bool isTexture)
+        public void RequestAsset(UUID assetID, bool isTexture)
         {
             AssetRequest req = new AssetRequest();
             req.AssetID = assetID;

@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -41,11 +41,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<LLUUID, GroupList> m_grouplistmap = new Dictionary<LLUUID, GroupList>();
-        private Dictionary<LLUUID, GroupData> m_groupmap = new Dictionary<LLUUID, GroupData>();
-        private Dictionary<LLUUID, IClientAPI> m_iclientmap = new Dictionary<LLUUID, IClientAPI>();
-        private Dictionary<LLUUID, GroupData> m_groupUUIDGroup = new Dictionary<LLUUID, GroupData>();
-        private LLUUID opensimulatorGroupID = new LLUUID("00000000-68f9-1111-024e-222222111123");
+        private Dictionary<UUID, GroupList> m_grouplistmap = new Dictionary<UUID, GroupList>();
+        private Dictionary<UUID, GroupData> m_groupmap = new Dictionary<UUID, GroupData>();
+        private Dictionary<UUID, IClientAPI> m_iclientmap = new Dictionary<UUID, IClientAPI>();
+        private Dictionary<UUID, GroupData> m_groupUUIDGroup = new Dictionary<UUID, GroupData>();
+        private UUID opensimulatorGroupID = new UUID("00000000-68f9-1111-024e-222222111123");
 
         private List<Scene> m_scene = new List<Scene>();
 
@@ -161,13 +161,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             client.SendGroupMembership(updateGroups);
         }
 
-        private void OnAgentDataUpdateRequest(IClientAPI remoteClient, LLUUID AgentID, LLUUID SessionID)
+        private void OnAgentDataUpdateRequest(IClientAPI remoteClient, UUID AgentID, UUID SessionID)
         {
             // Adam, this is one of those impossible to refactor items without resorting to .Split hackery
             string firstname = remoteClient.FirstName;
             string lastname = remoteClient.LastName;
 
-            LLUUID ActiveGroupID = LLUUID.Zero;
+            UUID ActiveGroupID = UUID.Zero;
             uint ActiveGroupPowers = 0;
             string ActiveGroupName = "OpenSimulator Tester";
             string ActiveGroupTitle = "I IZ N0T";
@@ -202,11 +202,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             }
         }
 
-        private void OnInstantMessage(IClientAPI client, LLUUID fromAgentID,
-                                      LLUUID fromAgentSession, LLUUID toAgentID,
-                                      LLUUID imSessionID, uint timestamp, string fromAgentName,
+        private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
+                                      UUID fromAgentSession, UUID toAgentID,
+                                      UUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog, bool fromGroup, byte offline,
-                                      uint ParentEstateID, LLVector3 Position, LLUUID RegionID,
+                                      uint ParentEstateID, Vector3 Position, UUID RegionID,
                                       byte[] binaryBucket)
         {
         }
@@ -214,16 +214,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
             // Trigger the above event handler
-            OnInstantMessage(null, new LLUUID(msg.fromAgentID), new LLUUID(msg.fromAgentSession),
-                             new LLUUID(msg.toAgentID), new LLUUID(msg.imSessionID), msg.timestamp, msg.fromAgentName,
+            OnInstantMessage(null, new UUID(msg.fromAgentID), new UUID(msg.fromAgentSession),
+                             new UUID(msg.toAgentID), new UUID(msg.imSessionID), msg.timestamp, msg.fromAgentName,
                              msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID,
-                             new LLVector3(msg.Position.x, msg.Position.y, msg.Position.z), new LLUUID(msg.RegionID),
+                             new Vector3(msg.Position.X, msg.Position.Y, msg.Position.Z), new UUID(msg.RegionID),
                              msg.binaryBucket);
         }
-        private void HandleUUIDGroupNameRequest(LLUUID id,IClientAPI remote_client)
+        private void HandleUUIDGroupNameRequest(UUID id,IClientAPI remote_client)
         {
             string groupnamereply = "Unknown";
-            LLUUID groupUUID = LLUUID.Zero;
+            UUID groupUUID = UUID.Zero;
 
             lock (m_groupUUIDGroup)
             {
@@ -236,7 +236,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             }
             remote_client.SendGroupNameReply(groupUUID, groupnamereply);
         }
-        private void OnClientClosed(LLUUID agentID)
+        private void OnClientClosed(UUID agentID)
         {
             lock (m_iclientmap)
             {

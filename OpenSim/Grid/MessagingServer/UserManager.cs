@@ -30,7 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -41,7 +41,7 @@ namespace OpenSim.Grid.MessagingServer
 {
     class UserManager : UserManagerBase
     {
-        public UserAgentData GetUserAgentData(LLUUID AgentID)
+        public UserAgentData GetUserAgentData(UUID AgentID)
         {
             UserProfileData userProfile = GetUserProfile(AgentID);
 
@@ -67,7 +67,7 @@ namespace OpenSim.Grid.MessagingServer
             return null;
         }
 
-        public override UserProfileData SetupMasterUser(LLUUID uuid)
+        public override UserProfileData SetupMasterUser(UUID uuid)
         {
             //throw new Exception("The method or operation is not implemented.");
             return null;

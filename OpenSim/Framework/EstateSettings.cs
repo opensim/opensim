@@ -29,7 +29,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 
 namespace OpenSim.Framework
@@ -223,9 +223,9 @@ namespace OpenSim.Framework
             set { m_AbuseEmail= value; }
         }
 
-        private LLUUID m_EstateOwner = LLUUID.Zero;
+        private UUID m_EstateOwner = UUID.Zero;
 
-        public LLUUID EstateOwner
+        public UUID EstateOwner
         {
             get { return m_EstateOwner; }
             set { m_EstateOwner = value; }
@@ -241,12 +241,12 @@ namespace OpenSim.Framework
 
         // All those lists...
         //
-        private List<LLUUID> l_EstateManagers = new List<LLUUID>();
+        private List<UUID> l_EstateManagers = new List<UUID>();
 
-        public LLUUID[] EstateManagers
+        public UUID[] EstateManagers
         {
             get { return l_EstateManagers.ToArray(); }
-            set { l_EstateManagers = new List<LLUUID>(value); }
+            set { l_EstateManagers = new List<UUID>(value); }
         }
 
         private List<EstateBan> l_EstateBans = new List<EstateBan>();
@@ -257,20 +257,20 @@ namespace OpenSim.Framework
             set { l_EstateBans = new List<EstateBan>(value); }
         }
 
-        private List<LLUUID> l_EstateAccess = new List<LLUUID>();
+        private List<UUID> l_EstateAccess = new List<UUID>();
 
-        public LLUUID[] EstateAccess
+        public UUID[] EstateAccess
         {
             get { return l_EstateAccess.ToArray(); }
-            set { l_EstateAccess = new List<LLUUID>(value); }
+            set { l_EstateAccess = new List<UUID>(value); }
         }
 
-        private List<LLUUID> l_EstateGroups = new List<LLUUID>();
+        private List<UUID> l_EstateGroups = new List<UUID>();
 
-        public LLUUID[] EstateGroups
+        public UUID[] EstateGroups
         {
             get { return l_EstateGroups.ToArray(); }
-            set { l_EstateGroups = new List<LLUUID>(value); }
+            set { l_EstateGroups = new List<UUID>(value); }
         }
 
         public EstateSettings()
@@ -281,7 +281,7 @@ namespace OpenSim.Framework
                 //
                 configMember =
                     new ConfigurationMember(Path.Combine(Util.configDir(),
-                            "estate_settings.xml"), "ESTATE SETTINGS",
+                            "estate_settings.Xml"), "ESTATE SETTINGS",
                             loadConfigurationOptions,
                             handleIncomingConfiguration, true);
 
@@ -296,21 +296,21 @@ namespace OpenSim.Framework
                 OnSave(this);
         }
 
-        public void AddEstateManager(LLUUID avatarID)
+        public void AddEstateManager(UUID avatarID)
         {
-            if (avatarID == LLUUID.Zero)
+            if (avatarID == UUID.Zero)
                 return;
             if (!l_EstateManagers.Contains(avatarID))
                 l_EstateManagers.Add(avatarID);
         }
 
-        public void RemoveEstateManager(LLUUID avatarID)
+        public void RemoveEstateManager(UUID avatarID)
         {
             if (l_EstateManagers.Contains(avatarID))
                 l_EstateManagers.Remove(avatarID);
         }
 
-        public bool IsEstateManager(LLUUID avatarID)
+        public bool IsEstateManager(UUID avatarID)
         {
             if (IsEstateOwner(avatarID))
                 return true;
@@ -318,7 +318,7 @@ namespace OpenSim.Framework
             return l_EstateManagers.Contains(avatarID);
         }
 
-        public bool IsEstateOwner(LLUUID avatarID)
+        public bool IsEstateOwner(UUID avatarID)
         {
             if (avatarID == m_EstateOwner)
                 return true;
@@ -326,7 +326,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public bool IsBanned(LLUUID avatarID)
+        public bool IsBanned(UUID avatarID)
         {
             foreach (EstateBan ban in l_EstateBans)
                 if (ban.bannedUUID == avatarID)
@@ -347,7 +347,7 @@ namespace OpenSim.Framework
             l_EstateBans.Clear();
         }
 
-        public void RemoveBan(LLUUID avatarID)
+        public void RemoveBan(UUID avatarID)
         {
             foreach (EstateBan ban in new List<EstateBan>(l_EstateBans))
                 if (ban.bannedUUID == avatarID)
@@ -385,43 +385,43 @@ namespace OpenSim.Framework
                     String.Empty, "My Estate", true);
 
             configMember.addConfigurationOption("estate_manager_0",
-                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_manager_1",
-                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_manager_2",
-                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_manager_3",
-                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_manager_4",
-                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_manager_5",
-                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_manager_6",
-                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_manager_7",
-                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_manager_8",
-                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_manager_9",
-                    ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                    ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                     String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("region_flags",
@@ -480,34 +480,34 @@ namespace OpenSim.Framework
                     m_EstateName = (string) configuration_result;
                     break;
                 case "estate_manager_0":
-                    AddEstateManager((LLUUID)configuration_result);
+                    AddEstateManager((UUID)configuration_result);
                     break;
                 case "estate_manager_1":
-                    AddEstateManager((LLUUID)configuration_result);
+                    AddEstateManager((UUID)configuration_result);
                     break;
                 case "estate_manager_2":
-                    AddEstateManager((LLUUID)configuration_result);
+                    AddEstateManager((UUID)configuration_result);
                     break;
                 case "estate_manager_3":
-                    AddEstateManager((LLUUID)configuration_result);
+                    AddEstateManager((UUID)configuration_result);
                     break;
                 case "estate_manager_4":
-                    AddEstateManager((LLUUID)configuration_result);
+                    AddEstateManager((UUID)configuration_result);
                     break;
                 case "estate_manager_5":
-                    AddEstateManager((LLUUID)configuration_result);
+                    AddEstateManager((UUID)configuration_result);
                     break;
                 case "estate_manager_6":
-                    AddEstateManager((LLUUID)configuration_result);
+                    AddEstateManager((UUID)configuration_result);
                     break;
                 case "estate_manager_7":
-                    AddEstateManager((LLUUID)configuration_result);
+                    AddEstateManager((UUID)configuration_result);
                     break;
                 case "estate_manager_8":
-                    AddEstateManager((LLUUID)configuration_result);
+                    AddEstateManager((UUID)configuration_result);
                     break;
                 case "estate_manager_9":
-                    AddEstateManager((LLUUID)configuration_result);
+                    AddEstateManager((UUID)configuration_result);
                     break;
             }
 

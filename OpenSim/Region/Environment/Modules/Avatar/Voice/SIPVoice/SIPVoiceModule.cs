@@ -28,7 +28,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -98,7 +98,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
 
         #endregion
 
-        public void OnRegisterCaps(LLUUID agentID, Caps caps)
+        public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             m_log.DebugFormat("[VOICE] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
@@ -130,7 +130,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
         /// <param name="caps"></param>
         /// <returns></returns>
         public string ParcelVoiceInfoRequest(string request, string path, string param,
-                                             LLUUID agentID, Caps caps)
+                                             UUID agentID, Caps caps)
         {
             try
             {
@@ -172,7 +172,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
         /// <param name="caps"></param>
         /// <returns></returns>
         public string ProvisionVoiceAccountRequest(string request, string path, string param,
-                                                   LLUUID agentID, Caps caps)
+                                                   UUID agentID, Caps caps)
         {
             try
             {

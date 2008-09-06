@@ -27,22 +27,22 @@
 
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class LandData
     {
-        private LLVector3 _AABBMax = new LLVector3();
-        private LLVector3 _AABBMin = new LLVector3();
+        private Vector3 _AABBMax = new Vector3();
+        private Vector3 _AABBMin = new Vector3();
         private int _area = 0;
         private uint _auctionID = 0; //Unemplemented. If set to 0, not being auctioned
-        private LLUUID _authBuyerID = LLUUID.Zero; //Unemplemented. Authorized Buyer's UUID
+        private UUID _authBuyerID = UUID.Zero; //Unemplemented. Authorized Buyer's UUID
         private Parcel.ParcelCategory _category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
         private int _claimDate = 0;
         private int _claimPrice = 0; //Unemplemented
-        private LLUUID _globalID = LLUUID.Zero;
-        private LLUUID _groupID = LLUUID.Zero; //Unemplemented
+        private UUID _globalID = UUID.Zero;
+        private UUID _groupID = UUID.Zero; //Unemplemented
         private int _groupPrims = 0;
         private bool _isGroupOwned = false;
         private byte[] _bitmap = new byte[512];
@@ -50,7 +50,7 @@ namespace OpenSim.Framework
 
 
         private uint _flags = (uint) Parcel.ParcelFlags.AllowFly | (uint) Parcel.ParcelFlags.AllowLandmark |
-                                (uint) Parcel.ParcelFlags.AllowAllObjectEntry |
+                                (uint) Parcel.ParcelFlags.AllowAPrimitiveEntry |
                                 (uint) Parcel.ParcelFlags.AllowDeedToGroup | (uint) Parcel.ParcelFlags.AllowTerraform |
                                 (uint) Parcel.ParcelFlags.CreateObjects | (uint) Parcel.ParcelFlags.AllowOtherScripts |
                                 (uint) Parcel.ParcelFlags.SoundLocal;
@@ -60,12 +60,12 @@ namespace OpenSim.Framework
         private Parcel.ParcelStatus _status = Parcel.ParcelStatus.Leased;
         private int _localID = 0;
         private byte _mediaAutoScale = 0;
-        private LLUUID _mediaID = LLUUID.Zero;
+        private UUID _mediaID = UUID.Zero;
 
         private string _mediaURL = String.Empty;
         private string _musicURL = String.Empty;
         private int _otherPrims = 0;
-        private LLUUID _ownerID = LLUUID.Zero;
+        private UUID _ownerID = UUID.Zero;
         private int _ownerPrims = 0;
         private List<ParcelManager.ParcelAccessEntry> _parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
         private float _passHours = 0;
@@ -74,11 +74,11 @@ namespace OpenSim.Framework
         private int _selectedPrims = 0;
         private int _simwideArea = 0;
         private int _simwidePrims = 0;
-        private LLUUID _snapshotID = LLUUID.Zero;
-        private LLVector3 _userLocation = new LLVector3();
-        private LLVector3 _userLookAt = new LLVector3();
+        private UUID _snapshotID = UUID.Zero;
+        private Vector3 _userLocation = new Vector3();
+        private Vector3 _userLookAt = new Vector3();
 
-        public LLVector3 AABBMax {
+        public Vector3 AABBMax {
             get {
                 return _AABBMax;
             }
@@ -87,7 +87,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLVector3 AABBMin {
+        public Vector3 AABBMin {
             get {
                 return _AABBMin;
             }
@@ -114,7 +114,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID AuthBuyerID {
+        public UUID AuthBuyerID {
             get {
                 return _authBuyerID;
             }
@@ -123,7 +123,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public libsecondlife.Parcel.ParcelCategory Category {
+        public OpenMetaverse.Parcel.ParcelCategory Category {
             get {
                 return _category;
             }
@@ -150,7 +150,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID GlobalID {
+        public UUID GlobalID {
             get {
                 return _globalID;
             }
@@ -159,7 +159,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID GroupID {
+        public UUID GroupID {
             get {
                 return _groupID;
             }
@@ -231,7 +231,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public libsecondlife.Parcel.ParcelStatus Status {
+        public OpenMetaverse.Parcel.ParcelStatus Status {
             get {
                 return _status;
             }
@@ -258,7 +258,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID MediaID {
+        public UUID MediaID {
             get {
                 return _mediaID;
             }
@@ -294,7 +294,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID OwnerID {
+        public UUID OwnerID {
             get {
                 return _ownerID;
             }
@@ -312,7 +312,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public List<libsecondlife.ParcelManager.ParcelAccessEntry> ParcelAccessList {
+        public List<OpenMetaverse.ParcelManager.ParcelAccessEntry> ParcelAccessList {
             get {
                 return _parcelAccessList;
             }
@@ -375,7 +375,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID SnapshotID {
+        public UUID SnapshotID {
             get {
                 return _snapshotID;
             }
@@ -384,7 +384,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLVector3 UserLocation {
+        public Vector3 UserLocation {
             get {
                 return _userLocation;
             }
@@ -393,7 +393,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLVector3 UserLookAt {
+        public Vector3 UserLookAt {
             get {
                 return _userLookAt;
             }
@@ -404,7 +404,7 @@ namespace OpenSim.Framework
 
         public LandData()
         {
-            _globalID = LLUUID.Random();
+            _globalID = UUID.Random();
         }
 
         public LandData Copy()

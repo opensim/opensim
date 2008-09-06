@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -29,7 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
@@ -38,7 +38,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Region.Physics.Manager;
-using Axiom.Math;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.Environment.Modules.World.Land
@@ -165,10 +164,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
             landIDList.Initialize();
 
-            ILandObject fullSimParcel = new LandObject(LLUUID.Zero, false, m_scene);
+            ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);
 
             fullSimParcel.setLandBitmap(fullSimParcel.getSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                 fullSimParcel.landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             else
                 fullSimParcel.landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
@@ -176,7 +175,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             AddLandObject(fullSimParcel);
         }
 
-        public List<ILandObject> ParcelsNearPoint(LLVector3 position)
+        public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {
             List<ILandObject> parcelsNear = new List<ILandObject>();
             for (int x = -4; x <= 4; x += 4)
@@ -205,8 +204,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     "You are not allowed on this parcel because you are banned. Please go away. <3 OpenSim Developers");
 
                 avatar.PhysicsActor.Position =
-                    new PhysicsVector(avatar.lastKnownAllowedPosition.x, avatar.lastKnownAllowedPosition.y,
-                                      avatar.lastKnownAllowedPosition.z);
+                    new PhysicsVector(avatar.lastKnownAllowedPosition.X, avatar.lastKnownAllowedPosition.Y,
+                                      avatar.lastKnownAllowedPosition.Z);
                 avatar.PhysicsActor.Velocity = new PhysicsVector(0, 0, 0);
             }
             else
@@ -216,7 +215,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public void handleAvatarChangingParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
+        public void handleAvatarChangingParcel(ScenePresence avatar, int localLandID, UUID regionID)
         {
             if (m_scene.RegionInfo.RegionID == regionID)
             {
@@ -353,7 +352,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         }
 
 
-        public void handleParcelAccessRequest(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID,
+        public void handleParcelAccessRequest(UUID agentID, UUID sessionID, uint flags, int sequenceID,
                                               int landLocalID, IClientAPI remote_client)
         {
             if (landList.ContainsKey(landLocalID))
@@ -362,7 +361,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public void handleParcelAccessUpdateRequest(LLUUID agentID, LLUUID sessionID, uint flags, int landLocalID,
+        public void handleParcelAccessUpdateRequest(UUID agentID, UUID sessionID, uint flags, int landLocalID,
                                                     List<ParcelManager.ParcelAccessEntry> entries,
                                                     IClientAPI remote_client)
         {
@@ -385,7 +384,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// <returns></returns>
         public ILandObject CreateBaseLand()
         {
-            return new LandObject(LLUUID.Zero, false, m_scene);
+            return new LandObject(UUID.Zero, false, m_scene);
         }
 
         /// <summary>
@@ -529,7 +528,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void AddPrimToLandPrimCounts(SceneObjectGroup obj)
         {
-            LLVector3 position = obj.AbsolutePosition;
+            Vector3 position = obj.AbsolutePosition;
             ILandObject landUnderPrim = GetLandObject(position.X, position.Y);
             if (landUnderPrim != null)
             {
@@ -548,7 +547,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void FinalizeLandPrimCountUpdate()
         {
             //Get Simwide prim count for owner
-            Dictionary<LLUUID, List<LandObject>> landOwnersAndParcels = new Dictionary<LLUUID, List<LandObject>>();
+            Dictionary<UUID, List<LandObject>> landOwnersAndParcels = new Dictionary<UUID, List<LandObject>>();
             foreach (LandObject p in landList.Values)
             {
                 if (!landOwnersAndParcels.ContainsKey(p.landData.OwnerID))
@@ -563,7 +562,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 }
             }
 
-            foreach (LLUUID owner in landOwnersAndParcels.Keys)
+            foreach (UUID owner in landOwnersAndParcels.Keys)
             {
                 int simArea = 0;
                 int simPrims = 0;
@@ -617,9 +616,9 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// <param name="start_y">South Point</param>
         /// <param name="end_x">East Point</param>
         /// <param name="end_y">North Point</param>
-        /// <param name="attempting_user_id">LLUUID of user who is trying to subdivide</param>
+        /// <param name="attempting_user_id">UUID of user who is trying to subdivide</param>
         /// <returns>Returns true if successful</returns>
-        private void subdivide(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
+        private void subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
             //First, lets loop through the points and make sure they are all in the same peice of land
             //Get the land object at start
@@ -658,7 +657,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             //Lets create a new land object with bitmap activated at that point (keeping the old land objects info)
             ILandObject newLand = startLandObject.Copy();
             newLand.landData.Name = "Subdivision of " + newLand.landData.Name;
-            newLand.landData.GlobalID = LLUUID.Random();
+            newLand.landData.GlobalID = UUID.Random();
 
             newLand.setLandBitmap(newLand.getSquareLandBitmap(start_x, start_y, end_x, end_y));
 
@@ -683,9 +682,9 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// <param name="start_y">y value in first piece of land</param>
         /// <param name="end_x">x value in second peice of land</param>
         /// <param name="end_y">y value in second peice of land</param>
-        /// <param name="attempting_user_id">LLUUID of the avatar trying to join the land objects</param>
+        /// <param name="attempting_user_id">UUID of the avatar trying to join the land objects</param>
         /// <returns>Returns true if successful</returns>
-        private void join(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
+        private void join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
             end_x -= 4;
             end_y -= 4;
@@ -770,13 +769,13 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                             tempByte = Convert.ToByte(tempByte | LandChannel.LAND_TYPE_OWNED_BY_REQUESTER);
                         }
                         else if (currentParcelBlock.landData.SalePrice > 0 &&
-                                 (currentParcelBlock.landData.AuthBuyerID == LLUUID.Zero ||
+                                 (currentParcelBlock.landData.AuthBuyerID == UUID.Zero ||
                                   currentParcelBlock.landData.AuthBuyerID == remote_client.AgentId))
                         {
                             //Sale Flag
                             tempByte = Convert.ToByte(tempByte | LandChannel.LAND_TYPE_IS_FOR_SALE);
                         }
-                        else if (currentParcelBlock.landData.OwnerID == LLUUID.Zero)
+                        else if (currentParcelBlock.landData.OwnerID == UUID.Zero)
                         {
                             //Public Flag
                             tempByte = Convert.ToByte(tempByte | LandChannel.LAND_TYPE_PUBLIC);
@@ -914,7 +913,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 if (m_scene.ExternalChecks.ExternalChecksCanAbandonParcel(remote_client.AgentId, landList[local_id]))
                 {
-                    if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                    if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                         landList[local_id].landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     else
                         landList[local_id].landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
@@ -930,7 +929,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 if (m_scene.ExternalChecks.ExternalChecksCanReclaimParcel(remote_client.AgentId, landList[local_id]))
                 {
-                    if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                    if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                         landList[local_id].landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     else
                         landList[local_id].landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
@@ -979,13 +978,13 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 }
                 if (lob != null)
                 {
-                    LLUUID AuthorizedID = lob.landData.AuthBuyerID;
+                    UUID AuthorizedID = lob.landData.AuthBuyerID;
                     int saleprice = lob.landData.SalePrice;
-                    LLUUID pOwnerID = lob.landData.OwnerID;
+                    UUID pOwnerID = lob.landData.OwnerID;
 
                     bool landforsale = ((lob.landData.Flags &
                                          (uint)(Parcel.ParcelFlags.ForSale | Parcel.ParcelFlags.ForSaleObjects | Parcel.ParcelFlags.SellParcelObjects)) != 0);
-                    if ((AuthorizedID == LLUUID.Zero || AuthorizedID == e.agentId) && e.parcelPrice >= saleprice && landforsale)
+                    if ((AuthorizedID == UUID.Zero || AuthorizedID == e.agentId) && e.parcelPrice >= saleprice && landforsale)
                     {
                         lock (e)
                         {
@@ -1027,7 +1026,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             AddLandObject(new_land);
         }
 
-        public void ReturnObjectsInParcel(int localID, uint returnType, LLUUID[] agentIDs, LLUUID[] taskIDs, IClientAPI remoteClient)
+        public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
         {
             ILandObject selectedParcel = null;
             lock (landList)
@@ -1065,7 +1064,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         #region CAPS handler
 
-        private void OnRegisterCaps(LLUUID agentID, Caps caps)
+        private void OnRegisterCaps(UUID agentID, Caps caps)
         {
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler("RemoteParcelRequest",
@@ -1080,7 +1079,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         // we cheat here: As we don't have (and want) a grid-global parcel-store, we can't return the
         // "real" parcelID, because we wouldn't be able to map that to the region the parcel belongs to.
         // So, we create a "fake" parcelID by using the regionHandle (64 bit), and the local (integer) x
-        // and y coordinate (each 8 bit), encoded in a LLUUID (128 bit).
+        // and y coordinate (each 8 bit), encoded in a UUID (128 bit).
         //
         // Request format:
         // <llsd>
@@ -1095,16 +1094,16 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         //     <uuid>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</uuid>
         //   </map>
         // </llsd>
-        private string RemoteParcelRequest(string request, string path, string param, LLUUID agentID, Caps caps)
+        private string RemoteParcelRequest(string request, string path, string param, UUID agentID, Caps caps)
         {
-            LLUUID parcelID = LLUUID.Zero;
+            UUID parcelID = UUID.Zero;
             try
             {
                 Hashtable hash = new Hashtable();
-                hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
+                hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
                 if (hash.ContainsKey("region_id") && hash.ContainsKey("location"))
                 {
-                    LLUUID regionID = (LLUUID)hash["region_id"];
+                    UUID regionID = (UUID)hash["region_id"];
                     ArrayList list = (ArrayList)hash["location"];
                     uint x = (uint)(double)list[0];
                     uint y = (uint)(double)list[1];
@@ -1148,9 +1147,9 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         #endregion
 
-        private void handleParcelInfo(IClientAPI remoteClient, LLUUID parcelID)
+        private void handleParcelInfo(IClientAPI remoteClient, UUID parcelID)
         {
-            if (parcelID == LLUUID.Zero)
+            if (parcelID == UUID.Zero)
                 return;
 
             // assume we've got the parcelID we just computed in RemoteParcelRequest

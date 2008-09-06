@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 
@@ -121,7 +121,7 @@ namespace OpenSim.Data.MySQL
             }
             else
             {
-                m_log.Warn("Using deprecated mysql_connection.ini.  Please update database_connect in GridServer_Config.xml and we'll use that instead");
+                m_log.Warn("Using deprecated mysql_connection.ini.  Please update database_connect in GridServer_Config.Xml and we'll use that instead");
                 IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
                 string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");
                 string settingDatabase = GridDataMySqlFile.ParseFileReadValue("database");
@@ -322,7 +322,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="uuid">The region UUID</param>
         /// <returns>The sim profile</returns>
-        override public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
+        override public RegionProfileData GetProfileByUUID(UUID uuid)
         {
             MySQLSuperManager dbm = GetLockedConnection();
 
@@ -458,14 +458,14 @@ namespace OpenSim.Data.MySQL
         /// <param name="handle">The attempted regionHandle of the challenger</param>
         /// <param name="authkey">The secret</param>
         /// <returns>Whether the secret and regionhandle match the database entry for UUID</returns>
-        override public bool AuthenticateSim(LLUUID uuid, ulong handle, string authkey)
+        override public bool AuthenticateSim(UUID uuid, ulong handle, string authkey)
         {
             bool throwHissyFit = false; // Should be true by 1.0
 
             if (throwHissyFit)
                 throw new Exception("CRYPTOWEAK AUTHENTICATE: Refusing to authenticate due to replay potential.");
 
-            RegionProfileData data = GetProfileByLLUUID(uuid);
+            RegionProfileData data = GetProfileByUUID(uuid);
 
             return (handle == data.regionHandle && authkey == data.regionSecret);
         }
@@ -479,7 +479,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="authhash"></param>
         /// <param name="challenge"></param>
         /// <returns></returns>
-        public bool AuthenticateSim(LLUUID uuid, ulong handle, string authhash, string challenge)
+        public bool AuthenticateSim(UUID uuid, ulong handle, string authhash, string challenge)
         {
             // SHA512Managed HashProvider = new SHA512Managed();
             // Encoding TextProvider = new UTF8Encoding();

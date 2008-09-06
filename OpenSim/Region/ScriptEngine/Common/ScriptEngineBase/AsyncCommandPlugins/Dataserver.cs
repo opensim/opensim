@@ -28,7 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins
 
@@ -48,28 +48,28 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
         private class DataserverRequest
         {
             public uint localID;
-            public LLUUID itemID;
+            public UUID itemID;
 
-            public LLUUID ID;
+            public UUID ID;
             public string handle;
 
             public DateTime startTime;
         }
 
-        public LLUUID RegisterRequest(uint localID, LLUUID itemID,
+        public UUID RegisterRequest(uint localID, UUID itemID,
                 string identifier)
         {
             lock (DataserverRequests)
             {
                 if (DataserverRequests.ContainsKey(identifier))
-                    return LLUUID.Zero;
+                    return UUID.Zero;
 
                 DataserverRequest ds = new DataserverRequest();
 
                 ds.localID = localID;
                 ds.itemID = itemID;
 
-                ds.ID = LLUUID.Random();
+                ds.ID = UUID.Random();
                 ds.handle = identifier;
 
                 ds.startTime = DateTime.Now;
@@ -99,7 +99,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                     new LSL_Types.LSLString(reply)});
         }
 
-        public void RemoveEvents(uint localID, LLUUID itemID)
+        public void RemoveEvents(uint localID, UUID itemID)
         {
             lock (DataserverRequests)
             {

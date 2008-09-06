@@ -32,13 +32,12 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Reflection;
-using Axiom.Math;
 using Nini.Config;
+using OpenMetaverse.Imaging;
 using log4net;
-using OpenJPEGNet;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Modules.World.WorldMap
 {
@@ -252,7 +251,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     if (part.Shape.Textures.DefaultTexture == null)
                                         continue;
 
-                                    LLColor texcolor = part.Shape.Textures.DefaultTexture.RGBA;
+                                    Color4 texcolor = part.Shape.Textures.DefaultTexture.RGBA;
 
                                     // Not sure why some of these are null, oh well.
 
@@ -265,7 +264,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                         //Try to set the map spot color
                                         try
                                         {
-                                            // If the color gets goofy somehow, skip it *shakes fist at LLColor
+                                            // If the color gets goofy somehow, skip it *shakes fist at Color4
                                             mapdotspot = Color.FromArgb(colorr, colorg, colorb);
                                         }
                                         catch (ArgumentException)
@@ -282,7 +281,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     // Mono Array
                                 }
 
-                                LLVector3 pos = part.GetWorldPosition();
+                                Vector3 pos = part.GetWorldPosition();
 
                                 // skip prim outside of retion
                                 if (pos.X < 0f || pos.X > 256f || pos.Y < 0f || pos.Y > 256f)
@@ -312,20 +311,20 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     Vector3 tScale = new Vector3();
                                     Vector3 axPos = new Vector3(pos.X,pos.Y,pos.Z);
 
-                                    LLQuaternion llrot = part.GetWorldRotation();
+                                    Quaternion llrot = part.GetWorldRotation();
                                     Quaternion rot = new Quaternion(llrot.W, llrot.X, llrot.Y, llrot.Z);
-                                    scale = rot * lscale;
+                                    scale = lscale * rot;
 
                                     // negative scales don't work in this situation
-                                    scale.x = Math.Abs(scale.x);
-                                    scale.y = Math.Abs(scale.y);
-                                    scale.z = Math.Abs(scale.z);
+                                    scale.X = Math.Abs(scale.X);
+                                    scale.Y = Math.Abs(scale.Y);
+                                    scale.Z = Math.Abs(scale.Z);
 
                                     // This scaling isn't very accurate and doesn't take into account the face rotation :P
-                                    int mapdrawstartX = (int)(pos.X - scale.x);
-                                    int mapdrawstartY = (int)(pos.Y - scale.y);
-                                    int mapdrawendX = (int)(pos.X + scale.x);
-                                    int mapdrawendY = (int)(pos.Y + scale.y);
+                                    int mapdrawstartX = (int)(pos.X - scale.X);
+                                    int mapdrawstartY = (int)(pos.Y - scale.Y);
+                                    int mapdrawendX = (int)(pos.X + scale.X);
+                                    int mapdrawendY = (int)(pos.Y + scale.Y);
 
                                     // If object is beyond the edge of the map, don't draw it to avoid errors
                                     if (mapdrawstartX < 0 || mapdrawstartX > 255 || mapdrawendX < 0 || mapdrawendX > 255
@@ -342,9 +341,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     Vector3[] FaceC = new Vector3[6]; // vertex C for Facei
                                     Vector3[] FaceD = new Vector3[6]; // vertex D for Facei
 
-                                    tScale = new Vector3(lscale.x, -lscale.y, lscale.z);
-                                    scale = ((rot * tScale));
-                                    vertexes[0] = (new Vector3((pos.X + scale.x), (pos.Y + scale.y), (pos.Z + scale.z)));
+                                    tScale = new Vector3(lscale.X, -lscale.Y, lscale.Z);
+                                    scale = ((tScale * rot));
+                                    vertexes[0] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
                                     // vertexes[0].x = pos.X + vertexes[0].x;
                                     //vertexes[0].y = pos.Y + vertexes[0].y;
                                     //vertexes[0].z = pos.Z + vertexes[0].z;
@@ -354,8 +353,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     FaceA[4] = vertexes[0];
 
                                     tScale = lscale;
-                                    scale = ((rot * tScale));
-                                    vertexes[1] = (new Vector3((pos.X + scale.x), (pos.Y + scale.y), (pos.Z + scale.z)));
+                                    scale = ((tScale * rot));
+                                    vertexes[1] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                     // vertexes[1].x = pos.X + vertexes[1].x;
                                     // vertexes[1].y = pos.Y + vertexes[1].y;
@@ -365,10 +364,10 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     FaceA[1] = vertexes[1];
                                     FaceC[4] = vertexes[1];
 
-                                    tScale = new Vector3(lscale.x, -lscale.y, -lscale.z);
-                                    scale = ((rot * tScale));
+                                    tScale = new Vector3(lscale.X, -lscale.Y, -lscale.Z);
+                                    scale = ((tScale * rot));
 
-                                    vertexes[2] = (new Vector3((pos.X + scale.x), (pos.Y + scale.y), (pos.Z + scale.z)));
+                                    vertexes[2] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                     //vertexes[2].x = pos.X + vertexes[2].x;
                                     //vertexes[2].y = pos.Y + vertexes[2].y;
@@ -378,9 +377,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     FaceD[3] = vertexes[2];
                                     FaceC[5] = vertexes[2];
 
-                                    tScale = new Vector3(lscale.x, lscale.y, -lscale.z);
-                                    scale = ((rot * tScale));
-                                    vertexes[3] = (new Vector3((pos.X + scale.x), (pos.Y + scale.y), (pos.Z + scale.z)));
+                                    tScale = new Vector3(lscale.X, lscale.Y, -lscale.Z);
+                                    scale = ((tScale * rot));
+                                    vertexes[3] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                     //vertexes[3].x = pos.X + vertexes[3].x;
                                     // vertexes[3].y = pos.Y + vertexes[3].y;
@@ -390,9 +389,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     FaceC[1] = vertexes[3];
                                     FaceA[5] = vertexes[3];
 
-                                    tScale = new Vector3(-lscale.x, lscale.y, lscale.z);
-                                    scale = ((rot * tScale));
-                                    vertexes[4] = (new Vector3((pos.X + scale.x), (pos.Y + scale.y), (pos.Z + scale.z)));
+                                    tScale = new Vector3(-lscale.X, lscale.Y, lscale.Z);
+                                    scale = ((tScale * rot));
+                                    vertexes[4] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                     // vertexes[4].x = pos.X + vertexes[4].x;
                                     // vertexes[4].y = pos.Y + vertexes[4].y;
@@ -402,9 +401,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     FaceA[2] = vertexes[4];
                                     FaceD[4] = vertexes[4];
 
-                                    tScale = new Vector3(-lscale.x, lscale.y, -lscale.z);
-                                    scale = ((rot * tScale));
-                                    vertexes[5] = (new Vector3((pos.X + scale.x), (pos.Y + scale.y), (pos.Z + scale.z)));
+                                    tScale = new Vector3(-lscale.X, lscale.Y, -lscale.Z);
+                                    scale = ((tScale * rot));
+                                    vertexes[5] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                     // vertexes[5].x = pos.X + vertexes[5].x;
                                     // vertexes[5].y = pos.Y + vertexes[5].y;
@@ -414,9 +413,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     FaceC[2] = vertexes[5];
                                     FaceB[5] = vertexes[5];
 
-                                    tScale = new Vector3(-lscale.x, -lscale.y, lscale.z);
-                                    scale = ((rot * tScale));
-                                    vertexes[6] = (new Vector3((pos.X + scale.x), (pos.Y + scale.y), (pos.Z + scale.z)));
+                                    tScale = new Vector3(-lscale.X, -lscale.Y, lscale.Z);
+                                    scale = ((tScale * rot));
+                                    vertexes[6] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                     // vertexes[6].x = pos.X + vertexes[6].x;
                                     // vertexes[6].y = pos.Y + vertexes[6].y;
@@ -426,9 +425,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                     FaceA[3] = vertexes[6];
                                     FaceB[4] = vertexes[6];
 
-                                    tScale = new Vector3(-lscale.x, -lscale.y, -lscale.z);
-                                    scale = ((rot * tScale));
-                                    vertexes[7] = (new Vector3((pos.X + scale.x), (pos.Y + scale.y), (pos.Z + scale.z)));
+                                    tScale = new Vector3(-lscale.X, -lscale.Y, -lscale.Z);
+                                    scale = ((tScale * rot));
+                                    vertexes[7] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                     // vertexes[7].x = pos.X + vertexes[7].x;
                                     // vertexes[7].y = pos.Y + vertexes[7].y;
@@ -533,8 +532,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             //Vector3 topos = new Vector3(0, 0, 0);
            // float z = -point3d.z - topos.z;
 
-            returnpt.X = (int)point3d.x;//(int)((topos.x - point3d.x) / z * d);
-            returnpt.Y = (int)(255 - point3d.y);//(int)(255 - (((topos.y - point3d.y) / z * d)));
+            returnpt.X = (int)point3d.X;//(int)((topos.x - point3d.x) / z * d);
+            returnpt.Y = (int)(255 - point3d.Y);//(int)(255 - (((topos.y - point3d.y) / z * d)));
 
             return returnpt;
         }

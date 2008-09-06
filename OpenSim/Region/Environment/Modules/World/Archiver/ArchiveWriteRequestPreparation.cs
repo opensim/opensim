@@ -37,7 +37,7 @@ using System.Reflection;
 //using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 
@@ -84,7 +84,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// The callback made when we request the asset for an object from the asset service.
         /// </summary>
-        public void AssetRequestCallback(LLUUID assetID, AssetBase asset)
+        public void AssetRequestCallback(UUID assetID, AssetBase asset)
         {
             lock (this)
             {
@@ -100,7 +100,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
-        protected AssetBase GetAsset(LLUUID uuid)
+        protected AssetBase GetAsset(UUID uuid)
         {
             m_waitingForObjectAsset = true;
             m_scene.AssetCache.GetAsset(uuid, AssetRequestCallback, true);
@@ -128,20 +128,20 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <param name="scriptUuid"></param>
         /// <param name="assetUuids">Dictionary in which to record the references</param>
-        protected void GetScriptAssetUuids(LLUUID scriptUuid, IDictionary<LLUUID, int> assetUuids)
+        protected void GetScriptAssetUuids(UUID scriptUuid, IDictionary<UUID, int> assetUuids)
         {
             AssetBase scriptAsset = GetAsset(scriptUuid);
 
             if (null != scriptAsset)
             {
-                string script = Helpers.FieldToUTF8String(scriptAsset.Data);
+                string script = Utils.BytesToString(scriptAsset.Data);
                 //m_log.DebugFormat("[ARCHIVER]: Script {0}", script);
                 MatchCollection uuidMatches = m_uuidRegex.Matches(script);
                 //m_log.DebugFormat("[ARCHIVER]: Found {0} matches in script", uuidMatches.Count);
 
                 foreach (Match uuidMatch in uuidMatches)
                 {
-                    LLUUID uuid = new LLUUID(uuidMatch.Value);
+                    UUID uuid = new UUID(uuidMatch.Value);
                     //m_log.DebugFormat("[ARCHIVER]: Recording {0} in script", uuid);
                     assetUuids[uuid] = 1;
                 }
@@ -153,17 +153,17 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <param name="wearableAssetUuid"></param>
         /// <param name="assetUuids">Dictionary in which to record the references</param>
-        protected void GetWearableAssetUuids(LLUUID wearableAssetUuid, IDictionary<LLUUID, int> assetUuids)
+        protected void GetWearableAssetUuids(UUID wearableAssetUuid, IDictionary<UUID, int> assetUuids)
         {
             AssetBase assetBase = GetAsset(wearableAssetUuid);
             //m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
-            AssetWearable wearableAsset = new AssetBodypart(assetBase.Data);
+            AssetWearable wearableAsset = new AssetBodypart(wearableAssetUuid, assetBase.Data);
             wearableAsset.Decode();
 
             //m_log.DebugFormat(
             //    "[ARCHIVER]: Wearable asset {0} references {1} assets", wearableAssetUuid, wearableAsset.Textures.Count);
 
-            foreach (LLUUID uuid in wearableAsset.Textures.Values)
+            foreach (UUID uuid in wearableAsset.Textures.Values)
             {
                 //m_log.DebugFormat("[ARCHIVER]: Got bodypart uuid {0}", uuid);
                 assetUuids[uuid] = 1;
@@ -176,14 +176,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// within this object).
         /// </summary>
         /// <param name="sceneObject"></param>
-        /// <param name="assetUuids"></param>
-        protected void GetSceneObjectAssetUuids(LLUUID sceneObjectUuid, IDictionary<LLUUID, int> assetUuids)
+        /// <param name="assetUuids"></param>        
+        protected void GetSceneObjectAssetUuids(UUID sceneObjectUuid, IDictionary<UUID, int> assetUuids)   
         {
             AssetBase objectAsset = GetAsset(sceneObjectUuid);
 
             if (null != objectAsset)
             {
-                string xml = Helpers.FieldToUTF8String(objectAsset.Data);
+                string xml = Utils.BytesToString(objectAsset.Data);
                 SceneObjectGroup sog = new SceneObjectGroup(m_scene, m_scene.RegionInfo.RegionHandle, xml);
                 GetSceneObjectAssetUuids(sog, assetUuids);
             }
@@ -196,7 +196,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <param name="assetUuids"></param>
-        protected void GetSceneObjectAssetUuids(SceneObjectGroup sceneObject, IDictionary<LLUUID, int> assetUuids)
+        protected void GetSceneObjectAssetUuids(SceneObjectGroup sceneObject, IDictionary<UUID, int> assetUuids)
         {
             m_log.DebugFormat(
                 "[ARCHIVER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
@@ -208,7 +208,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                 try
                 {
-                    LLObject.TextureEntry textureEntry = part.Shape.Textures;
+                    Primitive.TextureEntry textureEntry = part.Shape.Textures;
 
                     // Get the prim's default texture.  This will be used for faces which don't have their own texture
                     assetUuids[textureEntry.DefaultTexture.TextureID] = 1;
@@ -216,7 +216,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     // XXX: Not a great way to iterate through face textures, but there's no
                     // other method available to tell how many faces there actually are
                     //int i = 0;
-                    foreach (LLObject.TextureEntryFace texture in textureEntry.FaceTextures)
+                    foreach (Primitive.TextureEntryFace texture in textureEntry.FaceTextures)
                     {
                         if (texture != null)
                         {
@@ -262,7 +262,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         public void ArchiveRegion()
         {
-            Dictionary<LLUUID, int> assetUuids = new Dictionary<LLUUID, int>();
+            Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
 
             List<EntityBase> entities = m_scene.GetEntities();
             List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();

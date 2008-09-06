@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
@@ -63,7 +63,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnNewPresenceDelegate OnNewPresence;
 
-        public delegate void OnRemovePresenceDelegate(LLUUID agentId);
+        public delegate void OnRemovePresenceDelegate(UUID agentId);
 
         public event OnRemovePresenceDelegate OnRemovePresence;
 
@@ -83,11 +83,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnShutdownDelegate OnShutdown;
 
-        public delegate void ObjectGrabDelegate(uint localID, uint originalID, LLVector3 offsetPos, IClientAPI remoteClient);
+        public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient);
         public delegate void ObjectDeGrabDelegate(uint localID, uint originalID, IClientAPI remoteClient);
-        public delegate void ScriptResetDelegate(uint localID, LLUUID itemID);
+        public delegate void ScriptResetDelegate(uint localID, UUID itemID);
 
-        public delegate void OnPermissionErrorDelegate(LLUUID user, string reason);
+        public delegate void OnPermissionErrorDelegate(UUID user, string reason);
 
         public event ObjectGrabDelegate OnObjectGrab;
         public event ObjectDeGrabDelegate OnObjectDeGrab;
@@ -95,27 +95,27 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnPermissionErrorDelegate OnPermissionError;
 
-        public delegate void NewRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez);
+        public delegate void NewRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez);
 
         public event NewRezScript OnRezScript;
 
-        public delegate void RemoveScript(uint localID, LLUUID itemID);
+        public delegate void RemoveScript(uint localID, UUID itemID);
 
         public event RemoveScript OnRemoveScript;
 
-        public delegate void StartScript(uint localID, LLUUID itemID);
+        public delegate void StartScript(uint localID, UUID itemID);
 
         public event StartScript OnStartScript;
 
-        public delegate void StopScript(uint localID, LLUUID itemID);
+        public delegate void StopScript(uint localID, UUID itemID);
 
         public event StopScript OnStopScript;
 
-        public delegate bool SceneGroupMoved(LLUUID groupID, LLVector3 delta);
+        public delegate bool SceneGroupMoved(UUID groupID, Vector3 delta);
 
         public event SceneGroupMoved OnSceneGroupMove;
 
-        public delegate void SceneGroupGrabed(LLUUID groupID, LLVector3 offset, LLUUID userID);
+        public delegate void SceneGroupGrabed(UUID groupID, Vector3 offset, UUID userID);
 
         public event SceneGroupGrabed OnSceneGroupGrab;
 
@@ -123,11 +123,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event LandObjectAdded OnLandObjectAdded;
 
-        public delegate void LandObjectRemoved(LLUUID globalID);
+        public delegate void LandObjectRemoved(UUID globalID);
 
         public event LandObjectRemoved OnLandObjectRemoved;
 
-        public delegate void AvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID);
+        public delegate void AvatarEnteringNewParcel(ScenePresence avatar, int localLandID, UUID regionID);
 
         public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
 
@@ -143,7 +143,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event NewGridInstantMessage OnGridInstantMessageToGroupsModule;
 
-        public delegate void ClientClosed(LLUUID clientID);
+        public delegate void ClientClosed(UUID clientID);
 
         public event ClientClosed OnClientClosed;
 
@@ -151,11 +151,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event ScriptChangedEvent OnScriptChangedEvent;
 
-        public delegate void ScriptControlEvent(uint localID, LLUUID item, LLUUID avatarID, uint held, uint changed);
+        public delegate void ScriptControlEvent(uint localID, UUID item, UUID avatarID, uint held, uint changed);
 
         public event ScriptControlEvent OnScriptControlEvent;
 
-        public delegate void ScriptAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos);
+        public delegate void ScriptAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 atpos);
 
         public event ScriptAtTargetEvent OnScriptAtTargetEvent;
 
@@ -175,7 +175,7 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void OnMakeRootAgentDelegate(ScenePresence presence);
         public event OnMakeRootAgentDelegate OnMakeRootAgent;
 
-        public delegate void NewInventoryItemUploadComplete(LLUUID avatarID, LLUUID assetID, string name, int userlevel);
+        public delegate void NewInventoryItemUploadComplete(UUID avatarID, UUID assetID, string name, int userlevel);
 
         public event NewInventoryItemUploadComplete OnNewInventoryItemUploadComplete;
 
@@ -217,13 +217,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// has been instantiated and before it is return to the
         /// client and provides region modules to add their caps.
         /// </summary>
-        public delegate void RegisterCapsEvent(LLUUID agentID, Caps caps);
+        public delegate void RegisterCapsEvent(UUID agentID, Caps caps);
         public event RegisterCapsEvent OnRegisterCaps;
         /// <summary>
         /// DeregisterCapsEvent is called by Scene when the caps
         /// handler for an agent are removed.
         /// </summary>
-        public delegate void DeregisterCapsEvent(LLUUID agentID, Caps caps);
+        public delegate void DeregisterCapsEvent(UUID agentID, Caps caps);
         public event DeregisterCapsEvent OnDeregisterCaps;
         /// <summary>
         /// ChatFromWorldEvent is called via Scene when a chat message
@@ -244,8 +244,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public class MoneyTransferArgs : EventArgs
         {
-            public LLUUID sender;
-            public LLUUID receiver;
+            public UUID sender;
+            public UUID receiver;
 
             // Always false. The SL protocol sucks.
             public bool authenticated = false;
@@ -254,7 +254,7 @@ namespace OpenSim.Region.Environment.Scenes
             public int transactiontype;
             public string description;
 
-            public MoneyTransferArgs(LLUUID asender, LLUUID areceiver, int aamount, int atransactiontype, string adescription)
+            public MoneyTransferArgs(UUID asender, UUID areceiver, int aamount, int atransactiontype, string adescription)
             {
                 sender = asender;
                 receiver = areceiver;
@@ -266,11 +266,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public class LandBuyArgs : EventArgs
         {
-            public LLUUID agentId = LLUUID.Zero;
+            public UUID agentId = UUID.Zero;
 
-            public LLUUID groupId = LLUUID.Zero;
+            public UUID groupId = UUID.Zero;
 
-            public LLUUID parcelOwnerID = LLUUID.Zero;
+            public UUID parcelOwnerID = UUID.Zero;
 
             public bool final = false;
             public bool groupOwned = false;
@@ -284,7 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
             public int transactionID = 0;
             public int amountDebited = 0;
 
-            public LandBuyArgs(LLUUID pagentId, LLUUID pgroupId, bool pfinal, bool pgroupOwned,
+            public LandBuyArgs(UUID pagentId, UUID pgroupId, bool pfinal, bool pgroupOwned,
                 bool premoveContribution, int pparcelLocalID, int pparcelArea, int pparcelPrice,
                 bool pauthenticated)
             {
@@ -385,7 +385,7 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerClientMovement(avatar);
         }
 
-        public void TriggerPermissionError(LLUUID user, string reason)
+        public void TriggerPermissionError(UUID user, string reason)
         {
             handlerPermissionError = OnPermissionError;
             if (handlerPermissionError != null)
@@ -422,7 +422,7 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerNewPresence(presence);
         }
 
-        public void TriggerOnRemovePresence(LLUUID agentId)
+        public void TriggerOnRemovePresence(UUID agentId)
         {
             handlerRemovePresence = OnRemovePresence;
             if (handlerRemovePresence != null)
@@ -492,7 +492,7 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerShutdown();
         }
 
-        public void TriggerObjectGrab(uint localID, uint originalID, LLVector3 offsetPos, IClientAPI remoteClient)
+        public void TriggerObjectGrab(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient)
         {
             handlerObjectGrab = OnObjectGrab;
             if (handlerObjectGrab != null)
@@ -510,7 +510,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerScriptReset(uint localID, LLUUID itemID)
+        public void TriggerScriptReset(uint localID, UUID itemID)
         {
             handlerScriptReset = OnScriptReset;
             if (handlerScriptReset != null)
@@ -519,7 +519,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez)
+        public void TriggerRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez)
         {
             handlerRezScript = OnRezScript;
             if (handlerRezScript != null)
@@ -528,7 +528,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerStartScript(uint localID, LLUUID itemID)
+        public void TriggerStartScript(uint localID, UUID itemID)
         {
             handlerStartScript = OnStartScript;
             if (handlerStartScript != null)
@@ -537,7 +537,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerStopScript(uint localID, LLUUID itemID)
+        public void TriggerStopScript(uint localID, UUID itemID)
         {
             handlerStopScript = OnStopScript;
             if (handlerStopScript != null)
@@ -546,7 +546,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerRemoveScript(uint localID, LLUUID itemID)
+        public void TriggerRemoveScript(uint localID, UUID itemID)
         {
             handlerRemoveScript = OnRemoveScript;
             if (handlerRemoveScript != null)
@@ -555,7 +555,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public bool TriggerGroupMove(LLUUID groupID, LLVector3 delta)
+        public bool TriggerGroupMove(UUID groupID, Vector3 delta)
         {
             handlerSceneGroupMove = OnSceneGroupMove;
 
@@ -566,7 +566,7 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        public void TriggerGroupGrab(LLUUID groupID, LLVector3 offset, LLUUID userID)
+        public void TriggerGroupGrab(UUID groupID, Vector3 offset, UUID userID)
         {
             handlerSceneGroupGrab = OnSceneGroupGrab;
             if (handlerSceneGroupGrab != null)
@@ -585,7 +585,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerLandObjectRemoved(LLUUID globalID)
+        public void TriggerLandObjectRemoved(UUID globalID)
         {
             handlerLandObjectRemoved = OnLandObjectRemoved;
             if (handlerLandObjectRemoved != null)
@@ -601,7 +601,7 @@ namespace OpenSim.Region.Environment.Scenes
             TriggerLandObjectAdded(newParcel);
         }
 
-        public void TriggerAvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
+        public void TriggerAvatarEnteringNewParcel(ScenePresence avatar, int localLandID, UUID regionID)
         {
             handlerAvatarEnteringNewParcel = OnAvatarEnteringNewParcel;
 
@@ -634,7 +634,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerClientClosed(LLUUID ClientID)
+        public void TriggerClientClosed(UUID ClientID)
         {
             handlerClientClosed = OnClientClosed;
             if (handlerClientClosed != null)
@@ -661,7 +661,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerOnRegisterCaps(LLUUID agentID, Caps caps)
+        public void TriggerOnRegisterCaps(UUID agentID, Caps caps)
         {
             handlerRegisterCaps = OnRegisterCaps;
             if (handlerRegisterCaps != null)
@@ -670,7 +670,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerOnDeregisterCaps(LLUUID agentID, Caps caps)
+        public void TriggerOnDeregisterCaps(UUID agentID, Caps caps)
         {
             handlerDeregisterCaps = OnDeregisterCaps;
             if (handlerDeregisterCaps != null)
@@ -679,7 +679,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerOnNewInventoryItemUploadComplete(LLUUID agentID, LLUUID AssetID, String AssetName, int userlevel)
+        public void TriggerOnNewInventoryItemUploadComplete(UUID agentID, UUID AssetID, String AssetName, int userlevel)
         {
             handlerNewInventoryItemUpdateComplete = OnNewInventoryItemUploadComplete;
             if (handlerNewInventoryItemUpdateComplete != null)
@@ -706,7 +706,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 currentpos)
+        public void TriggerAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 currentpos)
         {
             handlerScriptAtTargetEvent = OnScriptAtTargetEvent;
             if (handlerScriptAtTargetEvent != null)
@@ -769,7 +769,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        internal void TriggerControlEvent(uint p, LLUUID scriptUUID, LLUUID avatarID, uint held, uint _changed)
+        internal void TriggerControlEvent(uint p, UUID scriptUUID, UUID avatarID, uint held, uint _changed)
         {
             handlerScriptControlEvent = OnScriptControlEvent;
             if (handlerScriptControlEvent != null)

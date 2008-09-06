@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -53,12 +53,12 @@ namespace OpenSim.Framework
         /// <summary>
         /// The coordinates inside the region of the home location
         /// </summary>
-        private LLVector3 _homeLocation;
+        private Vector3 _homeLocation;
 
         /// <summary>
         /// Where the user will be looking when they rez.
         /// </summary>
-        private LLVector3 _homeLookAt;
+        private Vector3 _homeLookAt;
 
         private uint _homeRegionX;
         private uint _homeRegionY;
@@ -66,7 +66,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// The ID value for this user
         /// </summary>
-        private LLUUID _id;
+        private UUID _id;
 
         /// <summary>
         /// A UNIX Timestamp for the users last login date / time
@@ -97,7 +97,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// The profile image for the users first life tab
         /// </summary>
-        private LLUUID _profileFirstImage;
+        private UUID _profileFirstImage;
 
         /// <summary>
         /// The first life about text listed in a users profile
@@ -107,14 +107,14 @@ namespace OpenSim.Framework
         /// <summary>
         /// The profile image for an avatar stored on the asset server
         /// </summary>
-        private LLUUID _profileImage;
+        private UUID _profileImage;
 
         /// <summary>
         /// A uint mask containing the "I want to do" part of the users profile
         /// </summary>
         private uint _profileWantDoMask; // Profile window "I want to" mask
 
-        private LLUUID _rootInventoryFolderID;
+        private UUID _rootInventoryFolderID;
 
         /// <summary>
         /// The second component of a users account name
@@ -134,7 +134,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// The last used Web_login_key
         /// </summary>
-        private LLUUID _webLoginKey;
+        private UUID _webLoginKey;
 
         // Data for estates and other goodies
         // to get away from per-machine configs a little
@@ -142,7 +142,7 @@ namespace OpenSim.Framework
         private int _userFlags;
         private int _godLevel;
         private string _customType;
-        private LLUUID _partner;
+        private UUID _partner;
 
         /// <summary>
         /// The regionhandle of the users preferred home region. If
@@ -159,26 +159,26 @@ namespace OpenSim.Framework
             }
         }
 
-        private LLUUID _homeRegionID;
+        private UUID _homeRegionID;
         /// <summary>
         /// The regionID of the users home region. This is unique;
         /// even if the position of the region changes within the
         /// grid, this will refer to the same region.
         /// </summary>
-        public LLUUID HomeRegionID
+        public UUID HomeRegionID
         {
             get { return _homeRegionID; }
             set { _homeRegionID = value; }
         }
 
         // Property wrappers
-        public virtual LLUUID ID
+        public virtual UUID ID
         {
             get { return _id; }
             set { _id = value; }
         }
 
-        public virtual LLUUID WebLoginKey
+        public virtual UUID WebLoginKey
         {
             get { return _webLoginKey; }
             set { _webLoginKey = value; }
@@ -220,7 +220,7 @@ namespace OpenSim.Framework
             set { _homeRegionY = value; }
         }
 
-        public virtual LLVector3 HomeLocation
+        public virtual Vector3 HomeLocation
         {
             get { return _homeLocation; }
             set { _homeLocation = value; }
@@ -246,7 +246,7 @@ namespace OpenSim.Framework
         }
 
 
-        public virtual LLVector3 HomeLookAt
+        public virtual Vector3 HomeLookAt
         {
             get { return _homeLookAt; }
             set { _homeLookAt = value; }
@@ -283,7 +283,7 @@ namespace OpenSim.Framework
             set { _lastLogin = value; }
         }
 
-        public virtual LLUUID RootInventoryFolderID
+        public virtual UUID RootInventoryFolderID
         {
             get { return _rootInventoryFolderID; }
             set { _rootInventoryFolderID = value; }
@@ -325,13 +325,13 @@ namespace OpenSim.Framework
             set { _profileFirstText = value; }
         }
 
-        public virtual LLUUID Image
+        public virtual UUID Image
         {
             get { return _profileImage; }
             set { _profileImage = value; }
         }
 
-        public virtual LLUUID FirstLifeImage
+        public virtual UUID FirstLifeImage
         {
             get { return _profileFirstImage; }
             set { _profileFirstImage = value; }
@@ -361,7 +361,7 @@ namespace OpenSim.Framework
             set { _customType = value; }
         }
 
-        public virtual LLUUID Partner
+        public virtual UUID Partner
         {
             get { return _partner; }
             set { _partner = value; }

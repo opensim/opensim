@@ -32,7 +32,7 @@ using System.Xml;
 using System.IO;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.DataSnapshot.Interfaces;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.DataSnapshot
 {
@@ -211,7 +211,7 @@ namespace OpenSim.Region.DataSnapshot
         private string DataFileNameScene(Scene scene)
         {
             return Path.Combine(m_directory, Path.ChangeExtension(scene.RegionInfo.RegionName, "xml"));
-            //return (m_snapsDir + Path.DirectorySeparatorChar + scene.RegionInfo.RegionName + ".xml");
+            //return (m_snapsDir + Path.DirectorySeparatorChar + scene.RegionInfo.RegionName + ".Xml");
         }
 
         private XmlNode MakeRegionNode(Scene scene, XmlDocument basedoc)

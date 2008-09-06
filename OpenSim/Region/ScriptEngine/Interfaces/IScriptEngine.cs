@@ -29,7 +29,7 @@ using log4net;
 using System;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.Environment.Scenes;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using Amib.Threading;
@@ -49,16 +49,16 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         ILog Log { get; }
         string ScriptEngineName { get; }
 
-        bool PostScriptEvent(LLUUID itemID, EventParams parms);
+        bool PostScriptEvent(UUID itemID, EventParams parms);
         bool PostObjectEvent(uint localID, EventParams parms);
-        void ApiResetScript(LLUUID itemID);
-        void ResetScript(LLUUID itemID);
-        void SetScriptState(LLUUID itemID, bool state);
-        bool GetScriptState(LLUUID itemID);
-        void SetState(LLUUID itemID, string newState);
-        int GetStartParameter(LLUUID itemID);
+        void ApiResetScript(UUID itemID);
+        void ResetScript(UUID itemID);
+        void SetScriptState(UUID itemID, bool state);
+        bool GetScriptState(UUID itemID);
+        void SetState(UUID itemID, string newState);
+        int GetStartParameter(UUID itemID);
         IScriptWorkItem QueueEventHandler(object parms);
 
-        DetectParams GetDetectParams(LLUUID item, int number);
+        DetectParams GetDetectParams(UUID item, int number);
     }
 }

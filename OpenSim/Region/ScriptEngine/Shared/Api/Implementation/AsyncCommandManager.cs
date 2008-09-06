@@ -29,7 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
@@ -192,7 +192,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="itemID"></param>
-        public void RemoveScript(uint localID, LLUUID itemID)
+        public void RemoveScript(uint localID, UUID itemID)
         {
             // Remove a specific script
 
@@ -219,7 +219,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
-        public Object[] GetSerializationData(LLUUID itemID)
+        public Object[] GetSerializationData(UUID itemID)
         {
             List<Object> data = new List<Object>();
 
@@ -250,7 +250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return data.ToArray();
         }
 
-        public void CreateFromData(uint localID, LLUUID itemID, LLUUID hostID,
+        public void CreateFromData(uint localID, UUID itemID, UUID hostID,
                                    Object[] data)
         {
             int idx = 0;

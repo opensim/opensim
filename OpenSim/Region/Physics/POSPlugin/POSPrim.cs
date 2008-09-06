@@ -27,8 +27,8 @@
 
 using System;
 using System.Collections.Generic;
-using Axiom.Math;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 

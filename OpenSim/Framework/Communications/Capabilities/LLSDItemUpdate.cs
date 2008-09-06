@@ -25,14 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
     [LLSDMap]
     public class LLSDItemUpdate
     {
-        public LLUUID item_id;
+        public UUID item_id;
 
         public LLSDItemUpdate()
         {

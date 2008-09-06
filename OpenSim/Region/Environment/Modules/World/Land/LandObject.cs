@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -67,14 +67,14 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             set { m_landData = value; }
         }
 
-        public LLUUID regionUUID
+        public UUID regionUUID
         {
             get { return m_scene.RegionInfo.RegionID; }
         }
 
         #region Constructors
 
-        public LandObject(LLUUID owner_id, bool is_group_owned, Scene scene)
+        public LandObject(UUID owner_id, bool is_group_owned, Scene scene)
         {
             m_scene = scene;
             landData.OwnerID = owner_id;
@@ -216,7 +216,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public void updateLandSold(LLUUID avatarID, LLUUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area)
+        public void updateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area)
         {
             LandData newData = landData.Copy();
             newData.OwnerID = avatarID;
@@ -226,14 +226,14 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             newData.ClaimDate = Util.UnixTimeSinceEpoch();
             newData.ClaimPrice = claimprice;
             newData.SalePrice = 0;
-            newData.AuthBuyerID = LLUUID.Zero;
+            newData.AuthBuyerID = UUID.Zero;
             newData.Flags &= ~(uint) (Parcel.ParcelFlags.ForSale | Parcel.ParcelFlags.ForSaleObjects | Parcel.ParcelFlags.SellParcelObjects);
             m_scene.LandChannel.UpdateLandObject(landData.LocalID, newData);
 
             sendLandUpdateToAvatarsOverMe();
         }
 
-        public bool isEitherBannedOrRestricted(LLUUID avatar)
+        public bool isEitherBannedOrRestricted(UUID avatar)
         {
             if (isBannedFromLand(avatar))
             {
@@ -246,7 +246,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             return false;
         }
 
-        public bool isBannedFromLand(LLUUID avatar)
+        public bool isBannedFromLand(UUID avatar)
         {
             if ((landData.Flags & (uint) Parcel.ParcelFlags.UseBanList) > 0)
             {
@@ -263,7 +263,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             return false;
         }
 
-        public bool isRestrictedFromLand(LLUUID avatar)
+        public bool isRestrictedFromLand(UUID avatar)
         {
             if ((landData.Flags & (uint) Parcel.ParcelFlags.UseAccessList) > 0)
             {
@@ -322,9 +322,9 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         #region AccessList Functions
 
-        public List<LLUUID>  createAccessListArrayByFlag(ParcelManager.AccessList flag)
+        public List<UUID>  createAccessListArrayByFlag(ParcelManager.AccessList flag)
         {
-            List<LLUUID> list = new List<LLUUID>();
+            List<UUID> list = new List<UUID>();
             foreach (ParcelManager.ParcelAccessEntry entry in landData.ParcelAccessList)
             {
                 if (entry.Flags == flag)
@@ -334,25 +334,25 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
             if (list.Count == 0)
             {
-                list.Add(LLUUID.Zero);
+                list.Add(UUID.Zero);
             }
 
             return list;
         }
 
-        public void sendAccessList(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID,
+        public void sendAccessList(UUID agentID, UUID sessionID, uint flags, int sequenceID,
                                    IClientAPI remote_client)
         {
 
             if (flags == (uint) ParcelManager.AccessList.Access || flags == (uint) ParcelManager.AccessList.Both)
             {
-                List<LLUUID> avatars = createAccessListArrayByFlag(ParcelManager.AccessList.Access);
+                List<UUID> avatars = createAccessListArrayByFlag(ParcelManager.AccessList.Access);
                 remote_client.SendLandAccessListData(avatars,(uint) ParcelManager.AccessList.Access,landData.LocalID);
             }
 
             if (flags == (uint) ParcelManager.AccessList.Ban || flags == (uint) ParcelManager.AccessList.Both)
             {
-                List<LLUUID> avatars = createAccessListArrayByFlag(ParcelManager.AccessList.Ban);
+                List<UUID> avatars = createAccessListArrayByFlag(ParcelManager.AccessList.Ban);
                 remote_client.SendLandAccessListData(avatars, (uint)ParcelManager.AccessList.Ban, landData.LocalID);
             }
         }
@@ -361,7 +361,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             LandData newData = landData.Copy();
 
-            if (entries.Count == 1 && entries[0].AgentID == LLUUID.Zero)
+            if (entries.Count == 1 && entries[0].AgentID == UUID.Zero)
             {
                 entries.Clear();
             }
@@ -450,7 +450,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             if (ty > 255)
                 ty = 255;
             landData.AABBMin =
-                new LLVector3((float) (min_x * 4), (float) (min_y * 4),
+                new Vector3((float) (min_x * 4), (float) (min_y * 4),
                               (float) m_scene.Heightmap[tx, ty]);
 
             tx = max_x * 4;
@@ -460,7 +460,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             if (ty > 255)
                 ty = 255;
             landData.AABBMax =
-                new LLVector3((float) (max_x * 4), (float) (max_y * 4),
+                new Vector3((float) (max_x * 4), (float) (max_y * 4),
                               (float) m_scene.Heightmap[tx, ty]);
             landData.Area = tempArea;
         }
@@ -694,7 +694,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             if (m_scene.ExternalChecks.ExternalChecksCanEditParcel(remote_client.AgentId, this))
             {
-                Dictionary<LLUUID, int> primCount = new Dictionary<LLUUID, int>();
+                Dictionary<UUID, int> primCount = new Dictionary<UUID, int>();
 
                 lock (primsOverMe)
                 {
@@ -734,9 +734,9 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public Dictionary<LLUUID, int> getLandObjectOwners()
+        public Dictionary<UUID, int> getLandObjectOwners()
         {
-            Dictionary<LLUUID, int> ownersAndCount = new Dictionary<LLUUID, int>();
+            Dictionary<UUID, int> ownersAndCount = new Dictionary<UUID, int>();
             lock (primsOverMe)
             {
                 try
@@ -771,7 +771,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             m_scene.returnObjects(objs, obj.OwnerID);
         }
 
-        public void returnLandObjects(uint type, LLUUID[] owners, IClientAPI remote_client)
+        public void returnLandObjects(uint type, UUID[] owners, IClientAPI remote_client)
         {
             List<SceneObjectGroup> objlist = new List<SceneObjectGroup>();
             for (int i = 0; i < owners.Length; i++)
@@ -814,7 +814,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void addPrimToCount(SceneObjectGroup obj)
         {
 
-            LLUUID prim_owner = obj.OwnerID;
+            UUID prim_owner = obj.OwnerID;
             int prim_count = obj.PrimCount;
 
             if (obj.IsSelected)
@@ -843,7 +843,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 if (primsOverMe.Contains(obj))
                 {
-                    LLUUID prim_owner = obj.OwnerID;
+                    UUID prim_owner = obj.OwnerID;
                     int prim_count = obj.PrimCount;
 
                     if (prim_owner == landData.OwnerID)

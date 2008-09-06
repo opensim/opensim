@@ -26,17 +26,17 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Region.Environment.Modules.Scripting.HttpRequest;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IHttpRequests
     {
-        LLUUID MakeHttpRequest(string url, string parameters, string body);
-        LLUUID StartHttpRequest(uint localID, LLUUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body);
-        void StopHttpRequest(uint m_localID, LLUUID m_itemID);
+        UUID MakeHttpRequest(string url, string parameters, string body);
+        UUID StartHttpRequest(uint localID, UUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body);
+        void StopHttpRequest(uint m_localID, UUID m_itemID);
         HttpRequestClass GetNextCompletedRequest();
-        void RemoveCompletedRequest(LLUUID id);
+        void RemoveCompletedRequest(UUID id);
     }
 }

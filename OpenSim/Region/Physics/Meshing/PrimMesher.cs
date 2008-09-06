@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using OpenSim.Region.Physics.Manager;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.Meshing
 {
@@ -783,7 +784,7 @@ angles24 = [
             Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides);
 
             if (initialProfileRot != 0.0f)
-                profile.AddRot(new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), initialProfileRot));
+                profile.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), initialProfileRot));
 
             bool done = false;
             while (!done)
@@ -807,7 +808,7 @@ angles24 = [
 
                 float twist = twistBegin + twistTotal * percentOfPath;
                 if (twist != 0.0f)
-                    newLayer.AddRot(new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), twist));
+                    newLayer.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), twist));
 
                 newLayer.AddPos(xOffset, yOffset, zOffset);
 
@@ -948,7 +949,7 @@ angles24 = [
             Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides);
 
             if (initialProfileRot != 0.0f)
-                profile.AddRot(new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), initialProfileRot));
+                profile.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), initialProfileRot));
 
             bool done = false;
             while (!done) // loop through the length of the path and add the layers
@@ -991,12 +992,12 @@ angles24 = [
 
                 // next apply twist rotation to the profile layer
                 if (twistTotal != 0.0f || twistBegin != 0.0f)
-                    newLayer.AddRot(new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), twist));
+                    newLayer.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), twist));
 
                 // now orient the rotation of the profile layer relative to it's position on the path
                 // adding taperY to the angle used to generate the quat appears to approximate the viewer
                 //newLayer.AddRot(new Quaternion(new Vertex(1.0f, 0.0f, 0.0f), angle + this.topShearY * 0.9f));
-                newLayer.AddRot(new Quaternion(new Vertex(1.0f, 0.0f, 0.0f), angle + this.topShearY));
+                newLayer.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(1.0f, 0.0f, 0.0f), angle + this.topShearY));
                 newLayer.AddPos(xOffset, yOffset, zOffset);
 
                 if (angle == startAngle)

@@ -27,7 +27,7 @@
 
 using System;
 using System.Data;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using NHibernate;
 using NHibernate.SqlTypes;
@@ -53,12 +53,12 @@ namespace OpenSim.Data.NHibernate
             if (texture == null) 
             {
                 // TODO: should parametrize this texture out
-                return new LLObject.TextureEntry(new LLUUID(Constants.DefaultTexture));
+                return new Primitive.TextureEntry(new UUID(Constants.DefaultTexture));
             }
             else 
             {
-                byte[] bytes = ((LLObject.TextureEntry)texture).ToBytes();
-                return new LLObject.TextureEntry(bytes, 0, bytes.Length);
+                byte[] bytes = ((Primitive.TextureEntry)texture).ToBytes();
+                return new Primitive.TextureEntry(bytes, 0, bytes.Length);
             }
         }
 
@@ -85,7 +85,7 @@ namespace OpenSim.Data.NHibernate
             if (!rs.IsDBNull(ord))
             {
                 byte[] bytes = (byte[])rs[ord];
-                texture = new LLObject.TextureEntry(bytes, 0, bytes.Length);
+                texture = new Primitive.TextureEntry(bytes, 0, bytes.Length);
             }
 
             return texture;
@@ -93,7 +93,7 @@ namespace OpenSim.Data.NHibernate
 
         public void NullSafeSet(IDbCommand cmd, object obj, int index)
         {
-            LLObject.TextureEntry texture = (LLObject.TextureEntry)obj;
+            Primitive.TextureEntry texture = (Primitive.TextureEntry)obj;
             ((IDataParameter)cmd.Parameters[index]).Value = texture.ToBytes();
         }
 
@@ -104,7 +104,7 @@ namespace OpenSim.Data.NHibernate
 
         public Type ReturnedType
         {
-            get { return typeof(LLObject.TextureEntry); }
+            get { return typeof(Primitive.TextureEntry); }
         }
 
         public SqlType[] SqlTypes

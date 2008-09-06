@@ -28,9 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Axiom.Math;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Types;
@@ -53,11 +52,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Fields
 
-        protected internal Dictionary<LLUUID, ScenePresence> ScenePresences = new Dictionary<LLUUID, ScenePresence>();
+        protected internal Dictionary<UUID, ScenePresence> ScenePresences = new Dictionary<UUID, ScenePresence>();
         // SceneObjects is not currently populated or used.
-        //public Dictionary<LLUUID, SceneObjectGroup> SceneObjects;
-        protected internal Dictionary<LLUUID, EntityBase> Entities = new Dictionary<LLUUID, EntityBase>();
-        protected internal Dictionary<LLUUID, ScenePresence> RestorePresences = new Dictionary<LLUUID, ScenePresence>();
+        //public Dictionary<UUID, SceneObjectGroup> SceneObjects;
+        protected internal Dictionary<UUID, EntityBase> Entities = new Dictionary<UUID, EntityBase>();
+        protected internal Dictionary<UUID, ScenePresence> RestorePresences = new Dictionary<UUID, ScenePresence>();
 
         protected internal BasicQuadTreeNode QuadTree;
 
@@ -276,7 +275,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <returns>true if the object was deleted, false if there was no object to delete</returns>
-        protected internal bool DeleteSceneObject(LLUUID uuid, bool resultOfObjectLinked)
+        protected internal bool DeleteSceneObject(UUID uuid, bool resultOfObjectLinked)
         {
             lock (Entities)
             {
@@ -378,9 +377,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected internal void HandleUndo(IClientAPI remoteClient, LLUUID primId)
+        protected internal void HandleUndo(IClientAPI remoteClient, UUID primId)
         {
-            if (primId != LLUUID.Zero)
+            if (primId != UUID.Zero)
             {
                 SceneObjectPart part =  m_parentScene.GetSceneObjectPart(primId);
                 if (part != null)
@@ -389,7 +388,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected internal void HandleObjectGroupUpdate(
-            IClientAPI remoteClient, LLUUID GroupID, uint objectLocalID, LLUUID Garbage)
+            IClientAPI remoteClient, UUID GroupID, uint objectLocalID, UUID Garbage)
         {
             List<EntityBase> EntityList = GetEntities();
 
@@ -417,17 +416,17 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="objectLocalID"></param>
         /// <param name="AttachmentPt"></param>
         /// <param name="rot"></param>
-        protected internal void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot)
+        protected internal void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot)
         {
             // Calls attach with a Zero position
 
-            AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, LLVector3.Zero);
+            AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero);
         }
 
         public SceneObjectGroup RezSingleAttachment(
-            IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,uint ItemFlags, uint NextOwnerMask)
+            IClientAPI remoteClient, UUID itemID, uint AttachmentPt,uint ItemFlags, uint NextOwnerMask)
         {
-            SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient, itemID, LLVector3.Zero, LLVector3.Zero, LLUUID.Zero, (byte)1, true,
+            SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient, itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                 (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
                 (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
                 (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
@@ -435,17 +434,17 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (objatt != null)
             {
-                AttachObject(remoteClient,objatt.LocalId,AttachmentPt,new LLQuaternion(0,0,0,1),objatt.AbsolutePosition);
+                AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition);
                 objatt.ScheduleGroupForFullUpdate();
             }
             return objatt;
         }
 
-        // What makes this method odd and unique is it tries to detach using an LLUUID....     Yay for standards.
-        // To LocalId or LLUUID, *THAT* is the question. How now Brown LLUUID??
-        public void DetachSingleAttachmentToInv(LLUUID itemID, IClientAPI remoteClient)
+        // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.
+        // To LocalId or UUID, *THAT* is the question. How now Brown UUID??
+        public void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
         {
-            if (itemID == LLUUID.Zero) // If this happened, someone made a mistake....
+            if (itemID == UUID.Zero) // If this happened, someone made a mistake....
                 return;
 
             List<EntityBase> EntityList = GetEntities();
@@ -467,7 +466,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected internal void AttachObject(
-            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot, LLVector3 attachPos)
+            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos)
         {
             List<EntityBase> EntityList = GetEntities();
             foreach (EntityBase obj in EntityList)
@@ -485,7 +484,7 @@ namespace OpenSim.Region.Environment.Scenes
                             if (AttachmentPt != 0 && AttachmentPt != (uint)group.GetAttachmentPoint())
                             {
 
-                                attachPos = LLVector3.Zero;
+                                attachPos = Vector3.Zero;
                             }
 
                             // AttachmentPt 0 means the client chose to 'wear' the attachment.
@@ -503,16 +502,16 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 // Stick it on left hand with Zero Offset from the attachment point.
                                 AttachmentPt = (uint)AttachmentPoint.LeftHand;
-                                attachPos = LLVector3.Zero;
+                                attachPos = Vector3.Zero;
                             }
                             m_log.Debug("[ATTACH]: Using attachpoint: " + AttachmentPt.ToString());
 
 
 
                             // Saves and gets assetID
-                            if (group.GetFromAssetID() == LLUUID.Zero)
+                            if (group.GetFromAssetID() == UUID.Zero)
                             {
-                                LLUUID newAssetID = m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId);
+                                UUID newAssetID = m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId);
 
                                 // sets assetID so client can show asset as 'attached' in inventory
                                 group.SetFromAssetID(newAssetID);
@@ -573,7 +572,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Remove a presence from the scene
         /// </summary>
-        protected internal void RemoveScenePresence(LLUUID agentID)
+        protected internal void RemoveScenePresence(UUID agentID)
         {
             lock (Entities)
             {
@@ -696,7 +695,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="agentId"></param>
         /// <returns>null if either the avatar wasn't in the scene, or they do not have a controlling client</returns>
-        protected internal IClientAPI GetControllingClient(LLUUID agentId)
+        protected internal IClientAPI GetControllingClient(UUID agentId)
         {
             ScenePresence presence = GetScenePresence(agentId);
 
@@ -735,7 +734,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns>null if the agent was not found</returns>
-        protected internal ScenePresence GetScenePresence(LLUUID agentID)
+        protected internal ScenePresence GetScenePresence(UUID agentID)
         {
             ScenePresence sp;
             ScenePresences.TryGetValue(agentID, out sp);
@@ -768,7 +767,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="fullID"></param>
         /// <returns>null if no scene object group containing that prim is found</returns>
-        private SceneObjectGroup GetGroupByPrim(LLUUID fullID)
+        private SceneObjectGroup GetGroupByPrim(UUID fullID)
         {
             List<EntityBase> EntityList = GetEntities();
 
@@ -828,7 +827,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="fullID"></param>
         /// <returns>null if the part was not found</returns>
-        protected internal SceneObjectPart GetSceneObjectPart(LLUUID fullID)
+        protected internal SceneObjectPart GetSceneObjectPart(UUID fullID)
         {
             SceneObjectGroup group = GetGroupByPrim(fullID);
             if (group != null)
@@ -837,7 +836,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return null;
         }
 
-        protected internal bool TryGetAvatar(LLUUID avatarId, out ScenePresence avatar)
+        protected internal bool TryGetAvatar(UUID avatarId, out ScenePresence avatar)
         {
             ScenePresence presence;
             if (ScenePresences.TryGetValue(avatarId, out presence))
@@ -906,7 +905,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup grp = (SceneObjectGroup)ent;
-                    if ((grp.RootPart.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Scripted) != 0)
+                    if ((grp.RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.Scripted) != 0)
                     {
                         if (grp.scriptScore >= 0.01)
                         {
@@ -938,13 +937,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected internal LLUUID ConvertLocalIDToFullID(uint localID)
+        protected internal UUID ConvertLocalIDToFullID(uint localID)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
                 return group.GetPartsFullID(localID);
             else
-                return LLUUID.Zero;
+                return UUID.Zero;
         }
 
         protected internal void ForEachClient(Action<IClientAPI> action)
@@ -968,7 +967,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="scale"></param>
         /// <param name="remoteClient"></param>
-        protected internal void UpdatePrimScale(uint localID, LLVector3 scale, IClientAPI remoteClient)
+        protected internal void UpdatePrimScale(uint localID, Vector3 scale, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
@@ -980,7 +979,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected internal void UpdatePrimGroupScale(uint localID, LLVector3 scale, IClientAPI remoteClient)
+        protected internal void UpdatePrimGroupScale(uint localID, Vector3 scale, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
@@ -1001,7 +1000,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="RequestFlags"></param>
         /// <param name="ObjectID"></param>
         protected internal void RequestObjectPropertiesFamily(
-             IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags, LLUUID ObjectID)
+             IClientAPI remoteClient, UUID AgentID, uint RequestFlags, UUID ObjectID)
         {
             SceneObjectGroup group = GetGroupByPrim(ObjectID);
             if (group != null)
@@ -1016,7 +1015,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="rot"></param>
         /// <param name="remoteClient"></param>
-        protected internal void UpdatePrimSingleRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient)
+        protected internal void UpdatePrimSingleRotation(uint localID, Quaternion rot, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
@@ -1034,7 +1033,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="rot"></param>
         /// <param name="remoteClient"></param>
-        protected internal void UpdatePrimRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient)
+        protected internal void UpdatePrimRotation(uint localID, Quaternion rot, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
@@ -1053,7 +1052,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pos"></param>
         /// <param name="rot"></param>
         /// <param name="remoteClient"></param>
-        protected internal void UpdatePrimRotation(uint localID, LLVector3 pos, LLQuaternion rot, IClientAPI remoteClient)
+        protected internal void UpdatePrimRotation(uint localID, Vector3 pos, Quaternion rot, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
@@ -1071,12 +1070,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="pos"></param>
         /// <param name="remoteClient"></param>
-        protected internal void UpdatePrimSinglePosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
+        protected internal void UpdatePrimSinglePosition(uint localID, Vector3 pos, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                // LLVector3 oldPos = group.AbsolutePosition;
+                // Vector3 oldPos = group.AbsolutePosition;
                 if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.IsAttachment)
                 {
                     group.SendGroupTerseUpdate();
@@ -1096,13 +1095,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="pos"></param>
         /// <param name="remoteClient"></param>
-        protected internal void UpdatePrimPosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
+        protected internal void UpdatePrimPosition(uint localID, Vector3 pos, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
 
-                // LLVector3 oldPos = group.AbsolutePosition;
+                // Vector3 oldPos = group.AbsolutePosition;
                 if (group.RootPart.IsAttachment)
                 {
                     group.UpdateGroupPosition(pos);
@@ -1166,7 +1165,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="offset"></param>
         /// <param name="pos"></param>
         /// <param name="remoteClient"></param>
-        protected internal void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
+        protected internal void MoveObject(UUID objectID, Vector3 offset, Vector3 pos, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(objectID);
             if (group != null)
@@ -1219,7 +1218,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected internal void UpdateExtraParam(LLUUID agentID, uint primLocalID, ushort type, bool inUse, byte[] data)
+        protected internal void UpdateExtraParam(UUID agentID, uint primLocalID, ushort type, bool inUse, byte[] data)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
 
@@ -1237,7 +1236,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="shapeBlock"></param>
-        protected internal void UpdatePrimShape(LLUUID agentID, uint primLocalID, UpdateShapeArgs shapeBlock)
+        protected internal void UpdatePrimShape(UUID agentID, uint primLocalID, UpdateShapeArgs shapeBlock)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
@@ -1323,7 +1322,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             // We need to explicitly resend the newly link prim's object properties since no other actions
             // occur on link to invoke this elsewhere (such as object selection)
-           parenPrim.RootPart.AddFlag(LLObject.ObjectFlags.CreateSelected);
+           parenPrim.RootPart.AddFlag(PrimFlags.CreateSelected);
             parenPrim.TriggerScriptChangedEvent(Changed.LINK);
             if (client != null)
                 parenPrim.GetProperties(client);
@@ -1478,8 +1477,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected internal void MakeObjectSearchable(IClientAPI remoteClient, bool IncludeInSearch, uint localID)
         {
-            LLUUID user = remoteClient.AgentId;
-            LLUUID objid = null;
+            UUID user = remoteClient.AgentId;
+            UUID objid = null;
             SceneObjectPart obj = null;
 
             List<EntityBase> EntityList = GetEntities();
@@ -1487,7 +1486,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    foreach (KeyValuePair<LLUUID, SceneObjectPart> subent in ((SceneObjectGroup)ent).Children)
+                    foreach (KeyValuePair<UUID, SceneObjectPart> subent in ((SceneObjectGroup)ent).Children)
                     {
                         if (subent.Value.LocalId == localID)
                         {
@@ -1512,11 +1511,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (IncludeInSearch && m_parentScene.ExternalChecks.ExternalChecksCanEditObject(objid, user))
             {
-                obj.ParentGroup.RootPart.AddFlag(LLObject.ObjectFlags.JointWheel);
+                obj.ParentGroup.RootPart.AddFlag(PrimFlags.JointWheel);
             }
             else if (!IncludeInSearch && m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(objid,user))
             {
-                obj.ParentGroup.RootPart.RemFlag(LLObject.ObjectFlags.JointWheel);
+                obj.ParentGroup.RootPart.RemFlag(PrimFlags.JointWheel);
             }
         }
 
@@ -1526,12 +1525,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="originalPrim"></param>
         /// <param name="offset"></param>
         /// <param name="flags"></param>
-        protected internal void DuplicateObject(uint originalPrim, LLVector3 offset, uint flags, LLUUID AgentID, LLUUID GroupID)
+        protected internal void DuplicateObject(uint originalPrim, Vector3 offset, uint flags, UUID AgentID, UUID GroupID)
         {
             //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
 
             // SceneObjectGroup dupe = DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Zero);
-            DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Zero);
+            DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Identity);
         }
         /// <summary>
         /// Duplicate the given object.
@@ -1539,7 +1538,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="originalPrim"></param>
         /// <param name="offset"></param>
         /// <param name="flags"></param>
-        protected internal SceneObjectGroup DuplicateObject(uint originalPrim, LLVector3 offset, uint flags, LLUUID AgentID, LLUUID GroupID, Quaternion rot)
+        protected internal SceneObjectGroup DuplicateObject(uint originalPrim, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
         {
             //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
 
@@ -1580,9 +1579,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                     m_numPrim += copy.Children.Count;
 
-                    if (rot != Quaternion.Zero)
+                    if (rot != Quaternion.Identity)
                     {
-                        copy.UpdateGroupRotation(new LLQuaternion(rot.x, rot.y, rot.z, rot.w));
+                        copy.UpdateGroupRotation(rot);
                     }
 
                     copy.CreateScriptInstances(0, false);
@@ -1610,7 +1609,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             return
                 (float)
-                Math.Sqrt((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z));
+                Math.Sqrt((v1.X - v2.X) * (v1.X - v2.X) + (v1.Y - v2.Y) * (v1.Y - v2.Y) + (v1.Z - v2.Z) * (v1.Z - v2.Z));
         }
 
         #endregion

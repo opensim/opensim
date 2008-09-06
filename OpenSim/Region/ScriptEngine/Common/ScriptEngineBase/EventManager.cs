@@ -27,7 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
 using OpenSim.Region.Environment;
@@ -96,7 +96,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
         }
 
-        private void HandleObjectPaid(LLUUID objectID, LLUUID agentID, int amount)
+        private void HandleObjectPaid(UUID objectID, UUID agentID, int amount)
         {
             SceneObjectPart part=myScriptEngine.World.GetSceneObjectPart(objectID);
             if (part != null)
@@ -117,7 +117,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "state_entry", EventQueueManager.llDetectNull, new object[] { });
         }
 
-        public void touch_start(uint localID, uint originalID, LLVector3 offsetPos, IClientAPI remoteClient)
+        public void touch_start(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
             EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
@@ -135,7 +135,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 detstruct._key2[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
                 detstruct._string[0] = remoteClient.Name;
                 detstruct._int[0] = 0;
-                detstruct._Quaternion[0] = new LSL_Types.Quaternion(av.Rotation.x,av.Rotation.y,av.Rotation.z,av.Rotation.w);
+                detstruct._Quaternion[0] = new LSL_Types.Quaternion(av.Rotation.X,av.Rotation.Y,av.Rotation.Z,av.Rotation.W);
                 detstruct._Vector3[0] = new LSL_Types.Vector3(av.AbsolutePosition.X,av.AbsolutePosition.Y,av.AbsolutePosition.Z);
                 detstruct._Vector32[0] = new LSL_Types.Vector3(av.Velocity.X,av.Velocity.Y,av.Velocity.Z);
             }
@@ -170,7 +170,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 detstruct._key2[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
                 detstruct._string[0] = remoteClient.Name;
                 detstruct._int[0] = 0;
-                detstruct._Quaternion[0] = new LSL_Types.Quaternion(av.Rotation.x, av.Rotation.y, av.Rotation.z, av.Rotation.w);
+                detstruct._Quaternion[0] = new LSL_Types.Quaternion(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W);
                 detstruct._Vector3[0] = new LSL_Types.Vector3(av.AbsolutePosition.X, av.AbsolutePosition.Y, av.AbsolutePosition.Z);
                 detstruct._Vector32[0] = new LSL_Types.Vector3(av.Velocity.X, av.Velocity.Y, av.Velocity.Z);
             }
@@ -187,14 +187,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_end", detstruct, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
-        public void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez)
+        public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez)
         {
             myScriptEngine.Log.Debug("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +
                               script.Length);
             myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script, startParam, postOnRez);
         }
 
-        public void OnRemoveScript(uint localID, LLUUID itemID)
+        public void OnRemoveScript(uint localID, UUID itemID)
         {
             myScriptEngine.Log.Debug("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());
             myScriptEngine.m_ScriptManager.StopScript(
@@ -203,7 +203,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 );
         }
 
-        public void money(uint localID, LLUUID agentID, int amount)
+        public void money(uint localID, UUID agentID, int amount)
         {
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "money", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLString(agentID.ToString()), new LSL_Types.LSLInteger(amount) });
         }
@@ -220,12 +220,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "state_exit", EventQueueManager.llDetectNull, new object[] { });
         }
 
-        public void touch(uint localID, uint originalID, LLUUID itemID)
+        public void touch(uint localID, uint originalID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch", EventQueueManager.llDetectNull);
         }
 
-        public void touch_end(uint localID, uint originalID, LLUUID itemID)
+        public void touch_end(uint localID, uint originalID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
         }
@@ -314,7 +314,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "collision_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(col.Colliders.Count) });
         }
 
-        public void land_collision_start(uint localID, LLUUID itemID)
+        public void land_collision_start(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "land_collision_start", EventQueueManager.llDetectNull);
         }
@@ -324,48 +324,48 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "land_collision", EventQueueManager.llDetectNull);
         }
 
-        public void land_collision_end(uint localID, LLUUID itemID)
+        public void land_collision_end(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "land_collision_end", EventQueueManager.llDetectNull);
         }
 
         // Handled by long commands
-        public void timer(uint localID, LLUUID itemID)
+        public void timer(uint localID, UUID itemID)
         {
             //myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, String.Empty);
         }
 
-        public void listen(uint localID, LLUUID itemID)
+        public void listen(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "listen", EventQueueManager.llDetectNull);
         }
 
-        public void on_rez(uint localID, LLUUID itemID)
+        public void on_rez(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "on_rez", EventQueueManager.llDetectNull);
         }
 
-        public void sensor(uint localID, LLUUID itemID)
+        public void sensor(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "sensor", EventQueueManager.llDetectNull);
         }
 
-        public void no_sensor(uint localID, LLUUID itemID)
+        public void no_sensor(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "no_sensor", EventQueueManager.llDetectNull);
         }
 
-        public void control(uint localID, LLUUID itemID, LLUUID agentID, uint held, uint change)
+        public void control(uint localID, UUID itemID, UUID agentID, uint held, uint change)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "control", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLString(agentID.ToString()), new LSL_Types.LSLInteger(held), new LSL_Types.LSLInteger(change)});
         }
 
-        public void email(uint localID, LLUUID itemID)
+        public void email(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "email", EventQueueManager.llDetectNull);
         }
 
-        public void at_target(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos)
+        public void at_target(uint localID, uint handle, Vector3 targetpos, Vector3 atpos)
         {
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "at_target", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(handle), new LSL_Types.Vector3(targetpos.X,targetpos.Y,targetpos.Z), new LSL_Types.Vector3(atpos.X,atpos.Y,atpos.Z) });
         }
@@ -375,63 +375,63 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "not_at_target", EventQueueManager.llDetectNull);
         }
 
-        public void at_rot_target(uint localID, LLUUID itemID)
+        public void at_rot_target(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "at_rot_target", EventQueueManager.llDetectNull);
         }
 
-        public void not_at_rot_target(uint localID, LLUUID itemID)
+        public void not_at_rot_target(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "not_at_rot_target", EventQueueManager.llDetectNull);
         }
 
-        public void run_time_permissions(uint localID, LLUUID itemID)
+        public void run_time_permissions(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "run_time_permissions", EventQueueManager.llDetectNull);
         }
 
-        public void changed(uint localID, LLUUID itemID)
+        public void changed(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "changed", EventQueueManager.llDetectNull);
         }
 
-        public void attach(uint localID, LLUUID itemID)
+        public void attach(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "attach", EventQueueManager.llDetectNull);
         }
 
-        public void dataserver(uint localID, LLUUID itemID)
+        public void dataserver(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "dataserver", EventQueueManager.llDetectNull);
         }
 
-        public void link_message(uint localID, LLUUID itemID)
+        public void link_message(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "link_message", EventQueueManager.llDetectNull);
         }
 
-        public void moving_start(uint localID, LLUUID itemID)
+        public void moving_start(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "moving_start", EventQueueManager.llDetectNull);
         }
 
-        public void moving_end(uint localID, LLUUID itemID)
+        public void moving_end(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "moving_end", EventQueueManager.llDetectNull);
         }
 
-        public void object_rez(uint localID, LLUUID itemID)
+        public void object_rez(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "object_rez", EventQueueManager.llDetectNull);
         }
 
-        public void remote_data(uint localID, LLUUID itemID)
+        public void remote_data(uint localID, UUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "remote_data", EventQueueManager.llDetectNull);
         }
 
         // Handled by long commands
-        public void http_response(uint localID, LLUUID itemID)
+        public void http_response(uint localID, UUID itemID)
         {
             //    myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "http_response", EventQueueManager.llDetectNull);
         }

@@ -27,7 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -84,7 +84,7 @@ namespace OpenSim.Framework
         }
 
         // From User Server
-        public virtual void TriggerLogOffUser(ulong regionHandle, LLUUID agentID, LLUUID RegionSecret, string message)
+        public virtual void TriggerLogOffUser(ulong regionHandle, UUID agentID, UUID RegionSecret, string message)
         {
             handlerLogOffUser = OnLogOffUser;
             if (handlerLogOffUser != null)
@@ -95,7 +95,7 @@ namespace OpenSim.Framework
         }
 
 
-        public virtual bool TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
+        public virtual bool TriggerExpectPrim(ulong regionHandle, UUID primID, string objData, int XMLMethod)
         {
             handlerExpectPrim = OnExpectPrim;
             if (handlerExpectPrim != null)
@@ -128,7 +128,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position,
+        public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position,
                                                         bool isFlying)
         {
             handlerAvatarCrossingIntoRegion = OnAvatarCrossingIntoRegion;
@@ -140,7 +140,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual bool TriggerExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position,
+        public virtual bool TriggerExpectPrimCrossing(ulong regionHandle, UUID primID, Vector3 position,
                                                       bool isPhysical)
         {
             handlerPrimCrossingIntoRegion = OnPrimCrossingIntoRegion;
@@ -152,7 +152,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual bool TriggerAcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentID)
+        public virtual bool TriggerAcknowledgeAgentCrossed(ulong regionHandle, UUID agentID)
         {
             handlerAcknowledgeAgentCrossed = OnAcknowledgeAgentCrossed;
             if (handlerAcknowledgeAgentCrossed != null)
@@ -163,7 +163,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual bool TriggerAcknowledgePrimCrossed(ulong regionHandle, LLUUID primID)
+        public virtual bool TriggerAcknowledgePrimCrossed(ulong regionHandle, UUID primID)
         {
             handlerAcknowledgePrimCrossed = OnAcknowledgePrimCrossed;
             if (handlerAcknowledgePrimCrossed != null)
@@ -174,7 +174,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual bool TriggerCloseAgentConnection(ulong regionHandle, LLUUID agentID)
+        public virtual bool TriggerCloseAgentConnection(ulong regionHandle, UUID agentID)
         {
             handlerCloseAgentConnection = OnCloseAgentConnection;
             if (handlerCloseAgentConnection != null)
@@ -220,7 +220,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
         {
             handlerCloseAgentConnection = OnCloseAgentConnection;
             if (handlerCloseAgentConnection != null)

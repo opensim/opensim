@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework;
@@ -59,7 +59,7 @@ namespace OpenSim.Data.SQLite
         private const string AvatarPickerAndSQL = "select * from users where username like :username and surname like :surname";
         private const string AvatarPickerOrSQL = "select * from users where username like :username or surname like :surname";
 
-        private Dictionary<LLUUID, AvatarAppearance> aplist = new Dictionary<LLUUID, AvatarAppearance>();
+        private Dictionary<UUID, AvatarAppearance> aplist = new Dictionary<UUID, AvatarAppearance>();
         private DataSet ds;
         private SqliteDataAdapter da;
         private SqliteDataAdapter daf;
@@ -124,7 +124,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="uuid">User UUID</param>
         /// <returns>user profile data</returns>
-        override public UserProfileData GetUserByUUID(LLUUID uuid)
+        override public UserProfileData GetUserByUUID(UUID uuid)
         {
             lock (ds)
             {
@@ -184,21 +184,21 @@ namespace OpenSim.Data.SQLite
         /// <param name="friendlistowner">UUID of the friendlist owner</param>
         /// <param name="friend">UUID of the friend to add</param>
         /// <param name="perms">permission flag</param>
-        override public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        override public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
             string InsertFriends = "insert into userfriends(ownerID, friendID, friendPerms) values(:ownerID, :friendID, :perms)";
 
             using (SqliteCommand cmd = new SqliteCommand(InsertFriends, g_conn))
             {
-                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.UUID.ToString()));
-                cmd.Parameters.Add(new SqliteParameter(":friendID", friend.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":friendID", friend.ToString()));
                 cmd.Parameters.Add(new SqliteParameter(":perms", perms));
                 cmd.ExecuteNonQuery();
             }
             using (SqliteCommand cmd = new SqliteCommand(InsertFriends, g_conn))
             {
-                cmd.Parameters.Add(new SqliteParameter(":ownerID", friend.UUID.ToString()));
-                cmd.Parameters.Add(new SqliteParameter(":friendID", friendlistowner.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", friend.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":friendID", friendlistowner.ToString()));
                 cmd.Parameters.Add(new SqliteParameter(":perms", perms));
                 cmd.ExecuteNonQuery();
             }
@@ -209,13 +209,13 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="friendlistowner">UUID of the friendlist owner</param>
         /// <param name="friend">UUID of the friend to remove</param>
-        override public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        override public void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
             string DeletePerms = "delete from friendlist where (ownerID=:ownerID and friendID=:friendID) or (ownerID=:friendID and friendID=:ownerID)";
             using (SqliteCommand cmd = new SqliteCommand(DeletePerms, g_conn))
             {
-                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.UUID.ToString()));
-                cmd.Parameters.Add(new SqliteParameter(":friendID", friend.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":friendID", friend.ToString()));
                 cmd.ExecuteNonQuery();
             }
         }
@@ -226,14 +226,14 @@ namespace OpenSim.Data.SQLite
         /// <param name="friendlistowner">UUID of the friendlist owner</param>
         /// <param name="friend">UUID of the friend to modify</param>
         /// <param name="perms">updated permission flag</param>
-        override public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        override public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
             string UpdatePerms = "update friendlist set perms=:perms where ownerID=:ownerID and friendID=:friendID";
             using (SqliteCommand cmd = new SqliteCommand(UpdatePerms, g_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":perms", perms));
-                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.UUID.ToString()));
-                cmd.Parameters.Add(new SqliteParameter(":friendID", friend.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":friendID", friend.ToString()));
                 cmd.ExecuteNonQuery();
             }
         }
@@ -243,13 +243,13 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="friendlistowner">UUID of the friendlist owner</param>
         /// <returns>The friendlist list</returns>
-        override public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        override public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
             List<FriendListItem> returnlist = new List<FriendListItem>();
 
             using (SqliteCommand cmd = new SqliteCommand(SelectFriendsByUUID, g_conn))
             {
-                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.UUID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.ToString()));
 
                 try
                 {
@@ -259,7 +259,7 @@ namespace OpenSim.Data.SQLite
                         {
                             FriendListItem user = new FriendListItem();
                             user.FriendListOwner = friendlistowner;
-                            user.Friend = new LLUUID((string)reader[0]);
+                            user.Friend = new UUID((string)reader[0]);
                             user.FriendPerms = Convert.ToUInt32(reader[1]);
                             user.FriendListOwnerPerms = Convert.ToUInt32(reader[2]);
                             returnlist.Add(user);
@@ -288,7 +288,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="regionuuid">UUID of the region</param>
         /// <param name="regionhandle">region handle</param>
         /// <remarks>DO NOTHING</remarks>
-        override public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
+        override public void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
         {
             //m_log.Info("[USER DB]: Stub UpdateUserCUrrentRegion called");
         }
@@ -299,7 +299,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="queryID"></param>
         /// <param name="query"></param>
         /// <returns></returns>
-        override public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        override public List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query)
         {
             List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
             string[] querysplit;
@@ -316,7 +316,7 @@ namespace OpenSim.Data.SQLite
                         while (reader.Read())
                         {
                             AvatarPickerAvatar user = new AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.AvatarID = new UUID((string) reader["UUID"]);
                             user.firstName = (string) reader["username"];
                             user.lastName = (string) reader["surname"];
                             returnlist.Add(user);
@@ -337,7 +337,7 @@ namespace OpenSim.Data.SQLite
                         while (reader.Read())
                         {
                             AvatarPickerAvatar user = new AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string) reader["UUID"]);
+                            user.AvatarID = new UUID((string) reader["UUID"]);
                             user.firstName = (string) reader["username"];
                             user.lastName = (string) reader["surname"];
                             returnlist.Add(user);
@@ -354,7 +354,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="uuid">The user's account ID</param>
         /// <returns>A matching user profile</returns>
-        override public UserAgentData GetAgentByUUID(LLUUID uuid)
+        override public UserAgentData GetAgentByUUID(UUID uuid)
         {
             try
             {
@@ -399,7 +399,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="AgentID">UUID of the user</param>
         /// <param name="WebLoginKey">UUID of the weblogin</param>
-        override public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
+        override public void StoreWebLoginKey(UUID AgentID, UUID WebLoginKey)
         {
             DataTable users = ds.Tables["users"];
             lock (ds)
@@ -520,7 +520,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="to">End account</param>
         /// <param name="amount">The amount to move</param>
         /// <returns>Success?</returns>
-        override public bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount)
+        override public bool MoneyTransferRequest(UUID from, UUID to, uint amount)
         {
             return true;
         }
@@ -533,7 +533,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="to">Receivers account</param>
         /// <param name="item">Inventory item</param>
         /// <returns>Success?</returns>
-        override public bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)
+        override public bool InventoryTransferRequest(UUID from, UUID to, UUID item)
         {
             return true;
         }
@@ -545,7 +545,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="user">The user UUID</param>
         /// <returns>Avatar Appearence</returns>
-        override public AvatarAppearance GetUserAppearance(LLUUID user)
+        override public AvatarAppearance GetUserAppearance(UUID user)
         {
             AvatarAppearance aa = null;
             try {
@@ -562,7 +562,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="user">the user UUID</param>
         /// <param name="appearance">appearence</param>
-        override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
+        override public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
             appearance.Owner = user;
             aplist[user] = appearance;
@@ -707,8 +707,8 @@ namespace OpenSim.Data.SQLite
         private static UserProfileData buildUserProfile(DataRow row)
         {
             UserProfileData user = new UserProfileData();
-            LLUUID tmp;
-            LLUUID.TryParse((String)row["UUID"], out tmp);
+            UUID tmp;
+            UUID.TryParse((String)row["UUID"], out tmp);
             user.ID = tmp;
             user.FirstName = (String) row["username"];
             user.SurName = (String) row["surname"];
@@ -717,39 +717,39 @@ namespace OpenSim.Data.SQLite
 
             user.HomeRegionX = Convert.ToUInt32(row["homeRegionX"]);
             user.HomeRegionY = Convert.ToUInt32(row["homeRegionY"]);
-            user.HomeLocation = new LLVector3(
+            user.HomeLocation = new Vector3(
                 Convert.ToSingle(row["homeLocationX"]),
                 Convert.ToSingle(row["homeLocationY"]),
                 Convert.ToSingle(row["homeLocationZ"])
                 );
-            user.HomeLookAt = new LLVector3(
+            user.HomeLookAt = new Vector3(
                 Convert.ToSingle(row["homeLookAtX"]),
                 Convert.ToSingle(row["homeLookAtY"]),
                 Convert.ToSingle(row["homeLookAtZ"])
                 );
 
-            LLUUID regionID = LLUUID.Zero;
-            LLUUID.TryParse(row["homeRegionID"].ToString(), out regionID); // it's ok if it doesn't work; just use LLUUID.Zero
+            UUID regionID = UUID.Zero;
+            UUID.TryParse(row["homeRegionID"].ToString(), out regionID); // it's ok if it doesn't work; just use UUID.Zero
             user.HomeRegionID = regionID;
 
             user.Created = Convert.ToInt32(row["created"]);
             user.LastLogin = Convert.ToInt32(row["lastLogin"]);
-            user.RootInventoryFolderID = new LLUUID((String) row["rootInventoryFolderID"]);
+            user.RootInventoryFolderID = new UUID((String) row["rootInventoryFolderID"]);
             user.UserInventoryURI = (String) row["userInventoryURI"];
             user.UserAssetURI = (String) row["userAssetURI"];
             user.CanDoMask = Convert.ToUInt32(row["profileCanDoMask"]);
             user.WantDoMask = Convert.ToUInt32(row["profileWantDoMask"]);
             user.AboutText = (String) row["profileAboutText"];
             user.FirstLifeAboutText = (String) row["profileFirstText"];
-            LLUUID.TryParse((String)row["profileImage"], out tmp);
+            UUID.TryParse((String)row["profileImage"], out tmp);
             user.Image = tmp;
-            LLUUID.TryParse((String)row["profileFirstImage"], out tmp);
+            UUID.TryParse((String)row["profileFirstImage"], out tmp);
             user.FirstLifeImage = tmp;
-            user.WebLoginKey = new LLUUID((String) row["webLoginKey"]);
+            user.WebLoginKey = new UUID((String) row["webLoginKey"]);
             user.UserFlags = Convert.ToInt32(row["userFlags"]);
             user.GodLevel = Convert.ToInt32(row["godLevel"]);
             user.CustomType = row["customType"].ToString();
-            user.Partner = new LLUUID((String) row["partner"]);
+            user.Partner = new UUID((String) row["partner"]);
 
             return user;
         }
@@ -814,18 +814,18 @@ namespace OpenSim.Data.SQLite
         {
             UserAgentData ua = new UserAgentData();
 
-            ua.ProfileID = new LLUUID((String) row["UUID"]);
+            ua.ProfileID = new UUID((String) row["UUID"]);
             ua.AgentIP = (String) row["agentIP"];
             ua.AgentPort = Convert.ToUInt32(row["agentPort"]);
             ua.AgentOnline = Convert.ToBoolean(row["agentOnline"]);
-            ua.SessionID = new LLUUID((String) row["sessionID"]);
-            ua.SecureSessionID = new LLUUID((String) row["secureSessionID"]);
-            ua.InitialRegion = new LLUUID((String) row["regionID"]);
+            ua.SessionID = new UUID((String) row["sessionID"]);
+            ua.SecureSessionID = new UUID((String) row["secureSessionID"]);
+            ua.InitialRegion = new UUID((String) row["regionID"]);
             ua.LoginTime = Convert.ToInt32(row["loginTime"]);
             ua.LogoutTime = Convert.ToInt32(row["logoutTime"]);
-            ua.Region = new LLUUID((String) row["currentRegion"]);
+            ua.Region = new UUID((String) row["currentRegion"]);
             ua.Handle = Convert.ToUInt64(row["currentHandle"]);
-            ua.Position = new LLVector3(
+            ua.Position = new Vector3(
                 Convert.ToSingle(row["currentPosX"]),
                 Convert.ToSingle(row["currentPosY"]),
                 Convert.ToSingle(row["currentPosZ"])
@@ -906,7 +906,7 @@ namespace OpenSim.Data.SQLite
 
         }
 
-        override public void ResetAttachments(LLUUID userID)
+        override public void ResetAttachments(UUID userID)
         {
         }
     }

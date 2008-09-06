@@ -30,8 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 //using System.Reflection;
 using System.Xml;
-using Axiom.Math;
-using libsecondlife;
+using OpenMetaverse;
 //using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
@@ -45,7 +44,7 @@ namespace OpenSim.Region.Environment.Scenes
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, LLVector3 loadOffset)
+        public static void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, Vector3 loadOffset)
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
@@ -208,7 +207,7 @@ namespace OpenSim.Region.Environment.Scenes
             SavePrimListToXml2(EntityList, fileName);
         }
 
-        public static void SavePrimsToXml2(Scene scene, TextWriter stream, LLVector3 min, LLVector3 max)
+        public static void SavePrimsToXml2(Scene scene, TextWriter stream, Vector3 min, Vector3 max)
         {
             List<EntityBase> EntityList = scene.GetEntities();
 
@@ -223,7 +222,7 @@ namespace OpenSim.Region.Environment.Scenes
                 StreamWriter stream = new StreamWriter(file);
                 try
                 {
-                    SavePrimListToXml2(entityList, stream, LLVector3.Zero, LLVector3.Zero);
+                    SavePrimListToXml2(entityList, stream, Vector3.Zero, Vector3.Zero);
                 }
                 finally
                 {
@@ -236,7 +235,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public static void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, LLVector3 min, LLVector3 max)
+        public static void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, Vector3 min, Vector3 max)
         {
             int primCount = 0;
             stream.WriteLine("<scene>\n");
@@ -246,9 +245,9 @@ namespace OpenSim.Region.Environment.Scenes
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup g = (SceneObjectGroup)ent;
-                    if (!min.Equals(LLVector3.Zero) || !max.Equals(LLVector3.Zero))
+                    if (!min.Equals(Vector3.Zero) || !max.Equals(Vector3.Zero))
                     {
-                        LLVector3 pos = g.RootPart.GetWorldPosition();
+                        Vector3 pos = g.RootPart.GetWorldPosition();
                         if (min.X > pos.X || min.Y > pos.Y || min.Z > pos.Z)
                             continue;
                         if (max.X < pos.X || max.Y < pos.Y || max.Z < pos.Z)

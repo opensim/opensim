@@ -26,7 +26,7 @@
  */
 
 using System;
-using Axiom.Math;
+using OpenMetaverse;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
@@ -587,7 +587,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //Matrix3 or = Orientation.ToRotationMatrix();
                 //d.Matrix3 ord = new d.Matrix3(or.m00, or.m10, or.m20, or.m01, or.m11, or.m21, or.m02, or.m12, or.m22);
                 //d.BodySetRotation(Body, ref ord);
-
             }
         }
 

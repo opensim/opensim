@@ -27,7 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 //using System.Reflection;
 
 //using log4net;
@@ -43,12 +43,12 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Items that are contained in this folder
         /// </summary>
-        public Dictionary<LLUUID, InventoryItemBase> Items = new Dictionary<LLUUID, InventoryItemBase>();
+        public Dictionary<UUID, InventoryItemBase> Items = new Dictionary<UUID, InventoryItemBase>();
 
         /// <summary>
         /// Child folders that are contained in this folder
         /// </summary>
-        public Dictionary<LLUUID, InventoryFolderImpl> SubFolders = new Dictionary<LLUUID, InventoryFolderImpl>();
+        public Dictionary<UUID, InventoryFolderImpl> SubFolders = new Dictionary<UUID, InventoryFolderImpl>();
 
         // Constructors
         public InventoryFolderImpl(InventoryFolderBase folderbase)
@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folderName"></param>
         /// <param name="type"></param>
         /// <returns>The newly created subfolder.  Returns null if the folder already exists</returns>
-        public InventoryFolderImpl CreateChildFolder(LLUUID folderID, string folderName, ushort type)
+        public InventoryFolderImpl CreateChildFolder(UUID folderID, string folderName, ushort type)
         {
             lock (SubFolders)
             {
@@ -112,7 +112,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="itemID"></param>
         /// <returns>null if the item is not found</returns>
-        public InventoryItemBase FindItem(LLUUID itemID)
+        public InventoryItemBase FindItem(UUID itemID)
         {
             lock (Items)
             {
@@ -143,7 +143,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="folderID"></param>
         /// <returns></returns>
-        public bool DeleteItem(LLUUID itemID)
+        public bool DeleteItem(UUID itemID)
         {
             bool found = false;
 
@@ -177,7 +177,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// first.
         /// </summary>
         /// <returns>The requested folder if it exists, null if it does not.</returns>
-        public InventoryFolderImpl FindFolder(LLUUID folderID)
+        public InventoryFolderImpl FindFolder(UUID folderID)
         {
             if (folderID == ID)
                 return this;

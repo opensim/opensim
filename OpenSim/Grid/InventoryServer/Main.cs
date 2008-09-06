@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using log4net.Config;
 using OpenSim.Framework;
@@ -142,7 +142,7 @@ namespace OpenSim.Grid.InventoryServer
             switch (cmd)
             {
                 case "add-user":
-                    m_inventoryService.CreateUsersInventory(LLUUID.Random().UUID);
+                    m_inventoryService.CreateUsersInventory(UUID.Random().Guid);
                     break;
             }
         }

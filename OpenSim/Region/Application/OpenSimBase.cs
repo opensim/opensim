@@ -32,7 +32,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -64,7 +64,7 @@ namespace OpenSim
         /// <summary>
         /// The file used to load and save prim backup xml if no filename has been specified
         /// </summary>
-        protected const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
+        protected const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.Xml";
 
         /// <summary>
         /// The file used to load and save an opensim archive if no filename has been specified
@@ -178,17 +178,17 @@ namespace OpenSim
                 }
                 else
                 {
-                    if (File.Exists("OpenSim.xml"))
+                    if (File.Exists("OpenSim.Xml"))
                     {
                         //check for a xml config file
-                        Application.iniFilePath = "OpenSim.xml";
+                        Application.iniFilePath = "OpenSim.Xml";
                         m_config.Source = new XmlConfigSource();
                         m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
                         m_config.Source.Merge(configSource);
                     }
                     else
                     {
-                        //Application.iniFilePath = "OpenSim.xml";
+                        //Application.iniFilePath = "OpenSim.Xml";
                        // m_config.ConfigSource = new XmlConfigSource();
                         // no default config files, so set default values, and save it
                         m_config.Source.Merge(DefaultConfig());
@@ -437,7 +437,7 @@ namespace OpenSim
             m_sceneManager.OnRestartSim += handleRestartRegion;
         }
 
-        public LLUUID CreateUser(string tempfirstname, string templastname, string tempPasswd, uint regX, uint regY)
+        public UUID CreateUser(string tempfirstname, string templastname, string tempPasswd, uint regX, uint regY)
         {
             return m_commsManager.AddUser(tempfirstname, templastname, tempPasswd, regX, regY);
         }
@@ -532,18 +532,18 @@ namespace OpenSim
             // and has to happen before the region is registered with the grid.
             scene.CreateTerrainTexture(false);
 
-            try
-            {
+            //try
+            //{
                 scene.RegisterRegionWithGrid();
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e);
+            //}
+            //catch (Exception e)
+            //{
+           //     m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e);
 
                 // Carrying on now causes a lot of confusion down the
                 // line - we need to get the user's attention
-                System.Environment.Exit(1);
-            }
+           //     System.Environment.Exit(1);
+            //}
 
             // We need to do this after we've initialized the
             // scripting engines.

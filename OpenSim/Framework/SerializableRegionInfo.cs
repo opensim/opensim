@@ -28,7 +28,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -47,14 +47,14 @@ namespace OpenSim.Framework
         protected uint m_httpPort = 9000;
 
         protected IPEndPoint m_internalEndPoint;
-        protected Guid m_originRegionID = LLUUID.Zero.UUID;
+        protected Guid m_originRegionID = UUID.Zero.Guid;
         protected string m_proxyUrl;
         protected uint? m_regionLocX;
         protected uint? m_regionLocY;
         protected string m_regionName;
         public uint m_remotingPort;
         protected string m_serverURI;
-        public Guid RegionID = LLUUID.Zero.UUID;
+        public Guid RegionID = UUID.Zero.Guid;
         public string RemotingAddress;
 
         /// <summary>
@@ -181,10 +181,10 @@ namespace OpenSim.Framework
             set { m_proxyUrl = value; }
         }
 
-        public LLUUID OriginRegionID
+        public UUID OriginRegionID
         {
-            get { return new LLUUID(m_originRegionID); }
-            set { m_originRegionID = value.UUID; }
+            get { return new UUID(m_originRegionID); }
+            set { m_originRegionID = value.Guid; }
         }
 
         public string RegionName

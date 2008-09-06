@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
@@ -90,7 +90,7 @@ namespace OpenSim.Data.NHibernate
             m.Update();
         }
 
-        private bool ExistsUser(LLUUID uuid)
+        private bool ExistsUser(UUID uuid)
         {
             UserProfileData user = null;
             try
@@ -105,7 +105,7 @@ namespace OpenSim.Data.NHibernate
             return (user != null);
         }
 
-        override public UserProfileData GetUserByUUID(LLUUID uuid)
+        override public UserProfileData GetUserByUUID(UUID uuid)
         {
             UserProfileData user;
             // TODO: I'm sure I'll have to do something silly here
@@ -136,7 +136,7 @@ namespace OpenSim.Data.NHibernate
             }
         }
 
-        private void SetAgentData(LLUUID uuid, UserAgentData agent)
+        private void SetAgentData(UUID uuid, UserAgentData agent)
         {
             if (agent == null)
             {
@@ -190,7 +190,7 @@ namespace OpenSim.Data.NHibernate
             session.Update(agent);
         }
 
-        override public UserAgentData GetAgentByUUID(LLUUID uuid)
+        override public UserAgentData GetAgentByUUID(UUID uuid)
         {
             try
             {
@@ -225,7 +225,7 @@ namespace OpenSim.Data.NHibernate
             return GetAgentByName(name.Split(' ')[0], name.Split(' ')[1]);
         }
 
-        override public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        override public List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query)
         {
             List<AvatarPickerAvatar> results = new List<AvatarPickerAvatar>();
             string[] querysplit;
@@ -249,18 +249,18 @@ namespace OpenSim.Data.NHibernate
         }
 
         // TODO: actually implement these
-        public override void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle) { return; }
-        public override void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey) { return; }
-        public override void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms) { return; }
-        public override void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend) { return; }
-        public override void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms) { return; }
-        public override List<FriendListItem> GetUserFriendList(LLUUID friendlistowner) { return new List<FriendListItem>(); }
-        public override bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount) { return true; }
-        public override bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory) { return true; }
+        public override void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle) { return; }
+        public override void StoreWebLoginKey(UUID agentID, UUID webLoginKey) { return; }
+        public override void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms) { return; }
+        public override void RemoveUserFriend(UUID friendlistowner, UUID friend) { return; }
+        public override void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms) { return; }
+        public override List<FriendListItem> GetUserFriendList(UUID friendlistowner) { return new List<FriendListItem>(); }
+        public override bool MoneyTransferRequest(UUID from, UUID to, uint amount) { return true; }
+        public override bool InventoryTransferRequest(UUID from, UUID to, UUID inventory) { return true; }
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        public override AvatarAppearance GetUserAppearance(LLUUID user)
+        public override AvatarAppearance GetUserAppearance(UUID user)
         {
             AvatarAppearance appearance;
             // TODO: I'm sure I'll have to do something silly here
@@ -272,7 +272,7 @@ namespace OpenSim.Data.NHibernate
             return appearance;
         }
 
-        private bool ExistsAppearance(LLUUID uuid)
+        private bool ExistsAppearance(UUID uuid)
         {
             AvatarAppearance appearance;
             try {
@@ -285,7 +285,7 @@ namespace OpenSim.Data.NHibernate
         }
 
 
-        public override void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
+        public override void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
             if (appearance == null)
                 return;
@@ -303,7 +303,7 @@ namespace OpenSim.Data.NHibernate
             }
         }
 
-        public override void ResetAttachments(LLUUID userID)
+        public override void ResetAttachments(UUID userID)
         {
         }
 

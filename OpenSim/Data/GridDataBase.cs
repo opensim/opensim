@@ -25,17 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Data
 {
     public abstract class GridDataBase : IGridDataPlugin
     {
         public abstract RegionProfileData GetProfileByHandle(ulong regionHandle);
-        public abstract RegionProfileData GetProfileByLLUUID(LLUUID UUID);
+        public abstract RegionProfileData GetProfileByUUID(UUID UUID);
         public abstract RegionProfileData GetProfileByString(string regionName);
         public abstract RegionProfileData[] GetProfilesInRange(uint Xmin, uint Ymin, uint Xmax, uint Ymax);
-        public abstract bool AuthenticateSim(LLUUID UUID, ulong regionHandle, string simrecvkey);
+        public abstract bool AuthenticateSim(UUID UUID, ulong regionHandle, string simrecvkey);
         public abstract DataResponse AddProfile(RegionProfileData profile);
         public abstract ReservationData GetReservationAtPoint(uint x, uint y);
         public abstract DataResponse UpdateProfile(RegionProfileData profile);

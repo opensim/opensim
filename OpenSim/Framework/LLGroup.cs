@@ -28,7 +28,7 @@
 
 using System;
 using System.Collections;
-using libsecondlife;
+using OpenMetaverse;
 using System.Collections.Generic;
 using System.Text;
 
@@ -37,8 +37,8 @@ namespace OpenSim.Framework
     public class GroupData
     {
         public string ActiveGroupTitle;
-        public LLUUID GroupID;
-        public List<LLUUID> GroupMembers;
+        public UUID GroupID;
+        public List<UUID> GroupMembers;
         public string groupName;
         public uint groupPowers = (uint)(GroupPowers.LandAllowLandmark | GroupPowers.LandAllowSetHome);
         public List<string> GroupTitles;
@@ -46,10 +46,10 @@ namespace OpenSim.Framework
         public bool AllowPublish = true;
         public string Charter = "Cool Group Yeah!";
         public int contribution = 0;
-        public LLUUID FounderID = LLUUID.Zero;
+        public UUID FounderID = UUID.Zero;
         public int groupMembershipCost = 0;
         public int groupRollsCount = 1;
-        public LLUUID GroupPicture = LLUUID.Zero;
+        public UUID GroupPicture = UUID.Zero;
         public bool MaturePublish = true;
         public int MembershipFee = 0;
         public bool OpenEnrollment = true;
@@ -58,7 +58,7 @@ namespace OpenSim.Framework
         public GroupData()
         {
             GroupTitles = new List<string>();
-            GroupMembers = new List<LLUUID>();
+            GroupMembers = new List<UUID>();
         }
 
         public GroupPowers ActiveGroupPowers
@@ -70,11 +70,11 @@ namespace OpenSim.Framework
 
     public class GroupList
     {
-        public List<LLUUID> m_GroupList;
+        public List<UUID> m_GroupList;
 
         public GroupList()
         {
-            m_GroupList = new List<LLUUID>();
+            m_GroupList = new List<UUID>();
         }
     }
 }

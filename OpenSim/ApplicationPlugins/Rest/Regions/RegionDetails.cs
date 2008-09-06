@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -58,7 +58,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             region_id = regInfo.RegionID.ToString();
             region_x = regInfo.RegionLocX;
             region_y = regInfo.RegionLocY;
-            if (regInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+            if (regInfo.EstateSettings.EstateOwner != UUID.Zero)
                 region_owner_id = regInfo.EstateSettings.EstateOwner.ToString();
             else
                 region_owner_id = regInfo.MasterAvatarAssignedUUID.ToString();

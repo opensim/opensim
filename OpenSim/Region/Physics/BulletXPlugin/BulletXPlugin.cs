@@ -29,13 +29,15 @@
 
 using System;
 using System.Collections.Generic;
+using OpenMetaverse;
 using MonoXnaCompactMaths;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using XnaDevRu.BulletX;
 using XnaDevRu.BulletX.Dynamics;
 using Nini.Config;
-using AxiomQuaternion = Axiom.Math.Quaternion;
+using Vector3 = MonoXnaCompactMaths.Vector3;
+using Quaternion = MonoXnaCompactMaths.Quaternion;
 
 #endregion
 
@@ -61,14 +63,14 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
 
         //Quaternion
-        public static Quaternion AxiomQuaternionToXnaQuaternion(AxiomQuaternion axiomQuaternion)
+        public static Quaternion QuaternionToXnaQuaternion(OpenMetaverse.Quaternion quaternion)
         {
-            return new Quaternion(axiomQuaternion.x, axiomQuaternion.y, axiomQuaternion.z, axiomQuaternion.w);
+            return new Quaternion(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
         }
 
-        public static AxiomQuaternion XnaQuaternionToAxiomQuaternion(Quaternion xnaQuaternion)
+        public static OpenMetaverse.Quaternion XnaQuaternionToQuaternion(Quaternion xnaQuaternion)
         {
-            return new AxiomQuaternion(xnaQuaternion.W, xnaQuaternion.X, xnaQuaternion.Y, xnaQuaternion.Z);
+            return new OpenMetaverse.Quaternion(xnaQuaternion.W, xnaQuaternion.X, xnaQuaternion.Y, xnaQuaternion.Z);
         }
 
         //Next methods are extracted from XnaDevRu.BulletX(See 3rd party license):
@@ -92,7 +94,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         internal static Quaternion GetRotation(Matrix m)
         {
-            Quaternion q = new Quaternion();
+            Quaternion q;
 
             float trace = m.M11 + m.M22 + m.M33;
 
@@ -108,6 +110,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             else
             {
+                q.X = q.Y = q.Z = q.W = 0f;
+
                 int i = m.M11 < m.M22
                             ?
                                 (m.M22 < m.M33 ? 2 : 1)
@@ -601,13 +605,13 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
-                                                  PhysicsVector size, AxiomQuaternion rotation)
+                                                  PhysicsVector size, OpenMetaverse.Quaternion rotation)
         {
             return AddPrimShape(primName, pbs, position, size, rotation, false);
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
-                                                  PhysicsVector size, AxiomQuaternion rotation, bool isPhysical)
+                                                  PhysicsVector size, OpenMetaverse.Quaternion rotation, bool isPhysical)
         {
             PhysicsActor result;
 
@@ -634,7 +638,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             return result;
         }
 
-        public PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, AxiomQuaternion rotation,
+        public PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, OpenMetaverse.Quaternion rotation,
                                     IMesh mesh, PrimitiveBaseShape pbs, bool isPhysical)
         {
             BulletXPrim newPrim = null;
@@ -680,7 +684,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 //Try to remove garbage
                 RemoveForgottenRigidBodies();
                 //End of remove
-                MoveAllObjects(timeStep);
+                MoveAPrimitives(timeStep);
 
 
                 fps = (timeStep*simulationSubSteps);
@@ -694,7 +698,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             return fps;
         }
 
-        private void MoveAllObjects(float timeStep)
+        private void MoveAPrimitives(float timeStep)
         {
             foreach (BulletXCharacter actor in _characters.Values)
             {
@@ -867,7 +871,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         protected PhysicsVector _velocity;
         protected PhysicsVector _size;
         protected PhysicsVector _acceleration;
-        protected AxiomQuaternion _orientation;
+        protected OpenMetaverse.Quaternion _orientation;
         protected PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         protected RigidBody rigidBody;
         protected int m_PhysicsActorType;
@@ -972,7 +976,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             get { return _acceleration; }
         }
 
-        public override AxiomQuaternion Orientation
+        public override OpenMetaverse.Quaternion Orientation
         {
             get { return _orientation; }
             set
@@ -1148,10 +1152,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             ReOrient(_orientation);
         }
 
-        protected internal void ReOrient(AxiomQuaternion _newOrient)
+        protected internal void ReOrient(OpenMetaverse.Quaternion _newOrient)
         {
             Quaternion _newOrientation;
-            _newOrientation = BulletXMaths.AxiomQuaternionToXnaQuaternion(_newOrient);
+            _newOrientation = BulletXMaths.QuaternionToXnaQuaternion(_newOrient);
             Matrix _comTransform = rigidBody.CenterOfMassTransform;
             BulletXMaths.SetRotation(ref _comTransform, _newOrientation);
             rigidBody.CenterOfMassTransform = _comTransform;
@@ -1206,12 +1210,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         public BulletXCharacter(String avName, BulletXScene parent_scene, PhysicsVector pos)
             : this(avName, parent_scene, pos, new PhysicsVector(), new PhysicsVector(), new PhysicsVector(),
-                   AxiomQuaternion.Identity)
+                   OpenMetaverse.Quaternion.Identity)
         {
         }
 
         public BulletXCharacter(String avName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector velocity,
-                                PhysicsVector size, PhysicsVector acceleration, AxiomQuaternion orientation)
+                                PhysicsVector size, PhysicsVector acceleration, OpenMetaverse.Quaternion orientation)
             : base(avName)
         {
             //This fields will be removed. They're temporal
@@ -1289,7 +1293,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             get { return base.Acceleration; }
         }
 
-        public override AxiomQuaternion Orientation
+        public override OpenMetaverse.Quaternion Orientation
         {
             get { return base.Orientation; }
             set { base.Orientation = value; }
@@ -1404,7 +1408,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
 
         public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size,
-                           AxiomQuaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool isPhysical)
+                           OpenMetaverse.Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool isPhysical)
             : this(
                 primName, parent_scene, pos, new PhysicsVector(), size, new PhysicsVector(), rotation, mesh, pbs,
                 isPhysical)
@@ -1413,12 +1417,14 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector velocity,
                            PhysicsVector size,
-                           PhysicsVector acceleration, AxiomQuaternion rotation, IMesh mesh, PrimitiveBaseShape pbs,
+                           PhysicsVector acceleration, OpenMetaverse.Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs,
                            bool isPhysical)
             : base(primName)
         {
-            if ((size.X == 0) || (size.Y == 0) || (size.Z == 0)) throw new Exception("Size 0");
-            if (rotation.Norm == 0f) rotation = AxiomQuaternion.Identity;
+            if ((size.X == 0) || (size.Y == 0) || (size.Z == 0))
+                throw new Exception("Size 0");
+            if (OpenMetaverse.Quaternion.Normalize(rotation).Length() == 0f)
+                rotation = OpenMetaverse.Quaternion.Identity;
 
             _position = pos;
             _physical = isPhysical;
@@ -1468,7 +1474,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             get { return base.Acceleration; }
         }
 
-        public override AxiomQuaternion Orientation
+        public override OpenMetaverse.Quaternion Orientation
         {
             get { return base.Orientation; }
             set { base.Orientation = value; }
@@ -1565,7 +1571,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 _position = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.CenterOfMassPosition);
 
                 _velocity = BulletXMaths.XnaVector3ToPhysicsVector(rigidBody.LinearVelocity);
-                _orientation = BulletXMaths.XnaQuaternionToAxiomQuaternion(rigidBody.Orientation);
+                _orientation = BulletXMaths.XnaQuaternionToQuaternion(rigidBody.Orientation);
 
                 if ((Math.Abs(m_prev_position.X - _position.X) < 0.03)
                     && (Math.Abs(m_prev_position.Y - _position.Y) < 0.03)
@@ -1687,7 +1693,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
     {
         private PhysicsVector _staticPosition;
 //         private PhysicsVector _staticVelocity;
-//         private AxiomQuaternion _staticOrientation;
+//         private OpenMetaverse.Quaternion _staticOrientation;
         private float _mass;
         // private BulletXScene _parentscene;
         internal float[] _heightField;
@@ -1702,7 +1708,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
             _staticPosition = new PhysicsVector(BulletXScene.MaxXY/2, BulletXScene.MaxXY/2, 0);
 //             _staticVelocity = new PhysicsVector();
-//             _staticOrientation = AxiomQuaternion.Identity;
+//             _staticOrientation = OpenMetaverse.Quaternion.Identity;
             _mass = 0; //No active
             // _parentscene = parent_scene;
             _heightField = heightField;

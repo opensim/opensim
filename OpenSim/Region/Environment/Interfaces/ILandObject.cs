@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
@@ -42,7 +42,7 @@ namespace OpenSim.Region.Environment.Interfaces
 
         LandData landData { get; set; }
         bool[,] landBitmap { get; set; }
-        LLUUID regionUUID { get; }
+        UUID regionUUID { get; }
         bool containsPoint(int x, int y);
         ILandObject Copy();
 
@@ -50,12 +50,12 @@ namespace OpenSim.Region.Environment.Interfaces
 
         void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client);
         void updateLandProperties(LandUpdateArgs args, IClientAPI remote_client);
-        bool isEitherBannedOrRestricted(LLUUID avatar);
-        bool isBannedFromLand(LLUUID avatar);
-        bool isRestrictedFromLand(LLUUID avatar);
+        bool isEitherBannedOrRestricted(UUID avatar);
+        bool isBannedFromLand(UUID avatar);
+        bool isRestrictedFromLand(UUID avatar);
         void sendLandUpdateToClient(IClientAPI remote_client);
-        List<LLUUID> createAccessListArrayByFlag(ParcelManager.AccessList flag);
-        void sendAccessList(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID, IClientAPI remote_client);
+        List<UUID> createAccessListArrayByFlag(ParcelManager.AccessList flag);
+        void sendAccessList(UUID agentID, UUID sessionID, uint flags, int sequenceID, IClientAPI remote_client);
         void updateAccessList(uint flags, List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client);
         void updateLandBitmapByteArray();
         void setLandBitmapFromByteArray();
@@ -71,11 +71,11 @@ namespace OpenSim.Region.Environment.Interfaces
         void sendForceObjectSelect(int local_id, int request_type, IClientAPI remote_client);
         void sendLandObjectOwners(IClientAPI remote_client);
         void returnObject(SceneObjectGroup obj);
-        void returnLandObjects(uint type, LLUUID[] owners, IClientAPI remote_client);
+        void returnLandObjects(uint type, UUID[] owners, IClientAPI remote_client);
         void resetLandPrimCounts();
         void addPrimToCount(SceneObjectGroup obj);
         void removePrimFromCount(SceneObjectGroup obj);
-        void updateLandSold(LLUUID avatarID, LLUUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area);
+        void updateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area);
 
         void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
         void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);

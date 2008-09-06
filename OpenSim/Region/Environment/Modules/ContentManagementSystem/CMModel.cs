@@ -39,7 +39,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using OpenSim;
 using OpenSim.Framework;
@@ -48,8 +48,6 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
-
-using Axiom.Math;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
@@ -133,14 +131,14 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_MetaEntityCollection.ClearAll();
         }
 
-        public ContentManagementEntity FindMetaEntityAffectedByUndo(LLUUID uuid)
+        public ContentManagementEntity FindMetaEntityAffectedByUndo(UUID uuid)
         {
             ContentManagementEntity ent = GetMetaGroupByPrim(uuid);
             return ent;
         }
 
         //-------------------------------- HELPERS --------------------------------------------------------------------//
-        public ContentManagementEntity GetMetaGroupByPrim(LLUUID uuid)
+        public ContentManagementEntity GetMetaGroupByPrim(UUID uuid)
         {
             foreach (Object ent in m_MetaEntityCollection.Entities.Values)
             {
@@ -194,7 +192,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             SceneObjectGroup temp = null;
             System.Collections.Hashtable deleteListUUIDs = new Hashtable();
 //            Dictionary<LLUUID, EntityBase> SearchList = new Dictionary<LLUUID,EntityBase>();
-            Dictionary<LLUUID, EntityBase> ReplacementList = new Dictionary<LLUUID,EntityBase>();
+            Dictionary<UUID, EntityBase> ReplacementList = new Dictionary<UUID,EntityBase>();
             int revision = m_database.GetMostRecentRevision(scene.RegionInfo.RegionID);
 //            EntityBase[] searchArray;
 
@@ -255,14 +253,14 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 break;
             }
 
-            foreach(LLUUID uuid in deleteListUUIDs.Keys)
+            foreach(UUID uuid in deleteListUUIDs.Keys)
             {
                 try 
                 {
                     // I thought that the DeleteGroup() function would handle all of this, but it doesn't. I'm not sure WHAT it handles.
                     ((SceneObjectGroup)scene.Entities[uuid]).DetachFromBackup((SceneObjectGroup)scene.Entities[uuid]);
                     scene.PhysicsScene.RemovePrim(((SceneObjectGroup)scene.Entities[uuid]).RootPart.PhysActor);
-                    scene.SendKillObject(scene.Entities[uuid].LocalId);
+                    scene.SendKiPrimitive(scene.Entities[uuid].LocalId);
                     scene.m_innerScene.DeleteSceneObject(uuid, false);
                     ((SceneObjectGroup)scene.Entities[uuid]).DeleteGroup();
                 }
@@ -284,7 +282,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                     if (!(ent is SceneObjectGroup))
                         continue;
             		
-                    if ((((SceneObjectGroup)ent).RootPart.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Phantom) == 0)
+                    if ((((SceneObjectGroup)ent).RootPart.GetEffectiveObjectFlags() & (uint) PrimFlags.Phantom) == 0)
                         ((SceneObjectGroup)ent).ApplyPhysics(true);
                     ((SceneObjectGroup)ent).AttachToBackup();
                     ((SceneObjectGroup)ent).HasGroupChanged = true; // If not true, then attaching to backup does nothing because no change is detected.
@@ -346,7 +344,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             {
                 if (m_MetaEntityCollection.Auras.ContainsKey(part.UUID))
                 {
-                    ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).SetAura(new LLVector3(0,254,0), part.Scale);
+                    ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).SetAura(new Vector3(0,254,0), part.Scale);
                     ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).RootPart.GroupPosition = part.GetWorldPosition();
                     auraList.Add((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]);
                 }

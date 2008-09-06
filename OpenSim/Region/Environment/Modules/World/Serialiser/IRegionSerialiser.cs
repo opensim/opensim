@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using System.Collections.Generic;
 using System.IO;
 using OpenSim.Region.Environment.Scenes;
@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         /// <param name="fileName"></param>
         /// <param name="newIDS"></param>
         /// <param name="loadOffset"></param>
-        void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, LLVector3 loadOffset);
+        void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, Vector3 loadOffset);
 
         /// <summary>
         /// Save prims in the xml format
@@ -76,14 +76,14 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
 
         /// <summary>
         /// Save prims in the xml2 format, optionally specifying a bounding box for which
-        /// prims should be saved.  If both min and max vectors are LLVector3.Zero, then all prims
+        /// prims should be saved.  If both min and max vectors are Vector3.Zero, then all prims
         /// are exported.
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="stream"></param>
         /// <param name="min"></param>
         /// <param name="max"></param>
-        void SavePrimsToXml2(Scene scene, TextWriter stream, LLVector3 min, LLVector3 max);
+        void SavePrimsToXml2(Scene scene, TextWriter stream, Vector3 min, Vector3 max);
 
         /// <summary>
         /// Save a set of prims in the xml2 format
@@ -94,14 +94,14 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
 
         /// <summary>
         /// Save a set of prims in the xml2 format, optionally specifying a bounding box for which
-        /// prims should be saved.  If both min and max vectors are LLVector3.Zero, then all prims
+        /// prims should be saved.  If both min and max vectors are Vector3.Zero, then all prims
         /// are exported.
         /// </summary>
         /// <param name="entityList"></param>
         /// <param name="stream"></param>
         /// <param name="min"></param>
         /// <param name="max"></param>
-        void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, LLVector3 min, LLVector3 max);
+        void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, Vector3 min, Vector3 max);
 
         /// <summary>
         /// Deserializes a scene object from its xml2 representation.  This does not load the object into the scene.

@@ -25,17 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Data
 {
     public abstract class AssetDataBase : IAssetProviderPlugin
     {
-        public abstract AssetBase FetchAsset(LLUUID uuid);
+        public abstract AssetBase FetchAsset(UUID uuid);
         public abstract void CreateAsset(AssetBase asset);
         public abstract void UpdateAsset(AssetBase asset);
-        public abstract bool ExistsAsset(LLUUID uuid);
+        public abstract bool ExistsAsset(UUID uuid);
 
         public abstract string Version { get; }
         public abstract string Name { get; }

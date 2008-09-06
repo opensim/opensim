@@ -38,7 +38,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using Nini.Config;
 
@@ -48,8 +48,6 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
-
-using Axiom.Math;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
@@ -64,8 +62,8 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Fields
 
-        protected Dictionary<LLUUID, AuraMetaEntity> m_AuraEntities = new Dictionary<LLUUID, AuraMetaEntity>();
-        protected Dictionary<LLUUID, BeamMetaEntity> m_BeamEntities = new Dictionary<LLUUID, BeamMetaEntity>();
+        protected Dictionary<UUID, AuraMetaEntity> m_AuraEntities = new Dictionary<UUID, AuraMetaEntity>();
+        protected Dictionary<UUID, BeamMetaEntity> m_BeamEntities = new Dictionary<UUID, BeamMetaEntity>();
 
         // The LinkNum of parts in m_Entity and m_UnchangedEntity are the same though UUID and LocalId are different.
         // This can come in handy.
@@ -108,7 +106,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// <summary>
         /// Check if an entitybase list (like that returned by scene.GetEntities() ) contains a group with the rootpart uuid that matches the current uuid.
         /// </summary>
-        private bool ContainsKey(List<EntityBase> list, LLUUID uuid)
+        private bool ContainsKey(List<EntityBase> list, UUID uuid)
         {
             foreach( EntityBase part in list)
             	if (part.UUID == uuid)
@@ -116,7 +114,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             return false;
         }
 
-        private SceneObjectGroup GetGroupByUUID(System.Collections.Generic.List<EntityBase> list, LLUUID uuid)
+        private SceneObjectGroup GetGroupByUUID(System.Collections.Generic.List<EntityBase> list, UUID uuid)
         {
             foreach (EntityBase ent in list)
             {
@@ -150,7 +148,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             			// if already displaying a red aura over part, make sure its red
             			if (m_AuraEntities.ContainsKey(part.UUID))
             			{
-            				m_AuraEntities[part.UUID].SetAura(new LLVector3(254,0,0), part.Scale);
+            				m_AuraEntities[part.UUID].SetAura(new Vector3(254,0,0), part.Scale);
             			}
             			else
             			{
@@ -158,7 +156,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             				                                              m_Entity.Scene.PrimIDAllocate(),
             				                                              part.GetWorldPosition(),
             				                                              MetaEntity.TRANSLUCENT,
-            				                                              new LLVector3(254,0,0),
+            				                                              new Vector3(254,0,0),
             				                                              part.Scale
             				                                              );
             				m_AuraEntities.Add(part.UUID, auraGroup);
@@ -189,7 +187,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// <summary>
         /// Check if the revisioned scene object group that this CMEntity is based off of contains a child with the given UUID.
         /// </summary>
-        public bool HasChildPrim(LLUUID uuid)
+        public bool HasChildPrim(UUID uuid)
         {
             if (m_UnchangedEntity.Children.ContainsKey(uuid))
             	return true;
@@ -266,7 +264,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             				                                              m_UnchangedEntity.RootPart.GetWorldPosition(), 
             				                                              MetaEntity.TRANSLUCENT,
             				                                              sceneEntityPart,
-            				                                              new LLVector3(0,0,254)
+            				                                              new Vector3(0,0,254)
             				                                              );
             				m_BeamEntities.Add(m_UnchangedEntity.RootPart.UUID, beamGroup);
             			}
@@ -280,7 +278,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             			                                              m_Entity.Scene.PrimIDAllocate(),
             			                                              UnchangedPart.GetWorldPosition(),
             			                                              MetaEntity.TRANSLUCENT,
-            			                                              new LLVector3(0,0,254),
+            			                                              new Vector3(0,0,254),
             			                                              UnchangedPart.Scale
             			                                              );
             			m_AuraEntities.Add(UnchangedPart.UUID, auraGroup);
@@ -314,7 +312,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             		                                              m_Entity.Scene.PrimIDAllocate(),
             		                                              UnchangedPart.GetWorldPosition(),
             		                                              MetaEntity.TRANSLUCENT,
-            		                                              new LLVector3(254,0,0),
+            		                                              new Vector3(254,0,0),
             		                                              UnchangedPart.Scale
             		                                              );
             		m_AuraEntities.Add(UnchangedPart.UUID, auraGroup);

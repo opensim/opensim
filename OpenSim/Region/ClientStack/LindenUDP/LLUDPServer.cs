@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using libsecondlife.Packets;
+using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -136,7 +136,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Return new port
             // This because in Grid mode it is not really important what port the region listens to as long as it is correctly registered.
-            // So the option allow_alternate_ports="true" was added to default.xml
+            // So the option allow_alternate_ports="true" was added to default.Xml
             port = (uint)(listenPort - proxyPortOffset);
         }
 

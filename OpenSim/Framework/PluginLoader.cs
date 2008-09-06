@@ -342,7 +342,7 @@ namespace OpenSim.Framework
     }
 
     /// <summary>
-    /// Filters out which plugin to load based on its "Provider", which is name given by in the addin.xml
+    /// Filters out which plugin to load based on its "Provider", which is name given by in the addin.Xml
     /// </summary>
     public class PluginProviderFilter : IPluginFilter
     {

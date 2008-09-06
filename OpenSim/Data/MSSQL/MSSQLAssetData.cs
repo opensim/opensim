@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 
@@ -84,7 +84,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="assetID">the asset UUID</param>
         /// <returns></returns>
-        override public AssetBase FetchAsset(LLUUID assetID)
+        override public AssetBase FetchAsset(UUID assetID)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["id"] = assetID.ToString();
@@ -102,7 +102,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="asset">the asset</param>
         override public void CreateAsset(AssetBase asset)
         {
-            if (ExistsAsset((LLUUID) asset.FullID))
+            if (ExistsAsset((UUID) asset.FullID))
             {
                 return;
             }
@@ -181,7 +181,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns>true if exist.</returns>
-        override public bool ExistsAsset(LLUUID uuid)
+        override public bool ExistsAsset(UUID uuid)
         {
             if (FetchAsset(uuid) != null)
             {

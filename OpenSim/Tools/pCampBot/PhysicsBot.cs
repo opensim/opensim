@@ -29,7 +29,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Timers;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -55,7 +55,7 @@ namespace pCampBot
         protected Random somthing = new Random(Environment.TickCount);// We do stuff randomly here
 
         //New instance of a SecondLife client
-        public SecondLife client = new SecondLife();
+        public GridClient client = new GridClient();
 
         protected string[] talkarray;
         /// <summary>
@@ -87,8 +87,8 @@ namespace pCampBot
                 client.Self.Movement.AlwaysRun = false;
             }
 
-            // TODO: unused: LLVector3 pos = client.Self.SimPosition;
-            LLVector3 newpos = new LLVector3(somthing.Next(255), somthing.Next(255), somthing.Next(255));
+            // TODO: unused: Vector3 pos = client.Self.SimPosition;
+            Vector3 newpos = new Vector3(somthing.Next(255), somthing.Next(255), somthing.Next(255));
             client.Self.Movement.TurnToward(newpos);
 
             for (int i = 0; i < 2000; i++)

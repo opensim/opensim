@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using log4net.Config;
 using OpenSim.Framework;
@@ -58,7 +58,7 @@ namespace OpenSim.Grid.UserServer
         public MessageServersConnector m_messagesService;
         protected IInterServiceInventoryServices m_interServiceInventoryService;
 
-        private LLUUID m_lastCreatedUser = LLUUID.Random();
+        private UUID m_lastCreatedUser = UUID.Random();
 
         public static void Main(string[] args)
         {
@@ -92,7 +92,7 @@ namespace OpenSim.Grid.UserServer
         {
             base.Startup();
 
-            Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
+            Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.Xml")));
 
             m_stats = StatsManager.StartCollectingUserStats();
 
@@ -183,7 +183,7 @@ namespace OpenSim.Grid.UserServer
 
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
 
-                    LLUUID userID = new LLUUID();
+                    UUID userID = new UUID();
 
                     try
                     {
@@ -209,7 +209,7 @@ namespace OpenSim.Grid.UserServer
                     {
                         m_log.ErrorFormat(
                             "[USERS]: Could not contact the inventory service at {0} to create an inventory for {1}",
-                            Cfg.InventoryUrl + "CreateInventory/", userID.UUID);
+                            Cfg.InventoryUrl + "CreateInventory/", userID);
                     }
                     catch (Exception e)
                     {
@@ -240,8 +240,8 @@ namespace OpenSim.Grid.UserServer
                 case "test-inventory":
                     //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
                     // requester.ReturnResponseVal = TestResponse;
-                    // requester.BeginPostObject<LLUUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
-                    SynchronousRestObjectPoster.BeginPostObject<LLUUID, List<InventoryFolderBase>>(
+                    // requester.BeginPostObject<UUID>(m_userManager._config.InventoryUrl + "RootFolders/", m_lastCreatedUser);
+                    SynchronousRestObjectPoster.BeginPostObject<UUID, List<InventoryFolderBase>>(
                         "POST", Cfg.InventoryUrl + "RootFolders/", m_lastCreatedUser);
                     break;
 
@@ -322,12 +322,12 @@ namespace OpenSim.Grid.UserServer
             m_console.Notice("response got");
         }
 
-        public void NotifyMessageServersUserLoggOff(LLUUID agentID)
+        public void NotifyMessageServersUserLoggOff(UUID agentID)
         {
             m_messagesService.TellMessageServersAboutUserLogoff(agentID);
         }
 
-        public void NotifyMessageServersUserLoggedInToLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
+        public void NotifyMessageServersUserLoggedInToLocation(UUID agentID, UUID sessionID, UUID RegionID,
                                                                ulong regionhandle, float positionX, float positionY,
                                                                float positionZ, string firstname, string lastname)
         {

@@ -31,7 +31,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -44,7 +44,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// <summary>
     /// Method called when all the necessary assets for an archive request have been received.
     /// </summary>
-    public delegate void AssetsRequestCallback(IDictionary<LLUUID, AssetBase> assetsFound, ICollection<LLUUID> assetsNotFoundUuids);
+    public delegate void AssetsRequestCallback(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids);
 
     /// <summary>
     /// Execute the write of an archive once we have received all the necessary data
@@ -73,9 +73,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_savePath = savePath;
         }
 
-        protected internal void ReceivedAllAssets(IDictionary<LLUUID, AssetBase> assetsFound, ICollection<LLUUID> assetsNotFoundUuids)
+        protected internal void ReceivedAllAssets(IDictionary<UUID, AssetBase> assetsFound, ICollection<UUID> assetsNotFoundUuids)
         {
-            foreach (LLUUID uuid in assetsNotFoundUuids)
+            foreach (UUID uuid in assetsNotFoundUuids)
             {
                 m_log.DebugFormat("[ARCHIVER]: Could not find asset {0}", uuid);
             }
@@ -100,12 +100,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 //m_log.DebugFormat("[ARCHIVER]: Saving {0} {1}, {2}", entity.Name, entity.UUID, entity.GetType());
 
-                LLVector3 position = sceneObject.AbsolutePosition;
+                Vector3 position = sceneObject.AbsolutePosition;
 
                 string serializedObject = m_serialiser.SaveGroupToXml2(sceneObject);
                 string filename
                     = string.Format(
-                        "{0}{1}_{2:000}-{3:000}-{4:000}__{5}.xml",
+                        "{0}{1}_{2:000}-{3:000}-{4:000}__{5}.Xml",
                         ArchiveConstants.OBJECTS_PATH, sceneObject.Name,
                         Math.Round(position.X), Math.Round(position.Y), Math.Round(position.Z),
                         sceneObject.UUID);

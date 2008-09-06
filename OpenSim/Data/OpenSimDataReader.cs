@@ -26,7 +26,7 @@
  */
 
 using System.Data;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Data.Base;
 
 namespace OpenSim.Data
@@ -37,25 +37,25 @@ namespace OpenSim.Data
         {
         }
 
-        public LLVector3 GetVector(string s)
+        public Vector3 GetVector(string s)
         {
             float x = GetFloat(s + "X");
             float y = GetFloat(s + "Y");
             float z = GetFloat(s + "Z");
 
-            LLVector3 vector = new LLVector3(x, y, z);
+            Vector3 vector = new Vector3(x, y, z);
 
             return vector;
         }
 
-        public LLQuaternion GetQuaternion(string s)
+        public Quaternion GetQuaternion(string s)
         {
             float x = GetFloat(s + "X");
             float y = GetFloat(s + "Y");
             float z = GetFloat(s + "Z");
             float w = GetFloat(s + "W");
 
-            LLQuaternion quaternion = new LLQuaternion(x, y, z, w);
+            Quaternion quaternion = new Quaternion(x, y, z, w);
 
             return quaternion;
         }

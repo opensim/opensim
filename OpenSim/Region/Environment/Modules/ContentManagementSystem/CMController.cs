@@ -39,7 +39,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using OpenSim;
 using OpenSim.Framework;
@@ -48,8 +48,6 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
-
-using Axiom.Math;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
@@ -266,7 +264,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// <summary>
         /// Only called by the MainLoop. 
         /// </summary>
-        private void UndoDid(CMModel model, CMView view, LLUUID uuid)
+        private void UndoDid(CMModel model, CMView view, UUID uuid)
         {
             if ((m_state & State.SHOWING_CHANGES) > 0) 
             {
@@ -289,7 +287,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_WorkQueue.Enqueue(moreWork);
         }
 
-        protected void ObjectDuplicated(uint localID, LLVector3 offset, uint dupeFlags, LLUUID AgentID, LLUUID GroupID)
+        protected void ObjectDuplicated(uint localID, Vector3 offset, uint dupeFlags, UUID AgentID, UUID GroupID)
         {
             Work moreWork = new Work();
             moreWork.Type = WorkType.OBJECTDUPLICATED;
@@ -298,8 +296,8 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_log.Debug("[CONTENT MANAGEMENT] dup queue");
         }
 
-        protected void ObjectDuplicatedOnRay(uint localID, uint dupeFlags, LLUUID AgentID, LLUUID GroupID,
-            LLUUID RayTargetObj, LLVector3 RayEnd, LLVector3 RayStart,
+        protected void ObjectDuplicatedOnRay(uint localID, uint dupeFlags, UUID AgentID, UUID GroupID,
+            UUID RayTargetObj, Vector3 RayEnd, Vector3 RayStart,
             bool BypassRaycast, bool RayEndIsIntersection, bool CopyCenters, bool CopyRotates)
         {
             Work moreWork = new Work();
@@ -318,7 +316,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_log.Debug("[CONTENT MANAGEMENT] new client");
         }
 
-        protected void OnUnDid(IClientAPI remoteClient, LLUUID primId)
+        protected void OnUnDid(IClientAPI remoteClient, UUID primId)
         {
             Work moreWork = new Work();
             moreWork.Type = WorkType.UNDODID;
@@ -405,7 +403,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// <summary>
         /// 
         /// </summary>
-        protected void StopManaging(LLUUID clientUUID)
+        protected void StopManaging(UUID clientUUID)
         {
             foreach(Object sceneobj in m_sceneList.Values)
             {
@@ -433,7 +431,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             }
         }
         
-        protected void UpdateMultiplePosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
+        protected void UpdateMultiplePosition(uint localID, Vector3 pos, IClientAPI remoteClient)
         {
             Work moreWork = new Work();
             moreWork.Type = WorkType.OBJECTATTRIBUTECHANGE;
@@ -442,7 +440,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_log.Debug("[CONTENT MANAGEMENT] pos");
         }
 
-        protected void UpdateMultipleRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient)
+        protected void UpdateMultipleRotation(uint localID, Quaternion rot, IClientAPI remoteClient)
         {
             Work moreWork = new Work();
             moreWork.Type = WorkType.OBJECTATTRIBUTECHANGE;
@@ -451,7 +449,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_log.Debug("[CONTENT MANAGEMENT] rot");
         }
 
-        protected void UpdateMultipleScale(uint localID, LLVector3 scale, IClientAPI remoteClient)
+        protected void UpdateMultipleScale(uint localID, Vector3 scale, IClientAPI remoteClient)
         {
             Work moreWork = new Work();
             moreWork.Type = WorkType.OBJECTATTRIBUTECHANGE;
@@ -460,8 +458,8 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_log.Debug("[CONTENT MANAGEMENT]scale");
         }
 
-        protected void UpdateNewParts(LLUUID ownerID, LLVector3 RayEnd, LLQuaternion rot, PrimitiveBaseShape shape,
-            byte bypassRaycast, LLVector3 RayStart, LLUUID RayTargetID,
+        protected void UpdateNewParts(UUID ownerID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape,
+            byte bypassRaycast, Vector3 RayStart, UUID RayTargetID,
             byte RayEndIsIntersection)
         {
             Work moreWork = new Work();
@@ -471,7 +469,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_log.Debug("[CONTENT MANAGEMENT] new parts");
         }
 
-        protected void UpdateSinglePosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
+        protected void UpdateSinglePosition(uint localID, Vector3 pos, IClientAPI remoteClient)
         {
             Work moreWork = new Work();
             moreWork.Type = WorkType.OBJECTATTRIBUTECHANGE;
@@ -483,7 +481,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// <summary>
         /// 
         /// </summary>
-        protected void UpdateSingleRotation(uint localID, LLQuaternion rot, IClientAPI remoteClient)
+        protected void UpdateSingleRotation(uint localID, Quaternion rot, IClientAPI remoteClient)
         {
             Work moreWork = new Work();
             moreWork.Type = WorkType.OBJECTATTRIBUTECHANGE;
@@ -492,7 +490,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_log.Debug("[CONTENT MANAGEMENT] rot");
         }
 
-        protected void UpdateSingleScale(uint localID, LLVector3 scale, IClientAPI remoteClient)
+        protected void UpdateSingleScale(uint localID, Vector3 scale, IClientAPI remoteClient)
         {
             Work moreWork = new Work();
             moreWork.Type = WorkType.OBJECTATTRIBUTECHANGE;
@@ -723,7 +721,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             public Object Data2; //Just more space for holding data.
             public uint LocalId; //Convenient
             public WorkType Type;
-            public LLUUID UUID; //Convenient
+            public UUID UUID; //Convenient
 
             #endregion Fields
         }

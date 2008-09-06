@@ -34,7 +34,7 @@ using System.Reflection;
 using System.Text;
 using System.Timers;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -42,7 +42,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using libsecondlife.Packets;
+using OpenMetaverse.Packets;
 
 namespace OpenSim.Region.DataSnapshot
 {
@@ -219,7 +219,7 @@ namespace OpenSim.Region.DataSnapshot
             return null;
         }
 
-        public Scene SceneForUUID(LLUUID id)
+        public Scene SceneForUUID(UUID id)
         {
             foreach (Scene scene in m_scenes)
                 if (scene.RegionInfo.RegionID == id)

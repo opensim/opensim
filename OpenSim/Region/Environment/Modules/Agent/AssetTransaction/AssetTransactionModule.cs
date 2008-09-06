@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 {
     public class AssetTransactionModule : IRegionModule, IAgentAssetTransactions
     {
-        private readonly Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
+        private readonly Dictionary<UUID, Scene> RegisteredScenes = new Dictionary<UUID, Scene>();
         private bool m_dumpAssetsToFile = false;
         private Scene m_scene = null;
 
@@ -53,7 +53,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
         #region IAgentAssetTransactions Members
 
-        public void HandleItemCreationFromTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+        public void HandleItemCreationFromTransaction(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                                       uint callbackID, string description, string name, sbyte invType,
                                                       sbyte type, byte wearableType, uint nextOwnerMask)
         {
@@ -61,13 +61,13 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                                                                    wearableType, nextOwnerMask);
         }
 
-        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID,
+        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, UUID transactionID,
                                                     InventoryItemBase item)
         {
             m_transactionManager.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
         }
 
-        public void RemoveAgentAssetTransactions(LLUUID userID)
+        public void RemoveAgentAssetTransactions(UUID userID)
         {
             m_transactionManager.RemoveAgentAssetTransactions(userID);
         }
@@ -146,8 +146,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         /// <summary>
         /// Each agent has its own singleton collection of transactions
         /// </summary>
-        private Dictionary<LLUUID, AgentAssetTransactions> AgentTransactions =
-            new Dictionary<LLUUID, AgentAssetTransactions>();
+        private Dictionary<UUID, AgentAssetTransactions> AgentTransactions =
+            new Dictionary<UUID, AgentAssetTransactions>();
 
         /// <summary>
         /// Should we dump uploaded assets to the filesystem?
@@ -168,7 +168,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
-        private AgentAssetTransactions GetUserTransactions(LLUUID userID)
+        private AgentAssetTransactions GetUserTransactions(UUID userID)
         {
             lock (AgentTransactions)
             {
@@ -188,7 +188,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         /// from a scene (and hence won't be making any more transactions here).
         /// </summary>
         /// <param name="userID"></param>
-        public void RemoveAgentAssetTransactions(LLUUID userID)
+        public void RemoveAgentAssetTransactions(UUID userID)
         {
             // m_log.DebugFormat("Removing agent asset transactions structure for agent {0}", userID);
 
@@ -214,7 +214,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         /// <param name="type"></param>
         /// <param name="wearableType"></param>
         /// <param name="nextOwnerMask"></param>
-        public void HandleItemCreationFromTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+        public void HandleItemCreationFromTransaction(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                                       uint callbackID, string description, string name, sbyte invType,
                                                       sbyte type, byte wearableType, uint nextOwnerMask)
         {
@@ -237,7 +237,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         /// <param name="remoteClient"></param>
         /// <param name="transactionID"></param>
         /// <param name="item"></param>
-        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID,
+        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, UUID transactionID,
                                                     InventoryItemBase item)
         {
             m_log.DebugFormat(
@@ -259,7 +259,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         /// <param name="type"></param>
         /// <param name="data"></param></param>
         /// <param name="tempFile"></param>
-        public void HandleUDPUploadRequest(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type,
+        public void HandleUDPUploadRequest(IClientAPI remoteClient, UUID assetID, UUID transaction, sbyte type,
                                            byte[] data, bool storeLocal, bool tempFile)
         {
             if (((AssetType)type == AssetType.Texture || 

@@ -27,7 +27,7 @@
 
 using System;
 using System.Collections;
-using libsecondlife;
+using OpenMetaverse;
 using System.Collections.Generic;
 
 namespace OpenSim.Framework
@@ -35,12 +35,12 @@ namespace OpenSim.Framework
     public class DetectedObject
     {
         public DetectedObject() { }
-        public LLUUID groupUUID = LLUUID.Zero;
-        public LLUUID ownerUUID = LLUUID.Zero;
-        public LLUUID keyUUID = LLUUID.Zero;
-        public LLVector3 posVector = LLVector3.Zero;
-        public LLQuaternion rotQuat = LLQuaternion.Identity;
-        public LLVector3 velVector = LLVector3.Zero;
+        public UUID groupUUID = UUID.Zero;
+        public UUID ownerUUID = UUID.Zero;
+        public UUID keyUUID = UUID.Zero;
+        public Vector3 posVector = Vector3.Zero;
+        public Quaternion rotQuat = Quaternion.Identity;
+        public Vector3 velVector = Vector3.Zero;
         public string nameStr = String.Empty;
         public int colliderType = 0;
     }

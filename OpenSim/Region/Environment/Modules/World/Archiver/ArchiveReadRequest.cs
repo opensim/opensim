@@ -31,13 +31,12 @@ using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Framework.Communications.Cache;
 using System;
-using Axiom.Math;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
@@ -57,7 +56,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Used to cache lookups for valid uuids.
         /// </summary>
-        private IDictionary<LLUUID, bool> m_validUserUuids = new Dictionary<LLUUID, bool>();
+        private IDictionary<UUID, bool> m_validUserUuids = new Dictionary<UUID, bool>();
 
         public ArchiveReadRequest(Scene scene, string loadPath)
         {
@@ -137,8 +136,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                 // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
                 // otherwise, use the master avatar uuid instead
-                LLUUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-                if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+                UUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                     masterAvatarId = m_scene.RegionInfo.EstateSettings.EstateOwner;
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
@@ -184,7 +183,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
-        private bool resolveUserUuid(LLUUID uuid)
+        private bool resolveUserUuid(UUID uuid)
         {
             if (!m_validUserUuids.ContainsKey(uuid))
             {
@@ -209,7 +208,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <returns>true if asset was successfully loaded, false otherwise</returns>
         private bool LoadAsset(string assetPath, byte[] data)
         {
-            // Right now we're nastily obtaining the lluuid from the filename
+            // Right now we're nastily obtaining the UUID from the filename
             string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
             int i = filename.LastIndexOf(ArchiveConstants.ASSET_EXTENSION_SEPARATOR);
 
@@ -231,7 +230,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                 //m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
-                AssetBase asset = new AssetBase(new LLUUID(uuid), String.Empty);
+                AssetBase asset = new AssetBase(new UUID(uuid), String.Empty);
                 asset.Type = assetType;
                 asset.Data = data;
 

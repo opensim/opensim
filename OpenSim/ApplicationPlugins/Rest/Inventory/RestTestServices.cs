@@ -26,7 +26,7 @@
  * 
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using System;
 using System.IO;

@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -44,17 +44,17 @@ namespace OpenSim.Framework
         protected int m_channel;
         protected string m_from;
         protected string m_message;
-        protected LLVector3 m_position;
+        protected Vector3 m_position;
 
         protected IScene m_scene;
         protected IClientAPI m_sender;
         protected object m_senderObject;
         protected ChatTypeEnum m_type;
-        protected LLUUID m_fromID;
+        protected UUID m_fromID;
 
         public OSChatMessage()
         {
-            m_position = new LLVector3();
+            m_position = new Vector3();
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// The position of the sender at the time of the message broadcast.
         /// </summary>
-        public LLVector3 Position
+        public Vector3 Position
         {
             get { return m_position; }
             set { m_position = value; }
@@ -125,7 +125,7 @@ namespace OpenSim.Framework
             set { m_senderObject = value; }
         }
 
-        public LLUUID SenderUUID
+        public UUID SenderUUID
         {
             get { return m_fromID; }
             set { m_fromID = value; }

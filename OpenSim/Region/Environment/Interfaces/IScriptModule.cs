@@ -27,12 +27,12 @@
 
 using System;
 using OpenSim.Framework;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IScriptModule : IRegionModule
     {
-        bool GetScriptRunning(LLUUID objectID, LLUUID itemID);
+        bool GetScriptRunning(UUID objectID, UUID itemID);
     }
 }

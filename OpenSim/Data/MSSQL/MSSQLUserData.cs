@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 
@@ -183,13 +183,13 @@ namespace OpenSim.Data.MSSQL
         /// <param name="friendlistowner">UUID of the friendlist owner</param>
         /// <param name="friend">Friend's UUID</param>
         /// <param name="perms">Permission flag</param>
-        override public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        override public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
             int dtvalue = Util.UnixTimeSinceEpoch();
 
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["@ownerID"] = friendlistowner.UUID.ToString();
-            param["@friendID"] = friend.UUID.ToString();
+            param["@ownerID"] = friendlistowner.ToString();
+            param["@friendID"] = friend.ToString();
             param["@friendPerms"] = perms.ToString();
             param["@datetimestamp"] = dtvalue.ToString();
 
@@ -229,11 +229,11 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="friendlistowner">UUID of the friendlist owner</param>
         /// <param name="friend">UUID of the not-so-friendly user to remove from the list</param>
-        override public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        override public void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["@ownerID"] = friendlistowner.UUID.ToString();
-            param["@friendID"] = friend.UUID.ToString();
+            param["@ownerID"] = friendlistowner.ToString();
+            param["@friendID"] = friend.ToString();
 
 
             try
@@ -267,11 +267,11 @@ namespace OpenSim.Data.MSSQL
         /// <param name="friendlistowner">UUID of the friendlist owner</param>
         /// <param name="friend">UUID of the friend</param>
         /// <param name="perms">new permission flag</param>
-        override public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        override public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["@ownerID"] = friendlistowner.UUID.ToString();
-            param["@friendID"] = friend.UUID.ToString();
+            param["@ownerID"] = friendlistowner.ToString();
+            param["@friendID"] = friend.ToString();
             param["@friendPerms"] = perms.ToString();
 
 
@@ -298,12 +298,12 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="friendlistowner">UUID of the friendlist owner</param>
         /// <returns>Friendlist list</returns>
-        override public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        override public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
             List<FriendListItem> Lfli = new List<FriendListItem>();
 
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["@ownerID"] = friendlistowner.UUID.ToString();
+            param["@ownerID"] = friendlistowner.ToString();
 
             try
             {
@@ -318,8 +318,8 @@ namespace OpenSim.Data.MSSQL
                     while (reader.Read())
                     {
                         FriendListItem fli = new FriendListItem();
-                        fli.FriendListOwner = new LLUUID((string)reader["ownerID"]);
-                        fli.Friend = new LLUUID((string)reader["friendID"]);
+                        fli.FriendListOwner = new UUID((string)reader["ownerID"]);
+                        fli.Friend = new UUID((string)reader["friendID"]);
                         fli.FriendPerms = (uint)Convert.ToInt32(reader["friendPerms"]);
 
                         // This is not a real column in the database table, it's a joined column from the opposite record
@@ -345,7 +345,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="avatarid">avatar uuid</param>
         /// <param name="regionuuid">region uuid</param>
         /// <param name="regionhandle">region handle</param>
-        override public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
+        override public void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
         {
             //m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
         }
@@ -356,7 +356,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="queryID"></param>
         /// <param name="query"></param>
         /// <returns></returns>
-        override public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        override public List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query)
         {
             List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
             string[] querysplit;
@@ -375,7 +375,7 @@ namespace OpenSim.Data.MSSQL
                         while (reader.Read())
                         {
                             AvatarPickerAvatar user = new AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string)reader["UUID"]);
+                            user.AvatarID = new UUID((string)reader["UUID"]);
                             user.firstName = (string)reader["username"];
                             user.lastName = (string)reader["lastname"];
                             returnlist.Add(user);
@@ -400,7 +400,7 @@ namespace OpenSim.Data.MSSQL
                         while (reader.Read())
                         {
                             AvatarPickerAvatar user = new AvatarPickerAvatar();
-                            user.AvatarID = new LLUUID((string)reader["UUID"]);
+                            user.AvatarID = new UUID((string)reader["UUID"]);
                             user.firstName = (string)reader["username"];
                             user.lastName = (string)reader["lastname"];
                             returnlist.Add(user);
@@ -420,7 +420,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
-        override public UserProfileData GetUserByUUID(LLUUID uuid)
+        override public UserProfileData GetUserByUUID(UUID uuid)
         {
             try
             {
@@ -467,7 +467,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="uuid">The accounts UUID</param>
         /// <returns>The users session</returns>
-        override public UserAgentData GetAgentByUUID(LLUUID uuid)
+        override public UserAgentData GetAgentByUUID(UUID uuid)
         {
             try
             {
@@ -493,7 +493,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="AgentID">The agent UUID</param>
         /// <param name="WebLoginKey">the WebLogin Key</param>
         /// <remarks>unused ?</remarks>
-        override public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
+        override public void StoreWebLoginKey(UUID AgentID, UUID WebLoginKey)
         {
             UserProfileData user = GetUserByUUID(AgentID);
             user.WebLoginKey = WebLoginKey;
@@ -549,12 +549,12 @@ namespace OpenSim.Data.MSSQL
         /// <param name="profileImage">UUID for profile image</param>
         /// <param name="firstImage">UUID for firstlife image</param>
         /// <returns>Success?</returns>
-        private bool InsertUserRow(LLUUID uuid, string username, string lastname, string passwordHash,
+        private bool InsertUserRow(UUID uuid, string username, string lastname, string passwordHash,
                                   string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
                                   float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
                                   string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
                                   string aboutText, string firstText,
-                                  LLUUID profileImage, LLUUID firstImage, LLUUID webLoginKey)
+                                  UUID profileImage, UUID firstImage, UUID webLoginKey)
         {
             string sql = "INSERT INTO "+m_usersTableName;
             sql += " ([UUID], [username], [lastname], [passwordHash], [passwordSalt], [homeRegion], ";
@@ -594,7 +594,7 @@ namespace OpenSim.Data.MSSQL
             parameters["profileFirstText"] = firstText;
             parameters["profileImage"] = profileImage.ToString();
             parameters["profileFirstImage"] = firstImage.ToString();
-            parameters["webLoginKey"] = LLUUID.Random().ToString();
+            parameters["webLoginKey"] = UUID.Random().ToString();
 
 
             try
@@ -683,7 +683,7 @@ namespace OpenSim.Data.MSSQL
                 SqlParameter param21 = new SqlParameter("@profileImage", user.Image.ToString());
                 SqlParameter param22 = new SqlParameter("@profileFirstImage", user.FirstLifeImage.ToString());
                 SqlParameter param23 = new SqlParameter("@keyUUUID", user.ID.ToString());
-                SqlParameter param24 = new SqlParameter("@webLoginKey", user.WebLoginKey.UUID.ToString());
+                SqlParameter param24 = new SqlParameter("@webLoginKey", user.WebLoginKey.ToString());
                 command.Parameters.Add(param1);
                 command.Parameters.Add(param2);
                 command.Parameters.Add(param3);
@@ -728,7 +728,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="to">The receivers account ID</param>
         /// <param name="amount">The amount to transfer</param>
         /// <returns>false</returns>
-        override public bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount)
+        override public bool MoneyTransferRequest(UUID from, UUID to, uint amount)
         {
             return false;
         }
@@ -741,14 +741,14 @@ namespace OpenSim.Data.MSSQL
         /// <param name="to">The receivers account ID</param>
         /// <param name="item">The item to transfer</param>
         /// <returns>false</returns>
-        override public bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)
+        override public bool InventoryTransferRequest(UUID from, UUID to, UUID item)
         {
             return false;
         }
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        override public AvatarAppearance GetUserAppearance(LLUUID user)
+        override public AvatarAppearance GetUserAppearance(UUID user)
         {
 //            return new AvatarAppearance();
             try
@@ -784,37 +784,37 @@ namespace OpenSim.Data.MSSQL
             {
                 AvatarAppearance appearance = new AvatarAppearance();
 
-                appearance.Owner = new LLUUID((string)reader["owner"]);
+                appearance.Owner = new UUID((string)reader["owner"]);
                 appearance.Serial = Convert.ToInt32(reader["serial"]);
                 appearance.VisualParams = (byte[])reader["visual_params"];
-                appearance.Texture = new LLObject.TextureEntry((byte[])reader["texture"], 0, ((byte[])reader["texture"]).Length);
+                appearance.Texture = new Primitive.TextureEntry((byte[])reader["texture"], 0, ((byte[])reader["texture"]).Length);
                 appearance.AvatarHeight = (float)Convert.ToDouble(reader["avatar_height"]);
-                appearance.BodyItem = new LLUUID((string)reader["body_item"]);
-                appearance.BodyAsset = new LLUUID((string)reader["body_asset"]);
-                appearance.SkinItem = new LLUUID((string)reader["skin_item"]);
-                appearance.SkinAsset = new LLUUID((string)reader["skin_asset"]);
-                appearance.HairItem = new LLUUID((string)reader["hair_item"]);
-                appearance.HairAsset = new LLUUID((string)reader["hair_asset"]);
-                appearance.EyesItem = new LLUUID((string)reader["eyes_item"]);
-                appearance.EyesAsset = new LLUUID((string)reader["eyes_asset"]);
-                appearance.ShirtItem = new LLUUID((string)reader["shirt_item"]);
-                appearance.ShirtAsset = new LLUUID((string)reader["shirt_asset"]);
-                appearance.PantsItem = new LLUUID((string)reader["pants_item"]);
-                appearance.PantsAsset = new LLUUID((string)reader["pants_asset"]);
-                appearance.ShoesItem = new LLUUID((string)reader["shoes_item"]);
-                appearance.ShoesAsset = new LLUUID((string)reader["shoes_asset"]);
-                appearance.SocksItem = new LLUUID((string)reader["socks_item"]);
-                appearance.SocksAsset = new LLUUID((string)reader["socks_asset"]);
-                appearance.JacketItem = new LLUUID((string)reader["jacket_item"]);
-                appearance.JacketAsset = new LLUUID((string)reader["jacket_asset"]);
-                appearance.GlovesItem = new LLUUID((string)reader["gloves_item"]);
-                appearance.GlovesAsset = new LLUUID((string)reader["gloves_asset"]);
-                appearance.UnderShirtItem = new LLUUID((string)reader["undershirt_item"]);
-                appearance.UnderShirtAsset = new LLUUID((string)reader["undershirt_asset"]);
-                appearance.UnderPantsItem = new LLUUID((string)reader["underpants_item"]);
-                appearance.UnderPantsAsset = new LLUUID((string)reader["underpants_asset"]);
-                appearance.SkirtItem = new LLUUID((string)reader["skirt_item"]);
-                appearance.SkirtAsset = new LLUUID((string)reader["skirt_asset"]);
+                appearance.BodyItem = new UUID((string)reader["body_item"]);
+                appearance.BodyAsset = new UUID((string)reader["body_asset"]);
+                appearance.SkinItem = new UUID((string)reader["skin_item"]);
+                appearance.SkinAsset = new UUID((string)reader["skin_asset"]);
+                appearance.HairItem = new UUID((string)reader["hair_item"]);
+                appearance.HairAsset = new UUID((string)reader["hair_asset"]);
+                appearance.EyesItem = new UUID((string)reader["eyes_item"]);
+                appearance.EyesAsset = new UUID((string)reader["eyes_asset"]);
+                appearance.ShirtItem = new UUID((string)reader["shirt_item"]);
+                appearance.ShirtAsset = new UUID((string)reader["shirt_asset"]);
+                appearance.PantsItem = new UUID((string)reader["pants_item"]);
+                appearance.PantsAsset = new UUID((string)reader["pants_asset"]);
+                appearance.ShoesItem = new UUID((string)reader["shoes_item"]);
+                appearance.ShoesAsset = new UUID((string)reader["shoes_asset"]);
+                appearance.SocksItem = new UUID((string)reader["socks_item"]);
+                appearance.SocksAsset = new UUID((string)reader["socks_asset"]);
+                appearance.JacketItem = new UUID((string)reader["jacket_item"]);
+                appearance.JacketAsset = new UUID((string)reader["jacket_asset"]);
+                appearance.GlovesItem = new UUID((string)reader["gloves_item"]);
+                appearance.GlovesAsset = new UUID((string)reader["gloves_asset"]);
+                appearance.UnderShirtItem = new UUID((string)reader["undershirt_item"]);
+                appearance.UnderShirtAsset = new UUID((string)reader["undershirt_asset"]);
+                appearance.UnderPantsItem = new UUID((string)reader["underpants_item"]);
+                appearance.UnderPantsAsset = new UUID((string)reader["underpants_asset"]);
+                appearance.SkirtItem = new UUID((string)reader["skirt_item"]);
+                appearance.SkirtAsset = new UUID((string)reader["skirt_asset"]);
 
                 return appearance;
             }
@@ -831,7 +831,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="user">the used UUID</param>
         /// <param name="appearance">the appearence</param>
-        override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
+        override public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
             string sql = String.Empty;
             sql += "DELETE FROM avatarappearance WHERE owner=@owner ";
@@ -918,7 +918,7 @@ namespace OpenSim.Data.MSSQL
         {
         }
 
-        override public void ResetAttachments(LLUUID userID)
+        override public void ResetAttachments(UUID userID)
         {
         }
     }

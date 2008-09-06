@@ -30,7 +30,7 @@ using System.IO;
 using System.Reflection;
 using OpenSim.Framework;
 using log4net;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Data.NHibernate
 {
@@ -39,9 +39,9 @@ namespace OpenSim.Data.NHibernate
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private double[,] map;
-        private LLUUID regionID;
+        private UUID regionID;
 
-        public Terrain(LLUUID Region, double[,] array)
+        public Terrain(UUID Region, double[,] array)
         {
             map = array;
             regionID = Region;
@@ -51,10 +51,10 @@ namespace OpenSim.Data.NHibernate
         {
             map = new double[Constants.RegionSize, Constants.RegionSize];
             map.Initialize();
-            regionID = LLUUID.Zero;
+            regionID = UUID.Zero;
         }
 
-        public LLUUID RegionID
+        public UUID RegionID
         {
             get { return regionID; }
             set { regionID = value; }

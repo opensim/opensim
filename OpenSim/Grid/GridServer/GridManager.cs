@@ -32,7 +32,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Data;
@@ -68,7 +68,7 @@ namespace OpenSim.Grid.GridServer
                 new PluginLoader<ILogDataPlugin> (new LogDataInitialiser (connect));
 
             // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
+            // unless it is constrainted to the correct "Provider" entry in the addin.Xml
             gridloader.Add ("/OpenSim/GridData", new PluginProviderFilter (provider));
             logloader.Add ("/OpenSim/LogData", new PluginProviderFilter (provider));
 
@@ -107,13 +107,13 @@ namespace OpenSim.Grid.GridServer
         /// </summary>
         /// <param name="uuid">A UUID key of the region to return</param>
         /// <returns>A SimProfileData for the region</returns>
-        public RegionProfileData GetRegion(LLUUID uuid)
+        public RegionProfileData GetRegion(UUID uuid)
         {
             foreach (IGridDataPlugin plugin in _plugins)
             {
                 try
                 {
-                    return plugin.GetProfileByLLUUID(uuid);
+                    return plugin.GetProfileByUUID(uuid);
                 }
                 catch (Exception e)
                 {
@@ -340,9 +340,9 @@ namespace OpenSim.Grid.GridServer
             RegionProfileData existingSim;
 
             Hashtable requestData = (Hashtable)request.Params[0];
-            LLUUID uuid;
+            UUID uuid;
 
-            if (!requestData.ContainsKey("UUID") || !LLUUID.TryParse((string)requestData["UUID"], out uuid))
+            if (!requestData.ContainsKey("UUID") || !UUID.TryParse((string)requestData["UUID"], out uuid))
             {
                 m_log.Warn("[LOGIN PRELUDE]: Region connected without a UUID, sending back error response.");
                 return ErrorResponse("No UUID passed to grid server - unable to connect you");
@@ -425,7 +425,7 @@ namespace OpenSim.Grid.GridServer
                     catch (Exception e)
                     {
                         m_log.Warn("[LOGIN END]: " +
-                                              "Unable to login region " + sim.UUID.ToString() + " via " + plugin.Name);
+                                              "Unable to login region " + sim.ToString() + " via " + plugin.Name);
                         m_log.Warn("[LOGIN END]: " + e.ToString());
                     }
                 }
@@ -471,7 +471,7 @@ namespace OpenSim.Grid.GridServer
             responseData["user_recvkey"] = sim.regionUserRecvKey;
             responseData["authkey"] = sim.regionSecret;
 
-            // New! If set, use as URL to local sim storage (ie http://remotehost/region.yap)
+            // New! If set, use as URL to local sim storage (ie http://remotehost/region.Yap)
             responseData["data_uri"] = sim.regionDataURI;
 
             responseData["allow_forceful_banlines"] = Config.AllowForcefulBanlines;
@@ -515,7 +515,7 @@ namespace OpenSim.Grid.GridServer
                     NeighbourBlock["sim_port"] = aSim.Value.serverPort.ToString();
                     NeighbourBlock["region_locx"] = aSim.Value.regionLocX.ToString();
                     NeighbourBlock["region_locy"] = aSim.Value.regionLocY.ToString();
-                    NeighbourBlock["UUID"] = aSim.Value.UUID.ToString();
+                    NeighbourBlock["UUID"] = aSim.Value.ToString();
                     NeighbourBlock["regionHandle"] = aSim.Value.regionHandle.ToString();
 
                     if (aSim.Value.UUID != sim.UUID)
@@ -566,8 +566,8 @@ namespace OpenSim.Grid.GridServer
             RegionProfileData sim;
             sim = new RegionProfileData();
 
-            sim.UUID = new LLUUID((string)requestData["UUID"]);
-            sim.originUUID = new LLUUID((string)requestData["originUUID"]);
+            sim.UUID = new UUID((string)requestData["UUID"]);
+            sim.originUUID = new UUID((string)requestData["originUUID"]);
 
             sim.regionRecvKey = String.Empty;
             sim.regionSendKey = String.Empty;
@@ -602,8 +602,8 @@ namespace OpenSim.Grid.GridServer
             sim.regionLocY = Convert.ToUInt32((string)requestData["region_locy"]);
             sim.regionLocZ = 0;
 
-            LLUUID textureID;
-            if (LLUUID.TryParse((string)requestData["map-image-id"], out textureID))
+            UUID textureID;
+            if (UUID.TryParse((string)requestData["map-image-id"], out textureID))
             {
                 sim.regionMapTextureID = textureID;
             }
@@ -654,11 +654,11 @@ namespace OpenSim.Grid.GridServer
 
             if (requestData.ContainsKey("UUID"))
             {
-                //TheSim = GetRegion(new LLUUID((string) requestData["UUID"]));
+                //TheSim = GetRegion(new UUID((string) requestData["UUID"]));
                 uuid = requestData["UUID"].ToString();
                 m_log.InfoFormat("[LOGOUT]: Logging out region: {0}", uuid);
 
-                //                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcDeleteRegionMethod","", 5,"Attempting delete with UUID.");
+                //                logToDB((new UUID((string)requestData["UUID"])).ToString(),"XmlRpcDeleteRegionMethod","", 5,"Attempting delete with UUID.");
             }
             else
             {
@@ -716,7 +716,7 @@ namespace OpenSim.Grid.GridServer
             RegionProfileData simData = null;
             if (requestData.ContainsKey("region_UUID"))
             {
-                LLUUID regionID = new LLUUID((string)requestData["region_UUID"]);
+                UUID regionID = new UUID((string)requestData["region_UUID"]);
                 simData = GetRegion(regionID);
                 if (simData == null)
                 {
@@ -764,7 +764,7 @@ namespace OpenSim.Grid.GridServer
                 responseData["remoting_port"] = simData.remotingPort.ToString();
                 responseData["region_locx"] = simData.regionLocX.ToString();
                 responseData["region_locy"] = simData.regionLocY.ToString();
-                responseData["region_UUID"] = simData.UUID.UUID.ToString();
+                responseData["region_UUID"] = simData.UUID.Guid.ToString();
                 responseData["region_name"] = simData.regionName;
                 responseData["regionHandle"] = simData.regionHandle.ToString();
             }
@@ -923,8 +923,8 @@ namespace OpenSim.Grid.GridServer
 
             RegionProfileData TheSim;
 
-            LLUUID UUID;
-            if (LLUUID.TryParse(param, out UUID))
+            UUID UUID;
+            if (UUID.TryParse(param, out UUID))
             {
                 TheSim = GetRegion(UUID);
 
@@ -933,7 +933,7 @@ namespace OpenSim.Grid.GridServer
                     respstring = "<Root>";
                     respstring += "<authkey>" + TheSim.regionSendKey + "</authkey>";
                     respstring += "<sim>";
-                    respstring += "<uuid>" + TheSim.UUID.ToString() + "</uuid>";
+                    respstring += "<uuid>" + TheSim.ToString() + "</uuid>";
                     respstring += "<regionname>" + TheSim.regionName + "</regionname>";
                     respstring += "<sim_ip>" + Util.GetHostFromDNS(TheSim.serverIP).ToString() + "</sim_ip>";
                     respstring += "<sim_port>" + TheSim.serverPort.ToString() + "</sim_port>";
@@ -969,11 +969,11 @@ namespace OpenSim.Grid.GridServer
         {
             Console.WriteLine("Processing region update via REST method");
             RegionProfileData theSim;
-            theSim = GetRegion(new LLUUID(param));
+            theSim = GetRegion(new UUID(param));
             if (theSim == null)
             {
                 theSim = new RegionProfileData();
-                LLUUID UUID = new LLUUID(param);
+                UUID UUID = new UUID(param);
                 theSim.UUID = UUID;
                 theSim.regionRecvKey = Config.SimRecvKey;
             }
@@ -1067,7 +1067,7 @@ namespace OpenSim.Grid.GridServer
                         {
                             plugin.AddProfile(theSim);
                             m_log.Info("[grid]: New sim added to grid (" + theSim.regionName + ")");
-                            logToDB(theSim.UUID.ToString(), "RestSetSimMethod", String.Empty, 5,
+                            logToDB(theSim.ToString(), "RestSetSimMethod", String.Empty, 5,
                                     "Region successfully updated and connected to grid.");
                         }
                         else

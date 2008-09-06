@@ -26,7 +26,7 @@
  */
 
 using System.Data;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Data.Base;
 
 namespace OpenSim.Data
@@ -39,9 +39,9 @@ namespace OpenSim.Data
 
         public override object ConvertToDbType(object value)
         {
-            if (value is LLUUID)
+            if (value is UUID)
             {
-                return ((LLUUID) value).UUID.ToString();
+                return ((UUID)value).ToString();
             }
 
             return base.ConvertToDbType(value);

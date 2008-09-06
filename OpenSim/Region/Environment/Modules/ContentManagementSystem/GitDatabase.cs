@@ -41,7 +41,7 @@ using Slash = System.IO.Path;
 using System.Reflection;
 using System.Xml;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using Nini.Config;
 
@@ -53,8 +53,6 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
-
-using Axiom.Math;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
@@ -73,57 +71,57 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Public Methods
 
-        public SceneObjectGroup GetMostRecentObjectRevision(LLUUID id)
+        public SceneObjectGroup GetMostRecentObjectRevision(UUID id)
         {
             return null;
         }
 
-        public int GetMostRecentRevision(LLUUID regionid)
+        public int GetMostRecentRevision(UUID regionid)
         {
             return 0;
         }
 
-        public SceneObjectGroup GetObjectRevision(LLUUID id, int revision)
+        public SceneObjectGroup GetObjectRevision(UUID id, int revision)
         {
             return null;
         }
 
-        public System.Collections.ArrayList GetObjectsFromRegion(LLUUID regionid, int revision)
+        public System.Collections.ArrayList GetObjectsFromRegion(UUID regionid, int revision)
         {
             return null;
         }
 
-        public string GetRegionObjectHeightMap(LLUUID regionid)
+        public string GetRegionObjectHeightMap(UUID regionid)
         {
             return null;
         }
 
-        public string GetRegionObjectHeightMap(LLUUID regionid, int revision)
+        public string GetRegionObjectHeightMap(UUID regionid, int revision)
         {
             return null;
         }
 
-        public string GetRegionObjectXML(LLUUID regionid)
+        public string GetRegionObjectXML(UUID regionid)
         {
             return null;
         }
 
-        public string GetRegionObjectXML(LLUUID regionid, int revision)
+        public string GetRegionObjectXML(UUID regionid, int revision)
         {
             return null;
         }
 
-        public System.Collections.ArrayList GetRegionObjectXMLList(LLUUID regionid)
+        public System.Collections.ArrayList GetRegionObjectXMLList(UUID regionid)
         {
             return null;
         }
 
-        public System.Collections.ArrayList GetRegionObjectXMLList(LLUUID regionid, int revision)
+        public System.Collections.ArrayList GetRegionObjectXMLList(UUID regionid, int revision)
         {
             return null;
         }
 
-        public bool InRepository(LLUUID id)
+        public bool InRepository(UUID id)
         {
             return false;
         }
@@ -132,22 +130,22 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
         }
 
-        public System.Collections.Generic.SortedDictionary<string, string> ListOfObjectRevisions(LLUUID id)
+        public System.Collections.Generic.SortedDictionary<string, string> ListOfObjectRevisions(UUID id)
         {
             return null;
         }
 
-        public System.Collections.Generic.SortedDictionary<string, string> ListOfRegionRevisions(LLUUID id)
+        public System.Collections.Generic.SortedDictionary<string, string> ListOfRegionRevisions(UUID id)
         {
             return null;
         }
 
-        public int NumOfObjectRev(LLUUID id)
+        public int NumOfObjectRev(UUID id)
         {
             return 0;
         }
 
-        public int NumOfRegionRev(LLUUID regionid)
+        public int NumOfRegionRev(UUID regionid)
         {
             return 0;
         }
@@ -160,7 +158,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
         }
 
-        public void SaveRegion(LLUUID regionid, string regionName, string logMessage)
+        public void SaveRegion(UUID regionid, string regionName, string logMessage)
         {
         }
 

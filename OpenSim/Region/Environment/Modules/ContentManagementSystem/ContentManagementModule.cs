@@ -36,7 +36,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using Nini.Config;
 
@@ -47,8 +47,6 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
-
-using Axiom.Math;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {

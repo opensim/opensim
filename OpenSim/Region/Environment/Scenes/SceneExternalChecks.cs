@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 
@@ -45,7 +45,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Object Permission Checks
 
-        public delegate uint GenerateClientFlags(LLUUID userID, LLUUID objectIDID);
+        public delegate uint GenerateClientFlags(UUID userID, UUID objectIDID);
         private List<GenerateClientFlags> GenerateClientFlagsCheckFunctions = new List<GenerateClientFlags>();
 
         public void addGenerateClientFlags(GenerateClientFlags delegateFunc)
@@ -60,7 +60,7 @@ namespace OpenSim.Region.Environment.Scenes
                 GenerateClientFlagsCheckFunctions.Remove(delegateFunc);
         }
 
-        public uint ExternalChecksGenerateClientFlags(LLUUID userID, LLUUID objectID)
+        public uint ExternalChecksGenerateClientFlags(UUID userID, UUID objectID)
         {
             SceneObjectPart part=m_scene.GetSceneObjectPart(objectID);
 
@@ -68,14 +68,14 @@ namespace OpenSim.Region.Environment.Scenes
                 return 0;
 
             uint perms=part.GetEffectiveObjectFlags() |
-                (uint)LLObject.ObjectFlags.ObjectModify |
-                (uint)LLObject.ObjectFlags.ObjectCopy |
-                (uint)LLObject.ObjectFlags.ObjectMove |
-                (uint)LLObject.ObjectFlags.ObjectTransfer |
-                (uint)LLObject.ObjectFlags.ObjectYouOwner |
-                (uint)LLObject.ObjectFlags.ObjectAnyOwner |
-                (uint)LLObject.ObjectFlags.ObjectOwnerModify |
-                (uint)LLObject.ObjectFlags.ObjectYouOfficer;
+                (uint)PrimFlags.ObjectModify |
+                (uint)PrimFlags.ObjectCopy |
+                (uint)PrimFlags.ObjectMove |
+                (uint)PrimFlags.ObjectTransfer |
+                (uint)PrimFlags.ObjectYouOwner |
+                (uint)PrimFlags.ObjectAnyOwner |
+                (uint)PrimFlags.ObjectOwnerModify |
+                (uint)PrimFlags.ObjectYouOfficer;
 
             foreach (GenerateClientFlags check in GenerateClientFlagsCheckFunctions)
             {
@@ -162,7 +162,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #region REZ OBJECT
-        public delegate bool CanRezObject(int objectCount, LLUUID owner, LLVector3 objectPosition, Scene scene);
+        public delegate bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition, Scene scene);
         private List<CanRezObject> CanRezObjectCheckFunctions = new List<CanRezObject>();
 
         public void addCheckRezObject(CanRezObject delegateFunc)
@@ -177,7 +177,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanRezObjectCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanRezObject(int objectCount, LLUUID owner, LLVector3 objectPosition)
+        public bool ExternalChecksCanRezObject(int objectCount, UUID owner, Vector3 objectPosition)
         {
             foreach (CanRezObject check in CanRezObjectCheckFunctions)
             {
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region DELETE OBJECT
-        public delegate bool CanDeleteObject(LLUUID objectID, LLUUID deleter, Scene scene);
+        public delegate bool CanDeleteObject(UUID objectID, UUID deleter, Scene scene);
         private List<CanDeleteObject> CanDeleteObjectCheckFunctions = new List<CanDeleteObject>();
 
         public void addCheckDeleteObject(CanDeleteObject delegateFunc)
@@ -207,7 +207,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanDeleteObjectCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanDeleteObject(LLUUID objectID, LLUUID deleter)
+        public bool ExternalChecksCanDeleteObject(UUID objectID, UUID deleter)
         {
             foreach (CanDeleteObject check in CanDeleteObjectCheckFunctions)
             {
@@ -222,7 +222,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region TAKE OBJECT
-        public delegate bool CanTakeObject(LLUUID objectID, LLUUID stealer, Scene scene);
+        public delegate bool CanTakeObject(UUID objectID, UUID stealer, Scene scene);
         private List<CanTakeObject> CanTakeObjectCheckFunctions = new List<CanTakeObject>();
 
         public void addCheckTakeObject(CanTakeObject delegateFunc)
@@ -237,7 +237,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanTakeObjectCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanTakeObject(LLUUID objectID, LLUUID AvatarTakingUUID)
+        public bool ExternalChecksCanTakeObject(UUID objectID, UUID AvatarTakingUUID)
         {
             foreach (CanTakeObject check in CanTakeObjectCheckFunctions)
             {
@@ -252,7 +252,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region TAKE COPY OBJECT
-        public delegate bool CanTakeCopyObject(LLUUID objectID, LLUUID userID, Scene inScene);
+        public delegate bool CanTakeCopyObject(UUID objectID, UUID userID, Scene inScene);
         private List<CanTakeCopyObject> CanTakeCopyObjectCheckFunctions = new List<CanTakeCopyObject>();
 
         public void addCheckTakeCopyObject(CanTakeCopyObject delegateFunc)
@@ -267,7 +267,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanTakeCopyObjectCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanTakeCopyObject(LLUUID objectID, LLUUID userID)
+        public bool ExternalChecksCanTakeCopyObject(UUID objectID, UUID userID)
         {
             foreach (CanTakeCopyObject check in CanTakeCopyObjectCheckFunctions)
             {
@@ -282,7 +282,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region DUPLICATE OBJECT
-        public delegate bool CanDuplicateObject(int objectCount, LLUUID objectID, LLUUID owner, Scene scene, LLVector3 objectPosition);
+        public delegate bool CanDuplicateObject(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition);
         private List<CanDuplicateObject> CanDuplicateObjectCheckFunctions = new List<CanDuplicateObject>();
 
         public void addCheckDuplicateObject(CanDuplicateObject delegateFunc)
@@ -297,7 +297,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanDuplicateObjectCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanDuplicateObject(int objectCount, LLUUID objectID, LLUUID owner, LLVector3 objectPosition)
+        public bool ExternalChecksCanDuplicateObject(int objectCount, UUID objectID, UUID owner, Vector3 objectPosition)
         {
             foreach (CanDuplicateObject check in CanDuplicateObjectCheckFunctions)
             {
@@ -312,7 +312,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region EDIT OBJECT
-        public delegate bool CanEditObject(LLUUID objectID, LLUUID editorID, Scene scene);
+        public delegate bool CanEditObject(UUID objectID, UUID editorID, Scene scene);
         private List<CanEditObject> CanEditObjectCheckFunctions = new List<CanEditObject>();
 
         public void addCheckEditObject(CanEditObject delegateFunc)
@@ -327,7 +327,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanEditObjectCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanEditObject(LLUUID objectID, LLUUID editorID)
+        public bool ExternalChecksCanEditObject(UUID objectID, UUID editorID)
         {
             foreach (CanEditObject check in CanEditObjectCheckFunctions)
             {
@@ -342,7 +342,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region MOVE OBJECT
-        public delegate bool CanMoveObject(LLUUID objectID, LLUUID moverID, Scene scene);
+        public delegate bool CanMoveObject(UUID objectID, UUID moverID, Scene scene);
         private List<CanMoveObject> CanMoveObjectCheckFunctions = new List<CanMoveObject>();
 
         public void addCheckMoveObject(CanMoveObject delegateFunc)
@@ -357,7 +357,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanMoveObjectCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanMoveObject(LLUUID objectID, LLUUID moverID)
+        public bool ExternalChecksCanMoveObject(UUID objectID, UUID moverID)
         {
             foreach (CanMoveObject check in CanMoveObjectCheckFunctions)
             {
@@ -372,7 +372,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region OBJECT ENTRY
-        public delegate bool CanObjectEntry(LLUUID objectID, LLVector3 newPoint, Scene scene);
+        public delegate bool CanObjectEntry(UUID objectID, Vector3 newPoint, Scene scene);
         private List<CanObjectEntry> CanObjectEntryCheckFunctions = new List<CanObjectEntry>();
 
         public void addCheckObjectEntry(CanObjectEntry delegateFunc)
@@ -387,7 +387,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanObjectEntryCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanObjectEntry(LLUUID objectID, LLVector3 newPoint)
+        public bool ExternalChecksCanObjectEntry(UUID objectID, Vector3 newPoint)
         {
             foreach (CanObjectEntry check in CanObjectEntryCheckFunctions)
             {
@@ -402,7 +402,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region RETURN OBJECT
-        public delegate bool CanReturnObject(LLUUID objectID, LLUUID returnerID, Scene scene);
+        public delegate bool CanReturnObject(UUID objectID, UUID returnerID, Scene scene);
         private List<CanReturnObject> CanReturnObjectCheckFunctions = new List<CanReturnObject>();
 
         public void addCheckReturnObject(CanReturnObject delegateFunc)
@@ -417,7 +417,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanReturnObjectCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanReturnObject(LLUUID objectID, LLUUID returnerID)
+        public bool ExternalChecksCanReturnObject(UUID objectID, UUID returnerID)
         {
             foreach (CanReturnObject check in CanReturnObjectCheckFunctions)
             {
@@ -432,7 +432,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region INSTANT MESSAGE
-        public delegate bool CanInstantMessage(LLUUID user, LLUUID target, Scene startScene);
+        public delegate bool CanInstantMessage(UUID user, UUID target, Scene startScene);
         private List<CanInstantMessage> CanInstantMessageCheckFunctions = new List<CanInstantMessage>();
 
         public void addCheckInstantMessage(CanInstantMessage delegateFunc)
@@ -447,7 +447,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanInstantMessageCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanInstantMessage(LLUUID user, LLUUID target)
+        public bool ExternalChecksCanInstantMessage(UUID user, UUID target)
         {
             foreach (CanInstantMessage check in CanInstantMessageCheckFunctions)
             {
@@ -462,7 +462,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region INVENTORY TRANSFER
-        public delegate bool CanInventoryTransfer(LLUUID user, LLUUID target, Scene startScene);
+        public delegate bool CanInventoryTransfer(UUID user, UUID target, Scene startScene);
         private List<CanInventoryTransfer> CanInventoryTransferCheckFunctions = new List<CanInventoryTransfer>();
 
         public void addCheckInventoryTransfer(CanInventoryTransfer delegateFunc)
@@ -477,7 +477,7 @@ namespace OpenSim.Region.Environment.Scenes
                     CanInventoryTransferCheckFunctions.Remove(delegateFunc);
             }
 
-        public bool ExternalChecksCanInventoryTransfer(LLUUID user, LLUUID target)
+        public bool ExternalChecksCanInventoryTransfer(UUID user, UUID target)
         {
             foreach (CanInventoryTransfer check in CanInventoryTransferCheckFunctions)
             {
@@ -492,7 +492,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region VIEW SCRIPT
-        public delegate bool CanViewScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene);
+        public delegate bool CanViewScript(UUID script, UUID objectID, UUID user, Scene scene);
         private List<CanViewScript> CanViewScriptCheckFunctions = new List<CanViewScript>();
 
         public void addCheckViewScript(CanViewScript delegateFunc)
@@ -507,7 +507,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanViewScriptCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanViewScript(LLUUID script, LLUUID objectID, LLUUID user)
+        public bool ExternalChecksCanViewScript(UUID script, UUID objectID, UUID user)
         {
             foreach (CanViewScript check in CanViewScriptCheckFunctions)
             {
@@ -519,7 +519,7 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        public delegate bool CanViewNotecard(LLUUID script, LLUUID objectID, LLUUID user, Scene scene);
+        public delegate bool CanViewNotecard(UUID script, UUID objectID, UUID user, Scene scene);
         private List<CanViewNotecard> CanViewNotecardCheckFunctions = new List<CanViewNotecard>();
 
         public void addCheckViewNotecard(CanViewNotecard delegateFunc)
@@ -534,7 +534,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanViewNotecardCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanViewNotecard(LLUUID script, LLUUID objectID, LLUUID user)
+        public bool ExternalChecksCanViewNotecard(UUID script, UUID objectID, UUID user)
         {
             foreach (CanViewNotecard check in CanViewNotecardCheckFunctions)
             {
@@ -549,7 +549,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region EDIT SCRIPT
-        public delegate bool CanEditScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene);
+        public delegate bool CanEditScript(UUID script, UUID objectID, UUID user, Scene scene);
         private List<CanEditScript> CanEditScriptCheckFunctions = new List<CanEditScript>();
 
         public void addCheckEditScript(CanEditScript delegateFunc)
@@ -564,7 +564,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanEditScriptCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanEditScript(LLUUID script, LLUUID objectID, LLUUID user)
+        public bool ExternalChecksCanEditScript(UUID script, UUID objectID, UUID user)
         {
             foreach (CanEditScript check in CanEditScriptCheckFunctions)
             {
@@ -576,7 +576,7 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        public delegate bool CanEditNotecard(LLUUID notecard, LLUUID objectID, LLUUID user, Scene scene);
+        public delegate bool CanEditNotecard(UUID notecard, UUID objectID, UUID user, Scene scene);
         private List<CanEditNotecard> CanEditNotecardCheckFunctions = new List<CanEditNotecard>();
 
         public void addCheckEditNotecard(CanEditNotecard delegateFunc)
@@ -591,7 +591,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanEditNotecardCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanEditNotecard(LLUUID script, LLUUID objectID, LLUUID user)
+        public bool ExternalChecksCanEditNotecard(UUID script, UUID objectID, UUID user)
             {
                 foreach (CanEditNotecard check in CanEditNotecardCheckFunctions)
                 {
@@ -606,7 +606,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region RUN SCRIPT (When Script Placed in Object)
-        public delegate bool CanRunScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene);
+        public delegate bool CanRunScript(UUID script, UUID objectID, UUID user, Scene scene);
         private List<CanRunScript> CanRunScriptCheckFunctions = new List<CanRunScript>();
 
         public void addCheckRunScript(CanRunScript delegateFunc)
@@ -621,7 +621,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanRunScriptCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanRunScript(LLUUID script, LLUUID objectID, LLUUID user)
+        public bool ExternalChecksCanRunScript(UUID script, UUID objectID, UUID user)
         {
             foreach (CanRunScript check in CanRunScriptCheckFunctions)
             {
@@ -636,7 +636,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region START SCRIPT (When Script run box is Checked after placed in object)
-        public delegate bool CanStartScript(LLUUID script, LLUUID user, Scene scene);
+        public delegate bool CanStartScript(UUID script, UUID user, Scene scene);
         private List<CanStartScript> CanStartScriptCheckFunctions = new List<CanStartScript>();
 
         public void addCheckStartScript(CanStartScript delegateFunc)
@@ -651,7 +651,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanStartScriptCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanStartScript(LLUUID script, LLUUID user)
+        public bool ExternalChecksCanStartScript(UUID script, UUID user)
         {
             foreach (CanStartScript check in CanStartScriptCheckFunctions)
             {
@@ -666,7 +666,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region STOP SCRIPT (When Script run box is unchecked after placed in object)
-        public delegate bool CanStopScript(LLUUID script, LLUUID user, Scene scene);
+        public delegate bool CanStopScript(UUID script, UUID user, Scene scene);
         private List<CanStopScript> CanStopScriptCheckFunctions = new List<CanStopScript>();
 
         public void addCheckStopScript(CanStopScript delegateFunc)
@@ -681,7 +681,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanStopScriptCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanStopScript(LLUUID script, LLUUID user)
+        public bool ExternalChecksCanStopScript(UUID script, UUID user)
         {
             foreach (CanStopScript check in CanStopScriptCheckFunctions)
             {
@@ -696,7 +696,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region RESET SCRIPT
-        public delegate bool CanResetScript(LLUUID script, LLUUID user, Scene scene);
+        public delegate bool CanResetScript(UUID script, UUID user, Scene scene);
         private List<CanResetScript> CanResetScriptCheckFunctions = new List<CanResetScript>();
 
         public void addCheckResetScript(CanResetScript delegateFunc)
@@ -711,7 +711,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanResetScriptCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanResetScript(LLUUID script, LLUUID user)
+        public bool ExternalChecksCanResetScript(UUID script, UUID user)
         {
             foreach (CanResetScript check in CanResetScriptCheckFunctions)
             {
@@ -726,7 +726,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region TERRAFORM LAND
-        public delegate bool CanTerraformLand(LLUUID user, LLVector3 position, Scene requestFromScene);
+        public delegate bool CanTerraformLand(UUID user, Vector3 position, Scene requestFromScene);
         private List<CanTerraformLand> CanTerraformLandCheckFunctions = new List<CanTerraformLand>();
 
         public void addCheckTerraformLand(CanTerraformLand delegateFunc)
@@ -741,7 +741,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanTerraformLandCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanTerraformLand(LLUUID user, LLVector3 pos)
+        public bool ExternalChecksCanTerraformLand(UUID user, Vector3 pos)
         {
             foreach (CanTerraformLand check in CanTerraformLandCheckFunctions)
             {
@@ -756,7 +756,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region RUN CONSOLE COMMAND
-        public delegate bool CanRunConsoleCommand(LLUUID user, Scene requestFromScene);
+        public delegate bool CanRunConsoleCommand(UUID user, Scene requestFromScene);
         private List<CanRunConsoleCommand> CanRunConsoleCommandCheckFunctions = new List<CanRunConsoleCommand>();
 
         public void addCheckRunConsoleCommand(CanRunConsoleCommand delegateFunc)
@@ -771,7 +771,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanRunConsoleCommandCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanRunConsoleCommand(LLUUID user)
+        public bool ExternalChecksCanRunConsoleCommand(UUID user)
         {
             foreach (CanRunConsoleCommand check in CanRunConsoleCommandCheckFunctions)
             {
@@ -786,7 +786,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region CAN ISSUE ESTATE COMMAND
-        public delegate bool CanIssueEstateCommand(LLUUID user, Scene requestFromScene, bool ownerCommand);
+        public delegate bool CanIssueEstateCommand(UUID user, Scene requestFromScene, bool ownerCommand);
         private List<CanIssueEstateCommand> CanIssueEstateCommandCheckFunctions = new List<CanIssueEstateCommand>();
 
         public void addCheckIssueEstateCommand(CanIssueEstateCommand delegateFunc)
@@ -801,7 +801,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanIssueEstateCommandCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanIssueEstateCommand(LLUUID user, bool ownerCommand)
+        public bool ExternalChecksCanIssueEstateCommand(UUID user, bool ownerCommand)
         {
             foreach (CanIssueEstateCommand check in CanIssueEstateCommandCheckFunctions)
             {
@@ -815,7 +815,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region CAN BE GODLIKE
-        public delegate bool CanBeGodLike(LLUUID user, Scene requestFromScene);
+        public delegate bool CanBeGodLike(UUID user, Scene requestFromScene);
         private List<CanBeGodLike> CanBeGodLikeCheckFunctions = new List<CanBeGodLike>();
 
         public void addCheckBeGodLike(CanBeGodLike delegateFunc)
@@ -830,7 +830,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanBeGodLikeCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanBeGodLike(LLUUID user)
+        public bool ExternalChecksCanBeGodLike(UUID user)
         {
             foreach (CanBeGodLike check in CanBeGodLikeCheckFunctions)
             {
@@ -844,7 +844,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region EDIT PARCEL
-        public delegate bool CanEditParcel(LLUUID user, ILandObject parcel, Scene scene);
+        public delegate bool CanEditParcel(UUID user, ILandObject parcel, Scene scene);
         private List<CanEditParcel> CanEditParcelCheckFunctions = new List<CanEditParcel>();
 
         public void addCheckEditParcel(CanEditParcel delegateFunc)
@@ -859,7 +859,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanEditParcelCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanEditParcel(LLUUID user, ILandObject parcel)
+        public bool ExternalChecksCanEditParcel(UUID user, ILandObject parcel)
         {
             foreach (CanEditParcel check in CanEditParcelCheckFunctions)
             {
@@ -873,7 +873,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region SELL PARCEL
-        public delegate bool CanSellParcel(LLUUID user, ILandObject parcel, Scene scene);
+        public delegate bool CanSellParcel(UUID user, ILandObject parcel, Scene scene);
         private List<CanSellParcel> CanSellParcelCheckFunctions = new List<CanSellParcel>();
 
         public void addCheckSellParcel(CanSellParcel delegateFunc)
@@ -888,7 +888,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanSellParcelCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanSellParcel(LLUUID user, ILandObject parcel)
+        public bool ExternalChecksCanSellParcel(UUID user, ILandObject parcel)
         {
             foreach (CanSellParcel check in CanSellParcelCheckFunctions)
             {
@@ -902,7 +902,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region ABANDON PARCEL
-        public delegate bool CanAbandonParcel(LLUUID user, ILandObject parcel, Scene scene);
+        public delegate bool CanAbandonParcel(UUID user, ILandObject parcel, Scene scene);
         private List<CanAbandonParcel> CanAbandonParcelCheckFunctions = new List<CanAbandonParcel>();
 
         public void addCheckAbandonParcel(CanAbandonParcel delegateFunc)
@@ -917,7 +917,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanAbandonParcelCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanAbandonParcel(LLUUID user, ILandObject parcel)
+        public bool ExternalChecksCanAbandonParcel(UUID user, ILandObject parcel)
         {
             foreach (CanAbandonParcel check in CanAbandonParcelCheckFunctions)
             {
@@ -930,7 +930,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
         #endregion
 
-        public delegate bool CanReclaimParcel(LLUUID user, ILandObject parcel, Scene scene);
+        public delegate bool CanReclaimParcel(UUID user, ILandObject parcel, Scene scene);
         private List<CanReclaimParcel> CanReclaimParcelCheckFunctions = new List<CanReclaimParcel>();
 
         public void addCheckReclaimParcel(CanReclaimParcel delegateFunc)
@@ -945,7 +945,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanReclaimParcelCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanReclaimParcel(LLUUID user, ILandObject parcel)
+        public bool ExternalChecksCanReclaimParcel(UUID user, ILandObject parcel)
         {
             foreach (CanReclaimParcel check in CanReclaimParcelCheckFunctions)
             {
@@ -956,7 +956,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return true;
         }
-        public delegate bool CanBuyLand(LLUUID user, ILandObject parcel, Scene scene);
+        public delegate bool CanBuyLand(UUID user, ILandObject parcel, Scene scene);
         private List<CanBuyLand> CanBuyLandCheckFunctions = new List<CanBuyLand>();
 
         public void addCheckCanBuyLand(CanBuyLand delegateFunc)
@@ -971,7 +971,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanBuyLandCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanBuyLand(LLUUID user, ILandObject parcel)
+        public bool ExternalChecksCanBuyLand(UUID user, ILandObject parcel)
         {
             foreach (CanBuyLand check in CanBuyLandCheckFunctions)
             {
@@ -983,7 +983,7 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        public delegate bool CanLinkObject(LLUUID user, LLUUID objectID);
+        public delegate bool CanLinkObject(UUID user, UUID objectID);
         private List<CanLinkObject> CanLinkObjectCheckFunctions = new List<CanLinkObject>();
 
         public void addCheckCanLinkObject(CanLinkObject delegateFunc)
@@ -998,7 +998,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanLinkObjectCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanLinkObject(LLUUID user, LLUUID objectID)
+        public bool ExternalChecksCanLinkObject(UUID user, UUID objectID)
             {
                 foreach (CanLinkObject check in CanLinkObjectCheckFunctions)
                 {
@@ -1010,7 +1010,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return true;
             }
 
-        public delegate bool CanDelinkObject(LLUUID user, LLUUID objectID);
+        public delegate bool CanDelinkObject(UUID user, UUID objectID);
         private List<CanDelinkObject> CanDelinkObjectCheckFunctions = new List<CanDelinkObject>();
 
         public void addCheckCanDelinkObject(CanDelinkObject delegateFunc)
@@ -1025,7 +1025,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanDelinkObjectCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanDelinkObject(LLUUID user, LLUUID objectID)
+        public bool ExternalChecksCanDelinkObject(UUID user, UUID objectID)
         {
             foreach (CanDelinkObject check in CanDelinkObjectCheckFunctions)
             {
@@ -1039,7 +1039,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        public delegate bool CanCreateInventory(uint invType, LLUUID objectID, LLUUID userID);
+        public delegate bool CanCreateInventory(uint invType, UUID objectID, UUID userID);
         private List<CanCreateInventory> CanCreateInventoryCheckFunctions = new List<CanCreateInventory>();
 
         public void addCheckCanCreateInventory(CanCreateInventory delegateFunc)
@@ -1054,7 +1054,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanCreateInventoryCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanCreateInventory(uint invType, LLUUID objectID, LLUUID userID)
+        public bool ExternalChecksCanCreateInventory(uint invType, UUID objectID, UUID userID)
         {
             foreach (CanCreateInventory check in CanCreateInventoryCheckFunctions)
             {
@@ -1066,7 +1066,7 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        public delegate bool CanCopyInventory(LLUUID itemID, LLUUID objectID, LLUUID userID);
+        public delegate bool CanCopyInventory(UUID itemID, UUID objectID, UUID userID);
         private List<CanCopyInventory> CanCopyInventoryCheckFunctions = new List<CanCopyInventory>();
 
         public void addCheckCanCopyInventory(CanCopyInventory delegateFunc)
@@ -1081,7 +1081,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanCopyInventoryCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanCopyInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
+        public bool ExternalChecksCanCopyInventory(UUID itemID, UUID objectID, UUID userID)
         {
             foreach (CanCopyInventory check in CanCopyInventoryCheckFunctions)
             {
@@ -1093,7 +1093,7 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        public delegate bool CanDeleteInventory(LLUUID itemID, LLUUID objectID, LLUUID userID);
+        public delegate bool CanDeleteInventory(UUID itemID, UUID objectID, UUID userID);
         private List<CanDeleteInventory> CanDeleteInventoryCheckFunctions = new List<CanDeleteInventory>();
 
         public void addCheckCanDeleteInventory(CanDeleteInventory delegateFunc)
@@ -1108,7 +1108,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanDeleteInventoryCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanDeleteInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
+        public bool ExternalChecksCanDeleteInventory(UUID itemID, UUID objectID, UUID userID)
         {
             foreach (CanDeleteInventory check in CanDeleteInventoryCheckFunctions)
             {
@@ -1120,7 +1120,7 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        public delegate bool CanTeleport(LLUUID userID);
+        public delegate bool CanTeleport(UUID userID);
         private List<CanTeleport> CanTeleportCheckFunctions = new List<CanTeleport>();
 
         public void addCheckCanTeleport(CanTeleport delegateFunc)
@@ -1135,7 +1135,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanTeleportCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanTeleport(LLUUID userID)
+        public bool ExternalChecksCanTeleport(UUID userID)
         {
             foreach (CanTeleport check in CanTeleportCheckFunctions)
             {

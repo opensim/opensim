@@ -27,7 +27,7 @@
 
 using System;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -133,9 +133,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="copyItemID">The item UUID that should be used by the new item.</param>
         /// <returns></returns>
         public bool AddInventoryItem(IClientAPI remoteClient, uint localID,
-                                     InventoryItemBase item, LLUUID copyItemID)
+                                     InventoryItemBase item, UUID copyItemID)
         {
-            LLUUID newItemId = (copyItemID != LLUUID.Zero) ? copyItemID : item.ID;
+            UUID newItemId = (copyItemID != UUID.Zero) ? copyItemID : item.ID;
 
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
@@ -183,7 +183,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="primID"></param>
         /// <param name="itemID"></param>
         /// <returns>null if the item does not exist</returns>
-        public TaskInventoryItem GetInventoryItem(uint primID, LLUUID itemID)
+        public TaskInventoryItem GetInventoryItem(uint primID, UUID itemID)
         {
             SceneObjectPart part = GetChildPart(primID);
             if (part != null)
@@ -227,7 +227,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public int RemoveInventoryItem(uint localID, LLUUID itemID)
+        public int RemoveInventoryItem(uint localID, UUID itemID)
         {
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)

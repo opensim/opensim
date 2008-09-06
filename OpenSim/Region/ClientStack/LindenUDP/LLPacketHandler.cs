@@ -33,8 +33,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Timers;
 using System.Reflection;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using Timer = System.Timers.Timer;
 using OpenSim.Framework;
 using OpenSim.Region.ClientStack.LindenUDP;
@@ -44,7 +44,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
     public delegate void PacketDrop(Packet pack, Object id);
-    public delegate bool SynchronizeClientHandler(IScene scene, Packet packet, LLUUID agentID, ThrottleOutPacketType throttlePacketType);
+    public delegate bool SynchronizeClientHandler(IScene scene, Packet packet, UUID agentID, ThrottleOutPacketType throttlePacketType);
 
     public interface IPacketHandler
     {
@@ -259,9 +259,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // acks being appended to the payload, just don't send
             // any with them until libsl is fixed.
             //
-            if (packet is libsecondlife.Packets.ViewerEffectPacket)
+            if (packet is OpenMetaverse.Packets.ViewerEffectPacket)
                 return;
-            if (packet is libsecondlife.Packets.SimStatsPacket)
+            if (packet is OpenMetaverse.Packets.SimStatsPacket)
                 return;
 
             // Add acks to outgoing packets

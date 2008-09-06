@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         public int Right = 0;
         public int Top = 0;
         public int Bottom = 0;
-        public LLUUID ImageID = LLUUID.Zero;
+        public UUID ImageID = UUID.Zero;
 
         public LLSDMapLayer()
         {

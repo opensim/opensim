@@ -32,7 +32,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -115,7 +115,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             // chat works by redistributing every incoming chat
             // message to each avatar in the scene
-            LLVector3 pos = new LLVector3(128, 128, 30);
+            Vector3 pos = new Vector3(128, 128, 30);
             ((Scene)c.Scene).ForEachScenePresence(delegate(ScenePresence presence)
                                                   {
                                                       if (presence.IsChildAgent) return;
@@ -129,12 +129,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                                                       if (null == c.SenderObject)
                                                           client.SendChatMessage(c.Message, (byte)c.Type,
-                                                                                 pos, c.From, LLUUID.Zero,
+                                                                                 pos, c.From, UUID.Zero,
                                                                                  (byte)ChatSourceType.Agent,
                                                                                  (byte)ChatAudibleLevel.Fully);
                                                       else
                                                           client.SendChatMessage(c.Message, (byte)c.Type,
-                                                                                 pos, c.From, LLUUID.Zero,
+                                                                                 pos, c.From, UUID.Zero,
                                                                                  (byte)ChatSourceType.Object,
                                                                                  (byte)ChatAudibleLevel.Fully);
                                                   });
@@ -153,13 +153,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 scene = m_scenes[0];
 
             // Filled in since it's easier than rewriting right now.
-            LLVector3 fromPos = e.Position;
-            LLVector3 regionPos = new LLVector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
+            Vector3 fromPos = e.Position;
+            Vector3 regionPos = new Vector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
                                                 scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
 
             string fromName = e.From;
             string message = e.Message;
-            LLUUID fromID = e.SenderUUID;
+            UUID fromID = e.SenderUUID;
 
             if(message.Length >= 1000) // libomv limit
                 message = message.Substring(0, 1000);
@@ -172,7 +172,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             if (avatar != null)
             {
                 fromPos = avatar.AbsolutePosition;
-                regionPos = new LLVector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
+                regionPos = new Vector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
                                           scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
                 fromName = avatar.Firstname + " " + avatar.Lastname;
                 fromID = e.Sender.AgentId;
@@ -217,16 +217,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             }
         }
 
-        private void TrySendChatMessage(ScenePresence presence, LLVector3 fromPos, LLVector3 regionPos,
-                                        LLUUID fromAgentID, string fromName, ChatTypeEnum type,
+        private void TrySendChatMessage(ScenePresence presence, Vector3 fromPos, Vector3 regionPos,
+                                        UUID fromAgentID, string fromName, ChatTypeEnum type,
                                         string message, ChatSourceType src)
         {
             // don't send stuff to child agents
             if (presence.IsChildAgent) return;
 
-            LLVector3 fromRegionPos = fromPos + regionPos;
-            LLVector3 toRegionPos = presence.AbsolutePosition +
-                    new LLVector3(presence.Scene.RegionInfo.RegionLocX * Constants.RegionSize,
+            Vector3 fromRegionPos = fromPos + regionPos;
+            Vector3 toRegionPos = presence.AbsolutePosition +
+                    new Vector3(presence.Scene.RegionInfo.RegionLocX * Constants.RegionSize,
                                   presence.Scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
 
             int dis = Math.Abs((int) Util.GetDistanceTo(toRegionPos, fromRegionPos));

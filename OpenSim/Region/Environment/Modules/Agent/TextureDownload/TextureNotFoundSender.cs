@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 
@@ -46,11 +46,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         // See ITextureSender
 
         // private bool m_sending = false;
-        private LLUUID m_textureId;
+        private UUID m_textureId;
 
         // See ITextureSender
 
-        public TextureNotFoundSender(IClientAPI client, LLUUID textureID)
+        public TextureNotFoundSender(IClientAPI client, UUID textureID)
         {
             // // m_client = client;
             m_textureId = textureID;

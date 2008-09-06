@@ -26,6 +26,7 @@
  */
 
 using System;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -45,7 +46,7 @@ namespace OpenSim.Framework
 
         public uint ParentEstateID;
 
-        public sLLVector3 Position;
+        public Vector3 Position;
 
         public Guid RegionID;
         public uint timestamp;

@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Data;
@@ -206,11 +206,11 @@ namespace OpenSim.Grid.MessagingServer
         /// </summary>
         /// <param name="agentID"></param>
         /// <param name="friendID"></param>
-        public void addBackReference(LLUUID agentID, LLUUID friendID)
+        public void addBackReference(UUID agentID, UUID friendID)
         {
             if (m_presence_BackReferences.Contains(friendID))
             {
-                List<LLUUID> presenseBackReferences = (List<LLUUID>)m_presence_BackReferences[friendID];
+                List<UUID> presenseBackReferences = (List<UUID>)m_presence_BackReferences[friendID];
                 if (!presenseBackReferences.Contains(agentID))
                 {
                     presenseBackReferences.Add(agentID);
@@ -219,7 +219,7 @@ namespace OpenSim.Grid.MessagingServer
             }
             else
             {
-                List<LLUUID> presenceBackReferences = new List<LLUUID>();
+                List<UUID> presenceBackReferences = new List<UUID>();
                 presenceBackReferences.Add(agentID);
                 m_presence_BackReferences[friendID] = presenceBackReferences;
             }
@@ -230,11 +230,11 @@ namespace OpenSim.Grid.MessagingServer
         /// </summary>
         /// <param name="agentID"></param>
         /// <param name="friendID"></param>
-        public void removeBackReference(LLUUID agentID, LLUUID friendID)
+        public void removeBackReference(UUID agentID, UUID friendID)
         {
             if (m_presence_BackReferences.Contains(friendID))
             {
-                List<LLUUID> presenseBackReferences = (List<LLUUID>)m_presence_BackReferences[friendID];
+                List<UUID> presenseBackReferences = (List<UUID>)m_presence_BackReferences[friendID];
                 if (presenseBackReferences.Contains(agentID))
                 {
                     presenseBackReferences.Remove(agentID);
@@ -253,11 +253,11 @@ namespace OpenSim.Grid.MessagingServer
         /// Logoff Processor.  Call this to clean up agent presence data and send logoff presence notifications
         /// </summary>
         /// <param name="AgentID"></param>
-        private void ProcessLogOff(LLUUID AgentID)
+        private void ProcessLogOff(UUID AgentID)
         {
             m_log.Info("[LOGOFF]: Processing Logoff");
             UserPresenceData AgentData = null;
-            List<LLUUID> AgentsNeedingNotification = new List<LLUUID>();
+            List<UUID> AgentsNeedingNotification = new List<UUID>();
             UserPresenceData friendd = null;
             lock (m_presences)
             {
@@ -275,7 +275,7 @@ namespace OpenSim.Grid.MessagingServer
                 //{
                     //if (m_presence_BackReferences.Contains(AgentID))
                     //{
-                        //AgentsNeedingNotification = (List<LLUUID>)m_presence_BackReferences[AgentID];
+                        //AgentsNeedingNotification = (List<UUID>)m_presence_BackReferences[AgentID];
                     //}
                 //}
 
@@ -356,17 +356,17 @@ namespace OpenSim.Grid.MessagingServer
         #region UserServer Comms
 
         /// <summary>
-        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
+        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
-        public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
             List<FriendListItem> buddylist = new List<FriendListItem>();
 
             try
             {
                 Hashtable param = new Hashtable();
-                param["ownerID"] = friendlistowner.UUID.ToString();
+                param["ownerID"] = friendlistowner.ToString();
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
@@ -403,8 +403,8 @@ namespace OpenSim.Grid.MessagingServer
             {
                 FriendListItem buddylistitem = new FriendListItem();
 
-                buddylistitem.FriendListOwner = new LLUUID((string)data["ownerID" + i.ToString()]);
-                buddylistitem.Friend = new LLUUID((string)data["friendID" + i.ToString()]);
+                buddylistitem.FriendListOwner = new UUID((string)data["ownerID" + i.ToString()]);
+                buddylistitem.Friend = new UUID((string)data["friendID" + i.ToString()]);
                 buddylistitem.FriendListOwnerPerms = (uint)Convert.ToInt32((string)data["ownerPerms" + i.ToString()]);
                 buddylistitem.FriendPerms = (uint)Convert.ToInt32((string)data["friendPerms" + i.ToString()]);
 
@@ -438,11 +438,11 @@ namespace OpenSim.Grid.MessagingServer
             //requestData["lastname"] = lastname;
 
             AgentCircuitData agentData = new AgentCircuitData();
-            agentData.SessionID = new LLUUID((string)requestData["sessionid"]);
-            agentData.SecureSessionID = new LLUUID((string)requestData["secure_session_id"]);
+            agentData.SessionID = new UUID((string)requestData["sessionid"]);
+            agentData.SecureSessionID = new UUID((string)requestData["secure_session_id"]);
             agentData.firstname = (string)requestData["firstname"];
             agentData.lastname = (string)requestData["lastname"];
-            agentData.AgentID = new LLUUID((string)requestData["agentid"]);
+            agentData.AgentID = new UUID((string)requestData["agentid"]);
             agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
             agentData.CapsPath = (string)requestData["caps_path"];
 
@@ -453,7 +453,7 @@ namespace OpenSim.Grid.MessagingServer
             else
             {
                 agentData.startpos =
-                     new LLVector3(Convert.ToUInt32(requestData["positionx"]),
+                     new Vector3(Convert.ToUInt32(requestData["positionx"]),
                                   Convert.ToUInt32(requestData["positiony"]),
                                   Convert.ToUInt32(requestData["positionz"]));
                 agentData.child = false;
@@ -485,7 +485,7 @@ namespace OpenSim.Grid.MessagingServer
             m_log.Info("[USERLOGOFF]: User logged off called");
             Hashtable requestData = (Hashtable)request.Params[0];
 
-            LLUUID AgentID = new LLUUID((string)requestData["agentid"]);
+            UUID AgentID = new UUID((string)requestData["agentid"]);
 
             ProcessLogOff(AgentID);
 
@@ -598,7 +598,7 @@ namespace OpenSim.Grid.MessagingServer
                 regionProfile.regionLocY = regY;
 
                 regionProfile.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
-                regionProfile.UUID = new LLUUID((string)responseData["region_UUID"]);
+                regionProfile.UUID = new UUID((string)responseData["region_UUID"]);
                 regionProfile.regionName = (string)responseData["region_name"];
                 lock (m_regionInfoCache)
                 {

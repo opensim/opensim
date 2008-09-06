@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {

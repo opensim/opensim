@@ -30,7 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
@@ -40,21 +40,21 @@ using OpenSim.Region.Interfaces;
 namespace OpenSim.Framework.Communications.Capabilities
 {
     public delegate void UpLoadedAsset(
-        string assetName, string description, LLUUID assetID, LLUUID inventoryItem, LLUUID parentFolder,
+        string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,
         byte[] data, string inventoryType, string assetType);
 
-    public delegate LLUUID UpdateItem(LLUUID itemID, byte[] data);
+    public delegate UUID UpdateItem(UUID itemID, byte[] data);
 
-    public delegate void UpdateTaskScript(LLUUID itemID, LLUUID primID, bool isScriptRunning, byte[] data);
+    public delegate void UpdateTaskScript(UUID itemID, UUID primID, bool isScriptRunning, byte[] data);
 
-    public delegate void NewInventoryItem(LLUUID userID, InventoryItemBase item);
+    public delegate void NewInventoryItem(UUID userID, InventoryItemBase item);
 
-    public delegate LLUUID ItemUpdatedCallback(LLUUID userID, LLUUID itemID, byte[] data);
+    public delegate UUID ItemUpdatedCallback(UUID userID, UUID itemID, byte[] data);
 
-    public delegate void TaskScriptUpdatedCallback(LLUUID userID, LLUUID itemID, LLUUID primID,
+    public delegate void TaskScriptUpdatedCallback(UUID userID, UUID itemID, UUID primID,
                                                    bool isScriptRunning, byte[] data);
 
-    public delegate List<InventoryItemBase> FetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
+    public delegate List<InventoryItemBase> FetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
                                                                           bool fetchFolders, bool fetchItems, int sortOrder);
 
     /// <summary>
@@ -62,7 +62,7 @@ namespace OpenSim.Framework.Communications.Capabilities
     /// we can popup a message on the user's client if the inventory service has permanently failed).  But I didn't want
     /// to just pass the whole Scene into CAPS.
     /// </summary>
-    public delegate IClientAPI GetClientDelegate(LLUUID agentID);
+    public delegate IClientAPI GetClientDelegate(UUID agentID);
 
     public class Caps
     {
@@ -97,7 +97,7 @@ namespace OpenSim.Framework.Communications.Capabilities
 
         //private string eventQueue = "0100/";
         private BaseHttpServer m_httpListener;
-        private LLUUID m_agentID;
+        private UUID m_agentID;
         private AssetCache m_assetCache;
         private int m_eventQueueCount = 1;
         private Queue<string> m_capsEventQueue = new Queue<string>();
@@ -113,7 +113,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         public GetClientDelegate GetClient = null;
 
         public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
-                    LLUUID agent, bool dumpAssetsToFile, string regionName)
+                    UUID agent, bool dumpAssetsToFile, string regionName)
         {
             m_assetCache = assetCache;
             m_capsObjectPath = capsPath;
@@ -258,7 +258,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             Hashtable hash = new Hashtable();
             try
             {
-                hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
+                hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
             }
             catch (LLSD.LLSDParseException pe)
             {
@@ -388,7 +388,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             llsdItem.permissions.creator_id = invItem.Creator;
             llsdItem.permissions.base_mask = (int)invItem.CurrentPermissions;
             llsdItem.permissions.everyone_mask = (int)invItem.EveryOnePermissions;
-            llsdItem.permissions.group_id = LLUUID.Zero;
+            llsdItem.permissions.group_id = UUID.Zero;
             llsdItem.permissions.group_mask = 0;
             llsdItem.permissions.is_owner_group = false;
             llsdItem.permissions.next_owner_mask = (int)invItem.NextPermissions;
@@ -423,7 +423,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             LLSDMapLayer mapLayer = new LLSDMapLayer();
             mapLayer.Right = 5000;
             mapLayer.Top = 5000;
-            mapLayer.ImageID = new LLUUID("00000000-0000-1111-9999-000000000006");
+            mapLayer.ImageID = new UUID("00000000-0000-1111-9999-000000000006");
 
             return mapLayer;
         }
@@ -522,7 +522,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                 m_log.Debug("[CAPS]: ScriptTaskInventory Request in region: " + m_regionName);
                 //m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
 
-                Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Helpers.StringToField(request));
+                Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Utils.StringToBytes(request));
                 LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();
                 LLSDHelpers.DeserialiseLLSDMap(hash, llsdUpdateRequest);
 
@@ -573,8 +573,8 @@ namespace OpenSim.Framework.Communications.Capabilities
                                              OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             m_log.Debug("[CAPS]: NoteCardAgentInventory Request in region: " + m_regionName);
-            //libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap)libsecondlife.StructuredData.LLSDParser.DeserializeBinary(Helpers.StringToField(request));
-            Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Helpers.StringToField(request));
+            //OpenMetaverse.StructuredData.LLSDMap hash = (OpenMetaverse.StructuredData.LLSDMap)OpenMetaverse.StructuredData.LLSDParser.DeserializeBinary(Utils.StringToBytes(request));
+            Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Utils.StringToBytes(request));
             LLSDItemUpdate llsdRequest = new LLSDItemUpdate();
             LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
 
@@ -636,9 +636,9 @@ namespace OpenSim.Framework.Communications.Capabilities
             string assetName = llsdRequest.name;
             string assetDes = llsdRequest.description;
             string capsBase = "/CAPS/" + m_capsObjectPath;
-            LLUUID newAsset = LLUUID.Random();
-            LLUUID newInvItem = LLUUID.Random();
-            LLUUID parentFolder = llsdRequest.folder_id;
+            UUID newAsset = UUID.Random();
+            UUID newInvItem = UUID.Random();
+            UUID parentFolder = llsdRequest.folder_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
             AssetUploader uploader =
@@ -662,8 +662,8 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <param name="assetID"></param>
         /// <param name="inventoryItem"></param>
         /// <param name="data"></param>
-        public void UploadCompleteHandler(string assetName, string assetDescription, LLUUID assetID,
-                                          LLUUID inventoryItem, LLUUID parentFolder, byte[] data, string inventoryType,
+        public void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
+                                          UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
                                           string assetType)
         {
             sbyte assType = 0;
@@ -728,14 +728,14 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <param name="itemID">Item to update</param>
         /// <param name="data">New asset data</param>
         /// <returns></returns>
-        public LLUUID ItemUpdated(LLUUID itemID, byte[] data)
+        public UUID ItemUpdated(UUID itemID, byte[] data)
         {
             if (ItemUpdatedCall != null)
             {
                 return ItemUpdatedCall(m_agentID, itemID, data);
             }
 
-            return LLUUID.Zero;
+            return UUID.Zero;
         }
 
         /// <summary>
@@ -745,7 +745,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <param name="primID">Prim containing item to update</param>
         /// <param name="isScriptRunning">Signals whether the script to update is currently running</param>
         /// <param name="data">New asset data</param>
-        public void TaskScriptUpdated(LLUUID itemID, LLUUID primID, bool isScriptRunning, byte[] data)
+        public void TaskScriptUpdated(UUID itemID, UUID primID, bool isScriptRunning, byte[] data)
         {
             if (TaskScriptUpdatedCall != null)
             {
@@ -759,9 +759,9 @@ namespace OpenSim.Framework.Communications.Capabilities
             private UpLoadedAsset handlerUpLoad = null;
 
             private string uploaderPath = String.Empty;
-            private LLUUID newAssetID;
-            private LLUUID inventoryItemID;
-            private LLUUID parentFolder;
+            private UUID newAssetID;
+            private UUID inventoryItemID;
+            private UUID parentFolder;
             private BaseHttpServer httpListener;
             private bool m_dumpAssetsToFile;
             private string m_assetName = String.Empty;
@@ -770,8 +770,8 @@ namespace OpenSim.Framework.Communications.Capabilities
             private string m_invType = String.Empty;
             private string m_assetType = String.Empty;
 
-            public AssetUploader(string assetName, string description, LLUUID assetID, LLUUID inventoryItem,
-                                 LLUUID parentFolderID, string invType, string assetType, string path,
+            public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
+                                 UUID parentFolderID, string invType, string assetType, string path,
                                  BaseHttpServer httpServer, bool dumpAssetsToFile)
             {
                 m_assetName = assetName;
@@ -795,7 +795,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             /// <returns></returns>
             public string uploaderCaps(byte[] data, string path, string param)
             {
-                LLUUID inv = inventoryItemID;
+                UUID inv = inventoryItemID;
                 string res = String.Empty;
                 LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
                 uploadComplete.new_asset = newAssetID.ToString();
@@ -860,11 +860,11 @@ namespace OpenSim.Framework.Communications.Capabilities
             private UpdateItem handlerUpdateItem = null;
 
             private string uploaderPath = String.Empty;
-            private LLUUID inventoryItemID;
+            private UUID inventoryItemID;
             private BaseHttpServer httpListener;
             private bool m_dumpAssetToFile;
 
-            public ItemUpdater(LLUUID inventoryItem, string path, BaseHttpServer httpServer, bool dumpAssetToFile)
+            public ItemUpdater(UUID inventoryItem, string path, BaseHttpServer httpServer, bool dumpAssetToFile)
             {
                 m_dumpAssetToFile = dumpAssetToFile;
 
@@ -882,10 +882,10 @@ namespace OpenSim.Framework.Communications.Capabilities
             /// <returns></returns>
             public string uploaderCaps(byte[] data, string path, string param)
             {
-                LLUUID inv = inventoryItemID;
+                UUID inv = inventoryItemID;
                 string res = String.Empty;
                 LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
-                LLUUID assetID = LLUUID.Zero;
+                UUID assetID = UUID.Zero;
                 handlerUpdateItem = OnUpLoad;
                 if (handlerUpdateItem != null)
                 {
@@ -942,13 +942,13 @@ namespace OpenSim.Framework.Communications.Capabilities
             private UpdateTaskScript handlerUpdateTaskScript = null;
 
             private string uploaderPath = String.Empty;
-            private LLUUID inventoryItemID;
-            private LLUUID primID;
+            private UUID inventoryItemID;
+            private UUID primID;
             private bool isScriptRunning;
             private BaseHttpServer httpListener;
             private bool m_dumpAssetToFile;
 
-            public TaskInventoryScriptUpdater(LLUUID inventoryItemID, LLUUID primID, int isScriptRunning,
+            public TaskInventoryScriptUpdater(UUID inventoryItemID, UUID primID, int isScriptRunning,
                                               string path, BaseHttpServer httpServer, bool dumpAssetToFile)
             {
                 m_dumpAssetToFile = dumpAssetToFile;

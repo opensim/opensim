@@ -27,13 +27,13 @@
 
 using System;
 using OpenSim.Framework;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IEstateModule : IRegionModule
     {
         uint GetRegionFlags();
-        bool IsManager(LLUUID avatarID);
+        bool IsManager(UUID avatarID);
     }
 }

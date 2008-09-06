@@ -30,8 +30,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Axiom.Math;
 using log4net;
+using OpenMetaverse;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
@@ -294,10 +294,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             setMass();
             d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
             d.Quaternion myrot = new d.Quaternion();
-            myrot.W = _orientation.w;
-            myrot.X = _orientation.x;
-            myrot.Y = _orientation.y;
-            myrot.Z = _orientation.z;
+            myrot.X = _orientation.X;
+            myrot.Y = _orientation.Y;
+            myrot.Z = _orientation.Z;
+            myrot.W = _orientation.W;
             d.BodySetQuaternion(Body, ref myrot);
             d.GeomSetBody(prim_geom, Body);
             m_collisionCategories |= CollisionCategories.Body;
@@ -1021,10 +1021,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                     d.Quaternion myrot = new d.Quaternion();
-                    myrot.W = _orientation.w;
-                    myrot.X = _orientation.x;
-                    myrot.Y = _orientation.y;
-                    myrot.Z = _orientation.z;
+                    myrot.X = _orientation.X;
+                    myrot.Y = _orientation.Y;
+                    myrot.Z = _orientation.Z;
+                    myrot.W = _orientation.W;
                     d.GeomSetQuaternion(prim_geom, ref myrot);
                 }
 
@@ -1220,10 +1220,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void rotate(float timestep)
         {
             d.Quaternion myrot = new d.Quaternion();
-            myrot.W = _orientation.w;
-            myrot.X = _orientation.x;
-            myrot.Y = _orientation.y;
-            myrot.Z = _orientation.z;
+            myrot.X = _orientation.X;
+            myrot.Y = _orientation.Y;
+            myrot.Z = _orientation.Z;
+            myrot.W = _orientation.W;
             d.GeomSetQuaternion(prim_geom, ref myrot);
             if (m_isphysical && Body != (IntPtr) 0)
             {
@@ -1339,10 +1339,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     setMesh(_parent_scene, mesh);
                     d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                     d.Quaternion myrot = new d.Quaternion();
-                    myrot.W = _orientation.w;
-                    myrot.X = _orientation.x;
-                    myrot.Y = _orientation.y;
-                    myrot.Z = _orientation.z;
+                    myrot.X = _orientation.X;
+                    myrot.Y = _orientation.Y;
+                    myrot.Z = _orientation.Z;
+                    myrot.W = _orientation.W;
                     d.GeomSetQuaternion(prim_geom, ref myrot);
 
                     //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
@@ -1388,10 +1388,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                     d.Quaternion myrot = new d.Quaternion();
-                    myrot.W = _orientation.w;
-                    myrot.X = _orientation.x;
-                    myrot.Y = _orientation.y;
-                    myrot.Z = _orientation.z;
+                    myrot.X = _orientation.X;
+                    myrot.Y = _orientation.Y;
+                    myrot.Z = _orientation.Z;
+                    myrot.W = _orientation.W;
                     d.GeomSetQuaternion(prim_geom, ref myrot);
                 }
             }
@@ -1452,9 +1452,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         //            d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
         //            d.Quaternion myrot = new d.Quaternion();
         //            myrot.W = _orientation.w;
-        //            myrot.X = _orientation.x;
-        //            myrot.Y = _orientation.y;
-        //            myrot.Z = _orientation.z;
+        //            myrot.X = _orientation.X;
+        //            myrot.Y = _orientation.Y;
+        //            myrot.Z = _orientation.Z;
         //            d.GeomSetQuaternion(prim_geom, ref myrot);
 
         //            //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
@@ -1512,9 +1512,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         //            d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
         //            d.Quaternion myrot = new d.Quaternion();
         //            myrot.W = _orientation.w;
-        //            myrot.X = _orientation.x;
-        //            myrot.Y = _orientation.y;
-        //            myrot.Z = _orientation.z;
+        //            myrot.X = _orientation.X;
+        //            myrot.Y = _orientation.Y;
+        //            myrot.Z = _orientation.Z;
         //            d.GeomSetQuaternion(prim_geom, ref myrot);
         //        }
         //    }
@@ -1553,9 +1553,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         //        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
         //        d.Quaternion myrot = new d.Quaternion();
         //        myrot.W = _orientation.w;
-        //        myrot.X = _orientation.x;
-        //        myrot.Y = _orientation.y;
-        //        myrot.Z = _orientation.z;
+        //        myrot.X = _orientation.X;
+        //        myrot.Y = _orientation.Y;
+        //        myrot.Z = _orientation.Z;
         //        d.GeomSetQuaternion(prim_geom, ref myrot);
 
         //        //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
@@ -1626,10 +1626,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     setMesh(_parent_scene, mesh);
                     d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                     d.Quaternion myrot = new d.Quaternion();
-                    myrot.W = _orientation.w;
-                    myrot.X = _orientation.x;
-                    myrot.Y = _orientation.y;
-                    myrot.Z = _orientation.z;
+                    myrot.X = _orientation.X;
+                    myrot.Y = _orientation.Y;
+                    myrot.Z = _orientation.Z;
+                    myrot.W = _orientation.W;
                     d.GeomSetQuaternion(prim_geom, ref myrot);
 
                     //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
@@ -1684,10 +1684,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //prim_geom = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                     d.Quaternion myrot = new d.Quaternion();
-                    myrot.W = _orientation.w;
-                    myrot.X = _orientation.x;
-                    myrot.Y = _orientation.y;
-                    myrot.Z = _orientation.z;
+                    myrot.X = _orientation.X;
+                    myrot.Y = _orientation.Y;
+                    myrot.Z = _orientation.Z;
+                    myrot.W = _orientation.W;
                     d.GeomSetQuaternion(prim_geom, ref myrot);
                 }
             }
@@ -1726,9 +1726,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             //    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
             //    d.Quaternion myrot = new d.Quaternion();
             //    myrot.W = _orientation.w;
-            //    myrot.X = _orientation.x;
-            //    myrot.Y = _orientation.y;
-            //    myrot.Z = _orientation.z;
+            //    myrot.X = _orientation.X;
+            //    myrot.Y = _orientation.Y;
+            //    myrot.Z = _orientation.Z;
             //    d.GeomSetQuaternion(prim_geom, ref myrot);
 
             //    //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
@@ -2106,9 +2106,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                         _acceleration.Z = 0;
 
                         //_orientation.w = 0f;
-                        //_orientation.x = 0f;
-                        //_orientation.y = 0f;
-                        //_orientation.z = 0f;
+                        //_orientation.X = 0f;
+                        //_orientation.Y = 0f;
+                        //_orientation.Z = 0f;
                         m_rotationalVelocity.X = 0;
                         m_rotationalVelocity.Y = 0;
                         m_rotationalVelocity.Z = 0;
@@ -2154,10 +2154,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
 
                         //System.Console.WriteLine("ODE: " + m_rotationalVelocity.ToString());
-                        _orientation.w = ori.W;
-                        _orientation.x = ori.X;
-                        _orientation.y = ori.Y;
-                        _orientation.z = ori.Z;
+                        _orientation.X = ori.X;
+                        _orientation.Y = ori.Y;
+                        _orientation.Z = ori.Z;
+                        _orientation.W = ori.W;
                         m_lastUpdateSent = false;
                         if (!m_throttleUpdates || throttleCounter > _parent_scene.geomUpdatesPerThrottledUpdate)
                         {

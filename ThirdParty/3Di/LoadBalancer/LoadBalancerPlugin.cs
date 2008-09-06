@@ -32,8 +32,8 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using log4net;
 using Mono.Addins;
 using Nwc.XmlRpc;
@@ -600,7 +600,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         {
             if (createID_flag)
             {
-                dst_region.RegionID = LLUUID.Random();
+                dst_region.RegionID = UUID.Random();
             }
 
             // change RegionInfo (memory only)
@@ -611,7 +611,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             simMain.CreateRegion(dst_region, false);
         }
 
-        private void RemoveRegion(LLUUID regionID, int port)
+        private void RemoveRegion(UUID regionID, int port)
         {
             Scene killScene;
             if (sceneManager.TryGetScene(regionID, out killScene))
@@ -834,9 +834,9 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             // this callback receives physic scene updates from the other sub-scenes (in split mode)
 
             int regionPort = (int) request.Params[0];
-            LLUUID scenePresenceID = new LLUUID((byte[]) request.Params[1], 0);
-            LLVector3 position = new LLVector3((byte[]) request.Params[2], 0);
-            LLVector3 velocity = new LLVector3((byte[]) request.Params[3], 0);
+            UUID scenePresenceID = new UUID((byte[]) request.Params[1], 0);
+            Vector3 position = new Vector3((byte[]) request.Params[2], 0);
+            Vector3 velocity = new Vector3((byte[]) request.Params[3], 0);
             bool flying = (bool) request.Params[4];
 
             LocalUpdatePhysics(regionPort, scenePresenceID, position, velocity, flying);
@@ -844,7 +844,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             return new XmlRpcResponse();
         }
 
-        private void LocalUpdatePhysics(int regionPort, LLUUID scenePresenceID, LLVector3 position, LLVector3 velocity, bool flying)
+        private void LocalUpdatePhysics(int regionPort, UUID scenePresenceID, Vector3 position, Vector3 velocity, bool flying)
         {
             //m_log.Info("[SPLITSCENE] "+String.Format("UpdatePhysics called {0}", regionID));
 
@@ -867,7 +867,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 }
 
 //                m_log.Info("[SPLITSCENE] "+"LocalUpdatePhysics [region:{0}, client:{1}]",
-//                                                                             regionID.ToString(), pre.UUID.ToString());
+//                                                                             regionID.ToString(), pre.ToString());
 
                 pre.AbsolutePosition = position; // will set PhysicsActor.Position
                 pre.Velocity = velocity; // will set PhysicsActor.Velocity
@@ -908,13 +908,13 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                             if (isLocalNeighbour[i])
                             {
                                 //m_log.Info("[SPLITSCENE] "+"Synchronize ScenePresence (Local) [region:{0}=>{1}, client:{2}]",
-                                //                                             scene.RegionInfo.RegionID, regionPortList[i], pre.UUID.ToString());
+                                //                                             scene.RegionInfo.RegionID, regionPortList[i], pre.ToString());
                                 LocalUpdatePhysics(regionPortList[i], pre.UUID, pre.AbsolutePosition, pre.Velocity, pre.PhysicsActor.Flying);
                             }
                             else
                             {
                                 //m_log.Info("[SPLITSCENE] "+"Synchronize ScenePresence (Remote) [region port:{0}, client:{1}, position:{2}, velocity:{3}, flying:{4}]",
-                                //                                   regionPortList[i], pre.UUID.ToString(), pre.AbsolutePosition.ToString(),
+                                //                                   regionPortList[i], pre.ToString(), pre.AbsolutePosition.ToString(),
                                 //                                   pre.Velocity.ToString(), pre.PhysicsActor.Flying);
 
 
@@ -936,7 +936,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
   header.type = 1;
   header.throttlePacketType = 0;
   header.numbytes = buff.Length;
-  header.agent_id = pre.UUID.UUID;
+  header.agent_id = pre.UUID.Guid;
   header.region_port = regionPortList[i];
 
   //Send
@@ -950,7 +950,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
         }
 
-        public bool SynchronizePackets(IScene scene, Packet packet, LLUUID agentID, ThrottleOutPacketType throttlePacketType)
+        public bool SynchronizePackets(IScene scene, Packet packet, UUID agentID, ThrottleOutPacketType throttlePacketType)
         {
             if (!isSplit)
             {
@@ -985,7 +985,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     header.type = 0;
                     header.throttlePacketType = (int) throttlePacketType;
                     header.numbytes = buff.Length;
-                    header.agent_id = agentID.UUID;
+                    header.agent_id = agentID.Guid;
                     header.region_port = regionPortList[i];
 
                     //Send
@@ -998,7 +998,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             return true;
         }
 
-        private void LocalUpdatePacket(int regionPort, LLUUID agentID, Packet packet, ThrottleOutPacketType throttlePacketType)
+        private void LocalUpdatePacket(int regionPort, UUID agentID, Packet packet, ThrottleOutPacketType throttlePacketType)
         {
             Scene scene;
 
@@ -1060,7 +1060,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
                         Packet packet = PacketPool.Instance.GetPacket(buff, ref packetEnd, zero);
 
-                        LocalUpdatePacket(header.region_port, new LLUUID(header.agent_id),
+                        LocalUpdatePacket(header.region_port, new UUID(header.agent_id),
                                           packet, (ThrottleOutPacketType) header.throttlePacketType);
                     }
                     catch (Exception e)
@@ -1074,9 +1074,9 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 case 1:
 
                     int regionPort = header.region_port;
-                    LLUUID scenePresenceID = new LLUUID(header.agent_id);
-                    LLVector3 position = new LLVector3(buff, 0);
-                    LLVector3 velocity = new LLVector3(buff, 12);
+                    UUID scenePresenceID = new UUID(header.agent_id);
+                    Vector3 position = new Vector3(buff, 0);
+                    Vector3 velocity = new Vector3(buff, 12);
                     bool flying = ((buff[24] == 1) ? true : false);
 
                     LocalUpdatePhysics(regionPort, scenePresenceID, position, velocity, flying);

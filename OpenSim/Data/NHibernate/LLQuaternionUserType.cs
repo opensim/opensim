@@ -27,7 +27,7 @@
 
 using System;
 using System.Data;
-using libsecondlife;
+using OpenMetaverse;
 using NHibernate;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
@@ -35,7 +35,7 @@ using NHibernate.UserTypes;
 namespace OpenSim.Data.NHibernate
 {
     [Serializable]
-    public class LLQuaternionUserType: IUserType
+    public class QuaternionUserType: IUserType
     {
         public object Assemble(object cached, object owner)
         {
@@ -49,9 +49,8 @@ namespace OpenSim.Data.NHibernate
 
         public object DeepCopy(object quat)
         {
-            // silly libsecondlife having no copy constructor
-            LLQuaternion q = (LLQuaternion) quat;
-            return new LLQuaternion(q.X, q.Y, q.Z, q.W);
+            Quaternion q = (Quaternion)quat;
+            return new Quaternion(q);
         }
 
         public object Disassemble(object quat)
@@ -79,14 +78,14 @@ namespace OpenSim.Data.NHibernate
             int w = rs.GetOrdinal(names[3]);
             if (!rs.IsDBNull(x))
             {
-                quat = new LLQuaternion((Single)rs[x], (Single)rs[y], (Single)rs[z], (Single)rs[w]);
+                quat = new Quaternion((Single)rs[x], (Single)rs[y], (Single)rs[z], (Single)rs[w]);
             }
             return quat;
         }
 
         public void NullSafeSet(IDbCommand cmd, object obj, int index)
         {
-            LLQuaternion quat = (LLQuaternion)obj;
+            Quaternion quat = (Quaternion)obj;
             ((IDataParameter)cmd.Parameters[index]).Value = quat.X;
             ((IDataParameter)cmd.Parameters[index + 1]).Value = quat.Y;
             ((IDataParameter)cmd.Parameters[index + 2]).Value = quat.Z;
@@ -100,7 +99,7 @@ namespace OpenSim.Data.NHibernate
 
         public Type ReturnedType
         {
-            get { return typeof(LLQuaternion); }
+            get { return typeof(Quaternion); }
         }
 
         public SqlType[] SqlTypes

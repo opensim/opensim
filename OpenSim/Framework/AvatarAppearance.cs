@@ -30,8 +30,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 
 namespace OpenSim.Framework
@@ -58,20 +58,20 @@ namespace OpenSim.Framework
 
         private readonly static int MAX_WEARABLES = 13;
 
-        private static LLUUID BODY_ASSET = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-        private static LLUUID BODY_ITEM = new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9");
-        private static LLUUID SKIN_ASSET = new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb");
-        private static LLUUID SKIN_ITEM = new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9");
-        private static LLUUID SHIRT_ASSET = new LLUUID("00000000-38f9-1111-024e-222222111110");
-        private static LLUUID SHIRT_ITEM = new LLUUID("77c41e39-38f9-f75a-0000-585989bf0000");
-        private static LLUUID PANTS_ASSET = new LLUUID("00000000-38f9-1111-024e-222222111120");
-        private static LLUUID PANTS_ITEM = new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111");
+        private static UUID BODY_ASSET = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
+        private static UUID BODY_ITEM = new UUID("66c41e39-38f9-f75a-024e-585989bfaba9");
+        private static UUID SKIN_ASSET = new UUID("77c41e39-38f9-f75a-024e-585989bbabbb");
+        private static UUID SKIN_ITEM = new UUID("77c41e39-38f9-f75a-024e-585989bfabc9");
+        private static UUID SHIRT_ASSET = new UUID("00000000-38f9-1111-024e-222222111110");
+        private static UUID SHIRT_ITEM = new UUID("77c41e39-38f9-f75a-0000-585989bf0000");
+        private static UUID PANTS_ASSET = new UUID("00000000-38f9-1111-024e-222222111120");
+        private static UUID PANTS_ITEM = new UUID("77c41e39-38f9-f75a-0000-5859892f1111");
 
         public readonly static int VISUALPARAM_COUNT = 218;
 
-        protected LLUUID m_owner;
+        protected UUID m_owner;
 
-        public virtual LLUUID Owner
+        public virtual UUID Owner
         {
             get { return m_owner; }
             set { m_owner = value; }
@@ -100,107 +100,107 @@ namespace OpenSim.Framework
             set { m_wearables = value; }
         }
 
-        public virtual LLUUID BodyItem {
+        public virtual UUID BodyItem {
             get { return m_wearables[BODY].ItemID; }
             set { m_wearables[BODY].ItemID = value; }
         }
-        public virtual LLUUID BodyAsset {
+        public virtual UUID BodyAsset {
             get { return m_wearables[BODY].AssetID; }
             set { m_wearables[BODY].AssetID = value; }
         }
-        public virtual LLUUID SkinItem {
+        public virtual UUID SkinItem {
             get { return m_wearables[SKIN].ItemID; }
             set { m_wearables[SKIN].ItemID = value; }
         }
-        public virtual LLUUID SkinAsset {
+        public virtual UUID SkinAsset {
             get { return m_wearables[SKIN].AssetID; }
             set { m_wearables[SKIN].AssetID = value; }
         }
-        public virtual LLUUID HairItem {
+        public virtual UUID HairItem {
             get { return m_wearables[HAIR].ItemID; }
             set { m_wearables[HAIR].ItemID = value; }
         }
-        public virtual LLUUID HairAsset {
+        public virtual UUID HairAsset {
             get { return m_wearables[HAIR].AssetID; }
             set { m_wearables[HAIR].AssetID = value; }
         }
-        public virtual LLUUID EyesItem {
+        public virtual UUID EyesItem {
             get { return m_wearables[EYES].ItemID; }
             set { m_wearables[EYES].ItemID = value; }
         }
-        public virtual LLUUID EyesAsset {
+        public virtual UUID EyesAsset {
             get { return m_wearables[EYES].AssetID; }
             set { m_wearables[EYES].AssetID = value; }
         }
-        public virtual LLUUID ShirtItem {
+        public virtual UUID ShirtItem {
             get { return m_wearables[SHIRT].ItemID; }
             set { m_wearables[SHIRT].ItemID = value; }
         }
-        public virtual LLUUID ShirtAsset {
+        public virtual UUID ShirtAsset {
             get { return m_wearables[SHIRT].AssetID; }
             set { m_wearables[SHIRT].AssetID = value; }
         }
-        public virtual LLUUID PantsItem {
+        public virtual UUID PantsItem {
             get { return m_wearables[PANTS].ItemID; }
             set { m_wearables[PANTS].ItemID = value; }
         }
-        public virtual LLUUID PantsAsset {
+        public virtual UUID PantsAsset {
             get { return m_wearables[PANTS].AssetID; }
             set { m_wearables[PANTS].AssetID = value; }
         }
-        public virtual LLUUID ShoesItem {
+        public virtual UUID ShoesItem {
             get { return m_wearables[SHOES].ItemID; }
             set { m_wearables[SHOES].ItemID = value; }
         }
-        public virtual LLUUID ShoesAsset {
+        public virtual UUID ShoesAsset {
             get { return m_wearables[SHOES].AssetID; }
             set { m_wearables[SHOES].AssetID = value; }
         }
-        public virtual LLUUID SocksItem {
+        public virtual UUID SocksItem {
             get { return m_wearables[SOCKS].ItemID; }
             set { m_wearables[SOCKS].ItemID = value; }
         }
-        public virtual LLUUID SocksAsset {
+        public virtual UUID SocksAsset {
             get { return m_wearables[SOCKS].AssetID; }
             set { m_wearables[SOCKS].AssetID = value; }
         }
-        public virtual LLUUID JacketItem {
+        public virtual UUID JacketItem {
             get { return m_wearables[JACKET].ItemID; }
             set { m_wearables[JACKET].ItemID = value; }
         }
-        public virtual LLUUID JacketAsset {
+        public virtual UUID JacketAsset {
             get { return m_wearables[JACKET].AssetID; }
             set { m_wearables[JACKET].AssetID = value; }
         }
-        public virtual LLUUID GlovesItem {
+        public virtual UUID GlovesItem {
             get { return m_wearables[GLOVES].ItemID; }
             set { m_wearables[GLOVES].ItemID = value; }
         }
-        public virtual LLUUID GlovesAsset {
+        public virtual UUID GlovesAsset {
             get { return m_wearables[GLOVES].AssetID; }
             set { m_wearables[GLOVES].AssetID = value; }
         }
-        public virtual LLUUID UnderShirtItem {
+        public virtual UUID UnderShirtItem {
             get { return m_wearables[UNDERSHIRT].ItemID; }
             set { m_wearables[UNDERSHIRT].ItemID = value; }
         }
-        public virtual LLUUID UnderShirtAsset {
+        public virtual UUID UnderShirtAsset {
             get { return m_wearables[UNDERSHIRT].AssetID; }
             set { m_wearables[UNDERSHIRT].AssetID = value; }
         }
-        public virtual LLUUID UnderPantsItem {
+        public virtual UUID UnderPantsItem {
             get { return m_wearables[UNDERPANTS].ItemID; }
             set { m_wearables[UNDERPANTS].ItemID = value; }
         }
-        public virtual LLUUID UnderPantsAsset {
+        public virtual UUID UnderPantsAsset {
             get { return m_wearables[UNDERPANTS].AssetID; }
             set { m_wearables[UNDERPANTS].AssetID = value; }
         }
-        public virtual LLUUID SkirtItem {
+        public virtual UUID SkirtItem {
             get { return m_wearables[SKIRT].ItemID; }
             set { m_wearables[SKIRT].ItemID = value; }
         }
-        public virtual LLUUID SkirtAsset {
+        public virtual UUID SkirtAsset {
             get { return m_wearables[SKIRT].AssetID; }
             set { m_wearables[SKIRT].AssetID = value; }
         }
@@ -217,9 +217,9 @@ namespace OpenSim.Framework
             m_wearables[PANTS].ItemID = PANTS_ITEM;
         }
 
-        protected LLObject.TextureEntry m_texture;
+        protected Primitive.TextureEntry m_texture;
 
-        public virtual LLObject.TextureEntry Texture
+        public virtual Primitive.TextureEntry Texture
         {
             get { return m_texture; }
             set { m_texture = value; }
@@ -242,13 +242,13 @@ namespace OpenSim.Framework
                 m_wearables[i] = new AvatarWearable();
             }
             m_serial = 0;
-            m_owner = LLUUID.Zero;
+            m_owner = UUID.Zero;
             m_visualparams = new byte[VISUALPARAM_COUNT];
             SetDefaultWearables();
             m_texture = GetDefaultTexture();
         }
 
-        public AvatarAppearance(LLUUID avatarID, AvatarWearable[] wearables, byte[] visualParams)
+        public AvatarAppearance(UUID avatarID, AvatarWearable[] wearables, byte[] visualParams)
         {
             m_owner = avatarID;
             m_serial = 1;
@@ -264,7 +264,7 @@ namespace OpenSim.Framework
         /// <param name="visualParam"></param>
         public virtual void SetAppearance(byte[] texture, List<byte> visualParam)
         {
-            LLObject.TextureEntry textureEnt = new LLObject.TextureEntry(texture, 0, texture.Length);
+            Primitive.TextureEntry textureEnt = new Primitive.TextureEntry(texture, 0, texture.Length);
             m_texture = textureEnt;
 
             m_visualparams = visualParam.ToArray();
@@ -281,16 +281,16 @@ namespace OpenSim.Framework
             m_wearables[wearableId] = wearable;
         }
 
-        public static LLObject.TextureEntry GetDefaultTexture()
+        public static Primitive.TextureEntry GetDefaultTexture()
         {
-            LLObject.TextureEntry textu = new LLObject.TextureEntry(new LLUUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
-            textu.CreateFace(0).TextureID = new LLUUID("00000000-0000-1111-9999-000000000012");
-            textu.CreateFace(1).TextureID = new LLUUID("5748decc-f629-461c-9a36-a35a221fe21f");
-            textu.CreateFace(2).TextureID = new LLUUID("5748decc-f629-461c-9a36-a35a221fe21f");
-            textu.CreateFace(3).TextureID = new LLUUID("6522E74D-1660-4E7F-B601-6F48C1659A77");
-            textu.CreateFace(4).TextureID = new LLUUID("7CA39B4C-BD19-4699-AFF7-F93FD03D3E7B");
-            textu.CreateFace(5).TextureID = new LLUUID("00000000-0000-1111-9999-000000000010");
-            textu.CreateFace(6).TextureID = new LLUUID("00000000-0000-1111-9999-000000000011");
+            Primitive.TextureEntry textu = new Primitive.TextureEntry(new UUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
+            textu.CreateFace(0).TextureID = new UUID("00000000-0000-1111-9999-000000000012");
+            textu.CreateFace(1).TextureID = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
+            textu.CreateFace(2).TextureID = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
+            textu.CreateFace(3).TextureID = new UUID("6522E74D-1660-4E7F-B601-6F48C1659A77");
+            textu.CreateFace(4).TextureID = new UUID("7CA39B4C-BD19-4699-AFF7-F93FD03D3E7B");
+            textu.CreateFace(5).TextureID = new UUID("00000000-0000-1111-9999-000000000010");
+            textu.CreateFace(6).TextureID = new UUID("00000000-0000-1111-9999-000000000011");
             return textu;
         }
 
@@ -313,13 +313,13 @@ namespace OpenSim.Framework
                 throw new ArgumentNullException("info");
             }
 
-            m_owner = new LLUUID((Guid)info.GetValue("m_scenePresenceID", typeof(Guid)));
+            m_owner = new UUID((Guid)info.GetValue("m_scenePresenceID", typeof(Guid)));
             m_serial = (int)info.GetValue("m_wearablesSerial", typeof(int));
             m_visualparams = (byte[])info.GetValue("m_visualParams", typeof(byte[]));
             m_wearables = (AvatarWearable[])info.GetValue("m_wearables", typeof(AvatarWearable[]));
 
             byte[] m_textureEntry_work = (byte[])info.GetValue("m_textureEntry", typeof(byte[]));
-            m_texture = new LLObject.TextureEntry(m_textureEntry_work, 0, m_textureEntry_work.Length);
+            m_texture = new Primitive.TextureEntry(m_textureEntry_work, 0, m_textureEntry_work.Length);
 
             m_avatarHeight = (float)info.GetValue("m_avatarHeight", typeof(float));
 
@@ -371,10 +371,10 @@ namespace OpenSim.Framework
 
         public AvatarAppearance(Hashtable h)
         {
-            Owner = new LLUUID((string)h["owner"]);
+            Owner = new UUID((string)h["owner"]);
             Serial = Convert.ToInt32((string)h["serial"]);
             VisualParams = (byte[])h["visual_params"];
-            Texture = new LLObject.TextureEntry((byte[])h["texture"], 0, ((byte[])h["texture"]).Length);
+            Texture = new Primitive.TextureEntry((byte[])h["texture"], 0, ((byte[])h["texture"]).Length);
             AvatarHeight = (float)Convert.ToDouble((string)h["avatar_height"]);
 
             m_wearables = new AvatarWearable[MAX_WEARABLES];
@@ -384,32 +384,32 @@ namespace OpenSim.Framework
                 m_wearables[i] = new AvatarWearable();
             }
 
-            BodyItem = new LLUUID((string)h["body_item"]);
-            BodyAsset = new LLUUID((string)h["body_asset"]);
-            SkinItem = new LLUUID((string)h["skin_item"]);
-            SkinAsset = new LLUUID((string)h["skin_asset"]);
-            HairItem = new LLUUID((string)h["hair_item"]);
-            HairAsset = new LLUUID((string)h["hair_asset"]);
-            EyesItem = new LLUUID((string)h["eyes_item"]);
-            EyesAsset = new LLUUID((string)h["eyes_asset"]);
-            ShirtItem = new LLUUID((string)h["shirt_item"]);
-            ShirtAsset = new LLUUID((string)h["shirt_asset"]);
-            PantsItem = new LLUUID((string)h["pants_item"]);
-            PantsAsset = new LLUUID((string)h["pants_asset"]);
-            ShoesItem = new LLUUID((string)h["shoes_item"]);
-            ShoesAsset = new LLUUID((string)h["shoes_asset"]);
-            SocksItem = new LLUUID((string)h["socks_item"]);
-            SocksAsset = new LLUUID((string)h["socks_asset"]);
-            JacketItem = new LLUUID((string)h["jacket_item"]);
-            JacketAsset = new LLUUID((string)h["jacket_asset"]);
-            GlovesItem = new LLUUID((string)h["gloves_item"]);
-            GlovesAsset = new LLUUID((string)h["gloves_asset"]);
-            UnderShirtItem = new LLUUID((string)h["undershirt_item"]);
-            UnderShirtAsset = new LLUUID((string)h["undershirt_asset"]);
-            UnderPantsItem = new LLUUID((string)h["underpants_item"]);
-            UnderPantsAsset = new LLUUID((string)h["underpants_asset"]);
-            SkirtItem = new LLUUID((string)h["skirt_item"]);
-            SkirtAsset = new LLUUID((string)h["skirt_asset"]);
+            BodyItem = new UUID((string)h["body_item"]);
+            BodyAsset = new UUID((string)h["body_asset"]);
+            SkinItem = new UUID((string)h["skin_item"]);
+            SkinAsset = new UUID((string)h["skin_asset"]);
+            HairItem = new UUID((string)h["hair_item"]);
+            HairAsset = new UUID((string)h["hair_asset"]);
+            EyesItem = new UUID((string)h["eyes_item"]);
+            EyesAsset = new UUID((string)h["eyes_asset"]);
+            ShirtItem = new UUID((string)h["shirt_item"]);
+            ShirtAsset = new UUID((string)h["shirt_asset"]);
+            PantsItem = new UUID((string)h["pants_item"]);
+            PantsAsset = new UUID((string)h["pants_asset"]);
+            ShoesItem = new UUID((string)h["shoes_item"]);
+            ShoesAsset = new UUID((string)h["shoes_asset"]);
+            SocksItem = new UUID((string)h["socks_item"]);
+            SocksAsset = new UUID((string)h["socks_asset"]);
+            JacketItem = new UUID((string)h["jacket_item"]);
+            JacketAsset = new UUID((string)h["jacket_asset"]);
+            GlovesItem = new UUID((string)h["gloves_item"]);
+            GlovesAsset = new UUID((string)h["gloves_asset"]);
+            UnderShirtItem = new UUID((string)h["undershirt_item"]);
+            UnderShirtAsset = new UUID((string)h["undershirt_asset"]);
+            UnderPantsItem = new UUID((string)h["underpants_item"]);
+            UnderPantsAsset = new UUID((string)h["underpants_asset"]);
+            SkirtItem = new UUID((string)h["skirt_item"]);
+            SkirtAsset = new UUID((string)h["skirt_asset"]);
 
             if (h.ContainsKey("attachments"))
             {
@@ -427,7 +427,7 @@ namespace OpenSim.Framework
                 throw new ArgumentNullException("info");
             }
 
-            info.AddValue("m_scenePresenceID", m_owner.UUID);
+            info.AddValue("m_scenePresenceID", m_owner.Guid);
             info.AddValue("m_wearablesSerial", m_serial);
             info.AddValue("m_visualParams", m_visualparams);
             info.AddValue("m_wearables", m_wearables);
@@ -435,7 +435,7 @@ namespace OpenSim.Framework
             info.AddValue("m_avatarHeight", m_avatarHeight);
         }
 
-        private Dictionary<int, LLUUID[]> m_attachments = new Dictionary<int, LLUUID[]>();
+        private Dictionary<int, UUID[]> m_attachments = new Dictionary<int, UUID[]>();
 
         public void SetAttachments(Hashtable data)
         {
@@ -451,14 +451,14 @@ namespace OpenSim.Framework
                 if (m_attachments.ContainsKey(attachpoint))
                     continue;
 
-                LLUUID item;
-                LLUUID asset;
+                UUID item;
+                UUID asset;
 
                 Hashtable uuids = (Hashtable) e.Value;
-                LLUUID.TryParse(uuids["item"].ToString(), out item);
-                LLUUID.TryParse(uuids["asset"].ToString(), out asset);
+                UUID.TryParse(uuids["item"].ToString(), out item);
+                UUID.TryParse(uuids["asset"].ToString(), out asset);
 
-                LLUUID[] attachment = new LLUUID[2];
+                UUID[] attachment = new UUID[2];
                 attachment[0] = item;
                 attachment[1] = asset;
 
@@ -473,10 +473,10 @@ namespace OpenSim.Framework
 
             Hashtable ret = new Hashtable();
 
-            foreach (KeyValuePair<int, LLUUID[]> kvp in m_attachments)
+            foreach (KeyValuePair<int, UUID[]> kvp in m_attachments)
             {
                 int attachpoint = kvp.Key;
-                LLUUID[] uuids = kvp.Value;
+                UUID[] uuids = kvp.Value;
 
                 Hashtable data = new Hashtable();
                 data["item"] = uuids[0].ToString();
@@ -493,28 +493,28 @@ namespace OpenSim.Framework
             return new List<int>(m_attachments.Keys);
         }
 
-        public LLUUID GetAttachedItem(int attachpoint)
+        public UUID GetAttachedItem(int attachpoint)
         {
             if (!m_attachments.ContainsKey(attachpoint))
-                return LLUUID.Zero;
+                return UUID.Zero;
 
             return m_attachments[attachpoint][0];
         }
 
-        public LLUUID GetAttachedAsset(int attachpoint)
+        public UUID GetAttachedAsset(int attachpoint)
         {
             if (!m_attachments.ContainsKey(attachpoint))
-                return LLUUID.Zero;
+                return UUID.Zero;
 
             return m_attachments[attachpoint][1];
         }
 
-        public void SetAttachment(int attachpoint, LLUUID item, LLUUID asset)
+        public void SetAttachment(int attachpoint, UUID item, UUID asset)
         {
             if (attachpoint == 0)
                 return;
 
-            if (item == LLUUID.Zero)
+            if (item == UUID.Zero)
             {
                 if (m_attachments.ContainsKey(attachpoint))
                     m_attachments.Remove(attachpoint);
@@ -522,15 +522,15 @@ namespace OpenSim.Framework
             }
 
             if (!m_attachments.ContainsKey(attachpoint))
-                m_attachments[attachpoint] = new LLUUID[2];
+                m_attachments[attachpoint] = new UUID[2];
 
             m_attachments[attachpoint][0] = item;
             m_attachments[attachpoint][1] = asset;
         }
 
-        public int GetAttachpoint(LLUUID itemID)
+        public int GetAttachpoint(UUID itemID)
         {
-            foreach (KeyValuePair<int, LLUUID[]> kvp in m_attachments)
+            foreach (KeyValuePair<int, UUID[]> kvp in m_attachments)
             {
                 if (kvp.Value[0] == itemID)
                 {
@@ -540,7 +540,7 @@ namespace OpenSim.Framework
             return 0;
         }
 
-        public void DetachAttachment(LLUUID itemID)
+        public void DetachAttachment(UUID itemID)
         {
             int attachpoint = GetAttachpoint(itemID);
 
@@ -552,7 +552,7 @@ namespace OpenSim.Framework
         {
             List<string> strings = new List<string>();
 
-            foreach (KeyValuePair<int, LLUUID[]> e in m_attachments)
+            foreach (KeyValuePair<int, UUID[]> e in m_attachments)
             {
                 strings.Add(e.Key.ToString());
                 strings.Add(e.Value[0].ToString());
@@ -572,13 +572,13 @@ namespace OpenSim.Framework
             while (strings.Length - i > 2)
             {
                 int attachpoint = Int32.Parse(strings[i]);
-                LLUUID item = new LLUUID(strings[i+1]);
-                LLUUID asset = new LLUUID(strings[i+2]);
+                UUID item = new UUID(strings[i+1]);
+                UUID asset = new UUID(strings[i+2]);
                 i += 3;
 
                 if (!m_attachments.ContainsKey(attachpoint))
                 {
-                    m_attachments[attachpoint] = new LLUUID[2];
+                    m_attachments[attachpoint] = new UUID[2];
                     m_attachments[attachpoint][0] = item;
                     m_attachments[attachpoint][1] = asset;
                 }

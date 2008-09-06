@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 
 namespace OpenSim.Framework
@@ -69,7 +69,7 @@ namespace OpenSim.Framework
         protected uint? m_regionLocX;
         protected uint? m_regionLocY;
         protected uint m_remotingPort;
-        public LLUUID RegionID = LLUUID.Zero;
+        public UUID RegionID = UUID.Zero;
         public string RemotingAddress;
 
         public SimpleRegionInfo()
@@ -105,7 +105,7 @@ namespace OpenSim.Framework
             m_httpPort = ConvertFrom.HttpPort;
             m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
-            RegionID = LLUUID.Zero;
+            RegionID = UUID.Zero;
             ServerURI = ConvertFrom.ServerURI;
         }
 
@@ -202,16 +202,16 @@ namespace OpenSim.Framework
 
 //        public bool m_allow_alternate_ports;
 
-        public LLUUID MasterAvatarAssignedUUID = LLUUID.Zero;
+        public UUID MasterAvatarAssignedUUID = UUID.Zero;
         public string MasterAvatarFirstName = String.Empty;
         public string MasterAvatarLastName = String.Empty;
         public string MasterAvatarSandboxPassword = String.Empty;
-        public LLUUID originRegionID = LLUUID.Zero;
+        public UUID originRegionID = UUID.Zero;
         public string proxyUrl = "";
         public string RegionName = String.Empty;
-        public string regionSecret = LLUUID.Random().ToString();
+        public string regionSecret = UUID.Random().ToString();
 
-        public LLUUID lastMapUUID = LLUUID.Zero;
+        public UUID lastMapUUID = UUID.Zero;
         public string lastMapRefresh = "0";
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
@@ -248,7 +248,7 @@ namespace OpenSim.Framework
             m_remotingPort = ConvertFrom.RemotingPort;
             m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
-            RegionID = LLUUID.Zero;
+            RegionID = UUID.Zero;
             proxyUrl = ConvertFrom.ProxyUrl;
             originRegionID = ConvertFrom.OriginRegionID;
             RegionName = ConvertFrom.RegionName;
@@ -264,7 +264,7 @@ namespace OpenSim.Framework
             m_remotingPort = ConvertFrom.RemotingPort;
             m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
-            RegionID = LLUUID.Zero;
+            RegionID = UUID.Zero;
             ServerURI = ConvertFrom.ServerURI;
         }
 
@@ -315,7 +315,7 @@ namespace OpenSim.Framework
         public void LoadFromNiniSource(IConfigSource source, string sectionName)
         {
             string errorMessage = String.Empty;
-            RegionID = new LLUUID(source.Configs[sectionName].GetString("Region_ID", LLUUID.Random().ToString()));
+            RegionID = new UUID(source.Configs[sectionName].GetString("Region_ID", UUID.Random().ToString()));
             RegionName = source.Configs[sectionName].GetString("sim_name", "OpenSim Test");
             m_regionLocX = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_x", "1000"));
             m_regionLocY = Convert.ToUInt32(source.Configs[sectionName].GetString("sim_location_y", "1000"));
@@ -368,7 +368,7 @@ namespace OpenSim.Framework
 
         public void loadConfigurationOptionsFromMe()
         {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID_NULL_FREE,
+            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_UUID_NULL_FREE,
                                                 "UUID of Region (Default is recommended, random UUID)",
                                                 RegionID.ToString(), true);
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
@@ -393,7 +393,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("external_host_name",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "External Host Name", m_externalHostName, true);
-            configMember.addConfigurationOption("master_avatar_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+            configMember.addConfigurationOption("master_avatar_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                                 "Master Avatar UUID", MasterAvatarAssignedUUID.ToString(), true);
             configMember.addConfigurationOption("master_avatar_first",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
@@ -404,7 +404,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "(Sandbox Mode Only)Password for Master Avatar account",
                                                 MasterAvatarSandboxPassword, true);
-            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                                 "Last Map UUID", lastMapUUID.ToString(), true);
             configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
@@ -413,9 +413,9 @@ namespace OpenSim.Framework
 
         public void loadConfigurationOptions()
         {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                                 "UUID of Region (Default is recommended, random UUID)",
-                                                LLUUID.Random().ToString(), true);
+                                                UUID.Random().ToString(), true);
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Region Name", "OpenSim Test", false);
             configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
@@ -436,8 +436,8 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("external_host_name",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "External Host Name", "127.0.0.1", false);
-            configMember.addConfigurationOption("master_avatar_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                "Master Avatar UUID", LLUUID.Zero.ToString(), true);
+            configMember.addConfigurationOption("master_avatar_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+                                                "Master Avatar UUID", UUID.Zero.ToString(), true);
             configMember.addConfigurationOption("master_avatar_first",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "First Name of Master Avatar", "Test", false,
@@ -452,7 +452,7 @@ namespace OpenSim.Framework
                                                 "(Sandbox Mode Only)Password for Master Avatar account", "test", false,
                                                 (ConfigurationOption.ConfigurationOptionShouldBeAsked)
                                                 shouldMasterAvatarDetailsBeAsked);
-            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                     "Last Map UUID", lastMapUUID.ToString(), true);
 
             configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
@@ -461,7 +461,7 @@ namespace OpenSim.Framework
 
         public bool shouldMasterAvatarDetailsBeAsked(string configuration_key)
         {
-            return MasterAvatarAssignedUUID == LLUUID.Zero;
+            return MasterAvatarAssignedUUID == UUID.Zero;
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -469,8 +469,8 @@ namespace OpenSim.Framework
             switch (configuration_key)
             {
                 case "sim_UUID":
-                    RegionID = (LLUUID) configuration_result;
-                    originRegionID = (LLUUID) configuration_result;
+                    RegionID = (UUID) configuration_result;
+                    originRegionID = (UUID) configuration_result;
                     break;
                 case "sim_name":
                     RegionName = (string) configuration_result;
@@ -505,7 +505,7 @@ namespace OpenSim.Framework
                     }
                     break;
                 case "master_avatar_uuid":
-                    MasterAvatarAssignedUUID = (LLUUID) configuration_result;
+                    MasterAvatarAssignedUUID = (UUID) configuration_result;
                     break;
                 case "master_avatar_first":
                     MasterAvatarFirstName = (string) configuration_result;
@@ -518,7 +518,7 @@ namespace OpenSim.Framework
                     MasterAvatarSandboxPassword = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
                     break;
                 case "lastmap_uuid":
-                    lastMapUUID = (LLUUID)configuration_result;
+                    lastMapUUID = (UUID)configuration_result;
                     break;
                 case "lastmap_refresh":
                     lastMapRefresh = (string)configuration_result;
@@ -528,7 +528,7 @@ namespace OpenSim.Framework
             return true;
         }
 
-        public void SaveLastMapUUID(LLUUID mapUUID)
+        public void SaveLastMapUUID(UUID mapUUID)
         {
             if (null == configMember) return;
 

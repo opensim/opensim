@@ -63,7 +63,7 @@ namespace OpenSim.Data.MySQL
             }
             else
             {
-                m_log.Warn("Using deprecated mysql_connection.ini.  Please update database_connect in GridServer_Config.xml and we'll use that instead");
+                m_log.Warn("Using deprecated mysql_connection.ini.  Please update database_connect in GridServer_Config.Xml and we'll use that instead");
 
                 IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
                 string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");

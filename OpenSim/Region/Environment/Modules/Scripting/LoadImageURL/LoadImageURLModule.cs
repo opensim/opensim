@@ -29,9 +29,9 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Net;
-using libsecondlife;
+using OpenMetaverse;
+using OpenMetaverse.Imaging;
 using Nini.Config;
-using OpenJPEGNet;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -70,13 +70,13 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
             return null;
         }
 
-        public bool AsyncConvertUrl(LLUUID id, string url, string extraParams)
+        public bool AsyncConvertUrl(UUID id, string url, string extraParams)
         {
             MakeHttpRequest(url, id);
             return true;
         }
 
-        public bool AsyncConvertData(LLUUID id, string bodyData, string extraParams)
+        public bool AsyncConvertData(UUID id, string bodyData, string extraParams)
         {
             return false;
         }
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
 
         #endregion
 
-        private void MakeHttpRequest(string url, LLUUID requestID)
+        private void MakeHttpRequest(string url, UUID requestID)
         {
             WebRequest request = HttpWebRequest.Create(url);
             RequestState state = new RequestState((HttpWebRequest) request, requestID);
@@ -177,10 +177,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
         public class RequestState
         {
             public HttpWebRequest Request = null;
-            public LLUUID RequestID = LLUUID.Zero;
+            public UUID RequestID = UUID.Zero;
             public int TimeOfRequest = 0;
 
-            public RequestState(HttpWebRequest request, LLUUID requestID)
+            public RequestState(HttpWebRequest request, UUID requestID)
             {
                 Request = request;
                 RequestID = requestID;

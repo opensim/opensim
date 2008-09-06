@@ -29,7 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using libsecondlife;
+using OpenMetaverse;
 
 
 namespace OpenSim.Framework
@@ -41,7 +41,7 @@ namespace OpenSim.Framework
         public float LocationZ;
         public string OwnerName;
         public float Score;
-        public LLUUID TaskID;
+        public UUID TaskID;
         public uint TaskLocalID;
         public string TaskName;
 

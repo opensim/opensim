@@ -26,6 +26,7 @@
  */
 
 using System;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -36,14 +37,14 @@ namespace OpenSim.Framework
         public Guid AgentID;
         public bool alwaysrun;
         public float AVHeight;
-        public sLLVector3 cameraPosition;
+        public Vector3 cameraPosition;
         public float drawdistance;
         public float godlevel;
         public uint GroupAccess;
-        public sLLVector3 Position;
+        public Vector3 Position;
         public ulong regionHandle;
         public byte[] throttles;
-        public sLLVector3 Velocity;
+        public Vector3 Velocity;
 
         public ChildAgentDataUpdate()
         {

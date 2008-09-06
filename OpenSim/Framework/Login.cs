@@ -26,26 +26,26 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class Login
     {
-        public LLUUID Agent;
-        public LLUUID BaseFolder;
+        public UUID Agent;
+        public UUID BaseFolder;
         public string CapsPath = String.Empty;
         public uint CircuitCode;
         public string First = "Test";
-        public LLUUID InventoryFolder;
+        public UUID InventoryFolder;
         public string Last = "User";
-        public LLUUID SecureSession = LLUUID.Zero;
-        public LLUUID Session;
-        public LLVector3 StartPos;
+        public UUID SecureSession = UUID.Zero;
+        public UUID Session;
+        public Vector3 StartPos;
 
         public Login()
         {
-            StartPos = new LLVector3(128, 128, 70);
+            StartPos = new Vector3(128, 128, 70);
         }
     }
 }

@@ -28,8 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework.Statistics.Interfaces;
 
 namespace OpenSim.Framework.Statistics
@@ -122,8 +122,8 @@ namespace OpenSim.Framework.Statistics
         /// <summary>
         /// Retain a dictionary of all packet queues stats reporters
         /// </summary>
-        private IDictionary<LLUUID, PacketQueueStatsCollector> packetQueueStatsCollectors
-            = new Dictionary<LLUUID, PacketQueueStatsCollector>();
+        private IDictionary<UUID, PacketQueueStatsCollector> packetQueueStatsCollectors
+            = new Dictionary<UUID, PacketQueueStatsCollector>();
 
         public void AddAbnormalClientThreadTermination()
         {
@@ -176,9 +176,9 @@ namespace OpenSim.Framework.Statistics
         /// <summary>
         /// Register as a packet queue stats provider
         /// </summary>
-        /// <param name="uuid">An agent LLUUID</param>
+        /// <param name="uuid">An agent UUID</param>
         /// <param name="provider"></param>
-        public void RegisterPacketQueueStatsProvider(LLUUID uuid, IPullStatsProvider provider)
+        public void RegisterPacketQueueStatsProvider(UUID uuid, IPullStatsProvider provider)
         {
             lock (packetQueueStatsCollectors)
             {
@@ -191,8 +191,8 @@ namespace OpenSim.Framework.Statistics
         /// <summary>
         /// Deregister a packet queue stats provider
         /// </summary>
-        /// <param name="uuid">An agent LLUUID</param>
-        public void DeregisterPacketQueueStatsProvider(LLUUID uuid)
+        /// <param name="uuid">An agent UUID</param>
+        public void DeregisterPacketQueueStatsProvider(UUID uuid)
         {
             lock (packetQueueStatsCollectors)
             {
@@ -302,7 +302,7 @@ Asset service request failures: {5}"+ Environment.NewLine,
                     "Send", "In", "Out", "Resend", "Land", "Wind", "Cloud", "Task", "Texture", "Asset"));
             sb.Append(Environment.NewLine);
 
-            foreach (LLUUID key in packetQueueStatsCollectors.Keys)
+            foreach (UUID key in packetQueueStatsCollectors.Keys)
             {
                 sb.Append(string.Format("{0}: ", key));
                 sb.Append(packetQueueStatsCollectors[key].Report());

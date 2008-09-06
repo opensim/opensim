@@ -25,17 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
     [LLSDMap]
     public class LLSDInventoryItem
     {
-        public LLUUID parent_id;
+        public UUID parent_id;
 
-        public LLUUID asset_id;
-        public LLUUID item_id;
+        public UUID asset_id;
+        public UUID item_id;
         public LLSDPermissions permissions;
         public string type;
         public string inv_type;
@@ -50,9 +50,9 @@ namespace OpenSim.Framework.Communications.Capabilities
     [LLSDMap]
     public class LLSDPermissions
     {
-        public LLUUID creator_id;
-        public LLUUID owner_id;
-        public LLUUID group_id;
+        public UUID creator_id;
+        public UUID owner_id;
+        public UUID group_id;
         public int base_mask;
         public int owner_mask;
         public int group_mask;
@@ -77,8 +77,8 @@ namespace OpenSim.Framework.Communications.Capabilities
     [LLSDMap]
     public class LLSDFetchInventoryDescendents
     {
-        public LLUUID folder_id;
-        public LLUUID owner_id;
+        public UUID folder_id;
+        public UUID owner_id;
         public int sort_order;
         public bool fetch_folders;
         public bool fetch_items;
@@ -87,11 +87,11 @@ namespace OpenSim.Framework.Communications.Capabilities
     [LLSDMap]
     public class LLSDInventoryFolderContents
     {
-        public LLUUID agent___id; // the (three "_") "___" so the serialising knows to change this to a "-"
+        public UUID agent___id; // the (three "_") "___" so the serialising knows to change this to a "-"
         public int descendents;
-        public LLUUID folder___id; //as LL can't decide if they are going to use "_" or "-" to separate words in the field names
+        public UUID folder___id; //as LL can't decide if they are going to use "_" or "-" to separate words in the field names
         public LLSDArray items = new LLSDArray();
-        public LLUUID owner___id; // and of course we can't have field names with "-" in
+        public UUID owner___id; // and of course we can't have field names with "-" in
         public int version;
     }
 }

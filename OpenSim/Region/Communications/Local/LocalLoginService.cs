@@ -30,7 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -246,9 +246,9 @@ namespace OpenSim.Region.Communications.Local
                 _login.SecureSession = response.SecureSessionID;
                 _login.CircuitCode = (uint) response.CircuitCode;
                 if (specificStartLocation)
-                    _login.StartPos = new LLVector3(locX, locY, locZ);
+                    _login.StartPos = new Vector3(locX, locY, locZ);
                 else
-                    _login.StartPos = new LLVector3(128, 128, 128);
+                    _login.StartPos = new Vector3(128, 128, 128);
                 _login.CapsPath = capsPath;
 
                 m_log.InfoFormat(
@@ -282,7 +282,7 @@ namespace OpenSim.Region.Communications.Local
         }
 
         // See LoginService
-        protected override InventoryData GetInventorySkeleton(LLUUID userID)
+        protected override InventoryData GetInventorySkeleton(UUID userID)
         {
             List<InventoryFolderBase> folders = m_Parent.InterServiceInventoryService.GetInventorySkeleton(userID);
 
@@ -293,12 +293,12 @@ namespace OpenSim.Region.Communications.Local
                 folders = m_Parent.InterServiceInventoryService.GetInventorySkeleton(userID);
             }
 
-            LLUUID rootID = LLUUID.Zero;
+            UUID rootID = UUID.Zero;
             ArrayList AgentInventoryArray = new ArrayList();
             Hashtable TempHash;
             foreach (InventoryFolderBase InvFolder in folders)
             {
-                if (InvFolder.ParentID == LLUUID.Zero)
+                if (InvFolder.ParentID == UUID.Zero)
                 {
                     rootID = InvFolder.ID;
                 }

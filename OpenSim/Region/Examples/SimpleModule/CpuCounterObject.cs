@@ -27,7 +27,7 @@
 
 using System;
 using System.Diagnostics;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
@@ -45,7 +45,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         private PerformanceCounter m_counter;
 
-        public CpuCounterObject(Scene world, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos)
+        public CpuCounterObject(Scene world, ulong regionHandle, UUID ownerID, uint localID, Vector3 pos)
             : base(world, regionHandle, ownerID, localID, pos, PrimitiveBaseShape.Default)
         {
             String objectName = "Processor";
@@ -58,7 +58,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public override void UpdateMovement()
         {
             float cpu = m_counter.NextValue()/40f;
-            LLVector3 size = new LLVector3(cpu, cpu, cpu);
+            Vector3 size = new Vector3(cpu, cpu, cpu);
 
             RootPart.Resize(size);
 

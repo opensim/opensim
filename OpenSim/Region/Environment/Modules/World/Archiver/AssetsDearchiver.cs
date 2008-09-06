@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -141,7 +141,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <param name="data"></param>
         protected void ResolveAssetData(string assetPath, byte[] data)
         {
-            // Right now we're nastily obtaining the lluuid from the filename
+            // Right now we're nastily obtaining the UUID from the filename
             string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
 
             if (m_metadata.ContainsKey(filename))
@@ -156,7 +156,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                 m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", filename);
 
-                AssetBase asset = new AssetBase(new LLUUID(filename), metadata.Name);
+                AssetBase asset = new AssetBase(new UUID(filename), metadata.Name);
                 asset.Description = metadata.Description;
                 asset.Type = metadata.AssetType;
                 asset.Data = data;

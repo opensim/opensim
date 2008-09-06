@@ -57,7 +57,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         private string m_svnpass = "password";
 
         private TimeSpan m_svnperiod = new TimeSpan(0, 0, 15, 0, 0);
-        private string m_svnurl = "svn://insert.your.svn/here/";
+        private string m_svnurl = "svn://insert.Your.svn/here/";
         private string m_svnuser = "username";
 
         #region SvnModule Core
@@ -117,7 +117,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         public void LoadRegion(Scene scene)
         {
             scene.LoadPrimsFromXml2(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID +
-                                    Slash.DirectorySeparatorChar + "objects.xml");
+                                    Slash.DirectorySeparatorChar + "objects.Xml");
             scene.RequestModuleInterface<ITerrainModule>().LoadFromFile(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID +
                                                                         Slash.DirectorySeparatorChar + "heightmap.r32");
             m_log.Info("[SVNBACKUP]: Region load successful (" + scene.RegionInfo.RegionName + ").");

@@ -28,7 +28,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -138,7 +138,7 @@ namespace OpenSim.Region.ClientStack
             // TODO: Remove this cruft once MasterAvatar is fully deprecated
             //Master Avatar Setup
             UserProfileData masterAvatar;
-            if (scene.RegionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
+            if (scene.RegionInfo.MasterAvatarAssignedUUID != UUID.Zero)
             {
                 masterAvatar = m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarAssignedUUID);
                 scene.RegionInfo.MasterAvatarFirstName = masterAvatar.FirstName;
@@ -160,7 +160,7 @@ namespace OpenSim.Region.ClientStack
             else
             {
                 m_log.Info("[PARCEL]: No master avatar found, using null.");
-                scene.RegionInfo.MasterAvatarAssignedUUID = LLUUID.Zero;
+                scene.RegionInfo.MasterAvatarAssignedUUID = UUID.Zero;
             }
 
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);

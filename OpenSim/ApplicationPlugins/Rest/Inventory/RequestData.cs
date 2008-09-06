@@ -35,7 +35,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using libsecondlife;
+using OpenMetaverse;
 using System.Xml;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory

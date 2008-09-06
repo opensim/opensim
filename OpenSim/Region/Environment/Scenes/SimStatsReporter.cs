@@ -27,7 +27,7 @@
 
 using System;
 using System.Timers;
-using libsecondlife.Packets;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Environment.Interfaces;

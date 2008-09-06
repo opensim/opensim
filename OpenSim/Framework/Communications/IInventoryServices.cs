@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Framework.Communications
@@ -53,7 +53,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="callback"></param>
-        void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback);
+        void RequestInventoryForUser(UUID userID, InventoryReceiptCallback callback);
 
         /// <summary>
         /// Add a new folder to the user's inventory
@@ -109,13 +109,13 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
-        bool HasInventoryForUser(LLUUID userID);
+        bool HasInventoryForUser(UUID userID);
 
         /// <summary>
         /// Retrieve the root inventory folder for the given user.
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>null if no root folder was found</returns>
-        InventoryFolderBase RequestRootFolder(LLUUID userID);
+        InventoryFolderBase RequestRootFolder(UUID userID);
     }
 }

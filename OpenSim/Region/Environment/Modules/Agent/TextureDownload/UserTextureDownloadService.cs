@@ -27,7 +27,7 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Limit;
@@ -65,8 +65,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// <summary>
         /// XXX Also going to limit requests for found textures.
         /// </summary>
-        private readonly IRequestLimitStrategy<LLUUID> foundTextureLimitStrategy
-            = new RepeatLimitStrategy<LLUUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
+        private readonly IRequestLimitStrategy<UUID> foundTextureLimitStrategy
+            = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
 
         private readonly IClientAPI m_client;
         private readonly Scene m_scene;
@@ -80,15 +80,15 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// <summary>
         /// Holds texture senders before they have received the appropriate texture from the asset cache.
         /// </summary>
-        private readonly Dictionary<LLUUID, TextureSender.TextureSender> m_textureSenders = new Dictionary<LLUUID, TextureSender.TextureSender>();
+        private readonly Dictionary<UUID, TextureSender.TextureSender> m_textureSenders = new Dictionary<UUID, TextureSender.TextureSender>();
 
         /// <summary>
         /// We're going to limit requests for the same missing texture.
         /// XXX This is really a temporary solution to deal with the situation where a client continually requests
         /// the same missing textures
         /// </summary>
-        private readonly IRequestLimitStrategy<LLUUID> missingTextureLimitStrategy
-            = new RepeatLimitStrategy<LLUUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
+        private readonly IRequestLimitStrategy<UUID> missingTextureLimitStrategy
+            = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
 
         public UserTextureDownloadService(
             IClientAPI client, Scene scene, BlockingQueue<ITextureSender> sharedQueue)
@@ -172,7 +172,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// </summary>
         /// <param name="textureID"></param>
         /// <param name="texture"></param>
-        public void TextureCallback(LLUUID textureID, AssetBase texture)
+        public void TextureCallback(UUID textureID, AssetBase texture)
         {
             //m_log.DebugFormat("[USER TEXTURE DOWNLOAD SERVICE]: Calling TextureCallback with {0}, texture == null is {1}", textureID, (texture == null ? true : false));
 

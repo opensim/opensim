@@ -32,7 +32,7 @@ using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
 //using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 //using log4net;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// uuids to request
         /// </summary>
-        protected ICollection<LLUUID> m_uuids;
+        protected ICollection<UUID> m_uuids;
 
         /// <summary>
         /// Callback used when all the assets requested have been received.
@@ -57,12 +57,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Assets retrieved in this request
         /// </summary>
-        protected Dictionary<LLUUID, AssetBase> m_assets = new Dictionary<LLUUID, AssetBase>();
+        protected Dictionary<UUID, AssetBase> m_assets = new Dictionary<UUID, AssetBase>();
 
         /// <summary>
         /// Maintain a list of assets that could not be found.  This will be passed back to the requester.
         /// </summary>
-        protected List<LLUUID> m_notFoundAssetUuids = new List<LLUUID>();
+        protected List<UUID> m_notFoundAssetUuids = new List<UUID>();
 
         /// <summary>
         /// Record the number of asset replies required so we know when we've finished
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         protected AssetCache m_assetCache;
 
-        protected internal AssetsRequest(ICollection<LLUUID> uuids, AssetCache assetCache, AssetsRequestCallback assetsRequestCallback)
+        protected internal AssetsRequest(ICollection<UUID> uuids, AssetCache assetCache, AssetsRequestCallback assetsRequestCallback)
         {
             m_uuids = uuids;
             m_assetsRequestCallback = assetsRequestCallback;
@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             if (m_repliesRequired == 0)
                 m_assetsRequestCallback(m_assets, m_notFoundAssetUuids);
 
-            foreach (LLUUID uuid in m_uuids)
+            foreach (UUID uuid in m_uuids)
             {
                 m_assetCache.GetAsset(uuid, AssetRequestCallback, true);
             }
@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <param name="assetID"></param>
         /// <param name="asset"></param>
-        public void AssetRequestCallback(LLUUID assetID, AssetBase asset)
+        public void AssetRequestCallback(UUID assetID, AssetBase asset)
         {
             if (asset != null)
                 m_assets[assetID] = asset;

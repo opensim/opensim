@@ -1,11 +1,11 @@
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class AvatarPickerReplyDataArgs : EventArgs
     {
-        public LLUUID AvatarID;
+        public UUID AvatarID;
         public byte[] FirstName;
         public byte[] LastName;
     }

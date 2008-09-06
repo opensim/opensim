@@ -28,21 +28,21 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Grid.MessagingServer
 {
-    // This is a wrapper for a List<LLUUID> so it can be happily stored in a hashtable.
+    // This is a wrapper for a List<UUID> so it can be happily stored in a hashtable.
     public class PresenceBackreferenceEntry
     {
-        List<LLUUID> AgentList = new List<LLUUID>();
+        List<UUID> AgentList = new List<UUID>();
 
         public PresenceBackreferenceEntry()
         {
 
         }
 
-        public void Add(LLUUID item)
+        public void Add(UUID item)
         {
             lock (AgentList)
             {
@@ -50,9 +50,9 @@ namespace OpenSim.Grid.MessagingServer
             }
         }
 
-        public LLUUID getitem(int index)
+        public UUID getitem(int index)
         {
-            LLUUID result = null;
+            UUID result = null;
             lock (AgentList)
             {
                 if (index > 0 && index < AgentList.Count)
@@ -76,7 +76,7 @@ namespace OpenSim.Grid.MessagingServer
             }
         }
 
-        public void Remove(LLUUID item)
+        public void Remove(UUID item)
         {
             lock (AgentList)
             {
@@ -85,7 +85,7 @@ namespace OpenSim.Grid.MessagingServer
             }
         }
 
-        public bool contains(LLUUID item)
+        public bool contains(UUID item)
         {
             bool result = false;
             lock (AgentList)

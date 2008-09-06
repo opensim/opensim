@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife.StructuredData;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Servers
 {

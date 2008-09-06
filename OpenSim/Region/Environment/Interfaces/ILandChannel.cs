@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
@@ -35,13 +35,13 @@ namespace OpenSim.Region.Environment.Interfaces
     public interface ILandChannel
     {
 
-        List<ILandObject> ParcelsNearPoint(LLVector3 position);
+        List<ILandObject> ParcelsNearPoint(Vector3 position);
         ILandObject GetLandObject(int x, int y);
         ILandObject GetLandObject(float x, float y);
         bool IsLandPrimCountTainted();
         bool IsForcefulBansAllowed();
         void UpdateLandObject(int localID, LandData data);
-        void ReturnObjectsInParcel(int localID, uint returnType, LLUUID[] agentIDs, LLUUID[] taskIDs, IClientAPI remoteClient);
+        void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient);
         void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
         void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);
     }

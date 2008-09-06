@@ -1,5 +1,5 @@
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -19,14 +19,14 @@ namespace OpenSim.Framework
         public float waterHeight;
         public uint regionFlags;
         public string regionName;
-        public LLUUID SimOwner;
-        public LLUUID terrainBase0;
-        public LLUUID terrainBase1;
-        public LLUUID terrainBase2;
-        public LLUUID terrainBase3;
-        public LLUUID terrainDetail0;
-        public LLUUID terrainDetail1;
-        public LLUUID terrainDetail2;
-        public LLUUID terrainDetail3;
+        public UUID SimOwner;
+        public UUID terrainBase0;
+        public UUID terrainBase1;
+        public UUID terrainBase2;
+        public UUID terrainBase3;
+        public UUID terrainDetail0;
+        public UUID terrainDetail1;
+        public UUID terrainDetail2;
+        public UUID terrainDetail3;
     }
 }

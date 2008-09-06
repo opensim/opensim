@@ -118,7 +118,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             //System.Console.WriteLine("SCRIPT:" + checkscript);
 
             // checks for alpha.alpha way of referring to objects in C#
-            // ignores alpha.x alpha.y, alpha.z for refering to vector components
+            // ignores alpha.X alpha.Y, alpha.Z for refering to vector components
               Match SecurityM;
 
             // BROKEN: this check is very wrong.  It block's any url in strings.

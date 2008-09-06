@@ -28,7 +28,7 @@ using System;
 using System.Threading;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -41,15 +41,15 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private delegate void LookupUUIDS(List<LLUUID> uuidLst);
+        private delegate void LookupUUIDS(List<UUID> uuidLst);
 
         private Scene m_scene;
 
         #region Packet Data Responders
 
-        private void sendDetailedEstateData(IClientAPI remote_client, LLUUID invoice)
+        private void sendDetailedEstateData(IClientAPI remote_client, UUID invoice)
         {
-        //SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant)
+        //SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant)
 
             uint sun = 0;
             if (!m_scene.RegionInfo.EstateSettings.UseGlobalTime)
@@ -119,9 +119,9 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             sendRegionInfoPacketToAll();
         }
 
-        public void setEstateTerrainBaseTexture(IClientAPI remoteClient, int corner, LLUUID texture)
+        public void setEstateTerrainBaseTexture(IClientAPI remoteClient, int corner, UUID texture)
         {
-            if (texture == LLUUID.Zero)
+            if(texture == UUID.Zero)
                 return;
 
             switch (corner)
@@ -202,13 +202,13 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             m_scene.Restart(timeInSeconds);
         }
 
-        private void handleChangeEstateCovenantRequest(IClientAPI remoteClient, LLUUID estateCovenantID)
+        private void handleChangeEstateCovenantRequest(IClientAPI remoteClient, UUID estateCovenantID)
         {
             m_scene.RegionInfo.RegionSettings.Covenant = estateCovenantID;
             m_scene.RegionInfo.RegionSettings.Save();
         }
 
-        private void handleEstateAccessDeltaRequest(IClientAPI remote_client, LLUUID invoice, int estateAccessType, LLUUID user)
+        private void handleEstateAccessDeltaRequest(IClientAPI remote_client, UUID invoice, int estateAccessType, UUID user)
         {
             // EstateAccessDelta handles Estate Managers, Sim Access, Sim Banlist, allowed Groups..  etc.
 
@@ -338,17 +338,17 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             }
         }
 
-        private void SendSimulatorBlueBoxMessage(IClientAPI remote_client, LLUUID invoice, LLUUID senderID, LLUUID sessionID, string senderName, string message)
+        private void SendSimulatorBlueBoxMessage(IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
         {
             m_scene.SendRegionMessageFromEstateTools(senderID, sessionID, senderName, message);
         }
 
-        private void SendEstateBlueBoxMessage(IClientAPI remote_client, LLUUID invoice, LLUUID senderID, LLUUID sessionID, string senderName, string message)
+        private void SendEstateBlueBoxMessage(IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
         {
             m_scene.SendEstateMessageFromEstateTools(senderID, sessionID, senderName, message);
         }
 
-        private void handleEstateDebugRegionRequest(IClientAPI remote_client, LLUUID invoice, LLUUID senderID, bool scripted, bool collisionEvents, bool physics)
+        private void handleEstateDebugRegionRequest(IClientAPI remote_client, UUID invoice, UUID senderID, bool scripted, bool collisionEvents, bool physics)
         {
             if (physics)
                 m_scene.RegionInfo.RegionSettings.DisablePhysics = true;
@@ -371,9 +371,9 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             m_scene.SetSceneCoreDebug(scripted, collisionEvents, physics);
         }
 
-        private void handleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, LLUUID invoice, LLUUID senderID, LLUUID prey)
+        private void handleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID, UUID prey)
         {
-            if (prey != LLUUID.Zero)
+            if (prey != UUID.Zero)
             {
                 ScenePresence s = m_scene.GetScenePresence(prey);
                 if (s != null)
@@ -419,7 +419,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         private void HandleLandStatRequest(int parcelID, uint reportType, uint requestFlags, string filter, IClientAPI remoteClient)
         {
             Dictionary<uint, float> SceneData = new Dictionary<uint,float>();
-            List<LLUUID> uuidNameLookupList = new List<LLUUID>();
+            List<UUID> uuidNameLookupList = new List<UUID>();
 
             if (reportType == 1)
             {
@@ -491,7 +491,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             LookupUUIDS icon = (LookupUUIDS)iar.AsyncState;
             icon.EndInvoke(iar);
         }
-        private void LookupUUID(List<LLUUID> uuidLst)
+        private void LookupUUID(List<UUID> uuidLst)
         {
             LookupUUIDS d = LookupUUIDsAsync;
 
@@ -499,9 +499,9 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                           LookupUUIDSCompleted,
                           d);
         }
-        private void LookupUUIDsAsync(List<LLUUID> uuidLst)
+        private void LookupUUIDsAsync(List<UUID> uuidLst)
         {
-            LLUUID[] uuidarr = new LLUUID[0];
+            UUID[] uuidarr = new UUID[0];
 
             lock (uuidLst)
             {
@@ -533,7 +533,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         {
             RegionHandshakeArgs args = new RegionHandshakeArgs();
             bool estatemanager = false;
-            LLUUID[] EstateManagers = m_scene.RegionInfo.EstateSettings.EstateManagers;
+            UUID[] EstateManagers = m_scene.RegionInfo.EstateSettings.EstateManagers;
             for (int i = 0; i < EstateManagers.Length; i++)
             {
                 if (EstateManagers[i] == remoteClient.AgentId)
@@ -559,14 +559,14 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
             args.regionFlags = GetRegionFlags();
             args.regionName = m_scene.RegionInfo.RegionName;
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                 args.SimOwner = m_scene.RegionInfo.EstateSettings.EstateOwner;
             else
                 args.SimOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-            args.terrainBase0 = LLUUID.Zero;
-            args.terrainBase1 = LLUUID.Zero;
-            args.terrainBase2 = LLUUID.Zero;
-            args.terrainBase3 = LLUUID.Zero;
+            args.terrainBase0 = UUID.Zero;
+            args.terrainBase1 = UUID.Zero;
+            args.terrainBase2 = UUID.Zero;
+            args.terrainBase3 = UUID.Zero;
             args.terrainDetail0 = m_scene.RegionInfo.RegionSettings.TerrainTexture1;
             args.terrainDetail1 = m_scene.RegionInfo.RegionSettings.TerrainTexture2;
             args.terrainDetail2 = m_scene.RegionInfo.RegionSettings.TerrainTexture3;
@@ -582,7 +582,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 );
         }
 
-        public void handleEstateChangeInfo(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, UInt32 parms1, UInt32 parms2)
+        public void handleEstateChangeInfo(IClientAPI remoteClient, UUID invoice, UUID senderID, UInt32 parms1, UInt32 parms2)
         {
             if (parms2 == 0)
             {
@@ -812,14 +812,14 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             return (uint)flags;
         }
 
-        public bool IsManager(LLUUID avatarID)
+        public bool IsManager(UUID avatarID)
         {
             if (avatarID == m_scene.RegionInfo.MasterAvatarAssignedUUID)
                 return true;
             if (avatarID == m_scene.RegionInfo.EstateSettings.EstateOwner)
                 return true;
 
-            List<LLUUID> ems = new List<LLUUID>(m_scene.RegionInfo.EstateSettings.EstateManagers);
+            List<UUID> ems = new List<UUID>(m_scene.RegionInfo.EstateSettings.EstateManagers);
             if (ems.Contains(avatarID))
                 return true;
 

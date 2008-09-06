@@ -28,7 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
@@ -134,7 +134,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public struct QueueItemStruct
         {
             public uint localID;
-            public LLUUID itemID;
+            public UUID itemID;
             public string functionName;
             public Queue_llDetectParams_Struct llDetectParams;
             public object[] param;
@@ -308,10 +308,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 return;
             }
 
-            Dictionary<LLUUID, IScript>.KeyCollection scriptKeys =
+            Dictionary<UUID, IScript>.KeyCollection scriptKeys =
                 m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID);
 
-            foreach (LLUUID itemID in scriptKeys)
+            foreach (UUID itemID in scriptKeys)
             {
                 // Add to each script in that object
                 // TODO: Some scripts may not subscribe to this event. Should we NOT add it? Does it matter?
@@ -326,7 +326,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="itemID">Region script ID</param>
         /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
         /// <param name="param">Array of parameters to match event mask</param>
-        public void AddToScriptQueue(uint localID, LLUUID itemID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
+        public void AddToScriptQueue(uint localID, UUID itemID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
         {
             lock (eventQueue)
             {

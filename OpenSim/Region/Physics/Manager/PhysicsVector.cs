@@ -60,7 +60,7 @@ namespace OpenSim.Region.Physics.Manager
         }
 
         /// <summary>
-        /// These routines are the easiest way to store XYZ values in an LLVector3 without requiring 3 calls.
+        /// These routines are the easiest way to store XYZ values in an Vector3 without requiring 3 calls.
         /// </summary>
         /// <returns></returns>
         public byte[] GetBytes()

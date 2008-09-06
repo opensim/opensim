@@ -86,8 +86,8 @@ namespace OpenSim.Framework.Communications.Capabilities
                                 writer.WriteString(fieldName);
                                 writer.WriteEndElement();
                                 LLSD.LLSDWriteOne(writer, fieldValue);
-                                // libsecondlife.StructuredData.LLSDParser.SerializeXmlElement(
-                                //    writer, libsecondlife.StructuredData.LLSD.FromObject(fieldValue));
+                                // OpenMetaverse.StructuredData.LLSDParser.SerializeXmlElement(
+                                //    writer, OpenMetaverse.StructuredData.LLSD.FromObject(fieldValue));
                             }
                         }
                         writer.WriteEndElement();
@@ -111,8 +111,8 @@ namespace OpenSim.Framework.Communications.Capabilities
             else
             {
                 LLSD.LLSDWriteOne(writer, obj);
-                //libsecondlife.StructuredData.LLSDParser.SerializeXmlElement(
-                //    writer, libsecondlife.StructuredData.LLSD.FromObject(obj));
+                //OpenMetaverse.StructuredData.LLSDParser.SerializeXmlElement(
+                //    writer, OpenMetaverse.StructuredData.LLSD.FromObject(obj));
             }
         }
 
@@ -133,12 +133,12 @@ namespace OpenSim.Framework.Communications.Capabilities
                             FieldInfo field = myType.GetField(keyName);
                             if (field != null)
                             {
-                                // if (enumerator.Value is libsecondlife.StructuredData.LLSDMap)
+                                // if (enumerator.Value is OpenMetaverse.StructuredData.LLSDMap)
                                 if (enumerator.Value is Hashtable)
                                 {
                                     object fieldValue = field.GetValue(obj);
                                     DeserialiseLLSDMap((Hashtable) enumerator.Value, fieldValue);
-                                    //  DeserialiseLLSDMap((libsecondlife.StructuredData.LLSDMap) enumerator.Value, fieldValue);
+                                    //  DeserialiseLLSDMap((OpenMetaverse.StructuredData.LLSDMap) enumerator.Value, fieldValue);
                                 }
                                 else if (enumerator.Value is ArrayList)
                                 {

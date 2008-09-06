@@ -27,7 +27,7 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -44,7 +44,7 @@ namespace OpenSim.Region.Communications.Local
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
+        public override void RequestInventoryForUser(UUID userID, InventoryReceiptCallback callback)
         {
             m_log.InfoFormat("[LOCAL INVENTORY SERVICE]: Requesting inventory for user {0}", userID);
 
@@ -60,7 +60,7 @@ namespace OpenSim.Region.Communications.Local
             // Need to retrieve the root folder on the first pass
             foreach (InventoryFolderBase folder in skeletonFolders)
             {
-                if (folder.ParentID == LLUUID.Zero)
+                if (folder.ParentID == UUID.Zero)
                 {
                     rootFolder = new InventoryFolderImpl(folder);
                     folders.Add(rootFolder);
@@ -88,7 +88,7 @@ namespace OpenSim.Region.Communications.Local
             callback(folders, items);
         }
 
-        public override bool HasInventoryForUser(LLUUID userID)
+        public override bool HasInventoryForUser(UUID userID)
         {
             InventoryFolderBase root = RequestRootFolder(userID);
             if (root == null)

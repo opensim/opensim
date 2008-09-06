@@ -28,7 +28,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -125,7 +125,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
 
         #endregion
 
-        public void OnRegisterCaps(LLUUID agentID, Caps caps)
+        public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             m_log.DebugFormat("[ASTERISKVOICE] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
@@ -157,7 +157,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
         /// <param name="caps"></param>
         /// <returns></returns>
         public string ParcelVoiceInfoRequest(string request, string path, string param,
-                                             LLUUID agentID, Caps caps)
+                                             UUID agentID, Caps caps)
         {
             // we need to do:
             // - send channel_uri: as "sip:regionID@m_sipDomain"
@@ -226,7 +226,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
         /// <param name="caps"></param>
         /// <returns></returns>
         public string ProvisionVoiceAccountRequest(string request, string path, string param,
-                                                   LLUUID agentID, Caps caps)
+                                                   UUID agentID, Caps caps)
         {
             // we need to
             // - get user data from UserProfileCacheService

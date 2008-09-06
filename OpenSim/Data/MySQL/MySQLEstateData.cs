@@ -31,7 +31,7 @@ using System.Data;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework;
@@ -157,7 +157,7 @@ namespace OpenSim.Data.MySQL
             m_lastConnectionUse = timeNow;
         }
 
-        public EstateSettings LoadEstateSettings(LLUUID regionID)
+        public EstateSettings LoadEstateSettings(UUID regionID)
         {
             EstateSettings es = new EstateSettings();
             es.OnSave += StoreEstateSettings;
@@ -185,11 +185,11 @@ namespace OpenSim.Data.MySQL
                         else
                             m_FieldMap[name].SetValue(es, false);
                     }
-                    else if (m_FieldMap[name].GetValue(es) is libsecondlife.LLUUID)
+                    else if(m_FieldMap[name].GetValue(es) is OpenMetaverse.UUID)
                     {
-                        LLUUID uuid = LLUUID.Zero;
+                        UUID uuid = UUID.Zero;
 
-                        LLUUID.TryParse(r[name].ToString(), out uuid);
+                        UUID.TryParse(r[name].ToString(), out uuid);
                         m_FieldMap[name].SetValue(es, uuid);
                     }
                     else
@@ -330,8 +330,8 @@ namespace OpenSim.Data.MySQL
             {
                 EstateBan eb = new EstateBan();
 
-                LLUUID uuid = new LLUUID();
-                LLUUID.TryParse(r["bannedUUID"].ToString(), out uuid);
+                UUID uuid = new UUID();
+                UUID.TryParse(r["bannedUUID"].ToString(), out uuid);
 
                 eb.bannedUUID = uuid;
                 eb.bannedIP = "0.0.0.0";
@@ -366,7 +366,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        void SaveUUIDList(uint EstateID, string table, LLUUID[] data)
+        void SaveUUIDList(uint EstateID, string table, UUID[] data)
         {
             CheckConnection();
 
@@ -381,7 +381,7 @@ namespace OpenSim.Data.MySQL
 
             cmd.CommandText = "insert into "+table+" (EstateID, uuid) values ( ?EstateID, ?uuid )";
 
-            foreach (LLUUID uuid in data)
+            foreach (UUID uuid in data)
             {
                 cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
                 cmd.Parameters.AddWithValue("?uuid", uuid.ToString());
@@ -391,9 +391,9 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        LLUUID[] LoadUUIDList(uint EstateID, string table)
+        UUID[] LoadUUIDList(uint EstateID, string table)
         {
-            List<LLUUID> uuids = new List<LLUUID>();
+            List<UUID> uuids = new List<UUID>();
 
             CheckConnection();
 
@@ -408,8 +408,8 @@ namespace OpenSim.Data.MySQL
             {
                 // EstateBan eb = new EstateBan();
 
-                LLUUID uuid = new LLUUID();
-                LLUUID.TryParse(r["uuid"].ToString(), out uuid);
+                UUID uuid = new UUID();
+                UUID.TryParse(r["uuid"].ToString(), out uuid);
 
                 uuids.Add(uuid);
             }

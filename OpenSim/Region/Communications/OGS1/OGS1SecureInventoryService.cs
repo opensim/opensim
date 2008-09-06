@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -46,8 +46,8 @@ namespace OpenSim.Region.Communications.OGS1
 
         private string _inventoryServerUrl;
         private Uri m_Uri;
-        private Dictionary<LLUUID, InventoryReceiptCallback> m_RequestingInventory
-            = new Dictionary<LLUUID, InventoryReceiptCallback>();
+        private Dictionary<UUID, InventoryReceiptCallback> m_RequestingInventory
+            = new Dictionary<UUID, InventoryReceiptCallback>();
 
         public OGS1SecureInventoryService(string inventoryServerUrl)
         {
@@ -67,7 +67,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="callback"></param>
-        public void RequestInventoryForUser(LLUUID userID, LLUUID session_id, InventoryReceiptCallback callback)
+        public void RequestInventoryForUser(UUID userID, UUID session_id, InventoryReceiptCallback callback)
         {
             if (!m_RequestingInventory.ContainsKey(userID))
             {
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Communications.OGS1
                         = new RestSessionObjectPosterResponse<Guid, InventoryCollection>();
                     requester.ResponseCallback = InventoryResponse;
 
-                    requester.BeginPostObject(_inventoryServerUrl + "/GetInventory/", userID.UUID, session_id.ToString(), userID.ToString());
+                    requester.BeginPostObject(_inventoryServerUrl + "/GetInventory/", userID.Guid, session_id.ToString(), userID.ToString());
                 }
                 catch (WebException e)
                 {
@@ -106,7 +106,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="userID"></param>
         private void InventoryResponse(InventoryCollection response)
         {
-            LLUUID userID = response.UserID;
+            UUID userID = response.UserID;
             if (m_RequestingInventory.ContainsKey(userID))
             {
                 m_log.InfoFormat("[OGS1 INVENTORY SERVICE]: " +
@@ -121,7 +121,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                 foreach (InventoryFolderBase folder in response.Folders)
                 {
-                    if (folder.ParentID == LLUUID.Zero)
+                    if (folder.ParentID == UUID.Zero)
                     {
                         rootFolder = new InventoryFolderImpl(folder);
                         folders.Add(rootFolder);
@@ -166,7 +166,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
-        public bool AddFolder(InventoryFolderBase folder, LLUUID session_id)
+        public bool AddFolder(InventoryFolderBase folder, UUID session_id)
         {
             try
             {
@@ -186,7 +186,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
         /// <param name="folder"></param>
-        public bool UpdateFolder(InventoryFolderBase folder, LLUUID session_id)
+        public bool UpdateFolder(InventoryFolderBase folder, UUID session_id)
         {
             try
             {
@@ -206,7 +206,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
         /// <param name="folder"></param>
-        public bool MoveFolder(InventoryFolderBase folder, LLUUID session_id)
+        public bool MoveFolder(InventoryFolderBase folder, UUID session_id)
         {
             try
             {
@@ -225,7 +225,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
-        public bool PurgeFolder(InventoryFolderBase folder, LLUUID session_id)
+        public bool PurgeFolder(InventoryFolderBase folder, UUID session_id)
         {
             try
             {
@@ -244,7 +244,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
-        public bool AddItem(InventoryItemBase item, LLUUID session_id)
+        public bool AddItem(InventoryItemBase item, UUID session_id)
         {
             try
             {
@@ -261,7 +261,7 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         // TODO: this is a temporary workaround, the UpdateInventoryItem method need to be implemented
-        public bool UpdateItem(InventoryItemBase item, LLUUID session_id)
+        public bool UpdateItem(InventoryItemBase item, UUID session_id)
         {
             try
             {
@@ -280,7 +280,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
-        public bool DeleteItem(InventoryItemBase item, LLUUID session_id)
+        public bool DeleteItem(InventoryItemBase item, UUID session_id)
         {
             try
             {
@@ -296,12 +296,12 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool HasInventoryForUser(LLUUID userID)
+        public bool HasInventoryForUser(UUID userID)
         {
             return false;
         }
 
-        public InventoryFolderBase RequestRootFolder(LLUUID userID)
+        public InventoryFolderBase RequestRootFolder(UUID userID)
         {
             return null;
         }

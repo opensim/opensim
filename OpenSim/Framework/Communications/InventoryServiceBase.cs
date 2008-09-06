@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 
 namespace OpenSim.Framework.Communications
@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Communications
                 new PluginLoader<IInventoryDataPlugin> (new InventoryDataInitialiser (connect));
 
             // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
+            // unless it is constrainted to the correct "Provider" entry in the addin.Xml
             loader.Add ("/OpenSim/InventoryData", new PluginProviderFilter (provider));
             loader.Load();
 
@@ -74,7 +74,7 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
+        public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
         {
 //            m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
 
@@ -105,13 +105,13 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public virtual bool HasInventoryForUser(LLUUID userID)
+        public virtual bool HasInventoryForUser(UUID userID)
         {
             return false;
         }
 
         // See IInventoryServices
-        public InventoryFolderBase RequestRootFolder(LLUUID userID)
+        public InventoryFolderBase RequestRootFolder(UUID userID)
         {
             // FIXME: Probably doesn't do what was originally intended - only ever queries the first plugin
             foreach (IInventoryDataPlugin plugin in m_plugins)
@@ -122,7 +122,7 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public bool CreateNewUserInventory(LLUUID user)
+        public bool CreateNewUserInventory(UUID user)
         {
             InventoryFolderBase existingRootFolder = RequestRootFolder(user);
 
@@ -146,13 +146,13 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public abstract void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback);
+        public abstract void RequestInventoryForUser(UUID userID, InventoryReceiptCallback callback);
 
         #endregion
 
         #region Methods used by GridInventoryService
 
-        public List<InventoryFolderBase> RequestSubFolders(LLUUID parentFolderID)
+        public List<InventoryFolderBase> RequestSubFolders(UUID parentFolderID)
         {
             List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();
             foreach (IInventoryDataPlugin plugin in m_plugins)
@@ -162,7 +162,7 @@ namespace OpenSim.Framework.Communications
             return inventoryList;
         }
 
-        public List<InventoryItemBase> RequestFolderItems(LLUUID folderID)
+        public List<InventoryItemBase> RequestFolderItems(UUID folderID)
         {
             List<InventoryItemBase> itemsList = new List<InventoryItemBase>();
             foreach (IInventoryDataPlugin plugin in m_plugins)
@@ -313,27 +313,27 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         private class UsersInventory
         {
-            public Dictionary<LLUUID, InventoryFolderBase> Folders = new Dictionary<LLUUID, InventoryFolderBase>();
-            public Dictionary<LLUUID, InventoryItemBase> Items = new Dictionary<LLUUID, InventoryItemBase>();
+            public Dictionary<UUID, InventoryFolderBase> Folders = new Dictionary<UUID, InventoryFolderBase>();
+            public Dictionary<UUID, InventoryItemBase> Items = new Dictionary<UUID, InventoryItemBase>();
 
-            public virtual void CreateNewInventorySet(LLUUID user)
+            public virtual void CreateNewInventorySet(UUID user)
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
 
-                folder.ParentID = LLUUID.Zero;
+                folder.ParentID = UUID.Zero;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "My Inventory";
                 folder.Type = (short)AssetType.Folder;
                 folder.Version = 1;
                 Folders.Add(folder.ID, folder);
 
-                LLUUID rootFolder = folder.ID;
+                UUID rootFolder = folder.ID;
 
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Animations";
                 folder.Type = (short)AssetType.Animation;
                 folder.Version = 1;
@@ -342,7 +342,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Body Parts";
                 folder.Type = (short)AssetType.Bodypart;
                 folder.Version = 1;
@@ -351,7 +351,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Calling Cards";
                 folder.Type = (short)AssetType.CallingCard;
                 folder.Version = 1;
@@ -360,7 +360,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Clothing";
                 folder.Type = (short)AssetType.Clothing;
                 folder.Version = 1;
@@ -369,7 +369,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Gestures";
                 folder.Type = (short)AssetType.Gesture;
                 folder.Version = 1;
@@ -378,7 +378,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Landmarks";
                 folder.Type = (short)AssetType.Landmark;
                 folder.Version = 1;
@@ -387,7 +387,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Lost And Found";
                 folder.Type = (short)AssetType.LostAndFoundFolder;
                 folder.Version = 1;
@@ -396,7 +396,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Notecards";
                 folder.Type = (short)AssetType.Notecard;
                 folder.Version = 1;
@@ -405,7 +405,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Objects";
                 folder.Type = (short)AssetType.Object;
                 folder.Version = 1;
@@ -414,7 +414,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Photo Album";
                 folder.Type = (short)AssetType.SnapshotFolder;
                 folder.Version = 1;
@@ -423,7 +423,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Scripts";
                 folder.Type = (short)AssetType.LSLText;
                 folder.Version = 1;
@@ -432,7 +432,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Sounds";
                 folder.Type = (short)AssetType.Sound;
                 folder.Version = 1;
@@ -441,7 +441,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Textures";
                 folder.Type = (short)AssetType.Texture;
                 folder.Version = 1;
@@ -450,7 +450,7 @@ namespace OpenSim.Framework.Communications
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
-                folder.ID = LLUUID.Random();
+                folder.ID = UUID.Random();
                 folder.Name = "Trash";
                 folder.Type = (short)AssetType.TrashFolder;
                 folder.Version = 1;

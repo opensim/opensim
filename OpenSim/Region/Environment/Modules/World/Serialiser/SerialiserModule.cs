@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Framework.InterfaceCommander;
@@ -87,7 +87,7 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
 
         #region IRegionSerialiser Members
 
-        public void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, LLVector3 loadOffset)
+        public void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, Vector3 loadOffset)
         {
             SceneXmlLoader.LoadPrimsFromXml(scene, fileName, newIDS, loadOffset);
         }
@@ -112,7 +112,7 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
             SceneXmlLoader.SavePrimsToXml2(scene, fileName);
         }
 
-        public void SavePrimsToXml2(Scene scene, TextWriter stream, LLVector3 min, LLVector3 max)
+        public void SavePrimsToXml2(Scene scene, TextWriter stream, Vector3 min, Vector3 max)
         {
             SceneXmlLoader.SavePrimsToXml2(scene, stream, min, max);
         }
@@ -132,7 +132,7 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
             SceneXmlLoader.SavePrimListToXml2(entityList, fileName);
         }
 
-        public void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, LLVector3 min, LLVector3 max)
+        public void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, Vector3 min, Vector3 max)
         {
             SceneXmlLoader.SavePrimListToXml2(entityList, stream, min, max);
         }

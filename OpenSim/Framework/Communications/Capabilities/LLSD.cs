@@ -32,7 +32,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
@@ -158,9 +158,9 @@ namespace OpenSim.Framework.Communications.Capabilities
             {
                 throw new Exception("ulong in LLSD is currently not implemented, fix me!");
             }
-            else if (obj is LLUUID)
+            else if (obj is UUID)
             {
-                LLUUID u = (LLUUID) obj;
+                UUID u = (UUID) obj;
                 writer.WriteStartElement(String.Empty, "uuid", String.Empty);
                 writer.WriteString(u.ToString());
                 writer.WriteEndElement();
@@ -294,11 +294,11 @@ namespace OpenSim.Framework.Communications.Capabilities
                         if (reader.IsEmptyElement)
                         {
                             reader.Read();
-                            return LLUUID.Zero;
+                            return UUID.Zero;
                         }
 
                         reader.Read();
-                        ret = new LLUUID(reader.ReadString().Trim());
+                        ret = new UUID(reader.ReadString().Trim());
                         break;
                     }
                 case "string":
@@ -476,9 +476,9 @@ namespace OpenSim.Framework.Communications.Capabilities
             {
                 return GetSpaces(indent) + "- float " + obj.ToString() + "\n";
             }
-            else if (obj is LLUUID)
+            else if (obj is UUID)
             {
-                return GetSpaces(indent) + "- uuid " + ((LLUUID) obj).ToString() + Environment.NewLine;
+                return GetSpaces(indent) + "- uuid " + ((UUID) obj).ToString() + Environment.NewLine;
             }
             else if (obj is Hashtable)
             {
@@ -509,7 +509,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             }
             else if (obj is byte[])
             {
-                return GetSpaces(indent) + "- binary\n" + Helpers.FieldToHexString((byte[]) obj, GetSpaces(indent)) +
+                return GetSpaces(indent) + "- binary\n" + Utils.BytesToHexString((byte[]) obj, GetSpaces(indent)) +
                        Environment.NewLine;
             }
             else
@@ -568,14 +568,14 @@ namespace OpenSim.Framework.Communications.Capabilities
                     }
                 case 'u':
                     {
-                        if (llsd.Length < 17) throw new LLSDParseException("LLUUID value type with no value");
-                        LLUUID value;
+                        if (llsd.Length < 17) throw new LLSDParseException("UUID value type with no value");
+                        UUID value;
                         endPos = FindEnd(llsd, 1);
 
-                        if (LLUUID.TryParse(llsd.Substring(1, endPos - 1), out value))
+                        if (UUID.TryParse(llsd.Substring(1, endPos - 1), out value))
                             return value;
                         else
-                            throw new LLSDParseException("Failed to parse LLUUID value type");
+                            throw new LLSDParseException("Failed to parse UUID value type");
                     }
                 case 'b':
                     //byte[] value = new byte[llsd.Length - 1];

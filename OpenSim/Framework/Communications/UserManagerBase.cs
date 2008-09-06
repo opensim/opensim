@@ -31,8 +31,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
-using libsecondlife;
-using libsecondlife.StructuredData;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Statistics;
@@ -59,7 +59,7 @@ namespace OpenSim.Framework.Communications
                 new PluginLoader<IUserDataPlugin> (new UserDataInitialiser (connect));
 
             // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
+            // unless it is constrainted to the correct "Provider" entry in the addin.Xml
             loader.Add ("/OpenSim/UserData", new PluginProviderFilter (provider));
             loader.Load();
 
@@ -84,14 +84,14 @@ namespace OpenSim.Framework.Communications
 
             return null;
         }
-        public void ResetAttachments(LLUUID userID)
+        public void ResetAttachments(UUID userID)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
                 plugin.ResetAttachments(userID);
             }
         }
-        public UserAgentData GetAgentByUUID(LLUUID userId)
+        public UserAgentData GetAgentByUUID(UUID userId)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
@@ -106,7 +106,7 @@ namespace OpenSim.Framework.Communications
             return null;
         }
         // see IUserService
-        public UserProfileData GetUserProfile(LLUUID uuid)
+        public UserProfileData GetUserProfile(UUID uuid)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
@@ -122,7 +122,7 @@ namespace OpenSim.Framework.Communications
             return null;
         }
 
-        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
+        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
             foreach (IUserDataPlugin plugin in _plugins)
@@ -172,7 +172,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="uuid">The agent's UUID</param>
         /// <returns>Agent profiles</returns>
-        public UserAgentData GetUserAgent(LLUUID uuid)
+        public UserAgentData GetUserAgent(UUID uuid)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
@@ -234,7 +234,7 @@ namespace OpenSim.Framework.Communications
             return null;
         }
 
-        public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
+        public void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
@@ -254,7 +254,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="name">the UUID of the friend list owner</param>
         /// <returns>A List of FriendListItems that contains info about the user's friends</returns>
-        public List<FriendListItem> GetUserFriendList(LLUUID ownerID)
+        public List<FriendListItem> GetUserFriendList(UUID ownerID)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
@@ -271,7 +271,7 @@ namespace OpenSim.Framework.Communications
             return null;
         }
 
-        public void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey)
+        public void StoreWebLoginKey(UUID agentID, UUID webLoginKey)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
@@ -286,7 +286,7 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
@@ -301,7 +301,7 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        public void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
@@ -316,7 +316,7 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
@@ -336,7 +336,7 @@ namespace OpenSim.Framework.Communications
         /// Resets the currentAgent in the user profile
         /// </summary>
         /// <param name="agentID">The agent's ID</param>
-        public void ClearUserAgent(LLUUID agentID)
+        public void ClearUserAgent(UUID agentID)
         {
             UserProfileData profile = GetUserProfile(agentID);
 
@@ -382,8 +382,8 @@ namespace OpenSim.Framework.Communications
             rand.GetBytes(randDataS);
             rand.GetBytes(randDataSS);
 
-            agent.SecureSessionID = new LLUUID(randDataSS, 0);
-            agent.SessionID = new LLUUID(randDataS, 0);
+            agent.SecureSessionID = new UUID(randDataSS, 0);
+            agent.SessionID = new UUID(randDataS, 0);
 
             // Profile UUID
             agent.ProfileID = profile.ID;
@@ -434,8 +434,8 @@ namespace OpenSim.Framework.Communications
             agent.LogoutTime = 0;
 
             // Current location
-            agent.InitialRegion = LLUUID.Zero; // Fill in later
-            agent.Region = LLUUID.Zero; // Fill in later
+            agent.InitialRegion = UUID.Zero; // Fill in later
+            agent.Region = UUID.Zero; // Fill in later
 
             profile.CurrentAgent = agent;
         }
@@ -449,14 +449,14 @@ namespace OpenSim.Framework.Communications
         /// <param name="posx"></param>
         /// <param name="posy"></param>
         /// <param name="posz"></param>
-        public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
             if (StatsManager.UserStats != null)
                 StatsManager.UserStats.AddLogout();
 
             UserProfileData userProfile;
             UserAgentData userAgent;
-            LLVector3 currentPos = new LLVector3(posx, posy, posz);
+            Vector3 currentPos = new Vector3(posx, posy, posz);
 
             userProfile = GetUserProfile(userid);
 
@@ -470,8 +470,8 @@ namespace OpenSim.Framework.Communications
                 {
                     userAgent.AgentOnline = false;
                     userAgent.LogoutTime = Util.UnixTimeSinceEpoch();
-                    //userAgent.sessionID = LLUUID.Zero;
-                    if (regionid != LLUUID.Zero)
+                    //userAgent.sessionID = UUID.Zero;
+                    if (regionid != UUID.Zero)
                     {
                         userAgent.Region = regionid;
                     }
@@ -508,8 +508,8 @@ namespace OpenSim.Framework.Communications
             rand.GetBytes(randDataS);
             rand.GetBytes(randDataSS);
 
-            agent.SecureSessionID = new LLUUID(randDataSS, 0);
-            agent.SessionID = new LLUUID(randDataS, 0);
+            agent.SecureSessionID = new UUID(randDataSS, 0);
+            agent.SessionID = new UUID(randDataS, 0);
 
             // Profile UUID
             agent.ProfileID = profile.ID;
@@ -523,8 +523,8 @@ namespace OpenSim.Framework.Communications
             agent.LogoutTime = 0;
 
             // Current location
-            agent.InitialRegion = LLUUID.Zero; // Fill in later
-            agent.Region = LLUUID.Zero; // Fill in later
+            agent.InitialRegion = UUID.Zero; // Fill in later
+            agent.Region = UUID.Zero; // Fill in later
 
             profile.CurrentAgent = agent;
         }
@@ -550,17 +550,17 @@ namespace OpenSim.Framework.Communications
         ///
         /// </summary>
         /// <param name="user"></param>
-        public LLUUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
+        public UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
         {
             UserProfileData user = new UserProfileData();
-            user.HomeLocation = new LLVector3(128, 128, 100);
-            user.ID = LLUUID.Random();
+            user.HomeLocation = new Vector3(128, 128, 100);
+            user.ID = UUID.Random();
             user.FirstName = firstName;
             user.SurName = lastName;
             user.PasswordHash = pass;
             user.PasswordSalt = String.Empty;
             user.Created = Util.UnixTimeSinceEpoch();
-            user.HomeLookAt = new LLVector3(100, 100, 100);
+            user.HomeLookAt = new Vector3(100, 100, 100);
             user.HomeRegionX = regX;
             user.HomeRegionY = regY;
 
@@ -604,7 +604,7 @@ namespace OpenSim.Framework.Communications
 
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName);
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName, string password);
-        public abstract UserProfileData SetupMasterUser(LLUUID uuid);
+        public abstract UserProfileData SetupMasterUser(UUID uuid);
 
         /// <summary>
         /// Add agent to DB
@@ -629,7 +629,7 @@ namespace OpenSim.Framework.Communications
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        public AvatarAppearance GetUserAppearance(LLUUID user)
+        public AvatarAppearance GetUserAppearance(UUID user)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {
@@ -645,7 +645,7 @@ namespace OpenSim.Framework.Communications
             return null;
         }
 
-        public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
+        public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
             foreach (IUserDataPlugin plugin in _plugins)
             {

@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -38,7 +38,7 @@ namespace OpenSim.Framework
         {
         }
 
-        public virtual AuthenticateResponse AuthenticateSession(LLUUID sessionID, LLUUID agentID, uint circuitcode)
+        public virtual AuthenticateResponse AuthenticateSession(UUID sessionID, UUID agentID, uint circuitcode)
         {
             AgentCircuitData validcircuit = null;
             if (AgentCircuits.ContainsKey(circuitcode))
@@ -86,9 +86,9 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLVector3 GetPosition(uint circuitCode)
+        public Vector3 GetPosition(uint circuitCode)
         {
-            LLVector3 vec = new LLVector3();
+            Vector3 vec = new Vector3();
             if (AgentCircuits.ContainsKey(circuitCode))
             {
                 vec = AgentCircuits[circuitCode].startpos;

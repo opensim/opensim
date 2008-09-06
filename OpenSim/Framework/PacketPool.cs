@@ -28,8 +28,8 @@
 using System;
 using System.Collections;
 using System.Net;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 
 namespace OpenSim.Framework
 {
@@ -76,11 +76,13 @@ namespace OpenSim.Framework
             ushort id;
             PacketFrequency freq;
 
-            Buffer.BlockCopy(bytes, 0, decoded_header, 0, 10);
-
             if ((bytes[0] & Helpers.MSG_ZEROCODED) != 0)
             {
-                Helpers.ZeroDecodeCommand(bytes, decoded_header);
+                Helpers.ZeroDecode(bytes, 16, decoded_header);
+            }
+            else
+            {
+                Buffer.BlockCopy(bytes, 0, decoded_header, 0, 10);
             }
 
             if (decoded_header[6] == 0xFF)

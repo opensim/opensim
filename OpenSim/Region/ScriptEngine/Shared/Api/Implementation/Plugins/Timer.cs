@@ -28,7 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Region.ScriptEngine.Shared.Api;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
@@ -48,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         private class TimerClass
         {
             public uint localID;
-            public LLUUID itemID;
+            public UUID itemID;
             //public double interval;
             public long interval;
             //public DateTime next;
@@ -58,7 +58,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         private List<TimerClass> Timers = new List<TimerClass>();
         private object TimerListLock = new object();
 
-        public void SetTimerEvent(uint m_localID, LLUUID m_itemID, double sec)
+        public void SetTimerEvent(uint m_localID, UUID m_itemID, double sec)
         {
             // Always remove first, in case this is a re-set
             UnSetTimerEvents(m_localID, m_itemID);
@@ -81,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
         }
 
-        public void UnSetTimerEvents(uint m_localID, LLUUID m_itemID)
+        public void UnSetTimerEvents(uint m_localID, UUID m_itemID)
         {
             // Remove from timer
             lock (TimerListLock)
@@ -122,7 +122,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
         }
 
-        public Object[] GetSerializationData(LLUUID itemID)
+        public Object[] GetSerializationData(UUID itemID)
         {
             List<Object> data = new List<Object>();
 
@@ -140,7 +140,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             return data.ToArray();
         }
 
-        public void CreateFromData(uint localID, LLUUID itemID, LLUUID objectID,
+        public void CreateFromData(uint localID, UUID itemID, UUID objectID,
                                    Object[] data)
         {
             int idx = 0;

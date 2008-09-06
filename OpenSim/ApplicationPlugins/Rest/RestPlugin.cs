@@ -34,7 +34,7 @@ using System.Net;
 using System.Reflection;
 using System.Timers;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using Nwc.XmlRpc;
 using Nini.Config;
 using OpenSim.Framework;
@@ -339,7 +339,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// HTTP header is indeed the password on file for the avatar
         /// specified by the UUID
         /// </summary>
-        protected bool IsVerifiedUser(OSHttpRequest request, LLUUID uuid)
+        protected bool IsVerifiedUser(OSHttpRequest request, UUID uuid)
         {
             // XXX under construction
             return false;

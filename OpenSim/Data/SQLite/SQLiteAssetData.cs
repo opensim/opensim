@@ -28,7 +28,7 @@
 using System;
 using System.Data;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework;
@@ -87,7 +87,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="uuid">UUID of ... ?</param>
         /// <returns>Asset base</returns>
-        override public AssetBase FetchAsset(LLUUID uuid)
+        override public AssetBase FetchAsset(UUID uuid)
         {
             lock (this)
             {
@@ -190,7 +190,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="uuid">The asset UUID</param>
         /// <returns>True if exist, or false.</returns>
-        override public bool ExistsAsset(LLUUID uuid)
+        override public bool ExistsAsset(UUID uuid)
         {
             lock (this) {
                 using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
@@ -217,7 +217,7 @@ namespace OpenSim.Data.SQLite
         /// Delete an asset from database
         /// </summary>
         /// <param name="uuid"></param>
-        public void DeleteAsset(LLUUID uuid)
+        public void DeleteAsset(UUID uuid)
         {
             using (SqliteCommand cmd = new SqliteCommand(DeleteAssetSQL, m_conn))
             {
@@ -239,7 +239,7 @@ namespace OpenSim.Data.SQLite
             // back out.  Not enough time to figure it out yet.
             AssetBase asset = new AssetBase();
 
-            asset.FullID = new LLUUID((String) row["UUID"]);
+            asset.FullID = new UUID((String) row["UUID"]);
             asset.Name = (String) row["Name"];
             asset.Description = (String) row["Description"];
             asset.Type = Convert.ToSByte(row["Type"]);

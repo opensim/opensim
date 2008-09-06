@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -591,7 +591,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                                             float south, float east, IClientAPI remoteClient)
         {
             // Not a good permissions check, if in area mode, need to check the entire area.
-            if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(remoteClient.AgentId, new LLVector3(north, west, 0)))
+            if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(remoteClient.AgentId, new Vector3(north, west, 0)))
             {
                 if (north == south && east == west)
                 {
@@ -648,7 +648,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             // Not a good permissions check (see client_OnModifyTerrain above), need to check the entire area.
             // for now check a point in the centre of the region
 
-            if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(remoteClient.AgentId, new LLVector3(127, 127, 0)))
+            if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(remoteClient.AgentId, new Vector3(127, 127, 0)))
             {
                 InterfaceBakeTerrain(null); //bake terrain does not use the passed in parameter
             }

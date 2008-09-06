@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Net;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -45,7 +45,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private readonly List<Scene> m_scenes = new List<Scene>();
-        private Dictionary<LLUUID, ulong> m_userRegionMap = new Dictionary<LLUUID, ulong>();
+        private Dictionary<UUID, ulong> m_userRegionMap = new Dictionary<UUID, ulong>();
 
         #region IRegionModule Members
 
@@ -106,11 +106,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             client.OnInstantMessage += OnInstantMessage;
         }
 
-        private void OnInstantMessage(IClientAPI client, LLUUID fromAgentID,
-                                      LLUUID fromAgentSession, LLUUID toAgentID,
-                                      LLUUID imSessionID, uint timestamp, string fromAgentName,
+        private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
+                                      UUID fromAgentSession, UUID toAgentID,
+                                      UUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog, bool fromGroup, byte offline,
-                                      uint ParentEstateID, LLVector3 Position, LLUUID RegionID,
+                                      uint ParentEstateID, Vector3 Position, UUID RegionID,
                                       byte[] binaryBucket)
         {
             bool dialogHandledElsewhere
@@ -122,8 +122,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             // IM dialogs need to be pre-processed and have their sessionID filled by the server
             // so the sim can match the transaction on the return packet.
 
-            // Don't send a Friend Dialog IM with a LLUUID.Zero session.
-            if (!(dialogHandledElsewhere && imSessionID == LLUUID.Zero))
+            // Don't send a Friend Dialog IM with a UUID.Zero session.
+            if (!(dialogHandledElsewhere && imSessionID == UUID.Zero))
             {
                 // Try root avatar only first
                 foreach (Scene scene in m_scenes)
@@ -195,10 +195,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
             // Trigger the above event handler
-            OnInstantMessage(null, new LLUUID(msg.fromAgentID), new LLUUID(msg.fromAgentSession),
-                             new LLUUID(msg.toAgentID), new LLUUID(msg.imSessionID), msg.timestamp, msg.fromAgentName,
+            OnInstantMessage(null, new UUID(msg.fromAgentID), new UUID(msg.fromAgentSession),
+                             new UUID(msg.toAgentID), new UUID(msg.imSessionID), msg.timestamp, msg.fromAgentName,
                              msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID,
-                             new LLVector3(msg.Position.x, msg.Position.y, msg.Position.z), new LLUUID(msg.RegionID),
+                             new Vector3(msg.Position.X, msg.Position.Y, msg.Position.Z), new UUID(msg.RegionID),
                              msg.binaryBucket);
         }
 
@@ -214,10 +214,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         {
             bool successful = false;
             // various rational defaults
-            LLUUID fromAgentID = LLUUID.Zero;
-            LLUUID fromAgentSession = LLUUID.Zero;
-            LLUUID toAgentID = LLUUID.Zero;
-            LLUUID imSessionID = LLUUID.Zero;
+            UUID fromAgentID = UUID.Zero;
+            UUID fromAgentSession = UUID.Zero;
+            UUID toAgentID = UUID.Zero;
+            UUID imSessionID = UUID.Zero;
             uint timestamp = 0;
             string fromAgentName = "";
             string message = "";
@@ -225,8 +225,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             bool fromGroup = false;
             byte offline = (byte)0;
             uint ParentEstateID=0;
-            LLVector3 Position = LLVector3.Zero;
-            LLUUID RegionID = LLUUID.Zero ;
+            Vector3 Position = Vector3.Zero;
+            UUID RegionID = UUID.Zero ;
             byte[] binaryBucket = new byte[0];
 
             float pos_x = 0;
@@ -248,11 +248,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     && requestData.ContainsKey("binary_bucket") &&  requestData.ContainsKey("region_handle"))
             {
                 // Do the easy way of validating the UUIDs
-                Helpers.TryParse((string)requestData["from_agent_id"], out fromAgentID);
-                Helpers.TryParse((string)requestData["from_agent_session"], out fromAgentSession);
-                Helpers.TryParse((string)requestData["to_agent_id"], out toAgentID);
-                Helpers.TryParse((string)requestData["im_session_id"], out imSessionID);
-                Helpers.TryParse((string)requestData["region_id"], out RegionID);
+                UUID.TryParse((string)requestData["from_agent_id"], out fromAgentID);
+                UUID.TryParse((string)requestData["from_agent_session"], out fromAgentSession);
+                UUID.TryParse((string)requestData["to_agent_id"], out toAgentID);
+                UUID.TryParse((string)requestData["im_session_id"], out imSessionID);
+                UUID.TryParse((string)requestData["region_id"], out RegionID);
 
                 # region timestamp
                 try
@@ -345,24 +345,24 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 }
                 # endregion
 
-                Position = new LLVector3(pos_x, pos_y, pos_z);
+                Position = new Vector3(pos_x, pos_y, pos_z);
                 binaryBucket = Convert.FromBase64String((string)requestData["binary_bucket"]);
 
                 // Create a New GridInstantMessageObject the the data
                 GridInstantMessage gim = new GridInstantMessage();
-                gim.fromAgentID = fromAgentID.UUID;
+                gim.fromAgentID = fromAgentID.Guid;
                 gim.fromAgentName = fromAgentName;
-                gim.fromAgentSession = fromAgentSession.UUID;
+                gim.fromAgentSession = fromAgentSession.Guid;
                 gim.fromGroup = fromGroup;
-                gim.imSessionID = imSessionID.UUID;
-                gim.RegionID = RegionID.UUID;
+                gim.imSessionID = imSessionID.Guid;
+                gim.RegionID = RegionID.Guid;
                 gim.timestamp = timestamp;
-                gim.toAgentID = toAgentID.UUID;
+                gim.toAgentID = toAgentID.Guid;
                 gim.message = message;
                 gim.dialog = dialog;
                 gim.offline = offline;
                 gim.ParentEstateID = ParentEstateID;
-                gim.Position = new sLLVector3(Position);
+                gim.Position = Position;
                 gim.binaryBucket = binaryBucket;
 
 
@@ -418,11 +418,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         /// <param name="binaryBucket"></param>
         /// <param name="regionhandle"></param>
         /// <param name="prevRegionHandle"></param>
-        public delegate void GridInstantMessageDelegate(IClientAPI client, LLUUID fromAgentID,
-                                      LLUUID fromAgentSession, LLUUID toAgentID,
-                                      LLUUID imSessionID, uint timestamp, string fromAgentName,
+        public delegate void GridInstantMessageDelegate(IClientAPI client, UUID fromAgentID,
+                                      UUID fromAgentSession, UUID toAgentID,
+                                      UUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog, bool fromGroup, byte offline,
-                                      uint ParentEstateID, LLVector3 Position, LLUUID RegionID,
+                                      uint ParentEstateID, Vector3 Position, UUID RegionID,
                                       byte[] binaryBucket, ulong regionhandle, ulong prevRegionHandle);
 
         private void GridInstantMessageCompleted(IAsyncResult iar)
@@ -432,11 +432,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         }
 
 
-        protected virtual void SendGridInstantMessageViaXMLRPC(IClientAPI client, LLUUID fromAgentID,
-                                      LLUUID fromAgentSession, LLUUID toAgentID,
-                                      LLUUID imSessionID, uint timestamp, string fromAgentName,
+        protected virtual void SendGridInstantMessageViaXMLRPC(IClientAPI client, UUID fromAgentID,
+                                      UUID fromAgentSession, UUID toAgentID,
+                                      UUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog, bool fromGroup, byte offline,
-                                      uint ParentEstateID, LLVector3 Position, LLUUID RegionID,
+                                      uint ParentEstateID, Vector3 Position, UUID RegionID,
                                       byte[] binaryBucket, ulong regionhandle, ulong prevRegionHandle)
         {
                     GridInstantMessageDelegate d = SendGridInstantMessageViaXMLRPCAsync;
@@ -459,11 +459,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         /// if it's the same as the user's looked up region handle, then we end the recursive loop
         /// </summary>
         /// <param name="prevRegionHandle"></param>
-        protected virtual void SendGridInstantMessageViaXMLRPCAsync(IClientAPI client, LLUUID fromAgentID,
-                              LLUUID fromAgentSession, LLUUID toAgentID,
-                              LLUUID imSessionID, uint timestamp, string fromAgentName,
+        protected virtual void SendGridInstantMessageViaXMLRPCAsync(IClientAPI client, UUID fromAgentID,
+                              UUID fromAgentSession, UUID toAgentID,
+                              UUID imSessionID, uint timestamp, string fromAgentName,
                               string message, byte dialog, bool fromGroup, byte offline,
-                              uint ParentEstateID, LLVector3 Position, LLUUID RegionID,
+                              uint ParentEstateID, Vector3 Position, UUID RegionID,
                               byte[] binaryBucket, ulong regionhandle, ulong prevRegionHandle)
         {
             UserAgentData  upd = null;
@@ -527,10 +527,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     if (reginfo != null)
                     {
                         GridInstantMessage msg = new GridInstantMessage();
-                        msg.fromAgentID = fromAgentID.UUID;
-                        msg.fromAgentSession = fromAgentSession.UUID;
-                        msg.toAgentID = toAgentID.UUID;
-                        msg.imSessionID = imSessionID.UUID;
+                        msg.fromAgentID = fromAgentID.Guid;
+                        msg.fromAgentSession = fromAgentSession.Guid;
+                        msg.toAgentID = toAgentID.Guid;
+                        msg.imSessionID = imSessionID.Guid;
                         msg.timestamp = timestamp;
                         msg.fromAgentName = fromAgentName;
                         msg.message = message;
@@ -538,8 +538,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         msg.fromGroup = fromGroup;
                         msg.offline = offline;
                         msg.ParentEstateID = ParentEstateID;
-                        msg.Position = new sLLVector3(Position);
-                        msg.RegionID = RegionID.UUID;
+                        msg.Position = Position;
+                        msg.RegionID = RegionID.Guid;
                         msg.binaryBucket = binaryBucket;
 
                         Hashtable msgdata = ConvertGridInstantMessageToXMLRPC(msg);
@@ -649,7 +649,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         /// </summary>
         /// <param name="regionID">UUID of region to get the region handle for</param>
         /// <returns></returns>
-        private ulong getLocalRegionHandleFromUUID(LLUUID regionID)
+        private ulong getLocalRegionHandleFromUUID(UUID regionID)
         {
             ulong returnhandle = 0;
 
@@ -692,9 +692,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             byte[] offlinedata = new byte[1]; offlinedata[0] = msg.offline;
             gim["offline"] = Convert.ToBase64String(offlinedata, Base64FormattingOptions.None);
             gim["parent_estate_id"] = msg.ParentEstateID.ToString();
-            gim["position_x"] = msg.Position.x.ToString();
-            gim["position_y"] = msg.Position.y.ToString();
-            gim["position_z"] = msg.Position.z.ToString();
+            gim["position_x"] = msg.Position.X.ToString();
+            gim["position_y"] = msg.Position.Y.ToString();
+            gim["position_z"] = msg.Position.Z.ToString();
             gim["region_id"] = msg.RegionID.ToString();
             gim["binary_bucket"] = Convert.ToBase64String(msg.binaryBucket,Base64FormattingOptions.None);
             return gim;

@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenSim.Tests.Common;
@@ -38,15 +38,15 @@ namespace OpenSim.Framework.Tests
         [Test]
         public void VectorOperationTests()
         {
-            LLVector3 v1, v2;
+            Vector3 v1, v2;
             double expectedDistance;
             double expectedMagnitude;
             double lowPrecisionTolerance = 0.001;
 
             //Lets test a simple case of <0,0,0> and <5,5,5>
             {
-                v1 = new LLVector3(0, 0, 0);
-                v2 = new LLVector3(5, 5, 5);
+                v1 = new Vector3(0, 0, 0);
+                v2 = new Vector3(5, 5, 5);
                 expectedDistance = 8.66;
                 Assert.That(Util.GetDistanceTo(v1, v2),
                             new DoubleToleranceConstraint(expectedDistance, lowPrecisionTolerance),
@@ -65,9 +65,9 @@ namespace OpenSim.Framework.Tests
                 Assert.That(causesArgumentException, Is.True,
                             "Getting magnitude of null vector did not cause argument exception.");
 
-                LLVector3 expectedNormalizedVector = new LLVector3(.577f, .577f, .577f);
+                Vector3 expectedNormalizedVector = new Vector3(.577f, .577f, .577f);
                 double expectedNormalizedMagnitude = 1;
-                LLVector3 normalizedVector = Util.GetNormalizedVector(v2);
+                Vector3 normalizedVector = Util.GetNormalizedVector(v2);
                 Assert.That(normalizedVector,
                             new VectorToleranceConstraint(expectedNormalizedVector, lowPrecisionTolerance),
                             "Normalized vector generated from vector was not what was expected.");
@@ -78,8 +78,8 @@ namespace OpenSim.Framework.Tests
 
             //Lets test a simple case of <0,0,0> and <0,0,0>
             {
-                v1 = new LLVector3(0, 0, 0);
-                v2 = new LLVector3(0, 0, 0);
+                v1 = new Vector3(0, 0, 0);
+                v2 = new Vector3(0, 0, 0);
                 expectedDistance = 0;
                 Assert.That(Util.GetDistanceTo(v1, v2),
                             new DoubleToleranceConstraint(expectedDistance, lowPrecisionTolerance),
@@ -106,8 +106,8 @@ namespace OpenSim.Framework.Tests
 
             //Lets test a simple case of <0,0,0> and <-5,-5,-5>
             {
-                v1 = new LLVector3(0, 0, 0);
-                v2 = new LLVector3(-5, -5, -5);
+                v1 = new Vector3(0, 0, 0);
+                v2 = new Vector3(-5, -5, -5);
                 expectedDistance = 8.66;
                 Assert.That(Util.GetDistanceTo(v1, v2),
                             new DoubleToleranceConstraint(expectedDistance, lowPrecisionTolerance),
@@ -126,9 +126,9 @@ namespace OpenSim.Framework.Tests
                 Assert.That(causesArgumentException, Is.True,
                             "Getting magnitude of null vector did not cause argument exception.");
 
-                LLVector3 expectedNormalizedVector = new LLVector3(-.577f, -.577f, -.577f);
+                Vector3 expectedNormalizedVector = new Vector3(-.577f, -.577f, -.577f);
                 double expectedNormalizedMagnitude = 1;
-                LLVector3 normalizedVector = Util.GetNormalizedVector(v2);
+                Vector3 normalizedVector = Util.GetNormalizedVector(v2);
                 Assert.That(normalizedVector,
                             new VectorToleranceConstraint(expectedNormalizedVector, lowPrecisionTolerance),
                             "Normalized vector generated from vector was not what was expected.");

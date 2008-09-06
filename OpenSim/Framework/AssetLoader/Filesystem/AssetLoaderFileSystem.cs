@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 
@@ -46,7 +46,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         protected static AssetBase CreateAsset(string assetIdStr, string name, string path, bool isImage)
         {
             AssetBase asset = new AssetBase(
-                new LLUUID(assetIdStr),
+                new UUID(assetIdStr),
                 name
                 );
 
@@ -88,7 +88,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
         public void ForEachDefaultXmlAsset(Action<AssetBase> action)
         {
-            string assetSetFilename = Path.Combine(Util.assetsDir(), "AssetSets.xml");
+            string assetSetFilename = Path.Combine(Util.assetsDir(), "AssetSets.Xml");
 
             ForEachDefaultXmlAsset(assetSetFilename, action);
         }
@@ -118,7 +118,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             }
             else
             {
-                m_log.Error("[ASSETS]: Asset set control file assets/AssetSets.xml does not exist!  No assets loaded.");
+                m_log.Error("[ASSETS]: Asset set control file assets/AssetSets.Xml does not exist!  No assets loaded.");
             }
 
             assets.ForEach(action);
@@ -142,7 +142,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
                     for (int i = 0; i < source.Configs.Count; i++)
                     {
-                        string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToString());
+                        string assetIdStr = source.Configs[i].GetString("assetID", UUID.Random().ToString());
                         string name = source.Configs[i].GetString("name", String.Empty);
                         sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
                         string assetPath = Path.Combine(dir, source.Configs[i].GetString("fileName", String.Empty));

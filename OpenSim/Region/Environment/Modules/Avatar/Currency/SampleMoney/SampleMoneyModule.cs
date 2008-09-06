@@ -32,7 +32,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// <summary>
         /// Where Stipends come from and Fees go to.
         /// </summary>
-        // private LLUUID EconomyBaseAccount = LLUUID.Zero;
+        // private UUID EconomyBaseAccount = UUID.Zero;
 
         private float EnergyEfficiency = 0f;
         private bool gridmode = false;
@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         private IConfigSource m_gConfig;
 
         private bool m_keepMoneyAcrossLogins = true;
-        private Dictionary<LLUUID, int> m_KnownClientFunds = new Dictionary<LLUUID, int>();
+        private Dictionary<UUID, int> m_KnownClientFunds = new Dictionary<UUID, int>();
         // private string m_LandAddress = String.Empty;
 
         private int m_minFundsBeforeRefresh = 100;
@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// <summary>
         /// Region UUIDS indexed by AgentID
         /// </summary>
-        private Dictionary<LLUUID, LLUUID> m_rootAgents = new Dictionary<LLUUID, LLUUID>();
+        private Dictionary<UUID, UUID> m_rootAgents = new Dictionary<UUID, UUID>();
 
         /// <summary>
         /// Scenes by Region Handle
@@ -184,11 +184,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             }
         }
 
-        public void ApplyUploadCharge(LLUUID agentID)
+        public void ApplyUploadCharge(UUID agentID)
         {
         }
 
-        public bool ObjectGiveMoney(LLUUID objectID, LLUUID fromID, LLUUID toID, int amount)
+        public bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID, int amount)
         {
             string description = String.Format("Object {0} pays {1}", resolveObjectName(objectID), resolveAgentName(toID));
 
@@ -252,7 +252,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 PriceObjectScaleFactor = startupConfig.GetFloat("PriceObjectScaleFactor", 10);
                 PriceParcelRent = startupConfig.GetInt("PriceParcelRent", 1);
                 PriceGroupCreate = startupConfig.GetInt("PriceGroupCreate", -1);
-                // string EBA = startupConfig.GetString("EconomyBaseAccount", LLUUID.Zero.ToString());
+                // string EBA = startupConfig.GetString("EconomyBaseAccount", UUID.Zero.ToString());
                 // Helpers.TryParse(EBA, out EconomyBaseAccount);
 
                 // UserLevelPaysFees = startupConfig.GetInt("UserLevelPaysFees", -1);
@@ -294,7 +294,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                     if (s != null && agent != null && childYN == false)
                     {
                         //s.RegionInfo.RegionHandle;
-                        LLUUID agentID = LLUUID.Zero;
+                        UUID agentID = UUID.Zero;
                         int funds = 0;
 
                         Hashtable hbinfo =
@@ -302,7 +302,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                                                              s.RegionInfo.regionSecret);
                         if ((bool) hbinfo["success"] == true)
                         {
-                            Helpers.TryParse((string) hbinfo["agentId"], out agentID);
+                            UUID.TryParse((string)hbinfo["agentId"], out agentID);
                             try
                             {
                                 funds = (Int32) hbinfo["funds"];
@@ -331,7 +331,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                                              (string) hbinfo["errorMessage"]);
                             client.SendAlertMessage((string) hbinfo["errorMessage"]);
                         }
-                        SendMoneyBalance(client, agentID, client.SessionId, LLUUID.Zero);
+                        SendMoneyBalance(client, agentID, client.SessionId, UUID.Zero);
                     }
                 }
             }
@@ -365,7 +365,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// <param name="Receiver"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        private bool doMoneyTransfer(LLUUID Sender, LLUUID Receiver, int amount, int transactiontype, string description)
+        private bool doMoneyTransfer(UUID Sender, UUID Receiver, int amount, int transactiontype, string description)
         {
             bool result = false;
             if (amount >= 0)
@@ -425,7 +425,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// <param name="agentID"></param>
         /// <param name="SessionID"></param>
         /// <param name="TransactionID"></param>
-        public void SendMoneyBalance(IClientAPI client, LLUUID agentID, LLUUID SessionID, LLUUID TransactionID)
+        public void SendMoneyBalance(IClientAPI client, UUID agentID, UUID SessionID, UUID TransactionID)
         {
             if (client.AgentId == agentID && client.SessionId == SessionID)
             {
@@ -456,7 +456,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// <param name="regionId"></param>
         /// <param name="regionSecret"></param>
         /// <returns></returns>
-        public Hashtable GetBalanceForUserFromMoneyServer(LLUUID agentId, LLUUID secureSessionID, LLUUID regionId, string regionSecret)
+        public Hashtable GetBalanceForUserFromMoneyServer(UUID agentId, UUID secureSessionID, UUID regionId, string regionSecret)
         {
             Hashtable MoneyBalanceRequestParams = new Hashtable();
             MoneyBalanceRequestParams["agentId"] = agentId.ToString();
@@ -551,7 +551,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// <param name="regionId"></param>
         /// <param name="regionSecret"></param>
         /// <returns></returns>
-        public Hashtable claim_user(LLUUID agentId, LLUUID secureSessionID, LLUUID regionId, string regionSecret)
+        public Hashtable claim_user(UUID agentId, UUID secureSessionID, UUID regionId, string regionSecret)
         {
             Hashtable MoneyBalanceRequestParams = new Hashtable();
             MoneyBalanceRequestParams["agentId"] = agentId.ToString();
@@ -563,12 +563,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             IClientAPI sendMoneyBal = LocateClientObject(agentId);
             if (sendMoneyBal != null)
             {
-                SendMoneyBalance(sendMoneyBal, agentId, sendMoneyBal.SessionId, LLUUID.Zero);
+                SendMoneyBalance(sendMoneyBal, agentId, sendMoneyBal.SessionId, UUID.Zero);
             }
             return MoneyRespData;
         }
 
-        private SceneObjectPart findPrim(LLUUID objectID)
+        private SceneObjectPart findPrim(UUID objectID)
         {
             lock (m_scenel)
             {
@@ -584,7 +584,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             return null;
         }
 
-        private string resolveObjectName(LLUUID objectID)
+        private string resolveObjectName(UUID objectID)
         {
             SceneObjectPart part = findPrim(objectID);
             if (part != null)
@@ -594,7 +594,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             return String.Empty;
         }
 
-        private string resolveAgentName(LLUUID agentID)
+        private string resolveAgentName(UUID agentID)
         {
             // try avatar username surname
             Scene scene = GetRandomScene();
@@ -607,7 +607,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             return String.Empty;
         }
 
-        private void BalanceUpdate(LLUUID senderID, LLUUID receiverID, bool transactionresult, string description)
+        private void BalanceUpdate(UUID senderID, UUID receiverID, bool transactionresult, string description)
         {
             IClientAPI sender = LocateClientObject(senderID);
             IClientAPI receiver = LocateClientObject(receiverID);
@@ -616,12 +616,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             {
                 if (sender != null)
                 {
-                    sender.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(description), GetFundsForAgentID(senderID));
+                    sender.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(senderID));
                 }
 
                 if (receiver != null)
                 {
-                    receiver.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(description), GetFundsForAgentID(receiverID));
+                    receiver.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(receiverID));
                 }
             }
         }
@@ -633,7 +633,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// <param name="destId"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        public bool TransferMoneyonMoneyServer(LLUUID sourceId, LLUUID destId, int amount, int transactiontype, string description)
+        public bool TransferMoneyonMoneyServer(UUID sourceId, UUID destId, int amount, int transactiontype, string description)
         {
             int aggregatePermInventory = 0;
             int aggregatePermNextOwner = 0;
@@ -709,7 +709,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             return rvalue;
         }
 
-        public int GetRemoteBalance(LLUUID agentId)
+        public int GetRemoteBalance(UUID agentId)
         {
             int funds = 0;
 
@@ -755,7 +755,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                     }
 
                     SetLocalFundsForAgentID(agentId, funds);
-                    SendMoneyBalance(aClient, agentId, aClient.SessionId, LLUUID.Zero);
+                    SendMoneyBalance(aClient, agentId, aClient.SessionId, UUID.Zero);
                 }
                 else
                 {
@@ -776,10 +776,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
 
             if (requestData.ContainsKey("agentId"))
             {
-                LLUUID agentId = LLUUID.Zero;
+                UUID agentId = UUID.Zero;
 
-                Helpers.TryParse((string) requestData["agentId"], out agentId);
-                if (agentId != LLUUID.Zero)
+                UUID.TryParse((string) requestData["agentId"], out agentId);
+                if (agentId != UUID.Zero)
                 {
                     GetRemoteBalance(agentId);
                 }
@@ -809,13 +809,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             Hashtable retparam = new Hashtable();
             Hashtable requestData = (Hashtable) request.Params[0];
 
-            LLUUID agentId = LLUUID.Zero;
-            LLUUID soundId = LLUUID.Zero;
-            LLUUID regionId = LLUUID.Zero;
+            UUID agentId = UUID.Zero;
+            UUID soundId = UUID.Zero;
+            UUID regionId = UUID.Zero;
 
-            Helpers.TryParse((string) requestData["agentId"], out agentId);
-            Helpers.TryParse((string) requestData["soundId"], out soundId);
-            Helpers.TryParse((string) requestData["regionId"], out regionId);
+            UUID.TryParse((string) requestData["agentId"], out agentId);
+            UUID.TryParse((string) requestData["soundId"], out soundId);
+            UUID.TryParse((string) requestData["regionId"], out regionId);
             string text = (string) requestData["text"];
             string secret = (string) requestData["secret"];
 
@@ -828,9 +828,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                     IClientAPI client = LocateClientObject(agentId);
        	            if (client != null)
        	            {
-       	                if (soundId != LLUUID.Zero)
-       	                    client.SendPlayAttachedSound(soundId, LLUUID.Zero, LLUUID.Zero, 1.0f, 0);
-       	                client.SendBlueBoxMessage(LLUUID.Zero, LLUUID.Zero, "", text);
+                        
+       	                if (soundId != UUID.Zero)
+       	                    client.SendPlayAttachedSound(soundId, UUID.Zero, UUID.Zero, 1.0f, 0);
+                    
+       	                client.SendBlueBoxMessage(UUID.Zero, UUID.Zero, "", text);
+                    
        	                retparam.Add("success", true);
        	            }
                     else
@@ -843,10 +846,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                     retparam.Add("success", false);
                 }
             }
-            else
-            {
-                retparam.Add("success", false);
-            }
+            
             ret.Value = retparam;
             return ret;
         }
@@ -856,14 +856,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         public XmlRpcResponse quote_func(XmlRpcRequest request)
         {
             Hashtable requestData = (Hashtable) request.Params[0];
-            LLUUID agentId = LLUUID.Zero;
+            UUID agentId = UUID.Zero;
             int amount = 0;
             Hashtable quoteResponse = new Hashtable();
             XmlRpcResponse returnval = new XmlRpcResponse();
 
             if (requestData.ContainsKey("agentId") && requestData.ContainsKey("currencyBuy"))
             {
-                Helpers.TryParse((string) requestData["agentId"], out agentId);
+                UUID.TryParse((string) requestData["agentId"], out agentId);
                 try
                 {
                     amount = (Int32) requestData["currencyBuy"];
@@ -894,11 +894,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         public XmlRpcResponse buy_func(XmlRpcRequest request)
         {
             Hashtable requestData = (Hashtable) request.Params[0];
-            LLUUID agentId = LLUUID.Zero;
+            UUID agentId = UUID.Zero;
             int amount = 0;
             if (requestData.ContainsKey("agentId") && requestData.ContainsKey("currencyBuy"))
             {
-                Helpers.TryParse((string) requestData["agentId"], out agentId);
+                UUID.TryParse((string) requestData["agentId"], out agentId);
                 try
                 {
                     amount = (Int32) requestData["currencyBuy"];
@@ -906,7 +906,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 catch (InvalidCastException)
                 {
                 }
-                if (agentId != LLUUID.Zero)
+                if (agentId != UUID.Zero)
                 {
                     lock (m_KnownClientFunds)
                     {
@@ -922,7 +922,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                     IClientAPI client = LocateClientObject(agentId);
                     if (client != null)
                     {
-                        SendMoneyBalance(client, agentId, client.SessionId, LLUUID.Zero);
+                        SendMoneyBalance(client, agentId, client.SessionId, UUID.Zero);
                     }
                 }
             }
@@ -974,11 +974,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             Hashtable retparam = new Hashtable();
             Hashtable requestData = (Hashtable) request.Params[0];
 
-            LLUUID agentId = LLUUID.Zero;
+            UUID agentId = UUID.Zero;
             int amount = 0;
             if (requestData.ContainsKey("agentId") && requestData.ContainsKey("currencyBuy"))
             {
-                Helpers.TryParse((string) requestData["agentId"], out agentId);
+                UUID.TryParse((string) requestData["agentId"], out agentId);
                 try
                 {
                     amount = (Int32) requestData["currencyBuy"];
@@ -986,7 +986,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 catch (InvalidCastException)
                 {
                 }
-                if (agentId != LLUUID.Zero)
+                if (agentId != UUID.Zero)
                 {
                     lock (m_KnownClientFunds)
                     {
@@ -1002,7 +1002,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                     IClientAPI client = LocateClientObject(agentId);
                     if (client != null)
                     {
-                        SendMoneyBalance(client, agentId, client.SessionId, LLUUID.Zero);
+                        SendMoneyBalance(client, agentId, client.SessionId, UUID.Zero);
                     }
                 }
             }
@@ -1020,7 +1020,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// Ensures that the agent accounting data is set up in this instance.
         /// </summary>
         /// <param name="agentID"></param>
-        private void CheckExistAndRefreshFunds(LLUUID agentID)
+        private void CheckExistAndRefreshFunds(UUID agentID)
         {
             lock (m_KnownClientFunds)
             {
@@ -1043,7 +1043,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// </summary>
         /// <param name="AgentID"></param>
         /// <returns></returns>
-        private int GetFundsForAgentID(LLUUID AgentID)
+        private int GetFundsForAgentID(UUID AgentID)
         {
             int returnfunds = 0;
             lock (m_KnownClientFunds)
@@ -1060,7 +1060,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             return returnfunds;
         }
 
-        private void SetLocalFundsForAgentID(LLUUID AgentID, int amount)
+        private void SetLocalFundsForAgentID(UUID AgentID, int amount)
         {
             lock (m_KnownClientFunds)
             {
@@ -1084,7 +1084,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// </summary>
         /// <param name="AgentID"></param>
         /// <returns></returns>
-        private IClientAPI LocateClientObject(LLUUID AgentID)
+        private IClientAPI LocateClientObject(UUID AgentID)
         {
             ScenePresence tPresence = null;
             IClientAPI rclient = null;
@@ -1110,7 +1110,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             return null;
         }
 
-        private Scene LocateSceneClientIn(LLUUID AgentId)
+        private Scene LocateSceneClientIn(UUID AgentId)
         {
             lock (m_scenel)
             {
@@ -1148,7 +1148,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// </summary>
         /// <param name="RegionID"></param>
         /// <returns></returns>
-        public Scene GetSceneByUUID(LLUUID RegionID)
+        public Scene GetSceneByUUID(UUID RegionID)
         {
             lock (m_scenel)
             {
@@ -1167,7 +1167,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
 
         #region event Handlers
 
-        public void requestPayPrice(IClientAPI client, LLUUID objectID)
+        public void requestPayPrice(IClientAPI client, UUID objectID)
         {
             Scene scene = LocateSceneClientIn(client.AgentId);
             if (scene == null)
@@ -1186,7 +1186,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// When the client closes the connection we remove their accounting info from memory to free up resources.
         /// </summary>
         /// <param name="AgentID"></param>
-        public void ClientClosed(LLUUID AgentID)
+        public void ClientClosed(UUID AgentID)
         {
             lock (m_KnownClientFunds)
             {
@@ -1204,7 +1204,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// Event called Economy Data Request handler.
         /// </summary>
         /// <param name="agentId"></param>
-        public void EconomyDataRequestHandler(LLUUID agentId)
+        public void EconomyDataRequestHandler(UUID agentId)
         {
             IClientAPI user = LocateClientObject(agentId);
 
@@ -1309,11 +1309,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
 
                     if (e.sender != e.receiver)
                     {
-                        sender.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(e.description), GetFundsForAgentID(e.sender));
+                        sender.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(e.description), GetFundsForAgentID(e.sender));
                     }
                     if (receiver != null)
                     {
-                        receiver.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(e.description), GetFundsForAgentID(part.OwnerID));
+                        receiver.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(e.description), GetFundsForAgentID(part.OwnerID));
                     }
                 }
                 return;
@@ -1330,13 +1330,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 {
                     if (sender != null)
                     {
-                        sender.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(e.description), GetFundsForAgentID(e.sender));
+                        sender.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(e.description), GetFundsForAgentID(e.sender));
                     }
                 }
 
                 if (receiver != null)
                 {
-                    receiver.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(e.description), GetFundsForAgentID(e.receiver));
+                    receiver.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(e.description), GetFundsForAgentID(e.receiver));
                 }
             }
             else
@@ -1369,7 +1369,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// Event Handler for when the client logs out.
         /// </summary>
         /// <param name="AgentId"></param>
-        private void ClientLoggedOut(LLUUID AgentId)
+        private void ClientLoggedOut(UUID AgentId)
         {
             lock (m_rootAgents)
             {
@@ -1396,7 +1396,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// <param name="avatar"></param>
         /// <param name="localLandID"></param>
         /// <param name="regionID"></param>
-        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
+        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
         {
             lock (m_rootAgents)
             {
@@ -1404,8 +1404,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 {
                     if (avatar.Scene.RegionInfo.originRegionID != m_rootAgents[avatar.UUID])
                     {
-
-
                         m_rootAgents[avatar.UUID] = avatar.Scene.RegionInfo.originRegionID;
 
 
@@ -1527,7 +1525,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                         else
                         {
                             string killer = DeadAvatar.Scene.CommsManager.UUIDNameRequestString(part.OwnerID);
-                            DeadAvatar.ControllingClient.SendAgentAlertMessage("You impailed yourself on " + part.Name + " owned by " + killer +"!", true);
+                            DeadAvatar.ControllingClient.SendAgentAlertMessage("You impaled yourself on " + part.Name + " owned by " + killer +"!", true);
                         }
                         //DeadAvatar.Scene. part.ObjectOwner
                     }
@@ -1564,8 +1562,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
 
         #endregion
 
-        public void ObjectBuy(IClientAPI remoteClient, LLUUID agentID,
-                LLUUID sessionID, LLUUID groupID, LLUUID categoryID,
+        public void ObjectBuy(IClientAPI remoteClient, UUID agentID,
+                UUID sessionID, UUID groupID, UUID categoryID,
                 uint localID, byte saleType, int salePrice)
         {
             GetClientFunds(remoteClient);

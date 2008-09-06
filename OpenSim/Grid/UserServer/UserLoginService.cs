@@ -29,7 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Data;
@@ -39,7 +39,7 @@ using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Grid.UserServer
 {
-    public delegate void UserLoggedInAtLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
+    public delegate void UserLoggedInAtLocation(UUID agentID, UUID sessionID, UUID RegionID,
                                                 ulong regionhandle, float positionX, float positionY, float positionZ,
                                                 string firstname, string lastname);
 
@@ -151,7 +151,7 @@ namespace OpenSim.Grid.UserServer
                 int start_z = -1;
 
                 // use the homeRegionID if it is stored already. If not, use the regionHandle as before
-                if (theUser.HomeRegionID != LLUUID.Zero)
+                if (theUser.HomeRegionID != UUID.Zero)
                 {
                     HomeInfo =
                         RegionProfileData.RequestSimProfileData(
@@ -271,7 +271,7 @@ namespace OpenSim.Grid.UserServer
                 theUser.CurrentAgent.Handle = SimInfo.regionHandle;
                 if (start_x >= 0 && start_y >= 0 && start_z >= 0)
                 {
-                    LLVector3 tmp_v = new LLVector3(start_x, start_y, start_z);
+                    Vector3 tmp_v = new Vector3(start_x, start_y, start_z);
                     theUser.CurrentAgent.Position = tmp_v;
                 }
                 // Prepare notification
@@ -466,7 +466,7 @@ namespace OpenSim.Grid.UserServer
         }
 
         // See LoginService
-        protected override InventoryData GetInventorySkeleton(LLUUID userID)
+        protected override InventoryData GetInventorySkeleton(UUID userID)
         {
             m_log.DebugFormat(
                 "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of user {1}",
@@ -498,7 +498,7 @@ namespace OpenSim.Grid.UserServer
 
             if (folders != null && folders.Count > 0)
             {
-                LLUUID rootID = LLUUID.Zero;
+                UUID rootID = UUID.Zero;
                 ArrayList AgentInventoryArray = new ArrayList();
                 Hashtable TempHash;
 
@@ -506,7 +506,7 @@ namespace OpenSim.Grid.UserServer
                 {
 //                    m_log.DebugFormat("[LOGIN]: Received agent inventory folder {0}", InvFolder.name);
 
-                    if (InvFolder.ParentID == LLUUID.Zero)
+                    if (InvFolder.ParentID == UUID.Zero)
                     {
                         rootID = InvFolder.ID;
                     }

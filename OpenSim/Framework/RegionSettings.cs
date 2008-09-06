@@ -28,7 +28,7 @@
 using System;
 using System.IO;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 
 namespace OpenSim.Framework
@@ -45,7 +45,7 @@ namespace OpenSim.Framework
         {
             if (configMember == null)
             {
-                configMember = new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.xml"), "ESTATE SETTINGS", LoadConfigurationOptions, HandleIncomingConfiguration, true);
+                configMember = new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.Xml"), "ESTATE SETTINGS", LoadConfigurationOptions, HandleIncomingConfiguration, true);
                 configMember.performConfigurationRetrieve();
             }
         }
@@ -69,19 +69,19 @@ namespace OpenSim.Framework
                      String.Empty, "21", true);
 
              configMember.addConfigurationOption("terrain_base_0",
-                     ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                      String.Empty, "b8d3965a-ad78-bf43-699b-bff8eca6c975",true);
 
              configMember.addConfigurationOption("terrain_base_1",
-                     ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                      String.Empty, "abb783e6-3e93-26c0-248a-247666855da3",true);
 
              configMember.addConfigurationOption("terrain_base_2",
-                     ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                      String.Empty, "179cdabd-398a-9b6b-1391-4dc333ba321f",true);
 
              configMember.addConfigurationOption("terrain_base_3",
-                     ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                     ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                      String.Empty, "beb169c7-11ea-fff2-efe5-0f24dc881df2",true);
 
              configMember.addConfigurationOption("terrain_start_height_0",
@@ -179,16 +179,16 @@ namespace OpenSim.Framework
                     m_Maturity = 1;
                 break;
             case "terrain_base_0":
-                m_TerrainTexture1 = (LLUUID)value;
+                m_TerrainTexture1 = (UUID)value;
                 break;
             case "terrain_base_1":
-                m_TerrainTexture2 = (LLUUID)value;
+                m_TerrainTexture2 = (UUID)value;
                 break;
             case "terrain_base_2":
-                m_TerrainTexture3 = (LLUUID)value;
+                m_TerrainTexture3 = (UUID)value;
                 break;
             case "terrain_base_3":
-                m_TerrainTexture4 = (LLUUID)value;
+                m_TerrainTexture4 = (UUID)value;
                 break;
             case "terrain_start_height_0":
                 m_Elevation1SW = (double)value;
@@ -237,9 +237,9 @@ namespace OpenSim.Framework
                 OnSave(this);
         }
 
-        private LLUUID m_RegionUUID = LLUUID.Zero;
+        private UUID m_RegionUUID = UUID.Zero;
 
-        public LLUUID RegionUUID
+        public UUID RegionUUID
         {
             get { return m_RegionUUID; }
             set { m_RegionUUID = value; }
@@ -349,57 +349,57 @@ namespace OpenSim.Framework
             set { m_DisablePhysics = value; }
         }
 
-        private LLUUID m_TerrainTexture1 = LLUUID.Zero;
+        private UUID m_TerrainTexture1 = UUID.Zero;
 
-        public LLUUID TerrainTexture1
+        public UUID TerrainTexture1
         {
             get { return m_TerrainTexture1; }
             set
             {
-                if (value == LLUUID.Zero)
-                    m_TerrainTexture1 = new LLUUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");
+                if (value == UUID.Zero)
+                    m_TerrainTexture1 = new UUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");
                 else
                     m_TerrainTexture1 = value;
             }
         }
 
-        private LLUUID m_TerrainTexture2 = LLUUID.Zero;
+        private UUID m_TerrainTexture2 = UUID.Zero;
 
-        public LLUUID TerrainTexture2
+        public UUID TerrainTexture2
         {
             get { return m_TerrainTexture2; }
             set
             {
-                if (value == LLUUID.Zero)
-                    m_TerrainTexture2 = new LLUUID("abb783e6-3e93-26c0-248a-247666855da3");
+                if (value == UUID.Zero)
+                    m_TerrainTexture2 = new UUID("abb783e6-3e93-26c0-248a-247666855da3");
                 else
                     m_TerrainTexture2 = value;
             }
         }
 
-        private LLUUID m_TerrainTexture3 = LLUUID.Zero;
+        private UUID m_TerrainTexture3 = UUID.Zero;
 
-        public LLUUID TerrainTexture3
+        public UUID TerrainTexture3
         {
             get { return m_TerrainTexture3; }
             set
             {
-                if (value == LLUUID.Zero)
-                    m_TerrainTexture3 = new LLUUID("179cdabd-398a-9b6b-1391-4dc333ba321f");
+                if (value == UUID.Zero)
+                    m_TerrainTexture3 = new UUID("179cdabd-398a-9b6b-1391-4dc333ba321f");
                 else
                     m_TerrainTexture3 = value;
             }
         }
 
-        private LLUUID m_TerrainTexture4 = LLUUID.Zero;
+        private UUID m_TerrainTexture4 = UUID.Zero;
 
-        public LLUUID TerrainTexture4
+        public UUID TerrainTexture4
         {
             get { return m_TerrainTexture4; }
             set
             {
-                if (value == LLUUID.Zero)
-                    m_TerrainTexture4 = new LLUUID("beb169c7-11ea-fff2-efe5-0f24dc881df2");
+                if (value == UUID.Zero)
+                    m_TerrainTexture4 = new UUID("beb169c7-11ea-fff2-efe5-0f24dc881df2");
                 else
                     m_TerrainTexture4 = value;
             }
@@ -509,17 +509,17 @@ namespace OpenSim.Framework
             set { m_Sandbox = value; }
         }
 
-        private LLVector3 m_SunVector;
+        private Vector3 m_SunVector;
 
-        public LLVector3 SunVector
+        public Vector3 SunVector
         {
             get { return m_SunVector; }
             set { m_SunVector = value; }
         }
 
-        private LLUUID m_TerrainImageID;
+        private UUID m_TerrainImageID;
 
-        public LLUUID TerrainImageID
+        public UUID TerrainImageID
         {
             get { return m_TerrainImageID; }
             set { m_TerrainImageID = value; }
@@ -541,9 +541,9 @@ namespace OpenSim.Framework
             set { m_SunPosition = value; }
         }
 
-        private LLUUID m_Covenant = LLUUID.Zero;
+        private UUID m_Covenant = UUID.Zero;
 
-        public LLUUID Covenant
+        public UUID Covenant
         {
             get { return m_Covenant; }
             set { m_Covenant = value; }

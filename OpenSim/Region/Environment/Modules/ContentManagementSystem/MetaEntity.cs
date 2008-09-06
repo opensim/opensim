@@ -39,7 +39,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using Nini.Config;
 
@@ -49,8 +49,6 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
-
-using Axiom.Math;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
@@ -109,7 +107,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Public Properties
 
-        public Dictionary<LLUUID, SceneObjectPart> Children
+        public Dictionary<UUID, SceneObjectPart> Children
         {
             get { return m_Entity.Children; }
             set { m_Entity.Children = value; }
@@ -142,7 +140,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             get { return m_Entity.Scene; }
         }
 
-        public LLUUID UUID
+        public UUID UUID
         {
             get { return m_Entity.UUID; }
             set { m_Entity.UUID = value; }
@@ -161,7 +159,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         protected void Initialize(bool physics)
         {
             //make new uuids
-            Dictionary<LLUUID, SceneObjectPart> parts = new Dictionary<LLUUID, SceneObjectPart>();
+            Dictionary<UUID, SceneObjectPart> parts = new Dictionary<UUID, SceneObjectPart>();
             foreach(SceneObjectPart part in m_Entity.Children.Values)
             {
             	part.ResetIDs(part.LinkNum);
@@ -191,7 +189,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             //This is important because we are not IN any database.
             //m_Entity.FakeDeleteGroup();
             foreach( SceneObjectPart part in m_Entity.Children.Values)
-            	client.SendKillObject(m_Entity.RegionHandle, part.LocalId);
+            	client.SendKiPrimitive(m_Entity.RegionHandle, part.LocalId);
         }
 
         /// <summary>
@@ -201,7 +199,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
             foreach( SceneObjectPart part in m_Entity.Children.Values)
             	m_Entity.Scene.ClientManager.ForEachClient(delegate(IClientAPI controller)
-            	                                           { controller.SendKillObject(m_Entity.RegionHandle, part.LocalId); }
+            	                                           { controller.SendKiPrimitive(m_Entity.RegionHandle, part.LocalId); }
             	);
         }
 
@@ -237,12 +235,12 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// </param>
         public static void SetPartTransparency(SceneObjectPart part, float transparencyAmount)
         {
-            LLObject.TextureEntry tex = null;
-            LLColor texcolor;
+            Primitive.TextureEntry tex = null;
+            Color4 texcolor;
             try
             {
             	tex = part.Shape.Textures;
-            	texcolor = new LLColor();
+            	texcolor = new Color4();
             }
             catch(Exception)
             {

@@ -29,69 +29,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using OpenMetaverse;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Physics.Meshing;
-
-public class Quaternion
-{
-    public float x = 0;
-    public float y = 0;
-    public float z = 0;
-    public float w = 1;
-
-    public Quaternion()
-    {
-
-    }
-    public Quaternion(float x1, float y1, float z1, float w1)
-    {
-        x = x1; y = y1; z = z1; w = w1;
-    }
-    public Quaternion(Vertex axis, float angle)
-    {
-        // using (* 0.5) instead of (/2)
-        w = (float)Math.Cos(angle * 0.5f);
-        float sin = (float)Math.Sin(angle * 0.5f);
-        //x = axis.X * (float)Math.Sin(angle * 0.5f);
-        //y = axis.Y * (float)Math.Sin(angle * 0.5f);
-        //z = axis.Z * (float)Math.Sin(angle * 0.5f);
-        x = axis.X * sin;
-        y = axis.Y * sin;
-        z = axis.Z * sin;
-        normalize();
-    }
-    public static Quaternion operator *(Quaternion a, Quaternion b)
-    {
-        Quaternion c = new Quaternion();
-        c.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
-        c.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
-        c.z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
-        c.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
-        return c;
-    }
-
-    public void normalize()
-    {
-        //float mag = length();
-
-        //w /= mag;
-        //x /= mag;
-        //y /= mag;
-        //z /= mag;
-        float iMag = 1.0f / length();
-
-        w *= iMag;
-        x *= iMag;
-        y *= iMag;
-        z *= iMag;
-    }
-    public float length()
-    {
-        return (float)Math.Sqrt(w * w + x * x + y * y + z * z);
-    }
-}
-
-
 
 public class Vertex : PhysicsVector, IComparable<Vertex>
 {
@@ -129,34 +69,34 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
 
         Vertex v2 = new Vertex(0f, 0f, 0f);
 
-        v2.X =   q.w * q.w * v.X +
-            2f * q.y * q.w * v.Z -
-            2f * q.z * q.w * v.Y +
-                 q.x * q.x * v.X +
-            2f * q.y * q.x * v.Y +
-            2f * q.z * q.x * v.Z -
-                 q.z * q.z * v.X -
-                 q.y * q.y * v.X;
+        v2.X =   q.W * q.W * v.X +
+            2f * q.Y * q.W * v.Z -
+            2f * q.Z * q.W * v.Y +
+                 q.X * q.X * v.X +
+            2f * q.Y * q.X * v.Y +
+            2f * q.Z * q.X * v.Z -
+                 q.Z * q.Z * v.X -
+                 q.Y * q.Y * v.X;
 
         v2.Y =
-            2f * q.x * q.y * v.X +
-                 q.y * q.y * v.Y +
-            2f * q.z * q.y * v.Z +
-            2f * q.w * q.z * v.X -
-                 q.z * q.z * v.Y +
-                 q.w * q.w * v.Y -
-            2f * q.x * q.w * v.Z -
-                 q.x * q.x * v.Y;
+            2f * q.X * q.Y * v.X +
+                 q.Y * q.Y * v.Y +
+            2f * q.Z * q.Y * v.Z +
+            2f * q.W * q.Z * v.X -
+                 q.Z * q.Z * v.Y +
+                 q.W * q.W * v.Y -
+            2f * q.X * q.W * v.Z -
+                 q.X * q.X * v.Y;
 
         v2.Z =
-            2f * q.x * q.z * v.X +
-            2f * q.y * q.z * v.Y +
-                 q.z * q.z * v.Z -
-            2f * q.w * q.y * v.X -
-                 q.y * q.y * v.Z +
-            2f * q.w * q.x * v.Y -
-                 q.x * q.x * v.Z +
-                 q.w * q.w * v.Z;
+            2f * q.X * q.Z * v.X +
+            2f * q.Y * q.Z * v.Y +
+                 q.Z * q.Z * v.Z -
+            2f * q.W * q.Y * v.X -
+                 q.Y * q.Y * v.Z +
+            2f * q.W * q.X * v.Y -
+                 q.X * q.X * v.Z +
+                 q.W * q.W * v.Z;
 
         return v2;
     }

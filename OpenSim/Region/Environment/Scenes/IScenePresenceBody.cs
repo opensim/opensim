@@ -25,13 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public interface IScenePresenceBody
     {
-        void processMovement(IClientAPI remoteClient, uint flags, LLQuaternion bodyRotation);
+        void processMovement(IClientAPI remoteClient, uint flags, Quaternion bodyRotation);
     }
 }

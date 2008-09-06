@@ -26,8 +26,7 @@
  */
 using System;
 using System.Runtime.Remoting.Lifetime;
-using Axiom.Math;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
@@ -46,9 +45,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal IScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;
         internal uint m_localID;
-        internal LLUUID m_itemID;
+        internal UUID m_itemID;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
@@ -86,7 +85,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (x > 255 || x < 0 || y > 255 || y < 0)
                 OSSLError("osTerrainSetHeight: Coordinate out of bounds");
 
-            if (World.ExternalChecks.ExternalChecksCanTerraformLand(m_host.OwnerID, new LLVector3(x, y, 0)))
+            if (World.ExternalChecks.ExternalChecksCanTerraformLand(m_host.OwnerID, new Vector3(x, y, 0)))
             {
                 World.Heightmap[x, y] = val;
                 return 1;
@@ -144,7 +143,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.SendGeneralAlert(msg);
         }
 
-        public void osSetRot(LLUUID target, Quaternion rotation)
+        public void osSetRot(UUID target, Quaternion rotation)
         {
             if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
             {
@@ -176,7 +175,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (dynamicID == String.Empty)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
-                LLUUID createdTexture =
+                UUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
                                                         extraParams, timer);
                 return createdTexture.ToString();
@@ -186,7 +185,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 //TODO update existing dynamic textures
             }
 
-            return LLUUID.Zero.ToString();
+            return UUID.Zero.ToString();
         }
 
         public string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
@@ -202,7 +201,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (dynamicID == String.Empty)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
-                LLUUID createdTexture =
+                UUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
                                                         extraParams, timer, true, (byte) alpha);
                 return createdTexture.ToString();
@@ -212,7 +211,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 //TODO update existing dynamic textures
             }
 
-            return LLUUID.Zero.ToString();
+            return UUID.Zero.ToString();
         }
 
         public string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams,
@@ -230,7 +229,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 if (textureManager != null)
                 {
-                    LLUUID createdTexture =
+                    UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
                                                             extraParams, timer);
                     return createdTexture.ToString();
@@ -241,7 +240,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 //TODO update existing dynamic textures
             }
 
-            return LLUUID.Zero.ToString();
+            return UUID.Zero.ToString();
         }
 
         public string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
@@ -259,7 +258,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 if (textureManager != null)
                 {
-                    LLUUID createdTexture =
+                    UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
                                                             extraParams, timer, true, (byte) alpha);
                     return createdTexture.ToString();
@@ -270,7 +269,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 //TODO update existing dynamic textures
             }
 
-            return LLUUID.Zero.ToString();
+            return UUID.Zero.ToString();
         }
 
         public bool osConsoleCommand(string command)
@@ -539,9 +538,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             m_host.AddScriptLPS(1);
-            LLUUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            UUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
 
-            if (landowner == LLUUID.Zero)
+            if (landowner == UUID.Zero)
             {
                 return;
             }

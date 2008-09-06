@@ -31,7 +31,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using PhysXWrapper;
-using Quaternion=Axiom.Math.Quaternion;
+using Quaternion=OpenMetaverse.Quaternion;
 
 namespace OpenSim.Region.Physics.PhysXPlugin
 {
@@ -614,12 +614,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             get
             {
-                Quaternion res = new Quaternion();
+                Quaternion res;
                 PhysXWrapper.Quaternion quat = _prim.GetOrientation();
-                res.w = quat.W;
-                res.x = quat.X;
-                res.y = quat.Y;
-                res.z = quat.Z;
+                res.W = quat.W;
+                res.X = quat.X;
+                res.Y = quat.Y;
+                res.Z = quat.Z;
                 return res;
             }
             set { }

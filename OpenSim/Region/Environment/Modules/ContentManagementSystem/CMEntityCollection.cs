@@ -40,7 +40,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using Nini.Config;
 
@@ -52,8 +52,6 @@ using OpenSim.Region.Physics.Manager;
 
 using log4net;
 
-using Axiom.Math;
-
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
     public class CMEntityCollection
@@ -63,12 +61,12 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         //	private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         // Any ContentManagementEntities that represent old versions of current SceneObjectGroups or 
         // old versions of deleted SceneObjectGroups will be stored in this hash table.
-        // The LLUUID keys are from the SceneObjectGroup RootPart UUIDs
-        protected Hashtable m_CMEntityHash = Hashtable.Synchronized(new Hashtable()); //LLUUID to ContentManagementEntity
+        // The UUID keys are from the SceneObjectGroup RootPart UUIDs
+        protected Hashtable m_CMEntityHash = Hashtable.Synchronized(new Hashtable()); //UUID to ContentManagementEntity
 
         // SceneObjectParts that have not been revisioned will be given green auras stored in this hashtable
-        // The LLUUID keys are from the SceneObjectPart that they are supposed to be on.
-        protected Hashtable m_NewlyCreatedEntityAura = Hashtable.Synchronized(new Hashtable()); //LLUUID to AuraMetaEntity
+        // The UUID keys are from the SceneObjectPart that they are supposed to be on.
+        protected Hashtable m_NewlyCreatedEntityAura = Hashtable.Synchronized(new Hashtable()); //UUID to AuraMetaEntity
 
         #endregion Fields
 
@@ -151,7 +149,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                                                     part.ParentGroup.Scene.PrimIDAllocate(), 
                                                     part.GetWorldPosition(), 
                                                     MetaEntity.TRANSLUCENT, 
-                                                    new LLVector3(0,254,0),
+                                                    new Vector3(0,254,0),
                                                     part.Scale
                                                     );
             m_NewlyCreatedEntityAura.Add(part.UUID, ent);
@@ -175,7 +173,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             return ent;
         }
 
-        public bool RemoveEntity(LLUUID uuid)
+        public bool RemoveEntity(UUID uuid)
         {
             if (!m_CMEntityHash.ContainsKey(uuid))
             	return false;
@@ -183,7 +181,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             return true;
         }
 
-        public bool RemoveNewlyCreatedEntityAura(LLUUID uuid)
+        public bool RemoveNewlyCreatedEntityAura(UUID uuid)
         {
             if (!m_NewlyCreatedEntityAura.ContainsKey(uuid))
             	return false;

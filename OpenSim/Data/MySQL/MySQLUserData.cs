@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using MySql.Data.MySqlClient;
@@ -221,15 +221,15 @@ namespace OpenSim.Data.MySQL
 
         #region User Friends List Data
 
-        public override void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        public override void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
             MySQLSuperManager dbm = GetLockedConnection();
 
             int dtvalue = Util.UnixTimeSinceEpoch();
 
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["?ownerID"] = friendlistowner.UUID.ToString();
-            param["?friendID"] = friend.UUID.ToString();
+            param["?ownerID"] = friendlistowner.ToString();
+            param["?friendID"] = friend.ToString();
             param["?friendPerms"] = perms.ToString();
             param["?datetimestamp"] = dtvalue.ToString();
 
@@ -265,13 +265,13 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public override void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        public override void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
             MySQLSuperManager dbm = GetLockedConnection();
 
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["?ownerID"] = friendlistowner.UUID.ToString();
-            param["?friendID"] = friend.UUID.ToString();
+            param["?ownerID"] = friendlistowner.ToString();
+            param["?friendID"] = friend.ToString();
 
             try
             {
@@ -299,13 +299,13 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public override void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        public override void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
             MySQLSuperManager dbm = GetLockedConnection();
 
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["?ownerID"] = friendlistowner.UUID.ToString();
-            param["?friendID"] = friend.UUID.ToString();
+            param["?ownerID"] = friendlistowner.ToString();
+            param["?friendID"] = friend.ToString();
             param["?friendPerms"] = perms.ToString();
 
             try
@@ -330,13 +330,13 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public override List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        public override List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
             MySQLSuperManager dbm = GetLockedConnection();
             List<FriendListItem> Lfli = new List<FriendListItem>();
 
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["?ownerID"] = friendlistowner.UUID.ToString();
+            param["?ownerID"] = friendlistowner.ToString();
 
             try
             {
@@ -352,8 +352,8 @@ namespace OpenSim.Data.MySQL
                 while (reader.Read())
                 {
                     FriendListItem fli = new FriendListItem();
-                    fli.FriendListOwner = new LLUUID((string) reader["ownerID"]);
-                    fli.Friend = new LLUUID((string) reader["friendID"]);
+                    fli.FriendListOwner = new UUID((string) reader["ownerID"]);
+                    fli.Friend = new UUID((string) reader["friendID"]);
                     fli.FriendPerms = (uint) Convert.ToInt32(reader["friendPerms"]);
 
                     // This is not a real column in the database table, it's a joined column from the opposite record
@@ -381,12 +381,12 @@ namespace OpenSim.Data.MySQL
 
         #endregion
 
-        public override void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
+        public override void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
         {
             //m_log.Info("[USER DB]: Stub UpdateUserCUrrentRegion called");
         }
 
-        public override List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        public override List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query)
         {
             MySQLSuperManager dbm = GetLockedConnection();
 
@@ -413,7 +413,7 @@ namespace OpenSim.Data.MySQL
                     while (reader.Read())
                     {
                         AvatarPickerAvatar user = new AvatarPickerAvatar();
-                        user.AvatarID = new LLUUID((string) reader["UUID"]);
+                        user.AvatarID = new UUID((string) reader["UUID"]);
                         user.firstName = (string) reader["username"];
                         user.lastName = (string) reader["lastname"];
                         returnlist.Add(user);
@@ -449,7 +449,7 @@ namespace OpenSim.Data.MySQL
                     while (reader.Read())
                     {
                         AvatarPickerAvatar user = new AvatarPickerAvatar();
-                        user.AvatarID = new LLUUID((string) reader["UUID"]);
+                        user.AvatarID = new UUID((string) reader["UUID"]);
                         user.firstName = (string) reader["username"];
                         user.lastName = (string) reader["lastname"];
                         returnlist.Add(user);
@@ -476,7 +476,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="uuid">User UUID</param>
         /// <returns>User profile data</returns>
-        public override UserProfileData GetUserByUUID(LLUUID uuid)
+        public override UserProfileData GetUserByUUID(UUID uuid)
         {
             MySQLSuperManager dbm = GetLockedConnection();
             try
@@ -533,13 +533,13 @@ namespace OpenSim.Data.MySQL
         /// <param name="AgentID"></param>
         /// <param name="WebLoginKey"></param>
         /// <remarks>is it still used ?</remarks>
-        public override void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
+        public override void StoreWebLoginKey(UUID AgentID, UUID WebLoginKey)
         {
             MySQLSuperManager dbm = GetLockedConnection();
 
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["?UUID"] = AgentID.UUID.ToString();
-            param["?webLoginKey"] = WebLoginKey.UUID.ToString();
+            param["?UUID"] = AgentID.ToString();
+            param["?webLoginKey"] = WebLoginKey.ToString();
 
             try
             {
@@ -565,7 +565,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="uuid">The accounts UUID</param>
         /// <returns>The users session</returns>
-        public override UserAgentData GetAgentByUUID(LLUUID uuid)
+        public override UserAgentData GetAgentByUUID(UUID uuid)
         {
             MySQLSuperManager dbm = GetLockedConnection();
 
@@ -682,7 +682,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="to">The receivers account ID</param>
         /// <param name="amount">The amount to transfer</param>
         /// <returns>Success?</returns>
-        public override bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount)
+        public override bool MoneyTransferRequest(UUID from, UUID to, uint amount)
         {
             return false;
         }
@@ -695,7 +695,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="to">The receivers account ID</param>
         /// <param name="item">The item to transfer</param>
         /// <returns>Success?</returns>
-        public override bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)
+        public override bool InventoryTransferRequest(UUID from, UUID to, UUID item)
         {
             return false;
         }
@@ -705,7 +705,7 @@ namespace OpenSim.Data.MySQL
         /// TODO: stubs for now to get us to a compiling state gently
         /// override
         /// </summary>
-        public override AvatarAppearance GetUserAppearance(LLUUID user)
+        public override AvatarAppearance GetUserAppearance(UUID user)
         {
             MySQLSuperManager dbm = GetLockedConnection();
             try
@@ -744,7 +744,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="user">The user UUID</param>
         /// <param name="appearance">The avatar appearance</param>
         // override
-        public override void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
+        public override void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
             MySQLSuperManager dbm = GetLockedConnection();
             try
@@ -783,7 +783,7 @@ namespace OpenSim.Data.MySQL
             get { return "0.1"; }
         }
 
-        public Hashtable GetUserAttachments(LLUUID agentID)
+        public Hashtable GetUserAttachments(UUID agentID)
         {
             MySQLSuperManager dbm = GetLockedConnection();
 
@@ -814,7 +814,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public void UpdateUserAttachments(LLUUID agentID, Hashtable data)
+        public void UpdateUserAttachments(UUID agentID, Hashtable data)
         {
             MySQLSuperManager dbm = GetLockedConnection();
             try
@@ -827,7 +827,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public override void ResetAttachments(LLUUID userID)
+        public override void ResetAttachments(UUID userID)
         {
             MySQLSuperManager dbm = GetLockedConnection();
 

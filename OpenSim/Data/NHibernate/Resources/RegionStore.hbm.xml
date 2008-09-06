@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
     <class name="OpenSim.Region.Environment.Scenes.SceneObjectPart, OpenSim.Region.Environment" table="Prims" lazy="false">
-        <id name="UUID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+        <id name="UUID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
         <property name="ParentID" type="System.UInt32"/>
-        <property name="ParentUUID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
-        <property name="RegionID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="ParentUUID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="RegionID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="CreationDate" type="System.Int32" />
         <property name="Name" type="String" length="255" />
         <property name="Text" type="String" length="255" />
@@ -15,10 +15,10 @@
         <property name="TouchName" type="String" length="255" />
         
         <property name="ObjectFlags" type="System.UInt32" />
-        <property name="CreatorID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
-        <property name="OwnerID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
-        <property name="GroupID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
-        <property name="LastOwnerID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="CreatorID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="OwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="GroupID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="LastOwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" /> 
 
         <property name="OwnerMask" type="System.UInt32" />
         <property name="NextOwnerMask" type="System.UInt32" />
@@ -26,50 +26,50 @@
         <property name="EveryoneMask" type="System.UInt32" />
         <property name="BaseMask" type="System.UInt32" />
 
-        <property name="OffsetPosition" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+        <property name="OffsetPosition" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
           <column name="PositionX" />
           <column name="PositionY" />
           <column name="PositionZ" />
         </property>
 
-        <property name="GroupPosition" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+        <property name="GroupPosition" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
           <column name="GroupPositionX" />
           <column name="GroupPositionY" />
           <column name="GroupPositionZ" />
         </property>
 
-        <property name="Velocity" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+        <property name="Velocity" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
           <column name="VelocityX" />
           <column name="VelocityY" />
           <column name="VelocityZ" />
         </property>
 
-        <property name="AngularVelocity" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+        <property name="AngularVelocity" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
           <column name="AngularVelocityX" />
           <column name="AngularVelocityY" />
           <column name="AngularVelocityZ" />
         </property>
 
-        <property name="Acceleration" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+        <property name="Acceleration" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
           <column name="AccelerationX" />
           <column name="AccelerationY" />
           <column name="AccelerationZ" />
         </property>
 
-        <property name="SitTargetPositionLL" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+        <property name="SitTargetPositionLL" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
           <column name="SitTargetOffsetX" />
           <column name="SitTargetOffsetY" />
           <column name="SitTargetOffsetZ" />
         </property>
 
-        <property name="RotationOffset" type="OpenSim.Data.NHibernate.LLQuaternionUserType, OpenSim.Data.NHibernate" >
+        <property name="RotationOffset" type="OpenSim.Data.NHibernate.QuaternionUserType, OpenSim.Data.NHibernate" >
           <column name="RotationX" />
           <column name="RotationY" />
           <column name="RotationZ" />
           <column name="RotationW" />
         </property>
         
-        <property name="SitTargetOrientationLL" type="OpenSim.Data.NHibernate.LLQuaternionUserType, OpenSim.Data.NHibernate" >
+        <property name="SitTargetOrientationLL" type="OpenSim.Data.NHibernate.QuaternionUserType, OpenSim.Data.NHibernate" >
           <column name="SitTargetOrientX" />
           <column name="SitTargetOrientY" />
           <column name="SitTargetOrientZ" />
@@ -77,7 +77,7 @@
         </property>
         
         <component name="Shape">
-          <property name="Scale" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+          <property name="Scale" type="OpenSim.Data.NHibernate.Vector3UserType, OpenSim.Data.NHibernate" >
             <column name="ScaleX" />
             <column name="ScaleY" />
             <column name="ScaleZ" />
@@ -105,22 +105,22 @@
         </component>
     </class>
     <class name="OpenSim.Data.NHibernate.Terrain, OpenSim.Data.NHibernate" table="Terrain" lazy="false">
-        <id name="RegionID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+        <id name="RegionID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
           <generator class="assigned" /> 
         </id>
         <property name="Map" type="System.Byte[]" />
     </class>
     <class name="OpenSim.Framework.TaskInventoryItem, OpenSim.Framework" table="PrimItems" lazy="false">
-      <id name="ItemID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+      <id name="ItemID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
         <generator class="assigned" /> 
       </id>
-      <property name="ParentPartID" column="PrimID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
-      <property name="AssetID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
-      <property name="ParentID" column="ParentFolderID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
-      <property name="CreatorID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
-      <property name="OwnerID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
-      <property name="GroupID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
-      <property name="LastOwnerID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="ParentPartID" column="PrimID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="AssetID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="ParentID" column="ParentFolderID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="CreatorID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="OwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="GroupID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/> 
+      <property name="LastOwnerID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"/> 
       <property name="CurrentPermissions" type="System.UInt32" />
       <property name="BasePermissions" type="System.UInt32" />
       <property name="EveryonePermissions" type="System.UInt32" />

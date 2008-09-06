@@ -1,21 +1,21 @@
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class AgentUpdateArgs : EventArgs
     {
-        public LLUUID AgentID;
-        public LLQuaternion BodyRotation;
-        public LLVector3 CameraAtAxis;
-        public LLVector3 CameraCenter;
-        public LLVector3 CameraLeftAxis;
-        public LLVector3 CameraUpAxis;
+        public UUID AgentID;
+        public Quaternion BodyRotation;
+        public Vector3 CameraAtAxis;
+        public Vector3 CameraCenter;
+        public Vector3 CameraLeftAxis;
+        public Vector3 CameraUpAxis;
         public uint ControlFlags;
         public float Far;
         public byte Flags;
-        public LLQuaternion HeadRotation;
-        public LLUUID SessionID;
+        public Quaternion HeadRotation;
+        public UUID SessionID;
         public byte State;
     }
 }

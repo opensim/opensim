@@ -29,7 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -177,7 +177,7 @@ namespace OpenSim.Region.Communications.Local
             return null;
         }
 
-        public RegionInfo RequestNeighbourInfo(LLUUID regionID)
+        public RegionInfo RequestNeighbourInfo(UUID regionID)
         {
             // TODO add a dictionary for faster lookup
             foreach (RegionInfo info in m_regions.Values)
@@ -229,7 +229,7 @@ namespace OpenSim.Region.Communications.Local
             return mapBlocks;
         }
 
-        public bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        public bool TellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -306,7 +306,7 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -338,7 +338,7 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
+        public bool InformRegionOfPrimCrossing(ulong regionHandle, UUID primID, string objData, int XMLMethod)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -355,7 +355,7 @@ namespace OpenSim.Region.Communications.Local
         /// <param name="agentID"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public bool ExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -366,7 +366,7 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        public bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
+        public bool ExpectPrimCrossing(ulong regionHandle, UUID primID, Vector3 position, bool isPhysical)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -376,7 +376,7 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId)
+        public bool AcknowledgeAgentCrossed(ulong regionHandle, UUID agentId)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -385,7 +385,7 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        public bool AcknowledgePrimCrossed(ulong regionHandle, LLUUID primID)
+        public bool AcknowledgePrimCrossed(ulong regionHandle, UUID primID)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -430,7 +430,7 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public void TriggerLogOffUser(ulong regionHandle, LLUUID agentID, LLUUID RegionSecret, string message)
+        public void TriggerLogOffUser(ulong regionHandle, UUID agentID, UUID RegionSecret, string message)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -440,7 +440,7 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public void TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
+        public void TriggerExpectPrim(ulong regionHandle, UUID primID, string objData, int XMLMethod)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -461,7 +461,7 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public bool TriggerExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
@@ -472,7 +472,7 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        public bool TriggerExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
+        public bool TriggerExpectPrimCrossing(ulong regionHandle, UUID primID, Vector3 position, bool isPhysical)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {

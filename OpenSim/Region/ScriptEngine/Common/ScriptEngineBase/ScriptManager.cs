@@ -31,7 +31,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
@@ -69,7 +69,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private struct LUStruct
         {
             public uint localID;
-            public LLUUID itemID;
+            public UUID itemID;
             public string script;
             public LUType Action;
             public int startParam;
@@ -84,13 +84,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         }
 
         // Xantor 20080525: Keep a list of compiled scripts this session for reuse
-        public Dictionary<LLUUID, String> scriptList = new Dictionary<LLUUID, string>();
+        public Dictionary<UUID, String> scriptList = new Dictionary<UUID, string>();
 
         // Object<string, Script<string, script>>
         // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
         // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
-        public Dictionary<uint, Dictionary<LLUUID, IScript>> Scripts =
-            new Dictionary<uint, Dictionary<LLUUID, IScript>>();
+        public Dictionary<uint, Dictionary<UUID, IScript>> Scripts =
+            new Dictionary<uint, Dictionary<UUID, IScript>>();
 
 
         public Scene World
@@ -254,7 +254,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         /// <param name="itemID"></param>
         /// <param name="localID"></param>
-        public void StartScript(uint localID, LLUUID itemID, string Script, int startParam, bool postOnRez)
+        public void StartScript(uint localID, UUID itemID, string Script, int startParam, bool postOnRez)
         {
             lock (LUQueue)
             {
@@ -280,7 +280,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="itemID"></param>
-        public void StopScript(uint localID, LLUUID itemID)
+        public void StopScript(uint localID, UUID itemID)
         {
             LUStruct ls = new LUStruct();
             ls.localID = localID;
@@ -297,8 +297,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         // Create a new instance of the compiler (reuse)
         //private Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
 
-        public abstract void _StartScript(uint localID, LLUUID itemID, string Script, int startParam, bool postOnRez);
-        public abstract void _StopScript(uint localID, LLUUID itemID);
+        public abstract void _StartScript(uint localID, UUID itemID, string Script, int startParam, bool postOnRez);
+        public abstract void _StopScript(uint localID, UUID itemID);
 
 
         #endregion
@@ -312,7 +312,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="itemID">Script ID</param>
         /// <param name="FunctionName">Name of function</param>
         /// <param name="args">Arguments to pass to function</param>
-        internal void ExecuteEvent(uint localID, LLUUID itemID, string FunctionName, EventQueueManager.Queue_llDetectParams_Struct qParams, object[] args)
+        internal void ExecuteEvent(uint localID, UUID itemID, string FunctionName, EventQueueManager.Queue_llDetectParams_Struct qParams, object[] args)
         {
             //cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
             ///#if DEBUG
@@ -335,7 +335,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             Script.Exec.ExecuteEvent(FunctionName, args);
         }
 
-        public int GetStateEventFlags(uint localID, LLUUID itemID)
+        public int GetStateEventFlags(uint localID, UUID itemID)
         {
             // Console.WriteLine("GetStateEventFlags for <" + localID + "," + itemID + ">");
             try
@@ -360,25 +360,25 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         #region Internal functions to keep track of script
 
-        public Dictionary<LLUUID, IScript>.KeyCollection GetScriptKeys(uint localID)
+        public Dictionary<UUID, IScript>.KeyCollection GetScriptKeys(uint localID)
         {
             if (Scripts.ContainsKey(localID) == false)
                 return null;
 
-            Dictionary<LLUUID, IScript> Obj;
+            Dictionary<UUID, IScript> Obj;
             Scripts.TryGetValue(localID, out Obj);
 
             return Obj.Keys;
         }
 
-        public IScript GetScript(uint localID, LLUUID itemID)
+        public IScript GetScript(uint localID, UUID itemID)
         {
             lock (scriptLock)
             {
                 if (Scripts.ContainsKey(localID) == false)
                     return null;
 
-                Dictionary<LLUUID, IScript> Obj;
+                Dictionary<UUID, IScript> Obj;
                 Scripts.TryGetValue(localID, out Obj);
                 if (Obj.ContainsKey(itemID) == false)
                     return null;
@@ -390,18 +390,18 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
         }
 
-        public void SetScript(uint localID, LLUUID itemID, IScript Script)
+        public void SetScript(uint localID, UUID itemID, IScript Script)
         {
             lock (scriptLock)
             {
                 // Create object if it doesn't exist
                 if (Scripts.ContainsKey(localID) == false)
                 {
-                    Scripts.Add(localID, new Dictionary<LLUUID, IScript>());
+                    Scripts.Add(localID, new Dictionary<UUID, IScript>());
                 }
 
                 // Delete script if it exists
-                Dictionary<LLUUID, IScript> Obj;
+                Dictionary<UUID, IScript> Obj;
                 Scripts.TryGetValue(localID, out Obj);
                 if (Obj.ContainsKey(itemID) == true)
                     Obj.Remove(itemID);
@@ -411,14 +411,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
         }
 
-        public void RemoveScript(uint localID, LLUUID itemID)
+        public void RemoveScript(uint localID, UUID itemID)
         {
             // Don't have that object?
             if (Scripts.ContainsKey(localID) == false)
                 return;
 
             // Delete script if it exists
-            Dictionary<LLUUID, IScript> Obj;
+            Dictionary<UUID, IScript> Obj;
             Scripts.TryGetValue(localID, out Obj);
             if (Obj.ContainsKey(itemID) == true)
                 Obj.Remove(itemID);
@@ -427,21 +427,21 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         #endregion
 
 
-        public void ResetScript(uint localID, LLUUID itemID)
+        public void ResetScript(uint localID, UUID itemID)
         {
             IScript s = GetScript(localID, itemID);
             string script = s.Source;
             StopScript(localID, itemID);
             SceneObjectPart part = World.GetSceneObjectPart(localID);
             part.GetInventoryItem(itemID).PermsMask = 0;
-            part.GetInventoryItem(itemID).PermsGranter = LLUUID.Zero;
+            part.GetInventoryItem(itemID).PermsGranter = UUID.Zero;
             StartScript(localID, itemID, script, s.StartParam, false);
         }
 
 
         #region Script serialization/deserialization
 
-        public void GetSerializedScript(uint localID, LLUUID itemID)
+        public void GetSerializedScript(uint localID, UUID itemID)
         {
             // Serialize the script and return it
             // Should not be a problem
@@ -451,7 +451,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             fs.Close();
         }
 
-        public void PutSerializedScript(uint localID, LLUUID itemID)
+        public void PutSerializedScript(uint localID, UUID itemID)
         {
             // Deserialize the script and inject it into an AppDomain
 

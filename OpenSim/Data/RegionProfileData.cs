@@ -27,9 +27,10 @@
 
 using System;
 using System.Collections;
-using libsecondlife;
+using OpenMetaverse;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
+using OpenMetaverse;
 
 namespace OpenSim.Data
 {
@@ -51,7 +52,7 @@ namespace OpenSim.Data
         /// <summary>
         /// OGS/OpenSim Specific ID for a region
         /// </summary>
-        public LLUUID UUID;
+        public UUID UUID;
 
         /// <summary>
         /// Coordinates of the region
@@ -117,18 +118,18 @@ namespace OpenSim.Data
         /// <summary>
         /// Region Map Texture Asset
         /// </summary>
-        public LLUUID regionMapTextureID = new LLUUID("00000000-0000-1111-9999-000000000006");
+        public UUID regionMapTextureID = new UUID("00000000-0000-1111-9999-000000000006");
 
         /// <summary>
         /// this particular mod to the file provides support within the spec for RegionProfileData for the
         /// owner_uuid for the region
         /// </summary>
-        public LLUUID owner_uuid = LLUUID.Zero;
+        public UUID owner_uuid = UUID.Zero;
 
         /// <summary>
         /// OGS/OpenSim Specific original ID for a region after move/split
         /// </summary>
-        public LLUUID originUUID;
+        public UUID originUUID;
 
         /// <summary>
         /// Request sim data based on arbitrary key/value
@@ -161,7 +162,7 @@ namespace OpenSim.Data
                 simData.remotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
                 simData.serverURI = (string) responseData["server_uri"];
                 simData.httpServerURI = "http://" + simData.serverIP + ":" + simData.httpPort.ToString() + "/";
-                simData.UUID = new LLUUID((string) responseData["region_UUID"]);
+                simData.UUID = new UUID((string) responseData["region_UUID"]);
                 simData.regionName = (string) responseData["region_name"];
             }
 
@@ -177,10 +178,10 @@ namespace OpenSim.Data
         /// <param name="gridserver_recvkey"></param>
         /// <returns>The sim profile.  Null if there was a request failure</returns>
         /// <remarks>This method should be statics</remarks>
-        public static RegionProfileData RequestSimProfileData(LLUUID region_uuid, Uri gridserver_url,
+        public static RegionProfileData RequestSimProfileData(UUID region_uuid, Uri gridserver_url,
                                                        string gridserver_sendkey, string gridserver_recvkey)
         {
-            return RequestSimData(gridserver_url, gridserver_sendkey, "region_UUID", region_uuid.UUID.ToString());
+            return RequestSimData(gridserver_url, gridserver_sendkey, "region_UUID", region_uuid.Guid.ToString());
         }
 
         /// <summary>

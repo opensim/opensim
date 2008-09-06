@@ -28,8 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
@@ -39,12 +39,12 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
     {
         private readonly string m_firstname;
         private readonly string m_lastname;
-        private readonly LLVector3 m_startPos;
-        private readonly LLUUID m_uuid = LLUUID.Random();
+        private readonly Vector3 m_startPos;
+        private readonly UUID m_uuid = UUID.Random();
         private readonly Scene m_scene;
 
 
-        public NPCAvatar(string firstname, string lastname, LLVector3 position, Scene scene)
+        public NPCAvatar(string firstname, string lastname, Vector3 position, Scene scene)
         {
             m_firstname = firstname;
             m_lastname = lastname;
@@ -77,34 +77,34 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             SendOnChatFromViewer(message, ChatTypeEnum.Broadcast);
         }
 
-        public void GiveMoney(LLUUID target, int amount)
+        public void GiveMoney(UUID target, int amount)
         {
             OnMoneyTransferRequest(m_uuid, target, amount, 1, "Payment");
         }
 
-        public void InstantMessage(LLUUID target, string message)
+        public void InstantMessage(UUID target, string message)
         {
-            OnInstantMessage(this, m_uuid, SessionId, target, LLUUID.Combine(m_uuid, target),
+            OnInstantMessage(this, m_uuid, SessionId, target, UUID.Combine(m_uuid, target),
                              (uint) Util.UnixTimeSinceEpoch(), Name, message, 0, false, 0, 0,
                              Position, m_scene.RegionInfo.RegionID, new byte[0]);
         }
 
-        public void SendAgentOffline(LLUUID[] agentIDs)
+        public void SendAgentOffline(UUID[] agentIDs)
         {
 
         }
 
-        public void SendAgentOnline(LLUUID[] agentIDs)
+        public void SendAgentOnline(UUID[] agentIDs)
         {
 
         }
-        public void SendSitResponse(LLUUID TargetID, LLVector3 OffsetPos, LLQuaternion SitOrientation, bool autopilot,
-                                        LLVector3 CameraAtOffset, LLVector3 CameraEyeOffset, bool ForceMouseLook)
+        public void SendSitResponse(UUID TargetID, Vector3 OffsetPos, Quaternion SitOrientation, bool autopilot,
+                                        Vector3 CameraAtOffset, Vector3 CameraEyeOffset, bool ForceMouseLook)
         {
 
         }
 
-        public void SendAdminResponse(LLUUID Token, uint AdminLevel)
+        public void SendAdminResponse(UUID Token, uint AdminLevel)
         {
 
         }
@@ -114,12 +114,12 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         }
 
-        public LLUUID GetDefaultAnimation(string name)
+        public UUID GetDefaultAnimation(string name)
         {
-            return LLUUID.Zero;
+            return UUID.Zero;
         }
 
-        public LLVector3 Position
+        public Vector3 Position
         {
             get { return m_scene.Entities[m_uuid].AbsolutePosition; }
             set { m_scene.Entities[m_uuid].AbsolutePosition = value; }
@@ -222,7 +222,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event UpdateVector OnUpdatePrimGroupScale;
         public event StatusChange OnChildAgentStatus;
         public event GenericCall2 OnStopMovement;
-        public event Action<LLUUID> OnRemoveAvatar;
+        public event Action<UUID> OnRemoveAvatar;
 
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
@@ -322,34 +322,34 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         #endregion
 
-        public void ActivateGesture(LLUUID assetId, LLUUID gestureId)
+        public void ActivateGesture(UUID assetId, UUID gestureId)
         {
         }
-        public void DeactivateGesture(LLUUID assetId, LLUUID gestureId)
+        public void DeactivateGesture(UUID assetId, UUID gestureId)
         {
         }
 
         #region Overrriden Methods IGNORE
 
-        public virtual LLVector3 StartPos
+        public virtual Vector3 StartPos
         {
             get { return m_startPos; }
             set { }
         }
 
-        public virtual LLUUID AgentId
+        public virtual UUID AgentId
         {
             get { return m_uuid; }
         }
 
-        public LLUUID SessionId
+        public UUID SessionId
         {
-            get { return LLUUID.Zero; }
+            get { return UUID.Zero; }
         }
 
-        public LLUUID SecureSessionId
+        public UUID SecureSessionId
         {
-            get { return LLUUID.Zero; }
+            get { return UUID.Zero; }
         }
 
         public virtual string FirstName
@@ -373,9 +373,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             set { }
         }
 
-        public LLUUID ActiveGroupId
+        public UUID ActiveGroupId
         {
-            get { return LLUUID.Zero; }
+            get { return UUID.Zero; }
         }
 
         public string ActiveGroupName
@@ -388,10 +388,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             get { return 0; }
         }
 
-        public ulong GetGroupPowers(LLUUID groupID)
-        {
-            return 0;
-        }
+		public ulong GetGroupPowers(UUID groupID)
+		{
+			return 0;
+		}
 
         public virtual int NextAnimationSequenceNumber
         {
@@ -406,7 +406,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry)
+        public virtual void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
         {
         }
 
@@ -422,12 +422,12 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void SendAgentDataUpdate(LLUUID agentid, LLUUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
+        public virtual void SendAgentDataUpdate(UUID agentid, UUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
         {
 
         }
 
-        public virtual void SendKillObject(ulong regionHandle, uint localID)
+        public virtual void SendKiPrimitive(ulong regionHandle, uint localID)
         {
         }
 
@@ -440,27 +440,27 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
 
 
-        public virtual void SendAnimations(LLUUID[] animations, int[] seqs, LLUUID sourceAgentId)
+        public virtual void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId)
         {
         }
 
-        public virtual void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName,
-                                            LLUUID fromAgentID, byte source, byte audible)
+        public virtual void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName,
+                                            UUID fromAgentID, byte source, byte audible)
         {
         }
 
-        public virtual void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName,
-                                            LLUUID fromAgentID, byte source, byte audible)
+        public virtual void SendChatMessage(byte[] message, byte type, Vector3 fromPos, string fromName,
+                                            UUID fromAgentID, byte source, byte audible)
         {
         }
 
-        public virtual void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
-                                               LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
+        public virtual void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
+                                               UUID imSessionID, string fromName, byte dialog, uint timeStamp)
         {
         }
 
-        public virtual void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
-                                               LLUUID imSessionID, string fromName, byte dialog, uint timeStamp,
+        public virtual void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
+                                               UUID imSessionID, string fromName, byte dialog, uint timeStamp,
                                                byte[] binaryBucket)
         {
         }
@@ -476,7 +476,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void MoveAgentIntoRegion(RegionInfo regInfo, LLVector3 pos, LLVector3 look)
+        public virtual void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
         }
 
@@ -489,7 +489,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             return new AgentCircuitData();
         }
 
-        public virtual void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt,
+        public virtual void CrossRegion(ulong newRegionHandle, Vector3 pos, Vector3 lookAt,
                                         IPEndPoint newRegionExternalEndPoint, string capsURL)
         {
         }
@@ -498,7 +498,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags)
+        public virtual void SendLocalTeleport(Vector3 position, Vector3 lookAt, uint flags)
         {
         }
 
@@ -515,66 +515,66 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance)
+        public virtual void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance)
         {
         }
 
-        public virtual void SendPayPrice(LLUUID objectID, int[] payPrice)
+        public virtual void SendPayPrice(UUID objectID, int[] payPrice)
         {
         }
 
-        public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID,
-                                           uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID, LLQuaternion rotation)
+        public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, UUID avatarID,
+                                           uint avatarLocalID, Vector3 Pos, byte[] textureEntry, uint parentID, Quaternion rotation)
         {
         }
 
         public virtual void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
-                                                  LLVector3 position, LLVector3 velocity, LLQuaternion rotation)
+                                                  Vector3 position, Vector3 velocity, Quaternion rotation)
         {
         }
 
-        public virtual void SendCoarseLocationUpdate(List<LLVector3> CoarseLocations)
+        public virtual void SendCoarseLocationUpdate(List<Vector3> CoarseLocations)
         {
         }
 
-        public virtual void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint)
+        public virtual void AttachObject(uint localID, Quaternion rotation, byte attachPoint)
         {
         }
 
-        public virtual void SendDialog(string objectname, LLUUID objectID, LLUUID ownerID, string msg, LLUUID textureID, int ch, string[] buttonlabels)
+        public virtual void SendDialog(string objectname, UUID objectID, UUID ownerID, string msg, UUID textureID, int ch, string[] buttonlabels)
         {
         }
 
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
-                                                  PrimitiveBaseShape primShape, LLVector3 pos, LLVector3 vel,
-                                                  LLVector3 acc, LLQuaternion rotation, LLVector3 rvel, uint flags,
-                                                  LLUUID objectID, LLUUID ownerID, string text, byte[] color,
+                                                  PrimitiveBaseShape primShape, Vector3 pos, Vector3 vel,
+                                                  Vector3 acc, Quaternion rotation, Vector3 rvel, uint flags,
+                                                  UUID objectID, UUID ownerID, string text, byte[] color,
                                                   uint parentID,
                                                   byte[] particleSystem, byte clickAction)
         {
         }
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
-                                                  PrimitiveBaseShape primShape, LLVector3 pos, LLVector3 vel,
-                                                  LLVector3 acc, LLQuaternion rotation, LLVector3 rvel, uint flags,
-                                                  LLUUID objectID, LLUUID ownerID, string text, byte[] color,
+                                                  PrimitiveBaseShape primShape, Vector3 pos, Vector3 vel,
+                                                  Vector3 acc, Quaternion rotation, Vector3 rvel, uint flags,
+                                                  UUID objectID, UUID ownerID, string text, byte[] color,
                                                   uint parentID,
                                                   byte[] particleSystem, byte clickAction, byte[] textureanimation,
-                                                  bool attachment, uint AttachmentPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius)
+                                                  bool attachment, uint AttachmentPoint, UUID AssetId, UUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius)
         {
         }
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
-                                                LLVector3 position, LLQuaternion rotation, LLVector3 velocity,
-                                                LLVector3 rotationalvelocity, byte state, LLUUID AssetId)
+                                                Vector3 position, Quaternion rotation, Vector3 velocity,
+                                                Vector3 rotationalvelocity, byte state, UUID AssetId)
         {
         }
 
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
-                                                LLVector3 position, LLQuaternion rotation, LLVector3 velocity,
-                                                LLVector3 rotationalvelocity)
+                                                Vector3 position, Quaternion rotation, Vector3 velocity,
+                                                Vector3 rotationalvelocity)
         {
         }
 
-        public virtual void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID,
+        public virtual void SendInventoryFolderDetails(UUID ownerID, UUID folderID,
                                                        List<InventoryItemBase> items,
                                                        List<InventoryFolderBase> folders,
                                                        bool fetchFolders,
@@ -582,7 +582,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item)
+        public virtual void SendInventoryItemDetails(UUID ownerID, InventoryItemBase item)
         {
         }
 
@@ -590,7 +590,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void SendRemoveInventoryItem(LLUUID itemID)
+        public virtual void SendRemoveInventoryItem(UUID itemID)
         {
         }
 
@@ -603,7 +603,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName)
+        public virtual void SendTaskInventory(UUID taskID, short serial, byte[] fileName)
         {
         }
 
@@ -618,24 +618,24 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
 
         }
-        public virtual void SendNameReply(LLUUID profileId, string firstname, string lastname)
+        public virtual void SendNameReply(UUID profileId, string firstname, string lastname)
         {
         }
 
-        public virtual void SendPreLoadSound(LLUUID objectID, LLUUID ownerID, LLUUID soundID)
+        public virtual void SendPreLoadSound(UUID objectID, UUID ownerID, UUID soundID)
         {
         }
 
-        public virtual void SendPlayAttachedSound(LLUUID soundID, LLUUID objectID, LLUUID ownerID, float gain,
+        public virtual void SendPlayAttachedSound(UUID soundID, UUID objectID, UUID ownerID, float gain,
                                                   byte flags)
         {
         }
 
-        public void SendTriggeredSound(LLUUID soundID, LLUUID ownerID, LLUUID objectID, LLUUID parentID, ulong handle, LLVector3 position, float gain)
+        public void SendTriggeredSound(UUID soundID, UUID ownerID, UUID objectID, UUID parentID, ulong handle, Vector3 position, float gain)
         {
         }
 
-        public void SendAttachedSoundGainChange(LLUUID objectID, float gain)
+        public void SendAttachedSoundGainChange(UUID objectID, float gain)
         {
 
         }
@@ -652,7 +652,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message,
+        public void SendLoadURL(string objectname, UUID objectID, UUID ownerID, bool groupOwned, string message,
                                 string url)
         {
         }
@@ -669,7 +669,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
                 OnCompleteMovementToRegion();
             }
         }
-        public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID)
+        public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
         {
         }
 
@@ -677,11 +677,11 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void SendXferRequest(ulong XferID, short AssetType, LLUUID vFileID, byte FilePath, byte[] FileName)
+        public void SendXferRequest(ulong XferID, short AssetType, UUID vFileID, byte FilePath, byte[] FileName)
         {
         }
 
-        public void SendImagePart(ushort numParts, LLUUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
+        public void SendImagePart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
         {
         }
 
@@ -693,16 +693,16 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void SendObjectPropertiesFamilyData(uint RequestFlags, LLUUID ObjectUUID, LLUUID OwnerID, LLUUID GroupID,
+        public void SendObjectPropertiesFamilyData(uint RequestFlags, UUID ObjectUUID, UUID OwnerID, UUID GroupID,
                                                    uint BaseMask, uint OwnerMask, uint GroupMask, uint EveryoneMask,
                                                    uint NextOwnerMask, int OwnershipCost, byte SaleType, int SalePrice, uint Category,
-                                                   LLUUID LastOwnerID, string ObjectName, string Description)
+                                                   UUID LastOwnerID, string ObjectName, string Description)
         {
         }
 
-        public void SendObjectPropertiesReply(LLUUID ItemID, ulong CreationDate, LLUUID CreatorUUID, LLUUID FolderUUID, LLUUID FromTaskUUID,
-                                              LLUUID GroupUUID, short InventorySerial, LLUUID LastOwnerUUID, LLUUID ObjectUUID,
-                                              LLUUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName,
+        public void SendObjectPropertiesReply(UUID ItemID, ulong CreationDate, UUID CreatorUUID, UUID FolderUUID, UUID FromTaskUUID,
+                                              UUID GroupUUID, short InventorySerial, UUID LastOwnerUUID, UUID ObjectUUID,
+                                              UUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName,
                                               string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask,
                                               uint BaseMask, byte saleType, int salePrice)
         {
@@ -713,7 +713,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             return false;
         }
 
-        public void SendSunPos(LLVector3 sunPos, LLVector3 sunVel, ulong time, uint dlen, uint ylen, float phase)
+        public void SendSunPos(Vector3 sunPos, Vector3 sunVel, ulong time, uint dlen, uint ylen, float phase)
         {
         }
 
@@ -721,9 +721,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, Byte[] charterMember,
-                                         string flAbout, uint flags, LLUUID flImageID, LLUUID imageID, string profileURL,
-                                         LLUUID partnerID)
+        public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] charterMember,
+                                         string flAbout, uint flags, UUID flImageID, UUID imageID, string profileURL,
+                                         UUID partnerID)
         {
         }
 
@@ -762,7 +762,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             get { return m_circuitCode; }
             set { m_circuitCode = value; }
         }
-        public void SendBlueBoxMessage(LLUUID FromAvatarID, LLUUID fromSessionID, String FromAvatarName, String Message)
+        public void SendBlueBoxMessage(UUID FromAvatarID, UUID fromSessionID, String FromAvatarName, String Message)
         {
 
         }
@@ -783,52 +783,52 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void SendScriptQuestion(LLUUID objectID, string taskName, string ownerName, LLUUID itemID, int question)
+        public void SendScriptQuestion(UUID objectID, string taskName, string ownerName, UUID itemID, int question)
         {
         }
         public void SendHealth(float health)
         {
         }
 
-        public void SendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID)
+        public void SendEstateManagersList(UUID invoice, UUID[] EstateManagers, uint estateID)
         {
         }
 
-        public void SendBannedUserList(LLUUID invoice, EstateBan[] banlist, uint estateID)
+        public void SendBannedUserList(UUID invoice, EstateBan[] banlist, uint estateID)
         {
         }
 
         public void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
         {
         }
-        public void SendEstateCovenantInformation(LLUUID covenant)
+        public void SendEstateCovenantInformation(UUID covenant)
         {
         }
-        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, LLUUID covenant, string abuseEmail)
+        public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, string abuseEmail)
         {
         }
 
         public void SendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor,int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
         }
-        public void SendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID)
+        public void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID)
         {
         }
         public void SendForceClientSelectObjects(List<uint> objectIDs)
         {
         }
-        public void SendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount)
+        public void SendLandObjectOwners(Dictionary<UUID, int> ownersAndCount)
         {
         }
         public void SendLandParcelOverlay(byte[] data, int sequence_id)
         {
         }
 
-        public void SendGroupNameReply(LLUUID groupLLUID, string GroupName)
+        public void SendGroupNameReply(UUID groupLLUID, string GroupName)
         {
         }
 
-        public void SendScriptRunningReply(LLUUID objectID, LLUUID itemID, bool running)
+        public void SendScriptRunningReply(UUID objectID, UUID itemID, bool running)
         {
         }
 
@@ -842,25 +842,25 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void SendParcelMediaUpdate(string mediaUrl, LLUUID mediaTextureID,
+        public void SendParcelMediaUpdate(string mediaUrl, UUID mediaTextureID,
                                    byte autoScale, string mediaType, string mediaDesc, int mediaWidth, int mediaHeight,
                                    byte mediaLoop)
         {
         }
 
-        public void SendSetFollowCamProperties (LLUUID objectID, SortedDictionary<int, float> parameters)
+        public void SendSetFollowCamProperties (UUID objectID, SortedDictionary<int, float> parameters)
         {
         }
 
-        public void SendClearFollowCamProperties (LLUUID objectID)
+        public void SendClearFollowCamProperties (UUID objectID)
         {
         }
 
-        public void SendRegionHandle (LLUUID regoinID, ulong handle)
+        public void SendRegionHandle (UUID regoinID, ulong handle)
         {
         }
 
-        public void SendParcelInfo (RegionInfo info, LandData land, LLUUID parcelID, uint x, uint y)
+        public void SendParcelInfo (RegionInfo info, LandData land, UUID parcelID, uint x, uint y)
         {
         }
 

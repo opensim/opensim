@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Data.Base;
@@ -48,7 +48,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
         private Scene m_scene = null;
         private static readonly AvatarAppearance def = new AvatarAppearance();
 
-        public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
+        public bool TryGetAvatarAppearance(UUID avatarId, out AvatarAppearance appearance)
         {
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(avatarId);
             //if ((profile != null) && (profile.RootFolder != null))
@@ -69,7 +69,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
 
         }
 
-        private AvatarAppearance CreateDefault(LLUUID avatarId)
+        private AvatarAppearance CreateDefault(UUID avatarId)
         {
             AvatarAppearance appearance = null;
             AvatarWearable[] wearables;
@@ -127,13 +127,13 @@ namespace OpenSim.Region.Modules.AvatarFactory
             {
                 for (int i = 0; i < 13; i++)
                 {
-                    if (appearance.Wearables[i].ItemID == LLUUID.Zero)
+                    if (appearance.Wearables[i].ItemID == UUID.Zero)
                     {
-                        appearance.Wearables[i].AssetID = LLUUID.Zero;
+                        appearance.Wearables[i].AssetID = UUID.Zero;
                     }
                     else
                     {
-                        // LLUUID assetId;
+                        // UUID assetId;
 
                         InventoryItemBase baseItem = profile.RootFolder.FindItem(appearance.Wearables[i].ItemID);
 
@@ -201,7 +201,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
             wearables = AvatarWearable.DefaultWearables;
         }
 
-        public void UpdateDatabase(LLUUID user, AvatarAppearance appearance)
+        public void UpdateDatabase(UUID user, AvatarAppearance appearance)
         {
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(user, appearance);
         }

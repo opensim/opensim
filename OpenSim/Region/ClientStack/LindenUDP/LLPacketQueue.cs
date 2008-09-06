@@ -29,8 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Timers;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Statistics;
 using OpenSim.Framework.Statistics.Interfaces;
@@ -82,9 +82,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // private long ThrottleInterval;
         private Timer throttleTimer;
 
-        private LLUUID m_agentId;
+        private UUID m_agentId;
 
-        public LLPacketQueue(LLUUID agentId)
+        public LLPacketQueue(UUID agentId)
         {
             // While working on this, the BlockingQueue had me fooled for a bit.
             // The Blocking queue causes the thread to stop until there's something
@@ -479,7 +479,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < 7; i++)
                     Array.Reverse(throttle, j + i*singlefloat, singlefloat);
 
-            // values gotten from libsecondlife.org/wiki/Throttle.  Thanks MW_
+            // values gotten from OpenMetaverse.org/wiki/Throttle.  Thanks MW_
             // bytes
             // Convert to integer, since..   the full fp space isn't used.
             tResend = (int) BitConverter.ToSingle(throttle, j);

@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
@@ -33,7 +33,7 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IAvatarFactory
     {
-        bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance);
-        void UpdateDatabase(LLUUID userID, AvatarAppearance avatAppearance);
+        bool TryGetAvatarAppearance(UUID avatarId, out AvatarAppearance appearance);
+        void UpdateDatabase(UUID userID, AvatarAppearance avatAppearance);
     }
 }

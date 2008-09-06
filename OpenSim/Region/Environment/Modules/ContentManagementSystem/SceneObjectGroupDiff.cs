@@ -37,7 +37,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using Nini.Config;
 
@@ -47,8 +47,6 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
-
-using Axiom.Math;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
@@ -99,14 +97,14 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Private Methods
 
-        private static bool AreQuaternionsEquivalent(LLQuaternion first, LLQuaternion second)
+        private static bool AreQuaternionsEquivalent(Quaternion first, Quaternion second)
         {
-            LLVector3 firstVector = llRot2Euler(first);
-            LLVector3 secondVector = llRot2Euler(second);
+            Vector3 firstVector = llRot2Euler(first);
+            Vector3 secondVector = llRot2Euler(second);
             return AreVectorsEquivalent(firstVector, secondVector);
         }
 
-        private static bool AreVectorsEquivalent(LLVector3 first, LLVector3 second)
+        private static bool AreVectorsEquivalent(Vector3 first, Vector3 second)
         {
             if(TruncateSignificant(first.X, 2) == TruncateSignificant(second.X, 2)
                && TruncateSignificant(first.Y, 2) == TruncateSignificant(second.Y, 2)
@@ -133,21 +131,21 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         // Taken from Region/ScriptEngine/Common/LSL_BuiltIn_Commands.cs
         // Also changed the original function from LSL_Types to LL types
-        private static LLVector3 llRot2Euler(LLQuaternion r)
+        private static Vector3 llRot2Euler(Quaternion r)
         {
-            LLQuaternion t = new LLQuaternion(r.X * r.X, r.Y * r.Y, r.Z * r.Z, r.W * r.W);
+            Quaternion t = new Quaternion(r.X * r.X, r.Y * r.Y, r.Z * r.Z, r.W * r.W);
             double m = (t.X + t.Y + t.Z + t.W);
-            if (m == 0) return new LLVector3();
+            if (m == 0) return new Vector3();
             double n = 2 * (r.Y * r.W + r.X * r.Z);
             double p = m * m - n * n;
             if (p > 0)
-                return new LLVector3((float)NormalizeAngle(Math.Atan2(2.0 * (r.X * r.W - r.Y * r.Z), (-t.X - t.Y + t.Z + t.W))),
+                return new Vector3((float)NormalizeAngle(Math.Atan2(2.0 * (r.X * r.W - r.Y * r.Z), (-t.X - t.Y + t.Z + t.W))),
                                              (float)NormalizeAngle(Math.Atan2(n, Math.Sqrt(p))),
                                              (float)NormalizeAngle(Math.Atan2(2.0 * (r.Z * r.W - r.X * r.Y), (t.X - t.Y - t.Z + t.W))));
             else if (n > 0)
-                return new LLVector3(0.0f, (float)(Math.PI / 2), (float)NormalizeAngle(Math.Atan2((r.Z * r.W + r.X * r.Y), 0.5 - t.X - t.Z)));
+                return new Vector3(0.0f, (float)(Math.PI / 2), (float)NormalizeAngle(Math.Atan2((r.Z * r.W + r.X * r.Y), 0.5 - t.X - t.Z)));
             else
-                return new LLVector3(0.0f, (float)(-Math.PI / 2), (float)NormalizeAngle(Math.Atan2((r.Z * r.W + r.X * r.Y), 0.5 - t.X - t.Z)));
+                return new Vector3(0.0f, (float)(-Math.PI / 2), (float)NormalizeAngle(Math.Atan2((r.Z * r.W + r.X * r.Y), 0.5 - t.X - t.Z)));
         }
 
         #endregion Private Methods
@@ -187,7 +185,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             	result |= Diff.ROTATIONOFFSET;			
 
 
-            // MISC COMPARISONS (LLUUID, Byte)
+            // MISC COMPARISONS (UUID, Byte)
             if(first.ClickAction != second.ClickAction)
             	result |= Diff.CLICKACTION;
             if(first.ObjectOwner != second.ObjectOwner)

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace Opensim.Framework
 {
     // The delegate we will use for performing fetch from backing store
     //
-    public delegate Object FetchDelegate(LLUUID index);
-    public delegate bool ExpireDelegate(LLUUID index);
+    public delegate Object FetchDelegate(UUID index);
+    public delegate bool ExpireDelegate(UUID index);
 
     // Strategy
     //
@@ -37,14 +37,14 @@ namespace Opensim.Framework
     }
 
     // The base class of all cache objects. Implements comparison and sorting
-    // by the LLUUID member.
+    // by the UUID member.
     //
     // This is not abstract because we need to instantiate it briefly as a
     // method parameter
     //
     public class CacheItemBase : IEquatable<CacheItemBase>, IComparable<CacheItemBase>
     {
-        public LLUUID uuid;
+        public UUID uuid;
         public DateTime entered;
         public DateTime lastUsed;
         public DateTime expires = new DateTime(0);
@@ -59,14 +59,14 @@ namespace Opensim.Framework
         {
         }
 
-        public CacheItemBase(LLUUID index)
+        public CacheItemBase(UUID index)
         {
             uuid = index;
             entered = DateTime.Now;
             lastUsed = entered;
         }
 
-        public CacheItemBase(LLUUID index, DateTime ttl)
+        public CacheItemBase(UUID index, DateTime ttl)
         {
             uuid = index;
             entered = DateTime.Now;
@@ -96,23 +96,23 @@ namespace Opensim.Framework
     {
         private Object m_Data;
 
-        public MemoryCacheItem(LLUUID index) :
+        public MemoryCacheItem(UUID index) :
             base(index)
         {
         }
 
-        public MemoryCacheItem(LLUUID index, DateTime ttl) :
+        public MemoryCacheItem(UUID index, DateTime ttl) :
             base(index, ttl)
         {
         }
 
-        public MemoryCacheItem(LLUUID index, Object data) :
+        public MemoryCacheItem(UUID index, Object data) :
             base(index)
         {
             Store(data);
         }
 
-        public MemoryCacheItem(LLUUID index, DateTime ttl, Object data) :
+        public MemoryCacheItem(UUID index, DateTime ttl, Object data) :
             base(index, ttl)
         {
             Store(data);
@@ -133,23 +133,23 @@ namespace Opensim.Framework
     //
     public class FileCacheItem : CacheItemBase
     {
-        public FileCacheItem(LLUUID index) :
+        public FileCacheItem(UUID index) :
             base(index)
         {
         }
 
-        public FileCacheItem(LLUUID index, DateTime ttl) :
+        public FileCacheItem(UUID index, DateTime ttl) :
             base(index, ttl)
         {
         }
 
-        public FileCacheItem(LLUUID index, Object data) :
+        public FileCacheItem(UUID index, Object data) :
             base(index)
         {
             Store(data);
         }
 
-        public FileCacheItem(LLUUID index, DateTime ttl, Object data) :
+        public FileCacheItem(UUID index, DateTime ttl, Object data) :
             base(index, ttl)
         {
             Store(data);
@@ -173,8 +173,8 @@ namespace Opensim.Framework
     public class Cache
     {
         private List<CacheItemBase> m_Index = new List<CacheItemBase>();
-        private Dictionary<LLUUID, CacheItemBase> m_Lookup =
-            new Dictionary<LLUUID, CacheItemBase>();
+        private Dictionary<UUID, CacheItemBase> m_Lookup =
+            new Dictionary<UUID, CacheItemBase>();
 
         private CacheStrategy m_Strategy;
         private CacheMedium m_Medium;
@@ -285,7 +285,7 @@ namespace Opensim.Framework
 
         // Get an item from cache. Return the raw item, not it's data
         //
-        protected virtual CacheItemBase GetItem(LLUUID index)
+        protected virtual CacheItemBase GetItem(UUID index)
         {
             CacheItemBase item = null;
 
@@ -312,7 +312,7 @@ namespace Opensim.Framework
         // Get an item from cache. Do not try to fetch from source if not
         // present. Just return null
         //
-        public virtual Object Get(LLUUID index)
+        public virtual Object Get(UUID index)
         {
             CacheItemBase item = GetItem(index);
 
@@ -325,7 +325,7 @@ namespace Opensim.Framework
         // Fetch an object from backing store if not cached, serve from
         // cache if it is.
         //
-        public virtual Object Get(LLUUID index, FetchDelegate fetch)
+        public virtual Object Get(UUID index, FetchDelegate fetch)
         {
             Object item = Get(index);
             if (item != null)
@@ -366,7 +366,7 @@ namespace Opensim.Framework
             return item.Retrieve();
         }
 
-        public virtual void Store(LLUUID index, Object data)
+        public virtual void Store(UUID index, Object data)
         {
             Type container;
 
@@ -384,12 +384,12 @@ namespace Opensim.Framework
             Store(index, data, container);
         }
 
-        public virtual void Store(LLUUID index, Object data, Type container)
+        public virtual void Store(UUID index, Object data, Type container)
         {
             Store(index, data, container, new Object[] { index });
         }
 
-        public virtual void Store(LLUUID index, Object data, Type container,
+        public virtual void Store(UUID index, Object data, Type container,
                 Object[] parameters)
         {
             Expire(false);
@@ -493,7 +493,7 @@ namespace Opensim.Framework
             }
         }
 
-        public void Invalidate(LLUUID uuid)
+        public void Invalidate(UUID uuid)
         {
             if (!m_Lookup.ContainsKey(uuid))
                 return;

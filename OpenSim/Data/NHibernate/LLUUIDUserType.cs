@@ -27,7 +27,7 @@
 
 using System;
 using System.Data;
-using libsecondlife;
+using OpenMetaverse;
 using NHibernate;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
@@ -35,7 +35,7 @@ using NHibernate.UserTypes;
 namespace OpenSim.Data.NHibernate
 {
     [Serializable]
-    public class LLUUIDUserType: IUserType
+    public class UUIDUserType: IUserType
     {
         public object Assemble(object cached, object owner)
         {
@@ -75,7 +75,7 @@ namespace OpenSim.Data.NHibernate
             if (!rs.IsDBNull(ord))
             {
                 string first = (string)rs.GetString(ord);
-                uuid = new LLUUID(first);
+                uuid = new UUID(first);
             }
 
             return uuid;
@@ -83,7 +83,7 @@ namespace OpenSim.Data.NHibernate
 
         public void NullSafeSet(IDbCommand cmd, object obj, int index)
         {
-            LLUUID uuid = (LLUUID)obj;
+            UUID uuid = (UUID)obj;
             ((IDataParameter)cmd.Parameters[index]).Value = uuid.ToString();
         }
 
@@ -94,7 +94,7 @@ namespace OpenSim.Data.NHibernate
 
         public Type ReturnedType
         {
-            get { return typeof(LLUUID); }
+            get { return typeof(UUID); }
         }
 
         public SqlType[] SqlTypes

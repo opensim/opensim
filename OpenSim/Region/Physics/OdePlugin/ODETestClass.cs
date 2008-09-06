@@ -26,9 +26,9 @@
  */
 
 using System;
-using Axiom.Math;
 using Nini.Config;
 using NUnit.Framework;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             PrimitiveBaseShape newcube = PrimitiveBaseShape.CreateBox();
             PhysicsVector position = new PhysicsVector(128, 128, 128);
             PhysicsVector size = new PhysicsVector(0.5f, 0.5f, 0.5f);
-            Quaternion rot = new Quaternion(1, 0, 0, 0);
+            Quaternion rot = Quaternion.Identity;
             PhysicsActor prim = ps.AddPrimShape("CoolShape", newcube, position, size, rot, true);
             OdePrim oprim = (OdePrim)prim;
             OdeScene pscene = (OdeScene) ps;

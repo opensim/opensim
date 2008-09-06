@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 
 namespace OpenSim.Data.SQLite
@@ -118,7 +118,7 @@ namespace OpenSim.Data.SQLite
                 // Region Main
                 retval.regionHandle = (ulong) reader["regionHandle"];
                 retval.regionName = (string) reader["regionName"];
-                retval.UUID = new LLUUID((string) reader["uuid"]);
+                retval.UUID = new UUID((string) reader["uuid"]);
 
                 // Secrets
                 retval.regionRecvKey = (string) reader["regionRecvKey"];
@@ -182,7 +182,7 @@ namespace OpenSim.Data.SQLite
 
             parameters["regionHandle"] = profile.regionHandle.ToString();
             parameters["regionName"] = profile.regionName;
-            parameters["uuid"] = profile.UUID.ToString();
+            parameters["uuid"] = profile.ToString();
             parameters["regionRecvKey"] = profile.regionRecvKey;
             parameters["regionSendKey"] = profile.regionSendKey;
             parameters["regionDataURI"] = profile.regionDataURI;

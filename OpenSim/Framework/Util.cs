@@ -38,7 +38,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -67,7 +67,7 @@ namespace OpenSim.Framework
         /// <param name="a">A 3d vector</param>
         /// <param name="b">A 3d vector</param>
         /// <returns>The distance between the two vectors</returns>
-        public static double GetDistanceTo(LLVector3 a, LLVector3 b)
+        public static double GetDistanceTo(Vector3 a, Vector3 b)
         {
             float dx = a.X - b.X;
             float dy = a.Y - b.Y;
@@ -80,7 +80,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="a">A 3d vector</param>
         /// <returns>The magnitude of the vector</returns>
-        public static double GetMagnitude(LLVector3 a)
+        public static double GetMagnitude(Vector3 a)
         {
             return Math.Sqrt((a.X * a.X) + (a.Y * a.Y) + (a.Z * a.Z));
         }
@@ -91,20 +91,20 @@ namespace OpenSim.Framework
         /// <param name="a">A 3d vector</param>
         /// <returns>A new vector which is normalized form of the vector</returns>
         /// <remarks>The vector paramater cannot be <0,0,0></remarks>
-        public static LLVector3 GetNormalizedVector(LLVector3 a)
+        public static Vector3 GetNormalizedVector(Vector3 a)
         {
             if (IsZeroVector(a))
                 throw new ArgumentException("Vector paramater cannot be a zero vector.");
 
             float Mag = (float) GetMagnitude(a);
-            return new LLVector3(a.X / Mag, a.Y / Mag, a.Z / Mag);
+            return new Vector3(a.X / Mag, a.Y / Mag, a.Z / Mag);
         }
 
         /// <summary>
         /// Returns if a vector is a zero vector (has all zero components)
         /// </summary>
         /// <returns></returns>
-        public static bool IsZeroVector(LLVector3 v)
+        public static bool IsZeroVector(Vector3 v)
         {
             if (v.X == 0 && v.Y == 0 && v.Z == 0)
             {
@@ -268,7 +268,7 @@ namespace OpenSim.Framework
 
         public static string GetRandomCapsPath()
         {
-            LLUUID caps = LLUUID.Random();
+            UUID caps = UUID.Random();
             string capsPath = caps.ToString();
             capsPath = capsPath.Remove(capsPath.Length - 4, 4);
             return capsPath;
@@ -525,13 +525,13 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Convert an LLUUID to a raw uuid string.  Right now this is a string without hyphens.
+        /// Convert an UUID to a raw uuid string.  Right now this is a string without hyphens.
         /// </summary>
-        /// <param name="lluuid"></param>
+        /// <param name="UUID"></param>
         /// <returns></returns>
-        public static String ToRawUuidString(LLUUID lluuid)
+        public static String ToRawUuidString(UUID UUID)
         {
-            return lluuid.UUID.ToString("n");
+            return UUID.Guid.ToString("n");
         }
 
         public static string CleanString(string input)
@@ -728,16 +728,16 @@ namespace OpenSim.Framework
         }
 
         // used for RemoteParcelRequest (for "About Landmark")
-        public static LLUUID BuildFakeParcelID(ulong regionHandle, uint x, uint y) {
+        public static UUID BuildFakeParcelID(ulong regionHandle, uint x, uint y) {
             byte[] bytes = {
                 (byte)(regionHandle >> 56), (byte)(regionHandle >> 48), (byte)(regionHandle >> 40), (byte)(regionHandle >> 32),
                 (byte)(regionHandle >> 24), (byte)(regionHandle >> 16), (byte)(regionHandle >> 8), (byte)regionHandle,
                 (byte)(x >> 24), (byte)(x >> 16), (byte)(x >> 8), (byte)x,
                 (byte)(y >> 24), (byte)(y >> 16), (byte)(y >> 8), (byte)y };
-            return new LLUUID(bytes, 0);
+            return new UUID(bytes, 0);
         }
 
-        public static void ParseFakeParcelID(LLUUID parcelID, out ulong regionHandle, out uint x, out uint y) {
+        public static void ParseFakeParcelID(UUID parcelID, out ulong regionHandle, out uint x, out uint y) {
             byte[] bytes = parcelID.GetBytes();
             regionHandle = Helpers.BytesToUInt64(bytes);
             x = Helpers.BytesToUInt(bytes, 8);

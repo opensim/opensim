@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework;
@@ -116,7 +116,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="assetID">Asset UUID to fetch</param>
         /// <returns>Return the asset</returns>
         /// <remarks>On failure : throw an exception and attempt to reconnect to database</remarks>
-        override public AssetBase FetchAsset(LLUUID assetID)
+        override public AssetBase FetchAsset(UUID assetID)
         {
             AssetBase asset = null;
             lock (_dbConnection)
@@ -223,7 +223,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="uuid">The asset UUID</param>
         /// <returns>true if exist.</returns>
-        override public bool ExistsAsset(LLUUID uuid)
+        override public bool ExistsAsset(UUID uuid)
         {
             bool assetExists = false;
 

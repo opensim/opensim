@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using System;
 using System.Collections.Generic;
@@ -190,12 +190,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
 
-            // The only parameter we accept is an LLUUID for
+            // The only parameter we accept is an UUID for
             // the asset
 
             if (rdata.Parameters.Length == 1)
             {
-                LLUUID uuid = new LLUUID(rdata.Parameters[0]);
+                UUID uuid = new UUID(rdata.Parameters[0]);
                 AssetBase asset = Rest.AssetServices.GetAsset(uuid, istexture);
 
                 if (asset != null)
@@ -233,7 +233,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         {
             Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
 
-            // The only parameter we accept is an LLUUID for
+            // The only parameter we accept is an UUID for
             // the asset
 
             if (rdata.Parameters.Length == 1)

@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// The location of the archive control file
         /// </summary>
-        public static readonly string CONTROL_FILE_PATH = "archive.xml";
+        public static readonly string CONTROL_FILE_PATH = "archive.Xml";
 
         /// <summary>
         /// Path for the assets held in an archive
@@ -48,7 +48,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Path for the assets metadata file
         /// </summary>
-        //public static readonly string ASSETS_METADATA_PATH = "assets.xml";
+        //public static readonly string ASSETS_METADATA_PATH = "assets.Xml";
 
         /// <summary>
         /// Path for the prims file
@@ -88,11 +88,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Notecard]            = ASSET_EXTENSION_SEPARATOR + "notecard.txt";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Object]              = ASSET_EXTENSION_SEPARATOR + "object.xml";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.RootFolder]          = ASSET_EXTENSION_SEPARATOR + "rootfolder.txt";   // Not sure if we'll ever see this
-// disable warning: we know Script is obsolete, but need to support it
-// anyhow
-#pragma warning disable 0612
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Script]              = ASSET_EXTENSION_SEPARATOR + "script.txt";   // Not sure if we'll ever see this
-#pragma warning restore 0612
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Simstate]            = ASSET_EXTENSION_SEPARATOR + "simstate.bin";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SnapshotFolder]      = ASSET_EXTENSION_SEPARATOR + "snapshotfolder.txt";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Sound]               = ASSET_EXTENSION_SEPARATOR + "sound.ogg";
@@ -116,11 +111,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "notecard.txt"]             = (sbyte)AssetType.Notecard;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "object.xml"]               = (sbyte)AssetType.Object;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "rootfolder.txt"]           = (sbyte)AssetType.RootFolder;
-// disable warning: we know Script is obsolete, but need to support it
-// anyhow
-#pragma warning disable 0612
-            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "script.txt"]               = (sbyte)AssetType.Script;
-#pragma warning restore 0612
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "simstate.bin"]             = (sbyte)AssetType.Simstate;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "snapshotfolder.txt"]       = (sbyte)AssetType.SnapshotFolder;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "sound.ogg"]                = (sbyte)AssetType.Sound;

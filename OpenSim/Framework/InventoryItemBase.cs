@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -37,7 +37,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// The UUID of the associated asset on the asset server
         /// </summary>
-        private LLUUID _assetID;
+        private UUID _assetID;
 
         /// <summary>
         /// This is an enumerated value determining the type of asset (eg Notecard, Sound, Object, etc)
@@ -52,9 +52,9 @@ namespace OpenSim.Framework
         /// <summary>
         /// The creator of this item
         /// </summary>
-        private LLUUID _creator;
+        private UUID _creator;
 
-        private LLUUID _owner;
+        private UUID _owner;
 
         private uint _nextPermissions;
 
@@ -76,12 +76,12 @@ namespace OpenSim.Framework
         /// <summary>
         /// The folder this item is contained in
         /// </summary>
-        private LLUUID _folder;
+        private UUID _folder;
 
         /// <summary>
         /// A UUID containing the ID for the inventory item itself
         /// </summary>
-        private LLUUID _id;
+        private UUID _id;
 
         /// <summary>
         /// The type of inventory item. (Can be slightly different to the asset type
@@ -97,7 +97,7 @@ namespace OpenSim.Framework
         /// <summary>
         ///
         /// </summary>
-        private LLUUID _groupID;
+        private UUID _groupID;
 
         /// <summary>
         ///
@@ -124,7 +124,7 @@ namespace OpenSim.Framework
         /// </summary>
         private int _creationDate;
 
-        public virtual LLUUID ID {
+        public virtual UUID ID {
             get {
                 return _id;
             }
@@ -139,19 +139,19 @@ namespace OpenSim.Framework
             set { _invType = value; }
         }
 
-        public virtual LLUUID Folder
+        public virtual UUID Folder
         {
             get { return _folder; }
             set { _folder = value; }
         }
 
-        public virtual LLUUID Owner
+        public virtual UUID Owner
         {
             get { return _owner; }
             set { _owner = value; }
         }
 
-        public virtual LLUUID Creator
+        public virtual UUID Creator
         {
             get { return _creator; }
             set { _creator = value; }
@@ -199,13 +199,13 @@ namespace OpenSim.Framework
             set { _assetType = value; }
         }
 
-        public virtual LLUUID AssetID
+        public virtual UUID AssetID
         {
             get { return _assetID; }
             set { _assetID = value; }
         }
 
-        public virtual LLUUID GroupID
+        public virtual UUID GroupID
         {
             get
             {

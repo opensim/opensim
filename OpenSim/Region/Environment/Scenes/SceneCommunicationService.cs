@@ -30,16 +30,16 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public delegate void KillObjectDelegate(uint localID);
+    public delegate void KiPrimitiveDelegate(uint localID);
 
-    public delegate void RemoveKnownRegionsFromAvatarList(LLUUID avatarID, List<ulong> regionlst);
+    public delegate void RemoveKnownRegionsFromAvatarList(UUID avatarID, List<ulong> regionlst);
 
     public class SceneCommunicationService //one instance per region
     {
@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Scenes
         private LogOffUser handlerLogOffUser = null;
         private GetLandData handlerGetLandData = null; // OnGetLandData
 
-        public KillObjectDelegate KillObject;
+        public KiPrimitiveDelegate KiPrimitive;
         public string _debugRegionName = String.Empty;
 
         public string debugRegionName
@@ -158,7 +158,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected void GridLogOffUser(ulong regionHandle, LLUUID AgentID, LLUUID RegionSecret, string message)
+        protected void GridLogOffUser(ulong regionHandle, UUID AgentID, UUID RegionSecret, string message)
         {
             handlerLogOffUser = OnLogOffUser;
             if (handlerLogOffUser != null)
@@ -188,7 +188,7 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        protected void AgentCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        protected void AgentCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
         {
             handlerAvatarCrossingIntoRegion = OnAvatarCrossingIntoRegion;
             if (handlerAvatarCrossingIntoRegion != null)
@@ -197,7 +197,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected bool IncomingPrimCrossing(ulong regionHandle, LLUUID primID, String objXMLData, int XMLMethod)
+        protected bool IncomingPrimCrossing(ulong regionHandle, UUID primID, String objXMLData, int XMLMethod)
         {
             handlerExpectPrim = OnExpectPrim;
             if (handlerExpectPrim != null)
@@ -211,7 +211,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
-        protected void PrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
+        protected void PrimCrossing(ulong regionHandle, UUID primID, Vector3 position, bool isPhysical)
         {
             handlerPrimCrossingIntoRegion = OnPrimCrossingIntoRegion;
             if (handlerPrimCrossingIntoRegion != null)
@@ -220,7 +220,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected bool CloseConnection(ulong regionHandle, LLUUID agentID)
+        protected bool CloseConnection(ulong regionHandle, UUID agentID)
         {
             m_log.Info("[INTERREGION]: Incoming Agent Close Request for agent: " + agentID.ToString());
             handlerCloseAgentConnection = OnCloseAgentConnection;
@@ -315,9 +315,9 @@ namespace OpenSim.Region.Environment.Scenes
                 for (int i = 0; i < neighbours.Count; i++)
                 {
                     AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
-                    agent.BaseFolder = LLUUID.Zero;
-                    agent.InventoryFolder = LLUUID.Zero;
-                    agent.startpos = new LLVector3(128, 128, 70);
+                    agent.BaseFolder = UUID.Zero;
+                    agent.InventoryFolder = UUID.Zero;
+                    agent.startpos = new Vector3(128, 128, 70);
                     agent.child = true;
 
                     InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
@@ -356,9 +356,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void InformNeighborChildAgent(ScenePresence avatar, RegionInfo region, List<RegionInfo> neighbours)
         {
             AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
-            agent.BaseFolder = LLUUID.Zero;
-            agent.InventoryFolder = LLUUID.Zero;
-            agent.startpos = new LLVector3(128, 128, 70);
+            agent.BaseFolder = UUID.Zero;
+            agent.InventoryFolder = UUID.Zero;
+            agent.startpos = new Vector3(128, 128, 70);
             agent.child = true;
 
             InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
@@ -484,13 +484,13 @@ namespace OpenSim.Region.Environment.Scenes
                           d);
         }
 
-        public delegate void SendCloseChildAgentDelegate(LLUUID agentID, List<ulong> regionlst);
+        public delegate void SendCloseChildAgentDelegate(UUID agentID, List<ulong> regionlst);
 
         /// <summary>
         /// This Closes child agents on neighboring regions
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
-        private void SendCloseChildAgentAsync(LLUUID agentID, List<ulong> regionlst)
+        private void SendCloseChildAgentAsync(UUID agentID, List<ulong> regionlst)
         {
 
             foreach (ulong regionHandle in regionlst)
@@ -525,7 +525,7 @@ namespace OpenSim.Region.Environment.Scenes
             icon.EndInvoke(iar);
         }
 
-        public void SendCloseChildAgentConnections(LLUUID agentID, List<ulong> regionslst)
+        public void SendCloseChildAgentConnections(UUID agentID, List<ulong> regionslst)
         {
             // This assumes that we know what our neighbors are.
             SendCloseChildAgentDelegate d = SendCloseChildAgentAsync;
@@ -550,7 +550,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="regionID"></param>
         /// <returns></returns>
-        public virtual RegionInfo RequestNeighbouringRegionInfo(LLUUID regionID)
+        public virtual RegionInfo RequestNeighbouringRegionInfo(UUID regionID)
         {
             //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending Grid Services Request about neighbor " + regionID);
             return m_commsProvider.GridService.RequestNeighbourInfo(regionID);
@@ -578,8 +578,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="position"></param>
         /// <param name="lookAt"></param>
         /// <param name="flags"></param>
-        public virtual void RequestTeleportToLocation(ScenePresence avatar, ulong regionHandle, LLVector3 position,
-                                                      LLVector3 lookAt, uint flags)
+        public virtual void RequestTeleportToLocation(ScenePresence avatar, ulong regionHandle, Vector3 position,
+                                                      Vector3 lookAt, uint flags)
         {
             bool destRegionUp = false;
 
@@ -588,7 +588,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // Teleport within the same region
                 if (position.X < 0 || position.X > Constants.RegionSize || position.Y < 0 || position.Y > Constants.RegionSize || position.Z < 0)
                 {
-                    LLVector3 emergencyPos = new LLVector3(128, 128, 128);
+                    Vector3 emergencyPos = new Vector3(128, 128, 128);
 
                     m_log.WarnFormat(
                         "[SCENE COMMUNICATION SERVICE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
@@ -614,8 +614,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     avatar.ControllingClient.SendTeleportLocationStart();
                     AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
-                    agent.BaseFolder = LLUUID.Zero;
-                    agent.InventoryFolder = LLUUID.Zero;
+                    agent.BaseFolder = UUID.Zero;
+                    agent.InventoryFolder = UUID.Zero;
                     agent.startpos = position;
                     agent.child = true;
 
@@ -667,9 +667,9 @@ namespace OpenSim.Region.Environment.Scenes
                         avatar.MakeChildAgent();
                         Thread.Sleep(5000);
                         avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle);
-                        if (KillObject != null)
+                        if (KiPrimitive != null)
                         {
-                            KillObject(avatar.LocalId);
+                            KiPrimitive(avatar.LocalId);
                         }
                         uint newRegionX = (uint)(reg.RegionHandle >> 40);
                         uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
@@ -700,12 +700,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionhandle"></param>
         /// <param name="agentID"></param>
         /// <param name="position"></param>
-        public bool CrossToNeighbouringRegion(ulong regionhandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public bool CrossToNeighbouringRegion(ulong regionhandle, UUID agentID, Vector3 position, bool isFlying)
         {
             return m_commsProvider.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position, isFlying);
         }
 
-        public bool PrimCrossToNeighboringRegion(ulong regionhandle, LLUUID primID, string objData, int XMLMethod)
+        public bool PrimCrossToNeighboringRegion(ulong regionhandle, UUID primID, string objData, int XMLMethod)
         {
             return m_commsProvider.InterRegion.InformRegionOfPrimCrossing(regionhandle, primID, objData, XMLMethod);
         }
@@ -716,32 +716,32 @@ namespace OpenSim.Region.Environment.Scenes
             return m_commsProvider.GridService.GetGridSettings();
         }
 
-        public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
              m_commsProvider.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
         }
 
-        public void ClearUserAgent(LLUUID avatarID)
+        public void ClearUserAgent(UUID avatarID)
         {
             m_commsProvider.UserService.ClearUserAgent(avatarID);
         }
 
-        public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
             m_commsProvider.AddNewUserFriend(friendlistowner, friend, perms);
         }
 
-        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
             m_commsProvider.UpdateUserFriendPerms(friendlistowner, friend, perms);
         }
 
-        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        public void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
             m_commsProvider.RemoveUserFriend(friendlistowner, friend);
         }
 
-        public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
             return m_commsProvider.GetUserFriendList(friendlistowner);
         }
@@ -751,7 +751,7 @@ namespace OpenSim.Region.Environment.Scenes
             return m_commsProvider.GridService.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
         }
 
-        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
+        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
             return m_commsProvider.GenerateAgentPickerRequestResponse(queryID, query);
         }

@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife.Packets;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.ClientStack.LindenUDP

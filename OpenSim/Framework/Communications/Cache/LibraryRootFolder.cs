@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 
@@ -44,29 +44,29 @@ namespace OpenSim.Framework.Communications.Cache
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private LLUUID libOwner = new LLUUID("11111111-1111-0000-0000-000100bba000");
+        private UUID libOwner = new UUID("11111111-1111-0000-0000-000100bba000");
 
         /// <summary>
         /// Holds the root library folder and all its descendents.  This is really only used during inventory
         /// setup so that we don't have to repeatedly search the tree of library folders.
         /// </summary>
-        protected Dictionary<LLUUID, InventoryFolderImpl> libraryFolders
-            = new Dictionary<LLUUID, InventoryFolderImpl>();
+        protected Dictionary<UUID, InventoryFolderImpl> libraryFolders
+            = new Dictionary<UUID, InventoryFolderImpl>();
 
         public LibraryRootFolder()
         {
             m_log.Info("[LIBRARY INVENTORY]: Loading library inventory");
 
             Owner = libOwner;
-            ID = new LLUUID("00000112-000f-0000-0000-000100bba000");
+            ID = new UUID("00000112-000f-0000-0000-000100bba000");
             Name = "OpenSim Library";
-            ParentID = LLUUID.Zero;
+            ParentID = UUID.Zero;
             Type = (short) 8;
             Version = (ushort) 1;
 
             libraryFolders.Add(ID, this);
 
-            LoadLibraries(Path.Combine(Util.inventoryDir(), "Libraries.xml"));
+            LoadLibraries(Path.Combine(Util.inventoryDir(), "Libraries.Xml"));
 
             // CreateLibraryItems();
         }
@@ -81,40 +81,40 @@ namespace OpenSim.Framework.Communications.Cache
         //private void CreateLibraryItems()
         //{
         //    InventoryItemBase item =
-        //        CreateItem(new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9"),
-        //                   new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73"), "Default Shape", "Default Shape",
+        //        CreateItem(new UUID("66c41e39-38f9-f75a-024e-585989bfaba9"),
+        //                   new UUID("66c41e39-38f9-f75a-024e-585989bfab73"), "Default Shape", "Default Shape",
         //                   (int) AssetType.Bodypart, (int) InventoryType.Wearable, folderID);
         //    item.inventoryCurrentPermissions = 0;
         //    item.inventoryNextPermissions = 0;
         //    Items.Add(item.inventoryID, item);
 
         //    item =
-        //        CreateItem(new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9"),
-        //                   new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb"), "Default Skin", "Default Skin",
+        //        CreateItem(new UUID("77c41e39-38f9-f75a-024e-585989bfabc9"),
+        //                   new UUID("77c41e39-38f9-f75a-024e-585989bbabbb"), "Default Skin", "Default Skin",
         //                   (int) AssetType.Bodypart, (int) InventoryType.Wearable, folderID);
         //    item.inventoryCurrentPermissions = 0;
         //    item.inventoryNextPermissions = 0;
         //    Items.Add(item.inventoryID, item);
 
         //    item =
-        //        CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-585989bf0000"),
-        //                   new LLUUID("00000000-38f9-1111-024e-222222111110"), "Default Shirt", "Default Shirt",
+        //        CreateItem(new UUID("77c41e39-38f9-f75a-0000-585989bf0000"),
+        //                   new UUID("00000000-38f9-1111-024e-222222111110"), "Default Shirt", "Default Shirt",
         //                   (int) AssetType.Clothing, (int) InventoryType.Wearable, folderID);
         //    item.inventoryCurrentPermissions = 0;
         //    item.inventoryNextPermissions = 0;
         //    Items.Add(item.inventoryID, item);
 
         //    item =
-        //        CreateItem(new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111"),
-        //                   new LLUUID("00000000-38f9-1111-024e-222222111120"), "Default Pants", "Default Pants",
+        //        CreateItem(new UUID("77c41e39-38f9-f75a-0000-5859892f1111"),
+        //                   new UUID("00000000-38f9-1111-024e-222222111120"), "Default Pants", "Default Pants",
         //                   (int) AssetType.Clothing, (int) InventoryType.Wearable, folderID);
         //    item.inventoryCurrentPermissions = 0;
         //    item.inventoryNextPermissions = 0;
         //    Items.Add(item.inventoryID, item);
         //}
 
-        public InventoryItemBase CreateItem(LLUUID inventoryID, LLUUID assetID, string name, string description,
-                                            int assetType, int invType, LLUUID parentFolderID)
+        public InventoryItemBase CreateItem(UUID inventoryID, UUID assetID, string name, string description,
+                                            int assetType, int invType, UUID parentFolderID)
         {
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = libOwner;
@@ -173,9 +173,9 @@ namespace OpenSim.Framework.Communications.Cache
         {
             InventoryFolderImpl folderInfo = new InventoryFolderImpl();
 
-            folderInfo.ID = new LLUUID(config.GetString("folderID", ID.ToString()));
+            folderInfo.ID = new UUID(config.GetString("folderID", ID.ToString()));
             folderInfo.Name = config.GetString("name", "unknown");
-            folderInfo.ParentID = new LLUUID(config.GetString("parentFolderID", ID.ToString()));
+            folderInfo.ParentID = new UUID(config.GetString("parentFolderID", ID.ToString()));
             folderInfo.Type = (short)config.GetInt("type", 8);
 
             folderInfo.Owner = libOwner;
@@ -207,9 +207,9 @@ namespace OpenSim.Framework.Communications.Cache
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = libOwner;
             item.Creator = libOwner;
-            item.ID = new LLUUID(config.GetString("inventoryID", ID.ToString()));
-            item.AssetID = new LLUUID(config.GetString("assetID", item.ID.ToString()));
-            item.Folder = new LLUUID(config.GetString("folderID", ID.ToString()));
+            item.ID = new UUID(config.GetString("inventoryID", ID.ToString()));
+            item.AssetID = new UUID(config.GetString("assetID", item.ID.ToString()));
+            item.Folder = new UUID(config.GetString("folderID", ID.ToString()));
             item.Name = config.GetString("name", String.Empty);
             item.Description = config.GetString("description", item.Name);
             item.InvType = config.GetInt("inventoryType", 0);
@@ -270,7 +270,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// methods in the superclass
         /// </summary>
         /// <returns></returns>
-        public Dictionary<LLUUID, InventoryFolderImpl> RequestSelfAndDescendentFolders()
+        public Dictionary<UUID, InventoryFolderImpl> RequestSelfAndDescendentFolders()
         {
             return libraryFolders;
         }

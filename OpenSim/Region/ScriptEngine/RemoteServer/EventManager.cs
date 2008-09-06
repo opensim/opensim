@@ -28,7 +28,7 @@
 /* Original code: Tedd Hansen */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Region.ScriptEngine.Common.TRPC;
@@ -77,7 +77,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             }
         }
 
-        public void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez)
+        public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez)
         {
             // WE ARE CREATING A NEW SCRIPT ... CREATE SCRIPT, GET A REMOTEID THAT WE MAP FROM LOCALID
             myScriptEngine.Log.Info("[RemoteEngine]: Creating new script (with connection)");
@@ -90,7 +90,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             //remoteScript[localID].Events().OnRezScript(localID, itemID, script);
         }
 
-        public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
+        public void touch_start(uint localID, Vector3 offsetPos, IClientAPI remoteClient)
         {
             //remoteScript[localID].Events.touch_start(localID, offsetPos, remoteClient);
             RPC.SendCommand(myScriptServerID, "touch_start", offsetPos, "How to transfer IClientAPI?");
@@ -100,162 +100,162 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
         // PLACEHOLDERS -- CODE WILL CHANGE!
 
 
-        //public void OnRemoveScript(uint localID, LLUUID itemID)
+        //public void OnRemoveScript(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.OnRemoveScript(localID, itemID);
         //}
 
-        //public void state_exit(uint localID, LLUUID itemID)
+        //public void state_exit(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.state_exit(localID, itemID);
         //}
 
-        //public void touch(uint localID, LLUUID itemID)
+        //public void touch(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.touch(localID, itemID);
         //}
 
-        //public void touch_end(uint localID, LLUUID itemID)
+        //public void touch_end(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.touch_end(localID, itemID);
         //}
 
-        //public void collision_start(uint localID, LLUUID itemID)
+        //public void collision_start(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.collision_start(localID, itemID);
         //}
 
-        //public void collision(uint localID, LLUUID itemID)
+        //public void collision(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.collision(localID, itemID);
         //}
 
-        //public void collision_end(uint localID, LLUUID itemID)
+        //public void collision_end(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.collision_end(localID, itemID);
         //}
 
-        //public void land_collision_start(uint localID, LLUUID itemID)
+        //public void land_collision_start(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.land_collision_start(localID, itemID);
         //}
 
-        //public void land_collision(uint localID, LLUUID itemID)
+        //public void land_collision(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.land_collision(localID, itemID);
         //}
 
-        //public void land_collision_end(uint localID, LLUUID itemID)
+        //public void land_collision_end(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.land_collision_end(localID, itemID);
         //}
 
-        //public void timer(uint localID, LLUUID itemID)
+        //public void timer(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.timer(localID, itemID);
         //}
 
-        //public void listen(uint localID, LLUUID itemID)
+        //public void listen(uint localID, UUID itemID)
         //{
         //    remoteScript[localID].Events.listen(localID, itemID);
         //}
 
-        //public void on_rez(uint localID, LLUUID itemID)
+        //public void on_rez(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.on_rez(localID, itemID);
         //}
 
-        //public void sensor(uint localID, LLUUID itemID)
+        //public void sensor(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.sensor(localID, itemID);
         //}
 
-        //public void no_sensor(uint localID, LLUUID itemID)
+        //public void no_sensor(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.no_sensor(localID, itemID);
         //}
 
-        //public void control(uint localID, LLUUID itemID)
+        //public void control(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.control(localID, itemID);
         //}
 
-        //public void money(uint localID, LLUUID itemID)
+        //public void money(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.money(localID, itemID);
         //}
 
-        //public void email(uint localID, LLUUID itemID)
+        //public void email(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.email(localID, itemID);
         //}
 
-        //public void at_target(uint localID, LLUUID itemID)
+        //public void at_target(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.at_target(localID, itemID);
         //}
 
-        //public void not_at_target(uint localID, LLUUID itemID)
+        //public void not_at_target(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.not_at_target(localID, itemID);
         //}
 
-        //public void at_rot_target(uint localID, LLUUID itemID)
+        //public void at_rot_target(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.at_rot_target(localID, itemID);
         //}
 
-        //public void not_at_rot_target(uint localID, LLUUID itemID)
+        //public void not_at_rot_target(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.not_at_rot_target(localID, itemID);
         //}
 
-        //public void run_time_permissions(uint localID, LLUUID itemID)
+        //public void run_time_permissions(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.run_time_permissions(localID, itemID);
         //}
 
-        //public void changed(uint localID, LLUUID itemID)
+        //public void changed(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.changed(localID, itemID);
         //}
 
-        //public void attach(uint localID, LLUUID itemID)
+        //public void attach(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.attach(localID, itemID);
         //}
 
-        //public void dataserver(uint localID, LLUUID itemID)
+        //public void dataserver(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.dataserver(localID, itemID);
         //}
 
-        //public void link_message(uint localID, LLUUID itemID)
+        //public void link_message(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.link_message(localID, itemID);
         //}
 
-        //public void moving_start(uint localID, LLUUID itemID)
+        //public void moving_start(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.moving_start(localID, itemID);
         //}
 
-        //public void moving_end(uint localID, LLUUID itemID)
+        //public void moving_end(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.moving_end(localID, itemID);
         //}
 
-        //public void object_rez(uint localID, LLUUID itemID)
+        //public void object_rez(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.object_rez(localID, itemID);
         //}
 
-        //public void remote_data(uint localID, LLUUID itemID)
+        //public void remote_data(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.remote_data(localID, itemID);
         //}
 
-        //public void http_response(uint localID, LLUUID itemID)
+        //public void http_response(uint localID, UUID itemID)
         //{
         //        remoteScript[localID].Events.http_response(localID, itemID);
         //}

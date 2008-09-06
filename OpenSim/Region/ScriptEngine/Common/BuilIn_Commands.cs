@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ScriptEngine.Common
@@ -36,7 +36,7 @@ namespace OpenSim.Region.ScriptEngine.Common
     public class BuilIn_Commands : OSSL_BuilIn_Commands
     {
         public BuilIn_Commands(ScriptEngineBase.ScriptEngine scriptEngine, SceneObjectPart host, uint localID,
-                               LLUUID itemID) : base(scriptEngine, host, localID, itemID)
+                               UUID itemID) : base(scriptEngine, host, localID, itemID)
         {
         }
     }

@@ -32,7 +32,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -617,7 +617,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         public void ListenerRun()
         {
             string inputLine;
-            LLVector3 pos = new LLVector3(128, 128, 20);
+            Vector3 pos = new Vector3(128, 128, 20);
             while (m_enabled)
             {
                 try
@@ -638,7 +638,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                 c.Position = pos;
                                 c.From = data["nick"];
                                 c.Sender = null;
-                                c.SenderUUID = LLUUID.Zero;
+                                c.SenderUUID = UUID.Zero;
 
                                 // is message "\001ACTION foo
                                 // bar\001"? -> "/me foo bar"
@@ -684,9 +684,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 c.Message = String.Format(format, args);
                 c.Type = ChatTypeEnum.Say;
                 c.Channel = 0;
-                c.Position = new LLVector3(128, 128, 20);
+                c.Position = new Vector3(128, 128, 20);
                 c.Sender = null;
-                c.SenderUUID = LLUUID.Zero;
+                c.SenderUUID = UUID.Zero;
 
                 foreach (Scene m_scene in m_scenes)
                 {

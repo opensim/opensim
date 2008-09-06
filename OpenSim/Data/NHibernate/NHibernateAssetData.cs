@@ -30,7 +30,7 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
@@ -101,7 +101,7 @@ namespace OpenSim.Data.NHibernate
 
         }
 
-        override public AssetBase FetchAsset(LLUUID uuid)
+        override public AssetBase FetchAsset(UUID uuid)
         {
             try
             {
@@ -163,13 +163,13 @@ namespace OpenSim.Data.NHibernate
         //                                            asset.InvType, temporary, local, assetLength));
         // }
 
-        override public bool ExistsAsset(LLUUID uuid)
+        override public bool ExistsAsset(UUID uuid)
         {
             m_log.InfoFormat("[NHIBERNATE] ExistsAsset: {0}", uuid);
             return (FetchAsset(uuid) != null);
         }
 
-        public void DeleteAsset(LLUUID uuid)
+        public void DeleteAsset(UUID uuid)
         {
 
         }

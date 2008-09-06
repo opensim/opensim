@@ -35,7 +35,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Xml;
-using libsecondlife.StructuredData;
+using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
 
@@ -709,7 +709,7 @@ namespace OpenSim.Framework.Servers
             // We'd like to put this into a text file parhaps that's easily editable.
             //
             // For this test to work, I used the following secondlife.exe parameters
-            // "C:\Program Files\SecondLifeWindLight\SecondLifeWindLight.exe" -settings settings_windlight.xml -channel "Second Life WindLight"  -set SystemLanguage en-us -loginpage http://10.1.1.2:8002/?show_login_form=TRUE -loginuri http://10.1.1.2:8002 -user 10.1.1.2
+            // "C:\Program Files\SecondLifeWindLight\SecondLifeWindLight.exe" -settings settings_windlight.Xml -channel "Second Life WindLight"  -set SystemLanguage en-us -loginpage http://10.1.1.2:8002/?show_login_form=TRUE -loginuri http://10.1.1.2:8002 -user 10.1.1.2
             //
             // Even after all that, there's still an error, but it's a start.
             //

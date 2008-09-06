@@ -32,7 +32,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -776,7 +776,7 @@ namespace OpenSim
         {
             m_log.Error("[CONSOLE]: PLEASE NOTE, load-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use load-xml2, please file a mantis detailing the reason.");
 
-            LLVector3 loadOffset = new LLVector3(0, 0, 0);
+            Vector3 loadOffset = new Vector3(0, 0, 0);
             if (cmdparams.Length > 0)
             {
                 bool generateNewIDS = false;

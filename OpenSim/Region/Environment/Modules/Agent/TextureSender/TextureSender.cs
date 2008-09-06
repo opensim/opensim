@@ -27,7 +27,7 @@
 
 using System;
 using System.Reflection;
-using libsecondlife.Packets;
+using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -55,7 +55,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         /// </summary>
         private AssetBase m_asset;
 
-        //public LLUUID assetID { get { return m_asset.FullID; } }
+        //public UUID assetID { get { return m_asset.FullID; } }
 
         // private bool m_cancel = false;
 

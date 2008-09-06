@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -46,8 +46,8 @@ namespace OpenSim.Region.Communications.OGS1
 
         private string _inventoryServerUrl;
         private Uri m_Uri;
-        private Dictionary<LLUUID, InventoryReceiptCallback> m_RequestingInventory
-            = new Dictionary<LLUUID, InventoryReceiptCallback>();
+        private Dictionary<UUID, InventoryReceiptCallback> m_RequestingInventory
+            = new Dictionary<UUID, InventoryReceiptCallback>();
 
         public OGS1InventoryService(string inventoryServerUrl)
         {
@@ -67,7 +67,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="callback"></param>
-        public void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
+        public void RequestInventoryForUser(UUID userID, InventoryReceiptCallback callback)
         {
             if (!m_RequestingInventory.ContainsKey(userID))
             {
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Communications.OGS1
                         = new RestObjectPosterResponse<InventoryCollection>();
                     requester.ResponseCallback = InventoryResponse;
 
-                    requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
+                    requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.Guid);
                 }
                 catch (WebException e)
                 {
@@ -106,7 +106,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="userID"></param>
         private void InventoryResponse(InventoryCollection response)
         {
-            LLUUID userID = response.UserID;
+            UUID userID = response.UserID;
             if (m_RequestingInventory.ContainsKey(userID))
             {
                 m_log.InfoFormat("[OGS1 INVENTORY SERVICE]: " +
@@ -121,7 +121,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                 foreach (InventoryFolderBase folder in response.Folders)
                 {
-                    if (folder.ParentID == LLUUID.Zero)
+                    if (folder.ParentID == UUID.Zero)
                     {
                         rootFolder = new InventoryFolderImpl(folder);
                         folders.Add(rootFolder);
@@ -296,12 +296,12 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool HasInventoryForUser(LLUUID userID)
+        public bool HasInventoryForUser(UUID userID)
         {
             return false;
         }
 
-        public InventoryFolderBase RequestRootFolder(LLUUID userID)
+        public InventoryFolderBase RequestRootFolder(UUID userID)
         {
             return null;
         }

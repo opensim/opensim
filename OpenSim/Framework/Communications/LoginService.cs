@@ -33,8 +33,8 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
-using libsecondlife;
-using libsecondlife.StructuredData;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Communications.Cache;
@@ -94,7 +94,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="userID"></param>
         /// <returns></returns>
         /// <exception cref='System.Exception'>This will be thrown if there is a problem with the inventory service</exception>
-        protected abstract InventoryData GetInventorySkeleton(LLUUID userID);
+        protected abstract InventoryData GetInventorySkeleton(UUID userID);
 
         /// <summary>
         /// Called when we receive the client's initial XMLRPC login_to_simulator request message
@@ -163,10 +163,10 @@ namespace OpenSim.Framework.Communications
                     }
                     else if (requestData.Contains("web_login_key"))
                     {
-                        LLUUID webloginkey = null;
+                        UUID webloginkey = null;
                         try
                         {
-                            webloginkey = new LLUUID((string)requestData["web_login_key"]);
+                            webloginkey = new UUID((string)requestData["web_login_key"]);
                         }
                         catch (Exception e)
                         {
@@ -227,7 +227,7 @@ namespace OpenSim.Framework.Communications
 
                     try
                     {
-                        LLUUID agentID = userProfile.ID;
+                        UUID agentID = userProfile.ID;
                         InventoryData inventData = null;
 
                         try
@@ -400,7 +400,7 @@ namespace OpenSim.Framework.Communications
 
                     try
                     {
-                        LLUUID agentID = userProfile.ID;
+                        UUID agentID = userProfile.ID;
 
                         //InventoryData inventData = GetInventorySkeleton(agentID);
                         InventoryData inventData = null;
@@ -566,7 +566,7 @@ namespace OpenSim.Framework.Communications
 
                 if (goodweblogin)
                 {
-                    LLUUID webloginkey = LLUUID.Random();
+                    UUID webloginkey = UUID.Random();
                     m_userManager.StoreWebLoginKey(user.ID, webloginkey);
                     statuscode = 301;
 
@@ -737,13 +737,13 @@ namespace OpenSim.Framework.Communications
             return passwordSuccess;
         }
 
-        public virtual bool AuthenticateUser(UserProfileData profile, LLUUID webloginkey)
+        public virtual bool AuthenticateUser(UserProfileData profile, UUID webloginkey)
         {
             bool passwordSuccess = false;
             m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.ID);
 
-            // Match web login key unless it's the default weblogin key LLUUID.Zero
-            passwordSuccess = ((profile.WebLoginKey==webloginkey) && profile.WebLoginKey != LLUUID.Zero);
+            // Match web login key unless it's the default weblogin key UUID.Zero
+            passwordSuccess = ((profile.WebLoginKey==webloginkey) && profile.WebLoginKey != UUID.Zero);
 
             return passwordSuccess;
         }
@@ -803,7 +803,7 @@ namespace OpenSim.Framework.Communications
         /// <returns></returns>
         protected virtual ArrayList GetInventoryLibrary()
         {
-            Dictionary<LLUUID, InventoryFolderImpl> rootFolders
+            Dictionary<UUID, InventoryFolderImpl> rootFolders
                 = m_libraryRootFolder.RequestSelfAndDescendentFolders();
             ArrayList folderHashes = new ArrayList();
 
@@ -838,9 +838,9 @@ namespace OpenSim.Framework.Communications
         public class InventoryData
         {
             public ArrayList InventoryArray = null;
-            public LLUUID RootFolderID = LLUUID.Zero;
+            public UUID RootFolderID = UUID.Zero;
 
-            public InventoryData(ArrayList invList, LLUUID rootID)
+            public InventoryData(ArrayList invList, UUID rootID)
             {
                 InventoryArray = invList;
                 RootFolderID = rootID;

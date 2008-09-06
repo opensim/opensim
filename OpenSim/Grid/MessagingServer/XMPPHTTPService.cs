@@ -29,7 +29,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework.Servers;
 
@@ -63,9 +63,9 @@ namespace OpenSim.Grid.MessagingServer
 
                 if (p.Length > 0)
                 {
-                    LLUUID assetID = null;
+                    UUID assetID = null;
 
-                    if (!LLUUID.TryParse(p[0], out assetID))
+                    if (!UUID.TryParse(p[0], out assetID))
                     {
                         m_log.InfoFormat(
                             "[REST]: GET:/presence ignoring request with malformed UUID {0}", p[0]);
@@ -91,9 +91,9 @@ namespace OpenSim.Grid.MessagingServer
         {
             string param = GetParam(path);
 
-            LLUUID assetId;
+            UUID assetId;
             if (param.Length > 0)
-                LLUUID.TryParse(param, out assetId);
+                UUID.TryParse(param, out assetId);
             // byte[] txBuffer = new byte[4096];
 
             // TODO: Read POST serialize XMPP stanzas

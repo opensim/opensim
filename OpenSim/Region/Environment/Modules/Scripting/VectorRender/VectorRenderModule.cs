@@ -31,12 +31,11 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Net;
-using libsecondlife;
+using OpenMetaverse;
+using OpenMetaverse.Imaging;
 using Nini.Config;
-using OpenJPEGNet;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using Image=System.Drawing.Image;
 
 //using Cairo;
 
@@ -79,12 +78,12 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
             return null;
         }
 
-        public bool AsyncConvertUrl(LLUUID id, string url, string extraParams)
+        public bool AsyncConvertUrl(UUID id, string url, string extraParams)
         {
             return false;
         }
 
-        public bool AsyncConvertData(LLUUID id, string bodyData, string extraParams)
+        public bool AsyncConvertData(UUID id, string bodyData, string extraParams)
         {
             Draw(bodyData, id, extraParams);
             return true;
@@ -127,7 +126,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
 
         #endregion
 
-        private void Draw(string data, LLUUID id, string extraParams)
+        private void Draw(string data, UUID id, string extraParams)
         {
             // TODO: this is a brutal hack.  extraParams should actually be parsed reasonably.
             int size = 256;

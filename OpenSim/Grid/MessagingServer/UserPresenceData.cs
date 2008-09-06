@@ -27,7 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
 
@@ -39,7 +39,7 @@ namespace OpenSim.Grid.MessagingServer
         public RegionProfileData regionData = new RegionProfileData();
         public string httpURI = String.Empty;
         public List<FriendListItem> friendData = new List<FriendListItem> ();
-        public List<LLUUID> subscriptionData = new List<LLUUID>();
+        public List<UUID> subscriptionData = new List<UUID>();
         public bool OnlineYN = true;
         public bool lookupUserRegionYN = true;
 

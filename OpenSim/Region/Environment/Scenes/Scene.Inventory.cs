@@ -30,8 +30,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Timers;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -46,7 +46,7 @@ namespace OpenSim.Region.Environment.Scenes
         public EntityBase selectedEnt;
         public IClientAPI remoteClient;
         public SceneObjectGroup objectGroup;
-        public LLUUID folderID;
+        public UUID folderID;
         public bool permissionToDelete;
     }
 
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void AddUploadedInventoryItem(LLUUID agentID, InventoryItemBase item)
+        public void AddUploadedInventoryItem(UUID agentID, InventoryItemBase item)
         {
             IMoneyModule money=RequestModuleInterface<IMoneyModule>();
             if (money != null)
@@ -85,7 +85,7 @@ namespace OpenSim.Region.Environment.Scenes
             AddInventoryItem(agentID, item);
         }
 
-        public bool AddInventoryItemReturned(LLUUID AgentId, InventoryItemBase item)
+        public bool AddInventoryItemReturned(UUID AgentId, InventoryItemBase item)
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
@@ -103,7 +103,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void AddInventoryItem(LLUUID AgentID, InventoryItemBase item)
+        public void AddInventoryItem(UUID AgentID, InventoryItemBase item)
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(AgentID);
@@ -160,7 +160,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public LLUUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID itemID, byte[] data)
+        public UUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, UUID itemID, byte[] data)
         {
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
@@ -192,13 +192,13 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            return LLUUID.Zero;
+            return UUID.Zero;
         }
 
         /// <summary>
-        /// <see>CapsUpdatedInventoryItemAsset(IClientAPI, LLUUID, byte[])</see>
+        /// <see>CapsUpdatedInventoryItemAsset(IClientAPI, UUID, byte[])</see>
         /// </summary>
-        private LLUUID CapsUpdateInventoryItemAsset(LLUUID avatarId, LLUUID itemID, byte[] data)
+        private UUID CapsUpdateInventoryItemAsset(UUID avatarId, UUID itemID, byte[] data)
         {
             ScenePresence avatar;
 
@@ -214,7 +214,7 @@ namespace OpenSim.Region.Environment.Scenes
                     avatarId);
             }
 
-            return LLUUID.Zero;
+            return UUID.Zero;
         }
 
         /// <summary>
@@ -225,8 +225,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="primID">The prim which contains the item to update</param>
         /// <param name="isScriptRunning">Indicates whether the script to update is currently running</param>
         /// <param name="data"></param>
-        public void CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, LLUUID itemId,
-                                                       LLUUID primId, bool isScriptRunning, byte[] data)
+        public void CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, UUID itemId,
+                                                       UUID primId, bool isScriptRunning, byte[] data)
         {
             // Retrieve group
             SceneObjectPart part = GetSceneObjectPart(primId);
@@ -274,10 +274,10 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// <see>CapsUpdateTaskInventoryScriptAsset(IClientAPI, LLUUID, LLUUID, bool, byte[])</see>
+        /// <see>CapsUpdateTaskInventoryScriptAsset(IClientAPI, UUID, UUID, bool, byte[])</see>
         /// </summary>
-        private void CapsUpdateTaskInventoryScriptAsset(LLUUID avatarId, LLUUID itemId,
-                                                        LLUUID primId, bool isScriptRunning, byte[] data)
+        private void CapsUpdateTaskInventoryScriptAsset(UUID avatarId, UUID itemId,
+                                                        UUID primId, bool isScriptRunning, byte[] data)
         {
             ScenePresence avatar;
 
@@ -300,17 +300,17 @@ namespace OpenSim.Region.Environment.Scenes
         /// a transaction
         /// </summary>
         /// <param name="remoteClient"></param>
-        /// <param name="transactionID">The transaction ID.  If this is LLUUID.Zero we will
+        /// <param name="transactionID">The transaction ID.  If this is UUID.Zero we will
         /// assume that we are not in a transaction</param>
         /// <param name="itemID">The ID of the updated item</param>
         /// <param name="name">The name of the updated item</param>
         /// <param name="description">The description of the updated item</param>
         /// <param name="nextOwnerMask">The permissions of the updated item</param>
-/*        public void UpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID,
-                                             LLUUID itemID, string name, string description,
+/*        public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
+                                             UUID itemID, string name, string description,
                                              uint nextOwnerMask)*/
-        public void UpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID,
-                                             LLUUID itemID, InventoryItemBase itemUpd)
+        public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
+                                             UUID itemID, InventoryItemBase itemUpd)
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -321,7 +321,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (item != null)
                 {
-                    if (LLUUID.Zero == transactionID)
+                    if (UUID.Zero == transactionID)
                     {
                         item.Name = itemUpd.Name;
                         item.Description = itemUpd.Description;
@@ -378,7 +378,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="recipientClient"></param>
         /// <param name="senderId">ID of the sender of the item</param>
         /// <param name="itemId"></param>
-        public void GiveInventoryItem(IClientAPI recipientClient, LLUUID senderId, LLUUID itemId)
+        public void GiveInventoryItem(IClientAPI recipientClient, UUID senderId, UUID itemId)
         {
             // Retrieve the item from the sender
             CachedUserInfo senderUserInfo = CommsManager.UserProfileCacheService.GetUserDetails(senderId);
@@ -413,13 +413,13 @@ namespace OpenSim.Region.Environment.Scenes
                         InventoryItemBase itemCopy = new InventoryItemBase();
                         itemCopy.Owner = recipientClient.AgentId;
                         itemCopy.Creator = senderId;
-                        itemCopy.ID = LLUUID.Random();
+                        itemCopy.ID = UUID.Random();
                         itemCopy.AssetID = item.AssetID;
                         itemCopy.Description = item.Description;
                         itemCopy.Name = item.Name;
                         itemCopy.AssetType = item.AssetType;
                         itemCopy.InvType = item.InvType;
-                        itemCopy.Folder = LLUUID.Zero;
+                        itemCopy.Folder = UUID.Zero;
                         if (ExternalChecks.ExternalChecksPropagatePermissions())
                         {
                             if (item.InvType == 6)
@@ -493,8 +493,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void CopyInventoryItem(IClientAPI remoteClient, uint callbackID, LLUUID oldAgentID, LLUUID oldItemID,
-                                      LLUUID newFolderID, string newName)
+        public void CopyInventoryItem(IClientAPI remoteClient, uint callbackID, UUID oldAgentID, UUID oldItemID,
+                                      UUID newFolderID, string newName)
         {
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: CopyInventoryItem received by {0} with oldAgentID {1}, oldItemID {2}, new FolderID {3}, newName {4}",
@@ -579,7 +579,7 @@ namespace OpenSim.Region.Environment.Scenes
             asset.Name = name;
             asset.Description = description;
             asset.Type = assetType;
-            asset.FullID = LLUUID.Random();
+            asset.FullID = UUID.Random();
             asset.Data = (data == null) ? new byte[1] : data;
 
             return asset;
@@ -593,7 +593,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <param name="length"></param>
         /// <param name="newName"></param>
-        public void MoveInventoryItem(IClientAPI remoteClient, LLUUID folderID, LLUUID itemID, int length,
+        public void MoveInventoryItem(IClientAPI remoteClient, UUID folderID, UUID itemID, int length,
                                       string newName)
         {
             m_log.DebugFormat(
@@ -648,7 +648,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="asset"></param>
         /// <param name="invType"></param>
         /// <param name="nextOwnerMask"></param>
-        private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, string name, uint flags, uint callbackID,
+        private void CreateNewInventoryItem(IClientAPI remoteClient, UUID folderID, string name, uint flags, uint callbackID,
                                             AssetBase asset, sbyte invType, uint nextOwnerMask, int creationDate)
         {
             CreateNewInventoryItem(
@@ -667,7 +667,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="nextOwnerMask"></param>
         /// <param name="creationDate"></param>
         private void CreateNewInventoryItem(
-            IClientAPI remoteClient, LLUUID folderID, string name, uint flags, uint callbackID, AssetBase asset, sbyte invType,
+            IClientAPI remoteClient, UUID folderID, string name, uint flags, uint callbackID, AssetBase asset, sbyte invType,
             uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, int creationDate)
         {
             CachedUserInfo userInfo
@@ -678,7 +678,7 @@ namespace OpenSim.Region.Environment.Scenes
                 InventoryItemBase item = new InventoryItemBase();
                 item.Owner = remoteClient.AgentId;
                 item.Creator = remoteClient.AgentId;
-                item.ID = LLUUID.Random();
+                item.ID = UUID.Random();
                 item.AssetID = asset.FullID;
                 item.Description = asset.Description;
                 item.Name = name;
@@ -717,14 +717,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="type"></param>
         /// <param name="wearableType"></param>
         /// <param name="nextOwnerMask"></param>
-        public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+        public void CreateNewInventoryItem(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                            uint callbackID, string description, string name, sbyte invType,
                                            sbyte assetType,
                                            byte wearableType, uint nextOwnerMask, int creationDate)
         {
 //            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
 
-            if (transactionID == LLUUID.Zero)
+            if (transactionID == UUID.Zero)
             {
                 CachedUserInfo userInfo
                     = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -734,9 +734,9 @@ namespace OpenSim.Region.Environment.Scenes
                     ScenePresence presence;
                     TryGetAvatar(remoteClient.AgentId, out presence);
                     byte[] data = null;
-                    if (invType == 3 && presence != null) // libsecondlife.asset.assettype.landmark = 3 - needs to be turned into an enum
+                    if (invType == 3 && presence != null) // OpenMetaverse.asset.assettype.landmark = 3 - needs to be turned into an enum
                     {
-                        LLVector3 pos=presence.AbsolutePosition;
+                        Vector3 pos=presence.AbsolutePosition;
                         string strdata=String.Format("Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
                             presence.Scene.RegionInfo.RegionID,
                             pos.X, pos.Y, pos.Z,
@@ -775,7 +775,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
-        private void RemoveInventoryItem(IClientAPI remoteClient, LLUUID itemID)
+        private void RemoveInventoryItem(IClientAPI remoteClient, UUID itemID)
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -798,7 +798,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
-        private void RemoveInventoryFolder(IClientAPI remoteClient, LLUUID folderID)
+        private void RemoveInventoryFolder(IClientAPI remoteClient, UUID folderID)
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -873,7 +873,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// be necessary for a permissions check at some stage.</param>
         /// <param name="itemID"></param>
         /// <param name="localID"></param>
-        public void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID)
+        public void RemoveTaskInventory(IClientAPI remoteClient, UUID itemID, uint localID)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
             SceneObjectGroup group = part.ParentGroup;
@@ -896,7 +896,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        private InventoryItemBase CreateAgentInventoryItemFromTask(LLUUID destAgent, SceneObjectPart part, LLUUID itemId)
+        private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId)
         {
             TaskInventoryItem taskItem = part.GetInventoryItem(itemId);
 
@@ -913,7 +913,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             InventoryItemBase agentItem = new InventoryItemBase();
 
-            agentItem.ID = LLUUID.Random();
+            agentItem.ID = UUID.Random();
             agentItem.Creator = taskItem.CreatorID;
             agentItem.Owner = destAgent;
             agentItem.AssetID = taskItem.AssetID;
@@ -954,7 +954,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="folderID"></param>
         /// <param name="part"></param>
         /// <param name="itemID"></param>
-        public void MoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, SceneObjectPart part, LLUUID itemId)
+        public void MoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, SceneObjectPart part, UUID itemId)
         {
 
             InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId);
@@ -970,7 +970,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="folderID"></param>
         /// <param name="primLocalID"></param>
         /// <param name="itemID"></param>
-        public void ClientMoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, uint primLocalId, LLUUID itemId)
+        public void ClientMoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, uint primLocalId, UUID itemId)
         {
             SceneObjectPart part = GetSceneObjectPart(primLocalId);
 
@@ -1009,7 +1009,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="folderID"></param>
         /// <param name="part"></param>
         /// <param name="itemID"></param>
-        public void MoveTaskInventoryItem(LLUUID avatarId, LLUUID folderId, SceneObjectPart part, LLUUID itemId)
+        public void MoveTaskInventoryItem(UUID avatarId, UUID folderId, SceneObjectPart part, UUID itemId)
         {
             ScenePresence avatar;
 
@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="destId"></param>
         /// <param name="part"></param>
         /// <param name="itemId"></param>
-        public void MoveTaskInventoryItem(LLUUID destId, SceneObjectPart part, LLUUID itemId)
+        public void MoveTaskInventoryItem(UUID destId, SceneObjectPart part, UUID itemId)
         {
             TaskInventoryItem srcTaskItem = part.GetInventoryItem(itemId);
 
@@ -1065,7 +1065,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            if (part.OwnerID != destPart.OwnerID && (part.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.AllowInventoryDrop) == 0)
+            if (part.OwnerID != destPart.OwnerID && (part.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) == 0)
             {
                 // object cannot copy items to an object owned by a different owner
                 // unless llAllowInventoryDrop has been called
@@ -1081,7 +1081,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             TaskInventoryItem destTaskItem = new TaskInventoryItem();
 
-            destTaskItem.ItemID = LLUUID.Random();
+            destTaskItem.ItemID = UUID.Random();
             destTaskItem.CreatorID = srcTaskItem.CreatorID;
             destTaskItem.AssetID = srcTaskItem.AssetID;
             destTaskItem.GroupID = destPart.GroupID;
@@ -1130,7 +1130,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void MoveTaskInventoryItems(LLUUID destID, string category, SceneObjectPart host, List<LLUUID> items)
+        public void MoveTaskInventoryItems(UUID destID, string category, SceneObjectPart host, List<UUID> items)
         {
             CachedUserInfo profile = CommsManager.UserProfileCacheService.GetUserDetails(destID);
             if (profile == null || profile.RootFolder == null)
@@ -1142,11 +1142,11 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            LLUUID newFolderID = LLUUID.Random();
+            UUID newFolderID = UUID.Random();
 
             profile.CreateFolder(category, newFolderID, 0xffff, profile.RootFolder.ID);
 
-            foreach (LLUUID itemID in items)
+            foreach (UUID itemID in items)
             {
                 InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(destID, host, itemID);
                 agentItem.Folder = newFolderID;
@@ -1167,16 +1167,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         /// <summary>
         /// Update an item in a prim (task) inventory.
-        /// This method does not handle scripts, <see>RezScript(IClientAPI, LLUUID, unit)</see>
+        /// This method does not handle scripts, <see>RezScript(IClientAPI, UUID, unit)</see>
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="transactionID"></param>
         /// <param name="itemInfo"></param>
         /// <param name="primLocalID"></param>
-        public void UpdateTaskInventory(IClientAPI remoteClient, LLUUID transactionID, TaskInventoryItem itemInfo,
+        public void UpdateTaskInventory(IClientAPI remoteClient, UUID transactionID, TaskInventoryItem itemInfo,
                                         uint primLocalID)
         {
-            LLUUID itemID = itemInfo.ItemID;
+            UUID itemID = itemInfo.ItemID;
 
             // Find the prim we're dealing with
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
@@ -1193,8 +1193,8 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (currentItem == null)
                 {
-                    LLUUID copyID = LLUUID.Random();
-                    if (itemID != LLUUID.Zero)
+                    UUID copyID = UUID.Random();
+                    if (itemID != UUID.Zero)
                     {
                         CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
 
@@ -1254,12 +1254,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         /// <param name="itemID"> </param>
         /// <param name="localID"></param>
-        public void RezScript(IClientAPI remoteClient, InventoryItemBase itemBase, LLUUID transactionID, uint localID)
+        public void RezScript(IClientAPI remoteClient, InventoryItemBase itemBase, UUID transactionID, uint localID)
         {
-            LLUUID itemID=itemBase.ID;
-            LLUUID copyID = LLUUID.Random();
+            UUID itemID=itemBase.ID;
+            UUID copyID = UUID.Random();
 
-            if (itemID != LLUUID.Zero)
+            if (itemID != UUID.Zero)
             {
                 CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
 
@@ -1344,7 +1344,7 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.GroupID = itemBase.GroupID;
                 taskItem.GroupPermissions = 0;
                 taskItem.Flags = itemBase.Flags;
-                taskItem.PermsGranter = LLUUID.Zero;
+                taskItem.PermsGranter = UUID.Zero;
                 taskItem.PermsMask = 0;
                 taskItem.AssetID = asset.ID;
 
@@ -1361,7 +1361,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         /// <param name="itemID"> </param>
         /// <param name="localID"></param>
-        public void RezScript(LLUUID srcId, SceneObjectPart srcPart, LLUUID destId, int pin, int running, int start_param)
+        public void RezScript(UUID srcId, SceneObjectPart srcPart, UUID destId, int pin, int running, int start_param)
         {
             TaskInventoryItem srcTaskItem = srcPart.GetInventoryItem(srcId);
 
@@ -1407,7 +1407,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             TaskInventoryItem destTaskItem = new TaskInventoryItem();
 
-            destTaskItem.ItemID = LLUUID.Random();
+            destTaskItem.ItemID = UUID.Random();
             destTaskItem.CreatorID = srcTaskItem.CreatorID;
             destTaskItem.AssetID = srcTaskItem.AssetID;
             destTaskItem.GroupID = destPart.GroupID;
@@ -1467,7 +1467,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) packet;
 
-            LLUUID folderID = LLUUID.Zero;
+            UUID folderID = UUID.Zero;
 
             foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
             {
@@ -1598,7 +1598,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        private void DeleteToInventory(DeRezObjectPacket DeRezPacket, EntityBase selectedEnt, IClientAPI remoteClient, SceneObjectGroup objectGroup, LLUUID folderID, bool permissionToDelete)
+        private void DeleteToInventory(DeRezObjectPacket DeRezPacket, EntityBase selectedEnt, IClientAPI remoteClient, SceneObjectGroup objectGroup, UUID folderID, bool permissionToDelete)
         {
             string sceneObjectXml = objectGroup.ToXmlString();
 
@@ -1616,7 +1616,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // If we're deleting someone else's item, it goes back to their deleted items folder
                 // If we're returning someone's item, it goes back to the owner's Lost And Found folder.
 
-                if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero || (DeRezPacket.AgentBlock.Destination == 6 && objectGroup.OwnerID != remoteClient.AgentId))
+                if (DeRezPacket.AgentBlock.DestinationID == UUID.Zero || (DeRezPacket.AgentBlock.Destination == 6 && objectGroup.OwnerID != remoteClient.AgentId))
                 {
                     List<InventoryFolderBase> subrootfolders = userInfo.RootFolder.RequestListOfFolders();
                     foreach (InventoryFolderBase flder in subrootfolders)
@@ -1628,7 +1628,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
 
-                    if (folderID == LLUUID.Zero)
+                    if (folderID == UUID.Zero)
                     {
                         folderID = userInfo.RootFolder.ID;
                     }
@@ -1643,7 +1643,7 @@ namespace OpenSim.Region.Environment.Scenes
                     ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId),
                     ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId),
                     (sbyte)AssetType.Object,
-                    Helpers.StringToField(sceneObjectXml));
+                    Utils.StringToBytes(sceneObjectXml));
                 AssetCache.AddAsset(asset);
 
                 InventoryItemBase item = new InventoryItemBase();
@@ -1654,7 +1654,7 @@ namespace OpenSim.Region.Environment.Scenes
                 else // Delete / Return
                     item.Owner = objectGroup.OwnerID;
 
-                item.ID = LLUUID.Random();
+                item.ID = UUID.Random();
                 item.AssetID = asset.FullID;
                 item.Description = asset.Description;
                 item.Name = asset.Name;
@@ -1709,7 +1709,7 @@ namespace OpenSim.Region.Environment.Scenes
                 DeleteSceneObject(objectGroup);
         }
 
-        public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID assetID, LLUUID agentID)
+        public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, UUID assetID, UUID agentID)
         {
             SceneObjectGroup objectGroup = grp;
             if (objectGroup != null)
@@ -1723,7 +1723,7 @@ namespace OpenSim.Region.Environment.Scenes
                     Queue<InventoryFolderImpl> searchfolders = new Queue<InventoryFolderImpl>();
                     searchfolders.Enqueue(userInfo.RootFolder);
 
-                    LLUUID foundFolder = userInfo.RootFolder.ID;
+                    UUID foundFolder = userInfo.RootFolder.ID;
 
                     // search through folders to find the asset.
                     while (searchfolders.Count > 0)
@@ -1754,7 +1754,7 @@ namespace OpenSim.Region.Environment.Scenes
                         objectGroup.GetPartName(objectGroup.LocalId),
                         objectGroup.GetPartDescription(objectGroup.LocalId),
                         (sbyte)AssetType.Object,
-                        Helpers.StringToField(sceneObjectXml));
+                        Utils.StringToBytes(sceneObjectXml));
                     AssetCache.AddAsset(asset);
 
                     InventoryItemBase item = new InventoryItemBase();
@@ -1797,7 +1797,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public LLUUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID AgentId)
+        public UUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, UUID AgentId)
         {
             SceneObjectGroup objectGroup = grp;
             if (objectGroup != null)
@@ -1812,13 +1812,13 @@ namespace OpenSim.Region.Environment.Scenes
                         objectGroup.GetPartName(objectGroup.LocalId),
                         objectGroup.GetPartDescription(objectGroup.LocalId),
                         (sbyte)AssetType.Object,
-                        Helpers.StringToField(sceneObjectXml));
+                        Utils.StringToBytes(sceneObjectXml));
                     AssetCache.AddAsset(asset);
 
                     InventoryItemBase item = new InventoryItemBase();
                     item.Creator = objectGroup.RootPart.CreatorID;
                     item.Owner = remoteClient.AgentId;
-                    item.ID = LLUUID.Random();
+                    item.ID = UUID.Random();
                     item.AssetID = asset.FullID;
                     item.Description = asset.Description;
                     item.Name = asset.Name;
@@ -1848,9 +1848,9 @@ namespace OpenSim.Region.Environment.Scenes
                     remoteClient.SendInventoryItemCreateUpdate(item);
                     return item.AssetID;
                 }
-                return LLUUID.Zero;
+                return UUID.Zero;
             }
-            return LLUUID.Zero;
+            return UUID.Zero;
 
         }
 
@@ -1872,10 +1872,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="RezSelected"></param>
         /// <param name="RemoveItem"></param>
         /// <param name="fromTaskID"></param>
-        public virtual void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd, LLVector3 RayStart,
-                                    LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+        public virtual void RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
+                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
-                                    bool RezSelected, bool RemoveItem, LLUUID fromTaskID)
+                                    bool RezSelected, bool RemoveItem, UUID fromTaskID)
         {
             RezObject(
                 remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
@@ -1901,10 +1901,10 @@ namespace OpenSim.Region.Environment.Scenes
        /// <param name="fromTaskID"></param>
        /// <param name="difference"></param>
        /// <returns></returns>
-        public virtual SceneObjectGroup RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd, LLVector3 RayStart,
-                                    LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+        public virtual SceneObjectGroup RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
+                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
-                                    bool RezSelected, bool RemoveItem, LLUUID fromTaskID, bool attachment)
+                                    bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
             // Work out position details
             byte bRayEndIsIntersection = (byte)0;
@@ -1918,11 +1918,11 @@ namespace OpenSim.Region.Environment.Scenes
                 bRayEndIsIntersection = (byte)0;
             }
 
-            LLVector3 scale = new LLVector3(0.5f, 0.5f, 0.5f);
+            Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
 
 
-            LLVector3 pos = GetNewRezLocation(
-                      RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1),
+            Vector3 pos = GetNewRezLocation(
+                      RayStart, RayEnd, RayTargetID, Quaternion.Identity,
                       BypassRayCast, bRayEndIsIntersection,true,scale, false);
 
             // Rez object
@@ -1939,7 +1939,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (rezAsset != null)
                         {
-                            string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);
+                            string xmlData = Utils.BytesToString(rezAsset.Data);
                             SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
                             if (!ExternalChecks.ExternalChecksCanRezObject(group.Children.Count, remoteClient.AgentId, pos) && !attachment)
                             {
@@ -1955,7 +1955,7 @@ namespace OpenSim.Region.Environment.Scenes
                             if (!attachment)
                             {
                                 pos = GetNewRezLocation(
-                                    RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1),
+                                    RayStart, RayEnd, RayTargetID, Quaternion.Identity,
                                     BypassRayCast, bRayEndIsIntersection, true, group.GroupScale(), false);
                                 group.AbsolutePosition = pos;
                             }
@@ -2066,18 +2066,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public virtual SceneObjectGroup RezObject(
             SceneObjectPart sourcePart, TaskInventoryItem item,
-            LLVector3 pos, LLQuaternion rot, LLVector3 vel, int param)
+            Vector3 pos, Quaternion rot, Vector3 vel, int param)
         {
             // Rez object
             if (item != null)
             {
-                LLUUID ownerID = item.OwnerID;
+                UUID ownerID = item.OwnerID;
 
                 AssetBase rezAsset = AssetCache.GetAsset(item.AssetID, false);
 
                 if (rezAsset != null)
                 {
-                    string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);
+                    string xmlData = Utils.BytesToString(rezAsset.Data);
                     SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
 
                     if (!ExternalChecks.ExternalChecksCanRezObject(group.Children.Count, ownerID, pos))
@@ -2154,7 +2154,7 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
-        public virtual bool returnObjects(SceneObjectGroup[] returnobjects, LLUUID AgentId)
+        public virtual bool returnObjects(SceneObjectGroup[] returnobjects, UUID AgentId)
         {
             string message = "";
             if (returnobjects.Length <= 0)
@@ -2186,7 +2186,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (userInfo.HasReceivedInventory)
                     {
-                        LLUUID folderID = LLUUID.Zero;
+                        UUID folderID = UUID.Zero;
 
                         List<InventoryFolderBase> subrootfolders = userInfo.RootFolder.RequestListOfFolders();
                         foreach (InventoryFolderBase flder in subrootfolders)
@@ -2198,7 +2198,7 @@ namespace OpenSim.Region.Environment.Scenes
                             }
                         }
 
-                        if (folderID == LLUUID.Zero)
+                        if (folderID == UUID.Zero)
                         {
                             folderID = userInfo.RootFolder.ID;
                         }
@@ -2213,13 +2213,13 @@ namespace OpenSim.Region.Environment.Scenes
                             returnobjects[i].GetPartName(returnobjects[i].LocalId),
                             returnobjects[i].GetPartDescription(returnobjects[i].LocalId),
                             (sbyte)AssetType.Object,
-                            Helpers.StringToField(sceneObjectXml));
+                            Utils.StringToBytes(sceneObjectXml));
                         AssetCache.AddAsset(asset);
 
                         InventoryItemBase item = new InventoryItemBase();
                         item.Creator = returnobjects[i].RootPart.CreatorID;
                         item.Owner = returnobjects[i].OwnerID;
-                        item.ID = LLUUID.Random();
+                        item.ID = UUID.Random();
                         item.AssetID = asset.FullID;
                         item.Description = asset.Description;
                         item.Name = asset.Name;
@@ -2295,7 +2295,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
-        public void GetScriptRunning(IClientAPI controllingClient, LLUUID objectID, LLUUID itemID)
+        public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
         {
             IScriptModule scriptModule = RequestModuleInterface<IScriptModule>();
             if (scriptModule == null)
@@ -2305,7 +2305,7 @@ namespace OpenSim.Region.Environment.Scenes
                     scriptModule.GetScriptRunning(objectID, itemID));
         }
 
-        public void SetScriptRunning(IClientAPI controllingClient, LLUUID objectID, LLUUID itemID, bool running)
+        public void SetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID, bool running)
         {
             SceneObjectPart part = GetSceneObjectPart(objectID);
             if (part == null)
@@ -2317,7 +2317,7 @@ namespace OpenSim.Region.Environment.Scenes
                 EventManager.TriggerStopScript(part.LocalId, itemID);
         }
 
-        public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID,
+        public void RezSingleAttachment(IClientAPI remoteClient, UUID itemID,
                 uint AttachmentPt, uint ItemFlags, uint NextOwnerMask)
         {
             SceneObjectGroup att = m_innerScene.RezSingleAttachment(remoteClient, itemID, AttachmentPt, ItemFlags, NextOwnerMask);
@@ -2333,7 +2333,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public void RezSingleAttachment(SceneObjectGroup att,
-                IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,
+                IClientAPI remoteClient, UUID itemID, uint AttachmentPt,
                 uint ItemFlags, uint NextOwnerMask)
         {
             if (att.RootPart != null)
@@ -2352,12 +2352,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, LLQuaternion rot, LLVector3 pos)
+        public void AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos)
         {
             m_innerScene.AttachObject(controllingClient, localID, attachPoint, rot, pos);
         }
 
-        public void DetachSingleAttachmentToInv(LLUUID itemID, IClientAPI remoteClient)
+        public void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
         {
             ScenePresence presence;
             if (TryGetAvatar(remoteClient.AgentId, out presence))

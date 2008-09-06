@@ -28,7 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
 using OpenSim.Region.Interfaces;
@@ -36,7 +36,6 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Interfaces;
-using Axiom.Math;
 
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
@@ -68,7 +67,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        private void HandleObjectPaid(LLUUID objectID, LLUUID agentID,
+        private void HandleObjectPaid(UUID objectID, UUID agentID,
                 int amount)
         {
             SceneObjectPart part =
@@ -80,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        public void touch_start(uint localID, uint originalID, LLVector3 offsetPos,
+        public void touch_start(uint localID, uint originalID, Vector3 offsetPos,
                 IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
@@ -108,7 +107,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     det));
         }
 
-        public void touch(uint localID, uint originalID, LLVector3 offsetPos,
+        public void touch(uint localID, uint originalID, Vector3 offsetPos,
                 IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
@@ -177,7 +176,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         // state_entry: not processed here
         // state_exit: not processed here
 
-        public void money(uint localID, LLUUID agentID, int amount)
+        public void money(uint localID, UUID agentID, int amount)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "money", new object[] {
@@ -242,7 +241,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     det.ToArray()));
         }
 
-        public void land_collision_start(uint localID, LLUUID itemID)
+        public void land_collision_start(uint localID, UUID itemID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "land_collision_start",
@@ -250,7 +249,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     new DetectParams[0]));
         }
 
-        public void land_collision(uint localID, LLUUID itemID)
+        public void land_collision(uint localID, UUID itemID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "land_collision",
@@ -258,7 +257,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     new DetectParams[0]));
         }
 
-        public void land_collision_end(uint localID, LLUUID itemID)
+        public void land_collision_end(uint localID, UUID itemID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "land_collision_end",
@@ -269,7 +268,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         // timer: not handled here
         // listen: not handled here
 
-        public void control(uint localID, LLUUID itemID, LLUUID agentID, uint held, uint change)
+        public void control(uint localID, UUID itemID, UUID agentID, uint held, uint change)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "control",new object[] {
@@ -279,7 +278,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     new DetectParams[0]));
         }
 
-        public void email(uint localID, LLUUID itemID, string timeSent,
+        public void email(uint localID, UUID itemID, string timeSent,
                 string address, string subject, string message, int numLeft)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
@@ -292,8 +291,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     new DetectParams[0]));
         }
 
-        public void at_target(uint localID, uint handle, LLVector3 targetpos,
-                LLVector3 atpos)
+        public void at_target(uint localID, uint handle, Vector3 targetpos,
+                Vector3 atpos)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "at_target", new object[] {
@@ -310,14 +309,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     new DetectParams[0]));
         }
 
-        public void at_rot_target(uint localID, LLUUID itemID)
+        public void at_rot_target(uint localID, UUID itemID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "at_rot_target",new object[0],
                     new DetectParams[0]));
         }
 
-        public void not_at_rot_target(uint localID, LLUUID itemID)
+        public void not_at_rot_target(uint localID, UUID itemID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "not_at_rot_target",new object[0],
@@ -326,7 +325,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         // run_time_permissions: not handled here
 
-        public void attach(uint localID, LLUUID itemID, LLUUID avatar)
+        public void attach(uint localID, UUID itemID, UUID avatar)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "attach",new object[] {
@@ -337,14 +336,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         // dataserver: not handled here
         // link_message: not handled here
 
-        public void moving_start(uint localID, LLUUID itemID)
+        public void moving_start(uint localID, UUID itemID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "moving_start",new object[0],
                     new DetectParams[0]));
         }
 
-        public void moving_end(uint localID, LLUUID itemID)
+        public void moving_end(uint localID, UUID itemID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "moving_end",new object[0],

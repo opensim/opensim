@@ -1,5 +1,5 @@
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -8,6 +8,6 @@ namespace OpenSim.Framework
         public int ChannelType;
         public float Priority;
         public int SourceType;
-        public LLUUID TransferID;
+        public UUID TransferID;
     }
 }

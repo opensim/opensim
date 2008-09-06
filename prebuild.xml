@@ -90,7 +90,8 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="Nini.dll" />
@@ -118,7 +119,7 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="nunit.framework.dll" />
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="false"/>
       </Files>
@@ -140,7 +141,7 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework"/>
@@ -166,7 +167,8 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
 
       <Files>
@@ -191,7 +193,7 @@
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
       <!-- needed for LLUUID types -->
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -214,7 +216,8 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="XMLRPC.dll"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data.Base"/>
       <Reference name="log4net.dll"/>
@@ -244,7 +247,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Data.Base"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="MySql.Data.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="log4net.dll"/>
@@ -273,7 +276,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Data.Base"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="log4net.dll"/>
 
@@ -324,7 +327,7 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -349,7 +352,7 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -378,7 +381,7 @@
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Files>
@@ -401,7 +404,7 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -427,7 +430,7 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -455,7 +458,8 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
       <Reference name="HttpServer.dll"/>
@@ -480,8 +484,7 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false" />
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework" localCopy="false"/>
       <Reference name="OpenSim.Framework.Console" localCopy="false"/>
       <Reference name="nunit.framework.dll" />
@@ -508,7 +511,7 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
@@ -531,7 +534,7 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
@@ -554,8 +557,7 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="PhysX_Wrapper_Dotnet.dll" localCopy="false"/>
       <Reference name="OpenSim.Framework"/>
@@ -579,8 +581,7 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -608,14 +609,13 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console" localCopy="false"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
+      <Reference name="MonoXnaCompactMaths.dll" localCopy="false"/>
       <Reference name="Modified.XnaDevRu.BulletX.dll" localCopy="false" />
-      <Reference name="MonoXnaCompactMaths.dll" localCopy="false" />
       <Reference name="log4net.dll"/>
 
       <Files>
@@ -638,7 +638,8 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Drawing"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll" localCopy="false"/>
+      <Reference name="OpenMetaverse.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -666,7 +667,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Runtime.Remoting"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -697,7 +698,8 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Interfaces"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
@@ -728,7 +730,7 @@
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
 
@@ -761,7 +763,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Communications.Local" />
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
 
@@ -787,8 +789,8 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Runtime.Remoting"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Axiom.MathLib.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Region.Interfaces" />
@@ -830,8 +832,7 @@
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Axiom.MathLib.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
@@ -866,8 +867,8 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Axiom.MathLib.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
@@ -903,7 +904,7 @@
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -930,7 +931,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="log4net.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -959,7 +960,7 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="IronPython.dll"/>
       <Reference name="IronMath.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -1009,7 +1010,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data.Base" />
@@ -1039,8 +1040,8 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="Mono.Addins.dll" />
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Axiom.MathLib.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -1077,7 +1078,7 @@
       <Reference name="Mono.Addins.dll" />
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll" />
+      <Reference name="OpenMetaverseTypes.dll" />
       <Reference name="Nini.dll" />
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Region.ClientStack"/>
@@ -1111,7 +1112,7 @@
       <Reference name="Mono.Addins.dll" />
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll" />
+      <Reference name="OpenMetaverseTypes.dll" />
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll" />
       <Reference name="OpenSim"/>
@@ -1147,7 +1148,7 @@
       <Reference name="Mono.Addins.dll" />
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll" />
+      <Reference name="OpenMetaverseTypes.dll" />
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll" />
       <Reference name="OpenSim"/>
@@ -1181,7 +1182,7 @@
       <Reference name="Mono.Addins.dll" />
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-      <Reference name="libsecondlife.dll" />
+      <Reference name="OpenMetaverseTypes.dll" />
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll" />
       <Reference name="OpenSim"/>
@@ -1218,7 +1219,8 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-      <Reference name="libsecondlife.dll" />
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll" />
       <Reference name="OpenSim"/>
@@ -1262,7 +1264,8 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll" />
       <Files>
@@ -1284,7 +1287,8 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
 
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="System" localCopy="false"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Environment"/>
@@ -1316,7 +1320,8 @@
       <Reference name="OpenSim.Data.MapperFactory"/>
       <Reference name="OpenSim.Data.Base"/>
       <Reference name="OpenSim.Data.MySQLMapper"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="MySql.Data.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment"/>
@@ -1350,7 +1355,8 @@
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="log4net.dll"/>
       <Reference name="Mono.Addins.dll" />
 
@@ -1382,7 +1388,8 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="Mono.Data.SqliteClient"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="log4net.dll"/>
@@ -1414,7 +1421,8 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="NHibernate.dll"/>
       <Reference name="NHibernate.Mapping.Attributes.dll"/>
       <Reference name="log4net.dll"/>
@@ -1467,13 +1475,12 @@
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="Nini.dll" />
@@ -1526,14 +1533,13 @@
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="Nini.dll" />
@@ -1561,14 +1567,13 @@
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="Nini.dll" />
@@ -1596,7 +1601,8 @@
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -1606,7 +1612,6 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="Nini.dll" />
@@ -1637,7 +1642,7 @@
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.YieldProlog"/>
       <Reference name="OpenSim.Region.Environment" />
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="log4net.dll"/>
@@ -1687,7 +1692,7 @@
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -1725,7 +1730,7 @@
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -1737,7 +1742,6 @@
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Instance"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api"/>
       <Reference name="SmartThreadPool"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="log4net.dll"/>
@@ -1767,7 +1771,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications" />
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
 
@@ -1799,7 +1803,8 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Data.MySQL"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
 
@@ -1830,7 +1835,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="log4net.dll"/>
 
       <Files>
@@ -1862,7 +1867,8 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Grid.Communications.OGS1"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
 
@@ -1892,7 +1898,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="log4net.dll"/>
       <Reference name="XMLRPC.dll"/>
 
@@ -1922,7 +1928,8 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
 
@@ -1949,7 +1956,8 @@
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Web" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -1957,7 +1965,6 @@
       <Reference name="OpenSim.Region.Interfaces" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -2008,14 +2015,13 @@
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="System.Runtime.Remoting" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="RAIL.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
       <Reference name="Microsoft.JScript"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="Tools.dll"/>
@@ -2054,8 +2060,8 @@
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
@@ -2085,7 +2091,7 @@
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="System.Runtime.Remoting" localCopy="false"/>
       <Reference name="OpenSim.Region.Environment" />
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
@@ -2116,8 +2122,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="Mono.Addins.dll" />
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Axiom.MathLib.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
@@ -2152,7 +2157,8 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="Nini.dll" />
@@ -2222,7 +2228,8 @@
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
         <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
@@ -2244,7 +2251,8 @@
 
       <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="Nini.dll" />

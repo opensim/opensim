@@ -34,7 +34,7 @@ using System.Security.Policy;
 using System.Reflection;
 using System.Globalization;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Amib.Threading;
@@ -76,28 +76,28 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         // Maps the local id to the script inventory items in it
 
-        private Dictionary<uint, List<LLUUID> > m_PrimObjects =
-                new Dictionary<uint, List<LLUUID> >();
+        private Dictionary<uint, List<UUID> > m_PrimObjects =
+                new Dictionary<uint, List<UUID> >();
 
-        // Maps the LLUUID above to the script instance
+        // Maps the UUID above to the script instance
 
-        private Dictionary<LLUUID, IScriptInstance> m_Scripts =
-                new Dictionary<LLUUID, IScriptInstance>();
+        private Dictionary<UUID, IScriptInstance> m_Scripts =
+                new Dictionary<UUID, IScriptInstance>();
 
         // Maps the asset ID to the assembly
 
-        private Dictionary<LLUUID, string> m_Assemblies =
-                new Dictionary<LLUUID, string>();
+        private Dictionary<UUID, string> m_Assemblies =
+                new Dictionary<UUID, string>();
 
         // This will list AppDomains by script asset
 
-        private Dictionary<LLUUID, AppDomain> m_AppDomains =
-                new Dictionary<LLUUID, AppDomain>();
+        private Dictionary<UUID, AppDomain> m_AppDomains =
+                new Dictionary<UUID, AppDomain>();
 
         // List the scripts running in each appdomain
 
-        private Dictionary<LLUUID, List<LLUUID> > m_DomainScripts =
-                new Dictionary<LLUUID, List<LLUUID> >();
+        private Dictionary<UUID, List<UUID> > m_DomainScripts =
+                new Dictionary<UUID, List<UUID> >();
 
         private Queue m_CompileQueue = new Queue(100);
         IWorkItemResult m_CurrentCompile = null;
@@ -125,7 +125,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         // private struct RezScriptParms
         // {
         //     uint LocalID;
-        //     LLUUID ItemID;
+        //     UUID ItemID;
         //     string Script;
         // }
 
@@ -314,7 +314,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return false; }
         }
 
-        public void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez)
+        public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez)
         {
             Object[] parms = new Object[]{localID, itemID, script, startParam, postOnRez};
 
@@ -395,7 +395,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             Object[] p = (Object[])parm;
             uint localID = (uint)p[0];
-            LLUUID itemID = (LLUUID)p[1];
+            UUID itemID = (UUID)p[1];
             string script =(string)p[2];
             int startParam = (int)p[3];
             bool postOnRez = (bool)p[4];
@@ -411,7 +411,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (item == null)
                 return false;
 
-            LLUUID assetID = item.AssetID;
+            UUID assetID = item.AssetID;
 
 //            m_log.DebugFormat("[XEngine] Compiling script {0} ({1})",
 //                    item.Name, itemID.ToString());
@@ -430,7 +430,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     string text = "Error compiling script:\r\n" + e.Message.ToString();
                     if (text.Length > 1000)
                         text = text.Substring(0, 1000);
-                    World.SimChat(Helpers.StringToField(text),
+                    World.SimChat(Utils.StringToBytes(text),
                                   ChatTypeEnum.DebugChannel, 2147483647,
                                   part.AbsolutePosition,
                                   part.Name, part.UUID, false);
@@ -455,7 +455,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if ((!m_Scripts.ContainsKey(itemID)) ||
                     (m_Scripts[itemID].AssetID != assetID))
                 {
-                    LLUUID appDomain = assetID;
+                    UUID appDomain = assetID;
 
                     if (part.ParentGroup.RootPart.IsAttachment)
                         appDomain = part.ParentGroup.RootPart.UUID;
@@ -480,7 +480,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             m_AppDomains[appDomain].AssemblyResolve +=
                                 new ResolveEventHandler(
                                     AssemblyResolver.OnAssemblyResolve);
-                            m_DomainScripts[appDomain] = new List<LLUUID>();
+                            m_DomainScripts[appDomain] = new List<UUID>();
                         }
                         catch (Exception e)
                         {
@@ -507,7 +507,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
 
                 if (!m_PrimObjects.ContainsKey(localID))
-                    m_PrimObjects[localID] = new List<LLUUID>();
+                    m_PrimObjects[localID] = new List<UUID>();
 
                 if (!m_PrimObjects[localID].Contains(itemID))
                     m_PrimObjects[localID].Add(itemID);
@@ -518,7 +518,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return true;
         }
 
-        public void OnRemoveScript(uint localID, LLUUID itemID)
+        public void OnRemoveScript(uint localID, UUID itemID)
         {
             lock (m_Scripts)
             {
@@ -569,24 +569,24 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        public void OnScriptReset(uint localID, LLUUID itemID)
+        public void OnScriptReset(uint localID, UUID itemID)
         {
             ResetScript(itemID);
         }
 
-        public void OnStartScript(uint localID, LLUUID itemID)
+        public void OnStartScript(uint localID, UUID itemID)
         {
             StartScript(itemID);
         }
 
-        public void OnStopScript(uint localID, LLUUID itemID)
+        public void OnStopScript(uint localID, UUID itemID)
         {
             StopScript(itemID);
         }
 
         private void CleanAssemblies()
         {
-            List<LLUUID> assetIDList = new List<LLUUID>(m_Assemblies.Keys);
+            List<UUID> assetIDList = new List<UUID>(m_Assemblies.Keys);
 
             foreach (IScriptInstance i in m_Scripts.Values)
             {
@@ -594,7 +594,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     assetIDList.Remove(i.AssetID);
             }
 
-            foreach (LLUUID assetID in assetIDList)
+            foreach (UUID assetID in assetIDList)
             {
 //                m_log.DebugFormat("[XEngine] Removing unreferenced assembly {0}", m_Assemblies[assetID]);
                 try
@@ -615,7 +615,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        private void UnloadAppDomain(LLUUID id)
+        private void UnloadAppDomain(UUID id)
         {
             if (m_AppDomains.ContainsKey(id))
             {
@@ -681,7 +681,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (!m_PrimObjects.ContainsKey(localID))
                 return false;
 
-            foreach (LLUUID itemID in m_PrimObjects[localID])
+            foreach (UUID itemID in m_PrimObjects[localID])
             {
                 if (m_Scripts.ContainsKey(itemID))
                 {
@@ -699,7 +699,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         //
         // Post an event to a single script
         //
-        public bool PostScriptEvent(LLUUID itemID, EventParams p)
+        public bool PostScriptEvent(UUID itemID, EventParams p)
         {
             if (m_Scripts.ContainsKey(itemID))
             {
@@ -737,7 +737,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return null;
         }
 
-        private IScriptInstance GetInstance(LLUUID itemID)
+        private IScriptInstance GetInstance(UUID itemID)
         {
             IScriptInstance instance;
             lock (m_Scripts)
@@ -749,7 +749,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return instance;
         }
 
-        public void SetScriptState(LLUUID itemID, bool running)
+        public void SetScriptState(UUID itemID, bool running)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
@@ -761,7 +761,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        public bool GetScriptState(LLUUID itemID)
+        public bool GetScriptState(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
@@ -769,35 +769,35 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return false;
         }
 
-        public void ApiResetScript(LLUUID itemID)
+        public void ApiResetScript(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 instance.ApiResetScript();
         }
 
-        public void ResetScript(LLUUID itemID)
+        public void ResetScript(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 instance.ResetScript();
         }
 
-        public void StartScript(LLUUID itemID)
+        public void StartScript(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 instance.Start();
         }
 
-        public void StopScript(LLUUID itemID)
+        public void StopScript(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 instance.Stop(0);
         }
 
-        public DetectParams GetDetectParams(LLUUID itemID, int idx)
+        public DetectParams GetDetectParams(UUID itemID, int idx)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
@@ -805,22 +805,22 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return null;
         }
 
-        public LLUUID GetDetectID(LLUUID itemID, int idx)
+        public UUID GetDetectID(UUID itemID, int idx)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 return instance.GetDetectID(idx);
-            return LLUUID.Zero;
+            return UUID.Zero;
         }
 
-        public void SetState(LLUUID itemID, string newState)
+        public void SetState(UUID itemID, string newState)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance == null)
                 return;
             instance.SetState(newState);
         }
-        public string GetState(LLUUID itemID)
+        public string GetState(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance == null)
@@ -828,7 +828,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return instance.State;
         }
 
-        public int GetStartParameter(LLUUID itemID)
+        public int GetStartParameter(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance == null)
@@ -836,7 +836,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return instance.StartParam;
         }
 
-        public bool GetScriptRunning(LLUUID objectID, LLUUID itemID)
+        public bool GetScriptRunning(UUID objectID, UUID itemID)
         {
             return GetScriptState(itemID);
         }

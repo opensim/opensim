@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using System;
 using System.Collections.Generic;
@@ -174,7 +174,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
                         float x = Convert.ToSingle(rdata.Parameters[PARM_MOVE_X]);
                         float y = Convert.ToSingle(rdata.Parameters[PARM_MOVE_Y]);
                         float z = Convert.ToSingle(rdata.Parameters[PARM_MOVE_Z]);
-                        LLVector3 vector = new LLVector3(x,y,z);
+                        Vector3 vector = new Vector3(x,y,z);
                         avatar.DoAutoPilot(0,vector,avatar.ControllingClient);
                     }
                     catch (Exception e)

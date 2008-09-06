@@ -31,7 +31,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Timers;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -113,7 +113,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
                     throw new Exception("wrong password");
 
-                LLUUID regionID = new LLUUID((string) requestData["regionID"]);
+                UUID regionID = new UUID((string) requestData["regionID"]);
 
                 responseData["accepted"] = "true";
                 response.Value = responseData;
@@ -198,7 +198,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     throw new Exception("wrong password");
 
                 string file = (string)requestData["filename"];
-                LLUUID regionID = (string) requestData["regionid"];
+                UUID regionID = (string) requestData["regionid"];
                 m_log.InfoFormat("[RADMIN]: Terrain Loading: {0}", file);
 
                 responseData["accepted"] = "true";
@@ -379,7 +379,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 // extract or generate region ID now
                 Scene scene = null;
-                LLUUID regionID = LLUUID.Zero;
+                UUID regionID = UUID.Zero;
                 if (requestData.ContainsKey("region_id") &&
                     !String.IsNullOrEmpty((string)requestData["region_id"]))
                 {
@@ -391,7 +391,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 }
                 else
                 {
-                    regionID = LLUUID.Random();
+                    regionID = UUID.Random();
                     m_log.DebugFormat("[RADMIN] CreateRegion: new region UUID {0}", regionID);
                 }
 
@@ -517,7 +517,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>error message if success is false</description></item>
         /// <item><term>avatar_uuid</term>
         ///       <description>UUID of the newly created avatar
-        ///                    account; LLUUID.Zero if failed.
+        ///                    account; UUID.Zero if failed.
         ///       </description></item>
         /// </list>
         /// </remarks>
@@ -551,9 +551,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (null != userProfile)
                     throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
 
-                LLUUID userID = m_app.CreateUser(firstname, lastname, passwd, regX, regY);
+                UUID userID = m_app.CreateUser(firstname, lastname, passwd, regX, regY);
 
-                if (userID == LLUUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
+                if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
                                                                              firstname, lastname));
 
                 responseData["success"]     = "true";
@@ -569,7 +569,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 m_log.DebugFormat("[RADMIN] CreateUser: failed: {0}", e.ToString());
 
                 responseData["success"]     = "false";
-                responseData["avatar_uuid"] = LLUUID.Zero.ToString();
+                responseData["avatar_uuid"] = UUID.Zero.ToString();
                 responseData["error"]       = e.Message;
 
                 response.Value = responseData;
@@ -742,7 +742,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 Scene scene = null;
                 if (requestData.Contains("region_uuid"))
                 {
-                    LLUUID region_uuid = (string)requestData["region_uuid"];
+                    UUID region_uuid = (string)requestData["region_uuid"];
                     if (!m_app.SceneManager.TryGetScene(region_uuid, out scene))
                         throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
                 }
@@ -802,7 +802,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 string filename = (string)requestData["filename"];
                 if (requestData.Contains("region_uuid"))
                 {
-                    LLUUID region_uuid = (string)requestData["region_uuid"];
+                    UUID region_uuid = (string)requestData["region_uuid"];
                     if (!m_app.SceneManager.TrySetCurrentScene(region_uuid))
                         throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
                     m_log.InfoFormat("[RADMIN] Switched to region {0}", region_uuid.ToString());
@@ -827,7 +827,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 switch (xml_version)
                 {
                 case "1":
-                    m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new LLVector3(0, 0, 0));
+                    m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new Vector3(0, 0, 0));
                     break;
 
                 case "2":

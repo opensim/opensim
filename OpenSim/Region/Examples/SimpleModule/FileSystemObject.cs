@@ -26,7 +26,7 @@
  */
 
 using System.IO;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
@@ -34,8 +34,8 @@ namespace OpenSim.Region.Examples.SimpleModule
 {
     public class FileSystemObject : SceneObjectGroup
     {
-        public FileSystemObject(Scene world, FileInfo fileInfo, LLVector3 pos)
-            : base(world, world.RegionInfo.RegionHandle, LLUUID.Zero, world.NextLocalId, pos, PrimitiveBaseShape.Default)
+        public FileSystemObject(Scene world, FileInfo fileInfo, Vector3 pos)
+            : base(world, world.RegionInfo.RegionHandle, UUID.Zero, world.NextLocalId, pos, PrimitiveBaseShape.Default)
         {
             Text = fileInfo.Name;
         }

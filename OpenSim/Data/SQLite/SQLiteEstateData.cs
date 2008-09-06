@@ -31,7 +31,7 @@ using System.Data;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using Mono.Data.SqliteClient;
 using log4net;
 using OpenSim.Framework;
@@ -83,7 +83,7 @@ namespace OpenSim.Data.SQLite
             get { return new List<string>(m_FieldMap.Keys).ToArray(); }
         }
 
-        public EstateSettings LoadEstateSettings(LLUUID regionID)
+        public EstateSettings LoadEstateSettings(UUID regionID)
         {
             EstateSettings es = new EstateSettings();
             es.OnSave += StoreEstateSettings;
@@ -109,11 +109,11 @@ namespace OpenSim.Data.SQLite
                         else
                             m_FieldMap[name].SetValue(es, false);
                     }
-                    else if (m_FieldMap[name].GetValue(es) is libsecondlife.LLUUID)
+                    else if(m_FieldMap[name].GetValue(es) is OpenMetaverse.UUID)
                     {
-                        LLUUID uuid = LLUUID.Zero;
+                        UUID uuid = UUID.Zero;
 
-                        LLUUID.TryParse(r[name].ToString(), out uuid);
+                        UUID.TryParse(r[name].ToString(), out uuid);
                         m_FieldMap[name].SetValue(es, uuid);
                     }
                     else
@@ -258,8 +258,8 @@ namespace OpenSim.Data.SQLite
             {
                 EstateBan eb = new EstateBan();
 
-                LLUUID uuid = new LLUUID();
-                LLUUID.TryParse(r["bannedUUID"].ToString(), out uuid);
+                UUID uuid = new UUID();
+                UUID.TryParse(r["bannedUUID"].ToString(), out uuid);
 
                 eb.bannedUUID = uuid;
                 eb.bannedIP = "0.0.0.0";
@@ -292,7 +292,7 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        void SaveUUIDList(uint EstateID, string table, LLUUID[] data)
+        void SaveUUIDList(uint EstateID, string table, UUID[] data)
         {
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
 
@@ -305,7 +305,7 @@ namespace OpenSim.Data.SQLite
 
             cmd.CommandText = "insert into "+table+" (EstateID, uuid) values ( :EstateID, :uuid )";
 
-            foreach (LLUUID uuid in data)
+            foreach (UUID uuid in data)
             {
                 cmd.Parameters.Add(":EstateID", EstateID.ToString());
                 cmd.Parameters.Add(":uuid", uuid.ToString());
@@ -315,9 +315,9 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        LLUUID[] LoadUUIDList(uint EstateID, string table)
+        UUID[] LoadUUIDList(uint EstateID, string table)
         {
-            List<LLUUID> uuids = new List<LLUUID>();
+            List<UUID> uuids = new List<UUID>();
 
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
 
@@ -330,8 +330,8 @@ namespace OpenSim.Data.SQLite
             {
                 // EstateBan eb = new EstateBan();
 
-                LLUUID uuid = new LLUUID();
-                LLUUID.TryParse(r["uuid"].ToString(), out uuid);
+                UUID uuid = new UUID();
+                UUID.TryParse(r["uuid"].ToString(), out uuid);
 
                 uuids.Add(uuid);
             }

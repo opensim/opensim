@@ -29,8 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Timers;
-using Axiom.Math;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -49,7 +48,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 
         public double m_tree_density = 50.0; // Aim for this many per region
         public double m_tree_updates = 1000.0; // MS between updates
-        private List<LLUUID> m_trees;
+        private List<UUID> m_trees;
 
         #region IRegionModule Members
 
@@ -63,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
             {
             }
 
-            m_trees = new List<LLUUID>();
+            m_trees = new List<UUID>();
             m_scene = scene;
 
             m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
@@ -98,24 +97,24 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
         {
             if (args[0] == "tree")
             {
-                LLUUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
-                if (uuid == LLUUID.Zero)
+                UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                if (uuid == UUID.Zero)
                     uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                 m_log.Debug("[TREES]: New tree planting");
-                CreateTree(uuid, new LLVector3(128.0f, 128.0f, 0.0f));
+                CreateTree(uuid, new Vector3(128.0f, 128.0f, 0.0f));
             }
         }
 
         private void growTrees()
         {
-            foreach (LLUUID tree in m_trees)
+            foreach (UUID tree in m_trees)
             {
                 if (m_scene.Entities.ContainsKey(tree))
                 {
                     SceneObjectPart s_tree = ((SceneObjectGroup) m_scene.Entities[tree]).RootPart;
 
                     // 100 seconds to grow 1m
-                    s_tree.Scale += new LLVector3(0.1f, 0.1f, 0.1f);
+                    s_tree.Scale += new Vector3(0.1f, 0.1f, 0.1f);
                     s_tree.SendFullUpdateToAllClients();
                     //s_tree.ScheduleTerseUpdate();
                 }
@@ -128,7 +127,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 
         private void seedTrees()
         {
-            foreach (LLUUID tree in m_trees)
+            foreach (UUID tree in m_trees)
             {
                 if (m_scene.Entities.ContainsKey(tree))
                 {
@@ -151,7 +150,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 
         private void killTrees()
         {
-            foreach (LLUUID tree in m_trees)
+            foreach (UUID tree in m_trees)
             {
                 double killLikelyhood = 0.0;
 
@@ -162,7 +161,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
                                                          Math.Pow(selectedTree.Scale.Y, 2) +
                                                          Math.Pow(selectedTree.Scale.Z, 2));
 
-                    foreach (LLUUID picktree in m_trees)
+                    foreach (UUID picktree in m_trees)
                     {
                         if (picktree != tree)
                         {
@@ -187,7 +186,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 
                         m_scene.ForEachClient(delegate(IClientAPI controller)
                                                   {
-                                                      controller.SendKillObject(m_scene.RegionInfo.RegionHandle,
+                                                      controller.SendKiPrimitive(m_scene.RegionInfo.RegionHandle,
                                                                                 selectedTree.LocalId);
                                                   });
 
@@ -204,7 +203,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 
         private void SpawnChild(SceneObjectPart s_tree)
         {
-            LLVector3 position = new LLVector3();
+            Vector3 position = new Vector3();
 
             position.X = s_tree.AbsolutePosition.X + (1 * (-1 * Util.RandomClass.Next(1)));
             if (position.X > 255)
@@ -223,20 +222,20 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
             position.X += (float) randX;
             position.Y += (float) randY;
 
-            LLUUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
-            if (uuid == LLUUID.Zero)
+            UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            if (uuid == UUID.Zero)
                 uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
 
             CreateTree(uuid, position);
         }
 
-        private void CreateTree(LLUUID uuid, LLVector3 position)
+        private void CreateTree(UUID uuid, Vector3 position)
         {
             position.Z = (float) m_scene.Heightmap[(int) position.X, (int) position.Y];
 
             SceneObjectGroup tree =
-                m_scene.AddTree(uuid, new LLVector3(0.1f, 0.1f, 0.1f),
-                                LLQuaternion.Identity,
+                m_scene.AddTree(uuid, new Vector3(0.1f, 0.1f, 0.1f),
+                                Quaternion.Identity,
                                 position,
                                 Tree.Cypress1,
                                 false);

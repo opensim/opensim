@@ -27,7 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment.Scenes
             ResetDefaultAnimation();
         }
 
-        public bool HasAnimation(LLUUID animID)
+        public bool HasAnimation(UUID animID)
         {
             if (m_defaultAnimation.AnimID == animID)
                 return true;
@@ -57,7 +57,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public bool Add(LLUUID animID, int sequenceNum)
+        public bool Add(UUID animID, int sequenceNum)
         {
             lock (m_animations)
             {
@@ -70,7 +70,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public bool Remove(LLUUID animID)
+        public bool Remove(UUID animID)
         {
             lock (m_animations)
             {
@@ -103,7 +103,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// The default animation is reserved for "main" animations
         /// that are mutually exclusive, e.g. flying and sitting.
         /// </summary>
-        public bool SetDefaultAnimation(LLUUID animID, int sequenceNum)
+        public bool SetDefaultAnimation(UUID animID, int sequenceNum)
         {
             if (m_defaultAnimation.AnimID != animID)
             {
@@ -123,18 +123,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public bool TrySetDefaultAnimation(string anim, int sequenceNum)
         {
-            if (Animations.AnimsLLUUID.ContainsKey(anim))
+            if (Animations.AnimsUUID.ContainsKey(anim))
             {
-                return SetDefaultAnimation(Animations.AnimsLLUUID[anim], sequenceNum);
+                return SetDefaultAnimation(Animations.AnimsUUID[anim], sequenceNum);
             }
             return false;
         }
 
-        public void GetArrays(out LLUUID[] animIDs, out int[] sequenceNums)
+        public void GetArrays(out UUID[] animIDs, out int[] sequenceNums)
         {
             lock (m_animations)
             {
-                animIDs = new LLUUID[m_animations.Count + 1];
+                animIDs = new UUID[m_animations.Count + 1];
                 sequenceNums = new int[m_animations.Count + 1];
 
                 animIDs[0] = m_defaultAnimation.AnimID;

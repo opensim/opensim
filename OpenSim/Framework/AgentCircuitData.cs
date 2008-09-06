@@ -26,23 +26,23 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class AgentCircuitData
     {
-        public LLUUID AgentID;
-        public LLUUID BaseFolder;
+        public UUID AgentID;
+        public UUID BaseFolder;
         public string CapsPath = String.Empty;
         public bool child;
         public uint circuitcode;
         public string firstname;
-        public LLUUID InventoryFolder;
+        public UUID InventoryFolder;
         public string lastname;
-        public LLUUID SecureSessionID;
-        public LLUUID SessionID;
-        public LLVector3 startpos;
+        public UUID SecureSessionID;
+        public UUID SessionID;
+        public Vector3 startpos;
 
         public AgentCircuitData()
         {
@@ -50,16 +50,16 @@ namespace OpenSim.Framework
 
         public AgentCircuitData(sAgentCircuitData cAgent)
         {
-            AgentID = new LLUUID(cAgent.AgentID);
-            SessionID = new LLUUID(cAgent.SessionID);
-            SecureSessionID = new LLUUID(cAgent.SecureSessionID);
-            startpos = new LLVector3(cAgent.startposx, cAgent.startposy, cAgent.startposz);
+            AgentID = new UUID(cAgent.AgentID);
+            SessionID = new UUID(cAgent.SessionID);
+            SecureSessionID = new UUID(cAgent.SecureSessionID);
+            startpos = new Vector3(cAgent.startposx, cAgent.startposy, cAgent.startposz);
             firstname = cAgent.firstname;
             lastname = cAgent.lastname;
             circuitcode = cAgent.circuitcode;
             child = cAgent.child;
-            InventoryFolder = new LLUUID(cAgent.InventoryFolder);
-            BaseFolder = new LLUUID(cAgent.BaseFolder);
+            InventoryFolder = new UUID(cAgent.InventoryFolder);
+            BaseFolder = new UUID(cAgent.BaseFolder);
             CapsPath = cAgent.CapsPath;
         }
     }
@@ -87,9 +87,9 @@ namespace OpenSim.Framework
 
         public sAgentCircuitData(AgentCircuitData cAgent)
         {
-            AgentID = cAgent.AgentID.UUID;
-            SessionID = cAgent.SessionID.UUID;
-            SecureSessionID = cAgent.SecureSessionID.UUID;
+            AgentID = cAgent.AgentID.Guid;
+            SessionID = cAgent.SessionID.Guid;
+            SecureSessionID = cAgent.SecureSessionID.Guid;
             startposx = cAgent.startpos.X;
             startposy = cAgent.startpos.Y;
             startposz = cAgent.startpos.Z;
@@ -97,8 +97,8 @@ namespace OpenSim.Framework
             lastname = cAgent.lastname;
             circuitcode = cAgent.circuitcode;
             child = cAgent.child;
-            InventoryFolder = cAgent.InventoryFolder.UUID;
-            BaseFolder = cAgent.BaseFolder.UUID;
+            InventoryFolder = cAgent.InventoryFolder.Guid;
+            BaseFolder = cAgent.BaseFolder.Guid;
             CapsPath = cAgent.CapsPath;
         }
     }

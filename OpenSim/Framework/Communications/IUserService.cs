@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications
 {
@@ -47,22 +47,22 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="uuid">The target UUID</param>
         /// <returns>A user profile.  Returns null if no user profile is found.</returns>
-        UserProfileData GetUserProfile(LLUUID userId);
+        UserProfileData GetUserProfile(UUID userId);
 
-        UserAgentData GetAgentByUUID(LLUUID userId);
+        UserAgentData GetAgentByUUID(UUID userId);
 
-        void ClearUserAgent(LLUUID avatarID);
-        List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID QueryID, string Query);
+        void ClearUserAgent(UUID avatarID);
+        List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID QueryID, string Query);
 
         UserProfileData SetupMasterUser(string firstName, string lastName);
         UserProfileData SetupMasterUser(string firstName, string lastName, string password);
-        UserProfileData SetupMasterUser(LLUUID userId);
+        UserProfileData SetupMasterUser(UUID userId);
 
         /// <summary>
         ///
         /// </summary>
         /// <param name="user"></param>
-        LLUUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);
+        UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);
 
         /// <summary>
         /// Update the user's profile.
@@ -78,14 +78,14 @@ namespace OpenSim.Framework.Communications
         /// <param name="friendlistowner">The agent that who's friends list is being added to</param>
         /// <param name="friend">The agent that being added to the friends list of the friends list owner</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms);
+        void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms);
 
         /// <summary>
         /// Delete friend on friendlistowner's friendlist.
         /// </summary>
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The Ex-friend agent</param>
-        void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend);
+        void RemoveUserFriend(UUID friendlistowner, UUID friend);
 
         /// <summary>
         /// Update permissions for friend on friendlistowner's friendlist.
@@ -93,7 +93,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The agent that is getting or loosing permissions</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms);
+        void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms);
 
         /// <summary>
         /// Updates a user profile
@@ -110,31 +110,31 @@ namespace OpenSim.Framework.Communications
         /// <param name="posx">final position x</param>
         /// <param name="posy">final position y</param>
         /// <param name="posz">final position z</param>
-        void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz);
+        void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz);
 
         /// <summary>
-        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
+        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
-        List<FriendListItem> GetUserFriendList(LLUUID friendlistowner);
+        List<FriendListItem> GetUserFriendList(UUID friendlistowner);
 
         /// <summary>
         ///  Updates the current region the User is in
         /// </summary>
         /// <param name="avatarid">User Region the Avatar is IN</param>
         /// <param name="retionuuid">User Region the Avatar is IN</param>
-        void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle);
+        void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle);
 
         /// <summary>
         /// Get's the User Appearance
-       // AvatarAppearance GetUserAppearance(LLUUID user);
+       // AvatarAppearance GetUserAppearance(UUID user);
 
-       // void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
+       // void UpdateUserAppearance(UUID user, AvatarAppearance appearance);
 
-       // void AddAttachment(LLUUID user, LLUUID attach);
+       // void AddAttachment(UUID user, UUID attach);
 
-       // void RemoveAttachment(LLUUID user, LLUUID attach);
+       // void RemoveAttachment(UUID user, UUID attach);
 
-       // List<LLUUID> GetAttachments(LLUUID user);
+       // List<UUID> GetAttachments(UUID user);
     }
 }

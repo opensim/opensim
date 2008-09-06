@@ -31,7 +31,7 @@ using System.Data;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 
@@ -176,7 +176,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="uuid">The region UUID</param>
         /// <returns>The sim profile</returns>
-        override public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
+        override public RegionProfileData GetProfileByUUID(UUID uuid)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["uuid"] = uuid.ToString();
@@ -284,7 +284,7 @@ namespace OpenSim.Data.MSSQL
 
             parameters["regionHandle"] = profile.regionHandle.ToString();
             parameters["regionName"] = profile.regionName;
-            parameters["uuid"] = profile.UUID.ToString();
+            parameters["uuid"] = profile.ToString();
             parameters["regionRecvKey"] = profile.regionRecvKey;
             parameters["regionSecret"] = profile.regionSecret;
             parameters["regionSendKey"] = profile.regionSendKey;
@@ -352,7 +352,7 @@ namespace OpenSim.Data.MSSQL
 
             parameters["regionHandle"] = profile.regionHandle.ToString();
             parameters["regionName"] = profile.regionName;
-            parameters["uuid"] = profile.UUID.ToString();
+            parameters["uuid"] = profile.ToString();
             parameters["regionRecvKey"] = profile.regionRecvKey;
             parameters["regionSecret"] = profile.regionSecret;
             parameters["regionSendKey"] = profile.regionSendKey;
@@ -403,14 +403,14 @@ namespace OpenSim.Data.MSSQL
         /// <param name="handle">The attempted regionHandle of the challenger</param>
         /// <param name="authkey">The secret</param>
         /// <returns>Whether the secret and regionhandle match the database entry for UUID</returns>
-        override public bool AuthenticateSim(LLUUID uuid, ulong handle, string authkey)
+        override public bool AuthenticateSim(UUID uuid, ulong handle, string authkey)
         {
             bool throwHissyFit = false; // Should be true by 1.0
 
             if (throwHissyFit)
                 throw new Exception("CRYPTOWEAK AUTHENTICATE: Refusing to authenticate due to replay potential.");
 
-            RegionProfileData data = GetProfileByLLUUID(uuid);
+            RegionProfileData data = GetProfileByUUID(uuid);
 
             return (handle == data.regionHandle && authkey == data.regionSecret);
         }
@@ -424,7 +424,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="authhash"></param>
         /// <param name="challenge"></param>
         /// <returns></returns>
-        public bool AuthenticateSim(LLUUID uuid, ulong handle, string authhash, string challenge)
+        public bool AuthenticateSim(UUID uuid, ulong handle, string authhash, string challenge)
         {
             // SHA512Managed HashProvider = new SHA512Managed();
             // Encoding TextProvider = new UTF8Encoding();

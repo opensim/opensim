@@ -40,7 +40,7 @@ using Slash = System.IO.Path;
 using System.Reflection;
 using System.Xml;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using Nini.Config;
 
@@ -52,8 +52,6 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
-
-using Axiom.Math;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
@@ -70,8 +68,8 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         #region Fields
 
         private string m_repodir = null;
-        private Dictionary<LLUUID, Scene> m_scenes = new Dictionary<LLUUID, Scene>();
-        private Dictionary<LLUUID, IRegionSerialiser> m_serialiser = new Dictionary<LLUUID, IRegionSerialiser>();
+        private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
+        private Dictionary<UUID, IRegionSerialiser> m_serialiser = new Dictionary<UUID, IRegionSerialiser>();
 
         #endregion Fields
 
@@ -92,7 +90,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             if (!Directory.Exists(m_repodir))
             	Directory.CreateDirectory(m_repodir);
 
-            foreach (LLUUID region in m_scenes.Keys)
+            foreach (UUID region in m_scenes.Keys)
             {
             	scenedir = m_repodir + Slash.DirectorySeparatorChar + region + Slash.DirectorySeparatorChar;
             	if (!Directory.Exists(scenedir))
@@ -104,7 +102,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         private void SetupSerialiser()
         {
             if (m_serialiser.Count == 0)
-            	foreach(LLUUID region in m_scenes.Keys)
+            	foreach(UUID region in m_scenes.Keys)
             		m_serialiser.Add(region,
             		                 m_scenes[region].RequestModuleInterface<IRegionSerialiser>()
             		                 );
@@ -114,12 +112,12 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Public Methods
 
-        public int GetMostRecentRevision(LLUUID regionid)
+        public int GetMostRecentRevision(UUID regionid)
         {
             return NumOfRegionRev(regionid);
         }
 
-        public string GetRegionObjectHeightMap(LLUUID regionid)
+        public string GetRegionObjectHeightMap(UUID regionid)
         {
             String filename = m_repodir + Slash.DirectorySeparatorChar + regionid +
             	Slash.DirectorySeparatorChar + "heightmap.r32";
@@ -131,7 +129,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             return result;
         }
 
-        public string GetRegionObjectHeightMap(LLUUID regionid, int revision)
+        public string GetRegionObjectHeightMap(UUID regionid, int revision)
         {
             String filename = m_repodir + Slash.DirectorySeparatorChar + regionid +
             	Slash.DirectorySeparatorChar + "heightmap.r32";
@@ -143,7 +141,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             return result;
         }
 
-        public System.Collections.ArrayList GetRegionObjectXMLList(LLUUID regionid, int revision)
+        public System.Collections.ArrayList GetRegionObjectXMLList(UUID regionid, int revision)
         {
             System.Collections.ArrayList objectList = new System.Collections.ArrayList();
             string filename = m_repodir + Slash.DirectorySeparatorChar + regionid + Slash.DirectorySeparatorChar + 
@@ -169,7 +167,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             return null;
         }
 
-        public System.Collections.ArrayList GetRegionObjectXMLList(LLUUID regionid)
+        public System.Collections.ArrayList GetRegionObjectXMLList(UUID regionid)
         {
             int revision = NumOfRegionRev(regionid);
             m_log.Info("[FSDB]: found revisions:" + revision);
@@ -215,7 +213,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             	m_scenes.Add(scene.RegionInfo.RegionID, scene);
         }
 
-        public System.Collections.Generic.SortedDictionary<string, string> ListOfRegionRevisions(LLUUID regionid)
+        public System.Collections.Generic.SortedDictionary<string, string> ListOfRegionRevisions(UUID regionid)
         {
             SortedDictionary<string, string> revisionDict = new SortedDictionary<string,string>();
 
@@ -244,7 +242,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             return revisionDict;
         }
 
-        public int NumOfRegionRev(LLUUID regionid)
+        public int NumOfRegionRev(UUID regionid)
         {
             string scenedir = m_repodir + Slash.DirectorySeparatorChar + regionid + Slash.DirectorySeparatorChar;
             m_log.Info("[FSDB]: Reading scene dir: " + scenedir);
@@ -261,7 +259,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             	CreateDirectory();
         }
 
-        public void SaveRegion(LLUUID regionid, string regionName, string logMessage)
+        public void SaveRegion(UUID regionid, string regionName, string logMessage)
         {
             m_log.Info("[FSDB]: ...............................");
             string scenedir = m_repodir + Slash.DirectorySeparatorChar + regionid + Slash.DirectorySeparatorChar;

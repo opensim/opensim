@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 
@@ -45,9 +45,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Archive assets
         /// </summary>
-        protected IDictionary<LLUUID, AssetBase> m_assets;
+        protected IDictionary<UUID, AssetBase> m_assets;
 
-        public AssetsArchiver(IDictionary<LLUUID, AssetBase> assets)
+        public AssetsArchiver(IDictionary<UUID, AssetBase> assets)
         {
             m_assets = assets;
         }
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             xtw.WriteStartElement("assets");
 
-            foreach (LLUUID uuid in m_assets.Keys)
+            foreach (UUID uuid in m_assets.Keys)
             {
                 AssetBase asset = m_assets[uuid];
 
@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             xtw.WriteEndDocument();
 
-            archive.AddFile("assets.xml", sw.ToString());
+            archive.AddFile("assets.Xml", sw.ToString());
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
             //archive.AddDir("assets");
 
-            foreach (LLUUID uuid in m_assets.Keys)
+            foreach (UUID uuid in m_assets.Keys)
             {
                 AssetBase asset = m_assets[uuid];
 

@@ -27,7 +27,7 @@
 
 using System.Collections.Generic;
 using System.IO;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -50,7 +50,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
             // RegionInfo regionInfo = m_scene.RegionInfo;
 
-            // LLVector3 pos = new LLVector3(110, 129, 27);
+            // Vector3 pos = new Vector3(110, 129, 27);
 
             //AddCpuCounter(regionInfo, pos);
           //  AddComplexObjects(regionInfo, pos);
@@ -67,7 +67,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         //     foreach (FileInfo fileInfo in dirInfo.GetFiles())
         //     {
-        //         LLVector3 filePos = new LLVector3(100 + x, 129, 27 + z);
+        //         Vector3 filePos = new Vector3(100 + x, 129, 27 + z);
         //         x = x + 2;
         //         if (x > 50)
         //         {
@@ -92,29 +92,29 @@ namespace OpenSim.Region.Examples.SimpleModule
             foreach (ScenePresence avatar in avatars)
             {
                 avatar.AbsolutePosition =
-                    new LLVector3((float)Util.RandomClass.Next(100, 200), (float)Util.RandomClass.Next(30, 200), 2);
+                    new Vector3((float)Util.RandomClass.Next(100, 200), (float)Util.RandomClass.Next(30, 200), 2);
             }
         }
 
-        // private void AddComplexObjects(RegionInfo regionInfo, LLVector3 pos)
+        // private void AddComplexObjects(RegionInfo regionInfo, Vector3 pos)
         // {
         //     int objs = 3;
 
         //     for (int i = 0; i < (objs*objs*objs); i++)
         //     {
-        //         LLVector3 posOffset = new LLVector3((i % objs) * 4, ((i % (objs*objs)) / (objs)) * 4, (i / (objs*objs)) * 4);
+        //         Vector3 posOffset = new Vector3((i % objs) * 4, ((i % (objs*objs)) / (objs)) * 4, (i / (objs*objs)) * 4);
         //         ComplexObject complexObject =
-        //             new ComplexObject(m_scene, regionInfo.RegionHandle, LLUUID.Zero, m_scene.PrimIDAllocate(),
+        //             new ComplexObject(m_scene, regionInfo.RegionHandle, UUID.Zero, m_scene.PrimIDAllocate(),
         //                               pos + posOffset);
         //         m_scene.AddNewSceneObject(complexObject, true);
         //     }
         // }
 
-        // private void AddCpuCounter(RegionInfo regionInfo, LLVector3 pos)
+        // private void AddCpuCounter(RegionInfo regionInfo, Vector3 pos)
         // {
         //     SceneObjectGroup sceneObject =
-        //         new CpuCounterObject(m_scene, regionInfo.RegionHandle, LLUUID.Zero, m_scene.PrimIDAllocate(),
-        //                              pos + new LLVector3(1f, 1f, 1f));
+        //         new CpuCounterObject(m_scene, regionInfo.RegionHandle, UUID.Zero, m_scene.PrimIDAllocate(),
+        //                              pos + new Vector3(1f, 1f, 1f));
         //     m_scene.AddNewSceneObject(sceneObject, true);
         // }
 

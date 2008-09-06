@@ -25,17 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public class UndoState
     {
-        public LLVector3 Position = LLVector3.Zero;
-        public LLVector3 Scale = LLVector3.Zero;
-        public LLQuaternion Rotation = LLQuaternion.Identity;
+        public Vector3 Position = Vector3.Zero;
+        public Vector3 Scale = Vector3.Zero;
+        public Quaternion Rotation = Quaternion.Identity;
 
-        public UndoState(LLVector3 pos, LLQuaternion rot, LLVector3 scale)
+        public UndoState(Vector3 pos, Quaternion rot, Vector3 scale)
         {
             Position = pos;
             Rotation = rot;

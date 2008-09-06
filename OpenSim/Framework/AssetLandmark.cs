@@ -26,15 +26,15 @@
  */
 
 using System.Text;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class AssetLandmark : AssetBase
     {
-        public LLVector3 Position;
+        public Vector3 Position;
         public ulong RegionHandle;
-        public LLUUID RegionID;
+        public UUID RegionID;
         public int Version;
 
         public AssetLandmark(AssetBase a)
@@ -52,8 +52,8 @@ namespace OpenSim.Framework
             string temp = Encoding.UTF8.GetString(Data).Trim();
             string[] parts = temp.Split('\n');
             int.TryParse(parts[0].Substring(17, 1), out Version);
-            LLUUID.TryParse(parts[1].Substring(10, 36), out RegionID);
-            LLVector3.TryParse(parts[2].Substring(10, parts[2].Length - 10), out Position);
+            UUID.TryParse(parts[1].Substring(10, 36), out RegionID);
+            Vector3.TryParse(parts[2].Substring(10, parts[2].Length - 10), out Position);
             ulong.TryParse(parts[3].Substring(14, parts[3].Length - 14), out RegionHandle);
         }
     }

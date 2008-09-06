@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
@@ -46,7 +46,7 @@ namespace OpenSim.Region.Environment.Interfaces
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="regionUUID"></param>
-        void StoreObject(SceneObjectGroup obj, LLUUID regionUUID);
+        void StoreObject(SceneObjectGroup obj, UUID regionUUID);
 
         /// <summary>
         /// Entirely removes the object, including inventory
@@ -54,25 +54,25 @@ namespace OpenSim.Region.Environment.Interfaces
         /// <param name="uuid"></param>
         /// <param name="regionUUID"></param>
         /// <returns></returns>
-        void RemoveObject(LLUUID uuid, LLUUID regionUUID);
+        void RemoveObject(UUID uuid, UUID regionUUID);
 
         /// <summary>
         /// Store a prim's inventory
         /// </summary>
         /// <returns></returns>
-        void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items);
+        void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items);
 
-        List<SceneObjectGroup> LoadObjects(LLUUID regionUUID);
+        List<SceneObjectGroup> LoadObjects(UUID regionUUID);
 
-        void StoreTerrain(double[,] terrain, LLUUID regionID);
-        double[,] LoadTerrain(LLUUID regionID);
+        void StoreTerrain(double[,] terrain, UUID regionID);
+        double[,] LoadTerrain(UUID regionID);
 
         void StoreLandObject(ILandObject Parcel);
-        void RemoveLandObject(LLUUID globalID);
-        List<LandData> LoadLandObjects(LLUUID regionUUID);
+        void RemoveLandObject(UUID globalID);
+        List<LandData> LoadLandObjects(UUID regionUUID);
 
         void StoreRegionSettings(RegionSettings rs);
-        RegionSettings LoadRegionSettings(LLUUID regionUUID);
+        RegionSettings LoadRegionSettings(UUID regionUUID);
 
         void Shutdown();
     }

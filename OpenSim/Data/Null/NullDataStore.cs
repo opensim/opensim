@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -47,39 +47,39 @@ namespace OpenSim.Data.Null
         {
         }
 
-        public RegionSettings LoadRegionSettings(LLUUID regionUUID)
+        public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             return null;
         }
 
-        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
+        public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
         }
 
-        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
+        public void RemoveObject(UUID obj, UUID regionUUID)
         {
         }
 
         // see IRegionDatastore
-        public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
+        public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
         }
 
-        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
+        public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
         {
             return new List<SceneObjectGroup>();
         }
 
-        public void StoreTerrain(double[,] ter, LLUUID regionID)
+        public void StoreTerrain(double[,] ter, UUID regionID)
         {
         }
 
-        public double[,] LoadTerrain(LLUUID regionID)
+        public double[,] LoadTerrain(UUID regionID)
         {
             return null;
         }
 
-        public void RemoveLandObject(LLUUID globalID)
+        public void RemoveLandObject(UUID globalID)
         {
         }
 
@@ -87,7 +87,7 @@ namespace OpenSim.Data.Null
         {
         }
 
-        public List<LandData> LoadLandObjects(LLUUID regionUUID)
+        public List<LandData> LoadLandObjects(UUID regionUUID)
         {
             return new List<LandData>();
         }

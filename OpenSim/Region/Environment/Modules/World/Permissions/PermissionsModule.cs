@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using System;
 using System.Collections;
@@ -228,7 +228,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         #endregion
 
         #region Helper Functions
-        protected void SendPermissionError(LLUUID user, string reason)
+        protected void SendPermissionError(UUID user, string reason)
         {
             m_scene.EventManager.TriggerPermissionError(user, reason);
         }
@@ -238,14 +238,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 m_log.Info("[PERMISSIONS]: " + permissionCalled + " was called from " + m_scene.RegionInfo.RegionName);
         }
 
-        protected bool IsAdministrator(LLUUID user)
+        protected bool IsAdministrator(UUID user)
         {
-            if (m_scene.RegionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
+            if (m_scene.RegionInfo.MasterAvatarAssignedUUID != UUID.Zero)
             {
                 if (m_RegionOwnerIsGod && (m_scene.RegionInfo.MasterAvatarAssignedUUID == user))
                     return true;
             }
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
             {
                 if (m_scene.RegionInfo.EstateSettings.EstateOwner == user)
                     return true;
@@ -263,7 +263,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return false;
         }
 
-        protected bool IsEstateManager(LLUUID user)
+        protected bool IsEstateManager(UUID user)
         {
             return m_scene.RegionInfo.EstateSettings.IsEstateManager(user);
         }
@@ -286,7 +286,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #region Object Permissions
 
-        public uint GenerateClientFlags(LLUUID user, LLUUID objID)
+        public uint GenerateClientFlags(UUID user, UUID objID)
         {
             // Here's the way this works,
             // ObjectFlags and Permission flags are two different enumerations
@@ -306,27 +306,27 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return (uint)0;
 
             uint objflags = task.GetEffectiveObjectFlags();
-            LLUUID objectOwner = task.OwnerID;
+            UUID objectOwner = task.OwnerID;
 
 
             // Remove any of the objectFlags that are temporary.  These will get added back if appropriate
             // in the next bit of code
 
             objflags &= (uint)
-                ~(LLObject.ObjectFlags.ObjectCopy | // Tells client you can copy the object
-                  LLObject.ObjectFlags.ObjectModify | // tells client you can modify the object
-                  LLObject.ObjectFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
-                  LLObject.ObjectFlags.ObjectTransfer | // tells the client that you can /take/ the object if you don't own it
-                  LLObject.ObjectFlags.ObjectYouOwner | // Tells client that you're the owner of the object
-                  LLObject.ObjectFlags.ObjectAnyOwner | // Tells client that someone owns the object
-                  LLObject.ObjectFlags.ObjectOwnerModify | // Tells client that you're the owner of the object
-                  LLObject.ObjectFlags.ObjectYouOfficer // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
+                ~(PrimFlags.ObjectCopy | // Tells client you can copy the object
+                  PrimFlags.ObjectModify | // tells client you can modify the object
+                  PrimFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
+                  PrimFlags.ObjectTransfer | // tells the client that you can /take/ the object if you don't own it
+                  PrimFlags.ObjectYouOwner | // Tells client that you're the owner of the object
+                  PrimFlags.ObjectAnyOwner | // Tells client that someone owns the object
+                  PrimFlags.ObjectOwnerModify | // Tells client that you're the owner of the object
+                  PrimFlags.ObjectYouOfficer // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
                     );
 
             // Creating the three ObjectFlags options for this method to choose from.
             // Customize the OwnerMask
             uint objectOwnerMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
-            objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectYouOwner | (uint)LLObject.ObjectFlags.ObjectAnyOwner | (uint)LLObject.ObjectFlags.ObjectOwnerModify;
+            objectOwnerMask |= (uint)PrimFlags.ObjectYouOwner | (uint)PrimFlags.ObjectAnyOwner | (uint)PrimFlags.ObjectOwnerModify;
 
             // Customize the GroupMask
             // uint objectGroupMask = ApplyObjectModifyMasks(task.GroupMask, objflags);
@@ -336,8 +336,8 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
 
             // Hack to allow collaboration until Groups and Group Permissions are implemented
-            if ((objectEveryoneMask & (uint)LLObject.ObjectFlags.ObjectMove) != 0)
-                objectEveryoneMask |= (uint)LLObject.ObjectFlags.ObjectModify;
+            if ((objectEveryoneMask & (uint)PrimFlags.ObjectMove) != 0)
+                objectEveryoneMask |= (uint)PrimFlags.ObjectModify;
 
             if (m_bypassPermissions)
                 return objectOwnerMask;
@@ -378,28 +378,28 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             if ((setPermissionMask & (uint)PermissionMask.Copy) != 0)
             {
-                objectFlagsMask |= (uint)LLObject.ObjectFlags.ObjectCopy;
+                objectFlagsMask |= (uint)PrimFlags.ObjectCopy;
             }
 
             if ((setPermissionMask & (uint)PermissionMask.Move) != 0)
             {
-                objectFlagsMask |= (uint)LLObject.ObjectFlags.ObjectMove;
+                objectFlagsMask |= (uint)PrimFlags.ObjectMove;
             }
 
             if ((setPermissionMask & (uint)PermissionMask.Modify) != 0)
             {
-                objectFlagsMask |= (uint)LLObject.ObjectFlags.ObjectModify;
+                objectFlagsMask |= (uint)PrimFlags.ObjectModify;
             }
 
             if ((setPermissionMask & (uint)PermissionMask.Transfer) != 0)
             {
-                objectFlagsMask |= (uint)LLObject.ObjectFlags.ObjectTransfer;
+                objectFlagsMask |= (uint)PrimFlags.ObjectTransfer;
             }
 
             return objectFlagsMask;
         }
 
-        protected bool GenericObjectPermission(LLUUID currentUser, LLUUID objId, bool denyOnLocked)
+        protected bool GenericObjectPermission(UUID currentUser, UUID objId, bool denyOnLocked)
         {
             // Default: deny
             bool permission = false;
@@ -419,7 +419,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[objId];
 
-            LLUUID objectOwner = group.OwnerID;
+            UUID objectOwner = group.OwnerID;
             locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
 
             // People shouldn't be able to do anything with locked objects, except the Administrator
@@ -472,7 +472,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         #endregion
 
         #region Generic Permissions
-        protected bool GenericCommunicationPermission(LLUUID user, LLUUID target)
+        protected bool GenericCommunicationPermission(UUID user, UUID target)
         {
             // Setting this to true so that cool stuff can happen until we define what determines Generic Communication Permission
             bool permission = true;
@@ -491,7 +491,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return permission;
         }
 
-        public bool GenericEstatePermission(LLUUID user)
+        public bool GenericEstatePermission(UUID user)
         {
             // Default: deny
             bool permission = false;
@@ -507,7 +507,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return permission;
         }
 
-        protected bool GenericParcelPermission(LLUUID user, ILandObject parcel)
+        protected bool GenericParcelPermission(UUID user, ILandObject parcel)
         {
             bool permission = false;
 
@@ -534,7 +534,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return permission;
         }
 
-        protected bool GenericParcelPermission(LLUUID user, LLVector3 pos)
+        protected bool GenericParcelPermission(UUID user, Vector3 pos)
         {
             ILandObject parcel = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
             if (parcel == null) return false;
@@ -543,7 +543,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 #endregion
 
         #region Permission Checks
-            private bool CanAbandonParcel(LLUUID user, ILandObject parcel, Scene scene)
+            private bool CanAbandonParcel(UUID user, ILandObject parcel, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -551,7 +551,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericParcelPermission(user, parcel);
             }
 
-            private bool CanReclaimParcel(LLUUID user, ILandObject parcel, Scene scene)
+            private bool CanReclaimParcel(UUID user, ILandObject parcel, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -559,7 +559,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericParcelPermission(user, parcel);
             }
 
-            private bool CanBeGodLike(LLUUID user, Scene scene)
+            private bool CanBeGodLike(UUID user, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -567,7 +567,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return IsAdministrator(user);
             }
 
-            private bool CanDuplicateObject(int objectCount, LLUUID objectID, LLUUID owner, Scene scene, LLVector3 objectPosition)
+            private bool CanDuplicateObject(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -581,7 +581,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return CanRezObject(objectCount, owner, objectPosition, scene);
             }
 
-            private bool CanDeleteObject(LLUUID objectID, LLUUID deleter, Scene scene)
+            private bool CanDeleteObject(UUID objectID, UUID deleter, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -589,7 +589,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericObjectPermission(deleter, objectID, false);
             }
 
-            private bool CanEditObject(LLUUID objectID, LLUUID editorID, Scene scene)
+            private bool CanEditObject(UUID objectID, UUID editorID, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -598,7 +598,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericObjectPermission(editorID, objectID, false);
             }
 
-            private bool CanEditParcel(LLUUID user, ILandObject parcel, Scene scene)
+            private bool CanEditParcel(UUID user, ILandObject parcel, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -606,7 +606,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericParcelPermission(user, parcel);
             }
 
-            private bool CanEditScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene)
+            private bool CanEditScript(UUID script, UUID objectID, UUID user, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -614,7 +614,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return false;
             }
 
-            private bool CanEditNotecard(LLUUID notecard, LLUUID objectID, LLUUID user, Scene scene)
+            private bool CanEditNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -622,7 +622,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return true;
             }
 
-            private bool CanInstantMessage(LLUUID user, LLUUID target, Scene startScene)
+            private bool CanInstantMessage(UUID user, UUID target, Scene startScene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -631,7 +631,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericCommunicationPermission(user, target);
             }
 
-            private bool CanInventoryTransfer(LLUUID user, LLUUID target, Scene startScene)
+            private bool CanInventoryTransfer(UUID user, UUID target, Scene startScene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -639,7 +639,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericCommunicationPermission(user, target);
             }
 
-            private bool CanIssueEstateCommand(LLUUID user, Scene requestFromScene, bool ownerCommand)
+            private bool CanIssueEstateCommand(UUID user, Scene requestFromScene, bool ownerCommand)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -656,7 +656,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericEstatePermission(user);
             }
 
-            private bool CanMoveObject(LLUUID objectID, LLUUID moverID, Scene scene)
+            private bool CanMoveObject(UUID objectID, UUID moverID, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions)
@@ -696,10 +696,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
 
 
-                    // LLUUID taskOwner = null;
+                    // UUID taskOwner = null;
                     // Added this because at this point in time it wouldn't be wise for
                     // the administrator object permissions to take effect.
-                    // LLUUID objectOwner = task.OwnerID;
+                    // UUID objectOwner = task.OwnerID;
 
                     // Anyone can move
                     if ((task.RootPart.EveryoneMask & PERM_MOVE) != 0)
@@ -727,7 +727,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
                     SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[objectID];
 
-                    LLUUID objectOwner = group.OwnerID;
+                    UUID objectOwner = group.OwnerID;
                     locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
 
 
@@ -747,7 +747,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return permission;
             }
 
-            private bool CanObjectEntry(LLUUID objectID, LLVector3 newPoint, Scene scene)
+            private bool CanObjectEntry(UUID objectID, Vector3 newPoint, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -764,7 +764,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     return false;
                 }
 
-                if ((land.landData.Flags & ((int)Parcel.ParcelFlags.AllowAllObjectEntry)) != 0)
+                if ((land.landData.Flags & ((int)Parcel.ParcelFlags.AllowAPrimitiveEntry)) != 0)
                 {
                     return true;
                 }
@@ -793,7 +793,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return false;
             }
 
-            private bool CanReturnObject(LLUUID objectID, LLUUID returnerID, Scene scene)
+            private bool CanReturnObject(UUID objectID, UUID returnerID, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -801,7 +801,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericObjectPermission(returnerID, objectID, false);
             }
 
-            private bool CanRezObject(int objectCount, LLUUID owner, LLVector3 objectPosition, Scene scene)
+            private bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -830,7 +830,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return permission;
             }
 
-            private bool CanRunConsoleCommand(LLUUID user, Scene requestFromScene)
+            private bool CanRunConsoleCommand(UUID user, Scene requestFromScene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -839,7 +839,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return IsAdministrator(user);
             }
 
-            private bool CanRunScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene)
+            private bool CanRunScript(UUID script, UUID objectID, UUID user, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -847,7 +847,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return true;
             }
 
-            private bool CanSellParcel(LLUUID user, ILandObject parcel, Scene scene)
+            private bool CanSellParcel(UUID user, ILandObject parcel, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -855,7 +855,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericParcelPermission(user, parcel);
             }
 
-            private bool CanTakeObject(LLUUID objectID, LLUUID stealer, Scene scene)
+            private bool CanTakeObject(UUID objectID, UUID stealer, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -863,7 +863,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericObjectPermission(stealer,objectID, false);
             }
 
-            private bool CanTakeCopyObject(LLUUID objectID, LLUUID userID, Scene inScene)
+            private bool CanTakeCopyObject(UUID objectID, UUID userID, Scene inScene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -883,10 +883,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     }
 
                     SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
-                    // LLUUID taskOwner = null;
+                    // UUID taskOwner = null;
                     // Added this because at this point in time it wouldn't be wise for
                     // the administrator object permissions to take effect.
-                    // LLUUID objectOwner = task.OwnerID;
+                    // UUID objectOwner = task.OwnerID;
 
 
                     if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
@@ -895,7 +895,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return permission;
             }
 
-            private bool CanTerraformLand(LLUUID user, LLVector3 position, Scene requestFromScene)
+            private bool CanTerraformLand(UUID user, Vector3 position, Scene requestFromScene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -927,7 +927,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return permission;
             }
 
-            private bool CanViewScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene)
+            private bool CanViewScript(UUID script, UUID objectID, UUID user, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -935,7 +935,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return false;
             }
 
-            private bool CanViewNotecard(LLUUID notecard, LLUUID objectID, LLUUID user, Scene scene)
+            private bool CanViewNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -945,7 +945,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #endregion
 
-            public bool CanLinkObject(LLUUID userID, LLUUID objectID)
+            public bool CanLinkObject(UUID userID, UUID objectID)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -953,7 +953,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return true;
             }
 
-            public bool CanDelinkObject(LLUUID userID, LLUUID objectID)
+            public bool CanDelinkObject(UUID userID, UUID objectID)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -961,7 +961,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return true;
             }
 
-            public bool CanBuyLand(LLUUID userID, ILandObject parcel, Scene scene)
+            public bool CanBuyLand(UUID userID, ILandObject parcel, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -969,7 +969,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return true;
             }
 
-            public bool CanCopyInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
+            public bool CanCopyInventory(UUID itemID, UUID objectID, UUID userID)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -977,7 +977,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return true;
             }
 
-            public bool CanDeleteInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
+            public bool CanDeleteInventory(UUID itemID, UUID objectID, UUID userID)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -985,7 +985,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return true;
             }
 
-            public bool CanCreateInventory(uint invType, LLUUID objectID, LLUUID userID)
+            public bool CanCreateInventory(uint invType, UUID objectID, UUID userID)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -993,7 +993,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return true;
             }
 
-            public bool CanTeleport(LLUUID userID)
+            public bool CanTeleport(UUID userID)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;

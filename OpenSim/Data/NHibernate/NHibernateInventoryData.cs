@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
@@ -105,7 +105,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="item">The UUID of the item to be returned</param>
         /// <returns>A class containing item information</returns>
-        public InventoryItemBase getInventoryItem(LLUUID item)
+        public InventoryItemBase getInventoryItem(UUID item)
         {
             try
             {
@@ -163,7 +163,7 @@ namespace OpenSim.Data.NHibernate
         ///
         /// </summary>
         /// <param name="item"></param>
-        public void deleteInventoryItem(LLUUID itemID)
+        public void deleteInventoryItem(UUID itemID)
         {
             using (ITransaction transaction = session.BeginTransaction())
             {
@@ -177,7 +177,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="folder">The UUID of the folder to be returned</param>
         /// <returns>A class containing folder information</returns>
-        public InventoryFolderBase getInventoryFolder(LLUUID folder)
+        public InventoryFolderBase getInventoryFolder(UUID folder)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace OpenSim.Data.NHibernate
         ///
         /// </summary>
         /// <param name="folder"></param>
-        public void deleteInventoryFolder(LLUUID folderID)
+        public void deleteInventoryFolder(UUID folderID)
         {
             using (ITransaction transaction = session.BeginTransaction())
             {
@@ -245,12 +245,12 @@ namespace OpenSim.Data.NHibernate
         }
 
         // useful private methods
-        private bool ExistsItem(LLUUID uuid)
+        private bool ExistsItem(UUID uuid)
         {
             return (getInventoryItem(uuid) != null) ? true : false;
         }
 
-        private bool ExistsFolder(LLUUID uuid)
+        private bool ExistsFolder(UUID uuid)
         {
             return (getInventoryFolder(uuid) != null) ? true : false;
         }
@@ -314,7 +314,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="folderID">The UUID of the target folder</param>
         /// <returns>A List of InventoryItemBase items</returns>
-        public List<InventoryItemBase> getInventoryInFolder(LLUUID folderID)
+        public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
         {
             // try {
             ICriteria criteria = session.CreateCriteria(typeof(InventoryItemBase));
@@ -332,16 +332,16 @@ namespace OpenSim.Data.NHibernate
             //                 }
         }
 
-        public List<InventoryFolderBase> getUserRootFolders(LLUUID user)
+        public List<InventoryFolderBase> getUserRootFolders(UUID user)
         {
             return new List<InventoryFolderBase>();
         }
 
         // see InventoryItemBase.getUserRootFolder
-        public InventoryFolderBase getUserRootFolder(LLUUID user)
+        public InventoryFolderBase getUserRootFolder(UUID user)
         {
             ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
-            criteria.Add(Expression.Eq("ParentID", LLUUID.Zero));
+            criteria.Add(Expression.Eq("ParentID", UUID.Zero));
             criteria.Add(Expression.Eq("Owner", user));
             foreach (InventoryFolderBase folder in criteria.List())
             {
@@ -356,7 +356,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="folders">list where folders will be appended</param>
         /// <param name="parentID">ID of parent</param>
-        private void getInventoryFolders(ref List<InventoryFolderBase> folders, LLUUID parentID)
+        private void getInventoryFolders(ref List<InventoryFolderBase> folders, UUID parentID)
         {
             ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
             criteria.Add(Expression.Eq("ParentID", parentID));
@@ -371,7 +371,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="parentID">The folder to get subfolders for</param>
         /// <returns>A list of inventory folders</returns>
-        public List<InventoryFolderBase> getInventoryFolders(LLUUID parentID)
+        public List<InventoryFolderBase> getInventoryFolders(UUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
             getInventoryFolders(ref folders, parentID);
@@ -379,7 +379,7 @@ namespace OpenSim.Data.NHibernate
         }
 
         // See IInventoryDataPlugin
-        public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
+        public List<InventoryFolderBase> getFolderHierarchy(UUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
             getInventoryFolders(ref folders, parentID);

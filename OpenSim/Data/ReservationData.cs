@@ -26,13 +26,13 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Data
 {
     public class ReservationData
     {
-        public LLUUID userUUID = LLUUID.Zero;
+        public UUID userUUID = UUID.Zero;
         public int reservationMinX = 0;
         public int reservationMinY = 0;
         public int reservationMaxX = 65536;

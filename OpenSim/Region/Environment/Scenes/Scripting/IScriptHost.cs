@@ -25,8 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Axiom.Math;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Scenes.Scripting
 {
@@ -35,10 +34,10 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
         string Name { get; set; }
         string Description { get; set; }
 
-        LLUUID UUID { get; }
-        LLUUID ObjectOwner { get; }
-        LLUUID ObjectCreator { get; }
-        LLVector3 AbsolutePosition { get; }
+        UUID UUID { get; }
+        UUID ObjectOwner { get; }
+        UUID ObjectCreator { get; }
+        Vector3 AbsolutePosition { get; }
 
         string SitName { get; set; }
         string TouchName { get; set; }

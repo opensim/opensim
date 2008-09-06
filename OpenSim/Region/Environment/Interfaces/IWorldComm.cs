@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Modules.Scripting.WorldComm;
 
@@ -34,15 +34,15 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IWorldComm
     {
-        int Listen(uint LocalID, LLUUID itemID, LLUUID hostID, int channel, string name, LLUUID id, string msg);
-        void DeliverMessage(ChatTypeEnum type, int channel, string name, LLUUID id, string msg);
+        int Listen(uint LocalID, UUID itemID, UUID hostID, int channel, string name, UUID id, string msg);
+        void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg);
         bool HasMessages();
         ListenerInfo GetNextMessage();
-        void ListenControl(LLUUID itemID, int handle, int active);
-        void ListenRemove(LLUUID itemID, int handle);
-        void DeleteListener(LLUUID itemID);
-        Object[] GetSerializationData(LLUUID itemID);
-        void CreateFromData(uint localID, LLUUID itemID, LLUUID hostID,
+        void ListenControl(UUID itemID, int handle, int active);
+        void ListenRemove(UUID itemID, int handle);
+        void DeleteListener(UUID itemID);
+        Object[] GetSerializationData(UUID itemID);
+        void CreateFromData(uint localID, UUID itemID, UUID hostID,
                         Object[] data);
     }
 }

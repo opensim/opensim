@@ -18,11 +18,13 @@ namespace OpenSim.Framework.Communications.Cache
         }
         public override void StoreAsset(AssetBase asset)
         {
-            string cdir = m_dir + Path.DirectorySeparatorChar + asset.FullID.Data[0]
-                                + Path.DirectorySeparatorChar + asset.FullID.Data[1];
+            byte[] idBytes = asset.FullID.Guid.ToByteArray();
 
-            if (!Directory.Exists(m_dir + Path.DirectorySeparatorChar + asset.FullID.Data[0]))
-                Directory.CreateDirectory(m_dir + Path.DirectorySeparatorChar + asset.FullID.Data[0]);
+            string cdir = m_dir + Path.DirectorySeparatorChar + idBytes[0]
+                                + Path.DirectorySeparatorChar + idBytes[1];
+
+            if (!Directory.Exists(m_dir + Path.DirectorySeparatorChar + idBytes[0]))
+                Directory.CreateDirectory(m_dir + Path.DirectorySeparatorChar + idBytes[0]);
 
             if (!Directory.Exists(cdir))
                 Directory.CreateDirectory(cdir);
@@ -41,8 +43,10 @@ namespace OpenSim.Framework.Communications.Cache
 
         protected override AssetBase GetAsset(AssetRequest req)
         {
-            string cdir = m_dir + Path.DirectorySeparatorChar + req.AssetID.Data[0]
-                                + Path.DirectorySeparatorChar + req.AssetID.Data[1];
+            byte[] idBytes = req.AssetID.Guid.ToByteArray();
+
+            string cdir = m_dir + Path.DirectorySeparatorChar + idBytes[0]
+                                + Path.DirectorySeparatorChar + idBytes[1];
             if (File.Exists(cdir + Path.DirectorySeparatorChar + req.AssetID + ".xml"))
             {
                 FileStream x = File.OpenRead(cdir + Path.DirectorySeparatorChar + req.AssetID + ".xml");

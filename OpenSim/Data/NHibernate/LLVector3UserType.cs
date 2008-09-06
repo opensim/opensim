@@ -27,7 +27,7 @@
 
 using System;
 using System.Data;
-using libsecondlife;
+using OpenMetaverse;
 using NHibernate;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
@@ -35,7 +35,7 @@ using NHibernate.UserTypes;
 namespace OpenSim.Data.NHibernate
 {
     [Serializable]
-    public class LLVector3UserType: IUserType
+    public class Vector3UserType: IUserType
     {
         public object Assemble(object cached, object owner)
         {
@@ -49,7 +49,7 @@ namespace OpenSim.Data.NHibernate
 
         public object DeepCopy(object vector)
         {
-            return new LLVector3((LLVector3) vector);
+            return new Vector3((Vector3) vector);
         }
 
         public object Disassemble(object vector)
@@ -76,14 +76,14 @@ namespace OpenSim.Data.NHibernate
             int z = rs.GetOrdinal(names[2]);
             if (!rs.IsDBNull(x))
             {
-                vector = new LLVector3((Single)rs[x], (Single)rs[y], (Single)rs[z]);
+                vector = new Vector3((Single)rs[x], (Single)rs[y], (Single)rs[z]);
             }
             return vector;
         }
 
         public void NullSafeSet(IDbCommand cmd, object obj, int index)
         {
-            LLVector3 vector = (LLVector3)obj;
+            Vector3 vector = (Vector3)obj;
             ((IDataParameter)cmd.Parameters[index]).Value = vector.X;
             ((IDataParameter)cmd.Parameters[index + 1]).Value = vector.Y;
             ((IDataParameter)cmd.Parameters[index + 2]).Value = vector.Z;
@@ -96,7 +96,7 @@ namespace OpenSim.Data.NHibernate
 
         public Type ReturnedType
         {
-            get { return typeof(LLVector3); }
+            get { return typeof(Vector3); }
         }
 
         public SqlType[] SqlTypes

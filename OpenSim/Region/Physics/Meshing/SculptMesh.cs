@@ -30,14 +30,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
-using OpenJPEGNet;
-using Image = System.Drawing.Image;
+using OpenMetaverse.Imaging;
 
 namespace OpenSim.Region.Physics.Meshing
 {
     // This functionality based on the XNA SculptPreview by John Hurliman.
     public class SculptMesh : Mesh
     {
+        ManagedImage managedImage;
         Image idata = null;
         Bitmap bLOD = null;
         Bitmap bBitmap = null;
@@ -55,7 +55,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             try
             {
-                idata = OpenJPEG.DecodeToImage(jpegData);
+                OpenJPEG.DecodeToImage(jpegData, out managedImage, out idata);
                 //int i = 0;
                 //i = i / i;
             }
@@ -64,6 +64,7 @@ namespace OpenSim.Region.Physics.Meshing
                 System.Console.WriteLine("[PHYSICS]: Unable to generate a Sculpty physics proxy.  Sculpty texture decode failed!");
                 return;
             }
+
             if (idata != null)
             {
                 bBitmap = new Bitmap(idata);

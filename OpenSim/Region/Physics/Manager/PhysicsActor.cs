@@ -27,8 +27,8 @@
 
 using System;
 using System.Collections.Generic;
-using Axiom.Math;
 using OpenSim.Framework;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.Manager
 {

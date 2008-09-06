@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -58,12 +58,12 @@ namespace OpenSim.Framework
         /// <summary>
         /// The position of the user within the region
         /// </summary>
-        private LLVector3 currentPos;
+        private Vector3 currentPos;
 
         /// <summary>
         /// Current region the user is logged into
         /// </summary>
-        private LLUUID currentRegion;
+        private UUID currentRegion;
 
         /// <summary>
         /// A unix timestamp from when the user logged in
@@ -78,25 +78,25 @@ namespace OpenSim.Framework
         /// <summary>
         /// The region the user logged into initially
         /// </summary>
-        private LLUUID regionID;
+        private UUID regionID;
 
         /// <summary>
         /// The "secure" session ID for the user
         /// </summary>
         /// <remarks>Not very secure. Dont rely on it for anything more than Linden Lab does.</remarks>
-        private LLUUID secureSessionID;
+        private UUID secureSessionID;
 
         /// <summary>
         /// The session ID for the user (also the agent ID)
         /// </summary>
-        private LLUUID sessionID;
+        private UUID sessionID;
 
         /// <summary>
         /// The UUID of the users avatar (not the agent!)
         /// </summary>
-        private LLUUID UUID;
+        private UUID UUID;
 
-        public virtual LLUUID ProfileID
+        public virtual UUID ProfileID
         {
             get { return UUID; }
             set { UUID = value; }
@@ -120,19 +120,19 @@ namespace OpenSim.Framework
             set { agentOnline = value; }
         }
 
-        public virtual LLUUID SessionID
+        public virtual UUID SessionID
         {
             get { return sessionID; }
             set { sessionID = value; }
         }
 
-        public virtual LLUUID SecureSessionID
+        public virtual UUID SecureSessionID
         {
             get { return secureSessionID; }
             set { secureSessionID = value; }
         }
 
-        public virtual LLUUID InitialRegion
+        public virtual UUID InitialRegion
         {
             get { return regionID; }
             set { regionID = value; }
@@ -150,7 +150,7 @@ namespace OpenSim.Framework
             set { logoutTime = value; }
         }
 
-        public virtual LLUUID Region
+        public virtual UUID Region
         {
             get { return currentRegion; }
             set { currentRegion = value; }
@@ -162,7 +162,7 @@ namespace OpenSim.Framework
             set { currentHandle = value; }
         }
 
-        public virtual LLVector3 Position
+        public virtual Vector3 Position
         {
             get { return currentPos; }
             set { currentPos = value; }

@@ -31,7 +31,7 @@ using System.Globalization;
 using System.Net;
 using System.Reflection;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework.Console;
 
@@ -359,36 +359,36 @@ namespace OpenSim.Framework
                             }
                             errorMessage = "an IP Address (IPAddress)";
                             break;
-                        case ConfigurationOption.ConfigurationTypes.TYPE_LLUUID:
-                            LLUUID uuidResult;
-                            if (LLUUID.TryParse(console_result, out uuidResult))
+                        case ConfigurationOption.ConfigurationTypes.TYPE_UUID:
+                            UUID uuidResult;
+                            if (UUID.TryParse(console_result, out uuidResult))
                             {
                                 convertSuccess = true;
                                 return_result = uuidResult;
                             }
-                            errorMessage = "a UUID (LLUUID)";
+                            errorMessage = "a UUID (UUID)";
                             break;
-                        case ConfigurationOption.ConfigurationTypes.TYPE_LLUUID_NULL_FREE:
-                            LLUUID uuidResult2;
-                            if (LLUUID.TryParse(console_result, out uuidResult2))
+                        case ConfigurationOption.ConfigurationTypes.TYPE_UUID_NULL_FREE:
+                            UUID uuidResult2;
+                            if (UUID.TryParse(console_result, out uuidResult2))
                             {
                                 convertSuccess = true;
 
-                                if (uuidResult2 == LLUUID.Zero)
-                                    uuidResult2 = LLUUID.Random();
+                                if (uuidResult2 == UUID.Zero)
+                                    uuidResult2 = UUID.Random();
 
                                 return_result = uuidResult2;
                             }
-                            errorMessage = "a non-null UUID (LLUUID)";
+                            errorMessage = "a non-null UUID (UUID)";
                             break;
-                        case ConfigurationOption.ConfigurationTypes.TYPE_LLVECTOR3:
-                            LLVector3 vectorResult;
-                            if (LLVector3.TryParse(console_result, out vectorResult))
+                        case ConfigurationOption.ConfigurationTypes.TYPE_Vector3:
+                            Vector3 vectorResult;
+                            if (Vector3.TryParse(console_result, out vectorResult))
                             {
                                 convertSuccess = true;
                                 return_result = vectorResult;
                             }
-                            errorMessage = "a vector (LLVector3)";
+                            errorMessage = "a vector (Vector3)";
                             break;
                         case ConfigurationOption.ConfigurationTypes.TYPE_UINT16:
                             ushort ushortResult;

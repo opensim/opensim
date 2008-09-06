@@ -33,7 +33,7 @@ using log4net;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.DataSnapshot.Providers
 {
@@ -59,29 +59,29 @@ namespace OpenSim.Region.DataSnapshot.Providers
             //Detect object data changes by hooking into the IClientAPI.
             //Very dirty, and breaks whenever someone changes the client API.
 
-            client.OnAddPrim += delegate (LLUUID ownerID, LLVector3 RayEnd, LLQuaternion rot,
-                PrimitiveBaseShape shape, byte bypassRaycast, LLVector3 RayStart, LLUUID RayTargetID,
+            client.OnAddPrim += delegate (UUID ownerID, Vector3 RayEnd, Quaternion rot,
+                PrimitiveBaseShape shape, byte bypassRaycast, Vector3 RayStart, UUID RayTargetID,
                 byte RayEndIsIntersection) { this.Stale = true; };
             client.OnLinkObjects += delegate (IClientAPI remoteClient, uint parent, List<uint> children)
                 { this.Stale = true; };
             client.OnDelinkObjects += delegate(List<uint> primIds) { this.Stale = true; };
-            client.OnGrabUpdate += delegate(LLUUID objectID, LLVector3 offset, LLVector3 grapPos,
+            client.OnGrabUpdate += delegate(UUID objectID, Vector3 offset, Vector3 grapPos,
                 IClientAPI remoteClient) { this.Stale = true; };
             client.OnObjectAttach += delegate(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt,
-                LLQuaternion rot) { this.Stale = true; };
-            client.OnObjectDuplicate += delegate(uint localID, LLVector3 offset, uint dupeFlags, LLUUID AgentID,
-                LLUUID GroupID) { this.Stale = true; };
-            client.OnObjectDuplicateOnRay += delegate(uint localID, uint dupeFlags, LLUUID AgentID, LLUUID GroupID,
-                LLUUID RayTargetObj, LLVector3 RayEnd, LLVector3 RayStart, bool BypassRaycast,
+                Quaternion rot) { this.Stale = true; };
+            client.OnObjectDuplicate += delegate(uint localID, Vector3 offset, uint dupeFlags, UUID AgentID,
+                UUID GroupID) { this.Stale = true; };
+            client.OnObjectDuplicateOnRay += delegate(uint localID, uint dupeFlags, UUID AgentID, UUID GroupID,
+                UUID RayTargetObj, Vector3 RayEnd, Vector3 RayStart, bool BypassRaycast,
                 bool RayEndIsIntersection, bool CopyCenters, bool CopyRotates) { this.Stale = true; };
             client.OnObjectIncludeInSearch += delegate(IClientAPI remoteClient, bool IncludeInSearch, uint localID)
                 { this.Stale = true; };
-            client.OnObjectPermissions += delegate(IClientAPI controller, LLUUID agentID, LLUUID sessionID,
+            client.OnObjectPermissions += delegate(IClientAPI controller, UUID agentID, UUID sessionID,
                 byte field, uint localId, uint mask, byte set) { this.Stale = true; };
-            client.OnRezObject += delegate(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd,
-                LLVector3 RayStart, LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+            client.OnRezObject += delegate(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd,
+                Vector3 RayStart, UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                 uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags, bool RezSelected,
-                bool RemoveItem, LLUUID fromTaskID) { this.Stale = true; };
+                bool RemoveItem, UUID fromTaskID) { this.Stale = true; };
         }
 
         public Scene GetParentScene
@@ -105,11 +105,11 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
                     m_log.Debug("[DATASNAPSHOT]: Found object " + obj.Name + " in scene");
 
-                    if ((obj.RootPart.Flags & LLObject.ObjectFlags.JointWheel) == LLObject.ObjectFlags.JointWheel) {
+                    if ((obj.RootPart.Flags & PrimFlags.JointWheel) == PrimFlags.JointWheel) {
                         XmlNode xmlobject = nodeFactory.CreateNode(XmlNodeType.Element, "object", "");
 
                         node = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
-                        node.InnerText = obj.UUID.ToString();
+                        node.InnerText = obj.ToString();
                         xmlobject.AppendChild(node);
 
                         SceneObjectPart m_rootPart = null;

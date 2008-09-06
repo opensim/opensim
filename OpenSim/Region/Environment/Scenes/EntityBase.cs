@@ -28,8 +28,7 @@
 using System;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
-using Axiom.Math;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -45,9 +44,9 @@ namespace OpenSim.Region.Environment.Scenes
         }
         protected Scene m_scene;
 
-        protected LLUUID m_uuid;
+        protected UUID m_uuid;
 
-        public virtual LLUUID UUID
+        public virtual UUID UUID
         {
             get { return m_uuid; }
             set { m_uuid = value; }
@@ -73,30 +72,30 @@ namespace OpenSim.Region.Environment.Scenes
         }
         protected bool m_isDeleted;
 
-        protected LLVector3 m_pos;
+        protected Vector3 m_pos;
 
         /// <summary>
         ///
         /// </summary>
-        public virtual LLVector3 AbsolutePosition
+        public virtual Vector3 AbsolutePosition
         {
             get { return m_pos; }
             set { m_pos = value; }
         }
 
-        protected LLVector3 m_velocity;
-        protected LLVector3 m_rotationalvelocity;
+        protected Vector3 m_velocity;
+        protected Vector3 m_rotationalvelocity;
 
         /// <summary>
         ///
         /// </summary>
-        public virtual LLVector3 Velocity
+        public virtual Vector3 Velocity
         {
             get { return m_velocity; }
             set { m_velocity = value; }
         }
 
-        protected Quaternion m_rotation = new Quaternion(0, 0, 1, 0);
+        protected Quaternion m_rotation = new Quaternion(0f, 0f, 1f, 0f);
 
         public virtual Quaternion Rotation
         {
@@ -117,13 +116,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public EntityBase()
         {
-            m_uuid = LLUUID.Zero;
+            m_uuid = UUID.Zero;
 
-            m_pos = new LLVector3();
-            m_velocity = new LLVector3();
-            Rotation = new Quaternion();
+            m_pos = Vector3.Zero;
+            m_velocity = Vector3.Zero;
+            Rotation = Quaternion.Identity;
             m_name = "(basic entity)";
-            m_rotationalvelocity = new LLVector3(0, 0, 0);
+            m_rotationalvelocity = Vector3.Zero;
         }
 
         /// <summary>
@@ -157,33 +156,33 @@ namespace OpenSim.Region.Environment.Scenes
                 throw new ArgumentNullException("info");
             }
 
-            m_uuid = new LLUUID((Guid)info.GetValue("m_uuid", typeof(Guid)));
+            m_uuid = new UUID((Guid)info.GetValue("m_uuid", typeof(Guid)));
             m_name = (string)info.GetValue("m_name", typeof(string));
 
             m_pos
-                = new LLVector3(
+                = new Vector3(
                         (float)info.GetValue("m_pos.X", typeof(float)),
                         (float)info.GetValue("m_pos.Y", typeof(float)),
                         (float)info.GetValue("m_pos.Z", typeof(float)));
 
             m_velocity
-                = new LLVector3(
+                = new Vector3(
                         (float)info.GetValue("m_velocity.X", typeof(float)),
                         (float)info.GetValue("m_velocity.Y", typeof(float)),
                         (float)info.GetValue("m_velocity.Z", typeof(float)));
 
             m_rotationalvelocity
-                = new LLVector3(
+                = new Vector3(
                         (float)info.GetValue("m_rotationalvelocity.X", typeof(float)),
                         (float)info.GetValue("m_rotationalvelocity.Y", typeof(float)),
                         (float)info.GetValue("m_rotationalvelocity.Z", typeof(float)));
 
             m_rotation
                 = new Quaternion(
-                        (float)info.GetValue("m_rotation.w", typeof(float)),
-                        (float)info.GetValue("m_rotation.x", typeof(float)),
-                        (float)info.GetValue("m_rotation.y", typeof(float)),
-                        (float)info.GetValue("m_rotation.z", typeof(float)));
+                        (float)info.GetValue("m_rotation.X", typeof(float)),
+                        (float)info.GetValue("m_rotation.Y", typeof(float)),
+                        (float)info.GetValue("m_rotation.Z", typeof(float)),
+                        (float)info.GetValue("m_rotation.W", typeof(float)));
 
             m_localId = (uint)info.GetValue("m_localId", typeof(uint));
 
@@ -200,29 +199,29 @@ namespace OpenSim.Region.Environment.Scenes
                 throw new ArgumentNullException("info");
             }
 
-            info.AddValue("m_uuid", m_uuid.UUID);
+            info.AddValue("m_uuid", m_uuid.Guid);
             info.AddValue("m_name", m_name);
 
-            // LLVector3
+            // Vector3
             info.AddValue("m_pos.X", m_pos.X);
             info.AddValue("m_pos.Y", m_pos.Y);
             info.AddValue("m_pos.Z", m_pos.Z);
 
-            // LLVector3
+            // Vector3
             info.AddValue("m_velocity.X", m_velocity.X);
             info.AddValue("m_velocity.Y", m_velocity.Y);
             info.AddValue("m_velocity.Z", m_velocity.Z);
 
-            // LLVector3
+            // Vector3
             info.AddValue("m_rotationalvelocity.X", m_rotationalvelocity.X);
             info.AddValue("m_rotationalvelocity.Y", m_rotationalvelocity.Y);
             info.AddValue("m_rotationalvelocity.Z", m_rotationalvelocity.Z);
 
             // Quaternion
-            info.AddValue("m_rotation.w", m_rotation.w);
-            info.AddValue("m_rotation.x", m_rotation.x);
-            info.AddValue("m_rotation.y", m_rotation.y);
-            info.AddValue("m_rotation.z", m_rotation.z);
+            info.AddValue("m_rotation.X", m_rotation.X);
+            info.AddValue("m_rotation.Y", m_rotation.Y);
+            info.AddValue("m_rotation.Z", m_rotation.Z);
+            info.AddValue("m_rotation.W", m_rotation.W);
 
             info.AddValue("m_localId", m_localId);
         }

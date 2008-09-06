@@ -28,7 +28,7 @@
 using System;
 using System.Reflection;
 using System.Runtime.Remoting;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 
@@ -36,17 +36,17 @@ namespace OpenSim.Region.Communications.OGS1
 {
     public delegate bool InformRegionChild(ulong regionHandle, AgentCircuitData agentData);
 
-    public delegate bool ExpectArrival(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying);
+    public delegate bool ExpectArrival(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying);
 
-    public delegate bool InformRegionPrimGroup(ulong regionHandle, LLUUID primID, LLVector3 Positon, bool isPhysical);
+    public delegate bool InformRegionPrimGroup(ulong regionHandle, UUID primID, Vector3 Positon, bool isPhysical);
 
-    public delegate bool PrimGroupArrival(ulong regionHandle, LLUUID primID, string objData, int XMLMethod);
+    public delegate bool PrimGroupArrival(ulong regionHandle, UUID primID, string objData, int XMLMethod);
 
     public delegate bool RegionUp(RegionUpData region, ulong regionhandle);
 
     public delegate bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate childUpdate);
 
-    public delegate bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID);
+    public delegate bool TellRegionToCloseChildConnection(ulong regionHandle, UUID agentID);
 
     public sealed class InterRegionSingleton
     {
@@ -112,7 +112,7 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public bool ExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
         {
             handlerArrival = OnArrival;
             if (handlerArrival != null)
@@ -122,7 +122,7 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool InformRegionPrim(ulong regionHandle, LLUUID primID, LLVector3 position, bool isPhysical)
+        public bool InformRegionPrim(ulong regionHandle, UUID primID, Vector3 position, bool isPhysical)
         {
             handlerPrimGroupNear = OnPrimGroupNear;
             if (handlerPrimGroupNear != null)
@@ -132,7 +132,7 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
+        public bool ExpectPrimCrossing(ulong regionHandle, UUID primID, string objData, int XMLMethod)
         {
             handlerPrimGroupArrival = OnPrimGroupArrival;
             if (handlerPrimGroupArrival != null)
@@ -142,7 +142,7 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        public bool TellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
         {
             handlerTellRegionToCloseChildConnection = OnTellRegionToCloseChildConnection;
             if (handlerTellRegionToCloseChildConnection != null)
@@ -202,13 +202,13 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
 
-        public bool ExpectAvatarCrossing(ulong regionHandle, Guid agentID, sLLVector3 position, bool isFlying)
+        public bool ExpectAvatarCrossing(ulong regionHandle, Guid agentID, Vector3 position, bool isFlying)
         {
             try
             {
                 return
-                    InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, new LLUUID(agentID),
-                                                                       new LLVector3(position.x, position.y, position.z),
+                    InterRegionSingleton.Instance.ExpectAvatarCrossing(regionHandle, new UUID(agentID),
+                                                                       position,
                                                                        isFlying);
             }
             catch (RemotingException e)
@@ -218,13 +218,13 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool InformRegionPrim(ulong regionHandle, Guid SceneObjectGroupID, sLLVector3 position, bool isPhysical)
+        public bool InformRegionPrim(ulong regionHandle, Guid SceneObjectGroupID, Vector3 position, bool isPhysical)
         {
             try
             {
                 return
-                    InterRegionSingleton.Instance.InformRegionPrim(regionHandle, new LLUUID(SceneObjectGroupID),
-                                                                   new LLVector3(position.x, position.y, position.z),
+                    InterRegionSingleton.Instance.InformRegionPrim(regionHandle, new UUID(SceneObjectGroupID),
+                                                                   position,
                                                                    isPhysical);
             }
             catch (RemotingException e)
@@ -238,7 +238,7 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-                return InterRegionSingleton.Instance.ExpectPrimCrossing(regionHandle, new LLUUID(primID), objData, XMLMethod);
+                return InterRegionSingleton.Instance.ExpectPrimCrossing(regionHandle, new UUID(primID), objData, XMLMethod);
             }
             catch (RemotingException e)
             {
@@ -251,7 +251,7 @@ namespace OpenSim.Region.Communications.OGS1
         {
             try
             {
-                return InterRegionSingleton.Instance.TellRegionToCloseChildConnection(regionHandle, new LLUUID(agentID));
+                return InterRegionSingleton.Instance.TellRegionToCloseChildConnection(regionHandle, new UUID(agentID));
             }
             catch (RemotingException)
             {

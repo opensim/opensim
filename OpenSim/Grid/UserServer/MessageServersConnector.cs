@@ -29,7 +29,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Servers;
@@ -146,7 +146,7 @@ namespace OpenSim.Grid.UserServer
                 // string scurrentRegionID = (string)requestData["regionid"];
                 // string sregionhandle = (string)requestData["regionhandle"];
                 // string scurrentpos = (string)requestData["currentpos"];
-                //LLVector3.TryParse((string)reader["currentPos"], out retval.currentPos);
+                //Vector3.TryParse((string)reader["currentPos"], out retval.currentPos);
                 // TODO: Okay now raise event so the user server can pass this data to the Usermanager
 
                 responseData["responsestring"] = "TRUE";
@@ -155,7 +155,7 @@ namespace OpenSim.Grid.UserServer
             return response;
         }
 
-        public void TellMessageServersAboutUser(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
+        public void TellMessageServersAboutUser(UUID agentID, UUID sessionID, UUID RegionID,
                                                 ulong regionhandle, float positionX, float positionY,
                                                 float positionZ, string firstname, string lastname)
         {
@@ -179,7 +179,7 @@ namespace OpenSim.Grid.UserServer
             }
         }
 
-        public void TellMessageServersAboutUserLogoff(LLUUID agentID)
+        public void TellMessageServersAboutUserLogoff(UUID agentID)
         {
             lock (MessageServers)
             {
@@ -198,7 +198,7 @@ namespace OpenSim.Grid.UserServer
             }
         }
 
-        private void NotifyMessageServerAboutUserLogoff(MessageServerInfo serv, LLUUID agentID)
+        private void NotifyMessageServerAboutUserLogoff(MessageServerInfo serv, UUID agentID)
         {
             Hashtable reqparams = new Hashtable();
             reqparams["sendkey"] = serv.sendkey;
@@ -219,7 +219,7 @@ namespace OpenSim.Grid.UserServer
         }
 
         private void NotifyMessageServerAboutUser(MessageServerInfo serv,
-                                                    LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
+                                                    UUID agentID, UUID sessionID, UUID RegionID,
                                                     ulong regionhandle, float positionX, float positionY, float positionZ,
                                                     string firstname, string lastname)
         {

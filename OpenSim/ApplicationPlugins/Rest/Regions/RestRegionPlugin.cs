@@ -36,7 +36,7 @@ using System.Text.RegularExpressions;
 using System.Timers;
 using System.Xml;
 using System.Xml.Serialization;
-using libsecondlife;
+using OpenMetaverse;
 using Nwc.XmlRpc;
 using Nini.Config;
 using OpenSim.Framework;

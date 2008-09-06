@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -102,7 +102,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="regionID">region ID.</param>
         /// <returns></returns>
-        public EstateSettings LoadEstateSettings(LLUUID regionID)
+        public EstateSettings LoadEstateSettings(UUID regionID)
         {
             EstateSettings es = new EstateSettings();
 
@@ -128,10 +128,10 @@ namespace OpenSim.Data.MSSQL
                                 else
                                     _FieldMap[name].SetValue(es, false);
                             }
-                            else if (_FieldMap[name].GetValue(es) is LLUUID)
+                            else if (_FieldMap[name].GetValue(es) is UUID)
                             {
-                                LLUUID uuid;
-                                LLUUID.TryParse(reader[name].ToString(), out uuid);
+                                UUID uuid;
+                                UUID.TryParse(reader[name].ToString(), out uuid);
 
                                 _FieldMap[name].SetValue(es, uuid);
                             }
@@ -333,8 +333,8 @@ namespace OpenSim.Data.MSSQL
                     {
                         EstateBan eb = new EstateBan();
 
-                        LLUUID uuid;
-                        LLUUID.TryParse(reader["bannedUUID"].ToString(), out uuid);
+                        UUID uuid;
+                        UUID.TryParse(reader["bannedUUID"].ToString(), out uuid);
 
                         eb.bannedUUID = uuid;
                         eb.bannedIP = "0.0.0.0";
@@ -345,9 +345,9 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-        private LLUUID[] LoadUUIDList(uint estateID, string table)
+        private UUID[] LoadUUIDList(uint estateID, string table)
         {
-            List<LLUUID> uuids = new List<LLUUID>();
+            List<UUID> uuids = new List<UUID>();
 
             string sql = string.Format("select uuid from {0} where EstateID = @EstateID", table);
 
@@ -361,8 +361,8 @@ namespace OpenSim.Data.MSSQL
                     {
                         // EstateBan eb = new EstateBan();
 
-                        LLUUID uuid;
-                        LLUUID.TryParse(reader["uuid"].ToString(), out uuid);
+                        UUID uuid;
+                        UUID.TryParse(reader["uuid"].ToString(), out uuid);
 
                         uuids.Add(uuid);
                     }
@@ -399,7 +399,7 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-        private void SaveUUIDList(uint estateID, string table, LLUUID[] data)
+        private void SaveUUIDList(uint estateID, string table, UUID[] data)
         {
             //Delete first
             string sql = string.Format("delete from {0} where EstateID = @EstateID", table);
@@ -416,7 +416,7 @@ namespace OpenSim.Data.MSSQL
 
                 bool createParamOnce = true;
 
-                foreach (LLUUID uuid in data)
+                foreach (UUID uuid in data)
                 {
                     if (createParamOnce)
                     {

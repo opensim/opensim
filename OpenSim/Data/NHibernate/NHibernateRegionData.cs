@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
@@ -109,7 +109,7 @@ namespace OpenSim.Data.NHibernate
         {
         }
 
-        public RegionSettings LoadRegionSettings(LLUUID regionUUID)
+        public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             return null;
         }
@@ -162,7 +162,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="obj">the object</param>
         /// <param name="regionUUID">the region UUID</param>
-        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
+        public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
             try
             {
@@ -179,7 +179,7 @@ namespace OpenSim.Data.NHibernate
             }
         }
 
-        private SceneObjectGroup LoadObject(LLUUID uuid, LLUUID region)
+        private SceneObjectGroup LoadObject(UUID uuid, UUID region)
         {
             SceneObjectGroup group = new SceneObjectGroup();
 
@@ -210,7 +210,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="obj">the object</param>
         /// <param name="regionUUID">the region UUID</param>
-        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
+        public void RemoveObject(UUID obj, UUID regionUUID)
         {
             SceneObjectGroup g = LoadObject(obj, regionUUID);
             foreach (SceneObjectPart p in g.Children.Values)
@@ -219,7 +219,7 @@ namespace OpenSim.Data.NHibernate
             }
             session.Flush();
 
-            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
+            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.Guid, regionUUID);
 
         }
 
@@ -228,9 +228,9 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="regionUUID">The region UUID</param>
         /// <returns>List of loaded groups</returns>
-        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
+        public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
         {
-            Dictionary<LLUUID, SceneObjectGroup> SOG = new Dictionary<LLUUID, SceneObjectGroup>();
+            Dictionary<UUID, SceneObjectGroup> SOG = new Dictionary<UUID, SceneObjectGroup>();
             List<SceneObjectGroup> ret = new List<SceneObjectGroup>();
 
             ICriteria criteria = session.CreateCriteria(typeof(SceneObjectPart));
@@ -276,7 +276,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="ter">terrain heightfield</param>
         /// <param name="regionID">region UUID</param>
-        public void StoreTerrain(double[,] ter, LLUUID regionID)
+        public void StoreTerrain(double[,] ter, UUID regionID)
         {
             lock (this) {
                 Terrain t = new Terrain(regionID, ter);
@@ -289,7 +289,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="regionID">the region UUID</param>
         /// <returns>Heightfield data</returns>
-        public double[,] LoadTerrain(LLUUID regionID)
+        public double[,] LoadTerrain(UUID regionID)
         {
             try
             {
@@ -307,7 +307,7 @@ namespace OpenSim.Data.NHibernate
         ///
         /// </summary>
         /// <param name="globalID"></param>
-        public void RemoveLandObject(LLUUID globalID)
+        public void RemoveLandObject(UUID globalID)
         {
 
         }
@@ -326,7 +326,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="regionUUID"></param>
         /// <returns></returns>
-        public List<LandData> LoadLandObjects(LLUUID regionUUID)
+        public List<LandData> LoadLandObjects(UUID regionUUID)
         {
             List<LandData> landDataForRegion = new List<LandData>();
 
@@ -347,7 +347,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="regionUUID">the region UUID</param>
         /// <returns>The banlist</returns>
-        public List<EstateBan> LoadRegionBanList(LLUUID regionUUID)
+        public List<EstateBan> LoadRegionBanList(UUID regionUUID)
         {
             List<EstateBan> regionbanlist = new List<EstateBan>();
 
@@ -395,7 +395,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="primID"></param>
         /// <param name="items"></param>
-        public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
+        public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
              ICriteria criteria = session.CreateCriteria(typeof(TaskInventoryItem));
              criteria.Add(Expression.Eq("ParentPartID", primID));

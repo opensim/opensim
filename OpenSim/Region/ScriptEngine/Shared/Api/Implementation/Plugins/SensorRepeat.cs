@@ -27,7 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Scenes;
@@ -45,8 +45,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             m_CmdManager = CmdManager;
         }
 
-        public Dictionary<uint, Dictionary<LLUUID, LSL_Types.list>> SenseEvents =
-            new Dictionary<uint, Dictionary<LLUUID, LSL_Types.list>>();
+        public Dictionary<uint, Dictionary<UUID, LSL_Types.list>> SenseEvents =
+            new Dictionary<uint, Dictionary<UUID, LSL_Types.list>>();
         private Object SenseLock = new Object();
 
         //
@@ -55,12 +55,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         private class SenseRepeatClass
         {
             public uint localID;
-            public LLUUID itemID;
+            public UUID itemID;
             public double interval;
             public DateTime next;
 
             public string name;
-            public LLUUID keyID;
+            public UUID keyID;
             public int type;
             public double range;
             public double arc;
@@ -70,8 +70,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         private List<SenseRepeatClass> SenseRepeaters = new List<SenseRepeatClass>();
         private object SenseRepeatListLock = new object();
 
-        public void SetSenseRepeatEvent(uint m_localID, LLUUID m_itemID,
-                                        string name, LLUUID keyID, int type, double range,
+        public void SetSenseRepeatEvent(uint m_localID, UUID m_itemID,
+                                        string name, UUID keyID, int type, double range,
                                         double arc, double sec, SceneObjectPart host)
         {
             // Always remove first, in case this is a re-set
@@ -98,7 +98,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
         }
 
-        public void UnSetSenseRepeaterEvents(uint m_localID, LLUUID m_itemID)
+        public void UnSetSenseRepeaterEvents(uint m_localID, UUID m_itemID)
         {
             // Remove from timer
             lock (SenseRepeatListLock)
@@ -138,8 +138,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             } // lock
         }
 
-        public void SenseOnce(uint m_localID, LLUUID m_itemID,
-                              string name, LLUUID keyID, int type,
+        public void SenseOnce(uint m_localID, UUID m_itemID,
+                              string name, UUID keyID, int type,
                               double range, double arc, SceneObjectPart host)
         {
             // Add to timer
@@ -156,11 +156,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             SensorSweep(ts);
         }
 
-        public LSL_Types.list GetSensorList(uint m_localID, LLUUID m_itemID)
+        public LSL_Types.list GetSensorList(uint m_localID, UUID m_itemID)
         {
             lock (SenseLock)
             {
-                Dictionary<LLUUID, LSL_Types.list> Obj = null;
+                Dictionary<UUID, LSL_Types.list> Obj = null;
                 if (!SenseEvents.TryGetValue(m_localID, out Obj))
                 {
                     return null;
@@ -187,11 +187,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 return;
             }
 
-            LLVector3 sensorPos = SensePoint.AbsolutePosition;
-            LLVector3 regionPos = new LLVector3(m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocX * Constants.RegionSize, m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocY * Constants.RegionSize, 0);
-            LLVector3 fromRegionPos = sensorPos + regionPos;
+            Vector3 sensorPos = SensePoint.AbsolutePosition;
+            Vector3 regionPos = new Vector3(m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocX * Constants.RegionSize, m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+            Vector3 fromRegionPos = sensorPos + regionPos;
 
-            LLQuaternion q = SensePoint.RotationOffset;
+            Quaternion q = SensePoint.RotationOffset;
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
             double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
@@ -203,7 +203,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             foreach (EntityBase ent in m_CmdManager.m_ScriptEngine.World.Entities.Values)
             {
-                LLVector3 toRegionPos = ent.AbsolutePosition + regionPos;
+                Vector3 toRegionPos = ent.AbsolutePosition + regionPos;
                 double dis = Math.Abs((double)Util.GetDistanceTo(toRegionPos, fromRegionPos));
                 if (dis <= ts.range)
                 {
@@ -239,7 +239,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                             double ang_obj = 0;
                             try
                             {
-                                LLVector3 diff = toRegionPos - fromRegionPos;
+                                Vector3 diff = toRegionPos - fromRegionPos;
                                 LSL_Types.Vector3 obj_dir = new LSL_Types.Vector3(diff.X, diff.Y, diff.Z);
                                 double dot = LSL_Types.Vector3.Dot(forward_dir, obj_dir);
                                 double mag_obj = LSL_Types.Vector3.Mag(obj_dir);
@@ -252,7 +252,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                             if (ang_obj > ts.arc) keep = false;
                         }
 
-                        if (keep && (ts.keyID != LLUUID.Zero) && (ts.keyID != ent.UUID))
+                        if (keep && (ts.keyID != UUID.Zero) && (ts.keyID != ent.UUID))
                         {
                             keep = false;
                         }
@@ -292,10 +292,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // Create object if it doesn't exist
                 if (SenseEvents.ContainsKey(ts.localID) == false)
                 {
-                    SenseEvents.Add(ts.localID, new Dictionary<LLUUID, LSL_Types.list>());
+                    SenseEvents.Add(ts.localID, new Dictionary<UUID, LSL_Types.list>());
                 }
                 // clear if previous traces exist
-                Dictionary<LLUUID, LSL_Types.list> Obj;
+                Dictionary<UUID, LSL_Types.list> Obj;
                 SenseEvents.TryGetValue(ts.localID, out Obj);
                 if (Obj.ContainsKey(ts.itemID) == true)
                     Obj.Remove(ts.itemID);
@@ -320,7 +320,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     for (idx = 0; idx < SensedObjects.Length; idx++)
                     {
                         detect[idx] = new DetectParams();
-                        detect[idx].Key=(LLUUID)(SensedObjects.Data[idx]);
+                        detect[idx].Key=(UUID)(SensedObjects.Data[idx]);
                         detect[idx].Populate(m_CmdManager.m_ScriptEngine.World);
                     }
 
@@ -333,7 +333,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
         }
 
-        public Object[] GetSerializationData(LLUUID itemID)
+        public Object[] GetSerializationData(UUID itemID)
         {
             List<Object> data = new List<Object>();
 
@@ -352,7 +352,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             return data.ToArray();
         }
 
-        public void CreateFromData(uint localID, LLUUID itemID, LLUUID objectID,
+        public void CreateFromData(uint localID, UUID itemID, UUID objectID,
                                    Object[] data)
         {
             SceneObjectPart part =
@@ -373,7 +373,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 ts.interval = (double)data[idx];
                 ts.name = (string)data[idx+1];
-                ts.keyID = (LLUUID)data[idx+2];
+                ts.keyID = (UUID)data[idx+2];
                 ts.type = (int)data[idx+3];
                 ts.range = (double)data[idx+4];
                 ts.arc = (double)data[idx+5];

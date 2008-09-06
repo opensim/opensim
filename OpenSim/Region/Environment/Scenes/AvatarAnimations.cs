@@ -27,18 +27,18 @@
 
 using System.Collections.Generic;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public class AvatarAnimations
     {
-        public Dictionary<string, LLUUID> AnimsLLUUID = new Dictionary<string, LLUUID>();
-        public Dictionary<LLUUID, string> AnimsNames = new Dictionary<LLUUID, string>();
+        public Dictionary<string, UUID> AnimsUUID = new Dictionary<string, UUID>();
+        public Dictionary<UUID, string> AnimsNames = new Dictionary<UUID, string>();
 
         public AvatarAnimations()
         {
-            using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
+            using (XmlTextReader reader = new XmlTextReader("data/avataranimations.Xml"))
             {
                 XmlDocument doc = new XmlDocument();
                 doc.Load(reader);
@@ -47,9 +47,9 @@ namespace OpenSim.Region.Environment.Scenes
                     if (nod.Attributes["name"] != null)
                     {
                         string name = (string)nod.Attributes["name"].Value;
-                        LLUUID id = (LLUUID)nod.InnerText;
+                        UUID id = (UUID)nod.InnerText;
 
-                        AnimsLLUUID.Add(name, id);
+                        AnimsUUID.Add(name, id);
                         AnimsNames.Add(id, name);
                     }
                 }

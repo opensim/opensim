@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -37,6 +37,6 @@ namespace OpenSim.Framework
     {
         public List<InventoryFolderBase> Folders;
         public List<InventoryItemBase> Items;
-        public LLUUID UserID;
+        public UUID UserID;
     }
 }

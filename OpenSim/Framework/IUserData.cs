@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -40,7 +40,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="user">The user's UUID</param>
         /// <returns>The user data profile.  Returns null if no user is found</returns>
-        UserProfileData GetUserByUUID(LLUUID user);
+        UserProfileData GetUserByUUID(UUID user);
 
         /// <summary>
         /// Returns a users profile by searching their username parts
@@ -56,14 +56,14 @@ namespace OpenSim.Framework
         /// <param name="queryID">ID associated with the user's query. This must match what the client sent</param>
         /// <param name="query">The filtered contents of the search box when the user hit search.</param>
         /// <returns>The user data profile</returns>
-        List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
+        List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query);
 
         /// <summary>
         /// Returns the current agent for a user searching by it's UUID
         /// </summary>
         /// <param name="user">The users UUID</param>
         /// <returns>The current agent session</returns>
-        UserAgentData GetAgentByUUID(LLUUID user);
+        UserAgentData GetAgentByUUID(UUID user);
 
         /// <summary>
         /// Returns the current session agent for a user searching by username
@@ -84,7 +84,7 @@ namespace OpenSim.Framework
         /// Stores new web-login key for user during web page login
         /// </summary>
         /// <param name="webLoginKey"></param>
-        void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey);
+        void StoreWebLoginKey(UUID agentID, UUID webLoginKey);
 
         /// <summary>
         /// Adds a new User profile to the database
@@ -99,7 +99,7 @@ namespace OpenSim.Framework
         bool UpdateUserProfile(UserProfileData user);
 
 
-        void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle);
+        void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle);
         /// <summary>
         /// Adds a new agent to the database
         /// </summary>
@@ -112,14 +112,14 @@ namespace OpenSim.Framework
         /// <param name="friendlistowner">The agent that who's friends list is being added to</param>
         /// <param name="friend">The agent that being added to the friends list of the friends list owner</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms);
+        void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms);
 
         /// <summary>
         /// Delete friend on friendlistowner's friendlist.
         /// </summary>
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The Ex-friend agent</param>
-        void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend);
+        void RemoveUserFriend(UUID friendlistowner, UUID friend);
 
         /// <summary>
         /// Update permissions for friend on friendlistowner's friendlist.
@@ -127,13 +127,13 @@ namespace OpenSim.Framework
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The agent that is getting or loosing permissions</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms);
+        void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms);
 
         /// <summary>
-        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
+        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
-        List<FriendListItem> GetUserFriendList(LLUUID friendlistowner);
+        List<FriendListItem> GetUserFriendList(UUID friendlistowner);
 
         /// <summary>
         /// Attempts to move currency units between accounts (NOT RELIABLE / TRUSTWORTHY. DONT TRY RUN YOUR OWN CURRENCY EXCHANGE WITH REAL VALUES)
@@ -142,7 +142,7 @@ namespace OpenSim.Framework
         /// <param name="to">The account to transfer to</param>
         /// <param name="amount">The amount to transfer</param>
         /// <returns>Successful?</returns>
-        bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount);
+        bool MoneyTransferRequest(UUID from, UUID to, uint amount);
 
         /// <summary>
         /// Attempts to move inventory between accounts, if inventory is copyable it will be copied into the target account.
@@ -151,7 +151,7 @@ namespace OpenSim.Framework
         /// <param name="to">User to transfer to</param>
         /// <param name="inventory">Specified inventory item</param>
         /// <returns>Successful?</returns>
-        bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory);
+        bool InventoryTransferRequest(UUID from, UUID to, UUID inventory);
 
         /// <summary>
         /// Initialises the plugin (artificial constructor)
@@ -161,11 +161,11 @@ namespace OpenSim.Framework
         /// <summary>
         /// Gets the user appearance
         /// </summer>
-        AvatarAppearance GetUserAppearance(LLUUID user);
+        AvatarAppearance GetUserAppearance(UUID user);
 
-        void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
+        void UpdateUserAppearance(UUID user, AvatarAppearance appearance);
 
-        void ResetAttachments(LLUUID userID);
+        void ResetAttachments(UUID userID);
     }
 
     public class UserDataInitialiser : PluginInitialiserBase

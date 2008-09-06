@@ -34,7 +34,7 @@ using System.Security.Policy;
 using System.Reflection;
 using System.Globalization;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Amib.Threading;
@@ -56,12 +56,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private IScriptWorkItem m_CurrentResult=null;
         private Queue m_EventQueue = new Queue(32);
         private bool m_RunEvents = false;
-        private LLUUID m_ItemID;
+        private UUID m_ItemID;
         private uint m_LocalID;
-        private LLUUID m_ObjectID;
-        private LLUUID m_AssetID;
+        private UUID m_ObjectID;
+        private UUID m_AssetID;
         private IScript m_Script;
-        private LLUUID m_AppDomain;
+        private UUID m_AppDomain;
         private DetectParams[] m_DetectParams;
         private bool m_TimerQueued;
         private DateTime m_EventStart;
@@ -98,7 +98,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             get { return m_Engine; }
         }
 
-        public LLUUID AppDomain
+        public UUID AppDomain
         {
             get { return m_AppDomain; }
             set { m_AppDomain = value; }
@@ -114,12 +114,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             get { return m_ScriptName; }
         }
 
-        public LLUUID ItemID
+        public UUID ItemID
         {
             get { return m_ItemID; }
         }
 
-        public LLUUID ObjectID
+        public UUID ObjectID
         {
             get { return m_ObjectID; }
         }
@@ -129,7 +129,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             get { return m_LocalID; }
         }
 
-        public LLUUID AssetID
+        public UUID AssetID
         {
             get { return m_AssetID; }
         }
@@ -152,7 +152,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         }
 
         public ScriptInstance(IScriptEngine engine, uint localID,
-                LLUUID objectID, LLUUID itemID, LLUUID assetID, string assembly,
+                UUID objectID, UUID itemID, UUID assetID, string assembly,
                 AppDomain dom, string primName, string scriptName,
                 int startParam, bool postOnRez, StateSource stateSource,
                 int maxScriptQueue)
@@ -520,7 +520,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             string text = "Runtime error:\n" + e.InnerException.ToString();
                             if (text.Length > 1000)
                                 text = text.Substring(0, 1000);
-                            m_Engine.World.SimChat(Helpers.StringToField(text),
+                            m_Engine.World.SimChat(Utils.StringToBytes(text),
                                                    ChatTypeEnum.DebugChannel, 2147483647,
                                                    part.AbsolutePosition,
                                                    part.Name, part.UUID, false);
@@ -581,7 +581,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             Stop(0);
             SceneObjectPart part=m_Engine.World.GetSceneObjectPart(m_LocalID);
             part.GetInventoryItem(m_ItemID).PermsMask = 0;
-            part.GetInventoryItem(m_ItemID).PermsGranter = LLUUID.Zero;
+            part.GetInventoryItem(m_ItemID).PermsGranter = UUID.Zero;
             AsyncCommandManager async = (AsyncCommandManager)m_Engine.AsyncCommands;
             async.RemoveScript(m_LocalID, m_ItemID);
             m_EventQueue.Clear();
@@ -602,7 +602,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_Script.ResetVars();
             SceneObjectPart part=m_Engine.World.GetSceneObjectPart(m_LocalID);
             part.GetInventoryItem(m_ItemID).PermsMask = 0;
-            part.GetInventoryItem(m_ItemID).PermsGranter = LLUUID.Zero;
+            part.GetInventoryItem(m_ItemID).PermsGranter = UUID.Zero;
             AsyncCommandManager async = (AsyncCommandManager)m_Engine.AsyncCommands;
             async.RemoveScript(m_LocalID, m_ItemID);
             if (m_CurrentEvent != "state_entry")
@@ -630,10 +630,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             return m_DetectParams[idx];
         }
 
-        public LLUUID GetDetectID(int idx)
+        public UUID GetDetectID(int idx)
         {
             if (idx < 0 || idx >= m_DetectParams.Length)
-                return LLUUID.Zero;
+                return UUID.Zero;
 
             return m_DetectParams[idx].Key;
         }

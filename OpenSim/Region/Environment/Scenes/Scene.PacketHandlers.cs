@@ -26,20 +26,20 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public partial class Scene
     {
-        protected void SimChat(byte[] message, ChatTypeEnum type, int channel, LLVector3 fromPos, string fromName,
-                               LLUUID fromID, bool fromAgent, bool broadcast)
+        protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+                               UUID fromID, bool fromAgent, bool broadcast)
         {
             OSChatMessage args = new OSChatMessage();
 
-            args.Message = Helpers.FieldToUTF8String(message);
+            args.Message = Utils.BytesToString(message);
             args.Channel = channel;
             args.Type = type;
             args.Position = fromPos;
@@ -75,8 +75,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="fromPos"></param>
         /// <param name="fromName"></param>
         /// <param name="fromAgentID"></param>
-        public void SimChat(byte[] message, ChatTypeEnum type, int channel, LLVector3 fromPos, string fromName,
-                            LLUUID fromID, bool fromAgent)
+        public void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+                            UUID fromID, bool fromAgent)
         {
             SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, false);
         }
@@ -89,8 +89,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="fromPos"></param>
         /// <param name="fromName"></param>
         /// <param name="fromAgentID"></param>
-        public void SimChatBroadcast(byte[] message, ChatTypeEnum type, int channel, LLVector3 fromPos, string fromName,
-                                     LLUUID fromID, bool fromAgent)
+        public void SimChatBroadcast(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+                                     UUID fromID, bool fromAgent)
         {
             SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, true);
         }
@@ -125,7 +125,7 @@ namespace OpenSim.Region.Environment.Scenes
                        // We also need to check the children of this prim as they
                        // can be selected as well and send property information
                        bool foundPrim = false;
-                       foreach (KeyValuePair<LLUUID, SceneObjectPart> child in ((SceneObjectGroup) ent).Children)
+                       foreach (KeyValuePair<UUID, SceneObjectPart> child in ((SceneObjectGroup) ent).Children)
                        {
                            if (child.Value.LocalId == primLocalID) 
                            {
@@ -196,7 +196,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public virtual void ProcessMoneyTransferRequest(LLUUID source, LLUUID destination, int amount, 
+        public virtual void ProcessMoneyTransferRequest(UUID source, UUID destination, int amount, 
                                                         int transactiontype, string description)
         {
             EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(source, destination, amount, 
@@ -205,7 +205,7 @@ namespace OpenSim.Region.Environment.Scenes
             EventManager.TriggerMoneyTransfer(this, args);
         }
 
-        public virtual void ProcessParcelBuy(LLUUID agentId, LLUUID groupId, bool final, bool groupOwned,
+        public virtual void ProcessParcelBuy(UUID agentId, UUID groupId, bool final, bool groupOwned,
                 bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated)
         {
             EventManager.LandBuyArgs args = new EventManager.LandBuyArgs(agentId, groupId, final, groupOwned, 
@@ -219,7 +219,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.TriggerLandBuy(this, args);
         }
 
-        public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
+        public virtual void ProcessObjectGrab(uint localID, Vector3 offsetPos, IClientAPI remoteClient)
         {
 
             List<EntityBase> EntityList = GetEntities();
@@ -286,7 +286,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void ProcessAvatarPickerRequest(IClientAPI client, LLUUID avatarID, LLUUID RequestID, string query)
+        public void ProcessAvatarPickerRequest(IClientAPI client, UUID avatarID, UUID RequestID, string query)
         {
             //EventManager.TriggerAvatarPickerRequest();
 
@@ -308,11 +308,11 @@ namespace OpenSim.Region.Environment.Scenes
             int i = 0;
             foreach (AvatarPickerAvatar item in AvatarResponses)
             {
-                LLUUID translatedIDtem = item.AvatarID;
+                UUID translatedIDtem = item.AvatarID;
                 searchData[i] = new AvatarPickerReplyPacket.DataBlock();
                 searchData[i].AvatarID = translatedIDtem;
-                searchData[i].FirstName = Helpers.StringToField((string) item.firstName);
-                searchData[i].LastName = Helpers.StringToField((string) item.lastName);
+                searchData[i].FirstName = Utils.StringToBytes((string) item.firstName);
+                searchData[i].LastName = Utils.StringToBytes((string) item.lastName);
                 i++;
             }
             if (AvatarResponses.Count == 0)
@@ -337,8 +337,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.SendAvatarPickerReply(agent_data, data_args);
         }
 
-        public void ProcessScriptReset(IClientAPI remoteClient, LLUUID objectID,
-                LLUUID itemID)
+        public void ProcessScriptReset(IClientAPI remoteClient, UUID objectID,
+                UUID itemID)
         {
             SceneObjectPart part=GetSceneObjectPart(objectID);
             if (part == null)

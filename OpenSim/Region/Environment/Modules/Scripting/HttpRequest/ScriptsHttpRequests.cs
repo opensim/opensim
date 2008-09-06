@@ -31,7 +31,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
@@ -91,7 +91,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         private string m_name = "HttpScriptRequests";
 
         // <request id, HttpRequestClass>
-        private Dictionary<LLUUID, HttpRequestClass> m_pendingRequests;
+        private Dictionary<UUID, HttpRequestClass> m_pendingRequests;
         private Scene m_scene;
         // private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
 
@@ -101,14 +101,14 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
 
         #region IHttpRequests Members
 
-        public LLUUID MakeHttpRequest(string url, string parameters, string body)
+        public UUID MakeHttpRequest(string url, string parameters, string body)
         {
-            return LLUUID.Zero;
+            return UUID.Zero;
         }
 
-        public LLUUID StartHttpRequest(uint localID, LLUUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body)
+        public UUID StartHttpRequest(uint localID, UUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body)
         {
-            LLUUID reqID = LLUUID.Random();
+            UUID reqID = UUID.Random();
             HttpRequestClass htc = new HttpRequestClass();
 
             // Partial implementation: support for parameter flags needed
@@ -163,7 +163,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             return reqID;
         }
 
-        public void StopHttpRequest(uint m_localID, LLUUID m_itemID)
+        public void StopHttpRequest(uint m_localID, UUID m_itemID)
         {
             if (m_pendingRequests != null)
             {
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         {
             lock (HttpListLock)
             {
-                foreach (LLUUID luid in m_pendingRequests.Keys)
+                foreach (UUID luid in m_pendingRequests.Keys)
                 {
                     HttpRequestClass tmpReq;
 
@@ -208,7 +208,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             return null;
         }
 
-        public void RemoveCompletedRequest(LLUUID id)
+        public void RemoveCompletedRequest(UUID id)
         {
             lock (HttpListLock)
             {
@@ -232,7 +232,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
 
             m_scene.RegisterModuleInterface<IHttpRequests>(this);
 
-            m_pendingRequests = new Dictionary<LLUUID, HttpRequestClass>();
+            m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
         }
 
         public void PostInitialise()
@@ -274,11 +274,11 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         public bool httpVerifyCert = true; // not implemented
 
         // Request info
-        public LLUUID itemID;
+        public UUID itemID;
         public uint localID;
         public DateTime next;
         public string outbound_body;
-        public LLUUID reqID;
+        public UUID reqID;
         public HttpWebRequest request;
         public string response_body;
         public List<string> response_metadata;

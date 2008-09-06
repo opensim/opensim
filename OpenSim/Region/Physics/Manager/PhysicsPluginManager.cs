@@ -115,43 +115,73 @@ namespace OpenSim.Region.Physics.Manager
             // that the LoadFrom context be avoided. This can be done by installing assemblies in the
             // Global Assembly Cache or in the ApplicationBase directory and using Assembly.
             // Load when explicitly loading assemblies.
-            Assembly pluginAssembly = Assembly.LoadFrom(FileName);
+            Assembly pluginAssembly = null;
+            Type[] types = null;
 
-            foreach (Type pluginType in pluginAssembly.GetTypes())
+            try
             {
-                if (pluginType.IsPublic)
+                pluginAssembly = Assembly.LoadFrom(FileName);
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("Failed to load plugin from " + FileName, ex);
+            }
+
+            if (pluginAssembly != null)
+            {
+                try
                 {
-                    if (!pluginType.IsAbstract)
+                    types = pluginAssembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    m_log.Error("[PHYSICS]: Failed to enumerate types in plugin from " + FileName + ": " +
+                        ex.LoaderExceptions[0].Message, ex);
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("[PHYSICS]: Failed to enumerate types in plugin from " + FileName, ex);
+                }
+
+                if (types != null)
+                {
+                    foreach (Type pluginType in types)
                     {
-                        Type physTypeInterface = pluginType.GetInterface("IPhysicsPlugin", true);
-
-                        if (physTypeInterface != null)
+                        if (pluginType.IsPublic)
                         {
-                            IPhysicsPlugin plug =
-                                (IPhysicsPlugin) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            plug.Init();
-                            if (!_PhysPlugins.ContainsKey(plug.GetName()))
+                            if (!pluginType.IsAbstract)
                             {
-                                _PhysPlugins.Add(plug.GetName(), plug);
-                                m_log.Info("[PHYSICS]: Added physics engine: " + plug.GetName());
+                                Type physTypeInterface = pluginType.GetInterface("IPhysicsPlugin", true);
+
+                                if (physTypeInterface != null)
+                                {
+                                    IPhysicsPlugin plug =
+                                        (IPhysicsPlugin)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                                    plug.Init();
+                                    if (!_PhysPlugins.ContainsKey(plug.GetName()))
+                                    {
+                                        _PhysPlugins.Add(plug.GetName(), plug);
+                                        m_log.Info("[PHYSICS]: Added physics engine: " + plug.GetName());
+                                    }
+                                }
+
+                                Type meshTypeInterface = pluginType.GetInterface("IMeshingPlugin", true);
+
+                                if (meshTypeInterface != null)
+                                {
+                                    IMeshingPlugin plug =
+                                        (IMeshingPlugin)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                                    if (!_MeshPlugins.ContainsKey(plug.GetName()))
+                                    {
+                                        _MeshPlugins.Add(plug.GetName(), plug);
+                                        m_log.Info("[PHYSICS]: Added meshing engine: " + plug.GetName());
+                                    }
+                                }
+
+                                physTypeInterface = null;
+                                meshTypeInterface = null;
                             }
                         }
-
-                        Type meshTypeInterface = pluginType.GetInterface("IMeshingPlugin", true);
-
-                        if (meshTypeInterface != null)
-                        {
-                            IMeshingPlugin plug =
-                                (IMeshingPlugin) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            if (!_MeshPlugins.ContainsKey(plug.GetName()))
-                            {
-                                _MeshPlugins.Add(plug.GetName(), plug);
-                                m_log.Info("[PHYSICS]: Added meshing engine: " + plug.GetName());
-                            }
-                        }
-
-                        physTypeInterface = null;
-                        meshTypeInterface = null;
                     }
                 }
             }

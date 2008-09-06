@@ -28,8 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 
@@ -46,18 +46,18 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         // Fields
         private bool m_dumpAssetsToFile;
         public AgentAssetTransactionsManager Manager;
-        public LLUUID UserID;
-        public Dictionary<LLUUID, AssetXferUploader> XferUploaders = new Dictionary<LLUUID, AssetXferUploader>();
+        public UUID UserID;
+        public Dictionary<UUID, AssetXferUploader> XferUploaders = new Dictionary<UUID, AssetXferUploader>();
 
         // Methods
-        public AgentAssetTransactions(LLUUID agentID, AgentAssetTransactionsManager manager, bool dumpAssetsToFile)
+        public AgentAssetTransactions(UUID agentID, AgentAssetTransactionsManager manager, bool dumpAssetsToFile)
         {
             UserID = agentID;
             Manager = manager;
             m_dumpAssetsToFile = dumpAssetsToFile;
         }
 
-        public AssetXferUploader RequestXferUploader(LLUUID transactionID)
+        public AssetXferUploader RequestXferUploader(UUID transactionID)
         {
             if (!XferUploaders.ContainsKey(transactionID))
             {
@@ -90,7 +90,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             }
         }
 
-        public void RequestCreateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+        public void RequestCreateInventoryItem(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                                uint callbackID, string description, string name, sbyte invType,
                                                sbyte type, byte wearableType, uint nextOwnerMask)
         {
@@ -102,7 +102,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             }
         }
 
-        public void RequestUpdateInventoryItem(IClientAPI remoteClient, LLUUID transactionID,
+        public void RequestUpdateInventoryItem(IClientAPI remoteClient, UUID transactionID,
                                                InventoryItemBase item)
         {
             if (XferUploaders.ContainsKey(transactionID))
@@ -116,7 +116,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         /// </summary>
         /// <param name="transactionID"></param>
         /// <returns>The asset if the upload has completed, null if it has not.</returns>
-        public AssetBase GetTransactionAsset(LLUUID transactionID)
+        public AssetBase GetTransactionAsset(UUID transactionID)
         {
             if (XferUploaders.ContainsKey(transactionID))
             {
@@ -143,7 +143,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             // Fields
             public bool AddToInventory;
             public AssetBase Asset;
-            public LLUUID InventFolder = LLUUID.Zero;
+            public UUID InventFolder = UUID.Zero;
             private sbyte invType = 0;
             private bool m_createItem = false;
             private string m_description = String.Empty;
@@ -154,7 +154,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             private AgentAssetTransactions m_userTransactions;
             private uint nextPerm = 0;
             private IClientAPI ourClient;
-            public LLUUID TransactionID = LLUUID.Zero;
+            public UUID TransactionID = UUID.Zero;
             private sbyte type = 0;
             public bool UploadComplete;
             private byte wearableType = 0;
@@ -210,7 +210,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             /// <param name="packetID"></param>
             /// <param name="data"></param>
             /// <returns>True if the transfer is complete, false otherwise</returns>
-            public bool Initialise(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data,
+            public bool Initialise(IClientAPI remoteClient, UUID assetID, UUID transaction, sbyte type, byte[] data,
                                    bool storeLocal, bool tempFile)
             {
                 ourClient = remoteClient;
@@ -297,7 +297,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 fs.Close();
             }
 
-            public void RequestCreateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+            public void RequestCreateInventoryItem(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                                    uint callbackID, string description, string name, sbyte invType,
                                                    sbyte type, byte wearableType, uint nextOwnerMask)
             {
@@ -321,7 +321,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 }
             }
 
-            public void RequestUpdateInventoryItem(IClientAPI remoteClient, LLUUID transactionID,
+            public void RequestUpdateInventoryItem(IClientAPI remoteClient, UUID transactionID,
                                                    InventoryItemBase item)
             {
                 if (TransactionID == transactionID)
@@ -332,7 +332,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
                     if (userInfo != null)
                     {
-                        LLUUID assetID = LLUUID.Combine(transactionID, remoteClient.SecureSessionId);
+                        UUID assetID = UUID.Combine(transactionID, remoteClient.SecureSessionId);
 
                         AssetBase asset
                             = m_userTransactions.Manager.MyScene.CommsManager.AssetCache.GetAsset(
@@ -346,7 +346,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                         if (asset != null && asset.FullID == assetID)
                         {
                             // Assets never get updated, new ones get created
-                            asset.FullID = LLUUID.Random();
+                            asset.FullID = UUID.Random();
                             asset.Name = item.Name;
                             asset.Description = item.Description;
                             asset.Type = (sbyte) item.AssetType;
@@ -371,7 +371,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     InventoryItemBase item = new InventoryItemBase();
                     item.Owner = ourClient.AgentId;
                     item.Creator = ourClient.AgentId;
-                    item.ID = LLUUID.Random();
+                    item.ID = UUID.Random();
                     item.AssetID = Asset.FullID;
                     item.Description = m_description;
                     item.Name = m_name;

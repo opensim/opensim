@@ -37,7 +37,7 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Security.Authentication;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -125,7 +125,7 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["server_uri"] = regionInfo.ServerURI;
             GridParams["region_secret"] = regionInfo.regionSecret;
 
-            if (regionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
+            if (regionInfo.MasterAvatarAssignedUUID != UUID.Zero)
                 GridParams["master_avatar_uuid"] = regionInfo.MasterAvatarAssignedUUID.ToString();
             else
                 GridParams["master_avatar_uuid"] = regionInfo.EstateSettings.EstateOwner.ToString();
@@ -275,7 +275,7 @@ namespace OpenSim.Region.Communications.OGS1
                             sri.HttpPort = Convert.ToUInt32(neighbourData["http_port"]);
                         }
 
-                        sri.RegionID = new LLUUID((string) neighbourData["uuid"]);
+                        sri.RegionID = new UUID((string) neighbourData["uuid"]);
 
                         neighbours.Add(sri);
                     }
@@ -294,7 +294,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// FIXME: Might be nicer to return a proper exception here since we could inform the client more about the
         /// nature of the faiulre.
         /// </returns>
-        public RegionInfo RequestNeighbourInfo(LLUUID Region_UUID)
+        public RegionInfo RequestNeighbourInfo(UUID Region_UUID)
         {
             RegionInfo regionInfo;
             Hashtable requestData = new Hashtable();
@@ -344,7 +344,7 @@ namespace OpenSim.Region.Communications.OGS1
                 regionInfo.HttpPort = Convert.ToUInt32((string) responseData["http_port"]);
             }
 
-            regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
+            regionInfo.RegionID = new UUID((string) responseData["region_UUID"]);
             regionInfo.RegionName = (string) responseData["region_name"];
 
             if (requestData.ContainsKey("regionHandle"))
@@ -407,7 +407,7 @@ namespace OpenSim.Region.Communications.OGS1
                         regionInfo.HttpPort = Convert.ToUInt32((string) responseData["http_port"]);
                     }
 
-                    regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
+                    regionInfo.RegionID = new UUID((string) responseData["region_UUID"]);
                     regionInfo.RegionName = (string) responseData["region_name"];
 
                     lock (m_remoteRegionInfoCache)
@@ -475,7 +475,7 @@ namespace OpenSim.Region.Communications.OGS1
                     regionInfo.HttpPort = Convert.ToUInt32((string) responseData["http_port"]);
                 }
 
-                regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
+                regionInfo.RegionID = new UUID((string) responseData["region_UUID"]);
                 regionInfo.RegionName = (string) responseData["region_name"];
 
                 if (!m_remoteRegionInfoCache.ContainsKey(regionInfo.RegionHandle))
@@ -533,7 +533,7 @@ namespace OpenSim.Region.Communications.OGS1
                     neighbour.Access = Convert.ToByte(n["access"]);
                     neighbour.RegionFlags = Convert.ToUInt32(n["region-flags"]);
                     neighbour.WaterHeight = Convert.ToByte(n["water-height"]);
-                    neighbour.MapImageId = new LLUUID((string) n["map-image-id"]);
+                    neighbour.MapImageId = new UUID((string) n["map-image-id"]);
 
                     neighbours.Add(neighbour);
                 }
@@ -606,11 +606,11 @@ namespace OpenSim.Region.Communications.OGS1
             m_log.Debug("[CONNECTION DEBUGGING]: Expect User called, starting agent setup ... ");
             Hashtable requestData = (Hashtable) request.Params[0];
             AgentCircuitData agentData = new AgentCircuitData();
-            agentData.SessionID = new LLUUID((string) requestData["session_id"]);
-            agentData.SecureSessionID = new LLUUID((string) requestData["secure_session_id"]);
+            agentData.SessionID = new UUID((string) requestData["session_id"]);
+            agentData.SecureSessionID = new UUID((string) requestData["secure_session_id"]);
             agentData.firstname = (string) requestData["firstname"];
             agentData.lastname = (string) requestData["lastname"];
-            agentData.AgentID = new LLUUID((string) requestData["agent_id"]);
+            agentData.AgentID = new UUID((string) requestData["agent_id"]);
             agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
             agentData.CapsPath = (string) requestData["caps_path"];
 
@@ -623,7 +623,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 m_log.Debug("[CONNECTION DEBUGGING]: Main agent detected");
                 agentData.startpos =
-                    new LLVector3((float)Convert.ToDecimal((string)requestData["startpos_x"]),
+                    new Vector3((float)Convert.ToDecimal((string)requestData["startpos_x"]),
                                   (float)Convert.ToDecimal((string)requestData["startpos_y"]),
                                   (float)Convert.ToDecimal((string)requestData["startpos_z"]));
                 agentData.child = false;
@@ -684,10 +684,10 @@ namespace OpenSim.Region.Communications.OGS1
             m_log.Debug("[CONNECTION DEBUGGING]: LogOff User Called ");
             Hashtable requestData = (Hashtable)request.Params[0];
             string message = (string)requestData["message"];
-            LLUUID agentID = LLUUID.Zero;
-            LLUUID RegionSecret = LLUUID.Zero;
-            Helpers.TryParse((string)requestData["agent_id"], out agentID);
-            Helpers.TryParse((string)requestData["region_secret"], out RegionSecret);
+            UUID agentID = UUID.Zero;
+            UUID RegionSecret = UUID.Zero;
+            UUID.TryParse((string)requestData["agent_id"], out agentID);
+            UUID.TryParse((string)requestData["region_secret"], out RegionSecret);
 
             ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
 
@@ -1072,7 +1072,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
+        public bool InformRegionOfPrimCrossing(ulong regionHandle, UUID primID, string objData, int XMLMethod)
         {
             int failures = 0;
             lock (m_deadRegionCache)
@@ -1106,7 +1106,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                         if (remObject != null)
                         {
-                            retValue = remObject.InformRegionOfPrimCrossing(regionHandle, primID.UUID, objData, XMLMethod);
+                            retValue = remObject.InformRegionOfPrimCrossing(regionHandle, primID.Guid, objData, XMLMethod);
                         }
                         else
                         {
@@ -1168,7 +1168,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="agentID"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public bool ExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
         {
             RegionInfo[] regions = m_regionsOnInstance.ToArray();
             bool banned = false;
@@ -1212,7 +1212,7 @@ namespace OpenSim.Region.Communications.OGS1
                     if (remObject != null)
                     {
                         retValue =
-                            remObject.ExpectAvatarCrossing(regionHandle, agentID.UUID, new sLLVector3(position),
+                            remObject.ExpectAvatarCrossing(regionHandle, agentID.Guid, position,
                                                            isFlying);
                     }
                     else
@@ -1246,7 +1246,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool ExpectPrimCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isPhysical)
+        public bool ExpectPrimCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isPhysical)
         {
             RegionInfo regInfo = null;
             try
@@ -1269,7 +1269,7 @@ namespace OpenSim.Region.Communications.OGS1
                     if (remObject != null)
                     {
                         retValue =
-                            remObject.ExpectAvatarCrossing(regionHandle, agentID.UUID, new sLLVector3(position),
+                            remObject.ExpectAvatarCrossing(regionHandle, agentID.Guid, position,
                                                            isPhysical);
                     }
                     else
@@ -1322,7 +1322,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        public bool TellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
         {
             RegionInfo regInfo = null;
             try
@@ -1345,7 +1345,7 @@ namespace OpenSim.Region.Communications.OGS1
                     if (remObject != null)
                     {
                         // retValue =
-                        remObject.TellRegionToCloseChildConnection(regionHandle, agentID.UUID);
+                        remObject.TellRegionToCloseChildConnection(regionHandle, agentID.Guid);
                     }
                     else
                     {
@@ -1421,12 +1421,12 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId)
+        public bool AcknowledgeAgentCrossed(ulong regionHandle, UUID agentId)
         {
             return m_localBackend.AcknowledgeAgentCrossed(regionHandle, agentId);
         }
 
-        public bool AcknowledgePrimCrossed(ulong regionHandle, LLUUID primId)
+        public bool AcknowledgePrimCrossed(ulong regionHandle, UUID primId)
         {
             return m_localBackend.AcknowledgePrimCrossed(regionHandle, primId);
         }
@@ -1509,7 +1509,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        public bool IncomingPrim(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
+        public bool IncomingPrim(ulong regionHandle, UUID primID, string objData, int XMLMethod)
         {
             // Is this necessary?
             try
@@ -1532,7 +1532,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="agentID"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public bool TriggerExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
+        public bool TriggerExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
         {
             try
             {
@@ -1545,7 +1545,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool TriggerExpectPrimCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isPhysical)
+        public bool TriggerExpectPrimCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isPhysical)
         {
             try
             {
@@ -1558,7 +1558,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID)
+        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
         {
             try
             {
@@ -1692,18 +1692,18 @@ namespace OpenSim.Region.Communications.OGS1
                         hash = (Hashtable)response.Value;
                         try {
                             landData = new LandData();
-                            landData.AABBMax = LLVector3.Parse((string)hash["AABBMax"]);
-                            landData.AABBMin = LLVector3.Parse((string)hash["AABBMin"]);
+                            landData.AABBMax = Vector3.Parse((string)hash["AABBMax"]);
+                            landData.AABBMin = Vector3.Parse((string)hash["AABBMin"]);
                             landData.Area = Convert.ToInt32(hash["Area"]);
                             landData.AuctionID = Convert.ToUInt32(hash["AuctionID"]);
                             landData.Description = (string)hash["Description"];
                             landData.Flags = Convert.ToUInt32(hash["Flags"]);
-                            landData.GlobalID = new LLUUID((string)hash["GlobalID"]);
+                            landData.GlobalID = new UUID((string)hash["GlobalID"]);
                             landData.Name = (string)hash["Name"];
-                            landData.OwnerID = new LLUUID((string)hash["OwnerID"]);
+                            landData.OwnerID = new UUID((string)hash["OwnerID"]);
                             landData.SalePrice = Convert.ToInt32(hash["SalePrice"]);
-                            landData.SnapshotID = new LLUUID((string)hash["SnapshotID"]);
-                            landData.UserLocation = LLVector3.Parse((string)hash["UserLocation"]);
+                            landData.SnapshotID = new UUID((string)hash["SnapshotID"]);
+                            landData.UserLocation = Vector3.Parse((string)hash["UserLocation"]);
                             m_log.DebugFormat("[OGS1 GRID SERVICES] Got land data for parcel {0}", landData.Name);
                         }
                         catch (Exception e)
@@ -1739,7 +1739,7 @@ namespace OpenSim.Region.Communications.OGS1
             if (landData != null)
             {
                 // for now, only push out the data we need for answering a ParcelInfoReqeust
-                // FIXME: these Replace calls are necessary as LLVector3.Parse can't parse vectors with spaces in them. Can be removed as soon as we switch to a newer version
+                // FIXME: these Replace calls are necessary as Vector3.Parse can't parse vectors with spaces in them. Can be removed as soon as we switch to a newer version
                 hash["AABBMax"] = landData.AABBMax.ToString().Replace(" ", "");
                 hash["AABBMin"] = landData.AABBMin.ToString().Replace(" ", "");
                 hash["Area"] = landData.Area.ToString();

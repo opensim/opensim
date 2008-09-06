@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -141,7 +141,7 @@ namespace OpenSim.Region.Environment.Scenes
         ///
         /// </summary>
         /// <param name="agentID"></param>
-        public abstract void RemoveClient(LLUUID agentID);
+        public abstract void RemoveClient(UUID agentID);
 
         public abstract void CloseAllAgents(uint circuitcode);
 
@@ -175,7 +175,7 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerPhysicsCrash(RegionInfo);
         }
 
-        public virtual bool PresenceChildStatus(LLUUID avatarID)
+        public virtual bool PresenceChildStatus(UUID avatarID)
         {
             return false;
         }
@@ -210,8 +210,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// XXX These two methods are very temporary
         /// </summary>
-        protected Dictionary<LLUUID, string> capsPaths = new Dictionary<LLUUID, string>();
-        public string GetCapsPath(LLUUID agentId)
+        protected Dictionary<UUID, string> capsPaths = new Dictionary<UUID, string>();
+        public string GetCapsPath(UUID agentId)
         {
             if (capsPaths.ContainsKey(agentId))
             {

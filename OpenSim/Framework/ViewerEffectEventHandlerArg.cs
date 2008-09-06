@@ -1,14 +1,14 @@
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class ViewerEffectEventHandlerArg : EventArgs
     {
-        public LLUUID AgentID;
+        public UUID AgentID;
         public byte[] Color;
         public float Duration;
-        public LLUUID ID;
+        public UUID ID;
         public byte Type;
         public byte[] TypeData;
     }

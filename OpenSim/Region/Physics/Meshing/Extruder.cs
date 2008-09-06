@@ -26,6 +26,7 @@
  */
 //#define SPAM
 
+using OpenMetaverse;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.Meshing
@@ -71,9 +72,6 @@ namespace OpenSim.Region.Physics.Meshing
         public Mesh ExtrudeLinearPath(Mesh m)
         {
             Mesh result = new Mesh();
-
-            // Quaternion tt = new Quaternion();
-            // Vertex v2 = new Vertex(0, 0, 0);
 
             Mesh newLayer;
             Mesh lastLayer = null;
@@ -163,7 +161,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                 // apply twist rotation to the profile layer and position the layer in the prim
 
-                Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), twist);
+                Quaternion profileRot = Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), twist);
                 foreach (Vertex v in newLayer.vertices)
                 {
                     if (v != null)
@@ -258,9 +256,6 @@ namespace OpenSim.Region.Physics.Meshing
         public Mesh ExtrudeCircularPath(Mesh m)
         {
             Mesh result = new Mesh();
-
-            // Quaternion tt = new Quaternion();
-            // Vertex v2 = new Vertex(0, 0, 0);
 
             Mesh newLayer;
             Mesh lastLayer = null;
@@ -377,7 +372,7 @@ namespace OpenSim.Region.Physics.Meshing
                 // next apply twist rotation to the profile layer
                 if (twistTotal != 0.0f || twistBot != 0.0f)
                 {
-                    Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), twist);
+                    Quaternion profileRot = new Quaternion(new Vector3(0.0f, 0.0f, 1.0f), twist);
                     foreach (Vertex v in newLayer.vertices)
                     {
                         if (v != null)
@@ -392,7 +387,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                 // now orient the rotation of the profile layer relative to it's position on the path
                 // adding pushY to the angle used to generate the quat appears to approximate the viewer
-                Quaternion layerRot = new Quaternion(new Vertex(1.0f, 0.0f, 0.0f), (float)angle + pushY * 0.9f);
+                Quaternion layerRot = Quaternion.CreateFromAxisAngle(new Vector3(1.0f, 0.0f, 0.0f), (float)angle + pushY * 0.9f);
                 foreach (Vertex v in newLayer.vertices)
                 {
                     if (v != null)

@@ -27,7 +27,7 @@
 
 using System.Reflection;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 
@@ -37,28 +37,28 @@ namespace OpenSim.Data
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // private Dictionary<LLUUID, AvatarAppearance> aplist = new Dictionary<LLUUID, AvatarAppearance>();
+        // private Dictionary<UUID, AvatarAppearance> aplist = new Dictionary<UUID, AvatarAppearance>();
 
-        public abstract UserProfileData GetUserByUUID(LLUUID user);
+        public abstract UserProfileData GetUserByUUID(UUID user);
         public abstract UserProfileData GetUserByName(string fname, string lname);
-        public abstract UserAgentData GetAgentByUUID(LLUUID user);
+        public abstract UserAgentData GetAgentByUUID(UUID user);
         public abstract UserAgentData GetAgentByName(string name);
         public abstract UserAgentData GetAgentByName(string fname, string lname);
-        public abstract void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey);
+        public abstract void StoreWebLoginKey(UUID agentID, UUID webLoginKey);
         public abstract void AddNewUserProfile(UserProfileData user);
         public abstract bool UpdateUserProfile(UserProfileData user);
-        public abstract void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle);
+        public abstract void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle);
         public abstract void AddNewUserAgent(UserAgentData agent);
-        public abstract void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms);
-        public abstract void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend);
-        public abstract void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms);
-        public abstract List<FriendListItem> GetUserFriendList(LLUUID friendlistowner);
-        public abstract bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount);
-        public abstract bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory);
-        public abstract List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
-        public abstract AvatarAppearance GetUserAppearance(LLUUID user);
-        public abstract void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
-        // public virtual AvatarAppearance GetUserAppearance(LLUUID user) {
+        public abstract void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms);
+        public abstract void RemoveUserFriend(UUID friendlistowner, UUID friend);
+        public abstract void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms);
+        public abstract List<FriendListItem> GetUserFriendList(UUID friendlistowner);
+        public abstract bool MoneyTransferRequest(UUID from, UUID to, uint amount);
+        public abstract bool InventoryTransferRequest(UUID from, UUID to, UUID inventory);
+        public abstract List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query);
+        public abstract AvatarAppearance GetUserAppearance(UUID user);
+        public abstract void UpdateUserAppearance(UUID user, AvatarAppearance appearance);
+        // public virtual AvatarAppearance GetUserAppearance(UUID user) {
         //     AvatarAppearance aa = null;
         //     try {
         //         aa = aplist[user];
@@ -68,11 +68,11 @@ namespace OpenSim.Data
         //     }
         //     return aa;
         // }
-        // public virtual void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance) {
+        // public virtual void UpdateUserAppearance(UUID user, AvatarAppearance appearance) {
         //     aplist[user] = appearance;
         //     m_log.Info("[APPEARANCE] Setting appearance for " + user.ToString() + appearance.ToString());
         // }
-        public abstract void ResetAttachments(LLUUID userID);
+        public abstract void ResetAttachments(UUID userID);
 
         public abstract string Version {get;}
         public abstract string Name {get;}

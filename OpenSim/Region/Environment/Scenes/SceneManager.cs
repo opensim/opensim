@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -190,7 +190,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="filename"></param>
         /// <param name="generateNewIDs"></param>
         /// <param name="loadOffset"></param>
-        public void LoadCurrentSceneFromXml(string filename, bool generateNewIDs, LLVector3 loadOffset)
+        public void LoadCurrentSceneFromXml(string filename, bool generateNewIDs, Vector3 loadOffset)
         {
             CurrentOrFirstScene.LoadPrimsFromXml(filename, generateNewIDs, loadOffset);
         }
@@ -320,7 +320,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public bool TrySetCurrentScene(LLUUID regionID)
+        public bool TrySetCurrentScene(UUID regionID)
         {
             Console.WriteLine("Searching for Region: '{0}'", regionID.ToString());
 
@@ -350,7 +350,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public bool TryGetScene(LLUUID regionID, out Scene scene)
+        public bool TryGetScene(UUID regionID, out Scene scene)
         {
             foreach (Scene mscene in m_localScenes)
             {
@@ -481,7 +481,7 @@ namespace OpenSim.Region.Environment.Scenes
             ForEachCurrentScene(delegate(Scene scene) { scene.HandleEditCommand(cmdparams); });
         }
 
-        public bool TryGetAvatar(LLUUID avatarId, out ScenePresence avatar)
+        public bool TryGetAvatar(UUID avatarId, out ScenePresence avatar)
         {
             foreach (Scene scene in m_localScenes)
             {
@@ -495,7 +495,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public bool TryGetAvatarsScene(LLUUID avatarId, out Scene scene)
+        public bool TryGetAvatarsScene(UUID avatarId, out Scene scene)
         {
             ScenePresence avatar = null;
             foreach (Scene mScene in m_localScenes)

@@ -32,7 +32,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
@@ -70,9 +70,9 @@ namespace OpenSim.Grid.AssetServer
 
             if (p.Length > 0)
             {
-                LLUUID assetID = null;
+                UUID assetID = null;
 
-                if (!LLUUID.TryParse(p[0], out assetID))
+                if (!UUID.TryParse(p[0], out assetID))
                 {
                     m_log.InfoFormat(
                         "[REST]: GET:/asset ignoring request with malformed UUID {0}", p[0]);
@@ -128,9 +128,9 @@ namespace OpenSim.Grid.AssetServer
         {
             string param = GetParam(path);
 
-            LLUUID assetId;
+            UUID assetId;
             if (param.Length > 0)
-                LLUUID.TryParse(param, out assetId);
+                UUID.TryParse(param, out assetId);
             // byte[] txBuffer = new byte[4096];
 
             XmlSerializer xs = new XmlSerializer(typeof (AssetBase));

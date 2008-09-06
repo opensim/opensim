@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Framework.Communications
@@ -47,69 +47,69 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="callback"></param>
-        void RequestInventoryForUser(LLUUID userID, LLUUID session_id, InventoryReceiptCallback callback);
+        void RequestInventoryForUser(UUID userID, UUID session_id, InventoryReceiptCallback callback);
 
         /// <summary>
         /// Add a new folder to the user's inventory
         /// </summary>
         /// <param name="folder"></param>
         /// <returns>true if the folder was successfully added</returns>
-        bool AddFolder(InventoryFolderBase folder, LLUUID session_id);
+        bool AddFolder(InventoryFolderBase folder, UUID session_id);
 
         /// <summary>
         /// Update a folder in the user's inventory
         /// </summary>
         /// <param name="folder"></param>
         /// <returns>true if the folder was successfully updated</returns>
-        bool UpdateFolder(InventoryFolderBase folder, LLUUID session_id);
+        bool UpdateFolder(InventoryFolderBase folder, UUID session_id);
 
         /// <summary>
         /// Move an inventory folder to a new location
         /// </summary>
         /// <param name="folder">A folder containing the details of the new location</param>
         /// <returns>true if the folder was successfully moved</returns>
-        bool MoveFolder(InventoryFolderBase folder, LLUUID session_id);
+        bool MoveFolder(InventoryFolderBase folder, UUID session_id);
 
         /// <summary>
         /// Purge an inventory folder of all its items and subfolders.
         /// </summary>
         /// <param name="folder"></param>
         /// <returns>true if the folder was successfully purged</returns>
-        bool PurgeFolder(InventoryFolderBase folder, LLUUID session_id);
+        bool PurgeFolder(InventoryFolderBase folder, UUID session_id);
 
         /// <summary>
         /// Add a new item to the user's inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully added</returns>
-        bool AddItem(InventoryItemBase item, LLUUID session_id);
+        bool AddItem(InventoryItemBase item, UUID session_id);
 
         /// <summary>
         /// Update an item in the user's inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully updated</returns>
-        bool UpdateItem(InventoryItemBase item, LLUUID session_id);
+        bool UpdateItem(InventoryItemBase item, UUID session_id);
 
         /// <summary>
         /// Delete an item from the user's inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully deleted</returns>
-        bool DeleteItem(InventoryItemBase item, LLUUID session_id);
+        bool DeleteItem(InventoryItemBase item, UUID session_id);
 
         /// <summary>
         /// Does the given user have an inventory structure?
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
-        bool HasInventoryForUser(LLUUID userID);
+        bool HasInventoryForUser(UUID userID);
 
         /// <summary>
         /// Retrieve the root inventory folder for the given user.
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>null if no root folder was found</returns>
-        InventoryFolderBase RequestRootFolder(LLUUID userID);
+        InventoryFolderBase RequestRootFolder(UUID userID);
     }
 }

@@ -28,7 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -66,7 +66,7 @@ using OpenSim.Region.Environment.Scenes;
  *
  * For LSL compliance, note the following:
  * (Tested again 1.21.1 on May 2, 2008)
- * 1. 'id' has to be parsed into a LLUUID. None-UUID keys are
+ * 1. 'id' has to be parsed into a UUID. None-UUID keys are
  *    to be replaced by the ZeroID key. (Well, TryParse does
  *    that for us.
  * 2. Setting up an listen event from the same script, with the
@@ -157,7 +157,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         /// <param name="id">key to filter on (user given, could be totally faked)</param>
         /// <param name="msg">msg to filter on</param>
         /// <returns>number of the scripts handle</returns>
-        public int Listen(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, LLUUID id, string msg)
+        public int Listen(uint localID, UUID itemID, UUID hostID, int channel, string name, UUID id, string msg)
         {
             return m_listenerManager.AddListener(localID, itemID, hostID, channel, name, id, msg);
         }
@@ -169,7 +169,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         /// <param name="itemID">UUID of the script engine</param>
         /// <param name="handle">handle returned by Listen()</param>
         /// <param name="active">temp. activate or deactivate the Listen()</param>
-        public void ListenControl(LLUUID itemID, int handle, int active)
+        public void ListenControl(UUID itemID, int handle, int active)
         {
             if (active == 1)
                 m_listenerManager.Activate(itemID, handle);
@@ -182,7 +182,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         /// </summary>
         /// <param name="itemID">UUID of the script engine</param>
         /// <param name="handle">handle returned by Listen()</param>
-        public void ListenRemove(LLUUID itemID, int handle)
+        public void ListenRemove(UUID itemID, int handle)
         {
             m_listenerManager.Remove(itemID, handle);
         }
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         /// (script engine)
         /// </summary>
         /// <param name="itemID">UUID of the script engine</param>
-        public void DeleteListener(LLUUID itemID)
+        public void DeleteListener(UUID itemID)
         {
             m_listenerManager.DeleteListener(itemID);
         }
@@ -210,11 +210,11 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         /// <param name="name">name of sender (object or avatar)</param>
         /// <param name="id">key of sender (object or avatar)</param>
         /// <param name="msg">msg to sent</param>
-        public void DeliverMessage(ChatTypeEnum type, int channel, string name, LLUUID id, string msg)
+        public void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg)
         {
             SceneObjectPart source = null;
             ScenePresence avatar = null;
-            LLVector3 position;
+            Vector3 position;
 
             source = m_scene.GetSceneObjectPart(id);
             if (source != null)
@@ -231,7 +231,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             // Determine which listen event filters match the given set of arguments, this results
             // in a limited set of listeners, each belonging a host. If the host is in range, add them
             // to the pending queue.
-            foreach (ListenerInfo li in m_listenerManager.GetListeners(LLUUID.Zero, channel, name, id, msg))
+            foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
             {
                 // Dont process if this message is from yourself!
                 if (li.GetHostID().Equals(id))
@@ -331,12 +331,12 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
                            e.Message);
         }
 
-        public Object[] GetSerializationData(LLUUID itemID)
+        public Object[] GetSerializationData(UUID itemID)
         {
             return m_listenerManager.GetSerializationData(itemID);
         }
 
-        public void CreateFromData(uint localID, LLUUID itemID, LLUUID hostID,
+        public void CreateFromData(uint localID, UUID itemID, UUID hostID,
                 Object[] data)
         {
             m_listenerManager.AddFromData(localID, itemID, hostID, data);
@@ -357,7 +357,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             m_curlisteners = 0;
         }
 
-        public int AddListener(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, LLUUID id, string msg)
+        public int AddListener(uint localID, UUID itemID, UUID hostID, int channel, string name, UUID id, string msg)
         {
             // do we already have a match on this particular filter event?
             List<ListenerInfo> coll = GetListeners(itemID, channel, name, id, msg);
@@ -395,7 +395,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             return -1;
         }
 
-        public void Remove(LLUUID itemID, int handle)
+        public void Remove(UUID itemID, int handle)
         {
             lock (m_listeners)
             {
@@ -419,7 +419,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             }
         }
 
-        public void DeleteListener(LLUUID itemID)
+        public void DeleteListener(UUID itemID)
         {
             List<int> emptyChannels = new List<int>();
             List<ListenerInfo> removedListeners = new List<ListenerInfo>();
@@ -455,7 +455,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             }
         }
 
-        public void Activate(LLUUID itemID, int handle)
+        public void Activate(UUID itemID, int handle)
         {
             lock (m_listeners)
             {
@@ -474,7 +474,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             }
         }
 
-        public void Dectivate(LLUUID itemID, int handle)
+        public void Dectivate(UUID itemID, int handle)
         {
             lock (m_listeners)
             {
@@ -494,7 +494,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         }
 
         // non-locked access, since its always called in the context of the lock
-        private int GetNewHandle(LLUUID itemID)
+        private int GetNewHandle(UUID itemID)
         {
             List<int> handles = new List<int>();
 
@@ -521,7 +521,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         // Theres probably a more clever and efficient way to
         // do this, maybe with regex.
         // PM2008: Ha, one could even be smart and define a specialized Enumerator.
-        public List<ListenerInfo> GetListeners(LLUUID itemID, int channel, string name, LLUUID id, string msg)
+        public List<ListenerInfo> GetListeners(UUID itemID, int channel, string name, UUID id, string msg)
         {
             List<ListenerInfo> collection = new List<ListenerInfo>();
 
@@ -539,7 +539,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
                     {
                         continue;
                     }
-                    if (!itemID.Equals(LLUUID.Zero) && !li.GetItemID().Equals(itemID))
+                    if (!itemID.Equals(UUID.Zero) && !li.GetItemID().Equals(itemID))
                     {
                         continue;
                     }
@@ -547,7 +547,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
                     {
                         continue;
                     }
-                    if (!li.GetID().Equals(LLUUID.Zero) && !li.GetID().Equals(id))
+                    if (!li.GetID().Equals(UUID.Zero) && !li.GetID().Equals(id))
                     {
                         continue;
                     }
@@ -561,7 +561,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             return collection;
         }
 
-        public Object[] GetSerializationData(LLUUID itemID)
+        public Object[] GetSerializationData(UUID itemID)
         {
             List<Object> data = new List<Object>();
 
@@ -576,7 +576,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             return (Object[])data.ToArray();
         }
 
-        public void AddFromData(uint localID, LLUUID itemID, LLUUID hostID,
+        public void AddFromData(uint localID, UUID itemID, UUID hostID,
                 Object[] data)
         {
             int idx = 0;
@@ -603,25 +603,25 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         private bool m_active; // Listener is active or not
         private int m_handle; // Assigned handle of this listener
         private uint m_localID; // Local ID from script engine
-        private LLUUID m_itemID; // ID of the host script engine
-        private LLUUID m_hostID; // ID of the host/scene part
+        private UUID m_itemID; // ID of the host script engine
+        private UUID m_hostID; // ID of the host/scene part
         private int m_channel; // Channel
-        private LLUUID m_id; // ID to filter messages from
+        private UUID m_id; // ID to filter messages from
         private string m_name; // Object name to filter messages from
         private string m_message; // The message
 
-        public ListenerInfo(int handle, uint localID, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id, string message)
+        public ListenerInfo(int handle, uint localID, UUID ItemID, UUID hostID, int channel, string name, UUID id, string message)
         {
             Initialise(handle, localID, ItemID, hostID, channel, name, id, message);
         }
 
-        public ListenerInfo(ListenerInfo li, string name, LLUUID id, string message)
+        public ListenerInfo(ListenerInfo li, string name, UUID id, string message)
         {
             Initialise(li.m_handle, li.m_localID, li.m_itemID, li.m_hostID, li.m_channel, name, id, message);
         }
 
-        private void Initialise(int handle, uint localID, LLUUID ItemID, LLUUID hostID, int channel, string name,
-                                LLUUID id, string message)
+        private void Initialise(int handle, uint localID, UUID ItemID, UUID hostID, int channel, string name,
+                                UUID id, string message)
         {
             m_active = true;
             m_handle = handle;
@@ -648,22 +648,22 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             return data;
         }
 
-        public static ListenerInfo FromData(uint localID, LLUUID ItemID, LLUUID hostID, Object[] data)
+        public static ListenerInfo FromData(uint localID, UUID ItemID, UUID hostID, Object[] data)
         {
             ListenerInfo linfo = new ListenerInfo((int)data[1], localID,
                     ItemID, hostID, (int)data[2], (string)data[3],
-                    (LLUUID)data[4], (string)data[5]);
+                    (UUID)data[4], (string)data[5]);
             linfo.m_active=(bool)data[0];
 
             return linfo;
         }
 
-        public LLUUID GetItemID()
+        public UUID GetItemID()
         {
             return m_itemID;
         }
 
-        public LLUUID GetHostID()
+        public UUID GetHostID()
         {
             return m_hostID;
         }
@@ -708,7 +708,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             m_active = true;
         }
 
-        public LLUUID GetID()
+        public UUID GetID()
         {
             return m_id;
         }

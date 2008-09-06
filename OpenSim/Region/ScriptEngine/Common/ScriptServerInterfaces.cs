@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
@@ -38,40 +38,40 @@ namespace OpenSim.Region.ScriptEngine.Common
     {
         public interface RemoteEvents
         {
-            void touch_start(uint localID, uint originalID, LLVector3 offsetPos, IClientAPI remoteClient);
-            void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez);
-            void OnRemoveScript(uint localID, LLUUID itemID);
+            void touch_start(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient);
+            void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez);
+            void OnRemoveScript(uint localID, UUID itemID);
             void state_exit(uint localID);
-            void touch(uint localID, uint originalID, LLUUID itemID);
-            void touch_end(uint localID, uint originalID, LLUUID itemID);
+            void touch(uint localID, uint originalID, UUID itemID);
+            void touch_end(uint localID, uint originalID, UUID itemID);
             void collision_start(uint localID, ColliderArgs col);
             void collision(uint localID, ColliderArgs col);
             void collision_end(uint localID, ColliderArgs col);
-            void land_collision_start(uint localID, LLUUID itemID);
+            void land_collision_start(uint localID, UUID itemID);
             void land_collision(uint localID, ColliderArgs col);
-            void land_collision_end(uint localID, LLUUID itemID);
-            void timer(uint localID, LLUUID itemID);
-            void listen(uint localID, LLUUID itemID);
-            void on_rez(uint localID, LLUUID itemID);
-            void sensor(uint localID, LLUUID itemID);
-            void no_sensor(uint localID, LLUUID itemID);
-            void control(uint localID, LLUUID itemID, LLUUID agentID, uint held, uint change);
-            void money(uint LocalID, LLUUID agentID, int amount);
-            void email(uint localID, LLUUID itemID);
-            void at_target(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos);
+            void land_collision_end(uint localID, UUID itemID);
+            void timer(uint localID, UUID itemID);
+            void listen(uint localID, UUID itemID);
+            void on_rez(uint localID, UUID itemID);
+            void sensor(uint localID, UUID itemID);
+            void no_sensor(uint localID, UUID itemID);
+            void control(uint localID, UUID itemID, UUID agentID, uint held, uint change);
+            void money(uint LocalID, UUID agentID, int amount);
+            void email(uint localID, UUID itemID);
+            void at_target(uint localID, uint handle, Vector3 targetpos, Vector3 atpos);
             void not_at_target(uint localID);
-            void at_rot_target(uint localID, LLUUID itemID);
-            void not_at_rot_target(uint localID, LLUUID itemID);
-            void run_time_permissions(uint localID, LLUUID itemID);
-            void changed(uint localID, LLUUID itemID);
-            void attach(uint localID, LLUUID itemID);
-            void dataserver(uint localID, LLUUID itemID);
-            void link_message(uint localID, LLUUID itemID);
-            void moving_start(uint localID, LLUUID itemID);
-            void moving_end(uint localID, LLUUID itemID);
-            void object_rez(uint localID, LLUUID itemID);
-            void remote_data(uint localID, LLUUID itemID);
-            void http_response(uint localID, LLUUID itemID);
+            void at_rot_target(uint localID, UUID itemID);
+            void not_at_rot_target(uint localID, UUID itemID);
+            void run_time_permissions(uint localID, UUID itemID);
+            void changed(uint localID, UUID itemID);
+            void attach(uint localID, UUID itemID);
+            void dataserver(uint localID, UUID itemID);
+            void link_message(uint localID, UUID itemID);
+            void moving_start(uint localID, UUID itemID);
+            void moving_end(uint localID, UUID itemID);
+            void object_rez(uint localID, UUID itemID);
+            void remote_data(uint localID, UUID itemID);
+            void http_response(uint localID, UUID itemID);
         }
 
         public interface ServerRemotingObject

@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Data.Base;
 using OpenSim.Framework;
 
@@ -55,15 +55,15 @@ namespace OpenSim.Data.Base
             m_schema = rowMapperSchema;
 
             m_keyFieldMapper = rowMapperSchema.AddMapping<Guid>("UUID",
-       delegate(AppearanceRowMapper mapper) { return mapper.Object.Owner.UUID; },
-       delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Owner = new LLUUID(value.ToString()); });
+       delegate(AppearanceRowMapper mapper) { return mapper.Object.Owner.Guid; },
+       delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Owner = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<uint>("Serial",
                   delegate(AppearanceRowMapper mapper) { return (uint)mapper.Object.Serial; },
        delegate(AppearanceRowMapper mapper, uint value) { mapper.Object.Serial = (int)value; });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem0",
-                 delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[0].ItemID.UUID; },
+                 delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[0].ItemID.Guid; },
       delegate(AppearanceRowMapper mapper, Guid value)
       {
           if (mapper.Object.Wearables == null)
@@ -74,121 +74,121 @@ namespace OpenSim.Data.Base
                   mapper.Object.Wearables[i] = new AvatarWearable();
               }
           }
-          mapper.Object.Wearables[0].ItemID = new LLUUID(value.ToString());
+          mapper.Object.Wearables[0].ItemID = new UUID(value.ToString());
       });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset0",
-                delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[0].AssetID.UUID; },
+                delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[0].AssetID.Guid; },
                 delegate(AppearanceRowMapper mapper, Guid value)
-                { mapper.Object.Wearables[0].AssetID = new LLUUID(value.ToString()); });
+                { mapper.Object.Wearables[0].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem1",
-                 delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[1].ItemID.UUID; },
-      delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[1].ItemID = new LLUUID(value.ToString()); });
+                 delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[1].ItemID.Guid; },
+      delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[1].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset1",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[1].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[1].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[1].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[1].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem2",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[2].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[2].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[2].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[2].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset2",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[2].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[2].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[2].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[2].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem3",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[3].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[3].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[3].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[3].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset3",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[3].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[3].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[3].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[3].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem4",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[4].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[4].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[4].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[4].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset4",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[4].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[4].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[4].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[4].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem5",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[5].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[5].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[5].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[5].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset5",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[5].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[5].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[5].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[5].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem6",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[6].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[6].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[6].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[6].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset6",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[6].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[6].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[6].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[6].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem7",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[7].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[7].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[7].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[7].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset7",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[7].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[7].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[7].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[7].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem8",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[8].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[8].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[8].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[8].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset8",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[8].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[8].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[8].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[8].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem9",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[9].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[9].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[9].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[9].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset9",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[9].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[9].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[9].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[9].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem10",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[10].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[10].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[10].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[10].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset10",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[10].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[10].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[10].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[10].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem11",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[11].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[11].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[11].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[11].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset11",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[11].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[11].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[11].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[11].AssetID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem12",
-              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[12].ItemID.UUID; },
-   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[12].ItemID = new LLUUID(value.ToString()); });
+              delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[12].ItemID.Guid; },
+   delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Wearables[12].ItemID = new UUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<Guid>("WearableAsset12",
-               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[12].AssetID.UUID; },
+               delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[12].AssetID.Guid; },
                delegate(AppearanceRowMapper mapper, Guid value)
-               { mapper.Object.Wearables[12].AssetID = new LLUUID(value.ToString()); });
+               { mapper.Object.Wearables[12].AssetID = new UUID(value.ToString()); });
 
         }
 
@@ -213,7 +213,7 @@ namespace OpenSim.Data.Base
         public bool Update(Guid userID, AvatarAppearance appearance)
         {
             AppearanceRowMapper mapper = CreateRowMapper(appearance);
-            return Update(appearance.Owner.UUID, mapper);
+            return Update(appearance.Owner.Guid, mapper);
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace OpenSim.Data.Base
         protected AppearanceRowMapper FromReader(BaseDataReader reader, AvatarAppearance appearance)
         {
             AppearanceRowMapper mapper = CreateRowMapper(appearance);
-            mapper.FillObject(reader);
+            mapper.FiPrimitive(reader);
             return mapper;
         }
 
@@ -256,7 +256,7 @@ namespace OpenSim.Data.Base
         public override AppearanceRowMapper FromReader(BaseDataReader reader)
         {
             AppearanceRowMapper mapper = CreateRowMapper();
-            mapper.FillObject(reader);
+            mapper.FiPrimitive(reader);
             return mapper;
         }
 

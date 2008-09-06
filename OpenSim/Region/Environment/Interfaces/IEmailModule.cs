@@ -27,7 +27,7 @@
 
 using System;
 using OpenSim.Framework;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
@@ -42,7 +42,7 @@ namespace OpenSim.Region.Environment.Interfaces
 
     public interface IEmailModule : IRegionModule
     {
-        void SendEmail(LLUUID objectID, string address, string subject, string body);
-        Email GetNextEmail(LLUUID objectID, string sender, string subject);
+        void SendEmail(UUID objectID, string address, string subject, string body);
+        Email GetNextEmail(UUID objectID, string sender, string subject);
     }
 }

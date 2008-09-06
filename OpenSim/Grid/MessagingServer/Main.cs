@@ -28,7 +28,7 @@
 using System;
 using System.IO;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using log4net.Config;
 
@@ -48,7 +48,7 @@ namespace OpenSim.Grid.MessagingServer
         private MessageServerConfig Cfg;
         private MessageService msgsvc;
 
-        // private LLUUID m_lastCreatedUser = LLUUID.Random();
+        // private UUID m_lastCreatedUser = UUID.Random();
 
         public static void Main(string[] args)
         {
@@ -84,7 +84,7 @@ namespace OpenSim.Grid.MessagingServer
         {
             base.Startup();
 
-            Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
+            Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.Xml")));
 
             m_log.Info("[REGION]: Starting HTTP process");
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
@@ -133,7 +133,7 @@ namespace OpenSim.Grid.MessagingServer
                     try
                     {
                         //RestObjectPoster.BeginPostObject<Guid>(m_userManager._config.InventoryUrl + "CreateInventory/",
-                                                               //userID.UUID);
+                                                               //userID.Guid);
                     }
                     catch (Exception ex)
                     {

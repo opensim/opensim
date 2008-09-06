@@ -36,7 +36,7 @@ using System.Text.RegularExpressions;
 using System.Timers;
 using System.Xml;
 using System.Xml.Serialization;
-using libsecondlife;
+using OpenMetaverse;
 using Mono.Addins;
 using Nwc.XmlRpc;
 using Nini.Config;
@@ -109,11 +109,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             // be resilient and don't get confused by a terminating '/'
             param = param.TrimEnd(new char[]{'/'});
             string[] comps = param.Split('/');
-            LLUUID regionID = (LLUUID)comps[0];
+            UUID regionID = (UUID)comps[0];
 
             m_log.DebugFormat("{0} GET region UUID {1}", MsgID, regionID.ToString());
 
-            if (LLUUID.Zero == regionID) throw new Exception("missing region ID");
+            if (UUID.Zero == regionID) throw new Exception("missing region ID");
 
             Scene scene = null;
             App.SceneManager.TryGetScene(regionID, out scene);
@@ -150,7 +150,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                     return RegionStats(httpResponse, scene);
 
                 case "prims":
-                    return RegionPrims(httpResponse, scene, LLVector3.Zero, LLVector3.Zero);
+                    return RegionPrims(httpResponse, scene, Vector3.Zero, Vector3.Zero);
                 }
             }
 
@@ -162,11 +162,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                     string[] subregion = comps[2].Split(',');
                     if (subregion.Length == 6)
                     {
-                        LLVector3 min, max;
+                        Vector3 min, max;
                         try
                         {
-                            min = new LLVector3((float)Double.Parse(subregion[0]), (float)Double.Parse(subregion[1]), (float)Double.Parse(subregion[2]));
-                            max = new LLVector3((float)Double.Parse(subregion[3]), (float)Double.Parse(subregion[4]), (float)Double.Parse(subregion[5]));
+                            min = new Vector3((float)Double.Parse(subregion[0]), (float)Double.Parse(subregion[1]), (float)Double.Parse(subregion[2]));
+                            max = new Vector3((float)Double.Parse(subregion[3]), (float)Double.Parse(subregion[4]), (float)Double.Parse(subregion[5]));
                         }
                         catch (Exception)
                         {
@@ -215,7 +215,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             return XmlWriterResult;
         }
 
-        protected string RegionPrims(OSHttpResponse httpResponse, Scene scene, LLVector3 min, LLVector3 max)
+        protected string RegionPrims(OSHttpResponse httpResponse, Scene scene, Vector3 min, Vector3 max)
         {
             httpResponse.SendChunked = true;
             httpResponse.ContentType = "text/xml";

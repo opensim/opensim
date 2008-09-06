@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -37,7 +37,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// The UUID for this folder
         /// </summary>
-        private LLUUID _id;
+        private UUID _id;
 
         /// <summary>
         /// The name of the folder (64 characters or less)
@@ -47,12 +47,12 @@ namespace OpenSim.Framework
         /// <summary>
         /// The agent who's inventory this is contained by
         /// </summary>
-        private LLUUID _owner;
+        private UUID _owner;
 
         /// <summary>
         /// The folder this folder is contained in
         /// </summary>
-        private LLUUID _parentID;
+        private UUID _parentID;
 
         /// <summary>
         /// Type of items normally stored in this folder
@@ -72,19 +72,19 @@ namespace OpenSim.Framework
             set { _name = value; }
         }
 
-        public virtual LLUUID Owner
+        public virtual UUID Owner
         {
             get { return _owner; }
             set { _owner = value; }
         }
 
-        public virtual LLUUID ParentID
+        public virtual UUID ParentID
         {
             get { return _parentID; }
             set { _parentID = value; }
         }
 
-        public virtual LLUUID ID
+        public virtual UUID ID
         {
             get { return _id; }
             set { _id = value; }

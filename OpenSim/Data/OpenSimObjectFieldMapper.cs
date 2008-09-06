@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Data.Base;
 
 namespace OpenSim.Data
@@ -47,17 +47,17 @@ namespace OpenSim.Data
             string fieldName = FieldName;
             object value = GetParamValue(obj);
 
-            if (ValueType == typeof(LLVector3))
+            if (ValueType == typeof(Vector3))
             {
-                LLVector3 vector = (LLVector3)value;
+                Vector3 vector = (Vector3)value;
 
                 RawAddParam(command, fieldNames, fieldName + "X", vector.X);
                 RawAddParam(command, fieldNames, fieldName + "Y", vector.Y);
                 RawAddParam(command, fieldNames, fieldName + "Z", vector.Z);
             }
-            else if (ValueType == typeof(LLQuaternion))
+            else if (ValueType == typeof(Quaternion))
             {
-                LLQuaternion quaternion = (LLQuaternion)value;
+                Quaternion quaternion = (Quaternion)value;
 
                 RawAddParam(command, fieldNames, fieldName + "X", quaternion.X);
                 RawAddParam(command, fieldNames, fieldName + "Y", quaternion.Y);
@@ -76,18 +76,18 @@ namespace OpenSim.Data
 
             OpenSimDataReader osreader = (OpenSimDataReader) reader;
 
-            if (ValueType == typeof(LLVector3))
+            if (ValueType == typeof(Vector3))
             {
                 value = osreader.GetVector(FieldName);
             }
-            else if (ValueType == typeof(LLQuaternion))
+            else if (ValueType == typeof(Quaternion))
             {
                 value = osreader.GetQuaternion(FieldName);
             }
-            else if (ValueType == typeof(LLUUID))
+            else if (ValueType == typeof(UUID))
             {
                 Guid guid = reader.GetGuid(FieldName);
-                value = new LLUUID(guid);
+                value = new UUID(guid);
             }
             else
             {

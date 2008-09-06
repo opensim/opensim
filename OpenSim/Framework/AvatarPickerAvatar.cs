@@ -25,13 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class AvatarPickerAvatar
     {
-        public LLUUID AvatarID;
+        public UUID AvatarID;
         public string firstName;
         public string lastName;
     }

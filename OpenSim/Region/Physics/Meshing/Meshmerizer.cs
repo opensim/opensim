@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.Meshing
 {
@@ -1559,7 +1560,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                 if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
                 {
-                    Quaternion zFlip = new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), (float)Math.PI);
+                    Quaternion zFlip = Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), (float)Math.PI);
                     Vertex vTmp = new Vertex(0.0f, 0.0f, 0.0f);
                     foreach (Vertex v in cuttedHull.getVertices())
                         if (v != null)

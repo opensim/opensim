@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -21,10 +21,10 @@ namespace OpenSim.Framework
 
         public class Wearable
         {
-            public LLUUID ItemID = new LLUUID("00000000-0000-0000-0000-000000000000");
+            public UUID ItemID = new UUID("00000000-0000-0000-0000-000000000000");
             public byte Type = 0;
 
-            public Wearable(LLUUID itemId, byte type)
+            public Wearable(UUID itemId, byte type)
             {
                 ItemID = itemId;
                 Type = type;

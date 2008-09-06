@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -198,7 +198,7 @@ namespace OpenSim.TestSuite
                     break;
                 case "addbots":
                     int newbots;
-                    Helpers.TryParse(cmdparams[0], out newbots);
+                    Int32.TryParse(cmdparams[0], out newbots);
 
                     if (newbots > 0)
                         addbots(newbots);

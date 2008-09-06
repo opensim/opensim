@@ -31,7 +31,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Globalization;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes.Scripting;
@@ -327,7 +327,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                         m_ScriptEngine.World.GetSceneObjectPart(QIS.localID);
                                     //if (m_host != null)
                                     //{
-                                    m_ScriptEngine.World.SimChat(Helpers.StringToField(text),
+                                    m_ScriptEngine.World.SimChat(Utils.StringToBytes(text),
                                                                  ChatTypeEnum.DebugChannel, 2147483647,
                                                                  m_host.AbsolutePosition,
                                                                  m_host.Name, m_host.UUID, false);

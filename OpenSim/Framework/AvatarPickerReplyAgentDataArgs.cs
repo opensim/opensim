@@ -1,11 +1,11 @@
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class AvatarPickerReplyAgentDataArgs : EventArgs
     {
-        public LLUUID AgentID;
-        public LLUUID QueryID;
+        public UUID AgentID;
+        public UUID QueryID;
     }
 }

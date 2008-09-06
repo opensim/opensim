@@ -26,14 +26,14 @@
 *
 */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
     [LLSDType("MAP")]
     public class LLSDRemoteParcelResponse
     {
-        public LLUUID parcel_id;
+        public UUID parcel_id;
 
         public LLSDRemoteParcelResponse()
         {

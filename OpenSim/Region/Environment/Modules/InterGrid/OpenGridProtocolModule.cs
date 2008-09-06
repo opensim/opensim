@@ -37,8 +37,8 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-using libsecondlife;
-using libsecondlife.StructuredData;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 using log4net;
 using Nini.Config;
@@ -50,9 +50,9 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Statistics;
-using LLSD = libsecondlife.StructuredData.LLSD;
-using LLSDMap = libsecondlife.StructuredData.LLSDMap;
-using LLSDArray = libsecondlife.StructuredData.LLSDArray;
+using LLSD = OpenMetaverse.StructuredData.LLSD;
+using LLSDMap = OpenMetaverse.StructuredData.LLSDMap;
+using LLSDArray = OpenMetaverse.StructuredData.LLSDArray;
 
 namespace OpenSim.Region.Environment.Modules.InterGrid
 {
@@ -60,12 +60,12 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
     {
         public string first_name;
         public string last_name;
-        public LLUUID agent_id;
-        public LLUUID local_agent_id;
-        public LLUUID region_id;
+        public UUID agent_id;
+        public UUID local_agent_id;
+        public UUID region_id;
         public uint circuit_code;
-        public LLUUID secure_session_id;
-        public LLUUID session_id;
+        public UUID secure_session_id;
+        public UUID session_id;
         public bool agent_access;
         public string sim_access;
         public uint god_level;
@@ -89,7 +89,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         private List<Scene> m_scene = new List<Scene>();
 
         private Dictionary<string, AgentCircuitData> CapsLoginID = new Dictionary<string, AgentCircuitData>();
-        private Dictionary<LLUUID, OGPState> m_OGPState = new Dictionary<LLUUID, OGPState>();
+        private Dictionary<UUID, OGPState> m_OGPState = new Dictionary<UUID, OGPState>();
         private string LastNameSuffix = "_EXTERNAL";
         private string FirstNamePrefix = "";
 
@@ -231,10 +231,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             //string RegionURI = reg.ServerURI;
             //int RegionPort = (int)reg.HttpPort;
 
-            LLUUID RemoteAgentID = requestMap["agent_id"].AsUUID();
+            UUID RemoteAgentID = requestMap["agent_id"].AsUUID();
 
             // will be used in the future.  The client always connects with the aditi agentid currently
-            LLUUID LocalAgentID = RemoteAgentID;
+            UUID LocalAgentID = RemoteAgentID;
 
             string FirstName = requestMap["first_name"].AsString();
             string LastName = requestMap["last_name"].AsString();
@@ -274,15 +274,15 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             // Generate a dummy agent for the user so we can get back a CAPS path
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.AgentID = LocalAgentID;
-            agentData.BaseFolder=LLUUID.Zero;
+            agentData.BaseFolder=UUID.Zero;
             agentData.CapsPath=Util.GetRandomCapsPath();
             agentData.child = false;
             agentData.circuitcode = (uint)(Util.RandomClass.Next());
             agentData.firstname = FirstName;
             agentData.lastname = LastName;
-            agentData.SecureSessionID=LLUUID.Random();
-            agentData.SessionID=LLUUID.Random();
-            agentData.startpos = new LLVector3(128f, 128f, 100f);
+            agentData.SecureSessionID=UUID.Random();
+            agentData.SessionID=UUID.Random();
+            agentData.startpos = new Vector3(128f, 128f, 100f);
 
             // Pre-Fill our region cache with information on the agent.
             UserAgentData useragent = new UserAgentData();
@@ -308,14 +308,14 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             userProfile.CurrentAgent = useragent;
             userProfile.CustomType = "OGP";
             userProfile.FirstLifeAboutText = "I'm testing OpenGrid Protocol";
-            userProfile.FirstLifeImage = LLUUID.Zero;
+            userProfile.FirstLifeImage = UUID.Zero;
             userProfile.FirstName = agentData.firstname;
             userProfile.GodLevel = 0;
             userProfile.HomeLocation = agentData.startpos;
             userProfile.HomeLocationX = agentData.startpos.X;
             userProfile.HomeLocationY = agentData.startpos.Y;
             userProfile.HomeLocationZ = agentData.startpos.Z;
-            userProfile.HomeLookAt = LLVector3.Zero;
+            userProfile.HomeLookAt = Vector3.Zero;
             userProfile.HomeLookAtX = userProfile.HomeLookAt.X;
             userProfile.HomeLookAtY = userProfile.HomeLookAt.Y;
             userProfile.HomeLookAtZ = userProfile.HomeLookAt.Z;
@@ -324,18 +324,18 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             userProfile.HomeRegionX = reg.RegionLocX;
             userProfile.HomeRegionY = reg.RegionLocY;
             userProfile.ID = agentData.AgentID;
-            userProfile.Image = LLUUID.Zero;
+            userProfile.Image = UUID.Zero;
             userProfile.LastLogin = Util.UnixTimeSinceEpoch();
-            userProfile.Partner = LLUUID.Zero;
+            userProfile.Partner = UUID.Zero;
             userProfile.PasswordHash = "$1$";
             userProfile.PasswordSalt = "";
-            userProfile.RootInventoryFolderID = LLUUID.Zero;
+            userProfile.RootInventoryFolderID = UUID.Zero;
             userProfile.SurName = agentData.lastname;
             userProfile.UserAssetURI = homeScene.CommsManager.NetworkServersInfo.AssetURL;
             userProfile.UserFlags = 0;
             userProfile.UserInventoryURI = homeScene.CommsManager.NetworkServersInfo.InventoryURL;
             userProfile.WantDoMask = 0;
-            userProfile.WebLoginKey = LLUUID.Random();
+            userProfile.WebLoginKey = UUID.Random();
 
             // Do caps registration
             // get seed cap
@@ -348,7 +348,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             //string raCap = string.Empty;
 
-            LLUUID AvatarRezCapUUID = LLUUID.Random();
+            UUID AvatarRezCapUUID = UUID.Random();
             string rezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar";
 
             // Get a reference to the user's cap so we can pull out the Caps Object Path
@@ -389,8 +389,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 LLSDMap requestMap = (LLSDMap)request;
 
                 // take these values to start.  There's a few more
-                LLUUID SecureSessionID=requestMap["secure_session_id"].AsUUID();
-                LLUUID SessionID = requestMap["session_id"].AsUUID();
+                UUID SecureSessionID=requestMap["secure_session_id"].AsUUID();
+                UUID SessionID = requestMap["session_id"].AsUUID();
                 int circuitcode = requestMap["circuit_code"].AsInteger();
                 LLSDArray Parameter = new LLSDArray();
                 if (requestMap.ContainsKey("parameter"))
@@ -401,7 +401,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 //int version = 1;
                 int estateID = 1;
                 int parentEstateID = 1;
-                LLUUID regionID = LLUUID.Zero;
+                UUID regionID = UUID.Zero;
                 bool visibleToParent = true;
 
                 for (int i = 0; i < Parameter.Count; i++)
@@ -537,17 +537,17 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             m_log.InfoFormat("[OGP]: prefix {0}, uuid {1}, suffix {2}", PathArray[1], PathArray[2], PathArray[3]);
             string uuidString = PathArray[2];
             m_log.InfoFormat("[OGP]: Request to Derez avatar with UUID {0}", uuidString);
-            LLUUID userUUID = LLUUID.Zero;
-            if (Helpers.TryParse(uuidString, out userUUID))
+            UUID userUUID = UUID.Zero;
+            if (UUID.TryParse(uuidString, out userUUID))
             {
-                LLUUID RemoteID = uuidString;
-                LLUUID LocalID = RemoteID;
+                UUID RemoteID = uuidString;
+                UUID LocalID = RemoteID;
                 // FIXME: TODO: Routine to map RemoteUUIDs to LocalUUIds
                 //         would be done already..  but the client connects with the Aditi UUID
                 //         regardless over the UDP stack
 
                 OGPState userState = GetOGPState(LocalID);
-                if (userState.agent_id != LLUUID.Zero)
+                if (userState.agent_id != UUID.Zero)
                 {
                     //LLSDMap outboundRequestMap = new LLSDMap();
                     LLSDMap inboundRequestMap = (LLSDMap)request;
@@ -592,7 +592,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     int rrX = rezResponseMap["region_x"].AsInteger();
                     int rrY = rezResponseMap["region_y"].AsInteger();
                     m_log.ErrorFormat("X:{0}, Y:{1}", rrX, rrY);
-                    LLUUID rrRID = rezResponseMap["region_id"].AsUUID();
+                    UUID rrRID = rezResponseMap["region_id"].AsUUID();
 
                     string rrAccess = rezResponseMap["sim_access"].AsString();
 
@@ -802,12 +802,12 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             OGPState returnState = new OGPState();
             returnState.first_name = "";
             returnState.last_name = "";
-            returnState.agent_id = LLUUID.Zero;
-            returnState.local_agent_id = LLUUID.Zero;
-            returnState.region_id = LLUUID.Zero;
+            returnState.agent_id = UUID.Zero;
+            returnState.local_agent_id = UUID.Zero;
+            returnState.region_id = UUID.Zero;
             returnState.circuit_code = 0;
-            returnState.secure_session_id = LLUUID.Zero;
-            returnState.session_id = LLUUID.Zero;
+            returnState.secure_session_id = UUID.Zero;
+            returnState.session_id = UUID.Zero;
             returnState.agent_access = true;
             returnState.god_level = 0;
             returnState.god_overide = false;
@@ -827,7 +827,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             return returnState;
         }
 
-        private OGPState GetOGPState(LLUUID agentId)
+        private OGPState GetOGPState(UUID agentId)
         {
             lock (m_OGPState)
             {
@@ -842,7 +842,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             }
         }
 
-        public void DeleteOGPState(LLUUID agentId)
+        public void DeleteOGPState(UUID agentId)
         {
             lock (m_OGPState)
             {
@@ -851,7 +851,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             }
         }
 
-        private void UpdateOGPState(LLUUID agentId, OGPState state)
+        private void UpdateOGPState(UUID agentId, OGPState state)
         {
             lock (m_OGPState)
             {
@@ -866,7 +866,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             }
         }
 
-        public void ShutdownConnection(LLUUID avatarId, OpenGridProtocolModule mod)
+        public void ShutdownConnection(UUID avatarId, OpenGridProtocolModule mod)
         {
             Scene homeScene = GetRootScene();
             ScenePresence avatar = null;
@@ -905,7 +905,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
         public void ShutdownNoLogout()
         {
-            LLUUID avUUID = LLUUID.Zero;
+            UUID avUUID = UUID.Zero;
 
             if (avToBeKilled != null)
             {

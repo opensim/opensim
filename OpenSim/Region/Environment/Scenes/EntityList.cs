@@ -29,9 +29,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using Axiom.Math;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Types;
@@ -69,9 +68,9 @@ namespace OpenSim.Region.Environment.Scenes
         // ListObjects()
         // ListPresenes()
         // RemoveAll()
-        // FindObject(LLUUID)
+        // FindObject(UUID)
         // FindObject(int)
-        // FindPresence(LLUUID)
+        // FindPresence(UUID)
         
         public void Add(SceneObjectGroup obj)
         {
@@ -84,7 +83,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_pres_by_uuid[pres.UUID] = pres;
         }
 
-        public SceneObjectGroup RemoveObject(LLUUID uuid)
+        public SceneObjectGroup RemoveObject(UUID uuid)
         {
             SceneObjectGroup sog = null;
             try 
@@ -101,7 +100,7 @@ namespace OpenSim.Region.Environment.Scenes
             return sog;
         }
         
-        public ScenePresence RemovePresence(LLUUID uuid)
+        public ScenePresence RemovePresence(UUID uuid)
         {
             ScenePresence sp = null;
             try 
@@ -117,7 +116,7 @@ namespace OpenSim.Region.Environment.Scenes
             return sp;   
         }
 
-        public SceneObjectGroup FindObject(LLUUID uuid)
+        public SceneObjectGroup FindObject(UUID uuid)
         {
             try
             {
@@ -135,7 +134,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             try 
             {
-                LLUUID uuid = (LLUUID)m_obj_by_local[local];
+                UUID uuid = (UUID)m_obj_by_local[local];
                 SceneObjectGroup sog = (SceneObjectGroup)m_obj_by_uuid[uuid];
                 return sog;
             }
@@ -146,7 +145,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public ScenePresence FindPresense(LLUUID uuid)
+        public ScenePresence FindPresense(UUID uuid)
         {
             try
             {

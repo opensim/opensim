@@ -29,7 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -38,7 +38,7 @@ using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.UserServer
 {
-    public delegate void logOffUser(LLUUID AgentID);
+    public delegate void logOffUser(UUID AgentID);
 
     public class UserManager : UserManagerBase
     {
@@ -79,7 +79,7 @@ namespace OpenSim.Grid.UserServer
             return response;
         }
 
-        public XmlRpcResponse AvatarPickerListtoXmlRPCResponse(LLUUID queryID, List<AvatarPickerAvatar> returnUsers)
+        public XmlRpcResponse AvatarPickerListtoXmlRPCResponse(UUID queryID, List<AvatarPickerAvatar> returnUsers)
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -108,8 +108,8 @@ namespace OpenSim.Grid.UserServer
 
             for (int i = 0; i < returnUsers.Count; i++)
             {
-                responseData["ownerID" + i] = returnUsers[i].FriendListOwner.UUID.ToString();
-                responseData["friendID" + i] = returnUsers[i].Friend.UUID.ToString();
+                responseData["ownerID" + i] = returnUsers[i].FriendListOwner.ToString();
+                responseData["friendID" + i] = returnUsers[i].Friend.ToString();
                 responseData["ownerPerms" + i] = returnUsers[i].FriendListOwnerPerms.ToString();
                 responseData["friendPerms" + i] = returnUsers[i].FriendPerms.ToString();
             }
@@ -172,11 +172,11 @@ namespace OpenSim.Grid.UserServer
             // XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             List<AvatarPickerAvatar> returnAvatar = new List<AvatarPickerAvatar>();
-            LLUUID queryID = new LLUUID(LLUUID.Zero.ToString());
+            UUID queryID = new UUID(UUID.Zero.ToString());
 
             if (requestData.Contains("avquery") && requestData.Contains("queryid"))
             {
-                queryID = new LLUUID((string) requestData["queryid"]);
+                queryID = new UUID((string) requestData["queryid"]);
                 returnAvatar = GenerateAgentPickerRequestResponse(queryID, (string) requestData["avquery"]);
             }
 
@@ -195,13 +195,13 @@ namespace OpenSim.Grid.UserServer
                 requestData.Contains("region_uuid"))
             {
                 // ulong cregionhandle = 0;
-                LLUUID regionUUID;
-                LLUUID avatarUUID;
+                UUID regionUUID;
+                UUID avatarUUID;
 
-                Helpers.TryParse((string) requestData["avatar_id"], out avatarUUID);
-                Helpers.TryParse((string) requestData["region_uuid"], out regionUUID);
+                UUID.TryParse((string) requestData["avatar_id"], out avatarUUID);
+                UUID.TryParse((string) requestData["region_uuid"], out regionUUID);
 
-                if (avatarUUID != LLUUID.Zero)
+                if (avatarUUID != UUID.Zero)
                 {
                     UserProfileData userProfile = GetUserProfile(avatarUUID);
                     userProfile.CurrentAgent.Region = regionUUID;
@@ -231,8 +231,8 @@ namespace OpenSim.Grid.UserServer
                 requestData.Contains("friendPerms"))
             {
                 // UserManagerBase.AddNewuserFriend
-                AddNewUserFriend(new LLUUID((string) requestData["ownerID"]),
-                                 new LLUUID((string) requestData["friendID"]),
+                AddNewUserFriend(new UUID((string) requestData["ownerID"]),
+                                 new UUID((string) requestData["friendID"]),
                                  (uint) Convert.ToInt32((string) requestData["friendPerms"]));
                 returnString = "TRUE";
             }
@@ -252,8 +252,8 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("ownerID") && requestData.Contains("friendID"))
             {
                 // UserManagerBase.AddNewuserFriend
-                RemoveUserFriend(new LLUUID((string) requestData["ownerID"]),
-                                 new LLUUID((string) requestData["friendID"]));
+                RemoveUserFriend(new UUID((string) requestData["ownerID"]),
+                                 new UUID((string) requestData["friendID"]));
                 returnString = "TRUE";
             }
             responseData["returnString"] = returnString;
@@ -271,8 +271,8 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("ownerID") && requestData.Contains("friendID") &&
                 requestData.Contains("friendPerms"))
             {
-                UpdateUserFriendPerms(new LLUUID((string) requestData["ownerID"]),
-                                      new LLUUID((string) requestData["friendID"]),
+                UpdateUserFriendPerms(new UUID((string) requestData["ownerID"]),
+                                      new UUID((string) requestData["friendID"]),
                                       (uint) Convert.ToInt32((string) requestData["friendPerms"]));
                 // UserManagerBase.
                 returnString = "TRUE";
@@ -292,7 +292,7 @@ namespace OpenSim.Grid.UserServer
 
             if (requestData.Contains("ownerID"))
             {
-                returndata = GetUserFriendList(new LLUUID((string) requestData["ownerID"]));
+                returndata = GetUserFriendList(new UUID((string) requestData["ownerID"]));
             }
 
             return FriendListItemListtoXmlRPCResponse(returndata);
@@ -306,7 +306,7 @@ namespace OpenSim.Grid.UserServer
             Hashtable responseData;
             if (requestData.Contains("owner"))
             {
-                appearance = GetUserAppearance(new LLUUID((string) requestData["owner"]));
+                appearance = GetUserAppearance(new UUID((string) requestData["owner"]));
                 if (appearance == null)
                 {
                     responseData = new Hashtable();
@@ -337,7 +337,7 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("owner"))
             {
                 AvatarAppearance appearance = new AvatarAppearance(requestData);
-                UpdateUserAppearance(new LLUUID((string) requestData["owner"]), appearance);
+                UpdateUserAppearance(new UUID((string) requestData["owner"]), appearance);
                 responseData = new Hashtable();
                 responseData["returnString"] = "TRUE";
             }
@@ -396,7 +396,7 @@ namespace OpenSim.Grid.UserServer
             {
                 try
                 {
-                    LLUUID guess = new LLUUID((string) requestData["avatar_uuid"]);
+                    UUID guess = new UUID((string) requestData["avatar_uuid"]);
 
                     userProfile = GetUserProfile(guess);
                 }
@@ -427,11 +427,11 @@ namespace OpenSim.Grid.UserServer
             //CFK: Console.WriteLine("METHOD BY UUID CALLED");
             if (requestData.Contains("avatar_uuid"))
             {
-                LLUUID guess;
+                UUID guess;
 
-                Helpers.TryParse((string) requestData["avatar_uuid"], out guess);
+                UUID.TryParse((string) requestData["avatar_uuid"], out guess);
 
-                if (guess == LLUUID.Zero)
+                if (guess == UUID.Zero)
                 {
                     return CreateUnknownUserErrorResponse();
                 }
@@ -476,16 +476,16 @@ namespace OpenSim.Grid.UserServer
             string authed = "FALSE";
             if (requestData.Contains("avatar_uuid") && requestData.Contains("session_id"))
             {
-                LLUUID guess_aid;
-                LLUUID guess_sid;
+                UUID guess_aid;
+                UUID guess_sid;
 
-                Helpers.TryParse((string) requestData["avatar_uuid"], out guess_aid);
-                if (guess_aid == LLUUID.Zero)
+                UUID.TryParse((string) requestData["avatar_uuid"], out guess_aid);
+                if (guess_aid == UUID.Zero)
                 {
                     return CreateUnknownUserErrorResponse();
                 }
-                Helpers.TryParse((string) requestData["session_id"], out guess_sid);
-                if (guess_sid == LLUUID.Zero)
+                UUID.TryParse((string) requestData["session_id"], out guess_sid);
+                if (guess_sid == UUID.Zero)
                 {
                     return CreateUnknownUserErrorResponse();
                 }
@@ -520,7 +520,7 @@ namespace OpenSim.Grid.UserServer
                 return CreateUnknownUserErrorResponse();
             }
 
-            LLUUID UserUUID = new LLUUID((string) requestData["avatar_uuid"]);
+            UUID UserUUID = new UUID((string) requestData["avatar_uuid"]);
             UserProfileData userProfile = GetUserProfile(UserUUID);
             if (null == userProfile)
             {
@@ -532,11 +532,11 @@ namespace OpenSim.Grid.UserServer
             }
             if (requestData.Contains("FLImageID"))
             {
-                userProfile.FirstLifeImage = new LLUUID((string) requestData["FLImageID"]);
+                userProfile.FirstLifeImage = new UUID((string) requestData["FLImageID"]);
             }
             if (requestData.Contains("ImageID"))
             {
-                userProfile.Image = new LLUUID((string) requestData["ImageID"]);
+                userProfile.Image = new UUID((string) requestData["ImageID"]);
             }
             // dont' know how yet
             if (requestData.Contains("MaturePublish"))
@@ -575,8 +575,8 @@ namespace OpenSim.Grid.UserServer
             }
             if (requestData.Contains("home_region_id"))
             {
-                LLUUID regionID;
-                LLUUID.TryParse((string) requestData["home_region_id"], out regionID);
+                UUID regionID;
+                UUID.TryParse((string) requestData["home_region_id"], out regionID);
                 userProfile.HomeRegionID = regionID;
             }
             if (requestData.Contains("home_pos_x"))
@@ -682,7 +682,7 @@ namespace OpenSim.Grid.UserServer
             {
                 try
                 {
-                    userProfile.Partner = new LLUUID((string) requestData["partner"]);
+                    userProfile.Partner = new UUID((string) requestData["partner"]);
                 }
                 catch (InvalidCastException)
                 {
@@ -691,7 +691,7 @@ namespace OpenSim.Grid.UserServer
             }
             else
             {
-                userProfile.Partner = LLUUID.Zero;
+                userProfile.Partner = UUID.Zero;
             }
 
             // call plugin!
@@ -710,8 +710,8 @@ namespace OpenSim.Grid.UserServer
             {
                 try
                 {
-                    LLUUID userUUID = new LLUUID((string) requestData["avatar_uuid"]);
-                    LLUUID RegionID = new LLUUID((string) requestData["region_uuid"]);
+                    UUID userUUID = new UUID((string) requestData["avatar_uuid"]);
+                    UUID RegionID = new UUID((string) requestData["region_uuid"]);
                     ulong regionhandle = (ulong) Convert.ToInt64((string) requestData["region_handle"]);
                     float posx = (float) Convert.ToDecimal((string) requestData["region_pos_x"]);
                     float posy = (float) Convert.ToDecimal((string) requestData["region_pos_y"]);
@@ -749,7 +749,7 @@ namespace OpenSim.Grid.UserServer
             throw new Exception("The method or operation is not implemented.");
         }
 
-        public override UserProfileData SetupMasterUser(LLUUID uuid)
+        public override UserProfileData SetupMasterUser(UUID uuid)
         {
             throw new Exception("The method or operation is not implemented.");
         }

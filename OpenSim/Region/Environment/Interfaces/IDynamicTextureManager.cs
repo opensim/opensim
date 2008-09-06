@@ -26,22 +26,22 @@
  */
 
 using System.IO;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IDynamicTextureManager
     {
         void RegisterRender(string handleType, IDynamicTextureRender render);
-        void ReturnData(LLUUID id, byte[] data);
+        void ReturnData(UUID id, byte[] data);
 
-        LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url, string extraParams,
+        UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
                                     int updateTimer);
-        LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url, string extraParams,
+        UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
                                    int updateTimer, bool SetBlending, byte AlphaValue);
-        LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data, string extraParams,
+        UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
                                      int updateTimer);
-        LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data, string extraParams,
+        UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
                                     int updateTimer, bool SetBlending, byte AlphaValue);
     }
 
@@ -52,7 +52,7 @@ namespace OpenSim.Region.Environment.Interfaces
         bool SupportsAsynchronous();
         byte[] ConvertUrl(string url, string extraParams);
         byte[] ConvertStream(Stream data, string extraParams);
-        bool AsyncConvertUrl(LLUUID id, string url, string extraParams);
-        bool AsyncConvertData(LLUUID id, string bodyData, string extraParams);
+        bool AsyncConvertUrl(UUID id, string url, string extraParams);
+        bool AsyncConvertData(UUID id, string bodyData, string extraParams);
     }
 }

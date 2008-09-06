@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
@@ -33,7 +33,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 {
     public class ComplexObject : SceneObjectGroup
     {
-        private readonly LLQuaternion m_rotationDirection;
+        private readonly Quaternion m_rotationDirection;
 
         protected override bool InSceneBackup
         {
@@ -45,21 +45,21 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         private class RotatingWheel : SceneObjectPart
         {
-            private readonly LLQuaternion m_rotationDirection;
+            private readonly Quaternion m_rotationDirection;
 
             public RotatingWheel()
             {
             }
 
-            public RotatingWheel(ulong regionHandle, SceneObjectGroup parent, LLUUID ownerID, uint localID,
-                                 LLVector3 groupPosition, LLVector3 offsetPosition, LLQuaternion rotationDirection)
+            public RotatingWheel(ulong regionHandle, SceneObjectGroup parent, UUID ownerID, uint localID,
+                                 Vector3 groupPosition, Vector3 offsetPosition, Quaternion rotationDirection)
                 : base(
                     regionHandle, parent, ownerID, localID, PrimitiveBaseShape.Default, groupPosition, offsetPosition
                     )
             {
                 m_rotationDirection = rotationDirection;
 
-                Flags |= LLObject.ObjectFlags.Touch;
+                Flags |= PrimFlags.Touch;
             }
 
             public override void UpdateMovement()
@@ -79,55 +79,55 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public ComplexObject(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos)
+        public ComplexObject(Scene scene, ulong regionHandle, UUID ownerID, uint localID, Vector3 pos)
             : base(scene, regionHandle, ownerID, localID, pos, PrimitiveBaseShape.Default)
         {
-            m_rotationDirection = new LLQuaternion(0.05f, 0.1f, 0.15f);
+            m_rotationDirection = new Quaternion(0.05f, 0.1f, 0.15f);
 
             AddPart(
-                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new LLVector3(0, 0, 0.75f),
-                                  new LLQuaternion(0.05f, 0, 0)));
+                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(0, 0, 0.75f),
+                                  new Quaternion(0.05f, 0, 0)));
             AddPart(
-                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new LLVector3(0, 0, -0.75f),
-                                  new LLQuaternion(-0.05f, 0, 0)));
+                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(0, 0, -0.75f),
+                                  new Quaternion(-0.05f, 0, 0)));
 
             AddPart(
-                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new LLVector3(0, 0.75f, 0),
-                                  new LLQuaternion(0.5f, 0, 0.05f)));
+                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(0, 0.75f, 0),
+                                  new Quaternion(0.5f, 0, 0.05f)));
             AddPart(
-                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new LLVector3(0, -0.75f, 0),
-                                  new LLQuaternion(-0.5f, 0, -0.05f)));
+                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(0, -0.75f, 0),
+                                  new Quaternion(-0.5f, 0, -0.05f)));
 
             AddPart(
-                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new LLVector3(0.75f, 0, 0),
-                                  new LLQuaternion(0, 0.5f, 0.05f)));
+                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(0.75f, 0, 0),
+                                  new Quaternion(0, 0.5f, 0.05f)));
             AddPart(
-                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new LLVector3(-0.75f, 0, 0),
-                                  new LLQuaternion(0, -0.5f, -0.05f)));
+                new RotatingWheel(regionHandle, this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(-0.75f, 0, 0),
+                                  new Quaternion(0, -0.5f, -0.05f)));
 
-            RootPart.Flags |= LLObject.ObjectFlags.Touch;
+            RootPart.Flags |= PrimFlags.Touch;
 
             UpdateParentIDs();
         }
 
-        public override void OnGrabPart(SceneObjectPart part, LLVector3 offsetPos, IClientAPI remoteClient)
+        public override void OnGrabPart(SceneObjectPart part, Vector3 offsetPos, IClientAPI remoteClient)
         {
             m_parts.Remove(part.UUID);
 
-            remoteClient.SendKillObject(m_regionHandle, part.LocalId);
+            remoteClient.SendKiPrimitive(m_regionHandle, part.LocalId);
             remoteClient.AddMoney(1);
-            remoteClient.SendChatMessage("Poof!", 1, AbsolutePosition, "Party Party", LLUUID.Zero, (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
+            remoteClient.SendChatMessage("Poof!", 1, AbsolutePosition, "Party Party", UUID.Zero, (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
         }
 
-        public override void OnGrabGroup(LLVector3 offsetPos, IClientAPI remoteClient)
+        public override void OnGrabGroup(Vector3 offsetPos, IClientAPI remoteClient)
         {
             if (m_parts.Count == 1)
             {
                 m_parts.Remove(m_rootPart.UUID);
                 m_scene.DeleteSceneObject(this);
-                remoteClient.SendKillObject(m_regionHandle, m_rootPart.LocalId);
+                remoteClient.SendKiPrimitive(m_regionHandle, m_rootPart.LocalId);
                 remoteClient.AddMoney(50);
-                remoteClient.SendChatMessage("KABLAM!!!", 1, AbsolutePosition, "Groupie Groupie", LLUUID.Zero, (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
+                remoteClient.SendChatMessage("KABLAM!!!", 1, AbsolutePosition, "Groupie Groupie", UUID.Zero, (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
             }
         }
     }

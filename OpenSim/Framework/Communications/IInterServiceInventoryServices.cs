@@ -26,7 +26,7 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications
 {
@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="user"></param>
         /// <returns>true if the inventory was successfully created, false otherwise</returns>
-        bool CreateNewUserInventory(LLUUID user);
+        bool CreateNewUserInventory(UUID user);
 
         /// <summary>
         /// Returns a list of all the folders in a given user's inventory.
@@ -48,6 +48,6 @@ namespace OpenSim.Framework.Communications
         /// <param name="userId"></param>
         /// <returns>A flat list of the user's inventory folder tree,
         /// null if there is no inventory for this user</returns>
-        List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId);
+        List<InventoryFolderBase> GetInventorySkeleton(UUID userId);
     }
 }

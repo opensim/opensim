@@ -25,13 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public struct AssetRequest
     {
-        public LLUUID AssetID;
+        public UUID AssetID;
         public bool IsTexture;
     }
 }

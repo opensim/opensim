@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -82,12 +82,12 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         private string m_name = "XMLRPCModule";
 
         // <channel id, RPCChannelInfo>
-        private Dictionary<LLUUID, RPCChannelInfo> m_openChannels;
-        private Dictionary<LLUUID, SendRemoteDataRequest> m_pendingSRDResponses;
+        private Dictionary<UUID, RPCChannelInfo> m_openChannels;
+        private Dictionary<UUID, SendRemoteDataRequest> m_pendingSRDResponses;
         private int m_remoteDataPort = 0;
 
-        private Dictionary<LLUUID, RPCRequestInfo> m_rpcPending;
-        private Dictionary<LLUUID, RPCRequestInfo> m_rpcPendingResponses;
+        private Dictionary<UUID, RPCRequestInfo> m_rpcPending;
+        private Dictionary<UUID, RPCRequestInfo> m_rpcPendingResponses;
         private List<Scene> m_scenes = new List<Scene>();
         private int RemoteReplyScriptTimeout = 9000;
         private int RemoteReplyScriptWait = 300;
@@ -102,10 +102,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             // get called only one time (or we lose any open channels)
             if (null == m_openChannels)
             {
-                m_openChannels = new Dictionary<LLUUID, RPCChannelInfo>();
-                m_rpcPending = new Dictionary<LLUUID, RPCRequestInfo>();
-                m_rpcPendingResponses = new Dictionary<LLUUID, RPCRequestInfo>();
-                m_pendingSRDResponses = new Dictionary<LLUUID, SendRemoteDataRequest>();
+                m_openChannels = new Dictionary<UUID, RPCChannelInfo>();
+                m_rpcPending = new Dictionary<UUID, RPCRequestInfo>();
+                m_rpcPendingResponses = new Dictionary<UUID, RPCRequestInfo>();
+                m_pendingSRDResponses = new Dictionary<UUID, SendRemoteDataRequest>();
 
                 try
                 {
@@ -164,11 +164,11 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         /**********************************************
          * OpenXMLRPCChannel
          *
-         * Generate a LLUUID channel key and add it and
+         * Generate a UUID channel key and add it and
          * the prim id to dictionary <channelUUID, primUUID>
          *
          * A custom channel key can be proposed.
-         * Otherwise, passing LLUUID.Zero will generate
+         * Otherwise, passing UUID.Zero will generate
          * and return a random channel
          *
          * First check if there is a channel assigned for
@@ -179,9 +179,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
          *
          * ********************************************/
 
-        public LLUUID OpenXMLRPCChannel(uint localID, LLUUID itemID, LLUUID channelID)
+        public UUID OpenXMLRPCChannel(uint localID, UUID itemID, UUID channelID)
         {
-            LLUUID newChannel = LLUUID.Zero;
+            UUID newChannel = UUID.Zero;
 
             // This should no longer happen, but the check is reasonable anyway
             if (null == m_openChannels)
@@ -201,9 +201,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
                 }
             }
 
-            if (newChannel == LLUUID.Zero)
+            if (newChannel == UUID.Zero)
             {
-                newChannel = (channelID == LLUUID.Zero) ? LLUUID.Random() : channelID;
+                newChannel = (channelID == UUID.Zero) ? UUID.Random() : channelID;
                 RPCChannelInfo rpcChanInfo = new RPCChannelInfo(localID, itemID, newChannel);
                 lock (XMLRPCListLock)
                 {
@@ -216,7 +216,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
         // Delete channels based on itemID
         // for when a script is deleted
-        public void DeleteChannels(LLUUID itemID)
+        public void DeleteChannels(UUID itemID)
         {
             if (m_openChannels != null)
             {
@@ -234,7 +234,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
                     IEnumerator tmpEnumerator = tmp.GetEnumerator();
                     while (tmpEnumerator.MoveNext())
-                        m_openChannels.Remove((LLUUID) tmpEnumerator.Current);
+                        m_openChannels.Remove((UUID) tmpEnumerator.Current);
                 }
             }
         }
@@ -248,12 +248,12 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
         public void RemoteDataReply(string channel, string message_id, string sdata, int idata)
         {
-            LLUUID message_key = new LLUUID(message_id);
-            LLUUID channel_key = new LLUUID(channel);
+            UUID message_key = new UUID(message_id);
+            UUID channel_key = new UUID(channel);
 
             RPCRequestInfo rpcInfo = null;
 
-            if (message_key == LLUUID.Zero)
+            if (message_key == UUID.Zero)
             {
                 foreach (RPCRequestInfo oneRpcInfo in m_rpcPendingResponses.Values)
                     if (oneRpcInfo.GetChannelKey() == channel_key)
@@ -284,7 +284,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
          *
          *********************************************/
 
-        public void CloseXMLRPCChannel(LLUUID channelKey)
+        public void CloseXMLRPCChannel(UUID channelKey)
         {
             if (m_openChannels.ContainsKey(channelKey))
                 m_openChannels.Remove(channelKey);
@@ -308,7 +308,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             {
                 lock (XMLRPCListLock)
                 {
-                    foreach (LLUUID luid in m_rpcPending.Keys)
+                    foreach (UUID luid in m_rpcPending.Keys)
                     {
                         RPCRequestInfo tmpReq;
 
@@ -322,7 +322,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             return null;
         }
 
-        public void RemoveCompletedRequest(LLUUID id)
+        public void RemoveCompletedRequest(UUID id)
         {
             lock (XMLRPCListLock)
             {
@@ -339,7 +339,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             }
         }
 
-        public LLUUID SendRemoteData(uint localID, LLUUID itemID, string channel, string dest, int idata, string sdata)
+        public UUID SendRemoteData(uint localID, UUID itemID, string channel, string dest, int idata, string sdata)
         {
             SendRemoteDataRequest req = new SendRemoteDataRequest(
                 localID, itemID, channel, dest, idata, sdata
@@ -354,7 +354,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             {
                 lock (XMLRPCListLock)
                 {
-                    foreach (LLUUID luid in m_pendingSRDResponses.Keys)
+                    foreach (UUID luid in m_pendingSRDResponses.Keys)
                     {
                         SendRemoteDataRequest tmpReq;
 
@@ -369,7 +369,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             return null;
         }
 
-        public void RemoveCompletedSRDRequest(LLUUID id)
+        public void RemoveCompletedSRDRequest(UUID id)
         {
             lock (XMLRPCListLock)
             {
@@ -381,7 +381,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             }
         }
 
-        public void CancelSRDRequests(LLUUID itemID)
+        public void CancelSRDRequests(UUID itemID)
         {
             if (m_pendingSRDResponses != null)
             {
@@ -408,7 +408,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
             if (GoodXML)
             {
-                LLUUID channel = new LLUUID((string) requestData["Channel"]);
+                UUID channel = new UUID((string) requestData["Channel"]);
                 RPCChannelInfo rpcChanInfo;
                 if (m_openChannels.TryGetValue(channel, out rpcChanInfo))
                 {
@@ -462,24 +462,24 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
     public class RPCRequestInfo
     {
-        private LLUUID m_ChannelKey;
+        private UUID m_ChannelKey;
         private string m_IntVal;
-        private LLUUID m_ItemID;
+        private UUID m_ItemID;
         private uint m_localID;
-        private LLUUID m_MessageID;
+        private UUID m_MessageID;
         private bool m_processed;
         private int m_respInt;
         private string m_respStr;
         private string m_StrVal;
 
-        public RPCRequestInfo(uint localID, LLUUID itemID, LLUUID channelKey, string strVal, string intVal)
+        public RPCRequestInfo(uint localID, UUID itemID, UUID channelKey, string strVal, string intVal)
         {
             m_localID = localID;
             m_StrVal = strVal;
             m_IntVal = intVal;
             m_ItemID = itemID;
             m_ChannelKey = channelKey;
-            m_MessageID = LLUUID.Random();
+            m_MessageID = UUID.Random();
             m_processed = false;
             m_respStr = String.Empty;
             m_respInt = 0;
@@ -490,7 +490,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             return m_processed;
         }
 
-        public LLUUID GetChannelKey()
+        public UUID GetChannelKey()
         {
             return m_ChannelKey;
         }
@@ -525,7 +525,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             return m_localID;
         }
 
-        public LLUUID GetItemID()
+        public UUID GetItemID()
         {
             return m_ItemID;
         }
@@ -540,7 +540,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             return int.Parse(m_IntVal);
         }
 
-        public LLUUID GetMessageID()
+        public UUID GetMessageID()
         {
             return m_MessageID;
         }
@@ -548,23 +548,23 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
     public class RPCChannelInfo
     {
-        private LLUUID m_ChannelKey;
-        private LLUUID m_itemID;
+        private UUID m_ChannelKey;
+        private UUID m_itemID;
         private uint m_localID;
 
-        public RPCChannelInfo(uint localID, LLUUID itemID, LLUUID channelID)
+        public RPCChannelInfo(uint localID, UUID itemID, UUID channelID)
         {
             m_ChannelKey = channelID;
             m_localID = localID;
             m_itemID = itemID;
         }
 
-        public LLUUID GetItemID()
+        public UUID GetItemID()
         {
             return m_itemID;
         }
 
-        public LLUUID GetChannelID()
+        public UUID GetChannelID()
         {
             return m_ChannelKey;
         }
@@ -583,15 +583,15 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         public bool finished;
         private Thread httpThread;
         public int idata;
-        public LLUUID m_itemID;
+        public UUID m_itemID;
         public uint m_localID;
-        public LLUUID reqID;
+        public UUID reqID;
         public XmlRpcRequest request;
         public int response_idata;
         public string response_sdata;
         public string sdata;
 
-        public SendRemoteDataRequest(uint localID, LLUUID itemID, string channel, string dest, int idata, string sdata)
+        public SendRemoteDataRequest(uint localID, UUID itemID, string channel, string dest, int idata, string sdata)
         {
             this.channel = channel;
             destURL = dest;
@@ -600,10 +600,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             m_itemID = itemID;
             m_localID = localID;
 
-            reqID = LLUUID.Random();
+            reqID = UUID.Random();
         }
 
-        public LLUUID process()
+        public UUID process()
         {
             httpThread = new Thread(SendRequest);
             httpThread.Name = "HttpRequestThread";
@@ -625,12 +625,12 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         {
             Hashtable param = new Hashtable();
 
-            // Check if channel is an LLUUID
+            // Check if channel is an UUID
             // if not, use as method name
-            LLUUID parseUID;
+            UUID parseUID;
             string mName = "llRemoteData";
             if ((channel != null) && (channel != ""))
-                if (!LLUUID.TryParse(channel, out parseUID))
+                if (!UUID.TryParse(channel, out parseUID))
                     mName = channel;
                 else
                     param["Channel"] = channel;
@@ -698,7 +698,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             }
         }
 
-        public LLUUID GetReqID()
+        public UUID GetReqID()
         {
             return reqID;
         }

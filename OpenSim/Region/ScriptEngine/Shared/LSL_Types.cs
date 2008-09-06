@@ -123,7 +123,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 Vector3 vector = (Vector3)o;
 
-                return (x == vector.x && x == vector.x && z == vector.z);
+                return (x == vector.x && y == vector.y && z == vector.z);
             }
 
             public static Vector3 operator -(Vector3 vector)

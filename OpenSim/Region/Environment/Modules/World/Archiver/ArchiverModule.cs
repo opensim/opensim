@@ -31,7 +31,7 @@ using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 

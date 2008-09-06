@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Each user has a cached profile.
         /// </summary>
-        private readonly Dictionary<LLUUID, CachedUserInfo> m_userProfiles = new Dictionary<LLUUID, CachedUserInfo>();
+        private readonly Dictionary<UUID, CachedUserInfo> m_userProfiles = new Dictionary<UUID, CachedUserInfo>();
 
         public readonly LibraryRootFolder libraryRoot = new LibraryRootFolder();
 
@@ -63,9 +63,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// A new user has moved into a region in this instance so retrieve their profile from the user service.
         /// </summary>
         /// <param name="userID"></param>
-        public void AddNewUser(LLUUID userID)
+        public void AddNewUser(UUID userID)
         {
-            if (userID == LLUUID.Zero)
+            if (userID == UUID.Zero)
                 return;
             m_log.DebugFormat("[USER CACHE]: Adding user profile for {0}", userID);
             GetUserDetails(userID);
@@ -76,7 +76,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>true if the user was successfully removed, false otherwise</returns>
-        public bool RemoveUser(LLUUID userId)
+        public bool RemoveUser(UUID userId)
         {
             lock (m_userProfiles)
             {
@@ -99,7 +99,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="userInfo"></param>
-        public void RequestInventoryForUser(LLUUID userID)
+        public void RequestInventoryForUser(UUID userID)
         {
             CachedUserInfo userInfo = GetUserDetails(userID);
             if (userInfo != null)
@@ -130,9 +130,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>null if no user details are found</returns>
-        public CachedUserInfo GetUserDetails(LLUUID userID)
+        public CachedUserInfo GetUserDetails(UUID userID)
         {
-            if (userID == LLUUID.Zero)
+            if (userID == UUID.Zero)
                 return null;
 
             lock (m_userProfiles)
@@ -164,9 +164,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="userData"></param>
-        public void PreloadUserCache(LLUUID userID, UserProfileData userData)
+        public void PreloadUserCache(UUID userID, UserProfileData userData)
         {
-            if (userID == LLUUID.Zero)
+            if (userID == UUID.Zero)
                 return;
 
             lock (m_userProfiles)
@@ -192,8 +192,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folderType"></param>
         /// <param name="folderName"></param>
         /// <param name="parentID"></param>
-        public void HandleCreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType,
-                                                string folderName, LLUUID parentID)
+        public void HandleCreateInventoryFolder(IClientAPI remoteClient, UUID folderID, ushort folderType,
+                                                string folderName, UUID parentID)
         {
             CachedUserInfo userProfile;
 
@@ -226,8 +226,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <param name="parentID"></param>
-        public void HandleUpdateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort type, string name,
-                                                LLUUID parentID)
+        public void HandleUpdateInventoryFolder(IClientAPI remoteClient, UUID folderID, ushort type, string name,
+                                                UUID parentID)
         {
 //            m_log.DebugFormat(
 //                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
@@ -257,7 +257,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
         /// <param name="parentID"></param>
-        public void HandleMoveInventoryFolder(IClientAPI remoteClient, LLUUID folderID, LLUUID parentID)
+        public void HandleMoveInventoryFolder(IClientAPI remoteClient, UUID folderID, UUID parentID)
         {
             CachedUserInfo userProfile;
 
@@ -287,7 +287,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="fetchFolders"></param>
         /// <param name="fetchItems"></param>
         /// <param name="sortOrder"></param>
-        public void HandleFetchInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID,
+        public void HandleFetchInventoryDescendents(IClientAPI remoteClient, UUID folderID, UUID ownerID,
                                                     bool fetchFolders, bool fetchItems, int sortOrder)
         {
             // FIXME MAYBE: We're not handling sortOrder!
@@ -327,7 +327,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="fetchItems"></param>
         /// <param name="sortOrder"></param>
         /// <returns>null if the inventory look up failed</returns>
-        public List<InventoryItemBase> HandleFetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
+        public List<InventoryItemBase> HandleFetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
                                                    bool fetchFolders, bool fetchItems, int sortOrder)
         {
 //            m_log.DebugFormat(
@@ -405,7 +405,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
-        public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, LLUUID folderID)
+        public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, UUID folderID)
         {
             CachedUserInfo userProfile;
 
@@ -426,7 +426,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        public void HandleFetchInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID ownerID)
+        public void HandleFetchInventory(IClientAPI remoteClient, UUID itemID, UUID ownerID)
         {
             if (ownerID == libraryRoot.Owner)
             {

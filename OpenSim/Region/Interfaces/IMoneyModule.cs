@@ -27,18 +27,18 @@
 
 using System;
 using OpenSim.Framework;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Interfaces
 {
-    public delegate void ObjectPaid(LLUUID objectID, LLUUID agentID, int amount);
+    public delegate void ObjectPaid(UUID objectID, UUID agentID, int amount);
     public interface IMoneyModule
     {
-        bool ObjectGiveMoney(LLUUID objectID, LLUUID fromID, LLUUID toID,
+        bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID,
                 int amount);
 
         int GetBalance(IClientAPI client);
-        void ApplyUploadCharge(LLUUID agentID);
+        void ApplyUploadCharge(UUID agentID);
         bool UploadCovered(IClientAPI client);
 
         event ObjectPaid OnObjectPaid;

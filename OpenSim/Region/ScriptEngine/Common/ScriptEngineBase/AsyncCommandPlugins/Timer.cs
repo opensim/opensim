@@ -28,7 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins
 {
@@ -47,7 +47,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
         private class TimerClass
         {
             public uint localID;
-            public LLUUID itemID;
+            public UUID itemID;
             //public double interval;
             public long interval;
             //public DateTime next;
@@ -57,7 +57,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
         private List<TimerClass> Timers = new List<TimerClass>();
         private object TimerListLock = new object();
 
-        public void SetTimerEvent(uint m_localID, LLUUID m_itemID, double sec)
+        public void SetTimerEvent(uint m_localID, UUID m_itemID, double sec)
         {
             // Console.WriteLine("SetTimerEvent");
 
@@ -82,7 +82,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
             }
         }
 
-        public void UnSetTimerEvents(uint m_localID, LLUUID m_itemID)
+        public void UnSetTimerEvents(uint m_localID, UUID m_itemID)
         {
             // Remove from timer
             lock (TimerListLock)

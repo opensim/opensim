@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
@@ -35,7 +35,7 @@ namespace OpenSim.Framework.Communications.Capabilities
     {
         public string asset_type = String.Empty;
         public string description = String.Empty;
-        public LLUUID folder_id = LLUUID.Zero;
+        public UUID folder_id = UUID.Zero;
         public string inventory_type = String.Empty;
         public string name = String.Empty;
 

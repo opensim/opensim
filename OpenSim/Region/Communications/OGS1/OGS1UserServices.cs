@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -64,27 +64,27 @@ namespace OpenSim.Region.Communications.OGS1
             UserProfileData userData = new UserProfileData();
             userData.FirstName = (string) data["firstname"];
             userData.SurName = (string) data["lastname"];
-            userData.ID = new LLUUID((string) data["uuid"]);
+            userData.ID = new UUID((string) data["uuid"]);
             userData.UserInventoryURI = (string) data["server_inventory"];
             userData.UserAssetURI = (string) data["server_asset"];
             userData.FirstLifeAboutText = (string) data["profile_firstlife_about"];
-            userData.FirstLifeImage = new LLUUID((string) data["profile_firstlife_image"]);
+            userData.FirstLifeImage = new UUID((string) data["profile_firstlife_image"]);
             userData.CanDoMask = Convert.ToUInt32((string) data["profile_can_do"]);
             userData.WantDoMask = Convert.ToUInt32(data["profile_want_do"]);
             userData.AboutText = (string)data["profile_about"];
-            userData.Image = new LLUUID((string) data["profile_image"]);
+            userData.Image = new UUID((string) data["profile_image"]);
             userData.LastLogin = Convert.ToInt32((string) data["profile_lastlogin"]);
             userData.HomeRegion = Convert.ToUInt64((string) data["home_region"]);
             if (data.Contains("home_region_id"))
-                userData.HomeRegionID = new LLUUID((string)data["home_region_id"]);
+                userData.HomeRegionID = new UUID((string)data["home_region_id"]);
             else
-                userData.HomeRegionID = LLUUID.Zero;
+                userData.HomeRegionID = UUID.Zero;
             userData.HomeLocation =
-                new LLVector3((float) Convert.ToDecimal((string) data["home_coordinates_x"]),
+                new Vector3((float) Convert.ToDecimal((string) data["home_coordinates_x"]),
                               (float) Convert.ToDecimal((string) data["home_coordinates_y"]),
                               (float) Convert.ToDecimal((string) data["home_coordinates_z"]));
             userData.HomeLookAt =
-                new LLVector3((float) Convert.ToDecimal((string) data["home_look_x"]),
+                new Vector3((float) Convert.ToDecimal((string) data["home_look_x"]),
                               (float) Convert.ToDecimal((string) data["home_look_y"]),
                               (float) Convert.ToDecimal((string) data["home_look_z"]));
             if (data.Contains("user_flags"))
@@ -100,9 +100,9 @@ namespace OpenSim.Region.Communications.OGS1
                 userData.CustomType = "";
 
             if (data.Contains("partner"))
-                userData.Partner = new LLUUID((string) data["partner"]);
+                userData.Partner = new UUID((string) data["partner"]);
             else
-                userData.Partner = LLUUID.Zero;
+                userData.Partner = UUID.Zero;
 
             return userData;
         }
@@ -112,7 +112,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns>null if the request fails</returns>
-        public UserAgentData GetAgentByUUID(LLUUID userId)
+        public UserAgentData GetAgentByUUID(UUID userId)
         {
            try
            {
@@ -131,11 +131,11 @@ namespace OpenSim.Region.Communications.OGS1
                               "): " + (string)respData["error_desc"]);
                    return null;
                }
-               LLUUID sessionid = LLUUID.Zero;
+               UUID sessionid = UUID.Zero;
 
                UserAgentData userAgent = new UserAgentData();
                userAgent.Handle = Convert.ToUInt64((string)respData["handle"]);
-               Helpers.TryParse((string)respData["sessionid"], out sessionid);
+               UUID.TryParse((string)respData["sessionid"], out sessionid);
                userAgent.SessionID = sessionid;
 
                if ((string)respData["agent_online"] == "TRUE")
@@ -183,17 +183,17 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public List<AvatarPickerAvatar> ConvertXMLRPCDataToAvatarPickerList(LLUUID queryID, Hashtable data)
+        public List<AvatarPickerAvatar> ConvertXMLRPCDataToAvatarPickerList(UUID queryID, Hashtable data)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
             int pickercount = Convert.ToInt32((string) data["avcount"]);
-            LLUUID respqueryID = new LLUUID((string) data["queryid"]);
+            UUID respqueryID = new UUID((string) data["queryid"]);
             if (queryID == respqueryID)
             {
                 for (int i = 0; i < pickercount; i++)
                 {
                     AvatarPickerAvatar apicker = new AvatarPickerAvatar();
-                    LLUUID avatarID = new LLUUID((string) data["avatarid" + i.ToString()]);
+                    UUID avatarID = new UUID((string) data["avatarid" + i.ToString()]);
                     string firstname = (string) data["firstname" + i.ToString()];
                     string lastname = (string) data["lastname" + i.ToString()];
                     apicker.AvatarID = avatarID;
@@ -219,8 +219,8 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 FriendListItem buddylistitem = new FriendListItem();
 
-                buddylistitem.FriendListOwner = new LLUUID((string)data["ownerID" + i.ToString()]);
-                buddylistitem.Friend = new LLUUID((string)data["friendID" + i.ToString()]);
+                buddylistitem.FriendListOwner = new UUID((string)data["ownerID" + i.ToString()]);
+                buddylistitem.Friend = new UUID((string)data["friendID" + i.ToString()]);
                 buddylistitem.FriendListOwnerPerms = (uint)Convert.ToInt32((string)data["ownerPerms" + i.ToString()]);
                 buddylistitem.FriendPerms = (uint)Convert.ToInt32((string)data["friendPerms" + i.ToString()]);
 
@@ -239,11 +239,11 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="posx">final position x</param>
         /// <param name="posy">final position y</param>
         /// <param name="posz">final position z</param>
-        public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
             Hashtable param = new Hashtable();
-            param["avatar_uuid"] = userid.UUID.ToString();
-            param["region_uuid"] = regionid.UUID.ToString();
+            param["avatar_uuid"] = userid.ToString();
+            param["region_uuid"] = regionid.ToString();
             param["region_handle"] = regionhandle.ToString();
             param["region_pos_x"] = posx.ToString();
             param["region_pos_y"] = posy.ToString();
@@ -268,7 +268,7 @@ namespace OpenSim.Region.Communications.OGS1
             return GetUserProfile(firstName + " " + lastName);
         }
 
-        public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
+        public void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)
         {
             Hashtable param = new Hashtable();
             param.Add("avatar_id", avatarid.ToString());
@@ -320,7 +320,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
+        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
             Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9 ]");
@@ -379,7 +379,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns>null if the request fails</returns>
-        public UserProfileData GetUserProfile(LLUUID avatarID)
+        public UserProfileData GetUserProfile(UUID avatarID)
         {
             try
             {
@@ -404,7 +404,7 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
 
-        public void ClearUserAgent(LLUUID avatarID)
+        public void ClearUserAgent(UUID avatarID)
         {
             // TODO: implement
         }
@@ -435,7 +435,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
-        public UserProfileData SetupMasterUser(LLUUID uuid)
+        public UserProfileData SetupMasterUser(UUID uuid)
         {
             UserProfileData data = GetUserProfile(uuid);
 
@@ -448,7 +448,7 @@ namespace OpenSim.Region.Communications.OGS1
             return data;
         }
 
-        public LLUUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
+        public UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
         {
             throw new Exception("The method or operation is not implemented.");
         }
@@ -523,13 +523,13 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="friendlistowner">The agent that who's friends list is being added to</param>
         /// <param name="friend">The agent that being added to the friends list of the friends list owner</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
             try
             {
                 Hashtable param = new Hashtable();
-                param["ownerID"] = friendlistowner.UUID.ToString();
-                param["friendID"] = friend.UUID.ToString();
+                param["ownerID"] = friendlistowner.ToString();
+                param["friendID"] = friend.ToString();
                 param["friendPerms"] = perms.ToString();
                 IList parameters = new ArrayList();
                 parameters.Add(param);
@@ -575,13 +575,13 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The Ex-friend agent</param>
-        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        public void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
             try
             {
                 Hashtable param = new Hashtable();
-                param["ownerID"] = friendlistowner.UUID.ToString();
-                param["friendID"] = friend.UUID.ToString();
+                param["ownerID"] = friendlistowner.ToString();
+                param["friendID"] = friend.ToString();
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
@@ -627,13 +627,13 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The agent that is getting or loosing permissions</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
             try
             {
                 Hashtable param = new Hashtable();
-                param["ownerID"] = friendlistowner.UUID.ToString();
-                param["friendID"] = friend.UUID.ToString();
+                param["ownerID"] = friendlistowner.ToString();
+                param["friendID"] = friend.ToString();
                 param["friendPerms"] = perms.ToString();
                 IList parameters = new ArrayList();
                 parameters.Add(param);
@@ -672,17 +672,17 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
         /// <summary>
-        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
+        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
-        public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
             List<FriendListItem> buddylist = new List<FriendListItem>();
 
             try
             {
                 Hashtable param = new Hashtable();
-                param["ownerID"] = friendlistowner.UUID.ToString();
+                param["ownerID"] = friendlistowner.ToString();
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
@@ -708,7 +708,7 @@ namespace OpenSim.Region.Communications.OGS1
         #endregion
 
         /// Appearance
-        public AvatarAppearance GetUserAppearance(LLUUID user)
+        public AvatarAppearance GetUserAppearance(UUID user)
         {
             AvatarAppearance appearance = null;
 
@@ -733,7 +733,7 @@ namespace OpenSim.Region.Communications.OGS1
             return appearance;
         }
 
-        public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
+        public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
             try
             {

@@ -31,7 +31,7 @@ using System.Data;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework;
@@ -190,7 +190,7 @@ namespace OpenSim.Data.SQLite
         {
         }
 
-        public RegionSettings LoadRegionSettings(LLUUID regionUUID)
+        public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             return null;
         }
@@ -200,15 +200,15 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="obj">the object</param>
         /// <param name="regionUUID">the region UUID</param>
-        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
+        public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
             lock (ds)
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    if ((prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Physics) == 0
-                        && (prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Temporary) == 0
-                        && (prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.TemporaryOnRez) == 0)
+                    if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == 0
+                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
+                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
                     {
                         //m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
@@ -235,9 +235,9 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="obj">the object</param>
         /// <param name="regionUUID">the region UUID</param>
-        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
+        public void RemoveObject(UUID obj, UUID regionUUID)
         {
-            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
+            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.Guid, regionUUID);
 
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
@@ -249,7 +249,7 @@ namespace OpenSim.Data.SQLite
                 foreach (DataRow row in primRows)
                 {
                     // Remove shape rows
-                    LLUUID uuid = new LLUUID((string) row["UUID"]);
+                    UUID uuid = new UUID((string) row["UUID"]);
                     DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(uuid));
                     if (shapeRow != null)
                     {
@@ -271,7 +271,7 @@ namespace OpenSim.Data.SQLite
         /// The caller must acquire the necessrary synchronization locks and commit or rollback changes.
         /// </summary>
         /// <param name="uuid">The item UUID</param>
-        private void RemoveItems(LLUUID uuid)
+        private void RemoveItems(UUID uuid)
         {
             DataTable items = ds.Tables["primitems"];
 
@@ -289,9 +289,9 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="regionUUID">The region UUID</param>
         /// <returns>List of loaded groups</returns>
-        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
+        public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
         {
-            Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
+            Dictionary<UUID, SceneObjectGroup> createdObjects = new Dictionary<UUID, SceneObjectGroup>();
 
             List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
 
@@ -350,7 +350,7 @@ namespace OpenSim.Data.SQLite
                                     "[REGION DB]: No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
-                            createdObjects[new LLUUID(objID)].AddPart(prim);
+                            createdObjects[new UUID(objID)].AddPart(prim);
                         }
 
                             LoadItems(prim);
@@ -379,7 +379,7 @@ namespace OpenSim.Data.SQLite
 
             DataTable dbItems = ds.Tables["primitems"];
 
-            String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
+            String sql = String.Format("primID = '{0}'", prim.ToString());
             DataRow[] dbItemRows = dbItems.Select(sql);
 
             IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
@@ -407,7 +407,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="ter">terrain heightfield</param>
         /// <param name="regionID">region UUID</param>
-        public void StoreTerrain(double[,] ter, LLUUID regionID)
+        public void StoreTerrain(double[,] ter, UUID regionID)
         {
             lock (ds)
             {
@@ -451,7 +451,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="regionID">the region UUID</param>
         /// <returns>Heightfield data</returns>
-        public double[,] LoadTerrain(LLUUID regionID)
+        public double[,] LoadTerrain(UUID regionID)
         {
             lock (ds)
             {
@@ -499,7 +499,7 @@ namespace OpenSim.Data.SQLite
         ///
         /// </summary>
         /// <param name="globalID"></param>
-        public void RemoveLandObject(LLUUID globalID)
+        public void RemoveLandObject(UUID globalID)
         {
             lock (ds)
             {
@@ -563,7 +563,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="regionUUID"></param>
         /// <returns></returns>
-        public List<LandData> LoadLandObjects(LLUUID regionUUID)
+        public List<LandData> LoadLandObjects(UUID regionUUID)
         {
             List<LandData> landDataForRegion = new List<LandData>();
             lock (ds)
@@ -821,12 +821,12 @@ namespace OpenSim.Data.SQLite
             createCol(land, "IsGroupOwned", typeof (Boolean));
             createCol(land, "Area", typeof (Int32));
             createCol(land, "AuctionID", typeof (Int32)); //Unemplemented
-            createCol(land, "Category", typeof (Int32)); //Enum libsecondlife.Parcel.ParcelCategory
+            createCol(land, "Category", typeof (Int32)); //Enum OpenMetaverse.Parcel.ParcelCategory
             createCol(land, "ClaimDate", typeof (Int32));
             createCol(land, "ClaimPrice", typeof (Int32));
             createCol(land, "GroupUUID", typeof (string));
             createCol(land, "SalePrice", typeof (Int32));
-            createCol(land, "LandStatus", typeof (Int32)); //Enum. libsecondlife.Parcel.ParcelStatus
+            createCol(land, "LandStatus", typeof (Int32)); //Enum. OpenMetaverse.Parcel.ParcelStatus
             createCol(land, "LandFlags", typeof (UInt32));
             createCol(land, "LandingType", typeof (Byte));
             createCol(land, "MediaAutoScale", typeof (Byte));
@@ -882,7 +882,7 @@ namespace OpenSim.Data.SQLite
             // interesting has to be done to actually get these values
             // back out.  Not enough time to figure it out yet.
             SceneObjectPart prim = new SceneObjectPart();
-            prim.UUID = new LLUUID((String) row["UUID"]);
+            prim.UUID = new UUID((String) row["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
             prim.ParentID = Convert.ToUInt32(row["ParentID"]);
@@ -895,43 +895,43 @@ namespace OpenSim.Data.SQLite
             prim.TouchName = (String) row["TouchName"];
             // permissions
             prim.ObjectFlags = Convert.ToUInt32(row["ObjectFlags"]);
-            prim.CreatorID = new LLUUID((String) row["CreatorID"]);
-            prim.OwnerID = new LLUUID((String) row["OwnerID"]);
-            prim.GroupID = new LLUUID((String) row["GroupID"]);
-            prim.LastOwnerID = new LLUUID((String) row["LastOwnerID"]);
+            prim.CreatorID = new UUID((String) row["CreatorID"]);
+            prim.OwnerID = new UUID((String) row["OwnerID"]);
+            prim.GroupID = new UUID((String) row["GroupID"]);
+            prim.LastOwnerID = new UUID((String) row["LastOwnerID"]);
             prim.OwnerMask = Convert.ToUInt32(row["OwnerMask"]);
             prim.NextOwnerMask = Convert.ToUInt32(row["NextOwnerMask"]);
             prim.GroupMask = Convert.ToUInt32(row["GroupMask"]);
             prim.EveryoneMask = Convert.ToUInt32(row["EveryoneMask"]);
             prim.BaseMask = Convert.ToUInt32(row["BaseMask"]);
             // vectors
-            prim.OffsetPosition = new LLVector3(
+            prim.OffsetPosition = new Vector3(
                 Convert.ToSingle(row["PositionX"]),
                 Convert.ToSingle(row["PositionY"]),
                 Convert.ToSingle(row["PositionZ"])
                 );
-            prim.GroupPosition = new LLVector3(
+            prim.GroupPosition = new Vector3(
                 Convert.ToSingle(row["GroupPositionX"]),
                 Convert.ToSingle(row["GroupPositionY"]),
                 Convert.ToSingle(row["GroupPositionZ"])
                 );
-            prim.Velocity = new LLVector3(
+            prim.Velocity = new Vector3(
                 Convert.ToSingle(row["VelocityX"]),
                 Convert.ToSingle(row["VelocityY"]),
                 Convert.ToSingle(row["VelocityZ"])
                 );
-            prim.AngularVelocity = new LLVector3(
+            prim.AngularVelocity = new Vector3(
                 Convert.ToSingle(row["AngularVelocityX"]),
                 Convert.ToSingle(row["AngularVelocityY"]),
                 Convert.ToSingle(row["AngularVelocityZ"])
                 );
-            prim.Acceleration = new LLVector3(
+            prim.Acceleration = new Vector3(
                 Convert.ToSingle(row["AccelerationX"]),
                 Convert.ToSingle(row["AccelerationY"]),
                 Convert.ToSingle(row["AccelerationZ"])
                 );
             // quaternions
-            prim.RotationOffset = new LLQuaternion(
+            prim.RotationOffset = new Quaternion(
                 Convert.ToSingle(row["RotationX"]),
                 Convert.ToSingle(row["RotationY"]),
                 Convert.ToSingle(row["RotationZ"]),
@@ -940,11 +940,11 @@ namespace OpenSim.Data.SQLite
 
             try
             {
-                prim.SitTargetPositionLL = new LLVector3(
+                prim.SitTargetPositionLL = new Vector3(
                                                          Convert.ToSingle(row["SitTargetOffsetX"]),
                                                          Convert.ToSingle(row["SitTargetOffsetY"]),
                                                          Convert.ToSingle(row["SitTargetOffsetZ"]));
-                prim.SitTargetOrientationLL = new LLQuaternion(
+                prim.SitTargetOrientationLL = new Quaternion(
                                                                Convert.ToSingle(
                                                                                 row["SitTargetOrientX"]),
                                                                Convert.ToSingle(
@@ -993,10 +993,10 @@ namespace OpenSim.Data.SQLite
         {
             TaskInventoryItem taskItem = new TaskInventoryItem();
 
-            taskItem.ItemID        = new LLUUID((String)row["itemID"]);
-            taskItem.ParentPartID  = new LLUUID((String)row["primID"]);
-            taskItem.AssetID       = new LLUUID((String)row["assetID"]);
-            taskItem.ParentID      = new LLUUID((String)row["parentFolderID"]);
+            taskItem.ItemID        = new UUID((String)row["itemID"]);
+            taskItem.ParentPartID  = new UUID((String)row["primID"]);
+            taskItem.AssetID       = new UUID((String)row["assetID"]);
+            taskItem.ParentID      = new UUID((String)row["parentFolderID"]);
 
             taskItem.InvType       = Convert.ToInt32(row["invType"]);
             taskItem.Type          = Convert.ToInt32(row["assetType"]);
@@ -1004,10 +1004,10 @@ namespace OpenSim.Data.SQLite
             taskItem.Name          = (String)row["name"];
             taskItem.Description   = (String)row["description"];
             taskItem.CreationDate  = Convert.ToUInt32(row["creationDate"]);
-            taskItem.CreatorID     = new LLUUID((String)row["creatorID"]);
-            taskItem.OwnerID       = new LLUUID((String)row["ownerID"]);
-            taskItem.LastOwnerID   = new LLUUID((String)row["lastOwnerID"]);
-            taskItem.GroupID       = new LLUUID((String)row["groupID"]);
+            taskItem.CreatorID     = new UUID((String)row["creatorID"]);
+            taskItem.OwnerID       = new UUID((String)row["ownerID"]);
+            taskItem.LastOwnerID   = new UUID((String)row["lastOwnerID"]);
+            taskItem.GroupID       = new UUID((String)row["groupID"]);
 
             taskItem.NextPermissions = Convert.ToUInt32(row["nextPermissions"]);
             taskItem.CurrentPermissions     = Convert.ToUInt32(row["currentPermissions"]);
@@ -1028,7 +1028,7 @@ namespace OpenSim.Data.SQLite
         {
             LandData newData = new LandData();
 
-            newData.GlobalID = new LLUUID((String) row["UUID"]);
+            newData.GlobalID = new UUID((String) row["UUID"]);
             newData.LocalID = Convert.ToInt32(row["LocalLandID"]);
 
             // Bitmap is a byte[512]
@@ -1041,17 +1041,17 @@ namespace OpenSim.Data.SQLite
             newData.Area = Convert.ToInt32(row["Area"]);
             newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
             newData.Category = (Parcel.ParcelCategory) Convert.ToInt32(row["Category"]);
-                //Enum libsecondlife.Parcel.ParcelCategory
+                //Enum OpenMetaverse.Parcel.ParcelCategory
             newData.ClaimDate = Convert.ToInt32(row["ClaimDate"]);
             newData.ClaimPrice = Convert.ToInt32(row["ClaimPrice"]);
-            newData.GroupID = new LLUUID((String) row["GroupUUID"]);
+            newData.GroupID = new UUID((String) row["GroupUUID"]);
             newData.SalePrice = Convert.ToInt32(row["SalePrice"]);
             newData.Status = (Parcel.ParcelStatus) Convert.ToInt32(row["LandStatus"]);
-                //Enum. libsecondlife.Parcel.ParcelStatus
+                //Enum. OpenMetaverse.Parcel.ParcelStatus
             newData.Flags = Convert.ToUInt32(row["LandFlags"]);
             newData.LandingType = (Byte) row["LandingType"];
             newData.MediaAutoScale = (Byte) row["MediaAutoScale"];
-            newData.MediaID = new LLUUID((String) row["MediaTextureUUID"]);
+            newData.MediaID = new UUID((String) row["MediaTextureUUID"]);
             newData.MediaURL = (String) row["MediaURL"];
             newData.MusicURL = (String) row["MusicURL"];
             newData.PassHours = Convert.ToSingle(row["PassHours"]);
@@ -1061,25 +1061,25 @@ namespace OpenSim.Data.SQLite
             {
 
                 newData.UserLocation =
-                    new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
+                    new Vector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
                                   Convert.ToSingle(row["UserLocationZ"]));
                 newData.UserLookAt =
-                    new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
+                    new Vector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
                                   Convert.ToSingle(row["UserLookAtZ"]));
 
             }
             catch (InvalidCastException)
             {
                 m_log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.Name);
-                newData.UserLocation = LLVector3.Zero;
-                newData.UserLookAt = LLVector3.Zero;
+                newData.UserLocation = Vector3.Zero;
+                newData.UserLookAt = Vector3.Zero;
             }
             newData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
-            LLUUID authBuyerID = LLUUID.Zero;
+            UUID authBuyerID = UUID.Zero;
 
             try
             {
-                Helpers.TryParse((string)row["AuthbuyerID"], out authBuyerID);
+                UUID.TryParse((string)row["AuthbuyerID"], out authBuyerID);
             }
             catch (InvalidCastException)
             {
@@ -1120,7 +1120,7 @@ namespace OpenSim.Data.SQLite
         private static ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-            entry.AgentID = new LLUUID((string) row["AccessUUID"]);
+            entry.AgentID = new UUID((string) row["AccessUUID"]);
             entry.Flags = (ParcelManager.AccessList) row["Flags"];
             entry.Time = new DateTime();
             return entry;
@@ -1144,7 +1144,7 @@ namespace OpenSim.Data.SQLite
             return str.ToArray();
         }
 
-//         private void fillTerrainRow(DataRow row, LLUUID regionUUID, int rev, double[,] val)
+//         private void fillTerrainRow(DataRow row, UUID regionUUID, int rev, double[,] val)
 //         {
 //             row["RegionUUID"] = regionUUID;
 //             row["Revision"] = rev;
@@ -1167,7 +1167,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="prim"></param>
         /// <param name="sceneGroupID"></param>
         /// <param name="regionUUID"></param>
-        private static void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
+        private static void fillPrimRow(DataRow row, SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(prim.UUID);
             row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
@@ -1215,12 +1215,12 @@ namespace OpenSim.Data.SQLite
             row["RotationW"] = prim.RotationOffset.W;
 
             // Sit target
-            LLVector3 sitTargetPos = prim.SitTargetPositionLL;
+            Vector3 sitTargetPos = prim.SitTargetPositionLL;
             row["SitTargetOffsetX"] = sitTargetPos.X;
             row["SitTargetOffsetY"] = sitTargetPos.Y;
             row["SitTargetOffsetZ"] = sitTargetPos.Z;
 
-            LLQuaternion sitTargetOrient = prim.SitTargetOrientationLL;
+            Quaternion sitTargetOrient = prim.SitTargetOrientationLL;
             row["SitTargetOrientW"] = sitTargetOrient.W;
             row["SitTargetOrientX"] = sitTargetOrient.X;
             row["SitTargetOrientY"] = sitTargetOrient.Y;
@@ -1263,7 +1263,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="row"></param>
         /// <param name="land"></param>
         /// <param name="regionUUID"></param>
-        private static void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
+        private static void fillLandRow(DataRow row, LandData land, UUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(land.GlobalID);
             row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
@@ -1278,12 +1278,12 @@ namespace OpenSim.Data.SQLite
             row["IsGroupOwned"] = land.IsGroupOwned;
             row["Area"] = land.Area;
             row["AuctionID"] = land.AuctionID; //Unemplemented
-            row["Category"] = land.Category; //Enum libsecondlife.Parcel.ParcelCategory
+            row["Category"] = land.Category; //Enum OpenMetaverse.Parcel.ParcelCategory
             row["ClaimDate"] = land.ClaimDate;
             row["ClaimPrice"] = land.ClaimPrice;
             row["GroupUUID"] = Util.ToRawUuidString(land.GroupID);
             row["SalePrice"] = land.SalePrice;
-            row["LandStatus"] = land.Status; //Enum. libsecondlife.Parcel.ParcelStatus
+            row["LandStatus"] = land.Status; //Enum. OpenMetaverse.Parcel.ParcelStatus
             row["LandFlags"] = land.Flags;
             row["LandingType"] = land.LandingType;
             row["MediaAutoScale"] = land.MediaAutoScale;
@@ -1308,7 +1308,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="row"></param>
         /// <param name="entry"></param>
         /// <param name="parcelID"></param>
-        private static void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
+        private static void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, UUID parcelID)
         {
             row["LandUUID"] = Util.ToRawUuidString(parcelID);
             row["AccessUUID"] = Util.ToRawUuidString(entry.AgentID);
@@ -1323,7 +1323,7 @@ namespace OpenSim.Data.SQLite
         private PrimitiveBaseShape buildShape(DataRow row)
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
-            s.Scale = new LLVector3(
+            s.Scale = new Vector3(
                 Convert.ToSingle(row["ScaleX"]),
                 Convert.ToSingle(row["ScaleY"]),
                 Convert.ToSingle(row["ScaleZ"])
@@ -1418,7 +1418,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="prim"></param>
         /// <param name="sceneGroupID"></param>
         /// <param name="regionUUID"></param>
-        private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
+        private void addPrim(SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
@@ -1453,7 +1453,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="primID"></param>
         /// <param name="items"></param>
-        public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
+        public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
             m_log.InfoFormat("[REGION DB]: Entered StorePrimInventory with prim ID {0}", primID);
 

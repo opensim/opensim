@@ -28,16 +28,16 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications
 {
     public interface IAvatarService
     {
         /// Get's the User Appearance
-        AvatarAppearance GetUserAppearance(LLUUID user);
+        AvatarAppearance GetUserAppearance(UUID user);
 
-        void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
+        void UpdateUserAppearance(UUID user, AvatarAppearance appearance);
 
     }
 }

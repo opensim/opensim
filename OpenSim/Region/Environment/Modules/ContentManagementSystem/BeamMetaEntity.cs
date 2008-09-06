@@ -39,7 +39,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using Nini.Config;
 
@@ -50,21 +50,19 @@ using OpenSim.Region.Physics.Manager;
 
 using log4net;
 
-using Axiom.Math;
-
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
     public class BeamMetaEntity : PointMetaEntity
     {
         #region Constructors
 
-        public BeamMetaEntity(Scene scene, uint LocalId, LLVector3 groupPos, float transparency, SceneObjectPart To, LLVector3 color)
+        public BeamMetaEntity(Scene scene, uint LocalId, Vector3 groupPos, float transparency, SceneObjectPart To, Vector3 color)
             : base(scene, LocalId, groupPos, transparency)
         {
             SetBeamToUUID(To, color);
         }
 
-        public BeamMetaEntity(Scene scene, LLUUID uuid, uint LocalId, LLVector3 groupPos, float transparency, SceneObjectPart To, LLVector3 color)
+        public BeamMetaEntity(Scene scene, UUID uuid, uint LocalId, Vector3 groupPos, float transparency, SceneObjectPart To, Vector3 color)
             : base(scene, uuid, LocalId, groupPos, transparency)
         {
             SetBeamToUUID(To, color);
@@ -74,13 +72,13 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Public Methods
 
-        public void SetBeamToUUID(SceneObjectPart To, LLVector3 color)
+        public void SetBeamToUUID(SceneObjectPart To, Vector3 color)
         {
             SceneObjectPart From = m_Entity.RootPart;
             //Scale size of particles to distance objects are apart (for better visibility)
-            LLVector3 FromPos = From.GetWorldPosition();
-            LLVector3 ToPos = From.GetWorldPosition();
-//            LLUUID toUUID = To.UUID;
+            Vector3 FromPos = From.GetWorldPosition();
+            Vector3 ToPos = From.GetWorldPosition();
+            UUID toUUID = To.UUID;
             float distance = (float) (Math.Sqrt(Math.Pow(FromPos.X-ToPos.X, 2) + 
                                                 Math.Pow(FromPos.X-ToPos.Y, 2) + 
                                                 Math.Pow(FromPos.X-ToPos.Z, 2)
@@ -94,7 +92,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             SetBeamToUUID(From, To, color, rate, scale, speed);
         }
 
-        public void SetBeamToUUID(SceneObjectPart From, SceneObjectPart To,  LLVector3 color, float rate, float scale, float speed)
+        public void SetBeamToUUID(SceneObjectPart From, SceneObjectPart To,  Vector3 color, float rate, float scale, float speed)
         {
             Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
             //prules.PartDataFlags = Primitive.ParticleSystem.ParticleDataFlags.Emissive |                                                                                                                    
@@ -118,7 +116,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             prules.PartAcceleration.Y = 0.0f;
             prules.PartAcceleration.Z = 0.0f;
             //prules.Pattern = Primitive.ParticleSystem.SourcePattern.Explode;                 //PSYS_SRC_PATTERN                                                                                                           
-            //prules.Texture = LLUUID.Zero;//= LLUUID                                                     //PSYS_SRC_TEXTURE, default used if blank                                                           
+            //prules.Texture = UUID.Zero;//= UUID                                                     //PSYS_SRC_TEXTURE, default used if blank                                                           
             prules.BurstRate = rate;                                                      //PSYS_SRC_BURST_RATE                                                                                                           
             prules.BurstPartCount = 1;                                                   //PSYS_SRC_BURST_PART_COUNT                                                                                                      
             prules.BurstRadius = 0.5f;                                                    //PSYS_SRC_BURST_RADIUS                                                                                             

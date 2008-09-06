@@ -34,7 +34,7 @@ using log4net;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications.Capabilities;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Region.DataSnapshot
@@ -64,7 +64,7 @@ namespace OpenSim.Region.DataSnapshot
             //harbl
         }
 
-        public void OnRegisterCaps(LLUUID agentID, Caps caps)
+        public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             m_log.Info("[DATASNAPSHOT]: Registering service discovery capability for " + agentID);
             string capsBase = "/CAPS/" + caps.CapsObjectPath;

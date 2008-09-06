@@ -27,7 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 return m_landManagementModule.GetLandObject(x_float, y_float);
             }
-            ILandObject obj = new LandObject(LLUUID.Zero, false, m_scene);
+            ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
             obj.landData.Name = "NO LAND";
             return obj;
         }
@@ -100,12 +100,12 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 return m_landManagementModule.GetLandObject(x, y);
             }
-            ILandObject obj = new LandObject(LLUUID.Zero, false, m_scene);
+            ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
             obj.landData.Name = "NO LAND";
             return obj;
         }
 
-        public List<ILandObject> ParcelsNearPoint(LLVector3 position)
+        public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {
             if (m_landManagementModule != null)
             {
@@ -142,7 +142,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 m_landManagementModule.UpdateLandObject(localID, data);
             }
         }
-        public void ReturnObjectsInParcel(int localID, uint returnType, LLUUID[] agentIDs, LLUUID[] taskIDs, IClientAPI remoteClient)
+        public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
         {
             if (m_landManagementModule != null)
             {

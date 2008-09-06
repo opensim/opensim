@@ -26,14 +26,14 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public class Animation
     {
-        private LLUUID animID;
-        public LLUUID AnimID
+        private UUID animID;
+        public UUID AnimID
         {
             get { return animID; }
             set { animID = value; }
@@ -50,7 +50,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
         }
 
-        public Animation(LLUUID animID, int sequenceNum)
+        public Animation(UUID animID, int sequenceNum)
         {
             this.animID = animID;
             this.sequenceNum = sequenceNum;

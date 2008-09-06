@@ -31,12 +31,12 @@ using System.IO;
 using System.Threading;
 using System.Xml;
 using System.Drawing;
-using OpenJPEGNet;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using libsecondlife;
+using OpenMetaverse;
+using OpenMetaverse.Imaging;
 using Nini.Config;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
@@ -189,7 +189,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             // We can only get here if we are authorized
             //
-            // The requestor may have specified an LLUUID or
+            // The requestor may have specified an UUID or
             // a conjoined FirstName LastName string. We'll
             // try both. If we fail with the first, UUID,
             // attempt, we try the other. As an example, the
@@ -202,6 +202,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // required to designate a GET for an entire
             // inventory.
             //
+
+
             // Do we have at least a user agent name?
 
             if (rdata.Parameters.Length < 1)
@@ -210,15 +212,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 rdata.Fail(Rest.HttpStatusCodeBadRequest, "no user identity specified");
             }
 
-            // The first parameter MUST be the agent identification, either an LLUUID
+            // The first parameter MUST be the agent identification, either an UUID
             // or a space-separated First-name Last-Name specification. We check for
-            // an LLUUID first, if anyone names their character using a valid LLUUID
+            // an UUID first, if anyone names their character using a valid UUID
             // that identifies another existing avatar will cause this a problem...
 
             try
             {
-                rdata.uuid = new LLUUID(rdata.Parameters[PARM_USERID]);
-                Rest.Log.DebugFormat("{0} LLUUID supplied", MsgId);
+                rdata.uuid = new UUID(rdata.Parameters[PARM_USERID]);
+                Rest.Log.DebugFormat("{0} UUID supplied", MsgId);
                 rdata.userProfile = Rest.UserServices.GetUserProfile(rdata.uuid);
             }
             catch
@@ -490,7 +492,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     // may have already set the parent ID explicitly, in which
                     // case we don't have to do it here.
 
-                    if (folder.ParentID == LLUUID.Zero || folder.ParentID == context.ID)
+                    if (folder.ParentID == UUID.Zero || folder.ParentID == context.ID)
                     {
                         if (newnode != String.Empty)
                         {
@@ -550,7 +552,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     // If the parentID is zero, then this is going
                     // directly into the root identified by the URI.
 
-                    if (item.Folder == LLUUID.Zero)
+                    if (item.Folder == UUID.Zero)
                     {
                         item.Folder = context.ID;
                     }
@@ -719,7 +721,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     {
                         if ((rfound = (folder.Name == PRIVATE_ROOT_NAME)))
                         {
-                            if ((rfound = (folder.ParentID == LLUUID.Zero)))
+                            if ((rfound = (folder.ParentID == UUID.Zero)))
                                 break;
                         }
                     }
@@ -746,7 +748,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 foreach (InventoryFolderBase folder in entity.Folders)
                 {
                     if (folder.ParentID == uri.ParentID ||
-                        folder.ParentID == LLUUID.Zero)
+                        folder.ParentID == UUID.Zero)
                     {
                         folder.ParentID = uri.ParentID;
                         xml = folder;
@@ -778,9 +780,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     // All went well, so we generate a UUID is one is
                     // needed.
 
-                    if (xml.ID == LLUUID.Zero)
+                    if (xml.ID == UUID.Zero)
                     {
-                        xml.ID = LLUUID.Random();
+                        xml.ID = UUID.Random();
                     }
 
                     uri.ParentID = TrashCan.ID;
@@ -834,9 +836,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 xml = entity.Items[0];
 
-                if (xml.ID == LLUUID.Zero)
+                if (xml.ID == UUID.Zero)
                 {
-                    xml.ID = LLUUID.Random();
+                    xml.ID = UUID.Random();
                 }
 
                 // If the folder reference has changed, then this item is
@@ -1336,7 +1338,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     {
                         TrashCan = new InventoryFolderBase();
                         TrashCan.Name = "tmp";
-                        TrashCan.ID   = LLUUID.Random();
+                        TrashCan.ID   = UUID.Random();
                         TrashCan.Version = 1;
                         TrashCan.Type = (short) AssetType.TrashFolder;
                         TrashCan.ParentID = f.ID;
@@ -1556,9 +1558,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // Default values
 
             result.Name     = String.Empty;
-            result.ID       = LLUUID.Zero;
+            result.ID       = UUID.Zero;
             result.Owner    = ic.UserID;
-            result.ParentID = LLUUID.Zero; // Context
+            result.ParentID = UUID.Zero; // Context
             result.Type     = (short) AssetType.Folder;
             result.Version  = 1;
 
@@ -1573,13 +1575,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         result.Name     =     ic.xml.Value;
                         break;
                     case "uuid" :
-                        result.ID       = new LLUUID(ic.xml.Value);
+                        result.ID       = new UUID(ic.xml.Value);
                         break;
                     case "parent" :
-                        result.ParentID = new LLUUID(ic.xml.Value);
+                        result.ParentID = new UUID(ic.xml.Value);
                         break;
                     case "owner" :
-                        result.Owner    = new LLUUID(ic.xml.Value);
+                        result.Owner    = new UUID(ic.xml.Value);
                         break;
                     case "type" :
                         result.Type     =     Int16.Parse(ic.xml.Value);
@@ -1604,7 +1606,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // is necessary where a new folder may have been
             // introduced.
 
-            if (result.ParentID == LLUUID.Zero)
+            if (result.ParentID == UUID.Zero)
             {
                 result.ParentID = ic.Parent();
             }
@@ -1632,9 +1634,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // This is a new folder, so no existing UUID is available
             // or appropriate
 
-            if (result.ID == LLUUID.Zero)
+            if (result.ID == UUID.Zero)
             {
-                result.ID = LLUUID.Random();
+                result.ID = UUID.Random();
             }
 
             // Treat this as a new context. Any other information is
@@ -1664,12 +1666,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             result.Name        = String.Empty;
             result.Description = String.Empty;
-            result.ID          = LLUUID.Zero;
-            result.Folder      = LLUUID.Zero;
+            result.ID          = UUID.Zero;
+            result.Folder      = UUID.Zero;
             result.Owner       = ic.UserID;
             result.Creator     = ic.UserID;
-            result.AssetID     = LLUUID.Zero;
-            result.GroupID     = LLUUID.Zero;
+            result.AssetID     = UUID.Zero;
+            result.GroupID     = UUID.Zero;
             result.GroupOwned  = false;
             result.InvType     = (int) InventoryType.Unknown;
             result.AssetType   = (int) AssetType.Unknown;
@@ -1689,19 +1691,19 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         result.Description  = ic.xml.Value;
                         break;
                     case "uuid" :
-                        result.ID           = new LLUUID(ic.xml.Value);
+                        result.ID           = new UUID(ic.xml.Value);
                         break;
                     case "folder" :
-                        result.Folder       = new LLUUID(ic.xml.Value);
+                        result.Folder       = new UUID(ic.xml.Value);
                         break;
                     case "owner" :
-                        result.Owner        = new LLUUID(ic.xml.Value);
+                        result.Owner        = new UUID(ic.xml.Value);
                         break;
                     case "invtype" :
                         result.InvType      =     Int32.Parse(ic.xml.Value);
                         break;
                     case "creator" :
-                        result.Creator      = new LLUUID(ic.xml.Value);
+                        result.Creator      = new UUID(ic.xml.Value);
                         break;
                     case "assettype" :
                         result.AssetType    =     Int32.Parse(ic.xml.Value);
@@ -1710,7 +1712,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         result.GroupOwned   =     Boolean.Parse(ic.xml.Value);
                         break;
                     case "groupid" :
-                        result.GroupID      = new LLUUID(ic.xml.Value);
+                        result.GroupID      = new UUID(ic.xml.Value);
                         break;
                     case "flags" :
                         result.Flags        =     UInt32.Parse(ic.xml.Value);
@@ -1776,7 +1778,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // This is not a persistent attribute
             bool    inline  = true;
 
-            LLUUID    uuid  = LLUUID.Zero;
+            UUID    uuid  = UUID.Zero;
 
             // Attribute is optional
             if (ic.xml.HasAttributes)
@@ -1804,7 +1806,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         break;
 
                     case "uuid" :
-                        uuid = new LLUUID(ic.xml.Value);
+                        uuid = new UUID(ic.xml.Value);
                         break;
 
                     case "inline" :
@@ -1834,7 +1836,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 if (ic.Item != null)
                 {
-                    ic.Item.AssetID = new LLUUID(ic.xml.ReadElementContentAsString());
+                    ic.Item.AssetID = new UUID(ic.xml.ReadElementContentAsString());
                     Rest.Log.DebugFormat("{0} Asset ID supplied: {1}", MsgId, ic.Item.AssetID);
                 }
                 else
@@ -1855,9 +1857,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // Generate a UUID of none were given, and generally none should
                 // be. Ever.
 
-                if (uuid == LLUUID.Zero)
+                if (uuid == UUID.Zero)
                 {
-                    uuid = LLUUID.Random();
+                    uuid = UUID.Random();
                 }
 
                 // Create AssetBase entity to hold the inlined asset
@@ -1887,7 +1889,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // If this is in the context of an item, establish
                 // a link with the item in context.
 
-                if (ic.Item != null && ic.Item.AssetID == LLUUID.Zero)
+                if (ic.Item != null && ic.Item.AssetID == UUID.Zero)
                 {
                     ic.Item.AssetID = uuid;
                 }
@@ -1970,7 +1972,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // here. It should always get set from the information stored
             // when the Asset element was processed.
 
-            if (ic.Item.AssetID == LLUUID.Zero)
+            if (ic.Item.AssetID == UUID.Zero)
             {
                 Rest.Log.ErrorFormat("{0} Unable to complete request", MsgId);
                 Rest.Log.InfoFormat("{0} Asset information is missing", MsgId);
@@ -1979,16 +1981,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             // If the item is new, then assign it an ID
 
-            if (ic.Item.ID == LLUUID.Zero)
+            if (ic.Item.ID == UUID.Zero)
             {
-                ic.Item.ID = LLUUID.Random();
+                ic.Item.ID = UUID.Random();
             }
 
             // If the context is being implied, obtain the current
             // folder item's ID. If it was specified explicitly, make
             // sure that theparent folder exists.
 
-            if (ic.Item.Folder == LLUUID.Zero)
+            if (ic.Item.Folder == UUID.Zero)
             {
                 ic.Item.Folder = ic.Parent();
             }
@@ -2113,8 +2115,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Bitmap temp;
                 Stream tgadata = new MemoryStream(ic.Asset.Data);
 
-                temp = OpenJPEGNet.LoadTGAClass.LoadTGA(tgadata);
-                ic.Asset.Data = OpenJPEGNet.OpenJPEG.EncodeFromImage(temp, true);
+                temp = LoadTGAClass.LoadTGA(tgadata);
+                ic.Asset.Data = OpenJPEG.EncodeFromImage(temp, true);
             }
 
             ic.reset();
@@ -2129,7 +2131,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             /// extensions.
             /// </summary>
 
-            internal LLUUID                              uuid = LLUUID.Zero;
+            internal UUID                              uuid = UUID.Zero;
             internal bool                       HaveInventory = false;
             internal ICollection<InventoryFolderImpl> folders = null;
             internal ICollection<InventoryItemBase>     items = null;
@@ -2214,7 +2216,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 EveryOnePermissions = DefaultEveryOne;
             }
 
-            internal LLUUID Parent()
+            internal UUID Parent()
             {
                 if (stk.Count != 0)
                 {
@@ -2222,7 +2224,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 }
                 else
                 {
-                    return LLUUID.Zero;
+                    return UUID.Zero;
                 }
             }
 

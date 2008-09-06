@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -34,13 +34,13 @@ namespace OpenSim.Framework
         public byte[] Data;
         public string Name;
         public sbyte Type;
-        public LLUUID UUID;
+        public UUID UUID;
 
         public AssetStorage()
         {
         }
 
-        public AssetStorage(LLUUID assetUUID)
+        public AssetStorage(UUID assetUUID)
         {
             UUID = assetUUID;
         }

@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Communications
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected Dictionary<LLUUID, string[]> m_nameRequestCache = new Dictionary<LLUUID, string[]>();
+        protected Dictionary<UUID, string[]> m_nameRequestCache = new Dictionary<UUID, string[]>();
 
         public IUserService UserService
         {
@@ -238,8 +238,8 @@ namespace OpenSim.Framework.Communications
         /// <param name="password"></param>
         /// <param name="regX"></param>
         /// <param name="regY"></param>
-        /// <returns>The UUID of the added user.  Returns LLUUID.Zero if the add was unsuccessful</returns>
-        public LLUUID AddUser(string firstName, string lastName, string password, uint regX, uint regY)
+        /// <returns>The UUID of the added user.  Returns UUID.Zero if the add was unsuccessful</returns>
+        public UUID AddUser(string firstName, string lastName, string password, uint regX, uint regY)
         {
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
 
@@ -247,7 +247,7 @@ namespace OpenSim.Framework.Communications
             UserProfileData userProf = UserService.GetUserProfile(firstName, lastName);
             if (userProf == null)
             {
-                return LLUUID.Zero;
+                return UUID.Zero;
             }
             else
             {
@@ -265,7 +265,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="friendlistowner">The agent that who's friends list is being added to</param>
         /// <param name="friend">The agent that being added to the friends list of the friends list owner</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
             m_userService.AddNewUserFriend(friendlistowner, friend, perms);
         }
@@ -279,7 +279,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="posx"></param>
         /// <param name="posy"></param>
         /// <param name="posz"></param>
-        public void LogOffUser(LLUUID userid, LLUUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
             m_userService.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
 
@@ -290,7 +290,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The Ex-friend agent</param>
-        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        public void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
             m_userService.RemoveUserFriend(friendlistowner, friend);
         }
@@ -301,16 +301,16 @@ namespace OpenSim.Framework.Communications
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The agent that is getting or loosing permissions</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
             m_userService.UpdateUserFriendPerms(friendlistowner, friend, perms);
         }
 
         /// <summary>
-        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
+        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
-        public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
             return m_userService.GetUserFriendList(friendlistowner);
         }
@@ -325,7 +325,7 @@ namespace OpenSim.Framework.Communications
             return;
         }
 
-        public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)
+        public void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
         {
             if (uuid == m_userProfileCacheService.libraryRoot.Owner)
             {
@@ -342,7 +342,7 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        private string[] doUUIDNameRequest(LLUUID uuid)
+        private string[] doUUIDNameRequest(UUID uuid)
         {
             string[] returnstring = new string[0];
             bool doLookup = false;
@@ -366,7 +366,7 @@ namespace OpenSim.Framework.Communications
                 if (profileData != null)
                 {
                     returnstring = new string[2];
-                    // LLUUID profileId = profileData.ID;
+                    // UUID profileId = profileData.ID;
                     returnstring[0] = profileData.FirstName;
                     returnstring[1] = profileData.SurName;
                     lock (m_nameRequestCache)
@@ -380,13 +380,13 @@ namespace OpenSim.Framework.Communications
 
         }
 
-        public bool UUIDNameCachedTest(LLUUID uuid)
+        public bool UUIDNameCachedTest(UUID uuid)
         {
             lock (m_nameRequestCache)
                 return m_nameRequestCache.ContainsKey(uuid);
         }
 
-        public string UUIDNameRequestString(LLUUID uuid)
+        public string UUIDNameRequestString(UUID uuid)
         {
             string[] names = doUUIDNameRequest(uuid);
             if (names.Length == 2)
@@ -400,7 +400,7 @@ namespace OpenSim.Framework.Communications
             return "(hippos)";
         }
 
-        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
+        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = m_userService.GenerateAgentPickerRequestResponse(queryID, query);
             return pickerlist;

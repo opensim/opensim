@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Communications.Capabilities
     public class LLSDAssetUploadComplete
     {
         public string new_asset = String.Empty;
-        public LLUUID new_inventory_item = LLUUID.Zero;
+        public UUID new_inventory_item = UUID.Zero;
         public string state = String.Empty;
         //public bool success = false;
 

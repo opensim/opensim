@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
@@ -35,12 +35,12 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <summary>
         /// The item containing the script to update
         /// </summary>
-        public LLUUID item_id;
+        public UUID item_id;
 
         /// <summary>
         /// The task containing the script
         /// </summary>
-        public LLUUID task_id;
+        public UUID task_id;
 
         /// <summary>
         /// Signals whether the script is currently active

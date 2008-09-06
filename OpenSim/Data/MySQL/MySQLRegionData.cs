@@ -31,7 +31,7 @@ using System.Data;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework;
@@ -296,15 +296,15 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="obj">The object</param>
         /// <param name="regionUUID">The region UUID</param>
-        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
+        public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
             lock (m_dataSet)
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    if ((prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Physics) == 0
-                        && (prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Temporary) == 0
-                        && (prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.TemporaryOnRez) == 0)
+                    if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == 0
+                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
+                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
                     {
                         //m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, obj.UUID, regionUUID);
@@ -323,9 +323,9 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="obj">The object</param>
         /// <param name="regionUUID">The Region UUID</param>
-        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
+        public void RemoveObject(UUID obj, UUID regionUUID)
         {
-            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
+            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj, regionUUID);
 
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
@@ -337,7 +337,7 @@ namespace OpenSim.Data.MySQL
                 foreach (DataRow row in primRows)
                 {
                     // Remove shapes row
-                    LLUUID uuid = new LLUUID((string) row["UUID"]);
+                    UUID uuid = new UUID((string) row["UUID"]);
                     DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(uuid));
                     if (shapeRow != null)
                     {
@@ -358,7 +358,7 @@ namespace OpenSim.Data.MySQL
         /// The caller must acquire the necessrary synchronization locks and commit or rollback changes.
         /// </summary>
         /// <param name="uuid">the Item UUID</param>
-        private void RemoveItems(LLUUID uuid)
+        private void RemoveItems(UUID uuid)
         {
             String sql = String.Format("primID = '{0}'", uuid);
             DataRow[] itemRows = m_itemsTable.Select(sql);
@@ -374,9 +374,9 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="regionUUID">the Region UUID</param>
         /// <returns>List of loaded groups</returns>
-        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
+        public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
         {
-            Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
+            Dictionary<UUID, SceneObjectGroup> createdObjects = new Dictionary<UUID, SceneObjectGroup>();
 
             List<SceneObjectGroup> retvals = new List<SceneObjectGroup>();
 
@@ -436,7 +436,7 @@ namespace OpenSim.Data.MySQL
                                     "No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
-                            createdObjects[new LLUUID(objID)].AddPart(prim);
+                            createdObjects[new UUID(objID)].AddPart(prim);
                         }
 
                             LoadItems(prim);
@@ -497,7 +497,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="ter">HeightField data</param>
         /// <param name="regionID">region UUID</param>
-        public void StoreTerrain(double[,] ter, LLUUID regionID)
+        public void StoreTerrain(double[,] ter, UUID regionID)
         {
             int revision = 1;
             m_log.Info("[REGION DB]: Storing terrain revision r" + revision.ToString());
@@ -527,7 +527,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="regionID">the region UUID</param>
         /// <returns>Heightfield data</returns>
-        public double[,] LoadTerrain(LLUUID regionID)
+        public double[,] LoadTerrain(UUID regionID)
         {
             double[,] terret = new double[256,256];
             terret.Initialize();
@@ -583,7 +583,7 @@ namespace OpenSim.Data.MySQL
         /// </list>
         /// </summary>
         /// <param name="globalID"></param>
-        public void RemoveLandObject(LLUUID globalID)
+        public void RemoveLandObject(UUID globalID)
         {
             lock (m_dataSet)
             {
@@ -646,7 +646,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public RegionSettings LoadRegionSettings(LLUUID regionUUID)
+        public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             lock (m_dataSet)
             {
@@ -701,7 +701,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="regionUUID"></param>
         /// <returns></returns>
-        public List<LandData> LoadLandObjects(LLUUID regionUUID)
+        public List<LandData> LoadLandObjects(UUID regionUUID)
         {
             List<LandData> landDataForRegion = new List<LandData>();
             lock (m_dataSet)
@@ -1101,7 +1101,7 @@ namespace OpenSim.Data.MySQL
         private SceneObjectPart buildPrim(DataRow row)
         {
             SceneObjectPart prim = new SceneObjectPart();
-            prim.UUID = new LLUUID((String) row["UUID"]);
+            prim.UUID = new UUID((String) row["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
             prim.ParentID = Convert.ToUInt32(row["ParentID"]);
@@ -1114,54 +1114,54 @@ namespace OpenSim.Data.MySQL
             prim.TouchName = (String) row["TouchName"];
             // permissions
             prim.ObjectFlags = Convert.ToUInt32(row["ObjectFlags"]);
-            prim.CreatorID = new LLUUID((String) row["CreatorID"]);
-            prim.OwnerID = new LLUUID((String) row["OwnerID"]);
-            prim.GroupID = new LLUUID((String) row["GroupID"]);
-            prim.LastOwnerID = new LLUUID((String) row["LastOwnerID"]);
+            prim.CreatorID = new UUID((String) row["CreatorID"]);
+            prim.OwnerID = new UUID((String) row["OwnerID"]);
+            prim.GroupID = new UUID((String) row["GroupID"]);
+            prim.LastOwnerID = new UUID((String) row["LastOwnerID"]);
             prim.OwnerMask = Convert.ToUInt32(row["OwnerMask"]);
             prim.NextOwnerMask = Convert.ToUInt32(row["NextOwnerMask"]);
             prim.GroupMask = Convert.ToUInt32(row["GroupMask"]);
             prim.EveryoneMask = Convert.ToUInt32(row["EveryoneMask"]);
             prim.BaseMask = Convert.ToUInt32(row["BaseMask"]);
             // vectors
-            prim.OffsetPosition = new LLVector3(
+            prim.OffsetPosition = new Vector3(
                 Convert.ToSingle(row["PositionX"]),
                 Convert.ToSingle(row["PositionY"]),
                 Convert.ToSingle(row["PositionZ"])
                 );
-            prim.GroupPosition = new LLVector3(
+            prim.GroupPosition = new Vector3(
                 Convert.ToSingle(row["GroupPositionX"]),
                 Convert.ToSingle(row["GroupPositionY"]),
                 Convert.ToSingle(row["GroupPositionZ"])
                 );
-            prim.Velocity = new LLVector3(
+            prim.Velocity = new Vector3(
                 Convert.ToSingle(row["VelocityX"]),
                 Convert.ToSingle(row["VelocityY"]),
                 Convert.ToSingle(row["VelocityZ"])
                 );
-            prim.AngularVelocity = new LLVector3(
+            prim.AngularVelocity = new Vector3(
                 Convert.ToSingle(row["AngularVelocityX"]),
                 Convert.ToSingle(row["AngularVelocityY"]),
                 Convert.ToSingle(row["AngularVelocityZ"])
                 );
-            prim.Acceleration = new LLVector3(
+            prim.Acceleration = new Vector3(
                 Convert.ToSingle(row["AccelerationX"]),
                 Convert.ToSingle(row["AccelerationY"]),
                 Convert.ToSingle(row["AccelerationZ"])
                 );
             // quaternions
-            prim.RotationOffset = new LLQuaternion(
+            prim.RotationOffset = new Quaternion(
                 Convert.ToSingle(row["RotationX"]),
                 Convert.ToSingle(row["RotationY"]),
                 Convert.ToSingle(row["RotationZ"]),
                 Convert.ToSingle(row["RotationW"])
                 );
-            prim.SitTargetPositionLL = new LLVector3(
+            prim.SitTargetPositionLL = new Vector3(
                 Convert.ToSingle(row["SitTargetOffsetX"]),
                 Convert.ToSingle(row["SitTargetOffsetY"]),
                 Convert.ToSingle(row["SitTargetOffsetZ"])
                 );
-            prim.SitTargetOrientationLL = new LLQuaternion(
+            prim.SitTargetOrientationLL = new Quaternion(
                 Convert.ToSingle(row["SitTargetOrientX"]),
                 Convert.ToSingle(row["SitTargetOrientY"]),
                 Convert.ToSingle(row["SitTargetOrientZ"]),
@@ -1174,14 +1174,14 @@ namespace OpenSim.Data.MySQL
             prim.PayPrice[3] = Convert.ToInt32(row["PayButton3"]);
             prim.PayPrice[4] = Convert.ToInt32(row["PayButton4"]);
 
-            prim.Sound = new LLUUID(row["LoopedSound"].ToString());
+            prim.Sound = new UUID(row["LoopedSound"].ToString());
             prim.SoundGain = Convert.ToSingle(row["LoopedSoundGain"]);
             prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
             if (!row.IsNull("TextureAnimation"))
                 prim.TextureAnimation = (Byte[])row["TextureAnimation"];
 
-            prim.RotationalVelocity = new LLVector3(
+            prim.RotationalVelocity = new Vector3(
                 Convert.ToSingle(row["OmegaX"]),
                 Convert.ToSingle(row["OmegaY"]),
                 Convert.ToSingle(row["OmegaZ"])
@@ -1190,13 +1190,13 @@ namespace OpenSim.Data.MySQL
             // TODO: Rotation
             // OmegaX, OmegaY, OmegaZ
 
-            prim.SetCameraEyeOffset(new LLVector3(
+            prim.SetCameraEyeOffset(new Vector3(
                 Convert.ToSingle(row["CameraEyeOffsetX"]),
                 Convert.ToSingle(row["CameraEyeOffsetY"]),
                 Convert.ToSingle(row["CameraEyeOffsetZ"])
                 ));
 
-            prim.SetCameraAtOffset(new LLVector3(
+            prim.SetCameraAtOffset(new Vector3(
                 Convert.ToSingle(row["CameraAtOffsetX"]),
                 Convert.ToSingle(row["CameraAtOffsetY"]),
                 Convert.ToSingle(row["CameraAtOffsetZ"])
@@ -1229,10 +1229,10 @@ namespace OpenSim.Data.MySQL
         {
             TaskInventoryItem taskItem = new TaskInventoryItem();
 
-            taskItem.ItemID        = new LLUUID((String)row["itemID"]);
-            taskItem.ParentPartID  = new LLUUID((String)row["primID"]);
-            taskItem.AssetID       = new LLUUID((String)row["assetID"]);
-            taskItem.ParentID      = new LLUUID((String)row["parentFolderID"]);
+            taskItem.ItemID        = new UUID((String)row["itemID"]);
+            taskItem.ParentPartID  = new UUID((String)row["primID"]);
+            taskItem.AssetID       = new UUID((String)row["assetID"]);
+            taskItem.ParentID      = new UUID((String)row["parentFolderID"]);
 
             taskItem.InvType       = Convert.ToInt32(row["invType"]);
             taskItem.Type          = Convert.ToInt32(row["assetType"]);
@@ -1240,10 +1240,10 @@ namespace OpenSim.Data.MySQL
             taskItem.Name          = (String)row["name"];
             taskItem.Description   = (String)row["description"];
             taskItem.CreationDate  = Convert.ToUInt32(row["creationDate"]);
-            taskItem.CreatorID     = new LLUUID((String)row["creatorID"]);
-            taskItem.OwnerID       = new LLUUID((String)row["ownerID"]);
-            taskItem.LastOwnerID   = new LLUUID((String)row["lastOwnerID"]);
-            taskItem.GroupID       = new LLUUID((String)row["groupID"]);
+            taskItem.CreatorID     = new UUID((String)row["creatorID"]);
+            taskItem.OwnerID       = new UUID((String)row["ownerID"]);
+            taskItem.LastOwnerID   = new UUID((String)row["lastOwnerID"]);
+            taskItem.GroupID       = new UUID((String)row["groupID"]);
 
             taskItem.NextPermissions = Convert.ToUInt32(row["nextPermissions"]);
             taskItem.CurrentPermissions     = Convert.ToUInt32(row["currentPermissions"]);
@@ -1259,7 +1259,7 @@ namespace OpenSim.Data.MySQL
         {
             RegionSettings newSettings = new RegionSettings();
 
-            newSettings.RegionUUID = new LLUUID((string) row["regionUUID"]);
+            newSettings.RegionUUID = new UUID((string) row["regionUUID"]);
             newSettings.BlockTerraform = Convert.ToBoolean(row["block_terraform"]);
             newSettings.AllowDamage = Convert.ToBoolean(row["allow_damage"]);
             newSettings.BlockFly = Convert.ToBoolean(row["block_fly"]);
@@ -1273,10 +1273,10 @@ namespace OpenSim.Data.MySQL
             newSettings.DisableScripts = Convert.ToBoolean(row["disable_scripts"]);
             newSettings.DisableCollisions = Convert.ToBoolean(row["disable_collisions"]);
             newSettings.DisablePhysics = Convert.ToBoolean(row["disable_physics"]);
-            newSettings.TerrainTexture1 = new LLUUID((String) row["terrain_texture_1"]);
-            newSettings.TerrainTexture2 = new LLUUID((String) row["terrain_texture_2"]);
-            newSettings.TerrainTexture3 = new LLUUID((String) row["terrain_texture_3"]);
-            newSettings.TerrainTexture4 = new LLUUID((String) row["terrain_texture_4"]);
+            newSettings.TerrainTexture1 = new UUID((String) row["terrain_texture_1"]);
+            newSettings.TerrainTexture2 = new UUID((String) row["terrain_texture_2"]);
+            newSettings.TerrainTexture3 = new UUID((String) row["terrain_texture_3"]);
+            newSettings.TerrainTexture4 = new UUID((String) row["terrain_texture_4"]);
             newSettings.Elevation1NW = Convert.ToDouble(row["elevation_1_nw"]);
             newSettings.Elevation2NW = Convert.ToDouble(row["elevation_2_nw"]);
             newSettings.Elevation1NE = Convert.ToDouble(row["elevation_1_ne"]);
@@ -1292,7 +1292,7 @@ namespace OpenSim.Data.MySQL
             newSettings.Sandbox = Convert.ToBoolean(row["sandbox"]);
             newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
             newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
-            newSettings.Covenant = new LLUUID((String) row["covenant"]);
+            newSettings.Covenant = new UUID((String) row["covenant"]);
 
             return newSettings;
         }
@@ -1306,7 +1306,7 @@ namespace OpenSim.Data.MySQL
         {
             LandData newData = new LandData();
 
-            newData.GlobalID = new LLUUID((String) row["UUID"]);
+            newData.GlobalID = new UUID((String) row["UUID"]);
             newData.LocalID = Convert.ToInt32(row["LocalLandID"]);
 
             // Bitmap is a byte[512]
@@ -1322,39 +1322,39 @@ namespace OpenSim.Data.MySQL
                 //Enum libsecondlife.Parcel.ParcelCategory
             newData.ClaimDate = Convert.ToInt32(row["ClaimDate"]);
             newData.ClaimPrice = Convert.ToInt32(row["ClaimPrice"]);
-            newData.GroupID = new LLUUID((String) row["GroupUUID"]);
+            newData.GroupID = new UUID((String) row["GroupUUID"]);
             newData.SalePrice = Convert.ToInt32(row["SalePrice"]);
             newData.Status = (Parcel.ParcelStatus) Convert.ToInt32(row["LandStatus"]);
                 //Enum. libsecondlife.Parcel.ParcelStatus
             newData.Flags = Convert.ToUInt32(row["LandFlags"]);
             newData.LandingType = Convert.ToByte(row["LandingType"]);
             newData.MediaAutoScale = Convert.ToByte(row["MediaAutoScale"]);
-            newData.MediaID = new LLUUID((String) row["MediaTextureUUID"]);
+            newData.MediaID = new UUID((String) row["MediaTextureUUID"]);
             newData.MediaURL = (String) row["MediaURL"];
             newData.MusicURL = (String) row["MusicURL"];
             newData.PassHours = Convert.ToSingle(row["PassHours"]);
             newData.PassPrice = Convert.ToInt32(row["PassPrice"]);
-            LLUUID authedbuyer = LLUUID.Zero;
-            LLUUID snapshotID = LLUUID.Zero;
+            UUID authedbuyer = UUID.Zero;
+            UUID snapshotID = UUID.Zero;
 
-            Helpers.TryParse((string)row["AuthBuyerID"], out authedbuyer);
-            Helpers.TryParse((string)row["SnapshotUUID"], out snapshotID);
+            UUID.TryParse((string)row["AuthBuyerID"], out authedbuyer);
+            UUID.TryParse((string)row["SnapshotUUID"], out snapshotID);
 
             newData.AuthBuyerID = authedbuyer;
             newData.SnapshotID = snapshotID;
             try
             {
                 newData.UserLocation =
-                    new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
+                    new Vector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
                                   Convert.ToSingle(row["UserLocationZ"]));
                 newData.UserLookAt =
-                    new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
+                    new Vector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
                                   Convert.ToSingle(row["UserLookAtZ"]));
             }
             catch (InvalidCastException)
             {
-                newData.UserLocation = LLVector3.Zero;
-                newData.UserLookAt = LLVector3.Zero;
+                newData.UserLocation = Vector3.Zero;
+                newData.UserLookAt = Vector3.Zero;
                 m_log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.Name);
             }
 
@@ -1371,7 +1371,7 @@ namespace OpenSim.Data.MySQL
         private static ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-            entry.AgentID = new LLUUID((string) row["AccessUUID"]);
+            entry.AgentID = new UUID((string) row["AccessUUID"]);
             entry.Flags = (ParcelManager.AccessList) Convert.ToInt32(row["Flags"]);
             entry.Time = new DateTime();
             return entry;
@@ -1408,7 +1408,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="prim"></param>
         /// <param name="sceneGroupID"></param>
         /// <param name="regionUUID"></param>
-        private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
+        private void fillPrimRow(DataRow row, SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(prim.UUID);
             row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
@@ -1456,12 +1456,12 @@ namespace OpenSim.Data.MySQL
             row["RotationW"] = prim.RotationOffset.W;
 
             // Sit target
-            LLVector3 sitTargetPos = prim.SitTargetPositionLL;
+            Vector3 sitTargetPos = prim.SitTargetPositionLL;
             row["SitTargetOffsetX"] = sitTargetPos.X;
             row["SitTargetOffsetY"] = sitTargetPos.Y;
             row["SitTargetOffsetZ"] = sitTargetPos.Z;
 
-            LLQuaternion sitTargetOrient = prim.SitTargetOrientationLL;
+            Quaternion sitTargetOrient = prim.SitTargetOrientationLL;
             row["SitTargetOrientW"] = sitTargetOrient.W;
             row["SitTargetOrientX"] = sitTargetOrient.X;
             row["SitTargetOrientY"] = sitTargetOrient.Y;
@@ -1480,7 +1480,7 @@ namespace OpenSim.Data.MySQL
             }
             else
             {
-                row["LoopedSound"] = LLUUID.Zero;
+                row["LoopedSound"] = UUID.Zero;
                 row["LoopedSoundGain"] = 0.0f;
             }
 
@@ -1597,7 +1597,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="row"></param>
         /// <param name="land"></param>
         /// <param name="regionUUID"></param>
-        private static void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
+        private static void fillLandRow(DataRow row, LandData land, UUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(land.GlobalID);
             row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
@@ -1642,7 +1642,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="row"></param>
         /// <param name="entry"></param>
         /// <param name="parcelID"></param>
-        private static void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
+        private static void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, UUID parcelID)
         {
             row["LandUUID"] = Util.ToRawUuidString(parcelID);
             row["AccessUUID"] = Util.ToRawUuidString(entry.AgentID);
@@ -1657,7 +1657,7 @@ namespace OpenSim.Data.MySQL
         private PrimitiveBaseShape buildShape(DataRow row)
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
-            s.Scale = new LLVector3(
+            s.Scale = new Vector3(
                 Convert.ToSingle(row["ScaleX"]),
                 Convert.ToSingle(row["ScaleY"]),
                 Convert.ToSingle(row["ScaleZ"])
@@ -1778,7 +1778,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="prim"></param>
         /// <param name="sceneGroupID"></param>
         /// <param name="regionUUID"></param>
-        private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
+        private void addPrim(SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
             lock (m_dataSet)
             {
@@ -1816,7 +1816,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="primID"></param>
         /// <param name="items"></param>
-        public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
+        public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
             m_log.InfoFormat("[REGION DB]: Persisting Prim Inventory with prim ID {0}", primID);
 

@@ -29,8 +29,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
-using libsecondlife.StructuredData;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
 
@@ -63,9 +63,9 @@ namespace OpenSim.Framework.Communications
 
         private UserInfo userProfile;
 
-        private LLUUID agentID;
-        private LLUUID sessionID;
-        private LLUUID secureSessionID;
+        private UUID agentID;
+        private UUID sessionID;
+        private UUID secureSessionID;
 
         // Login Flags
         private string dst;
@@ -171,9 +171,9 @@ namespace OpenSim.Framework.Communications
             AddClassifiedCategory((Int32) 8, "Service");
             AddClassifiedCategory((Int32) 9, "Personal");
 
-            SessionID = LLUUID.Random();
-            SecureSessionID = LLUUID.Random();
-            AgentID = LLUUID.Random();
+            SessionID = UUID.Random();
+            SecureSessionID = UUID.Random();
+            AgentID = UUID.Random();
 
             Hashtable InitialOutfitHash = new Hashtable();
             InitialOutfitHash["folder_name"] = "Nightclub Female";
@@ -567,19 +567,19 @@ namespace OpenSim.Framework.Communications
             set { simAddress = value; }
         }
 
-        public LLUUID AgentID
+        public UUID AgentID
         {
             get { return agentID; }
             set { agentID = value; }
         }
 
-        public LLUUID SessionID
+        public UUID SessionID
         {
             get { return sessionID; }
             set { sessionID = value; }
         }
 
-        public LLUUID SecureSessionID
+        public UUID SecureSessionID
         {
             get { return secureSessionID; }
             set { secureSessionID = value; }
@@ -724,8 +724,8 @@ namespace OpenSim.Framework.Communications
             public string firstname;
             public string lastname;
             public ulong homeregionhandle;
-            public LLVector3 homepos;
-            public LLVector3 homelookat;
+            public Vector3 homepos;
+            public Vector3 homelookat;
         }
 
         public class BuddyList
@@ -754,14 +754,14 @@ namespace OpenSim.Framework.Communications
             {
                 public int BuddyRightsHave = 1;
                 public int BuddyRightsGiven = 1;
-                public LLUUID BuddyID;
+                public UUID BuddyID;
 
                 public BuddyInfo(string buddyID)
                 {
-                    BuddyID = new LLUUID(buddyID);
+                    BuddyID = new UUID(buddyID);
                 }
 
-                public BuddyInfo(LLUUID buddyID)
+                public BuddyInfo(UUID buddyID)
                 {
                     BuddyID = buddyID;
                 }

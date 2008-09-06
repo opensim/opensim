@@ -27,7 +27,7 @@
 
 using System;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -54,8 +54,8 @@ namespace OpenSim.Region.DataSnapshot.Providers
             //Now in DataSnapshotProvider module form!
             XmlNode estatedata = factory.CreateNode(XmlNodeType.Element, "estate", "");
 
-            LLUUID ownerid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != LLUUID.Zero)
+            UUID ownerid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                 ownerid = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
             // Can't fail because if it weren't in cache, we wouldn't be here

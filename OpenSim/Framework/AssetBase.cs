@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -35,7 +35,7 @@ namespace OpenSim.Framework
     {
         private byte[] _data;
         private string _description = String.Empty;
-        private LLUUID _fullid;
+        private UUID _fullid;
         private bool _local = false;
         private string _name = String.Empty;
         private bool _temporary = false;
@@ -45,13 +45,13 @@ namespace OpenSim.Framework
         {
         }
 
-        public AssetBase(LLUUID assetId, string name)
+        public AssetBase(UUID assetId, string name)
         {
             FullID = assetId;
             Name = name;
         }
 
-        public virtual LLUUID FullID
+        public virtual UUID FullID
         {
             get { return _fullid; }
             set { _fullid = value; }
@@ -60,7 +60,7 @@ namespace OpenSim.Framework
         public virtual string ID
         {
             get { return _fullid.ToString(); }
-            set { _fullid = new LLUUID(value); }
+            set { _fullid = new UUID(value); }
         }
 
         public virtual byte[] Data

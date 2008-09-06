@@ -29,9 +29,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using libsecondlife;
+using OpenMetaverse;
+using OpenMetaverse.Imaging;
 using Nini.Config;
-using OpenJPEGNet;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -40,12 +40,12 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 {
     public class DynamicTextureModule : IRegionModule, IDynamicTextureManager
     {
-        private Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
+        private Dictionary<UUID, Scene> RegisteredScenes = new Dictionary<UUID, Scene>();
 
         private Dictionary<string, IDynamicTextureRender> RenderPlugins =
             new Dictionary<string, IDynamicTextureRender>();
 
-        private Dictionary<LLUUID, DynamicTextureUpdater> Updaters = new Dictionary<LLUUID, DynamicTextureUpdater>();
+        private Dictionary<UUID, DynamicTextureUpdater> Updaters = new Dictionary<UUID, DynamicTextureUpdater>();
 
         #region IDynamicTextureManager Members
 
@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
         /// </summary>
         /// <param name="id"></param>
         /// <param name="data"></param>
-        public void ReturnData(LLUUID id, byte[] data)
+        public void ReturnData(UUID id, byte[] data)
         {
             if (Updaters.ContainsKey(id))
             {
@@ -75,13 +75,13 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
             }
         }
 
-        public LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url,
+        public UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url,
                                            string extraParams, int updateTimer)
         {
             return AddDynamicTextureURL(simID, primID, contentType, url, extraParams, updateTimer, false, 255);
         }
 
-        public LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url,
+        public UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url,
                                            string extraParams, int updateTimer, bool SetBlending, byte AlphaValue)
         {
             if (RenderPlugins.ContainsKey(contentType))
@@ -94,7 +94,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 updater.ContentType = contentType;
                 updater.Url = url;
                 updater.UpdateTimer = updateTimer;
-                updater.UpdaterID = LLUUID.Random();
+                updater.UpdaterID = UUID.Random();
                 updater.Params = extraParams;
                 updater.BlendWithOldTexture = SetBlending;
                 updater.FrontAlpha = AlphaValue;
@@ -107,16 +107,16 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 RenderPlugins[contentType].AsyncConvertUrl(updater.UpdaterID, url, extraParams);
                 return updater.UpdaterID;
             }
-            return LLUUID.Zero;
+            return UUID.Zero;
         }
 
-        public LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data,
+        public UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data,
                                             string extraParams, int updateTimer)
         {
             return AddDynamicTextureData(simID, primID, contentType, data, extraParams, updateTimer, false, 255);
         }
 
-        public LLUUID AddDynamicTextureData(LLUUID simID, LLUUID primID, string contentType, string data,
+        public UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data,
                                             string extraParams, int updateTimer, bool SetBlending, byte AlphaValue)
         {
             if (RenderPlugins.ContainsKey(contentType))
@@ -127,7 +127,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 updater.ContentType = contentType;
                 updater.BodyData = data;
                 updater.UpdateTimer = updateTimer;
-                updater.UpdaterID = LLUUID.Random();
+                updater.UpdaterID = UUID.Random();
                 updater.Params = extraParams;
                 updater.BlendWithOldTexture = SetBlending;
                 updater.FrontAlpha = AlphaValue;
@@ -140,7 +140,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 RenderPlugins[contentType].AsyncConvertData(updater.UpdaterID, data, extraParams);
                 return updater.UpdaterID;
             }
-            return LLUUID.Zero;
+            return UUID.Zero;
         }
 
         #endregion
@@ -184,18 +184,18 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
             public string BodyData;
             public string ContentType;
             public byte FrontAlpha = 255;
-            public LLUUID LastAssetID;
+            public UUID LastAssetID;
             public string Params;
-            public LLUUID PrimID;
+            public UUID PrimID;
             public bool SetNewFrontAlpha = false;
-            public LLUUID SimUUID;
-            public LLUUID UpdaterID;
+            public UUID SimUUID;
+            public UUID UpdaterID;
             public int UpdateTimer;
             public string Url;
 
             public DynamicTextureUpdater()
             {
-                LastAssetID = LLUUID.Zero;
+                LastAssetID = UUID.Zero;
                 UpdateTimer = 0;
                 BodyData = null;
             }
@@ -211,7 +211,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
                 if (BlendWithOldTexture)
                 {
-                    LLUUID lastTextureID = part.Shape.Textures.DefaultTexture.TextureID;
+                    UUID lastTextureID = part.Shape.Textures.DefaultTexture.TextureID;
                     oldAsset = scene.AssetCache.GetAsset(lastTextureID, true);
                     if (oldAsset != null)
                     {
@@ -231,7 +231,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
                 // Create a new asset for user
                 AssetBase asset = new AssetBase();
-                asset.FullID = LLUUID.Random();
+                asset.FullID = UUID.Random();
                 asset.Data = assetData;
                 asset.Name = "DynamicImage" + Util.RandomClass.Next(1, 10000);
                 asset.Type = 0;
@@ -243,10 +243,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 LastAssetID = asset.FullID;
 
                 // mostly keep the values from before
-                LLObject.TextureEntry tmptex = part.Shape.Textures;
+                Primitive.TextureEntry tmptex = part.Shape.Textures;
 
                 // remove the old asset from the cache
-                LLUUID oldID = tmptex.DefaultTexture.TextureID;
+                UUID oldID = tmptex.DefaultTexture.TextureID;
                 scene.AssetCache.ExpireAsset(oldID);
 
                 tmptex.DefaultTexture.TextureID = asset.FullID;
@@ -259,15 +259,27 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
             private byte[] BlendTextures(byte[] frontImage, byte[] backImage, bool setNewAlpha, byte newAlpha)
             {
-                Bitmap image1 = new Bitmap(OpenJPEG.DecodeToImage(frontImage));
-                Bitmap image2 = new Bitmap(OpenJPEG.DecodeToImage(backImage));
-                if (setNewAlpha)
-                {
-                    SetAlpha(ref image1, newAlpha);
-                }
-                Bitmap joint = MergeBitMaps(image1, image2);
+                ManagedImage managedImage;
+                Image image;
 
-                return OpenJPEG.EncodeFromImage(joint, true);
+                if (OpenJPEG.DecodeToImage(frontImage, out managedImage, out image))
+                {
+                    Bitmap image1 = new Bitmap(image);
+
+                    if (OpenJPEG.DecodeToImage(backImage, out managedImage, out image))
+                    {
+                        Bitmap image2 = new Bitmap(image);
+
+                        if (setNewAlpha)
+                            SetAlpha(ref image1, newAlpha);
+
+                        Bitmap joint = MergeBitMaps(image1, image2);
+
+                        return OpenJPEG.EncodeFromImage(joint, true);
+                    }
+                }
+
+                return null;
             }
 
             public Bitmap MergeBitMaps(Bitmap front, Bitmap back)

@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -40,8 +40,8 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
             // if (m_enabled)
             // {
-            //     NPCAvatar testAvatar = new NPCAvatar("Jack", "NPC", new LLVector3(128, 128, 40), scene);
-            //     NPCAvatar testAvatar2 = new NPCAvatar("Jill", "NPC", new LLVector3(136, 128, 40), scene);
+            //     NPCAvatar testAvatar = new NPCAvatar("Jack", "NPC", new Vector3(128, 128, 40), scene);
+            //     NPCAvatar testAvatar2 = new NPCAvatar("Jill", "NPC", new Vector3(136, 128, 40), scene);
             //     scene.AddNewClient(testAvatar, false);
             //     scene.AddNewClient(testAvatar2, false);
             // }

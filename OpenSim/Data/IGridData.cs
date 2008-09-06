@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Data
@@ -60,7 +60,7 @@ namespace OpenSim.Data
         /// </summary>
         /// <param name="UUID">A 128bit UUID</param>
         /// <returns>A sim profile</returns>
-        RegionProfileData GetProfileByLLUUID(LLUUID UUID);
+        RegionProfileData GetProfileByUUID(UUID UUID);
 
         /// <summary>
         /// Returns a sim profile from a string match
@@ -87,7 +87,7 @@ namespace OpenSim.Data
         /// <param name="regionHandle">The regionhandle sent by the sim</param>
         /// <param name="simrecvkey">The receiving key sent by the sim</param>
         /// <returns>Whether the sim has been authenticated</returns>
-        bool AuthenticateSim(LLUUID UUID, ulong regionHandle, string simrecvkey);
+        bool AuthenticateSim(UUID UUID, ulong regionHandle, string simrecvkey);
 
         /// <summary>
         /// Adds a new profile to the database

@@ -27,8 +27,8 @@
 
 using System;
 using System.Collections.Generic;
-using Axiom.Math;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
@@ -109,14 +109,13 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         private bool isColliding(POSCharacter c, POSPrim p)
         {
-            Vector3 rotatedPos = p.Orientation.Inverse() *
-                                 new Vector3(c.Position.X - p.Position.X, c.Position.Y - p.Position.Y,
-                                             c.Position.Z - p.Position.Z);
-            Vector3 avatarSize = p.Orientation.Inverse()*new Vector3(c.Size.X, c.Size.Y, c.Size.Z);
+            Vector3 rotatedPos = new Vector3(c.Position.X - p.Position.X, c.Position.Y - p.Position.Y,
+                                             c.Position.Z - p.Position.Z) * Quaternion.Inverse(p.Orientation);
+            Vector3 avatarSize = new Vector3(c.Size.X, c.Size.Y, c.Size.Z) * Quaternion.Inverse(p.Orientation);
 
-            if (Math.Abs(rotatedPos.x) >= (p.Size.X*0.5 + Math.Abs(avatarSize.x)) ||
-                Math.Abs(rotatedPos.y) >= (p.Size.Y*0.5 + Math.Abs(avatarSize.y)) ||
-                Math.Abs(rotatedPos.z) >= (p.Size.Z*0.5 + Math.Abs(avatarSize.z)))
+            if (Math.Abs(rotatedPos.X) >= (p.Size.X*0.5 + Math.Abs(avatarSize.X)) ||
+                Math.Abs(rotatedPos.Y) >= (p.Size.Y*0.5 + Math.Abs(avatarSize.Y)) ||
+                Math.Abs(rotatedPos.Z) >= (p.Size.Z*0.5 + Math.Abs(avatarSize.Z)))
             {
                 return false;
             }

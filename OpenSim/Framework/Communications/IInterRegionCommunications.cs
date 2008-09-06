@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications
 {
@@ -35,16 +35,16 @@ namespace OpenSim.Framework.Communications
 
         bool CheckRegion(string address, uint port);
         bool InformRegionOfChildAgent(ulong regionHandle, AgentCircuitData agentData);
-        bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData, int XMLMethod);
+        bool InformRegionOfPrimCrossing(ulong regionHandle, UUID primID, string objData, int XMLMethod);
         bool RegionUp(SerializableRegionInfo region, ulong regionhandle);
         bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData);
 
-        bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying);
-        bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, LLVector3 position, bool isFlying);
+        bool ExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying);
+        bool ExpectPrimCrossing(ulong regionHandle, UUID primID, Vector3 position, bool isFlying);
 
-        bool AcknowledgeAgentCrossed(ulong regionHandle, LLUUID agentId);
-        bool AcknowledgePrimCrossed(ulong regionHandle, LLUUID primID);
+        bool AcknowledgeAgentCrossed(ulong regionHandle, UUID agentId);
+        bool AcknowledgePrimCrossed(ulong regionHandle, UUID primID);
 
-        bool TellRegionToCloseChildConnection(ulong regionHandle, LLUUID agentID);
+        bool TellRegionToCloseChildConnection(ulong regionHandle, UUID agentID);
     }
 }

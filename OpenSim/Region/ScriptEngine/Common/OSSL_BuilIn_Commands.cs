@@ -25,8 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using Axiom.Math;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
@@ -40,7 +39,7 @@ namespace OpenSim.Region.ScriptEngine.Common
     public class OSSL_BuilIn_Commands : LSL_BuiltIn_Commands, OSSL_BuilIn_Commands_Interface
     {
         public OSSL_BuilIn_Commands(ScriptEngineBase.ScriptEngine scriptEngine, SceneObjectPart host, uint localID,
-                                    LLUUID itemID)
+                                    UUID itemID)
             : base(scriptEngine, host, localID, itemID)
         {
             Prim = new OSSLPrim(this);
@@ -259,7 +258,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (x > 255 || x < 0 || y > 255 || y < 0)
                 LSLError("osTerrainSetHeight: Coordinate out of bounds");
 
-            if (World.ExternalChecks.ExternalChecksCanTerraformLand(m_host.OwnerID, new LLVector3(x, y, 0)))
+            if (World.ExternalChecks.ExternalChecksCanTerraformLand(m_host.OwnerID, new Vector3(x, y, 0)))
             {
                 World.Heightmap[x, y] = val;
                 return 1;
@@ -299,7 +298,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             World.SendGeneralAlert(msg);
         }
 
-        public void osSetRot(LLUUID target, Quaternion rotation)
+        public void osSetRot(UUID target, Quaternion rotation)
         {
             m_host.AddScriptLPS(1);
             if (World.Entities.ContainsKey(target))
@@ -319,7 +318,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (dynamicID == String.Empty)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
-                LLUUID createdTexture =
+                UUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
                                                         extraParams, timer);
                 return createdTexture.ToString();
@@ -329,7 +328,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 //TODO update existing dynamic textures
             }
 
-            return LLUUID.Zero.ToString();
+            return UUID.Zero.ToString();
         }
 
         public string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
@@ -339,7 +338,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (dynamicID == String.Empty)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
-                LLUUID createdTexture =
+                UUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
                                                         extraParams, timer, true, (byte) alpha);
                 return createdTexture.ToString();
@@ -349,7 +348,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 //TODO update existing dynamic textures
             }
 
-            return LLUUID.Zero.ToString();
+            return UUID.Zero.ToString();
         }
 
         public string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams,
@@ -361,7 +360,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 if (textureManager != null)
                 {
-                    LLUUID createdTexture =
+                    UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
                                                             extraParams, timer);
                     return createdTexture.ToString();
@@ -372,7 +371,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 //TODO update existing dynamic textures
             }
 
-            return LLUUID.Zero.ToString();
+            return UUID.Zero.ToString();
         }
 
         public string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
@@ -384,7 +383,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 if (textureManager != null)
                 {
-                    LLUUID createdTexture =
+                    UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
                                                             extraParams, timer, true, (byte) alpha);
                     return createdTexture.ToString();
@@ -395,7 +394,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 //TODO update existing dynamic textures
             }
 
-            return LLUUID.Zero.ToString();
+            return UUID.Zero.ToString();
         }
 
         public bool osConsoleCommand(string command)
@@ -538,8 +537,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             if (xmlrpcMod.IsEnabled())
             {
-                LLUUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID, new LLUUID(channel));
-                object[] resobj = new object[] { new LSL_Types.LSLInteger(1), new LSL_Types.LSLString(channelID.ToString()), new LSL_Types.LSLString(LLUUID.Zero.ToString()), new LSL_Types.LSLString(String.Empty), new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(String.Empty) };
+                UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID, new UUID(channel));
+                object[] resobj = new object[] { new LSL_Types.LSLInteger(1), new LSL_Types.LSLString(channelID.ToString()), new LSL_Types.LSLString(UUID.Zero.ToString()), new LSL_Types.LSLString(String.Empty), new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(String.Empty) };
                 m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj);
             }
         }

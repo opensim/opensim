@@ -32,7 +32,7 @@ using System.Reflection;
 using System.Threading;
 using System.Net;
 
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
 
@@ -147,7 +147,7 @@ namespace OpenSim.Grid.InventoryServer
             }
         }
 
-        public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
+        public override void RequestInventoryForUser(UUID userID, InventoryReceiptCallback callback)
         {
         }
 
@@ -158,7 +158,7 @@ namespace OpenSim.Grid.InventoryServer
         /// <returns>The user's inventory.  If an inventory cannot be found then an empty collection is returned.</returns>
         public InventoryCollection GetUserInventory(Guid rawUserID)
         {
-            LLUUID userID = new LLUUID(rawUserID);
+            UUID userID = new UUID(rawUserID);
 
             m_log.InfoFormat("[GRID AGENT INVENTORY]: Processing request for inventory of {0}", userID);
 
@@ -216,7 +216,7 @@ namespace OpenSim.Grid.InventoryServer
         /// <returns></returns>
         public List<InventoryFolderBase> GetInventorySkeleton(Guid rawUserID)
         {
-            LLUUID userID = new LLUUID(rawUserID);
+            UUID userID = new UUID(rawUserID);
             return GetInventorySkeleton(userID);
         }
 
@@ -227,7 +227,7 @@ namespace OpenSim.Grid.InventoryServer
         /// <returns></returns>
         public bool CreateUsersInventory(Guid rawUserID)
         {
-            LLUUID userID = new LLUUID(rawUserID);
+            UUID userID = new UUID(rawUserID);
 
             m_log.InfoFormat("[GRID AGENT INVENTORY]: Creating new set of inventory folders for user {0}", userID);
 

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
     <class name="OpenSim.Framework.UserProfileData, OpenSim.Framework" table="UserProfiles" lazy="false">
-        <id name="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+        <id name="ID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
         <property name="FirstName" index="user_firstname" type="String" length="32" />
         <property name="SurName" index="user_surname" type="String" length="32" />
         <property name="PasswordHash" type="String" length="32" />
         <property name="PasswordSalt" type="String" length="32" />
-        <property name="WebLoginKey" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="WebLoginKey" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="HomeRegionX" type="System.UInt32" />
         <property name="HomeRegionY" type="System.UInt32" />
         <property name="HomeLocationX" type="Single" />
@@ -19,11 +19,11 @@
         <property name="HomeLookAtZ" type="Single" />
         <property name="Created" type="Int32" />
         <property name="LastLogin" type="Int32" />
-        <property name="RootInventoryFolderID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="RootInventoryFolderID" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="UserInventoryURI" type="String" length="255"/>
         <property name="UserAssetURI" type="String" length="255"/>
-        <property name="Image" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
-        <property name="FirstLifeImage" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="Image" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="FirstLifeImage" type="OpenSim.Data.NHibernate.UUIDUserType, OpenSim.Data.NHibernate" />
         <property name="AboutText" type="String" length="255" />
         <property name="FirstLifeAboutText" type="String" length="255" />
     </class>

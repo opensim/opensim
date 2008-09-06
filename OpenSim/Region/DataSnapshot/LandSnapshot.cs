@@ -29,14 +29,14 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Land;
 using OpenSim.Region.Environment.Scenes;
-using libsecondlife.Packets;
+using OpenMetaverse.Packets;
 
 namespace OpenSim.Region.DataSnapshot.Providers
 {
@@ -179,16 +179,16 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
                         //default location
                         XmlNode tpLocation = nodeFactory.CreateNode(XmlNodeType.Element, "location", "");
-                        LLVector3 loc = parcel.UserLocation;
-                        if (loc.Equals(LLVector3.Zero)) // This test is mute at this point: the location is wrong by default
-                            loc = new LLVector3((parcel.AABBMax.X - parcel.AABBMin.X) / 2, (parcel.AABBMax.Y - parcel.AABBMin.Y) / 2, (parcel.AABBMax.Y - parcel.AABBMin.Y) / 2);
+                        Vector3 loc = parcel.UserLocation;
+                        if (loc.Equals(Vector3.Zero)) // This test is mute at this point: the location is wrong by default
+                            loc = new Vector3((parcel.AABBMax.X - parcel.AABBMin.X) / 2, (parcel.AABBMax.Y - parcel.AABBMin.Y) / 2, (parcel.AABBMax.Y - parcel.AABBMin.Y) / 2);
                         tpLocation.InnerText = loc.X.ToString() + "/" + loc.Y.ToString() + "/" + loc.Z.ToString();
                         xmlparcel.AppendChild(tpLocation);
 
                         //TODO: figure how to figure out teleport system landData.landingType
 
                         //land texture snapshot uuid
-                        if (parcel.SnapshotID != LLUUID.Zero)
+                        if (parcel.SnapshotID != UUID.Zero)
                         {
                             XmlNode textureuuid = nodeFactory.CreateNode(XmlNodeType.Element, "image", "");
                             textureuuid.InnerText = parcel.SnapshotID.ToString();
@@ -196,7 +196,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         }
 
                         //attached user and group
-                        if (parcel.GroupID != LLUUID.Zero)
+                        if (parcel.GroupID != UUID.Zero)
                         {
                             XmlNode groupblock = nodeFactory.CreateNode(XmlNodeType.Element, "group", "");
                             XmlNode groupuuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
@@ -213,7 +213,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         {
                             XmlNode userblock = nodeFactory.CreateNode(XmlNodeType.Element, "owner", "");
 
-                            LLUUID userOwnerUUID = parcel.OwnerID;
+                            UUID userOwnerUUID = parcel.OwnerID;
 
                             XmlNode useruuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
                             useruuid.InnerText = userOwnerUUID.ToString();
@@ -298,7 +298,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                 IClientAPI remote_client) { this.Stale = true; };
             client.OnParcelPropertiesUpdateRequest += delegate(LandUpdateArgs args, int local_id,
                 IClientAPI remote_client) { this.Stale = true; };
-            client.OnParcelBuy += delegate (LLUUID agentId, LLUUID groupId, bool final, bool groupOwned,
+            client.OnParcelBuy += delegate (UUID agentId, UUID groupId, bool final, bool groupOwned,
                 bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated)
                 { this.Stale = true; };
         }

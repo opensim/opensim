@@ -29,14 +29,14 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-    public delegate void AssetRequestCallback(LLUUID assetID, AssetBase asset);
+    public delegate void AssetRequestCallback(UUID assetID, AssetBase asset);
 
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.
@@ -58,17 +58,17 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// The cache of assets.  This does not include textures.
         /// </summary>
-        private Dictionary<LLUUID, AssetInfo> Assets;
+        private Dictionary<UUID, AssetInfo> Assets;
 
         /// <summary>
         /// The cache of textures.
         /// </summary>
-        private Dictionary<LLUUID, TextureImage> Textures;
+        private Dictionary<UUID, TextureImage> Textures;
 
         /// <summary>
         /// Assets requests which are waiting for asset server data.  This includes texture requests
         /// </summary>
-         private Dictionary<LLUUID, AssetRequest> RequestedAssets;
+         private Dictionary<UUID, AssetRequest> RequestedAssets;
 
         /// <summary>
         /// Asset requests with data which are ready to be sent back to requesters.  This includes textures.
@@ -78,7 +78,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Until the asset request is fulfilled, each asset request is associated with a list of requesters
         /// </summary>
-        private Dictionary<LLUUID, AssetRequestsList> RequestLists;
+        private Dictionary<UUID, AssetRequestsList> RequestLists;
 
         private readonly IAssetServer m_assetServer;
 
@@ -155,12 +155,12 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         private void Initialize()
         {
-            Assets = new Dictionary<LLUUID, AssetInfo>();
-            Textures = new Dictionary<LLUUID, TextureImage>();
+            Assets = new Dictionary<UUID, AssetInfo>();
+            Textures = new Dictionary<UUID, TextureImage>();
             AssetRequests = new List<AssetRequest>();
 
-            RequestedAssets = new Dictionary<LLUUID, AssetRequest>();
-            RequestLists = new Dictionary<LLUUID, AssetRequestsList>();
+            RequestedAssets = new Dictionary<UUID, AssetRequest>();
+            RequestLists = new Dictionary<UUID, AssetRequestsList>();
         }
 
         /// <summary>
@@ -207,7 +207,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="assetId"></param></param>
         /// <returns></returns>
-        //private AssetBase GetCachedAsset(LLUUID assetId)
+        //private AssetBase GetCachedAsset(UUID assetId)
         //{
         //    AssetBase asset = null;
 
@@ -223,7 +223,7 @@ namespace OpenSim.Framework.Communications.Cache
         //    return asset;
         //}
 
-        private bool TryGetCachedAsset(LLUUID assetId, out AssetBase asset)
+        private bool TryGetCachedAsset(UUID assetId, out AssetBase asset)
         {
             if (Textures.ContainsKey(assetId))
             {
@@ -248,7 +248,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// A callback invoked when the asset has either been found or not found.
         /// If the asset was found this is called with the asset UUID and the asset data
         /// If the asset was not found this is still called with the asset UUID but with a null asset data reference</param>
-        public void GetAsset(LLUUID assetId, AssetRequestCallback callback, bool isTexture)
+        public void GetAsset(UUID assetId, AssetRequestCallback callback, bool isTexture)
         {
             //m_log.DebugFormat("[ASSET CACHE]: Requesting {0} {1}", isTexture ? "texture" : "asset", assetId);
 
@@ -308,7 +308,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="assetID"></param>
         /// <param name="isTexture"></param>
         /// <returns>null if the asset could not be retrieved</returns>
-        public AssetBase GetAsset(LLUUID assetID, bool isTexture)
+        public AssetBase GetAsset(UUID assetID, bool isTexture)
         {
             // I'm not going over 3 seconds since this will be blocking processing of all the other inbound
             // packets from the client.
@@ -390,7 +390,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// this is a stop gap measure until we have such a thing.
         /// </summary>
 
-        public void ExpireAsset(LLUUID uuid)
+        public void ExpireAsset(UUID uuid)
         {
             // uuid is unique, so no need to worry about it showing up
             // in the 2 caches differently.  Also, locks are probably
@@ -495,7 +495,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         // See IAssetReceiver
-        public void AssetNotFound(LLUUID assetID, bool IsTexture)
+        public void AssetNotFound(UUID assetID, bool IsTexture)
         {
             //m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
 
@@ -567,17 +567,17 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="transferRequest"></param>
         public void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest)
         {
-            LLUUID requestID = null;
+            UUID requestID = null;
             byte source = 2;
             if (transferRequest.TransferInfo.SourceType == 2)
             {
                 //direct asset request
-                requestID = new LLUUID(transferRequest.TransferInfo.Params, 0);
+                requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
             else if (transferRequest.TransferInfo.SourceType == 3)
             {
                 //inventory asset request
-                requestID = new LLUUID(transferRequest.TransferInfo.Params, 80);
+                requestID = new UUID(transferRequest.TransferInfo.Params, 80);
                 source = 3;
                 //Console.WriteLine("asset request " + requestID);
             }
@@ -678,10 +678,10 @@ namespace OpenSim.Framework.Communications.Cache
         public class AssetRequest
         {
             public IClientAPI RequestUser;
-            public LLUUID RequestAssetID;
+            public UUID RequestAssetID;
             public AssetInfo AssetInf;
             public TextureImage ImageInfo;
-            public LLUUID TransferRequestID;
+            public UUID TransferRequestID;
             public long DataPointer = 0;
             public int NumPackets = 0;
             public int PacketCounter = 0;
@@ -731,10 +731,10 @@ namespace OpenSim.Framework.Communications.Cache
 
         public class AssetRequestsList
         {
-            public LLUUID AssetID;
+            public UUID AssetID;
             public List<NewAssetRequest> Requests = new List<NewAssetRequest>();
 
-            public AssetRequestsList(LLUUID assetID)
+            public AssetRequestsList(UUID assetID)
             {
                 AssetID = assetID;
             }
@@ -742,10 +742,10 @@ namespace OpenSim.Framework.Communications.Cache
 
         public class NewAssetRequest
         {
-            public LLUUID AssetID;
+            public UUID AssetID;
             public AssetRequestCallback Callback;
 
-            public NewAssetRequest(LLUUID assetID, AssetRequestCallback callback)
+            public NewAssetRequest(UUID assetID, AssetRequestCallback callback)
             {
                 AssetID = assetID;
                 Callback = callback;

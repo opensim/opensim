@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -69,7 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Reset LLUUIDs for all the items in the prim's inventory.  This involves either generating
+        /// Reset UUIDs for all the items in the prim's inventory.  This involves either generating
         /// new ones or setting existing UUIDs to the correct parent UUIDs.
         ///
         /// If this method is called and there are inventory items, then we regard the inventory as having changed.
@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Change every item in this prim's inventory to a new owner.
         /// </summary>
         /// <param name="ownerId"></param>
-        public void ChangeInventoryOwner(LLUUID ownerId)
+        public void ChangeInventoryOwner(UUID ownerId)
         {
             lock (TaskInventory)
             {
@@ -172,13 +172,13 @@ namespace OpenSim.Region.Environment.Scenes
             if (!m_parentGroup.Scene.ExternalChecks.ExternalChecksCanRunScript(item.ItemID, UUID, item.OwnerID))
                 return;
 
-            AddFlag(LLObject.ObjectFlags.Scripted);
+            AddFlag(PrimFlags.Scripted);
 
             if (!m_parentGroup.Scene.RegionInfo.RegionSettings.DisableScripts)
             {
                 AssetCache cache = m_parentGroup.Scene.AssetCache;
 
-                cache.GetAsset(item.AssetID, delegate(LLUUID assetID, AssetBase asset)
+                cache.GetAsset(item.AssetID, delegate(UUID assetID, AssetBase asset)
                                {
                                    if (null == asset)
                                    {
@@ -190,8 +190,8 @@ namespace OpenSim.Region.Environment.Scenes
                                    else
                                    {
                                        m_taskInventory[item.ItemID].PermsMask = 0;
-                                       m_taskInventory[item.ItemID].PermsGranter = LLUUID.Zero;
-                                       string script = Helpers.FieldToUTF8String(asset.Data);
+                                       m_taskInventory[item.ItemID].PermsGranter = UUID.Zero;
+                                       string script = Utils.BytesToString(asset.Data);
                                        m_parentGroup.Scene.EventManager.TriggerRezScript(LocalId, item.ItemID, script, 
                                                                                          startParam, postOnRez);
                                        m_parentGroup.AddActiveScriptCount(1);
@@ -205,9 +205,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// Start a script which is in this prim's inventory.
         /// </summary>
         /// <param name="itemId">
-        /// A <see cref="LLUUID"/>
+        /// A <see cref="UUID"/>
         /// </param>
-        public void CreateScriptInstance(LLUUID itemId, int startParam, bool postOnRez)
+        public void CreateScriptInstance(UUID itemId, int startParam, bool postOnRez)
         {
             lock (m_taskInventory)
             {
@@ -229,7 +229,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Stop a script which is in this prim's inventory.
         /// </summary>
         /// <param name="itemId"></param>
-        public void RemoveScriptInstance(LLUUID itemId)
+        public void RemoveScriptInstance(UUID itemId)
         {
             if (m_taskInventory.ContainsKey(itemId))
             {
@@ -370,7 +370,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="itemID"></param>
         /// <returns>null if the item does not exist</returns>
-        public TaskInventoryItem GetInventoryItem(LLUUID itemId)
+        public TaskInventoryItem GetInventoryItem(UUID itemId)
         {
             TaskInventoryItem item;
             m_taskInventory.TryGetValue(itemId, out item);
@@ -426,7 +426,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <returns>Numeric asset type of the item removed.  Returns -1 if the item did not exist
         /// in this prim's inventory.</returns>
-        public int RemoveInventoryItem(LLUUID itemID)
+        public int RemoveInventoryItem(UUID itemID)
         {
             lock (m_taskInventory)
             {
@@ -455,7 +455,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (scriptcount <= 0)
                     {
-                        RemFlag(LLObject.ObjectFlags.Scripted);
+                        RemFlag(PrimFlags.Scripted);
                     }
 
                     ScheduleFullUpdate();
@@ -477,10 +477,10 @@ namespace OpenSim.Region.Environment.Scenes
         public string GetInventoryFileName()
         {
             if (m_inventoryFileName == String.Empty)
-                m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
+                m_inventoryFileName = "inventory_" + UUID.Random().ToString() + ".tmp";
             if (m_inventoryFileNameSerial < m_inventorySerial)
             {
-                m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
+                m_inventoryFileName = "inventory_" + UUID.Random().ToString() + ".tmp";
             }
             return m_inventoryFileName;
         }
@@ -499,7 +499,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_inventorySerial > 0)
             {
                 client.SendTaskInventory(m_uuid, (short)m_inventorySerial,
-                                         Helpers.StringToField(GetInventoryFileName()));
+                                         Utils.StringToBytes(GetInventoryFileName()));
                 return true;
             }
             else
@@ -520,13 +520,13 @@ namespace OpenSim.Region.Environment.Scenes
             // Confusingly, the folder item has to be the object id, while the 'parent id' has to be zero.  This matches
             // what appears to happen in the Second Life protocol.  If this isn't the case. then various functionality
             // isn't available (such as drag from prim inventory to agent inventory)
-            InventoryStringBuilder invString = new InventoryStringBuilder(UUID, LLUUID.Zero);
+            InventoryStringBuilder invString = new InventoryStringBuilder(UUID, UUID.Zero);
 
             lock (m_taskInventory)
             {
                 foreach (TaskInventoryItem item in m_taskInventory.Values)
                 {
-                    LLUUID ownerID = item.OwnerID;
+                    UUID ownerID = item.OwnerID;
                     uint everyoneMask = 0;
                     uint baseMask = item.BasePermissions;
                     uint ownerMask = item.CurrentPermissions;
@@ -587,10 +587,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            fileData = Helpers.StringToField(invString.BuildString);
+            fileData = Utils.StringToBytes(invString.BuildString);
 
-            //Console.WriteLine(Helpers.FieldToUTF8String(fileData));
-            //m_log.Debug("[PRIM INVENTORY]: RequestInventoryFile fileData: " + Helpers.FieldToUTF8String(fileData));
+            //Console.WriteLine(Utils.BytesToString(fileData));
+            //m_log.Debug("[PRIM INVENTORY]: RequestInventoryFile fileData: " + Utils.BytesToString(fileData));
 
             if (fileData.Length > 2)
             {
@@ -619,7 +619,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             public string BuildString = String.Empty;
 
-            public InventoryStringBuilder(LLUUID folderID, LLUUID parentID)
+            public InventoryStringBuilder(UUID folderID, UUID parentID)
             {
                 BuildString += "\tinv_object\t0\n\t{\n";
                 AddNameValueLine("obj_id", folderID.ToString());
@@ -746,9 +746,9 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public List<LLUUID> GetInventoryList()
+        public List<UUID> GetInventoryList()
         {
-            List<LLUUID> ret = new List<LLUUID>();
+            List<UUID> ret = new List<UUID>();
 
             foreach (TaskInventoryItem item in m_taskInventory.Values)
                 ret.Add(item.ItemID);

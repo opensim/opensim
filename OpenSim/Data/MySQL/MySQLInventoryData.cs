@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework;
@@ -125,7 +125,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="folderID">The folder to search</param>
         /// <returns>A list containing inventory items</returns>
-        public List<InventoryItemBase> getInventoryInFolder(LLUUID folderID)
+        public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
         {
             try
             {
@@ -163,7 +163,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="user">The user whos inventory is to be searched</param>
         /// <returns>A list of folder objects</returns>
-        public List<InventoryFolderBase> getUserRootFolders(LLUUID user)
+        public List<InventoryFolderBase> getUserRootFolders(UUID user)
         {
             try
             {
@@ -176,7 +176,7 @@ namespace OpenSim.Data.MySQL
                             "SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid",
                             database.Connection);
                     result.Parameters.AddWithValue("?uuid", user.ToString());
-                    result.Parameters.AddWithValue("?zero", LLUUID.Zero.ToString());
+                    result.Parameters.AddWithValue("?zero", UUID.Zero.ToString());
                     MySqlDataReader reader = result.ExecuteReader();
 
                     List<InventoryFolderBase> items = new List<InventoryFolderBase>();
@@ -204,7 +204,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="user">The user UUID</param>
         /// <returns></returns>
-        public InventoryFolderBase getUserRootFolder(LLUUID user)
+        public InventoryFolderBase getUserRootFolder(UUID user)
         {
             try
             {
@@ -217,7 +217,7 @@ namespace OpenSim.Data.MySQL
                             "SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid",
                             database.Connection);
                     result.Parameters.AddWithValue("?uuid", user.ToString());
-                    result.Parameters.AddWithValue("?zero", LLUUID.Zero.ToString());
+                    result.Parameters.AddWithValue("?zero", UUID.Zero.ToString());
 
                     MySqlDataReader reader = result.ExecuteReader();
 
@@ -258,7 +258,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="parentID">The folder to search</param>
         /// <returns>A list of inventory folders</returns>
-        public List<InventoryFolderBase> getInventoryFolders(LLUUID parentID)
+        public List<InventoryFolderBase> getInventoryFolders(UUID parentID)
         {
             try
             {
@@ -302,23 +302,23 @@ namespace OpenSim.Data.MySQL
             {
                 InventoryItemBase item = new InventoryItemBase();
 
-                item.ID = new LLUUID((string) reader["inventoryID"]);
-                item.AssetID = new LLUUID((string) reader["assetID"]);
+                item.ID = new UUID((string) reader["inventoryID"]);
+                item.AssetID = new UUID((string) reader["assetID"]);
                 item.AssetType = (int) reader["assetType"];
-                item.Folder = new LLUUID((string) reader["parentFolderID"]);
-                item.Owner = new LLUUID((string) reader["avatarID"]);
+                item.Folder = new UUID((string) reader["parentFolderID"]);
+                item.Owner = new UUID((string) reader["avatarID"]);
                 item.Name = (string) reader["inventoryName"];
                 item.Description = (string) reader["inventoryDescription"];
                 item.NextPermissions = (uint) reader["inventoryNextPermissions"];
                 item.CurrentPermissions = (uint) reader["inventoryCurrentPermissions"];
                 item.InvType = (int) reader["invType"];
-                item.Creator = new LLUUID((string) reader["creatorID"]);
+                item.Creator = new UUID((string) reader["creatorID"]);
                 item.BasePermissions = (uint) reader["inventoryBasePermissions"];
                 item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
                 item.SalePrice = (int) reader["salePrice"];
                 item.SaleType = Convert.ToByte(reader["saleType"]);
                 item.CreationDate = (int) reader["creationDate"];
-                item.GroupID = new LLUUID(reader["groupID"].ToString());
+                item.GroupID = new UUID(reader["groupID"].ToString());
                 item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
                 item.Flags = (uint) reader["flags"];
 
@@ -337,7 +337,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="item">The item to return</param>
         /// <returns>An inventory item</returns>
-        public InventoryItemBase getInventoryItem(LLUUID itemID)
+        public InventoryItemBase getInventoryItem(UUID itemID)
         {
             try
             {
@@ -378,9 +378,9 @@ namespace OpenSim.Data.MySQL
             try
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
-                folder.Owner = new LLUUID((string) reader["agentID"]);
-                folder.ParentID = new LLUUID((string) reader["parentFolderID"]);
-                folder.ID = new LLUUID((string) reader["folderID"]);
+                folder.Owner = new UUID((string) reader["agentID"]);
+                folder.ParentID = new UUID((string) reader["parentFolderID"]);
+                folder.ID = new UUID((string) reader["folderID"]);
                 folder.Name = (string) reader["folderName"];
                 folder.Type = (short) reader["type"];
                 folder.Version = (ushort) ((int) reader["version"]);
@@ -400,7 +400,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="folder">The folder to return</param>
         /// <returns>A folder class</returns>
-        public InventoryFolderBase getInventoryFolder(LLUUID folderID)
+        public InventoryFolderBase getInventoryFolder(UUID folderID)
         {
             try
             {
@@ -498,7 +498,7 @@ namespace OpenSim.Data.MySQL
         /// Detele the specified inventory item
         /// </summary>
         /// <param name="item">The inventory item UUID to delete</param>
-        public void deleteInventoryItem(LLUUID itemID)
+        public void deleteInventoryItem(UUID itemID)
         {
             try
             {
@@ -596,7 +596,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="folders">list where folders will be appended</param>
         /// <param name="parentID">ID of parent</param>
-        protected void getInventoryFolders(ref List<InventoryFolderBase> folders, LLUUID parentID)
+        protected void getInventoryFolders(ref List<InventoryFolderBase> folders, UUID parentID)
         {
             List<InventoryFolderBase> subfolderList = getInventoryFolders(parentID);
 
@@ -610,7 +610,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="parentID"></param>
         /// <returns></returns>
-        public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
+        public List<InventoryFolderBase> getFolderHierarchy(UUID parentID)
         {
             /* Note: There are subtle changes between this implementation of getFolderHierarchy and the previous one
                  * - We will only need to hit the database twice instead of n times.
@@ -631,8 +631,8 @@ namespace OpenSim.Data.MySQL
             try
             {
                 List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
-                Dictionary<LLUUID, List<InventoryFolderBase>> hashtable
-                    = new Dictionary<LLUUID, List<InventoryFolderBase>>(); ;
+                Dictionary<UUID, List<InventoryFolderBase>> hashtable
+                    = new Dictionary<UUID, List<InventoryFolderBase>>(); ;
                 List<InventoryFolderBase> parentFolder = new List<InventoryFolderBase>();
                 lock (database)
                 {
@@ -655,7 +655,7 @@ namespace OpenSim.Data.MySQL
 
                     if (parentFolder.Count >= 1)   // No result means parent folder does not exist
                     {
-                        if (parentFolder[0].ParentID == LLUUID.Zero) // We are querying the root folder
+                        if (parentFolder[0].ParentID == UUID.Zero) // We are querying the root folder
                         {
                             /* Get all of the agent's folders from the database, put them in a list and return it */
                             result = new MySqlCommand("SELECT * FROM inventoryfolders WHERE agentID = ?uuid",
@@ -728,7 +728,7 @@ namespace OpenSim.Data.MySQL
         /// Delete a folder from database
         /// </summary>
         /// <param name="folderID">the folder UUID</param>
-        protected void deleteOneFolder(LLUUID folderID)
+        protected void deleteOneFolder(UUID folderID)
         {
             try
             {
@@ -754,7 +754,7 @@ namespace OpenSim.Data.MySQL
         /// Delete all item in a folder
         /// </summary>
         /// <param name="folderID">the folder UUID</param>
-        protected void deleteItemsInFolder(LLUUID folderID)
+        protected void deleteItemsInFolder(UUID folderID)
         {
             try
             {
@@ -780,7 +780,7 @@ namespace OpenSim.Data.MySQL
         /// Deletes an inventory folder
         /// </summary>
         /// <param name="folderId">Id of folder to delete</param>
-        public void deleteInventoryFolder(LLUUID folderID)
+        public void deleteInventoryFolder(UUID folderID)
         {
             List<InventoryFolderBase> subFolders = getFolderHierarchy(folderID);
 

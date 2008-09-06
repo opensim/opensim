@@ -31,7 +31,7 @@ using System.Reflection;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 
 namespace OpenSim.Framework
@@ -41,7 +41,7 @@ namespace OpenSim.Framework
     ///
     /// This class is not thread safe.  Callers must synchronize on Dictionary methods.
     /// </summary>
-    public class TaskInventoryDictionary : Dictionary<LLUUID, TaskInventoryItem>,
+    public class TaskInventoryDictionary : Dictionary<UUID, TaskInventoryItem>,
                                            ICloneable, IXmlSerializable
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -56,7 +56,7 @@ namespace OpenSim.Framework
 
             lock (this)
             {
-                foreach (LLUUID uuid in Keys)
+                foreach (UUID uuid in Keys)
                 {
                     clone.Add(uuid, (TaskInventoryItem) this[uuid].Clone());
                 }
@@ -76,7 +76,7 @@ namespace OpenSim.Framework
         //   at System.Xml.Serialization.TypeTranslator.GetTypeData (System.Type runtimeType, System.String xmlDataType) [0x001f6] in /build/buildd/mono-1.2.4/mcs/class/System.XML/System.Xml.Serialization/TypeTranslator.cs:217
         // ...
 //        private static XmlSerializer tiiSerializer
-//            = new XmlSerializer(typeof(Dictionary<LLUUID, TaskInventoryItem>.ValueCollection));
+//            = new XmlSerializer(typeof(Dictionary<UUID, TaskInventoryItem>.ValueCollection));
 
         // see IXmlSerializable
 
@@ -203,31 +203,31 @@ namespace OpenSim.Framework
                 "gesture"
             };
 
-        private LLUUID _assetID = LLUUID.Zero;
+        private UUID _assetID = UUID.Zero;
 
         private uint _baseMask = FULL_MASK_PERMISSIONS_GENERAL;
         private uint _creationDate = 0;
-        private LLUUID _creatorID = LLUUID.Zero;
+        private UUID _creatorID = UUID.Zero;
         private string _description = String.Empty;
         private uint _everyoneMask = FULL_MASK_PERMISSIONS_GENERAL;
         private uint _flags = 0;
-        private LLUUID _groupID = LLUUID.Zero;
+        private UUID _groupID = UUID.Zero;
         private uint _groupMask = FULL_MASK_PERMISSIONS_GENERAL;
 
         private int _invType = 0;
-        private LLUUID _itemID = LLUUID.Zero;
-        private LLUUID _lastOwnerID = LLUUID.Zero;
+        private UUID _itemID = UUID.Zero;
+        private UUID _lastOwnerID = UUID.Zero;
         private string _name = String.Empty;
         private uint _nextOwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
-        private LLUUID _ownerID = LLUUID.Zero;
+        private UUID _ownerID = UUID.Zero;
         private uint _ownerMask = FULL_MASK_PERMISSIONS_GENERAL;
-        private LLUUID _parentID = LLUUID.Zero; //parent folder id
-        private LLUUID _parentPartID = LLUUID.Zero; // SceneObjectPart this is inside
-        private LLUUID _permsGranter;
+        private UUID _parentID = UUID.Zero; //parent folder id
+        private UUID _parentPartID = UUID.Zero; // SceneObjectPart this is inside
+        private UUID _permsGranter;
         private int _permsMask;
         private int _type = 0;
 
-        public LLUUID AssetID {
+        public UUID AssetID {
             get {
                 return _assetID;
             }
@@ -254,7 +254,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID CreatorID {
+        public UUID CreatorID {
             get {
                 return _creatorID;
             }
@@ -290,7 +290,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID GroupID {
+        public UUID GroupID {
             get {
                 return _groupID;
             }
@@ -317,7 +317,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID ItemID {
+        public UUID ItemID {
             get {
                 return _itemID;
             }
@@ -326,7 +326,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID LastOwnerID {
+        public UUID LastOwnerID {
             get {
                 return _lastOwnerID;
             }
@@ -353,7 +353,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID OwnerID {
+        public UUID OwnerID {
             get {
                 return _ownerID;
             }
@@ -371,7 +371,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID ParentID {
+        public UUID ParentID {
             get {
                 return _parentID;
             }
@@ -380,7 +380,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID ParentPartID {
+        public UUID ParentPartID {
             get {
                 return _parentPartID;
             }
@@ -389,7 +389,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID PermsGranter {
+        public UUID PermsGranter {
             get {
                 return _permsGranter;
             }
@@ -428,12 +428,12 @@ namespace OpenSim.Framework
         #endregion
 
         /// <summary>
-        /// Reset the LLUUIDs for this item.
+        /// Reset the UUIDs for this item.
         /// </summary>
         /// <param name="partID">The new part ID to which this item belongs</param>
-        public void ResetIDs(LLUUID partID)
+        public void ResetIDs(UUID partID)
         {
-            _itemID = LLUUID.Random();
+            _itemID = UUID.Random();
             _parentPartID = partID;
         }
     }

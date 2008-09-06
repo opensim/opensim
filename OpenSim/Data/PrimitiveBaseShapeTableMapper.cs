@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Data.Base;
 using OpenSim.Framework;
 
@@ -89,9 +89,9 @@ namespace OpenSim.Data
                                                delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.ProfileEnd; },
                                                delegate(PrimitiveBaseShapeRowMapper shape, ushort value) { shape.Object.ProfileEnd = value; });
 
-            rowMapperSchema.AddMapping<LLVector3>("Scale",
+            rowMapperSchema.AddMapping<Vector3>("Scale",
                                                        delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.Scale; },
-                                                       delegate(PrimitiveBaseShapeRowMapper shape, LLVector3 value) { shape.Object.Scale = value; });
+                                                       delegate(PrimitiveBaseShapeRowMapper shape, Vector3 value) { shape.Object.Scale = value; });
 
             rowMapperSchema.AddMapping<sbyte>("PathTaperX",
                                               delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathTaperX; },
@@ -143,7 +143,7 @@ namespace OpenSim.Data
             PrimitiveBaseShape shape = new PrimitiveBaseShape();
 
             PrimitiveBaseShapeRowMapper mapper = new PrimitiveBaseShapeRowMapper(m_schema, shape);
-            mapper.FillObject(reader);
+            mapper.FiPrimitive(reader);
 
             return mapper;
         }

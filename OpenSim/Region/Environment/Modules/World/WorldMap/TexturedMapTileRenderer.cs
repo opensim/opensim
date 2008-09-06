@@ -32,15 +32,14 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Reflection;
-using Axiom.Math;
+using OpenMetaverse;
 using Nini.Config;
 using log4net;
-using OpenJPEGNet;
+using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Modules.World.Terrain;
-using libsecondlife;
 
 namespace OpenSim.Region.Environment.Modules.World.WorldMap
 {
@@ -122,15 +121,15 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         // some hardcoded terrain UUIDs that work with SL 1.20 (the four default textures and "Blank").
         // The color-values were choosen because they "look right" (at least to me) ;-)
-        private static readonly LLUUID defaultTerrainTexture1 = new LLUUID("0bc58228-74a0-7e83-89bc-5c23464bcec5");
+        private static readonly UUID defaultTerrainTexture1 = new UUID("0bc58228-74a0-7e83-89bc-5c23464bcec5");
         private static readonly Color defaultColor1 = Color.FromArgb(165, 137, 118);
-        private static readonly LLUUID defaultTerrainTexture2 = new LLUUID("63338ede-0037-c4fd-855b-015d77112fc8");
+        private static readonly UUID defaultTerrainTexture2 = new UUID("63338ede-0037-c4fd-855b-015d77112fc8");
         private static readonly Color defaultColor2 = Color.FromArgb(69, 89, 49);
-        private static readonly LLUUID defaultTerrainTexture3 = new LLUUID("303cd381-8560-7579-23f1-f0a880799740");
+        private static readonly UUID defaultTerrainTexture3 = new UUID("303cd381-8560-7579-23f1-f0a880799740");
         private static readonly Color defaultColor3 = Color.FromArgb(162, 154, 141);
-        private static readonly LLUUID defaultTerrainTexture4 = new LLUUID("53a2f406-4895-1d13-d541-d2e3b86bc19c");
+        private static readonly UUID defaultTerrainTexture4 = new UUID("53a2f406-4895-1d13-d541-d2e3b86bc19c");
         private static readonly Color defaultColor4 = Color.FromArgb(200, 200, 200);
-        private static readonly LLUUID blankTerrainTexture = new LLUUID("5748decc-f629-461c-9a36-a35a221fe21f");
+        private static readonly UUID blankTerrainTexture = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
 
         #endregion
 
@@ -142,14 +141,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         // added when the terrain textures are changed in the estate dialog and a new map is generated (and will stay in
         // that map until the region-server restarts. This could be considered a memory-leak, but it's a *very* small one.
         // TODO does it make sense to use a "real" cache and regenerate missing entries on fetch?
-        private Dictionary<LLUUID, Color> m_mapping;
+        private Dictionary<UUID, Color> m_mapping;
 
 
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
             // m_config = source; // not used currently
-            m_mapping = new Dictionary<LLUUID,Color>();
+            m_mapping = new Dictionary<UUID,Color>();
             m_mapping.Add(defaultTerrainTexture1, defaultColor1);
             m_mapping.Add(defaultTerrainTexture2, defaultColor2);
             m_mapping.Add(defaultTerrainTexture3, defaultColor3);
@@ -164,12 +163,18 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         // TODO (- on "map" command: We are in the command-line thread, we will wait for completion anyway)
         // TODO (- on "automatic" update after some change: We are called from the mapUpdateTimer here and
         //   will wait anyway)
-        private Bitmap fetchTexture(LLUUID id)
+        private Bitmap fetchTexture(UUID id)
         {
             AssetBase asset = m_scene.AssetCache.GetAsset(id, true);
             m_log.DebugFormat("Fetched texture {0}, found: {1}", id, asset != null);
             if (asset == null) return null;
-            return new Bitmap(OpenJPEG.DecodeToImage(asset.Data));
+
+            ManagedImage managedImage;
+            Image image;
+            if (OpenJPEG.DecodeToImage(asset.Data, out managedImage, out image))
+                return new Bitmap(image);
+            else
+                return null;
         }
 
         // Compute the average color of a texture.
@@ -196,8 +201,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         // return either the average color of the texture, or the defaultColor if the texturID is invalid
         // or the texture couldn't be found
-        private Color computeAverageColor(LLUUID textureID, Color defaultColor) {
-            if (textureID == LLUUID.Zero) return defaultColor; // not set
+        private Color computeAverageColor(UUID textureID, Color defaultColor) {
+            if (textureID == UUID.Zero) return defaultColor; // not set
             if (m_mapping.ContainsKey(textureID)) return m_mapping[textureID]; // one of the predefined textures
 
             Bitmap bmp = fetchTexture(textureID);

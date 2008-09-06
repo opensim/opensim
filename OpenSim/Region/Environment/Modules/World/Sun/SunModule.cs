@@ -27,7 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -91,14 +91,14 @@ namespace OpenSim.Region.Environment.Modules
         // private double VWTimeRatio;               // VW time as a ratio of real time
 
         // Working values
-        private LLVector3 Position = new LLVector3(0,0,0);
-        private LLVector3 Velocity = new LLVector3(0,0,0);
-        private LLQuaternion  Tilt = new LLQuaternion(1,0,0,0);
+        private Vector3 Position = Vector3.Zero;
+        private Vector3 Velocity = Vector3.Zero;
+        private Quaternion  Tilt = Quaternion.Identity;
 
         private long LindenHourOffset = 0;
         private bool sunFixed = false;
 
-        private Dictionary<LLUUID, ulong> m_rootAgents = new Dictionary<LLUUID, ulong>();
+        private Dictionary<UUID, ulong> m_rootAgents = new Dictionary<UUID, ulong>();
 
         // Current time in elpased seconds since Jan 1st 1970
         private ulong CurrentTime
@@ -348,14 +348,14 @@ namespace OpenSim.Region.Environment.Modules
             // For interest we rotate it slightly about the X access.
             // Celestial tilt is a value that ranges .025
 
-            Position   = LLVector3.Rot(Position,Tilt);
+            Position *= Tilt;
 
             // Finally we shift the axis so that more of the
             // circle is above the horizon than below. This
             // makes the nights shorter than the days.
 
             Position.Z = Position.Z + (float) HorizonShift;
-            Position   = LLVector3.Norm(Position);
+            Position   = Vector3.Normalize(Position);
 
             // m_log.Debug("[SUN] Position("+Position.X+","+Position.Y+","+Position.Z+")");
 
@@ -365,7 +365,7 @@ namespace OpenSim.Region.Environment.Modules
 
             // Correct angular velocity to reflect the seasonal rotation
 
-            Magnitude  = LLVector3.Mag(Position);
+            Magnitude = Position.Length();
             if (sunFixed)
             {
                 Velocity.X = 0;
@@ -374,13 +374,12 @@ namespace OpenSim.Region.Environment.Modules
                 return;
             }
 
-            Velocity = LLVector3.Rot(Velocity, Tilt)*((float)(1.0/Magnitude));
+            Velocity = (Velocity * Tilt) * (1.0f / Magnitude);
 
             // m_log.Debug("[SUN] Velocity("+Velocity.X+","+Velocity.Y+","+Velocity.Z+")");
-
         }
 
-        private void ClientLoggedOut(LLUUID AgentId)
+        private void ClientLoggedOut(UUID AgentId)
         {
             lock (m_rootAgents)
             {
@@ -392,7 +391,7 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
+        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
         {
             lock (m_rootAgents)
             {

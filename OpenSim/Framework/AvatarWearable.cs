@@ -28,21 +28,21 @@
 using System;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     [Serializable]
     public class AvatarWearable : ISerializable
     {
-        public LLUUID AssetID = new LLUUID("00000000-0000-0000-0000-000000000000");
-        public LLUUID ItemID = new LLUUID("00000000-0000-0000-0000-000000000000");
+        public UUID AssetID = new UUID("00000000-0000-0000-0000-000000000000");
+        public UUID ItemID = new UUID("00000000-0000-0000-0000-000000000000");
 
         public AvatarWearable()
         {
         }
 
-        public AvatarWearable(LLUUID itemId, LLUUID assetId)
+        public AvatarWearable(UUID itemId, UUID assetId)
         {
             AssetID = assetId;
             ItemID = itemId;
@@ -56,8 +56,8 @@ namespace OpenSim.Framework
                 throw new ArgumentNullException("info");
             }
 
-            AssetID = new LLUUID((Guid) info.GetValue("AssetID", typeof (Guid)));
-            ItemID = new LLUUID((Guid) info.GetValue("ItemID", typeof (Guid)));
+            AssetID = new UUID((Guid) info.GetValue("AssetID", typeof (Guid)));
+            ItemID = new UUID((Guid) info.GetValue("ItemID", typeof (Guid)));
 
             //System.Console.WriteLine("AvatarWearable Deserialize END");
         }
@@ -71,17 +71,17 @@ namespace OpenSim.Framework
                 {
                     defaultWearables[i] = new AvatarWearable();
                 }
-                defaultWearables[0].AssetID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
-                defaultWearables[0].ItemID = new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9");
+                defaultWearables[0].AssetID = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
+                defaultWearables[0].ItemID = new UUID("66c41e39-38f9-f75a-024e-585989bfaba9");
 
-                defaultWearables[1].ItemID = new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9");
-                defaultWearables[1].AssetID = new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb");
+                defaultWearables[1].ItemID = new UUID("77c41e39-38f9-f75a-024e-585989bfabc9");
+                defaultWearables[1].AssetID = new UUID("77c41e39-38f9-f75a-024e-585989bbabbb");
 
-                defaultWearables[4].ItemID = new LLUUID("77c41e39-38f9-f75a-0000-585989bf0000");
-                defaultWearables[4].AssetID = new LLUUID("00000000-38f9-1111-024e-222222111110");
+                defaultWearables[4].ItemID = new UUID("77c41e39-38f9-f75a-0000-585989bf0000");
+                defaultWearables[4].AssetID = new UUID("00000000-38f9-1111-024e-222222111110");
 
-                defaultWearables[5].ItemID = new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111");
-                defaultWearables[5].AssetID = new LLUUID("00000000-38f9-1111-024e-222222111120");
+                defaultWearables[5].ItemID = new UUID("77c41e39-38f9-f75a-0000-5859892f1111");
+                defaultWearables[5].AssetID = new UUID("00000000-38f9-1111-024e-222222111120");
                 return defaultWearables;
             }
         }
@@ -98,8 +98,8 @@ namespace OpenSim.Framework
                 throw new ArgumentNullException("info");
             }
 
-            info.AddValue("AssetID", AssetID.UUID);
-            info.AddValue("ItemID", ItemID.UUID);
+            info.AddValue("AssetID", AssetID.Guid);
+            info.AddValue("ItemID", ItemID.Guid);
         }
 
         #endregion

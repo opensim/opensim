@@ -27,7 +27,7 @@
 
 using System.Collections;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins;
@@ -153,7 +153,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="itemID"></param>
-        public void RemoveScript(uint localID, LLUUID itemID)
+        public void RemoveScript(uint localID, UUID itemID)
         {
             // Remove a specific script
 

@@ -32,7 +32,7 @@ namespace OpenSim.Data.Base
     /// </summary>
     public abstract class BaseRowMapper
     {
-        public abstract void FillObject(BaseDataReader reader);
+        public abstract void FiPrimitive(BaseDataReader reader);
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ namespace OpenSim.Data.Base
         /// 
         /// </summary>
         /// <param name="reader"></param>
-        public override void FillObject(BaseDataReader reader)
+        public override void FiPrimitive(BaseDataReader reader)
         {
             foreach (BaseFieldMapper fieldMapper in m_schema.Fields.Values)
             {

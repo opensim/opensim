@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework;
@@ -109,13 +109,13 @@ namespace OpenSim.Data.SQLite
         public InventoryItemBase buildItem(DataRow row)
         {
             InventoryItemBase item = new InventoryItemBase();
-            item.ID = new LLUUID((string) row["UUID"]);
-            item.AssetID = new LLUUID((string) row["assetID"]);
+            item.ID = new UUID((string) row["UUID"]);
+            item.AssetID = new UUID((string) row["assetID"]);
             item.AssetType = Convert.ToInt32(row["assetType"]);
             item.InvType = Convert.ToInt32(row["invType"]);
-            item.Folder = new LLUUID((string) row["parentFolderID"]);
-            item.Owner = new LLUUID((string) row["avatarID"]);
-            item.Creator = new LLUUID((string) row["creatorsID"]);
+            item.Folder = new UUID((string) row["parentFolderID"]);
+            item.Owner = new UUID((string) row["avatarID"]);
+            item.Creator = new UUID((string) row["creatorsID"]);
             item.Name = (string) row["inventoryName"];
             item.Description = (string) row["inventoryDescription"];
 
@@ -135,7 +135,7 @@ namespace OpenSim.Data.SQLite
                 item.CreationDate = Convert.ToInt32(row["creationDate"]);
 
             if (!Convert.IsDBNull(row["groupID"]))
-                item.GroupID = new LLUUID((string)row["groupID"]);
+                item.GroupID = new UUID((string)row["groupID"]);
 
             if (!Convert.IsDBNull(row["groupOwned"]))
                 item.GroupOwned = Convert.ToBoolean(row["groupOwned"]);
@@ -317,7 +317,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="folderID">The UUID of the target folder</param>
         /// <returns>A List of InventoryItemBase items</returns>
-        public List<InventoryItemBase> getInventoryInFolder(LLUUID folderID)
+        public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
         {
             lock (ds)
             {
@@ -339,20 +339,20 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="user">The user whos inventory is to be searched</param>
         /// <returns>A list of folder objects</returns>
-        public List<InventoryFolderBase> getUserRootFolders(LLUUID user)
+        public List<InventoryFolderBase> getUserRootFolders(UUID user)
         {
             return new List<InventoryFolderBase>();
         }
 
         // see InventoryItemBase.getUserRootFolder
-        public InventoryFolderBase getUserRootFolder(LLUUID user)
+        public InventoryFolderBase getUserRootFolder(UUID user)
         {
             lock (ds)
             {
                 List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
                 string selectExp = "agentID = '" + Util.ToRawUuidString(user) + "' AND parentID = '" +
-                                   Util.ToRawUuidString(LLUUID.Zero) + "'";
+                                   Util.ToRawUuidString(UUID.Zero) + "'";
                 DataRow[] rows = inventoryFolderTable.Select(selectExp);
                 foreach (DataRow row in rows)
                 {
@@ -378,7 +378,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="folders">list where folders will be appended</param>
         /// <param name="parentID">ID of parent</param>
-        protected void getInventoryFolders(ref List<InventoryFolderBase> folders, LLUUID parentID)
+        protected void getInventoryFolders(ref List<InventoryFolderBase> folders, UUID parentID)
         {
             lock (ds)
             {
@@ -398,7 +398,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="parentID">The folder to get subfolders for</param>
         /// <returns>A list of inventory folders</returns>
-        public List<InventoryFolderBase> getInventoryFolders(LLUUID parentID)
+        public List<InventoryFolderBase> getInventoryFolders(UUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
             getInventoryFolders(ref folders, Util.ToRawUuidString(parentID));
@@ -410,7 +410,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="parentID"></param>
         /// <returns></returns>
-        public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
+        public List<InventoryFolderBase> getFolderHierarchy(UUID parentID)
         {
             /* Note: There are subtle changes between this implementation of getFolderHierarchy and the previous one
                  * - We will only need to hit the database twice instead of n times.
@@ -441,7 +441,7 @@ namespace OpenSim.Data.SQLite
                 if (parentRow.GetLength(0) >= 1)                    // No result means parent folder does not exist
                 {
                     parentFolder = buildFolder(parentRow[0]);
-                    LLUUID agentID = parentFolder.Owner;
+                    UUID agentID = parentFolder.Owner;
                     selectExp = "agentID = '" + Util.ToRawUuidString(agentID) + "'";
                     folderRows = inventoryFolderTable.Select(selectExp);
                 }
@@ -451,7 +451,7 @@ namespace OpenSim.Data.SQLite
                     /* if we're querying the root folder, just return an unordered list of all folders in the user's
                      * inventory
                      */
-                    if (parentFolder.ParentID == LLUUID.Zero)
+                    if (parentFolder.ParentID == UUID.Zero)
                     {
                         foreach (DataRow row in folderRows)
                         {
@@ -470,13 +470,13 @@ namespace OpenSim.Data.SQLite
                     {                                                         // Querying a non-root folder
 
                         // Build a hash table of all user's inventory folders, indexed by each folder's parent ID
-                        Dictionary<LLUUID, List<InventoryFolderBase>> hashtable =
-                            new Dictionary<LLUUID, List<InventoryFolderBase>>(folderRows.GetLength(0));
+                        Dictionary<UUID, List<InventoryFolderBase>> hashtable =
+                            new Dictionary<UUID, List<InventoryFolderBase>>(folderRows.GetLength(0));
 
                         foreach (DataRow row in folderRows)
                         {
                             InventoryFolderBase curFolder = buildFolder(row);
-                            if (curFolder.ParentID != LLUUID.Zero) // Discard root of tree - not needed
+                            if (curFolder.ParentID != UUID.Zero) // Discard root of tree - not needed
                             {
                                 if (hashtable.ContainsKey(curFolder.ParentID))
                                 {
@@ -514,7 +514,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="item">The UUID of the item to be returned</param>
         /// <returns>A class containing item information</returns>
-        public InventoryItemBase getInventoryItem(LLUUID item)
+        public InventoryItemBase getInventoryItem(UUID item)
         {
             lock (ds)
             {
@@ -535,7 +535,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="folder">The UUID of the folder to be returned</param>
         /// <returns>A class containing folder information</returns>
-        public InventoryFolderBase getInventoryFolder(LLUUID folder)
+        public InventoryFolderBase getInventoryFolder(UUID folder)
         {
             // TODO: Deep voodoo here.  If you enable this code then
             // multi region breaks.  No idea why, but I figured it was
@@ -578,7 +578,7 @@ namespace OpenSim.Data.SQLite
         /// Delete an inventory item
         /// </summary>
         /// <param name="item">The item UUID</param>
-        public void deleteInventoryItem(LLUUID itemID)
+        public void deleteInventoryItem(UUID itemID)
         {
             lock (ds)
             {
@@ -599,7 +599,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="folderId">id of the folder, whose item content should be deleted</param>
         /// <todo>this is horribly inefficient, but I don't want to ruin the overall structure of this implementation</todo>
-        private void deleteItemsInFolder(LLUUID folderId)
+        private void deleteItemsInFolder(UUID folderId)
         {
             List<InventoryItemBase> items = getInventoryInFolder(Util.ToRawUuidString(folderId));
 
@@ -641,7 +641,7 @@ namespace OpenSim.Data.SQLite
         /// This will clean-up any child folders and child items as well
         /// </remarks>
         /// <param name="folderID">the folder UUID</param>
-        public void deleteInventoryFolder(LLUUID folderID)
+        public void deleteInventoryFolder(UUID folderID)
         {
             lock (ds)
             {
@@ -791,10 +791,10 @@ namespace OpenSim.Data.SQLite
         private static InventoryFolderBase buildFolder(DataRow row)
         {
             InventoryFolderBase folder = new InventoryFolderBase();
-            folder.ID = new LLUUID((string) row["UUID"]);
+            folder.ID = new UUID((string) row["UUID"]);
             folder.Name = (string) row["name"];
-            folder.Owner = new LLUUID((string) row["agentID"]);
-            folder.ParentID = new LLUUID((string) row["parentID"]);
+            folder.Owner = new UUID((string) row["agentID"]);
+            folder.ParentID = new UUID((string) row["parentID"]);
             folder.Type = Convert.ToInt16(row["type"]);
             folder.Version = Convert.ToUInt16(row["version"]);
             return folder;

@@ -28,8 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using log4net;
 
 namespace OpenSim.Framework
@@ -117,7 +117,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public void CloseAllCircuits(LLUUID agentId)
+        public void CloseAllCircuits(UUID agentId)
         {
             uint[] circuits = GetAllCircuits(agentId);
             // We're using a for loop here so changes to the circuits don't cause it to completely fail.
@@ -144,7 +144,7 @@ namespace OpenSim.Framework
         }
 
         // [Obsolete("Using Obsolete to drive development is invalid.  Obsolete presumes that something new has already been created to replace this.")]
-        public uint[] GetAllCircuits(LLUUID agentId)
+        public uint[] GetAllCircuits(UUID agentId)
         {
             List<uint> circuits = new List<uint>();
             // Wasteful, I know

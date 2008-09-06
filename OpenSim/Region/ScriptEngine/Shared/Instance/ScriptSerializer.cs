@@ -34,7 +34,7 @@ using System.Security.Policy;
 using System.Reflection;
 using System.Globalization;
 using System.Xml;
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Amib.Threading;
@@ -264,9 +264,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                                 new LSL_Types.Vector3(vect);
 
                                         int d_linkNum=0;
-                                        LLUUID d_group = LLUUID.Zero;
+                                        UUID d_group = UUID.Zero;
                                         string d_name = String.Empty;
-                                        LLUUID d_owner = LLUUID.Zero;
+                                        UUID d_owner = UUID.Zero;
                                         LSL_Types.Vector3 d_position =
                                             new LSL_Types.Vector3();
                                         LSL_Types.Quaternion d_rotation =
@@ -285,14 +285,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                                             tmp = det.Attributes.GetNamedItem(
                                                     "group").Value;
-                                            LLUUID.TryParse(tmp, out d_group);
+                                            UUID.TryParse(tmp, out d_group);
 
                                             d_name = det.Attributes.GetNamedItem(
                                                     "name").Value;
 
                                             tmp = det.Attributes.GetNamedItem(
                                                     "owner").Value;
-                                            LLUUID.TryParse(tmp, out d_owner);
+                                            UUID.TryParse(tmp, out d_owner);
 
                                             tmp = det.Attributes.GetNamedItem(
                                                     "position").Value;
@@ -318,8 +318,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                         {
                                         }
 
-                                        LLUUID uuid = new LLUUID();
-                                        LLUUID.TryParse(det.InnerText,
+                                        UUID uuid = new UUID();
+                                        UUID.TryParse(det.InnerText,
                                                 out uuid);
 
                                         DetectParams d = new DetectParams();
@@ -427,10 +427,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (itemType == "list")
                 return ReadList(tag);
 
-            if (itemType == "libsecondlife.LLUUID")
+            if (itemType == "libsecondlife.UUID")
             {
-                LLUUID val = new LLUUID();
-                LLUUID.TryParse(tag.InnerText, out val);
+                UUID val = new UUID();
+                UUID.TryParse(tag.InnerText, out val);
 
                 return val;
             }

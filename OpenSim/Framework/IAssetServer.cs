@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -35,7 +35,7 @@ namespace OpenSim.Framework
     public interface IAssetServer
     {
         void SetReceiver(IAssetReceiver receiver);
-        void RequestAsset(LLUUID assetID, bool isTexture);
+        void RequestAsset(UUID assetID, bool isTexture);
         void StoreAsset(AssetBase asset);
         void UpdateAsset(AssetBase asset);
         void Close();
@@ -59,7 +59,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="assetID"></param>
         /// <param name="IsTexture"></param>
-        void AssetNotFound(LLUUID assetID, bool IsTexture);
+        void AssetNotFound(UUID assetID, bool IsTexture);
     }
 
     public interface IAssetPlugin

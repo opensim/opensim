@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -42,10 +42,10 @@ namespace OpenSim.Framework
     /// </summary>
     public class AssetRequestToClient
     {
-        public LLUUID RequestAssetID;
+        public UUID RequestAssetID;
         public AssetBase AssetInf;
         public AssetBase ImageInfo;
-        public LLUUID TransferRequestID;
+        public UUID TransferRequestID;
         public long DataPointer = 0;
         public int NumPackets = 0;
         public int PacketCounter = 0;

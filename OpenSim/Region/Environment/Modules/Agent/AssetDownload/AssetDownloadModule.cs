@@ -26,8 +26,8 @@
  */
 
 using System.Collections.Generic;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -43,16 +43,16 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
         private List<AssetRequest> AssetRequests;
 
         private Scene m_scene;
-        private Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
+        private Dictionary<UUID, Scene> RegisteredScenes = new Dictionary<UUID, Scene>();
 
         ///
         /// Assets requests (for each user) which are waiting for asset server data.  This includes texture requests
         /// </summary>
-        private Dictionary<LLUUID, Dictionary<LLUUID, AssetRequest>> RequestedAssets;
+        private Dictionary<UUID, Dictionary<UUID, AssetRequest>> RequestedAssets;
 
         public AssetDownloadModule()
         {
-            RequestedAssets = new Dictionary<LLUUID, Dictionary<LLUUID, AssetRequest>>();
+            RequestedAssets = new Dictionary<UUID, Dictionary<UUID, AssetRequest>>();
             AssetRequests = new List<AssetRequest>();
         }
 
@@ -109,24 +109,24 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
         /// <param name="transferRequest"></param>
         public void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest)
         {
-            LLUUID requestID = null;
+            UUID requestID = null;
             byte source = 2;
             if (transferRequest.TransferInfo.SourceType == 2)
             {
                 //direct asset request
-                requestID = new LLUUID(transferRequest.TransferInfo.Params, 0);
+                requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
             else if (transferRequest.TransferInfo.SourceType == 3)
             {
                 //inventory asset request
-                requestID = new LLUUID(transferRequest.TransferInfo.Params, 80);
+                requestID = new UUID(transferRequest.TransferInfo.Params, 80);
                 source = 3;
                 //Console.WriteLine("asset request " + requestID);
             }
 
             //not found asset
             // so request from asset server
-            Dictionary<LLUUID, AssetRequest> userRequests = null;
+            Dictionary<UUID, AssetRequest> userRequests = null;
             if (RequestedAssets.TryGetValue(userInfo.AgentId, out userRequests))
             {
                 if (!userRequests.ContainsKey(requestID))
@@ -143,7 +143,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
             }
             else
             {
-                userRequests = new Dictionary<LLUUID, AssetRequest>();
+                userRequests = new Dictionary<UUID, AssetRequest>();
                 AssetRequest request = new AssetRequest();
                 request.RequestUser = userInfo;
                 request.RequestAssetID = requestID;
@@ -156,11 +156,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
             }
         }
 
-        public void AssetCallback(LLUUID assetID, AssetBase asset)
+        public void AssetCallback(UUID assetID, AssetBase asset)
         {
             if (asset != null)
             {
-                foreach (Dictionary<LLUUID, AssetRequest> userRequests in RequestedAssets.Values)
+                foreach (Dictionary<UUID, AssetRequest> userRequests in RequestedAssets.Values)
                 {
                     if (userRequests.ContainsKey(assetID))
                     {
@@ -212,9 +212,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
             public int NumPackets = 0;
             public int PacketCounter = 0;
             public byte[] Params = null;
-            public LLUUID RequestAssetID;
+            public UUID RequestAssetID;
             public IClientAPI RequestUser;
-            public LLUUID TransferRequestID;
+            public UUID TransferRequestID;
             //public bool AssetInCache;
             //public int TimeRequested;
 

@@ -1,5 +1,5 @@
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -8,7 +8,7 @@ namespace OpenSim.Framework
         private sbyte m_discardLevel;
         private uint m_packetNumber;
         private float m_priority;
-        protected LLUUID m_requestedAssetID;
+        protected UUID m_requestedAssetID;
 
         public float Priority
         {
@@ -37,7 +37,7 @@ namespace OpenSim.Framework
         /// <summary>
         ///
         /// </summary>
-        public LLUUID RequestedAssetID
+        public UUID RequestedAssetID
         {
             get { return m_requestedAssetID; }
             set { m_requestedAssetID = value; }

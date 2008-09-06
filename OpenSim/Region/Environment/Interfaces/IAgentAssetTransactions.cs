@@ -25,20 +25,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IAgentAssetTransactions
     {
-        void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID,
+        void HandleItemUpdateFromTransaction(IClientAPI remoteClient, UUID transactionID,
                                              InventoryItemBase item);
 
-        void HandleItemCreationFromTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+        void HandleItemCreationFromTransaction(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                                uint callbackID, string description, string name, sbyte invType,
                                                sbyte type, byte wearableType, uint nextOwnerMask);
 
-        void RemoveAgentAssetTransactions(LLUUID userID);
+        void RemoveAgentAssetTransactions(UUID userID);
     }
 }

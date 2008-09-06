@@ -31,13 +31,12 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.IO;
-using Axiom.Math;
 using log4net;
 using Nini.Config;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-using libsecondlife;
+using OpenMetaverse;
 
 //using OpenSim.Region.Physics.OdePlugin.Meshing;
 
@@ -1129,11 +1128,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             siz.X = size.X;
             siz.Y = size.Y;
             siz.Z = size.Z;
-            Quaternion rot = new Quaternion();
-            rot.w = rotation.w;
-            rot.x = rotation.x;
-            rot.y = rotation.y;
-            rot.z = rotation.z;
+            Quaternion rot = rotation;
 
             OdePrim newPrim;
             lock (OdeLock)
@@ -1524,8 +1519,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // but we still need to check for sculptie meshing being enabled so this is the most
             // convenient place to do it for now...
 
-        //    //if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle && pbs.ProfileCurve == (byte)LLObject.ProfileCurve.Circle && pbs.PathScaleY <= 0.75f)
-        //    //Console.WriteLine("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + LLObject.UnpackPathScale(pbs.PathScaleY).ToString());
+        //    //if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle && pbs.ProfileCurve == (byte)Primitive.ProfileCurve.Circle && pbs.PathScaleY <= 0.75f)
+        //    //Console.WriteLine("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + Primitive.UnpackPathScale(pbs.PathScaleY).ToString());
             if (pbs.SculptEntry && !meshSculptedPrim)
             {
                 return false;
@@ -1555,19 +1550,19 @@ namespace OpenSim.Region.Physics.OdePlugin
         //        return true;
 
         //    // test for torus
-        //    if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
-        //        && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.Circle
-        //        && LLObject.UnpackPathScale(pbs.PathScaleY) <= 0.75f)
+        //    if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle
+        //        && (pbs.ProfileCurve & 0x07) == (byte)Primitive.ProfileCurve.Circle
+        //        && Primitive.UnpackPathScale(pbs.PathScaleY) <= 0.75f)
         //        return true;
 
         //    // test for tube
-        //    if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
-        //        && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.EqualTriangle)
+        //    if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle
+        //        && (pbs.ProfileCurve & 0x07) == (byte)Primitive.ProfileCurve.EqualTriangle)
         //        return true;
 
         //    // test for ring
-        //    if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
-        //        && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.EqualTriangle)
+        //    if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle
+        //        && (pbs.ProfileCurve & 0x07) == (byte)Primitive.ProfileCurve.EqualTriangle)
         //        return true;
 
         //    if (pbs.ProfileShape == ProfileShape.EquilateralTriangle)
@@ -2132,17 +2127,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 d.Matrix3 R = new d.Matrix3();
 
-                Quaternion q1 = Quaternion.FromAngleAxis(1.5707f, new Vector3(1, 0, 0));
-                Quaternion q2 = Quaternion.FromAngleAxis(1.5707f, new Vector3(0, 1, 0));
+                Quaternion q1 = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 1.5707f);
+                Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
                 //Axiom.Math.Quaternion q3 = Axiom.Math.Quaternion.FromAngleAxis(3.14f, new Axiom.Math.Vector3(0, 0, 1));
 
                 q1 = q1*q2;
                 //q1 = q1 * q3;
-                Vector3 v3 = new Vector3();
-                float angle = 0;
-                q1.ToAngleAxis(ref angle, ref v3);
+                Vector3 v3;
+                float angle;
+                q1.GetAxisAngle(out v3, out angle);
 
-                d.RFromAxisAndAngle(out R, v3.x, v3.y, v3.z, angle);
+                d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(LandGeom, ref R);
                 d.GeomSetPosition(LandGeom, 128, 128, 0);
             }
@@ -2197,17 +2192,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 d.Matrix3 R = new d.Matrix3();
 
-                Quaternion q1 = Quaternion.FromAngleAxis(1.5707f, new Vector3(1, 0, 0));
-                Quaternion q2 = Quaternion.FromAngleAxis(1.5707f, new Vector3(0, 1, 0));
+                Quaternion q1 = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 1.5707f);
+                Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
                 //Axiom.Math.Quaternion q3 = Axiom.Math.Quaternion.FromAngleAxis(3.14f, new Axiom.Math.Vector3(0, 0, 1));
 
                 q1 = q1 * q2;
                 //q1 = q1 * q3;
-                Vector3 v3 = new Vector3();
-                float angle = 0;
-                q1.ToAngleAxis(ref angle, ref v3);
+                Vector3 v3;
+                float angle;
+                q1.GetAxisAngle(out v3, out angle);
 
-                d.RFromAxisAndAngle(out R, v3.x, v3.y, v3.z, angle);
+                d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(WaterGeom, ref R);
                 d.GeomSetPosition(WaterGeom, 128, 128, 0);
             }

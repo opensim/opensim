@@ -26,14 +26,13 @@
  */
 
 using System;
-using Axiom.Math;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Scenes.Scripting
 {
     public class NullScriptHost : IScriptHost
     {
-        private LLVector3 m_pos = new LLVector3(128, 128, 30);
+        private Vector3 m_pos = new Vector3(128, 128, 30);
 
         public string Name
         {
@@ -59,22 +58,22 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             set { }
         }
 
-        public LLUUID UUID
+        public UUID UUID
         {
-            get { return LLUUID.Zero; }
+            get { return UUID.Zero; }
         }
 
-        public LLUUID ObjectOwner
+        public UUID ObjectOwner
         {
-            get { return LLUUID.Zero; }
+            get { return UUID.Zero; }
         }
 
-        public LLUUID ObjectCreator
+        public UUID ObjectCreator
         {
-            get { return LLUUID.Zero; }
+            get { return UUID.Zero; }
         }
 
-        public LLVector3 AbsolutePosition
+        public Vector3 AbsolutePosition
         {
             get { return m_pos; }
         }

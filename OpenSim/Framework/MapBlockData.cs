@@ -26,7 +26,7 @@
  */
 
 using System;
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -35,7 +35,7 @@ namespace OpenSim.Framework
         public byte Access;
         public byte Agents;
         public uint Flags;
-        public LLUUID MapImageId;
+        public UUID MapImageId;
         public String Name;
         public uint RegionFlags;
         public byte WaterHeight;

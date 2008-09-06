@@ -25,14 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class FriendListItem
     {
-        public LLUUID Friend;
-        public LLUUID FriendListOwner;
+        public UUID Friend;
+        public UUID FriendListOwner;
 
         // These are what the list owner gives the friend permission to do
 

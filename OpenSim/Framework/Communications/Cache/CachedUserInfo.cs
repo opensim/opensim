@@ -30,24 +30,24 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 
-using libsecondlife;
+using OpenMetaverse;
 using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
 {
     internal delegate void AddItemDelegate(InventoryItemBase itemInfo);
     internal delegate void UpdateItemDelegate(InventoryItemBase itemInfo);
-    internal delegate void DeleteItemDelegate(LLUUID itemID);
+    internal delegate void DeleteItemDelegate(UUID itemID);
 
-    internal delegate void CreateFolderDelegate(string folderName, LLUUID folderID, ushort folderType, LLUUID parentID);
-    internal delegate void MoveFolderDelegate(LLUUID folderID, LLUUID parentID);
-    internal delegate void PurgeFolderDelegate(LLUUID folderID);
-    internal delegate void UpdateFolderDelegate(string name, LLUUID folderID, ushort type, LLUUID parentID);
+    internal delegate void CreateFolderDelegate(string folderName, UUID folderID, ushort folderType, UUID parentID);
+    internal delegate void MoveFolderDelegate(UUID folderID, UUID parentID);
+    internal delegate void PurgeFolderDelegate(UUID folderID);
+    internal delegate void UpdateFolderDelegate(string name, UUID folderID, ushort type, UUID parentID);
 
     internal delegate void SendInventoryDescendentsDelegate(
-        IClientAPI client, LLUUID folderID, bool fetchFolders, bool fetchItems);
+        IClientAPI client, UUID folderID, bool fetchFolders, bool fetchItems);
 
-    public delegate void OnItemReceivedDelegate(LLUUID itemID);
+    public delegate void OnItemReceivedDelegate(UUID itemID);
 
     /// <summary>
     /// Stores user profile and inventory data received from backend services for a particular user.
@@ -84,12 +84,12 @@ namespace OpenSim.Framework.Communications.Cache
         public InventoryFolderImpl RootFolder { get { return m_rootFolder; } }
         private InventoryFolderImpl m_rootFolder;
 
-        public LLUUID SessionID
+        public UUID SessionID
         {
             get { return m_session_id; }
             set { m_session_id = value; }
         }
-        private LLUUID m_session_id = LLUUID.Zero;
+        private UUID m_session_id = UUID.Zero;
 
         /// <summary>
         /// Constructor
@@ -127,9 +127,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// Helper function for InventoryReceive() - Store a folder temporarily until we've received entire folder list
         /// </summary>
         /// <param name="folder"></param>
-        private void AddFolderToDictionary(InventoryFolderImpl folder, IDictionary<LLUUID, IList<InventoryFolderImpl>> dictionary)
+        private void AddFolderToDictionary(InventoryFolderImpl folder, IDictionary<UUID, IList<InventoryFolderImpl>> dictionary)
         {
-            LLUUID parentFolderId = folder.ParentID;
+            UUID parentFolderId = folder.ParentID;
 
             if (dictionary.ContainsKey(parentFolderId))
                 dictionary[parentFolderId].Add(folder);
@@ -148,9 +148,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// heirarchy
         /// </summary>
         /// <param name="parentId">
-        /// A <see cref="LLUUID"/>
+        /// A <see cref="UUID"/>
         /// </param>
-        private void ResolveReceivedFolders(InventoryFolderImpl parentFolder, IDictionary<LLUUID, IList<InventoryFolderImpl>> folderDictionary)
+        private void ResolveReceivedFolders(InventoryFolderImpl parentFolder, IDictionary<UUID, IList<InventoryFolderImpl>> folderDictionary)
         {
             if (folderDictionary.ContainsKey(parentFolder.ID))
             {
@@ -208,19 +208,19 @@ namespace OpenSim.Framework.Communications.Cache
             try
             {
                 // collection of all received folders, indexed by their parent ID
-                IDictionary<LLUUID, IList<InventoryFolderImpl>> receivedFolders =
-                    new Dictionary<LLUUID, IList<InventoryFolderImpl>>();
+                IDictionary<UUID, IList<InventoryFolderImpl>> receivedFolders =
+                    new Dictionary<UUID, IList<InventoryFolderImpl>>();
 
                 // Take all received folders, find the root folder, and put ther rest into
                 // the pendingCategorizationFolders collection
                 foreach (InventoryFolderImpl folder in folders)
                     AddFolderToDictionary(folder, receivedFolders);
 
-                if (!receivedFolders.ContainsKey(LLUUID.Zero))
+                if (!receivedFolders.ContainsKey(UUID.Zero))
                     throw new Exception("Database did not return a root inventory folder");
                 else
                 {
-                    IList<InventoryFolderImpl> rootFolderList = receivedFolders[LLUUID.Zero];
+                    IList<InventoryFolderImpl> rootFolderList = receivedFolders[UUID.Zero];
                     m_rootFolder = rootFolderList[0];
                     if (rootFolderList.Count > 1)
                     {
@@ -231,7 +231,7 @@ namespace OpenSim.Framework.Communications.Cache
                                 rootFolderList[i].ID, RootFolder.ID);
                         }
                     }
-                    receivedFolders.Remove(LLUUID.Zero);
+                    receivedFolders.Remove(UUID.Zero);
                 }
 
                 // Now take the pendingCategorizationFolders collection, and turn that into a tree,
@@ -240,7 +240,7 @@ namespace OpenSim.Framework.Communications.Cache
                     ResolveReceivedFolders(RootFolder, receivedFolders);
 
                 // Generate a warning for folders that are not part of the heirarchy
-                foreach (KeyValuePair<LLUUID, IList<InventoryFolderImpl>> folderList in receivedFolders)
+                foreach (KeyValuePair<UUID, IList<InventoryFolderImpl>> folderList in receivedFolders)
                 {
                     foreach (InventoryFolderImpl folder in folderList.Value)
                         m_log.WarnFormat("[INVENTORY CACHE]: Malformed Database: Unresolved Pending Folder {0}", folder.Name);
@@ -314,7 +314,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="parentID"></param>
         /// <returns></returns>
-        public bool CreateFolder(string folderName, LLUUID folderID, ushort folderType, LLUUID parentID)
+        public bool CreateFolder(string folderName, UUID folderID, ushort folderType, UUID parentID)
         {
             //            m_log.DebugFormat(
             //                "[AGENT INVENTORY]: Creating inventory folder {0} {1} for {2} {3}", folderID, folderName, remoteClient.Name, remoteClient.AgentId);
@@ -389,7 +389,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="type"></param>
         /// <param name="name"></param>
         /// <param name="parentID"></param>
-        public bool UpdateFolder(string name, LLUUID folderID, ushort type, LLUUID parentID)
+        public bool UpdateFolder(string name, UUID folderID, ushort type, UUID parentID)
         {
             //            m_log.DebugFormat(
             //                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
@@ -440,7 +440,7 @@ namespace OpenSim.Framework.Communications.Cache
         ///
         /// <param name="folderID"></param>
         /// <param name="parentID"></param>
-        public bool MoveFolder(LLUUID folderID, LLUUID parentID)
+        public bool MoveFolder(UUID folderID, UUID parentID)
         {
             //            m_log.DebugFormat(
             //                "[AGENT INVENTORY]: Moving inventory folder {0} into folder {1} for {2} {3}",
@@ -487,7 +487,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         ///
         /// <param name="folderID"></param>
-        public bool PurgeFolder(LLUUID folderID)
+        public bool PurgeFolder(UUID folderID)
         {
             //            m_log.InfoFormat("[AGENT INVENTORY]: Purging folder {0} for {1} uuid {2}",
             //                folderID, remoteClient.Name, remoteClient.AgentId);
@@ -542,7 +542,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if (m_hasReceivedInventory)
             {
-                if (item.Folder == LLUUID.Zero)
+                if (item.Folder == UUID.Zero)
                 {
                     InventoryFolderImpl f = FindFolderForType(item.AssetType);
                     if (f != null)
@@ -607,7 +607,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// true on a successful delete or a if the request is queued.
         /// Returns false on an immediate failure
         /// </returns>
-        public bool DeleteItem(LLUUID itemID)
+        public bool DeleteItem(UUID itemID)
         {
             if (m_hasReceivedInventory)
             {
@@ -655,7 +655,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="fetchFolders"></param>
         /// <param name="fetchItems"></param>
         /// <returns>true if the request was queued or successfully processed, false otherwise</returns>
-        public bool SendInventoryDecendents(IClientAPI client, LLUUID folderID, bool fetchFolders, bool fetchItems)
+        public bool SendInventoryDecendents(IClientAPI client, UUID folderID, bool fetchFolders, bool fetchItems)
         {
             if (m_hasReceivedInventory)
             {

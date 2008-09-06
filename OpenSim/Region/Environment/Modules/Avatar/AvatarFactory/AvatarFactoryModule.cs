@@ -29,7 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using libsecondlife;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment.Modules
     public class AvatarFactoryModule : IAvatarFactory
     {
         private Scene m_scene = null;
-        private readonly Dictionary<LLUUID, AvatarAppearance> m_avatarsAppearance = new Dictionary<LLUUID, AvatarAppearance>();
+        private readonly Dictionary<UUID, AvatarAppearance> m_avatarsAppearance = new Dictionary<UUID, AvatarAppearance>();
 
         private bool m_enablePersist = false;
         private string m_connectionString;
@@ -51,10 +51,10 @@ namespace OpenSim.Region.Environment.Modules
         private BaseDatabaseConnector m_databaseMapper;
         private AppearanceTableMapper m_appearanceMapper;
 
-        private Dictionary<LLUUID, EventWaitHandle> m_fetchesInProgress = new Dictionary<LLUUID, EventWaitHandle>();
+        private Dictionary<UUID, EventWaitHandle> m_fetchesInProgress = new Dictionary<UUID, EventWaitHandle>();
         private object m_syncLock = new object();
 
-        public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
+        public bool TryGetAvatarAppearance(UUID avatarId, out AvatarAppearance appearance)
         {
 
             //should only let one thread at a time do this part
@@ -163,7 +163,7 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        private AvatarAppearance CreateDefault(LLUUID avatarId)
+        private AvatarAppearance CreateDefault(UUID avatarId)
         {
             AvatarAppearance appearance = null;
             AvatarWearable[] wearables;
@@ -174,7 +174,7 @@ namespace OpenSim.Region.Environment.Modules
             return appearance;
         }
 
-        private AvatarAppearance CheckDatabase(LLUUID avatarId)
+        private AvatarAppearance CheckDatabase(UUID avatarId)
         {
             AvatarAppearance appearance = null;
             if (m_enablePersist)
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Modules
             return appearance;
         }
 
-        private AvatarAppearance CheckCache(LLUUID avatarId)
+        private AvatarAppearance CheckCache(UUID avatarId)
         {
             AvatarAppearance appearance = null;
             lock (m_avatarsAppearance)
@@ -282,16 +282,16 @@ namespace OpenSim.Region.Environment.Modules
                         {
                             if (wear.Type < 13)
                             {
-                                if (wear.ItemID == LLUUID.Zero)
+                                if (wear.ItemID == UUID.Zero)
                                 {
-                                    avatAppearance.Wearables[wear.Type].ItemID = LLUUID.Zero;
-                                    avatAppearance.Wearables[wear.Type].AssetID = LLUUID.Zero;
+                                    avatAppearance.Wearables[wear.Type].ItemID = UUID.Zero;
+                                    avatAppearance.Wearables[wear.Type].AssetID = UUID.Zero;
 
                                     UpdateDatabase(clientView.AgentId, avatAppearance);
                                 }
                                 else
                                 {
-                                    LLUUID assetId;
+                                    UUID assetId;
 
                                     InventoryItemBase baseItem = profile.RootFolder.FindItem(wear.ItemID);
                                     if (baseItem != null)
@@ -310,11 +310,11 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        public void UpdateDatabase(LLUUID userID, AvatarAppearance avatAppearance)
+        public void UpdateDatabase(UUID userID, AvatarAppearance avatAppearance)
         {
             if (m_enablePersist)
             {
-                m_appearanceMapper.Update(userID.UUID, avatAppearance);
+                m_appearanceMapper.Update(userID.Guid, avatAppearance);
             }
         }
 

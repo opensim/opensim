@@ -39,7 +39,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using Nini.Config;
 
@@ -50,22 +50,20 @@ using OpenSim.Region.Physics.Manager;
 
 using log4net;
 
-using Axiom.Math;
-
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
     public class PointMetaEntity : MetaEntity
     {
         #region Constructors
 
-        public PointMetaEntity(Scene scene, uint LocalId, LLVector3 groupPos, float transparency)
+        public PointMetaEntity(Scene scene, uint LocalId, Vector3 groupPos, float transparency)
             : base()
         {
-            CreatePointEntity(scene, LLUUID.Random(), LocalId, groupPos);
+            CreatePointEntity(scene, UUID.Random(), LocalId, groupPos);
             SetPartTransparency(m_Entity.RootPart, transparency);
         }
 
-        public PointMetaEntity(Scene scene, LLUUID uuid, uint LocalId, LLVector3 groupPos, float transparency)
+        public PointMetaEntity(Scene scene, UUID uuid, uint LocalId, Vector3 groupPos, float transparency)
             : base()
         {
             CreatePointEntity(scene, uuid, LocalId, groupPos);
@@ -76,7 +74,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Private Methods
 
-        private void CreatePointEntity(Scene scene, LLUUID uuid, uint LocalId, LLVector3 groupPos)
+        private void CreatePointEntity(Scene scene, UUID uuid, uint LocalId, Vector3 groupPos)
         {
             SceneObjectGroup x = new SceneObjectGroup();
             SceneObjectPart y = new SceneObjectPart();
@@ -85,23 +83,23 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             y.Name = "Very Small Point";
             y.RegionHandle = scene.RegionInfo.RegionHandle;
             y.CreationDate = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            y.OwnerID = LLUUID.Zero;
-            y.CreatorID = LLUUID.Zero;
-            y.LastOwnerID = LLUUID.Zero;
+            y.OwnerID = UUID.Zero;
+            y.CreatorID = UUID.Zero;
+            y.LastOwnerID = UUID.Zero;
             y.UUID = uuid;
 
             y.LocalId = LocalId;
             	
             y.Shape = PrimitiveBaseShape.CreateBox();
-            y.Scale = new LLVector3(0.01f,0.01f,0.01f);
-            y.LastOwnerID = LLUUID.Zero;
+            y.Scale = new Vector3(0.01f,0.01f,0.01f);
+            y.LastOwnerID = UUID.Zero;
             y.GroupPosition = groupPos;
-            y.OffsetPosition = new LLVector3(0, 0, 0);
-            y.RotationOffset = new LLQuaternion(0,0,0,0);
-            y.Velocity = new LLVector3(0, 0, 0);
-            y.RotationalVelocity = new LLVector3(0, 0, 0);
-            y.AngularVelocity = new LLVector3(0, 0, 0);
-            y.Acceleration = new LLVector3(0, 0, 0);
+            y.OffsetPosition = new Vector3(0, 0, 0);
+            y.RotationOffset = new Quaternion(0,0,0,0);
+            y.Velocity = new Vector3(0, 0, 0);
+            y.RotationalVelocity = new Vector3(0, 0, 0);
+            y.AngularVelocity = new Vector3(0, 0, 0);
+            y.Acceleration = new Vector3(0, 0, 0);
 
             y.Flags = 0;
             y.TrimPermissions();

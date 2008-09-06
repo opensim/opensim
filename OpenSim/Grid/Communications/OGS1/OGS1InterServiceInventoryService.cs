@@ -27,7 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using libsecondlife;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
@@ -51,10 +51,10 @@ namespace OpenSim.Grid.Communications.OGS1
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public bool CreateNewUserInventory(LLUUID userId)
+        public bool CreateNewUserInventory(UUID userId)
         {
             return SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
-                "POST", m_inventoryServerUrl + "CreateInventory/", userId.UUID);
+                "POST", m_inventoryServerUrl + "CreateInventory/", userId.Guid);
         }
 
         /// <summary>
@@ -62,10 +62,10 @@ namespace OpenSim.Grid.Communications.OGS1
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
+        public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
         {
             return SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
-                "POST", m_inventoryServerUrl + "RootFolders/", userId.UUID);
+                "POST", m_inventoryServerUrl + "RootFolders/", userId.Guid);
         }
     }
 }

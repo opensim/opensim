@@ -32,8 +32,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
-using libsecondlife;
-using OpenJPEGNet;
+using OpenMetaverse;
+using OpenMetaverse.Imaging;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -103,7 +103,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         #endregion
 
-        public void OnRegisterCaps(LLUUID agentID, Caps caps)
+        public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             m_log.DebugFormat("[VOICE] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
@@ -127,7 +127,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         /// <param name="caps"></param>
         /// <returns></returns>
         public string MapLayerRequest(string request, string path, string param,
-                                                   LLUUID agentID, Caps caps)
+                                                   UUID agentID, Caps caps)
         {
             //try
             //{
@@ -197,7 +197,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             LLSDMapLayer mapLayer = new LLSDMapLayer();
             mapLayer.Right = 5000;
             mapLayer.Top = 5000;
-            mapLayer.ImageID = new LLUUID("00000000-0000-1111-9999-000000000006");
+            mapLayer.ImageID = new UUID("00000000-0000-1111-9999-000000000006");
 
             return mapLayer;
         }
@@ -223,7 +223,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             //doFriendListUpdateOnline(client.AgentId);
             client.OnRequestMapBlocks += RequestMapBlocks;
         }
-        private void ClientLoggedOut(LLUUID AgentId)
+        private void ClientLoggedOut(UUID AgentId)
         {
 
         }
@@ -248,15 +248,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             m_log.Info("[WEBMAP]: Sending map image jpeg");
             Hashtable reply = new Hashtable();
             int statuscode = 200;
-
-            byte[] jpeg;
-
+            byte[] jpeg = new byte[0];
 
             if (myMapImageJPEG.Length == 0)
             {
                 MemoryStream imgstream = new MemoryStream();
                 Bitmap mapTexture = new Bitmap(1,1);
-                System.Drawing.Image image = (System.Drawing.Image)mapTexture;
+                ManagedImage managedImage;
+                Image image = (Image)mapTexture;
 
                 try
                 {
@@ -268,21 +267,24 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     AssetBase mapasset = m_scene.AssetCache.GetAsset(m_scene.RegionInfo.lastMapUUID, true);
 
                     // Decode image to System.Drawing.Image
-                    image = OpenJPEG.DecodeToImage(mapasset.Data);
+                    if (OpenJPEG.DecodeToImage(mapasset.Data, out managedImage, out image))
+                    {
+                        // Save to bitmap
+                        mapTexture = new Bitmap(image);
 
-                    // Save to bitmap
-                    mapTexture = new Bitmap(image);
+                        ImageCodecInfo myImageCodecInfo;
 
-                    ImageCodecInfo myImageCodecInfo;
+                        Encoder myEncoder;
 
-                    Encoder myEncoder;
+                        EncoderParameter myEncoderParameter;
+                        EncoderParameters myEncoderParameters = new EncoderParameters();
 
-                    EncoderParameter myEncoderParameter;
-                    EncoderParameters myEncoderParameters = new EncoderParameters();
+                        myImageCodecInfo = GetEncoderInfo("image/jpeg");
 
-                    myImageCodecInfo = GetEncoderInfo("image/jpeg");
+                        myEncoder = Encoder.Quality;
 
-                    myEncoder = Encoder.Quality;
+                        myEncoderParameter = new EncoderParameter(myEncoder, 95L);
+                        myEncoderParameters.Param[0] = myEncoderParameter;
 
                     myEncoderParameter = new EncoderParameter(myEncoder, 95L);
                     myEncoderParameters.Param[0] = myEncoderParameter;
@@ -290,14 +292,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     // Save bitmap to stream
                     mapTexture.Save(imgstream, myImageCodecInfo, myEncoderParameters);
 
-                    // Write the stream to a byte array for output
-                    jpeg = imgstream.ToArray();
-                    myMapImageJPEG = jpeg;
+                        // Write the stream to a byte array for output
+                        jpeg = imgstream.ToArray();
+                        myMapImageJPEG = jpeg;
+                    }
                 }
                 catch (Exception)
                 {
                     // Dummy!
-                    jpeg = new byte[0];
                     m_log.Warn("[WEBMAP]: Unable to generate Map image");
                 }
                 finally
@@ -314,7 +316,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 // Use cached version so we don't have to loose our mind
                 jpeg = myMapImageJPEG;
             }
-            //jpeg = new byte[0];
 
             reply["str_response_string"] = Convert.ToBase64String(jpeg);
             reply["int_response_code"] = statuscode;

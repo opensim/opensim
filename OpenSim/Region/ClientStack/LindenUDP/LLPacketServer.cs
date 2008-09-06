@@ -27,8 +27,8 @@
 
 using System.Net;
 using System.Net.Sockets;
-using libsecondlife;
-using libsecondlife.Packets;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.ClientStack.LindenUDP;
@@ -73,7 +73,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack,
                                                      ClientManager clientManager, IScene scene, AssetCache assetCache,
                                                      LLPacketServer packServer, AgentCircuitManager authenSessions,
-                                                     LLUUID agentId, LLUUID sessionId, uint circuitCode, EndPoint proxyEP)
+                                                     UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
             return
                 new LLClientView(remoteEP, scene, assetCache, packServer, authenSessions, agentId, sessionId, circuitCode, proxyEP);

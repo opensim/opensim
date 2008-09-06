@@ -39,7 +39,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using libsecondlife;
+using OpenMetaverse;
 
 using OpenSim;
 using OpenSim.Framework;
@@ -48,8 +48,6 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
 using log4net;
-
-using Axiom.Math;
 
 namespace OpenSim.Region.Environment.Modules.ContentManagement
 {
@@ -136,7 +134,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             SendSimChatMessage(scene, menu);
         }
 
-        public void DisplayMetaEntity(LLUUID uuid)
+        public void DisplayMetaEntity(UUID uuid)
         {
             ContentManagementEntity group = m_model.GetMetaGroupByPrim(uuid);
             if (group != null)
@@ -199,8 +197,8 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         public void SendSimChatMessage(Scene scene, string message)
         {
-            scene.SimChat(Helpers.StringToField(message),
-                          ChatTypeEnum.Broadcast, 0, new LLVector3(0,0,0), "Content Manager", LLUUID.Zero, false);
+            scene.SimChat(Utils.StringToBytes(message),
+                          ChatTypeEnum.Broadcast, 0, new Vector3(0,0,0), "Content Manager", UUID.Zero, false);
         }
 
         #endregion Public Methods
