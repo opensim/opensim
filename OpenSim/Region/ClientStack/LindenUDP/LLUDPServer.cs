@@ -30,7 +30,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Reflection;
 using libsecondlife.Packets;
 using log4net;
@@ -69,8 +68,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected IScene m_localScene;
         protected AssetCache m_assetCache;
         protected AgentCircuitManager m_authenticateSessionsClass;
-
-        protected Queue<Packet> CreateUserPacket = new Queue<Packet>();
 
         public LLPacketServer PacketServer
         {
@@ -239,6 +236,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // new client
                         m_log.Debug("[UDPSERVER]: Adding New Client");
+                        AddNewClient(packet);
 
                         UseCircuitCodePacket p = (UseCircuitCodePacket)packet;
 
@@ -250,14 +248,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ack_it.Packets[0].ID = packet.Header.Sequence;
                         ack_it.Header.Reliable = false;
                         SendPacketTo(ack_it.ToBytes(),ack_it.ToBytes().Length,SocketFlags.None,p.CircuitCode.Code);
-
-                        // toss it to a worker thread so IOthread can go home
-                        lock (CreateUserPacket)
-                        {
-                            CreateUserPacket.Enqueue(packet);
-                        }
-                        WaitCallback createUserCallback = new WaitCallback(AddNewClient);
-                        ThreadPool.QueueUserWorkItem(createUserCallback);
                     }
                 }
                 catch (Exception e)
@@ -319,22 +309,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_packetServer.CloseCircuit(circuit);
                 }
             }
-        }
-
-        /// <summary>
-        /// target of workerthread delegate to create a new user. 
-        /// It assumes we get fired for each new user packet that comes in.
-        /// </summary>
-        /// <param name="o"></param>
-        protected void AddNewClient(object o)
-        {
-            Packet packet;
-            lock (CreateUserPacket)
-            {
-                packet = CreateUserPacket.Dequeue();
-            }
-            if (null != packet)
-                AddNewClient(packet);
         }
 
         protected virtual void AddNewClient(Packet packet)
