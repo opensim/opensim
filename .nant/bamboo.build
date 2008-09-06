@@ -5,7 +5,7 @@
     <nant buildfile="../OpenSim.build" target="build" />
   </target>
   <target name="cibuild">
-    <property name="projectdir" value="opensim-0.5.5" />
+    <property name="projectdir" value="opensim-0.5.9" />
     <exec program="mono" commandline="bin/Prebuild.exe /target nant" workingdir="../" />
     <nant buildfile="../OpenSim.build" target="build" />
 
@@ -30,7 +30,6 @@
     <!-- Copy the 64 bit libode.so to bin/ for testing. -->
     <copy file="/home/teravus/olibs/libode.so" tofile="../bin/libode.so" />
 
-
     <!-- Run the tests. -->
     <nunit2 failonerror="false">
       <formatter type="Xml" usefile="true" extension=".xml" outputdir="../test-results" />
@@ -46,12 +45,12 @@
     </nunit2>
 
     <zip zipfile="../${projectdir}.zip">
-      <fileset basedir="${projectdir}/">
+      <fileset basedir="../${projectdir}/">
         <include name="**" />
       </fileset>
     </zip>
     <tar destfile="../${projectdir}.tar.gz" compression="GZip">
-      <fileset basedir="${projectdir}/">
+      <fileset basedir="../${projectdir}/">
         <include name="**" />
       </fileset>
     </tar>
