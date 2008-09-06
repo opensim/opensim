@@ -547,7 +547,7 @@ namespace OpenSim.Data.MSSQL
                 {
                     while (readerLandData.Read())
                     {
-                        LandData data = buildLandData(readerLandData);
+                        landDataForRegion.Add(buildLandData(readerLandData));
                     }
                 }
             }
