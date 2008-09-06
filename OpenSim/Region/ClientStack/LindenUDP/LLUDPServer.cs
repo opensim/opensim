@@ -136,7 +136,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Return new port
             // This because in Grid mode it is not really important what port the region listens to as long as it is correctly registered.
-            // So the option allow_alternate_ports="true" was added to default.Xml
+            // So the option allow_alternate_ports="true" was added to default.xml
             port = (uint)(listenPort - proxyPortOffset);
         }
 

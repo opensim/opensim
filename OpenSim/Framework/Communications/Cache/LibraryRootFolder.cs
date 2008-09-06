@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             libraryFolders.Add(ID, this);
 
-            LoadLibraries(Path.Combine(Util.inventoryDir(), "Libraries.Xml"));
+            LoadLibraries(Path.Combine(Util.inventoryDir(), "Libraries.xml"));
 
             // CreateLibraryItems();
         }

@@ -88,7 +88,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
         public void ForEachDefaultXmlAsset(Action<AssetBase> action)
         {
-            string assetSetFilename = Path.Combine(Util.assetsDir(), "AssetSets.Xml");
+            string assetSetFilename = Path.Combine(Util.assetsDir(), "AssetSets.xml");
 
             ForEachDefaultXmlAsset(assetSetFilename, action);
         }
@@ -118,7 +118,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             }
             else
             {
-                m_log.Error("[ASSETS]: Asset set control file assets/AssetSets.Xml does not exist!  No assets loaded.");
+                m_log.Error("[ASSETS]: Asset set control file assets/AssetSets.xml does not exist!  No assets loaded.");
             }
 
             assets.ForEach(action);

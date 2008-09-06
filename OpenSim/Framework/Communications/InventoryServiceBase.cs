@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Communications
                 new PluginLoader<IInventoryDataPlugin> (new InventoryDataInitialiser (connect));
 
             // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.Xml
+            // unless it is constrainted to the correct "Provider" entry in the addin.xml
             loader.Add ("/OpenSim/InventoryData", new PluginProviderFilter (provider));
             loader.Load();
 

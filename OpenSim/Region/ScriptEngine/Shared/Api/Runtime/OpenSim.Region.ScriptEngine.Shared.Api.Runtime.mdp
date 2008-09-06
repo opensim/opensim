@@ -24,11 +24,10 @@
     <File name="./ScriptBase.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
   </Contents>
   <References>
-    <ProjectReference type="Assembly" refto="../../../../../../bin/Axiom.MathLib.dll" localcopy="False" />
-    <ProjectReference type="Assembly" refto="../../../../../../bin/libsecondlife.dll" localcopy="False" />
     <ProjectReference type="Assembly" refto="../../../../../../bin/log4net.dll" localcopy="False" />
     <ProjectReference type="Assembly" refto="../../../../../../bin/Nini.dll" localcopy="False" />
     <ProjectReference type="Assembly" refto="../../../../../../bin/Nini.dll" localcopy="False" />
+    <ProjectReference type="Assembly" refto="../../../../../../bin/OpenMetaverseTypes.dll" localcopy="False" />
     <ProjectReference type="Project" localcopy="False" refto="OpenSim" />
     <ProjectReference type="Project" localcopy="False" refto="OpenSim.Framework" />
     <ProjectReference type="Project" localcopy="False" refto="OpenSim.Framework.Communications" />

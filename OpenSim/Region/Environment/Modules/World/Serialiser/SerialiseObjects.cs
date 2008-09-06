@@ -40,11 +40,11 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
 
         public string WriteToFile(Scene scene, string dir)
         {
-            string targetFileName = dir + "objects.Xml";
+            string targetFileName = dir + "objects.xml";
 
             SaveSerialisedToFile(targetFileName, scene);
 
-            return "objects.Xml";
+            return "objects.xml";
         }
 
         #endregion

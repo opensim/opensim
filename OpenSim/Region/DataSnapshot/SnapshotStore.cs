@@ -211,7 +211,7 @@ namespace OpenSim.Region.DataSnapshot
         private string DataFileNameScene(Scene scene)
         {
             return Path.Combine(m_directory, Path.ChangeExtension(scene.RegionInfo.RegionName, "xml"));
-            //return (m_snapsDir + Path.DirectorySeparatorChar + scene.RegionInfo.RegionName + ".Xml");
+            //return (m_snapsDir + Path.DirectorySeparatorChar + scene.RegionInfo.RegionName + ".xml");
         }
 
         private XmlNode MakeRegionNode(Scene scene, XmlDocument basedoc)

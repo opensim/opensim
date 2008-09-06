@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public AvatarAnimations()
         {
-            using (XmlTextReader reader = new XmlTextReader("data/avataranimations.Xml"))
+            using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
             {
                 XmlDocument doc = new XmlDocument();
                 doc.Load(reader);

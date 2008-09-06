@@ -59,7 +59,7 @@ namespace OpenSim.Framework.Communications
                 new PluginLoader<IUserDataPlugin> (new UserDataInitialiser (connect));
 
             // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.Xml
+            // unless it is constrainted to the correct "Provider" entry in the addin.xml
             loader.Add ("/OpenSim/UserData", new PluginProviderFilter (provider));
             loader.Load();
 

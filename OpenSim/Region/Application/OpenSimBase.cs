@@ -64,7 +64,7 @@ namespace OpenSim
         /// <summary>
         /// The file used to load and save prim backup xml if no filename has been specified
         /// </summary>
-        protected const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.Xml";
+        protected const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
 
         /// <summary>
         /// The file used to load and save an opensim archive if no filename has been specified
@@ -178,17 +178,17 @@ namespace OpenSim
                 }
                 else
                 {
-                    if (File.Exists("OpenSim.Xml"))
+                    if (File.Exists("OpenSim.xml"))
                     {
                         //check for a xml config file
-                        Application.iniFilePath = "OpenSim.Xml";
+                        Application.iniFilePath = "OpenSim.xml";
                         m_config.Source = new XmlConfigSource();
                         m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
                         m_config.Source.Merge(configSource);
                     }
                     else
                     {
-                        //Application.iniFilePath = "OpenSim.Xml";
+                        //Application.iniFilePath = "OpenSim.xml";
                        // m_config.ConfigSource = new XmlConfigSource();
                         // no default config files, so set default values, and save it
                         m_config.Source.Merge(DefaultConfig());

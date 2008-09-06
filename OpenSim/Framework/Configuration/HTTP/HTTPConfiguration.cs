@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Configuration.HTTP
 
         public HTTPConfiguration()
         {
-            remoteConfigSettings = new RemoteConfigSettings("remoteconfig.Xml");
+            remoteConfigSettings = new RemoteConfigSettings("remoteconfig.xml");
             xmlConfig = new XmlConfiguration();
         }
 

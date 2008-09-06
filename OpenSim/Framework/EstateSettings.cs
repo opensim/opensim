@@ -281,7 +281,7 @@ namespace OpenSim.Framework
                 //
                 configMember =
                     new ConfigurationMember(Path.Combine(Util.configDir(),
-                            "estate_settings.Xml"), "ESTATE SETTINGS",
+                            "estate_settings.xml"), "ESTATE SETTINGS",
                             loadConfigurationOptions,
                             handleIncomingConfiguration, true);
 

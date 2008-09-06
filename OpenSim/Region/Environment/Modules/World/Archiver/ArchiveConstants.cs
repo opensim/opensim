@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// The location of the archive control file
         /// </summary>
-        public static readonly string CONTROL_FILE_PATH = "archive.Xml";
+        public static readonly string CONTROL_FILE_PATH = "archive.xml";
 
         /// <summary>
         /// Path for the assets held in an archive
@@ -48,7 +48,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Path for the assets metadata file
         /// </summary>
-        //public static readonly string ASSETS_METADATA_PATH = "assets.Xml";
+        //public static readonly string ASSETS_METADATA_PATH = "assets.xml";
 
         /// <summary>
         /// Path for the prims file

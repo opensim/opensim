@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 string serializedObject = m_serialiser.SaveGroupToXml2(sceneObject);
                 string filename
                     = string.Format(
-                        "{0}{1}_{2:000}-{3:000}-{4:000}__{5}.Xml",
+                        "{0}{1}_{2:000}-{3:000}-{4:000}__{5}.xml",
                         ArchiveConstants.OBJECTS_PATH, sceneObject.Name,
                         Math.Round(position.X), Math.Round(position.Y), Math.Round(position.Z),
                         sceneObject.UUID);

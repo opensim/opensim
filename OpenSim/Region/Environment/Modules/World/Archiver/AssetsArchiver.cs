@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             xtw.WriteEndDocument();
 
-            archive.AddFile("assets.Xml", sw.ToString());
+            archive.AddFile("assets.xml", sw.ToString());
         }
 
         /// <summary>
