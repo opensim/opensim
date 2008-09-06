@@ -1868,7 +1868,7 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Grid.Communications.OGS1"/>
       <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
 
