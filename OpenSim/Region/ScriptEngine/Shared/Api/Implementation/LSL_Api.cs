@@ -2401,7 +2401,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string llGetKey()
         {
             m_host.AddScriptLPS(1);
-            return m_host.ToString();
+            return m_host.UUID.ToString();
         }
 
         public void llSetBuoyancy(double buoyancy)
@@ -2862,7 +2862,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
             if (part != null)
             {
-                return part.ToString();
+                return part.UUID.ToString();
             }
             else
             {
