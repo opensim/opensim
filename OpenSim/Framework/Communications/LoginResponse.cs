@@ -131,7 +131,7 @@ namespace OpenSim.Framework.Communications
             SetDefaultValues();
         }
 
-        public void SetDefaultValues()
+        private void SetDefaultValues()
         {
             DST = "N";
             StipendSinceLogin = "N";

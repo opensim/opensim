@@ -117,6 +117,10 @@ namespace OpenSim.Framework
             return packet;
         }
 
+        /// <summary>
+        /// Return a packet to the packet pool
+        /// </summary>
+        /// <param name="packet"></param>
         public void ReturnPacket(Packet packet)
         {
             return; // packet pool disabled

@@ -40,6 +40,9 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    /// <summary>
+    /// This class handles the initial UDP circuit setup with a client and passes on subsequent packets to the LLPacketServer
+    /// </summary>
     public class LLUDPServer : LLClientStackNetworkHandler, IClientNetworkServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -55,7 +58,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected byte[] RecvBuffer = new byte[4096];
         protected byte[] ZeroBuffer = new byte[8192];
         protected IPEndPoint ipeSender;
+        
+        /// <value>
+        /// The endpoint of a sender of a particular packet.  The port is continually changed by the various socket receive methods
+        /// </value>
         protected EndPoint epSender;
+        
         protected EndPoint epProxy;
         protected int proxyPortOffset;
         protected AsyncCallback ReceivedData;
@@ -145,6 +153,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             new LLPacketServer(this);
         }
 
+        /// <summary>
+        /// This method is called every time that we receive new UDP data.  We pass this data on to the LLPacketServer
+        /// except in the case that the packet is UseCircuitCode.  In this case we set up the circuit code instead.
+        /// </summary>
+        /// <param name="result"></param>
         protected virtual void OnReceivedData(IAsyncResult result)
         {
             ipeSender = new IPEndPoint(listenIP, 0);
@@ -226,10 +239,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         ret = clientCircuits.TryGetValue(epSender, out circuit);
                     }
+                    
                     if (ret)
                     {
                         //if so then send packet to the packetserver
-                        //m_log.Warn("[UDPSERVER]: ALREADY HAVE Circuit!");
+                        //m_log.DebugFormat("[UDPSERVER]: For endpoint {0} got packet {1}", epSender, packet.Type);
+                        
                         m_packetServer.InPacket(circuit, packet);
                     }
                     else if (packet.Type == PacketType.UseCircuitCode)
@@ -311,6 +326,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// Add a new client circuit.
+        /// </summary>
+        /// <param name="packet"></param>
         protected virtual void AddNewClient(Packet packet)
         {
             //Slave regions don't accept new clients
@@ -325,7 +344,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (!clientCircuits.ContainsKey(epSender))
                         clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
                     else
-                        m_log.Error("[UDPSERVER]: clientCircuits already contans entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+                        m_log.Error("[UDPSERVER]: clientCircuits already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
                 }
 
                 // This doesn't need locking as it's synchronized data
@@ -345,13 +364,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass, epProxy);
             }
+            
             PacketPool.Instance.ReturnPacket(packet);
         }
 
         public void ServerListener()
         {
             uint newPort = listenPort;
-            m_log.Info("[SERVER]: Opening UDP socket on " + listenIP.ToString() + " " + newPort + ".");
+            m_log.Info("[SERVER]: Opening UDP socket on " + listenIP + " " + newPort + ".");
 
             ServerIncoming = new IPEndPoint(listenIP, (int)newPort);
             m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
