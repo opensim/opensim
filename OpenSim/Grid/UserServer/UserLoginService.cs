@@ -338,9 +338,9 @@ namespace OpenSim.Grid.UserServer
                     }
                 }
             }
-            catch (Exception)
-                //catch (System.AccessViolationException)
+            catch (Exception e)
             {
+                m_log.ErrorFormat("[LOGIN]: Requested region for login not available, {0}", e);
                 tryDefault = true;
             }
 
@@ -353,7 +353,7 @@ namespace OpenSim.Grid.UserServer
                                       ((ulong) m_config.DefaultY*Constants.RegionSize);
 
                 m_log.Warn(
-                    "[LOGIN]: Home region not available: sending to default " + defaultHandle);
+                    "[LOGIN]: Sending user to default region " + defaultHandle + " instead");
 
                 try
                 {
