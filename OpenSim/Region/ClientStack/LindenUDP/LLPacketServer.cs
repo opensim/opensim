@@ -70,17 +70,43 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_scene.ClientManager.InPacket(circuitCode, packet);
         }
 
-        protected virtual IClientAPI CreateNewClient(EndPoint remoteEP, UseCircuitCodePacket initialcirpack,
-                                                     ClientManager clientManager, IScene scene, AssetCache assetCache,
-                                                     LLPacketServer packServer, AgentCircuitManager authenSessions,
-                                                     UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
+        /// <summary>
+        /// Create a new client circuit
+        /// </summary>
+        /// <param name="remoteEP"></param>
+        /// <param name="initialcirpack"></param>
+        /// <param name="clientManager"></param>
+        /// <param name="scene"></param>
+        /// <param name="assetCache"></param>
+        /// <param name="packServer"></param>
+        /// <param name="authenSessions"></param>
+        /// <param name="agentId"></param>
+        /// <param name="sessionId"></param>
+        /// <param name="circuitCode"></param>
+        /// <param name="proxyEP"></param>
+        /// <returns></returns>
+        protected virtual IClientAPI CreateNewCircuit(EndPoint remoteEP, UseCircuitCodePacket initialcirpack,
+                                                      ClientManager clientManager, IScene scene, AssetCache assetCache,
+                                                      LLPacketServer packServer, AgentCircuitManager authenSessions,
+                                                      UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
             return
                 new LLClientView(remoteEP, scene, assetCache, packServer, authenSessions, agentId, sessionId, circuitCode, proxyEP);
         }
 
+        /// <summary>
+        /// Add a new client circuit
+        /// </summary>
+        /// <param name="epSender"></param>
+        /// <param name="useCircuit"></param>
+        /// <param name="assetCache"></param>
+        /// <param name="circuitManager"></param>
+        /// <param name="proxyEP"></param>
+        /// <returns>
+        /// true if a new circuit was created, false if a circuit with the given circuit code already existed
+        /// </returns>
         public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache,
-                                         AgentCircuitManager authenticateSessionsClass, EndPoint proxyEP)
+                                         AgentCircuitManager circuitManager, EndPoint proxyEP)
         {
             IClientAPI newuser;
 
@@ -90,9 +116,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-                newuser = CreateNewClient(epSender, useCircuit, m_scene.ClientManager, m_scene, assetCache, this,
-                                          authenticateSessionsClass, useCircuit.CircuitCode.ID,
-                                          useCircuit.CircuitCode.SessionID, useCircuit.CircuitCode.Code, proxyEP);
+                newuser = CreateNewCircuit(epSender, useCircuit, m_scene.ClientManager, m_scene, assetCache, this,
+                                           circuitManager, useCircuit.CircuitCode.ID,
+                                           useCircuit.CircuitCode.SessionID, useCircuit.CircuitCode.Code, proxyEP);
 
                 m_scene.ClientManager.Add(useCircuit.CircuitCode.Code, newuser);
 

@@ -2513,7 +2513,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region RegionComms
 
         /// <summary>
-        ///
+        /// Register the methods that should be invoked when this scene receives various incoming events
         /// </summary>
         public void RegisterCommsEvents()
         {
@@ -2549,7 +2549,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Do the work necessary to initiate a new user connection.
+        /// Do the work necessary to initiate a new user connection for a particular scene.
         /// At the moment, this consists of setting up the caps infrastructure
         /// </summary>
         /// <param name="regionHandle"></param>
@@ -2581,10 +2581,6 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
                 }
-
-                m_log.DebugFormat(
-                    "[CONNECTION DEBUGGING]: Creating new circuit code ({0}) for avatar {1} at {2}",
-                    agent.circuitcode, agent.AgentID, RegionInfo.RegionName);
 
                 m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
                 // rewrite session_id

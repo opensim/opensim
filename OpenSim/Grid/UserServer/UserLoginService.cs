@@ -309,7 +309,6 @@ namespace OpenSim.Grid.UserServer
                 {
                     bool responseSuccess = true;
 
-
                     if (GridResp.Value != null)
                     {
                         Hashtable resp = (Hashtable) GridResp.Value;

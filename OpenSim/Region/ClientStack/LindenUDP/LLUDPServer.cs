@@ -75,7 +75,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected IPAddress listenIP = IPAddress.Parse("0.0.0.0");
         protected IScene m_localScene;
         protected AssetCache m_assetCache;
-        protected AgentCircuitManager m_authenticateSessionsClass;
+        
+        /// <value>
+        /// Manages authentication for agent circuits
+        /// </value>
+        protected AgentCircuitManager m_circuitManager;
 
         public LLPacketServer PacketServer
         {
@@ -132,14 +136,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Initialise(_listenIP, ref port, proxyPortOffset, allow_alternate_port, assetCache, authenticateClass);
         }
 
-        public void Initialise(IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager authenticateClass)
+        /// <summary>
+        /// Initialize the server
+        /// </summary>
+        /// <param name="_listenIP"></param>
+        /// <param name="port"></param>
+        /// <param name="proxyPortOffset"></param>
+        /// <param name="allow_alternate_port"></param>
+        /// <param name="assetCache"></param>
+        /// <param name="circuitManager"></param>
+        public void Initialise(
+            IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager circuitManager)
         {
             this.proxyPortOffset = proxyPortOffset;
             listenPort = (uint) (port + proxyPortOffset);
             listenIP = _listenIP;
             Allow_Alternate_Port = allow_alternate_port;
             m_assetCache = assetCache;
-            m_authenticateSessionsClass = authenticateClass;
+            m_circuitManager = circuitManager;
             CreatePacketServer();
 
             // Return new port
@@ -177,7 +191,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // TODO : Actually only handle those states that we have control over, re-throw everything else,
                 // TODO: implement cases as we encounter them.
-                //m_log.Error("[UDPSERVER]: Connection Error! - " + e.ToString());
+                //m_log.Error("[[CLIENT]: ]: Connection Error! - " + e.ToString());
                 switch (e.SocketErrorCode)
                 {
                     case SocketError.AlreadyInProgress:
@@ -193,7 +207,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (ObjectDisposedException e)
             {
-                m_log.DebugFormat("ObjectDisposedException: Object {0} disposed.", e.ObjectName);
+                m_log.DebugFormat("[CLIENT]: ObjectDisposedException: Object {0} disposed.", e.ObjectName);
                 // Uhh, what object, and why? this needs better handling.
             }
 
@@ -213,15 +227,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 catch (MalformedDataException e)
                 {
-                    m_log.DebugFormat("Dropped Malformed Packet due to MalformedDataException: {0}", e.StackTrace);
+                    m_log.DebugFormat("[CLIENT]: Dropped Malformed Packet due to MalformedDataException: {0}", e.StackTrace);
                 }
                 catch (IndexOutOfRangeException e)
                 {
-                    m_log.DebugFormat("Dropped Malformed Packet due to IndexOutOfRangeException: {0}", e.StackTrace);
+                    m_log.DebugFormat("[CLIENT]: Dropped Malformed Packet due to IndexOutOfRangeException: {0}", e.StackTrace);
                 }
                 catch (Exception e)
                 {
-                    m_log.Debug("[UDPSERVER]: " + e.ToString());
+                    m_log.Debug("[CLIENT]: " + e.ToString());
                 }
             }
 
@@ -249,8 +263,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else if (packet.Type == PacketType.UseCircuitCode)
                     {
-                        // new client
-                        m_log.Debug("[UDPSERVER]: Adding New Client");
                         AddNewClient(packet);
 
                         UseCircuitCodePacket p = (UseCircuitCodePacket)packet;
@@ -267,7 +279,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[UDPSERVER]: Exception in processing packet - ignoring: ", e);
+                    m_log.Error("[CLIENT]: Exception in processing packet - ignoring: ", e);
                 }
             }
         }
@@ -280,7 +292,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (SocketException e)
             {
-                m_log.ErrorFormat("[UDPSERVER]: BeginRecieve threw exception " + e.Message + ": " + e.StackTrace );
+                m_log.ErrorFormat("[CLIENT]: BeginRecieve threw exception " + e.Message + ": " + e.StackTrace );
                 ResetEndPoint();
             }
         }
@@ -339,19 +351,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return;
 
                 UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
+                
+                m_log.DebugFormat("[CLIENT]: Adding new circuit for agent {0}, circuit code {1}", useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);                    
+
                 lock (clientCircuits)
                 {
                     if (!clientCircuits.ContainsKey(epSender))
                         clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
                     else
-                        m_log.Error("[UDPSERVER]: clientCircuits already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+                        m_log.Error("[CLIENT]: clientCircuits already contains entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
                 }
 
                 // This doesn't need locking as it's synchronized data
                 if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
                     clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
                 else
-                    m_log.Error("[UDPSERVER]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+                    m_log.Error("[CLIENT]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
 
 
                 lock (proxyCircuits)
@@ -359,10 +374,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (!proxyCircuits.ContainsKey(useCircuit.CircuitCode.Code))
                         proxyCircuits.Add(useCircuit.CircuitCode.Code, epProxy);
                     else
-                        m_log.Error("[UDPSERVER]: proxyCircuits already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+                        m_log.Error("[CLIENT]: proxyCircuits already contains entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
                 }
 
-                PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_authenticateSessionsClass, epProxy);
+                if (!PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy))
+                    m_log.ErrorFormat(
+                        "[CLIENT]: A circuit already existed for agent {0}, circuit {1}", 
+                        useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
             }
             
             PacketPool.Instance.ReturnPacket(packet);
@@ -371,7 +389,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void ServerListener()
         {
             uint newPort = listenPort;
-            m_log.Info("[SERVER]: Opening UDP socket on " + listenIP + " " + newPort + ".");
+            m_log.Info("[UDPSERVER]: Opening UDP socket on " + listenIP + " " + newPort + ".");
 
             ServerIncoming = new IPEndPoint(listenIP, (int)newPort);
             m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -385,14 +403,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             listenPort = newPort;
 
-            m_log.Info("[SERVER]: UDP socket bound, getting ready to listen");
+            m_log.Info("[UDPSERVER]: UDP socket bound, getting ready to listen");
 
             ipeSender = new IPEndPoint(listenIP, 0);
             epSender = (EndPoint)ipeSender;
             ReceivedData = new AsyncCallback(OnReceivedData);
             m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 
-            m_log.Info("[SERVER]: Listening on port " + newPort);
+            m_log.Info("[UDPSERVER]: Listening on port " + newPort);
         }
 
         public virtual void RegisterPacketServer(LLPacketServer server)
@@ -409,7 +427,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 sendto = (EndPoint)clientCircuits_reverse[circuitcode];
             } catch {
                 // Exceptions here mean there is no circuit
-                m_log.Warn("Circuit not found, not sending packet");
+                m_log.Warn("[CLIENT]: Circuit not found, not sending packet");
                 return;
             }
 
@@ -448,7 +466,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     else
                     {
                         m_log.DebugFormat(
-                            "[UDPSERVER]: endpoint for circuit code {0} in RemoveClientCircuit() was unexpectedly null!", circuitcode);
+                            "[CLIENT]: endpoint for circuit code {0} in RemoveClientCircuit() was unexpectedly null!", circuitcode);
                     }
                 }
                 lock (proxyCircuits)
@@ -472,14 +490,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!clientCircuits.ContainsKey(userEP))
                     clientCircuits.Add(userEP, useCircuit.CircuitCode.Code);
                 else
-                    m_log.Error("[UDPSERVER]: clientCircuits already contans entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+                    m_log.Error("[CLIENT]: clientCircuits already contans entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
             }
 
             // This data structure is synchronized, so we don't need the lock
             if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
                 clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, userEP);
             else
-                m_log.Error("[UDPSERVER]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+                m_log.Error("[CLIENT]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
 
             lock (proxyCircuits)
             {
@@ -495,7 +513,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            PacketServer.AddNewClient(userEP, useCircuit, m_assetCache, m_authenticateSessionsClass, proxyEP);
+            PacketServer.AddNewClient(userEP, useCircuit, m_assetCache, m_circuitManager, proxyEP);
         }
     }
 }

@@ -593,7 +593,6 @@ namespace OpenSim.Region.Communications.OGS1
             return response;
         }
 
-        // Grid Request Processing
         /// <summary>
         /// Received from the user server when a user starts logging in.  This call allows
         /// the region to prepare for direct communication from the client.  Sends back an empty
@@ -602,8 +601,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="request"></param>
         /// <returns></returns>
         public XmlRpcResponse ExpectUser(XmlRpcRequest request)
-        {
-            m_log.Debug("[CONNECTION DEBUGGING]: Expect User called, starting agent setup ... ");
+        {   
             Hashtable requestData = (Hashtable) request.Params[0];
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.SessionID = new UUID((string) requestData["session_id"]);
@@ -613,24 +611,26 @@ namespace OpenSim.Region.Communications.OGS1
             agentData.AgentID = new UUID((string) requestData["agent_id"]);
             agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
             agentData.CapsPath = (string) requestData["caps_path"];
+            ulong regionHandle = Convert.ToUInt64((string) requestData["regionhandle"]);
+            
+            m_log.DebugFormat(
+                "[CLIENT]: Told by user service to prepare for a connection from {0} {1} {2}, circuit {3}",
+                agentData.firstname, agentData.lastname, agentData.AgentID, agentData.circuitcode);
 
             if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
             {
-                m_log.Debug("[CONNECTION DEBUGGING]: Child agent detected");
+                m_log.Debug("[CLIENT]: Child agent detected");
                 agentData.child = true;
             }
             else
             {
-                m_log.Debug("[CONNECTION DEBUGGING]: Main agent detected");
+                m_log.Debug("[CLIENT]: Main agent detected");
                 agentData.startpos =
                     new Vector3((float)Convert.ToDecimal((string)requestData["startpos_x"]),
                                   (float)Convert.ToDecimal((string)requestData["startpos_y"]),
                                   (float)Convert.ToDecimal((string)requestData["startpos_z"]));
                 agentData.child = false;
             }
-
-            ulong regionHandle = Convert.ToUInt64((string) requestData["regionhandle"]);
-
 
             RegionInfo[] regions = m_regionsOnInstance.ToArray();
             bool banned = false;
@@ -654,7 +654,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             if (banned)
             {
-                m_log.InfoFormat("[OGS1 GRID SERVICES]: Denying access for user {0} {1} because user is banned",agentData.firstname,agentData.lastname);
+                m_log.InfoFormat("[CLIENT]: Denying access for user {0} {1} because user is banned",agentData.firstname,agentData.lastname);
 
                 Hashtable respdata = new Hashtable();
                 respdata["success"] = "FALSE";
@@ -663,14 +663,12 @@ namespace OpenSim.Region.Communications.OGS1
             }
             else
             {
-                m_log.Debug("[CONNECTION DEBUGGING]: Triggering welcome for " + agentData.AgentID.ToString() + " into " + regionHandle.ToString());
                 m_localBackend.TriggerExpectUser(regionHandle, agentData);
-                m_log.Info("[OGS1 GRID SERVICES]: Welcoming new user...");
                 Hashtable respdata = new Hashtable();
                 respdata["success"] = "TRUE";
                 resp.Value = respdata;
-
             }
+            
             return resp;
         }
         // Grid Request Processing

@@ -376,6 +376,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /* METHODS */
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="remoteEP"></param>
+        /// <param name="scene"></param>
+        /// <param name="assetCache"></param>
+        /// <param name="packServer"></param>
+        /// <param name="authenSessions"></param>
+        /// <param name="agentId"></param>
+        /// <param name="sessionId"></param>
+        /// <param name="circuitCode"></param>
+        /// <param name="proxyEP"></param>
         public LLClientView(EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
                           AgentCircuitManager authenSessions, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
@@ -417,7 +429,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientThread.Start();
             ThreadTracker.Add(m_clientThread);
 
-            m_log.Info("[CLIENT]: Started up new thread to handle client UDP session");
+            m_log.DebugFormat("[CLIENT]: Started new UDP session thread for agent {0}, circuit {1}", agentId, circuitCode);
         }
 
         public void SetDebug(int newDebug)
@@ -634,7 +646,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected virtual void ClientLoop()
         {
-            m_log.Info("[CLIENT]: Entered loop");
+            m_log.Info("[CLIENT]: Entered main packet processing loop");
+            
             while (true)
             {
                 LLQueItem nextPacket = m_PacketHandler.PacketQueue.Dequeue();
@@ -729,7 +742,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected virtual void AuthUser()
         {
-
             //tell this thread we are using the culture set up for the sim (currently hardcoded to en_US)
             //otherwise it will override this and use the system default
             Culture.SetCurrentCulture();
@@ -738,8 +750,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(m_cirpack.m_circuitCode.m_sessionId, m_cirpack.m_circuitCode.ID, m_cirpack.m_circuitCode.Code);
                 AuthenticateResponse sessionInfo =
-                    m_authenticateSessionsHandler.AuthenticateSession(m_sessionId, m_agentId,
-                                                                      m_circuitCode);
+                    m_authenticateSessionsHandler.AuthenticateSession(m_sessionId, m_agentId, m_circuitCode);
+                    
                 if (!sessionInfo.Authorised)
                 {
                     //session/circuit not authorised

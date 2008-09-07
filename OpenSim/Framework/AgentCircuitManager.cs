@@ -30,13 +30,12 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Manage client circuits
+    /// </summary>
     public class AgentCircuitManager
     {
         public Dictionary<uint, AgentCircuitData> AgentCircuits = new Dictionary<uint, AgentCircuitData>();
-
-        public AgentCircuitManager()
-        {
-        }
 
         public virtual AuthenticateResponse AuthenticateSession(UUID sessionID, UUID agentID, uint circuitcode)
         {
@@ -74,6 +73,11 @@ namespace OpenSim.Framework
             return (user);
         }
 
+        /// <summary>
+        /// Add information about a new circuit.
+        /// </summary>
+        /// <param name="circuitCode"></param>
+        /// <param name="agentData"></param>
         public virtual void AddNewCircuit(uint circuitCode, AgentCircuitData agentData)
         {
             if (AgentCircuits.ContainsKey(circuitCode))
@@ -118,7 +122,6 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="circuitcode"></param>
         /// <param name="newcircuitcode"></param>
-
         public bool TryChangeCiruitCode(uint circuitcode, uint newcircuitcode)
         {
             lock (AgentCircuits)
