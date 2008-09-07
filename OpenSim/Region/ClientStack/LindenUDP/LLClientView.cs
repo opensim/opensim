@@ -428,8 +428,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_clientThread.IsBackground = true;
             m_clientThread.Start();
             ThreadTracker.Add(m_clientThread);
-
-            m_log.DebugFormat("[CLIENT]: Started new UDP session thread for agent {0}, circuit {1}", agentId, circuitCode);
         }
 
         public void SetDebug(int newDebug)

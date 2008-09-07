@@ -122,7 +122,7 @@ namespace OpenSim.Region.Communications.Local
 
         private Regex reURI = new Regex(@"^uri:(?<region>[^&]+)&(?<x>\d+)&(?<y>\d+)&(?<z>\d+)$");
 
-        public override void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
+        public override bool CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
         {
             ulong currentRegion = 0;
 
@@ -145,7 +145,6 @@ namespace OpenSim.Region.Communications.Local
             {
                 currentRegion = theUser.HomeRegion;
                 response.StartLocation = "home";
-
             }
             else
             {
@@ -264,7 +263,10 @@ namespace OpenSim.Region.Communications.Local
             else
             {
                 m_log.Warn("[LOGIN]: Not found region " + currentRegion);
+                return false;
             }
+            
+            return true;
         }
 
         private LoginResponse.BuddyList ConvertFriendListItem(List<FriendListItem> LFL)

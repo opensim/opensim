@@ -74,11 +74,13 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// Customises the login response and fills in missing values.
+        /// Customises the login response and fills in missing values.  This method also tells the login region to 
+        /// expect a client connection.
         /// </summary>
         /// <param name="response">The existing response</param>
         /// <param name="theUser">The user profile</param>
-        public abstract void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest);
+        /// <returns>true on success, false if the region was not successfully told to expect a user connection</returns>
+        public abstract bool CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest);
 
         /// <summary>
         /// If the user is already logged in, try to notify the region that the user they've got is dead.
@@ -86,8 +88,8 @@ namespace OpenSim.Framework.Communications
         /// <param name="theUser"></param>
         public virtual void LogOffUser(UserProfileData theUser, string message)
         {
-
         }
+        
         /// <summary>
         /// Get the initial login inventory skeleton (in other words, the folder structure) for the given user.
         /// </summary>
@@ -284,29 +286,26 @@ namespace OpenSim.Framework.Communications
                         logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
                         logResponse.StartLocation = startLocationRequest;
 
-                        try
+                        if (CustomiseResponse(logResponse, userProfile, startLocationRequest))
                         {
-                            CustomiseResponse(logResponse, userProfile, startLocationRequest);
+                            userProfile.LastLogin = userProfile.CurrentAgent.LoginTime;
+                            CommitAgent(ref userProfile);
+
+                            // If we reach this point, then the login has successfully logged onto the grid
+                            if (StatsManager.UserStats != null)
+                                StatsManager.UserStats.AddSuccessfulLogin();
+
+                            m_log.DebugFormat(
+                                "[LOGIN END]:  XMLRPC Authentication of user {0} {1} successful.  Sending response to client.",
+                                firstname, lastname);
+                                
+                            return logResponse.ToXmlRpcResponse();
                         }
-                        catch (Exception e)
+                        else
                         {
-                            m_log.Info("[LOGIN END]:  XMLRPC " + e.ToString());
+                            m_log.ErrorFormat("[LOGIN END]:  XMLRPC informing user {0} {1} that login failed due to an unavailable region", firstname, lastname);
                             return logResponse.CreateDeadRegionResponse();
-                            //return logResponse.ToXmlRpcResponse();
                         }
-
-                        userProfile.LastLogin = userProfile.CurrentAgent.LoginTime;
-                        CommitAgent(ref userProfile);
-
-                        // If we reach this point, then the login has successfully logged onto the grid
-                        if (StatsManager.UserStats != null)
-                            StatsManager.UserStats.AddSuccessfulLogin();
-
-                        m_log.DebugFormat(
-                            "[LOGIN END]:  XMLRPC Authentication of user {0} {1} successful.  Sending response to client.",
-                            firstname, lastname);
-
-                        return logResponse.ToXmlRpcResponse();
                     }
                     catch (Exception e)
                     {

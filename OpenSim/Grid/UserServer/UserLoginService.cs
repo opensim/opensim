@@ -97,8 +97,6 @@ namespace OpenSim.Grid.UserServer
             ArrayList SendParams = new ArrayList();
             SendParams.Add(SimParams);
 
-            // Update agent with target sim
-
             m_log.InfoFormat(
                 "[ASSUMED CRASH]: Telling region {0} @ {1},{2} ({3}) that their agent is dead: {4}",
                 SimInfo.regionName, SimInfo.regionLocX, SimInfo.regionLocY, SimInfo.httpServerURI,
@@ -124,18 +122,13 @@ namespace OpenSim.Grid.UserServer
             //base.LogOffUser(theUser);
         }
 
-        //public override void LogOffUser(UserProfileData theUser)
-        //{
-
-        //}
-
         /// <summary>
         /// Customises the login response and fills in missing values.
         /// </summary>
         /// <param name="response">The existing response</param>
         /// <param name="theUser">The user profile</param>
         /// <param name="startLocationRequest">Destination of the user</param>
-        public override void CustomiseResponse(LoginResponse response, UserProfileData theUser,
+        public override bool CustomiseResponse(LoginResponse response, UserProfileData theUser,
                                                string startLocationRequest)
         {
             RegionProfileData SimInfo;
@@ -250,8 +243,7 @@ namespace OpenSim.Grid.UserServer
                 ulong defaultHandle = (((ulong) m_config.DefaultX * Constants.RegionSize) << 32) |
                                       ((ulong) m_config.DefaultY * Constants.RegionSize);                                     
 
-                m_log.Warn(
-                    "[LOGIN]: Sending user to default region " + defaultHandle + " instead");
+                m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
                     
                 SimInfo = RegionProfileData.RequestSimProfileData(
                     defaultHandle, m_config.GridServerURL,
@@ -267,8 +259,13 @@ namespace OpenSim.Grid.UserServer
                         theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);                    
                     
                 if (!PrepareLoginToRegion(SimInfo, theUser, response))
+                {
                     response.CreateDeadRegionResponse();
+                    return false;
+                }
             }
+            
+            return true;
         }
         
         /// <summary>
@@ -282,10 +279,7 @@ namespace OpenSim.Grid.UserServer
         private bool PrepareLoginToRegion(RegionProfileData sim, UserProfileData user, LoginResponse response)
         {
             try
-            {
-                // Destination
-                m_log.Info("[LOGIN]: CUSTOMISERESPONSE: Region X: " + sim.regionLocX + "; Region Y: " + sim.regionLocY);
-                
+            {                
                 response.SimAddress = Util.GetHostFromURL(sim.serverURI).ToString();
                 response.SimPort = uint.Parse(sim.serverURI.Split(new char[] {'/', ':'})[4]);
                 response.RegionX = sim.regionLocX;
@@ -296,7 +290,9 @@ namespace OpenSim.Grid.UserServer
                 response.SeedCapability = sim.httpServerURI + "CAPS/" + capsPath + "0000/";
 
                 // Notify the target of an incoming user
-                m_log.Info("[LOGIN]: Telling " + sim.regionName + " (" + sim.serverURI + ") to prepare for client connection");
+                m_log.InfoFormat(
+                    "[LOGIN]: Telling {0} @ {1},{2} ({3}) to prepare for client connection",
+                     sim.regionName, sim.regionLocX, sim.regionLocY, sim.serverURI);
 
                 // Update agent with target sim
                 user.CurrentAgent.Region = sim.UUID;
@@ -317,8 +313,6 @@ namespace OpenSim.Grid.UserServer
                 SimParams["caps_path"] = capsPath;
                 ArrayList SendParams = new ArrayList();
                 SendParams.Add(SimParams);
-
-                m_log.Info("[LOGIN]: Informing region at " + sim.httpServerURI);
                 
                 // Send
                 XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
@@ -345,7 +339,6 @@ namespace OpenSim.Grid.UserServer
                         handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
                         if (handlerUserLoggedInAtLocation != null)
                         {
-                            m_log.Info("[LOGIN]: Letting listeners know about successful login");
                             handlerUserLoggedInAtLocation(user.ID, user.CurrentAgent.SessionID,
                                                           user.CurrentAgent.Region,
                                                           user.CurrentAgent.Handle,
@@ -357,11 +350,13 @@ namespace OpenSim.Grid.UserServer
                     }
                     else
                     {
+                        m_log.ErrorFormat("[LOGIN]: Region responded that it is not available to receive clients");
                         return false;
                     }
                 }
                 else
                 {
+                    m_log.ErrorFormat("[LOGIN]: XmlRpc request to region failed with message {0}, code {1} ", GridResp.FaultString, GridResp.FaultCode);
                     return false;
                 }
             } 
