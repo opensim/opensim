@@ -241,13 +241,17 @@ namespace OpenSim.Grid.UserServer
                 // Send him to default region instead
                 // Load information from the gridserver
                 ulong defaultHandle = (((ulong) m_config.DefaultX * Constants.RegionSize) << 32) |
-                                      ((ulong) m_config.DefaultY * Constants.RegionSize);                                     
+                                      ((ulong) m_config.DefaultY * Constants.RegionSize);
+                                      
+                if (defaultHandle == SimInfo.regionHandle)
+                {
+                    m_log.ErrorFormat("[LOGIN]: Not trying the default region since this is the same as the selected region");
+                    return false;
+                }
 
                 m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
                     
-                SimInfo = RegionProfileData.RequestSimProfileData(
-                    defaultHandle, m_config.GridServerURL,
-                    m_config.GridSendKey, m_config.GridRecvKey);
+                SimInfo = RegionProfileData.RequestSimProfileData(defaultHandle, m_config.GridServerURL, m_config.GridSendKey, m_config.GridRecvKey);
 
                 // Customise the response
                 response.Home =
