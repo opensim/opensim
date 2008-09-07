@@ -210,6 +210,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_Scene.EventManager.OnScriptReset += OnScriptReset;
             m_Scene.EventManager.OnStartScript += OnStartScript;
             m_Scene.EventManager.OnStopScript += OnStopScript;
+            m_Scene.EventManager.OnShutdown += OnShutdown;
 
             m_AsyncCommands = new AsyncCommandManager(this);
 
@@ -247,7 +248,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             Object[] p = (Object[])o;
             int saveTime = (int)p[0];
 
-            System.Threading.Thread.Sleep(saveTime);
+            if (saveTime > 0)
+                System.Threading.Thread.Sleep(saveTime);
 
 //            m_log.Debug("[XEngine] Backing up script states");
 
@@ -275,8 +277,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             instances.Clear();
 
-            m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup), 
-                                       new Object[] { saveTime });
+            if (saveTime > 0)
+                m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup), 
+                                           new Object[] { saveTime });
 
             return 0;
         }
@@ -839,6 +842,24 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public bool GetScriptRunning(UUID objectID, UUID itemID)
         {
             return GetScriptState(itemID);
+        }
+
+        public void OnShutdown()
+        {
+            List<IScriptInstance> instances = new List<IScriptInstance>();
+
+            lock (m_Scripts)
+            {
+                foreach (IScriptInstance instance in m_Scripts.Values)
+                    instances.Add(instance);
+            }
+
+            foreach (IScriptInstance i in instances)
+            {
+                i.Stop(50);
+            }
+
+            DoBackup(new Object[] {0});
         }
     }
 }

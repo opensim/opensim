@@ -73,6 +73,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private string m_CurrentEvent = String.Empty;
         private bool m_InSelfDelete = false;
         private int m_MaxScriptQueue;
+        private bool m_SaveState = true;
 
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
 
@@ -213,6 +214,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 return;
             }
 
+            m_SaveState = true;
+
             string savedState = Path.Combine(Path.GetDirectoryName(assembly),
                     m_ItemID.ToString() + ".state");
             if (File.Exists(savedState))
@@ -257,6 +260,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             // we get new rez events on sim restart, too
                             // but if there is state, then we fire the change
                             // event
+
+                            // We loaded state, don't force a re-save
+                            m_SaveState = false;
+
                             if (stateSource == StateSource.NewRez)
                             {
 //                                m_Engine.Log.Debug("[Script] Posted changed(CHANGED_REGION_RESTART) to script");
@@ -487,6 +494,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                     m_InEvent = false;
                     m_CurrentEvent = String.Empty;
+
+                    if (m_SaveState)
+                    {
+                        // This will be the very first event we deliver
+                        // (state_entry) in defualt state
+                        //
+
+                        SaveState(m_Assembly);
+
+                        m_SaveState = false;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -589,6 +607,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_State = "default";
             if (running)
                 Start();
+            m_SaveState = true;
             PostEvent(new EventParams("state_entry",
                     new Object[0], new DetectParams[0]));
         }
@@ -607,6 +626,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             async.RemoveScript(m_LocalID, m_ItemID);
             if (m_CurrentEvent != "state_entry")
             {
+                m_SaveState = true;
                 PostEvent(new EventParams("state_entry",
                         new Object[0], new DetectParams[0]));
             }
@@ -640,6 +660,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void SaveState(string assembly)
         {
+            // If we're currently in an event, just tell it to save upon return
+            //
+            if(m_InEvent)
+            {
+                m_SaveState = true;
+                return;
+            }
+
             AsyncCommandManager async = (AsyncCommandManager)m_Engine.AsyncCommands;
             PluginData = async.GetSerializationData(m_ItemID);
 

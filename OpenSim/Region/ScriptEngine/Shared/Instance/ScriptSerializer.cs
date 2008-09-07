@@ -56,9 +56,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         {
             bool running = instance.Running;
 
-            if (running)
-                instance.Stop(50);
-
             XmlDocument xmldoc = new XmlDocument();
 
             XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
@@ -181,9 +178,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                      new LSL_Types.list(instance.PluginData));
 
             rootElement.AppendChild(plugins);
-
-            if (running)
-                instance.Start();
 
             return xmldoc.InnerXml;
         }
