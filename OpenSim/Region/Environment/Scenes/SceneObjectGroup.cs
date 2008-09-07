@@ -1757,7 +1757,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             linkPart.OffsetPosition = axPos;
             Quaternion oldRot = linkPart.RotationOffset;
-            Quaternion newRot = oldRot * Quaternion.Inverse(parentRot);
+            Quaternion newRot = Quaternion.Inverse(parentRot) * oldRot;
             linkPart.RotationOffset = newRot;
 
             linkPart.ParentID = m_rootPart.LocalId;
