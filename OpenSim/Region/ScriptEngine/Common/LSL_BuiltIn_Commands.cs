@@ -1743,7 +1743,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetForce(LSL_Types.Vector3 force, int local)
         {
             m_host.AddScriptLPS(1);
-            //NotImplemented("llSetForce");
 
             if (m_host.ParentGroup != null)
             {
@@ -1762,8 +1761,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             LSL_Types.Vector3 force = new LSL_Types.Vector3(0.0, 0.0, 0.0);
 
             m_host.AddScriptLPS(1);
-            //NotImplemented("llGetForce");
-            //return new LSL_Types.Vector3();
 
             if (m_host.ParentGroup != null)
             {
@@ -2429,7 +2426,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
             m_host.AddScriptLPS(1);
-            //NotImplemented("llTakeControls");
         }
 
         public void llReleaseControls()
@@ -2531,9 +2527,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             msg.RegionID = World.RegionInfo.RegionID.Guid;//RegionID.Guid;
             msg.binaryBucket = new byte[0];// binaryBucket;
             World.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
-            // ScriptSleep(2000);
-
-            //  NotImplemented("llInstantMessage");
       }
 
         public void llEmail(string address, string subject, string message)
@@ -3692,8 +3685,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             return new LSL_Types.Vector3(x,y,z);
 
-
-//            NotImplemented("llRot2Axis");
         }
 
 
@@ -3718,7 +3709,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             return angle;
 
-//            NotImplemented("llRot2Angle");
         }
 
         public double llAcos(double val)
@@ -7286,9 +7276,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }//end switch
 
             }
-            // ScriptSleep(2000);
-
-            //NotImplemented("llParcelMediaCommandList");
         }
 
         public LSL_Types.list llParcelMediaQuery(LSL_Types.list aList)
