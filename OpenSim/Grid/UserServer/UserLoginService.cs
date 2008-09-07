@@ -138,173 +138,192 @@ namespace OpenSim.Grid.UserServer
         public override void CustomiseResponse(LoginResponse response, UserProfileData theUser,
                                                string startLocationRequest)
         {
-            bool tryDefault = false;
-            //CFK: Since the try is always "tried", the "Home Location" message should always appear, so comment this one.
-            //CFK: m_log.Info("[LOGIN]: Load information from the gridserver");
+            RegionProfileData SimInfo;
+            RegionProfileData HomeInfo;
+            int start_x = -1;
+            int start_y = -1;
+            int start_z = -1;
 
-            try
+            // use the homeRegionID if it is stored already. If not, use the regionHandle as before
+            if (theUser.HomeRegionID != UUID.Zero)
             {
-                RegionProfileData SimInfo;
-                RegionProfileData HomeInfo;
-                int start_x = -1;
-                int start_y = -1;
-                int start_z = -1;
+                HomeInfo =
+                    RegionProfileData.RequestSimProfileData(
+                        theUser.HomeRegionID, m_config.GridServerURL,
+                        m_config.GridSendKey, m_config.GridRecvKey);
+            }
+            else
+            {
+                HomeInfo =
+                    RegionProfileData.RequestSimProfileData(
+                        theUser.HomeRegion, m_config.GridServerURL,
+                        m_config.GridSendKey, m_config.GridRecvKey);
+            }
 
-                // use the homeRegionID if it is stored already. If not, use the regionHandle as before
-                if (theUser.HomeRegionID != UUID.Zero)
-                {
-                    HomeInfo =
-                        RegionProfileData.RequestSimProfileData(
-                            theUser.HomeRegionID, m_config.GridServerURL,
-                            m_config.GridSendKey, m_config.GridRecvKey);
-                }
-                else
-                {
-                    HomeInfo =
-                        RegionProfileData.RequestSimProfileData(
-                            theUser.HomeRegion, m_config.GridServerURL,
-                            m_config.GridSendKey, m_config.GridRecvKey);
-                }
-
-                if (startLocationRequest == "last")
+            if (startLocationRequest == "last")
+            {
+                SimInfo =
+                    RegionProfileData.RequestSimProfileData(
+                        theUser.CurrentAgent.Handle, m_config.GridServerURL,
+                        m_config.GridSendKey, m_config.GridRecvKey);
+            }
+            else if (startLocationRequest == "home")
+            {
+                SimInfo = HomeInfo;
+            }
+            else
+            {
+                string[] startLocationRequestParsed = Util.ParseStartLocationRequest(startLocationRequest);
+                m_log.Info("[DEBUGLOGINPARSE]: 1:" + startLocationRequestParsed[0] + ", 2:" +
+                           startLocationRequestParsed[1] + ", 3:" + startLocationRequestParsed[2] + ", 4:" +
+                           startLocationRequestParsed[3]);
+                if (startLocationRequestParsed[0] == "last")
                 {
                     SimInfo =
                         RegionProfileData.RequestSimProfileData(
                             theUser.CurrentAgent.Handle, m_config.GridServerURL,
                             m_config.GridSendKey, m_config.GridRecvKey);
                 }
-                else if (startLocationRequest == "home")
-                {
-                    SimInfo = HomeInfo;
-                }
                 else
                 {
-                    string[] startLocationRequestParsed = Util.ParseStartLocationRequest(startLocationRequest);
-                    m_log.Info("[DEBUGLOGINPARSE]: 1:" + startLocationRequestParsed[0] + ", 2:" +
-                               startLocationRequestParsed[1] + ", 3:" + startLocationRequestParsed[2] + ", 4:" +
-                               startLocationRequestParsed[3]);
-                    if (startLocationRequestParsed[0] == "last")
+                    m_log.Info("[LOGIN]: Looking up Sim: " + startLocationRequestParsed[0]);
+                    SimInfo =
+                        RegionProfileData.RequestSimProfileData(
+                            startLocationRequestParsed[0], m_config.GridServerURL,
+                            m_config.GridSendKey, m_config.GridRecvKey);
+
+                    if (SimInfo == null)
                     {
-                        SimInfo =
-                            RegionProfileData.RequestSimProfileData(
-                                theUser.CurrentAgent.Handle, m_config.GridServerURL,
-                                m_config.GridSendKey, m_config.GridRecvKey);
+                        m_log.Info("[LOGIN]: Didn't find region with a close name match sending to home location");
+                        SimInfo = HomeInfo;
                     }
                     else
                     {
-                        m_log.Info("[LOGIN]: Looking up Sim: " + startLocationRequestParsed[0]);
-                        SimInfo =
-                            RegionProfileData.RequestSimProfileData(
-                                startLocationRequestParsed[0], m_config.GridServerURL,
-                                m_config.GridSendKey, m_config.GridRecvKey);
-
-                        if (SimInfo == null)
+                        start_x = Convert.ToInt32(startLocationRequestParsed[1]);
+                        start_y = Convert.ToInt32(startLocationRequestParsed[2]);
+                        start_z = Convert.ToInt32(startLocationRequestParsed[3]);            
+                        
+                        if (start_x >= 0 && start_y >= 0 && start_z >= 0)
                         {
-                            m_log.Info("[LOGIN]: Didn't find region with a close name match sending to home location");
-                            SimInfo = HomeInfo;
-                        }
-                        else
-                        {
-                            start_x = Convert.ToInt32(startLocationRequestParsed[1]);
-                            start_y = Convert.ToInt32(startLocationRequestParsed[2]);
-                            start_z = Convert.ToInt32(startLocationRequestParsed[3]);
-                        }
+                            Vector3 tmp_v = new Vector3(start_x, start_y, start_z);
+                            theUser.CurrentAgent.Position = tmp_v;
+                        }  
                     }
                 }
+            }
+
+            // Customise the response
+            //CFK: This is redundant and the next message should always appear.
+            //CFK: m_log.Info("[LOGIN]: Home Location");
+            if (HomeInfo != null)
+            {
+                response.Home =
+                    string.Format(
+                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                        (HomeInfo.regionLocX*Constants.RegionSize),
+                        (HomeInfo.regionLocY*Constants.RegionSize),
+                        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+            }
+            else
+            {
+                // Emergency mode: Home-region isn't available, so we can't request the region info.
+                // Use the stored home regionHandle instead.
+                // NOTE: If the home-region moves, this will be wrong until the users update their user-profile again
+                ulong regionX = theUser.HomeRegion >> 32;
+                ulong regionY = theUser.HomeRegion & 0xffffffff;
+                response.Home =
+                    string.Format(
+                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                        regionX, regionY,
+                        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+                m_log.InfoFormat("[LOGIN] Home region of user {0} {1} is not available; using computed region position {2} {3}",
+                                 theUser.FirstName, theUser.SurName,
+                                 regionX, regionY);
+            }
+
+            if (!PrepareLoginToRegion(SimInfo, theUser, response))
+            {
+                // Send him to default region instead
+                // Load information from the gridserver
+                ulong defaultHandle = (((ulong) m_config.DefaultX * Constants.RegionSize) << 32) |
+                                      ((ulong) m_config.DefaultY * Constants.RegionSize);                                     
+
+                m_log.Warn(
+                    "[LOGIN]: Sending user to default region " + defaultHandle + " instead");
+                    
+                SimInfo = RegionProfileData.RequestSimProfileData(
+                    defaultHandle, m_config.GridServerURL,
+                    m_config.GridSendKey, m_config.GridRecvKey);
 
                 // Customise the response
-                //CFK: This is redundant and the next message should always appear.
-                //CFK: m_log.Info("[LOGIN]: Home Location");
-                if (HomeInfo != null)
-                {
-                    response.Home =
-                        string.Format(
-                            "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
-                            (HomeInfo.regionLocX*Constants.RegionSize),
-                            (HomeInfo.regionLocY*Constants.RegionSize),
-                            theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
-                            theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
-                }
-                else
-                {
-                    // Emergency mode: Home-region isn't available, so we can't request the region info.
-                    // Use the stored home regionHandle instead.
-                    // NOTE: If the home-region moves, this will be wrong until the users update their user-profile again
-                    ulong regionX = theUser.HomeRegion >> 32;
-                    ulong regionY = theUser.HomeRegion & 0xffffffff;
-                    response.Home =
-                        string.Format(
-                            "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
-                            regionX, regionY,
-                            theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
-                            theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
-                    m_log.InfoFormat("[LOGIN] Home region of user {0} {1} is not available; using computed region position {2} {3}",
-                                     theUser.FirstName, theUser.SurName,
-                                     regionX, regionY);
-                }
-
+                response.Home =
+                    string.Format(
+                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                        (SimInfo.regionLocX * Constants.RegionSize),
+                        (SimInfo.regionLocY*Constants.RegionSize),
+                        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);                    
+                    
+                if (!PrepareLoginToRegion(SimInfo, theUser, response))
+                    response.CreateDeadRegionResponse();
+            }
+        }
+        
+        /// <summary>
+        /// Prepare a login to the given region.  This involves both telling the region to expect a connection
+        /// and appropriately customising the response to the user.
+        /// </summary>
+        /// <param name="sim"></param>
+        /// <param name="user"></param>
+        /// <param name="response"></param>
+        /// <returns>true if the region was successfully contacted, false otherwise</returns>
+        private bool PrepareLoginToRegion(RegionProfileData sim, UserProfileData user, LoginResponse response)
+        {
+            try
+            {
                 // Destination
-                //CFK: The "Notifying" message always seems to appear, so subsume the data from this message into
-                //CFK: the next one for X & Y and comment this one.
-                //CFK: m_log.Info("[LOGIN]: CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX +
-                //CFK: "; Region Y: " + SimInfo.regionLocY);
-                response.SimAddress = Util.GetHostFromURL(SimInfo.serverURI).ToString();
-                response.SimPort = uint.Parse(SimInfo.serverURI.Split(new char[] {'/', ':'})[4]);
-                response.RegionX = SimInfo.regionLocX;
-                response.RegionY = SimInfo.regionLocY;
+                m_log.Info("[LOGIN]: CUSTOMISERESPONSE: Region X: " + sim.regionLocX + "; Region Y: " + sim.regionLocY);
+                
+                response.SimAddress = Util.GetHostFromURL(sim.serverURI).ToString();
+                response.SimPort = uint.Parse(sim.serverURI.Split(new char[] {'/', ':'})[4]);
+                response.RegionX = sim.regionLocX;
+                response.RegionY = sim.regionLocY;
 
                 //Not sure if the + "/CAPS/" should in fact be +"CAPS/" depending if there is already a / as part of httpServerURI
                 string capsPath = Util.GetRandomCapsPath();
-                response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
-
-                m_log.DebugFormat(
-                    "[LOGIN]: Sending new CAPS seed url {0} to client {1}",
-                    response.SeedCapability, response.AgentID);
+                response.SeedCapability = sim.httpServerURI + "CAPS/" + capsPath + "0000/";
 
                 // Notify the target of an incoming user
-                //CFK: The "Notifying" message always seems to appear, so subsume the data from this message into
-                //CFK: the next one for X & Y and comment this one.
-                //CFK: m_log.Info("[LOGIN]: " + SimInfo.regionName + " (" + SimInfo.serverURI + ")  " +
-                //CFK:    SimInfo.regionLocX + "," + SimInfo.regionLocY);
+                m_log.Info("[LOGIN]: Telling " + sim.regionName + " (" + sim.serverURI + ") to prepare for client connection");
 
-                theUser.CurrentAgent.Region = SimInfo.UUID;
-                theUser.CurrentAgent.Handle = SimInfo.regionHandle;
-                if (start_x >= 0 && start_y >= 0 && start_z >= 0)
-                {
-                    Vector3 tmp_v = new Vector3(start_x, start_y, start_z);
-                    theUser.CurrentAgent.Position = tmp_v;
-                }
+                // Update agent with target sim
+                user.CurrentAgent.Region = sim.UUID;
+                user.CurrentAgent.Handle = sim.regionHandle;                              
+
                 // Prepare notification
                 Hashtable SimParams = new Hashtable();
-                SimParams["session_id"] = theUser.CurrentAgent.SessionID.ToString();
-                SimParams["secure_session_id"] = theUser.CurrentAgent.SecureSessionID.ToString();
-                SimParams["firstname"] = theUser.FirstName;
-                SimParams["lastname"] = theUser.SurName;
-                SimParams["agent_id"] = theUser.ID.ToString();
+                SimParams["session_id"] = user.CurrentAgent.SessionID.ToString();
+                SimParams["secure_session_id"] = user.CurrentAgent.SecureSessionID.ToString();
+                SimParams["firstname"] = user.FirstName;
+                SimParams["lastname"] = user.SurName;
+                SimParams["agent_id"] = user.ID.ToString();
                 SimParams["circuit_code"] = (Int32) Convert.ToUInt32(response.CircuitCode);
-                SimParams["startpos_x"] = theUser.CurrentAgent.Position.X.ToString();
-                SimParams["startpos_y"] = theUser.CurrentAgent.Position.Y.ToString();
-                SimParams["startpos_z"] = theUser.CurrentAgent.Position.Z.ToString();
-                SimParams["regionhandle"] = theUser.CurrentAgent.Handle.ToString();
+                SimParams["startpos_x"] = user.CurrentAgent.Position.X.ToString();
+                SimParams["startpos_y"] = user.CurrentAgent.Position.Y.ToString();
+                SimParams["startpos_z"] = user.CurrentAgent.Position.Z.ToString();
+                SimParams["regionhandle"] = user.CurrentAgent.Handle.ToString();
                 SimParams["caps_path"] = capsPath;
                 ArrayList SendParams = new ArrayList();
                 SendParams.Add(SimParams);
 
-                // Update agent with target sim
-
-                m_log.InfoFormat(
-                    "[LOGIN]: Telling region {0} @ {1},{2} ({3}) to expect user connection",
-                    SimInfo.regionName, response.RegionX, response.RegionY, SimInfo.httpServerURI);
-
+                m_log.Info("[LOGIN]: Informing region at " + sim.httpServerURI);
+                
+                // Send
                 XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
-                XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
+                XmlRpcResponse GridResp = GridReq.Send(sim.httpServerURI, 6000);
 
-                if (GridResp.IsFault)
-                {
-                    m_log.ErrorFormat(
-                        "[LOGIN]: XMLRPC request for {0} failed, fault code: {1}, reason: {2}",
-                        SimInfo.httpServerURI, GridResp.FaultCode, GridResp.FaultString);
-                }
                 if (!GridResp.IsFault)
                 {
                     bool responseSuccess = true;
@@ -317,7 +336,6 @@ namespace OpenSim.Grid.UserServer
                             if ((string) resp["success"] == "FALSE")
                             {
                                 responseSuccess = false;
-                                tryDefault = true;
                             }
                         }
                     }
@@ -327,141 +345,33 @@ namespace OpenSim.Grid.UserServer
                         handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
                         if (handlerUserLoggedInAtLocation != null)
                         {
-                            //m_log.Info("[LOGIN]: Letting other objects know about login");
-                            handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID,
-                                                          theUser.CurrentAgent.Region,
-                                                          theUser.CurrentAgent.Handle, theUser.CurrentAgent.Position.X,
-                                                          theUser.CurrentAgent.Position.Y,
-                                                          theUser.CurrentAgent.Position.Z,
-                                                          theUser.FirstName, theUser.SurName);
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[LOGIN]: Requested region for login not available, {0}", e);
-                tryDefault = true;
-            }
-
-            if (tryDefault)
-            {
-                // Send him to default region instead
-                // Load information from the gridserver
-
-                ulong defaultHandle = (((ulong) m_config.DefaultX*Constants.RegionSize) << 32) |
-                                      ((ulong) m_config.DefaultY*Constants.RegionSize);
-
-                m_log.Warn(
-                    "[LOGIN]: Sending user to default region " + defaultHandle + " instead");
-
-                try
-                {
-                    RegionProfileData SimInfo = RegionProfileData.RequestSimProfileData(
-                        defaultHandle, m_config.GridServerURL,
-                        m_config.GridSendKey, m_config.GridRecvKey);
-
-                    // Customise the response
-                    m_log.Info("[LOGIN]: Home Location");
-                    response.Home =
-                        string.Format(
-                            "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
-                            (SimInfo.regionLocX*Constants.RegionSize),
-                            (SimInfo.regionLocY*Constants.RegionSize),
-                            theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
-                            theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
-
-
-                    // Destination
-                    m_log.Info("[LOGIN]: " +
-                               "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
-                               SimInfo.regionLocY);
-                    response.SimAddress = Util.GetHostFromURL(SimInfo.serverURI).ToString();
-                    response.SimPort = uint.Parse(SimInfo.serverURI.Split(new char[] {'/', ':'})[4]);
-                    response.RegionX = SimInfo.regionLocX;
-                    response.RegionY = SimInfo.regionLocY;
-
-                    //Not sure if the + "/CAPS/" should in fact be +"CAPS/" depending if there is already a / as part of httpServerURI
-                    string capsPath = Util.GetRandomCapsPath();
-                    response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
-
-                    // Notify the target of an incoming user
-                    m_log.Info("[LOGIN]: Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
-
-                    // Update agent with target sim
-                    theUser.CurrentAgent.Region = SimInfo.UUID;
-                    theUser.CurrentAgent.Handle = SimInfo.regionHandle;
-
-                    // Prepare notification
-                    Hashtable SimParams = new Hashtable();
-                    SimParams["session_id"] = theUser.CurrentAgent.SessionID.ToString();
-                    SimParams["secure_session_id"] = theUser.CurrentAgent.SecureSessionID.ToString();
-                    SimParams["firstname"] = theUser.FirstName;
-                    SimParams["lastname"] = theUser.SurName;
-                    SimParams["agent_id"] = theUser.ID.ToString();
-                    SimParams["circuit_code"] = (Int32) Convert.ToUInt32(response.CircuitCode);
-                    SimParams["startpos_x"] = theUser.CurrentAgent.Position.X.ToString();
-                    SimParams["startpos_y"] = theUser.CurrentAgent.Position.Y.ToString();
-                    SimParams["startpos_z"] = theUser.CurrentAgent.Position.Z.ToString();
-                    SimParams["regionhandle"] = theUser.CurrentAgent.Handle.ToString();
-                    SimParams["caps_path"] = capsPath;
-                    ArrayList SendParams = new ArrayList();
-                    SendParams.Add(SimParams);
-
-                    m_log.Info("[LOGIN]: Informing region at " + SimInfo.httpServerURI);
-                    // Send
-                    XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
-                    XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
-
-                    if (!GridResp.IsFault)
-                    {
-                        bool responseSuccess = true;
-
-
-                        if (GridResp.Value != null)
-                        {
-                            Hashtable resp = (Hashtable) GridResp.Value;
-                            if (resp.ContainsKey("success"))
-                            {
-                                if ((string) resp["success"] == "FALSE")
-                                {
-                                    responseSuccess = false;
-                                }
-                            }
-                        }
-
-                        if (responseSuccess)
-                        {
-                            handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
-                            if (handlerUserLoggedInAtLocation != null)
-                            {
-                                m_log.Info("[LOGIN]: Letting other objects know about login");
-                                handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID,
-                                                              theUser.CurrentAgent.Region,
-                                                              theUser.CurrentAgent.Handle,
-                                                              theUser.CurrentAgent.Position.X,
-                                                              theUser.CurrentAgent.Position.Y,
-                                                              theUser.CurrentAgent.Position.Z,
-                                                              theUser.FirstName, theUser.SurName);
-                            }
-                        }
-                        else
-                        {
-                            response.CreateDeadRegionResponse();
+                            m_log.Info("[LOGIN]: Letting listeners know about successful login");
+                            handlerUserLoggedInAtLocation(user.ID, user.CurrentAgent.SessionID,
+                                                          user.CurrentAgent.Region,
+                                                          user.CurrentAgent.Handle,
+                                                          user.CurrentAgent.Position.X,
+                                                          user.CurrentAgent.Position.Y,
+                                                          user.CurrentAgent.Position.Z,
+                                                          user.FirstName, user.SurName);
                         }
                     }
                     else
                     {
-                        response.CreateDeadRegionResponse();
+                        return false;
                     }
                 }
-
-                catch (Exception e)
+                else
                 {
-                    m_log.Warn("[LOGIN]: Default region also not available");
-                    m_log.Warn("[LOGIN]: " + e);
+                    return false;
                 }
-            }
+            } 
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[LOGIN]: Region not available for login, {0}", e);
+                return false;
+            }            
+            
+            return true;
         }
 
         // See LoginService
