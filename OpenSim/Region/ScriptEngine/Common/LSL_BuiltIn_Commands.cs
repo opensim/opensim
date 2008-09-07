@@ -962,14 +962,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         public double llCloud(LSL_Types.Vector3 offset)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llCloud");
             return 0;
         }
 
         public LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llWind");
             return new LSL_Types.Vector3();
         }
 
