@@ -316,7 +316,7 @@ namespace OpenSim.Grid.UserServer
                 
                 // Send
                 XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
-                XmlRpcResponse GridResp = GridReq.Send(sim.httpServerURI, 6000);
+                XmlRpcResponse GridResp = GridReq.Send(sim.httpServerURI, 30000);
 
                 if (!GridResp.IsFault)
                 {
