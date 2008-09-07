@@ -1111,7 +1111,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     {
                         // if you do a "About Landmark" on a landmark a second time, the viewer sends the
                         // region_handle it got earlier via RegionHandleRequest
-                        ulong regionHandle = Helpers.BytesToUInt64((byte[])hash["region_handle"]);
+                        ulong regionHandle = Util.BytesToUInt64Big((byte[])hash["region_handle"]);
                         parcelID = Util.BuildFakeParcelID(regionHandle, x, y);
                     }
                     else if (regionID == m_scene.RegionInfo.RegionID)

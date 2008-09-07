@@ -1674,42 +1674,45 @@ namespace OpenSim.Region.Communications.OGS1
                 IList paramList = new ArrayList();
                 paramList.Add(hash);
 
-                // this might be cached, as we probably requested it just a moment ago...
-                RegionInfo info = RequestNeighbourInfo(regionHandle);
-
                 try
                 {
-                    XmlRpcRequest request = new XmlRpcRequest("land_data", paramList);
-                    string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
-                    XmlRpcResponse response = request.Send(uri, 10000);
-                    if (response.IsFault)
-                    {
-                        m_log.ErrorFormat("[OGS1 GRID SERVICES] remote call returned an error: {0}", response.FaultString);
-                    }
-                    else
-                    {
-                        hash = (Hashtable)response.Value;
-                        try {
-                            landData = new LandData();
-                            landData.AABBMax = Vector3.Parse((string)hash["AABBMax"]);
-                            landData.AABBMin = Vector3.Parse((string)hash["AABBMin"]);
-                            landData.Area = Convert.ToInt32(hash["Area"]);
-                            landData.AuctionID = Convert.ToUInt32(hash["AuctionID"]);
-                            landData.Description = (string)hash["Description"];
-                            landData.Flags = Convert.ToUInt32(hash["Flags"]);
-                            landData.GlobalID = new UUID((string)hash["GlobalID"]);
-                            landData.Name = (string)hash["Name"];
-                            landData.OwnerID = new UUID((string)hash["OwnerID"]);
-                            landData.SalePrice = Convert.ToInt32(hash["SalePrice"]);
-                            landData.SnapshotID = new UUID((string)hash["SnapshotID"]);
-                            landData.UserLocation = Vector3.Parse((string)hash["UserLocation"]);
-                            m_log.DebugFormat("[OGS1 GRID SERVICES] Got land data for parcel {0}", landData.Name);
-                        }
-                        catch (Exception e)
+                    // this might be cached, as we probably requested it just a moment ago...
+                    RegionInfo info = RequestNeighbourInfo(regionHandle);
+                    if (info != null) // just to be sure
+                    { 
+                        XmlRpcRequest request = new XmlRpcRequest("land_data", paramList);
+                        string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
+                        XmlRpcResponse response = request.Send(uri, 10000);
+                        if (response.IsFault)
                         {
-                            m_log.Error("[OGS1 GRID SERVICES] Got exception while parsing land-data:", e);
+                            m_log.ErrorFormat("[OGS1 GRID SERVICES] remote call returned an error: {0}", response.FaultString);
+                        }
+                        else
+                        {
+                            hash = (Hashtable)response.Value;
+                            try {
+                                landData = new LandData();
+                                landData.AABBMax = Vector3.Parse((string)hash["AABBMax"]);
+                                landData.AABBMin = Vector3.Parse((string)hash["AABBMin"]);
+                                landData.Area = Convert.ToInt32(hash["Area"]);
+                                landData.AuctionID = Convert.ToUInt32(hash["AuctionID"]);
+                                landData.Description = (string)hash["Description"];
+                                landData.Flags = Convert.ToUInt32(hash["Flags"]);
+                                landData.GlobalID = new UUID((string)hash["GlobalID"]);
+                                landData.Name = (string)hash["Name"];
+                                landData.OwnerID = new UUID((string)hash["OwnerID"]);
+                                landData.SalePrice = Convert.ToInt32(hash["SalePrice"]);
+                                landData.SnapshotID = new UUID((string)hash["SnapshotID"]);
+                                landData.UserLocation = Vector3.Parse((string)hash["UserLocation"]);
+                                m_log.DebugFormat("[OGS1 GRID SERVICES] Got land data for parcel {0}", landData.Name);
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.Error("[OGS1 GRID SERVICES] Got exception while parsing land-data:", e);
+                            }
                         }
                     }
+                    else m_log.WarnFormat("[OGS1 GRID SERVICES] Couldn't find region with handle {0}", regionHandle);
                 }
                 catch (Exception e)
                 {
