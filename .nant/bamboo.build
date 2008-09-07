@@ -45,13 +45,13 @@
     </nunit2>
 
     <zip zipfile="../${projectdir}.zip">
-      <fileset basedir="../${projectdir}/">
-        <include name="**" />
+      <fileset basedir="../${projectdir}" prefix="${projectdir}">
+        <include name="**/*" />
       </fileset>
     </zip>
     <tar destfile="../${projectdir}.tar.gz" compression="GZip">
-      <fileset basedir="../${projectdir}/">
-        <include name="**" />
+      <fileset basedir="../${projectdir}" prefix="${projectdir}">
+        <include name="**/*" />
       </fileset>
     </tar>
 
