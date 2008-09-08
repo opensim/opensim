@@ -472,7 +472,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
               return (LSL_Types.key)m_data[itemIndex];
             }
 
-
             public static list operator +(list a, list b)
             {
                 object[] tmp;
@@ -488,19 +487,19 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 m_data.SetValue(o, Length - 1);
             }
 
-            public static list operator +(list a, string s)
+            public static list operator +(list a, LSLString s)
             {
                 a.ExtendAndAdd(s);
                 return a;
             }
 
-            public static list operator +(list a, int i)
+            public static list operator +(list a, LSLInteger i)
             {
                 a.ExtendAndAdd(i);
                 return a;
             }
 
-            public static list operator +(list a, double d)
+            public static list operator +(list a, LSLFloat d)
             {
                 a.ExtendAndAdd(d);
                 return a;

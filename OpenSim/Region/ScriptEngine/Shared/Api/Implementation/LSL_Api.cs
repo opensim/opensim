@@ -1001,9 +1001,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face > -1)
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.R = (float)Math.Abs(color.x - 1);
-                texcolor.G = (float)Math.Abs(color.y - 1);
-                texcolor.B = (float)Math.Abs(color.z - 1);
+                texcolor.R = (float)color.x;
+                texcolor.G = (float)color.y;
+                texcolor.B = (float)color.z;
                 tex.FaceTextures[face].RGBA = texcolor;
                 part.UpdateTexture(tex);
                 return;
@@ -1015,15 +1015,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (tex.FaceTextures[i] != null)
                     {
                         texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.R = (float)Math.Abs(color.x - 1);
-                        texcolor.G = (float)Math.Abs(color.y - 1);
-                        texcolor.B = (float)Math.Abs(color.z - 1);
+                        texcolor.R = (float)color.x;
+                        texcolor.G = (float)color.y;
+                        texcolor.B = (float)color.z;
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
                     texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = (float)Math.Abs(color.x - 1);
-                    texcolor.G = (float)Math.Abs(color.y - 1);
-                    texcolor.B = (float)Math.Abs(color.z - 1);
+                    texcolor.R = (float)color.x;
+                    texcolor.G = (float)color.y;
+                    texcolor.B = (float)color.z;
                     tex.DefaultTexture.RGBA = texcolor;
                 }
                 part.UpdateTexture(tex);
@@ -5783,11 +5783,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
                         if (remain < 5)
                             return;
-                        LSL_Types.LSLInteger light = new LSL_Types.LSLInteger(rules.Data[idx++].ToString());
-                        LSL_Types.Vector3 lightcolor = new LSL_Types.Vector3(rules.Data[idx++].ToString());
-                        float intensity = (float)Convert.ToDouble(rules.Data[idx++].ToString());
-                        float radius = (float)Convert.ToDouble(rules.Data[idx++].ToString());
-                        float falloff = (float)Convert.ToDouble(rules.Data[idx++].ToString());
+                        bool light = rules.GetLSLIntegerItem(idx++);
+                        LSL_Types.Vector3 lightcolor = rules.GetVector3Item(idx++);
+                        float intensity = (float)rules.GetLSLFloatItem(idx++);
+                        float radius = (float)rules.GetLSLFloatItem(idx++);
+                        float falloff = (float)rules.GetLSLFloatItem(idx++);
 
                         SetPointLight(part, light, lightcolor, intensity, radius, falloff);
 
@@ -5795,8 +5795,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 2)
                             return;
+                    // TODO: LSL constant ALL_SIDES (value -1) is inserted into LSL_Types.list
+                    //       as a raw CLI Int32. When / if this is inserted as an
+                    //       LSL_Types.LSLInteger extract value using LSL_Types.list.GetLSLIntegerItem
+                    //    face = rules.GetLSLIntegerItem(idx++);
                         face = Convert.ToInt32(rules.Data[idx++].ToString());
-                        float glow = (float)Convert.ToDouble(rules.Data[idx++].ToString());
+                        float glow = (float)rules.GetLSLFloatItem(idx++);
 
                         SetGlow(part, face, glow);
 
@@ -5814,14 +5818,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                      case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                          if (remain < 2)
                              return;
+                   // TODO: LSL constant ALL_SIDES (value -1) is inserted into LSL_Types.list
+                   //       as a raw CLI Int32. When / if this is inserted as an
+                   //       LSL_Types.LSLInteger extract value using LSL_Types.list.GetLSLIntegerItem
+                   //      face = rules.GetLSLIntegerItem(idx++);
                          face = Convert.ToInt32(rules.Data[idx++].ToString());
-                         string bv = rules.Data[idx++].ToString();
-                         bool st;
-                         if (bv.Equals("1"))
-                             st = true;
-                         else
-                             st = false;
-
+                         bool st = rules.GetLSLIntegerItem(idx++);
                          SetFullBright(part, face , st);
                          break;
                      case (int)ScriptBaseClass.PRIM_MATERIAL:
