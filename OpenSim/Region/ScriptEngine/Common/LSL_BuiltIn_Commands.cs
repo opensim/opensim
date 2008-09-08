@@ -4507,7 +4507,18 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llEjectFromLand(string pest)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llEjectFromLand");
+            UUID agentId = new UUID();
+            if (UUID.TryParse(pest, out agentId))
+            {
+                ScenePresence presence = World.GetScenePresence(agentId);
+                if (presence != null)
+                {
+                    // agent must be over the owners land
+                    if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
+                        World.TeleportClientHome(agentId, presence.ControllingClient);
+                }
+            }
+            // ScriptSleep(5000);
         }
 
         public LSL_Types.list llParseString2List(string str, LSL_Types.list separators, LSL_Types.list spacers)
