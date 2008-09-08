@@ -5614,12 +5614,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (remain < 6)
                                     return;
 
-                                face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
-                                v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // cut
-                                hollow = (float)Convert.ToDouble(rules.Data[idx++].ToString());
-                                twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
-                                taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString());
-                                topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                face = (int)rules.GetLSLIntegerItem(idx++);
+                                v = rules.GetVector3Item(idx++); // cut
+                                hollow = (float)rules.GetLSLFloatItem(idx++);
+                                twist = rules.GetVector3Item(idx++);
+                                taper_b = rules.GetVector3Item(idx++);
+                                topshear = rules.GetVector3Item(idx++);
+
                                 part.Shape.PathCurve = (byte)Extrusion.Straight;
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear, 1);
                                 break;

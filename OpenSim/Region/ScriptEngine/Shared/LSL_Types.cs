@@ -454,7 +454,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSL_Types.LSLInteger GetLSLIntegerItem(int itemIndex)
             {
-              return (LSL_Types.LSLInteger)m_data[itemIndex];
+              if (m_data[itemIndex] is LSL_Types.LSLInteger)
+                  return (LSL_Types.LSLInteger)m_data[itemIndex];
+              else if (m_data[itemIndex] is Int32)
+                  return new LSLInteger((int)m_data[itemIndex]);
+              else
+                  throw new InvalidCastException();
             }
 
             public LSL_Types.Vector3 GetVector3Item(int itemIndex)

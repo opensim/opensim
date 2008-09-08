@@ -44,18 +44,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestConcatenateString()
         {
-            LSL_Types.list testList = new LSL_Types.list(1, 'a', "test");
-            testList += "addition";
+            LSL_Types.list testList = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger('a'), new LSL_Types.LSLString("test"));
+            testList += new LSL_Types.LSLString("addition");
 
             Assert.AreEqual(4, testList.Length);
-            Assert.AreEqual("addition", testList.Data[3]);
-            Assert.AreEqual(typeof(System.String), testList.Data[3].GetType());
+            Assert.AreEqual(new LSL_Types.LSLString("addition"), testList.Data[3]);
+            Assert.AreEqual(typeof(LSL_Types.LSLString), testList.Data[3].GetType());
 
-            LSL_Types.list secondTestList = testList + "more";
+            LSL_Types.list secondTestList = testList + new LSL_Types.LSLString("more");
 
             Assert.AreEqual(5, secondTestList.Length);
-            Assert.AreEqual("more", secondTestList.Data[4]);
-            Assert.AreEqual(typeof(System.String), secondTestList.Data[4].GetType());
+            Assert.AreEqual(new LSL_Types.LSLString("more"), secondTestList.Data[4]);
+            Assert.AreEqual(typeof(LSL_Types.LSLString), secondTestList.Data[4].GetType());
         }
 
         /// <summary>
@@ -64,38 +64,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestConcatenateInteger()
         {
-            LSL_Types.list testList = new LSL_Types.list(1, 'a', "test");
-            testList += 20;
+            LSL_Types.list testList = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger('a'), new LSL_Types.LSLString("test"));
+            testList += new LSL_Types.LSLInteger(20);
 
             Assert.AreEqual(4, testList.Length);
-            Assert.AreEqual(20, testList.Data[3]);
-            Assert.AreEqual(typeof(int), testList.Data[3].GetType());
+            Assert.AreEqual(new LSL_Types.LSLInteger(20), testList.Data[3]);
+            Assert.AreEqual(typeof(LSL_Types.LSLInteger), testList.Data[3].GetType());
 
-            LSL_Types.list secondTestList = testList + 2;
+            LSL_Types.list secondTestList = testList + new LSL_Types.LSLInteger(2);
 
             Assert.AreEqual(5, secondTestList.Length);
-            Assert.AreEqual(2, secondTestList.Data[4]);
-            Assert.AreEqual(typeof(int), secondTestList.Data[4].GetType());
+            Assert.AreEqual(new LSL_Types.LSLInteger(2), secondTestList.Data[4]);
+            Assert.AreEqual(typeof(LSL_Types.LSLInteger), secondTestList.Data[4].GetType());
         }
 
         /// <summary>
-        /// Tests concatenating a double to a list.
+        /// Tests concatenating a float to a list.
         /// </summary>
         [Test]
         public void TestConcatenateDouble()
         {
-          LSL_Types.list testList = new LSL_Types.list(1, 'a', "test");
-          testList += 2.0;
+            LSL_Types.list testList = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger('a'), new LSL_Types.LSLString("test"));
+          testList += new LSL_Types.LSLFloat(2.0f);
 
           Assert.AreEqual(4, testList.Length);
-          Assert.AreEqual(2.0, testList.Data[3]);
-          Assert.AreEqual(typeof(double), testList.Data[3].GetType());
+          Assert.AreEqual(new LSL_Types.LSLFloat(2.0f), testList.Data[3]);
+          Assert.AreEqual(typeof(LSL_Types.LSLFloat), testList.Data[3].GetType());
 
-          LSL_Types.list secondTestList = testList + 0.04;
+          LSL_Types.list secondTestList = testList + new LSL_Types.LSLFloat(0.04f);
 
           Assert.AreEqual(5, secondTestList.Length);
-          Assert.AreEqual(0.04, secondTestList.Data[4]);
-          Assert.AreEqual(typeof(double), secondTestList.Data[4].GetType());
+          Assert.AreEqual(new LSL_Types.LSLFloat(0.04f), secondTestList.Data[4]);
+          Assert.AreEqual(typeof(LSL_Types.LSLFloat), secondTestList.Data[4].GetType());
         }
 
         /// <summary>
