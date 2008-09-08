@@ -1160,7 +1160,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face > -1)
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.A = (float)Math.Abs(alpha - 1);
+                texcolor.A = (float)Math.Abs(alpha);
                 tex.FaceTextures[face].RGBA = texcolor;
                 part.UpdateTexture(tex);
                 return;
@@ -1172,12 +1172,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (tex.FaceTextures[i] != null)
                     {
                         texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.A = (float)Math.Abs(alpha - 1);
+                        texcolor.A = (float)Math.Abs(alpha);
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
                 }
                 texcolor = tex.DefaultTexture.RGBA;
-                texcolor.A = (float)Math.Abs(alpha - 1);
+                texcolor.A = (float)Math.Abs(alpha);
                 tex.DefaultTexture.RGBA = texcolor;
                 part.UpdateTexture(tex);
                 return;
