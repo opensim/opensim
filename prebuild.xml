@@ -837,6 +837,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Region.Interfaces" />
+      <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
@@ -862,7 +863,8 @@
            pattern="Tests/*.cs" worked, we wouldn't need this.
       -->
       <Files>
-        <Match pattern="*.cs" recurse="true" />
+        <!-- SADLY the way this works means you need to keep adding these paths -->
+        <Match path="Modules/World/Terrain/Tests" pattern="*.cs" recurse="true" />
       </Files>
     </Project>
 
