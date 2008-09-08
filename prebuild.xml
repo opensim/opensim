@@ -125,7 +125,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Tests.Framework" path="OpenSim/Tests/Framework" type="Library">
+    <Project name="OpenSim.Framework.Tests" path="OpenSim/Framework/Tests" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1496,7 +1496,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Tests.Region.ScriptEngine.Shared" path="OpenSim/Tests/Region/ScriptEngine/Shared" type="Library">
+    <Project name="OpenSim.Region.ScriptEngine.Shared.Tests" path="OpenSim/Region/ScriptEngine/Shared/Tests" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../../bin/</OutputPath>
@@ -1651,11 +1651,13 @@
       <Reference name="Tools.dll"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
       </Files>
     </Project>
 
-    <Project name="OpenSim.Tests.Region.ScriptEngine.Shared.CodeTools" path="OpenSim/Tests/Region/ScriptEngine/Shared/CodeTools" type="Library">
+    <Project name="OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests" path="OpenSim/Region/ScriptEngine/Shared/CodeTools/Tests" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../../../bin/</OutputPath>
@@ -1974,11 +1976,13 @@
       <Reference name="log4net.dll"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true" >
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
       </Files>
     </Project>
 
-    <Project name="OpenSim.Tests.Region.ScriptEngine.Common" path="OpenSim/Tests/Region/ScriptEngine/Common" type="Library">
+    <Project name="OpenSim.Region.ScriptEngine.Common.Tests" path="OpenSim/Region/ScriptEngine/Common/Tests" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../../bin/</OutputPath>
