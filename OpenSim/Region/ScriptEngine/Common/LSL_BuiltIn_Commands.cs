@@ -4449,7 +4449,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetSoundRadius(double radius)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetSoundRadius");
+            m_host.SoundRadius = radius;
         }
 
         public string llKey2Name(string id)
@@ -4655,53 +4655,24 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.Vector3 llGroundSlope(LSL_Types.Vector3 offset)
         {
             m_host.AddScriptLPS(1);
-
-            Vector3 pos = m_host.AbsolutePosition + new Vector3((float)offset.x,
-                                                                (float)offset.y,
-                                                                (float)offset.z);
-
-            Vector3 p0 = new Vector3(pos.X, pos.Y,
-                                     (float)llGround(
-                                                 new LSL_Types.Vector3(pos.X, pos.Y, pos.Z)
-                                                 ));
-            Vector3 p1 = new Vector3(pos.X + 1, pos.Y,
-                                     (float)llGround(
-                                                 new LSL_Types.Vector3(pos.X + 1, pos.Y, pos.Z)
-                                                 ));
-            Vector3 p2 = new Vector3(pos.X, pos.Y + 1,
-                                     (float)llGround(
-                                                 new LSL_Types.Vector3(pos.X, pos.Y + 1, pos.Z)
-                                                 ));
-
-            Vector3 v0 = new Vector3(
-                p1.X - p0.X, p1.Y - p0.Y, p1.Z - p0.Z);
-            Vector3 v1 = new Vector3(
-                p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
-
-            v0.Normalize();
-            v1.Normalize();
-
-            Vector3 tv = new Vector3();
-            tv.X = (v0.Y * v1.Z) - (v0.Z * v1.Y);
-            tv.Y = (v0.Z * v1.X) - (v0.X * v1.Z);
-            tv.Z = (v0.X * v1.Y) - (v0.Y * v1.X);
-
-            return new LSL_Types.Vector3(tv.X, tv.Y, tv.Z);
+            NotImplemented("llGroundSlope");
+            return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Vector3 llGroundNormal(LSL_Types.Vector3 offset)
         {
             m_host.AddScriptLPS(1);
-            LSL_Types.Vector3 x = llGroundSlope(offset);
-            return new LSL_Types.Vector3(x.x, x.y, 1.0);
+            NotImplemented("llGroundNormal");
+            return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset)
         {
             m_host.AddScriptLPS(1);
-            LSL_Types.Vector3 x = llGroundSlope(offset);
-            return new LSL_Types.Vector3(-x.y, x.x, 0.0);
+            NotImplemented("llGroundContour");
+            return new LSL_Types.Vector3();
         }
+
         public LSL_Types.LSLInteger llGetAttached()
         {
             m_host.AddScriptLPS(1);

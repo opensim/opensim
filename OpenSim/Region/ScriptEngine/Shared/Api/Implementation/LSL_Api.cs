@@ -4350,7 +4350,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetSoundRadius(double radius)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetSoundRadius");
+            m_host.SoundRadius = radius;
         }
 
         public string llKey2Name(string id)
