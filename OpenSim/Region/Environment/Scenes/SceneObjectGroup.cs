@@ -1131,6 +1131,10 @@ namespace OpenSim.Region.Environment.Scenes
                         Name, UUID, m_scene.RegionInfo.RegionName);
 
                     SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
+                    backup_group.RootPart.Velocity = RootPart.Velocity;
+                    backup_group.RootPart.Acceleration = RootPart.Acceleration;
+                    backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;
+                    backup_group.RootPart.ParticleSystem = RootPart.ParticleSystem;
 
                     datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
                     HasGroupChanged = false;

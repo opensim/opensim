@@ -213,6 +213,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (ok)
             {
+                // Make sure we are getting zeroes when running off the
+                // end of grab / degrab packets from old clients
+                //
+                int z;
+                for (z = numBytes ; z < RecvBuffer.Length ; z++)
+                    RecvBuffer[z] = (byte)0;
+
                 epProxy = epSender;
                 if (proxyPortOffset != 0)
                 {

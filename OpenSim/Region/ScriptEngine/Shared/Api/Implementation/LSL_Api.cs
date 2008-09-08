@@ -2173,7 +2173,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
                             "object_rez", new Object[] {
                             new LSL_Types.LSLString(
-                            new_group.RootPart.ToString()) },
+                            new_group.RootPart.UUID.ToString()) },
                             new DetectParams[0]));
 
                     float groupmass = new_group.GetMass();
@@ -2542,6 +2542,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AngularVelocity = new Vector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
             m_host.ScheduleTerseUpdate();
             m_host.SendTerseUpdateToAllClients();
+            m_host.ParentGroup.HasGroupChanged = true;
         }
 
         public LSL_Types.LSLInteger llGetStartParameter()
@@ -3009,6 +3010,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             Vector3 av3 = new Vector3((float)color.x, (float)color.y, (float)color.z);
             m_host.SetText(text, av3, alpha);
+            m_host.ParentGroup.HasGroupChanged = true;
         }
 
         public double llWater(LSL_Types.Vector3 offset)
@@ -4396,6 +4398,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddTextureAnimation(pTexAnim);
             m_host.SendFullUpdateToAllClients();
+            m_host.ParentGroup.HasGroupChanged = true;
         }
 
         public void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east,
@@ -4713,6 +4716,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (rules.Length == 0)
             {
                 m_host.RemoveParticleSystem();
+                m_host.ParentGroup.HasGroupChanged = true;
             }
             else
             {
@@ -4857,6 +4861,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 prules.CRC = 1;
 
                 m_host.AddNewParticleSystem(prules);
+                m_host.ParentGroup.HasGroupChanged = true;
             }
             m_host.SendFullUpdateToAllClients();
         }
@@ -7260,10 +7265,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
             m_host.ParentGroup.RootPart.PayPrice[0]=price;
-            m_host.ParentGroup.RootPart.PayPrice[1]=(int)quick_pay_buttons.Data[0];
-            m_host.ParentGroup.RootPart.PayPrice[2]=(int)quick_pay_buttons.Data[1];
-            m_host.ParentGroup.RootPart.PayPrice[3]=(int)quick_pay_buttons.Data[2];
-            m_host.ParentGroup.RootPart.PayPrice[4]=(int)quick_pay_buttons.Data[3];
+
+            m_host.ParentGroup.RootPart.PayPrice[1]=(LSL_Types.LSLInteger)quick_pay_buttons.Data[0];
+            m_host.ParentGroup.RootPart.PayPrice[2]=(LSL_Types.LSLInteger)quick_pay_buttons.Data[1];
+            m_host.ParentGroup.RootPart.PayPrice[3]=(LSL_Types.LSLInteger)quick_pay_buttons.Data[2];
+            m_host.ParentGroup.RootPart.PayPrice[4]=(LSL_Types.LSLInteger)quick_pay_buttons.Data[3];
+            m_host.ParentGroup.HasGroupChanged = true;
         }
 
         public LSL_Types.Vector3 llGetCameraPos()

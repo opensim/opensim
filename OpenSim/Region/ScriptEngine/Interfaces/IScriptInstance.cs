@@ -53,6 +53,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     public interface IScriptInstance
     {
         bool Running { get; set; }
+        bool ShuttingDown { get; set; }
         string State { get; set; }
         IScriptEngine Engine { get; }
         UUID AppDomain { get; set; }

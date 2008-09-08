@@ -1315,6 +1315,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
+      <Reference name="System.Drawing"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Data.MapperFactory"/>
@@ -1385,6 +1386,7 @@
       <Reference name="System.Data"/>
       <Reference name="System.Data.SQLite.dll"/>
       <Reference name="OpenSim.Data"/>
+      <Reference name="System.Drawing"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment"/>

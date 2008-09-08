@@ -856,7 +856,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             foreach (IScriptInstance i in instances)
             {
+                // Stop the script, even forcibly if needed. Then flag
+                // it as shutting down and restore the previous run state
+                // for serialization, so the scripts don't come back
+                // dead after region restart
+                //
+                bool prevRunning = i.Running;
                 i.Stop(50);
+                i.ShuttingDown = true;
+                i.Running = prevRunning;
             }
 
             DoBackup(new Object[] {0});

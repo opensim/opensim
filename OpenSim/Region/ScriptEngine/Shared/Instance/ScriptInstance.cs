@@ -74,6 +74,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private bool m_InSelfDelete = false;
         private int m_MaxScriptQueue;
         private bool m_SaveState = true;
+        private bool m_ShuttingDown = false;
 
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
 
@@ -86,6 +87,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         {
             get { return m_RunEvents; }
             set { m_RunEvents = value; }
+        }
+
+        public bool ShuttingDown
+        {
+            get { return m_ShuttingDown; }
+            set { m_ShuttingDown = value; }
         }
 
         public string State
@@ -248,7 +255,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                             m_Engine.Log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", m_PrimName, m_ScriptName);
 
-                            if (m_RunEvents)
+                            if (m_RunEvents && (!m_ShuttingDown))
                             {
                                 m_RunEvents = false;
                                 Start();
@@ -517,7 +524,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         {
                             lock (m_EventQueue)
                             {
-                                if ((m_EventQueue.Count > 0) && m_RunEvents)
+                                if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
                                 {
                                     m_CurrentResult=m_Engine.QueueEventHandler(this);
                                 }
@@ -564,7 +571,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             lock (m_EventQueue)
             {
-                if ((m_EventQueue.Count > 0) && m_RunEvents)
+                if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
                 {
                     m_CurrentResult = m_Engine.QueueEventHandler(this);
                 }

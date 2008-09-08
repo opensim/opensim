@@ -433,6 +433,13 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_TextureAnimation = value; }
         }
 
+        [XmlIgnore]
+        public Byte[] ParticleSystem
+        {
+            get { return m_particleSystem; }
+            set { m_particleSystem = value; }
+        }
+
         public Vector3 GroupPosition
         {
             get
@@ -1212,9 +1219,9 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.GroupPosition = GroupPosition;
             dupe.OffsetPosition = OffsetPosition;
             dupe.RotationOffset = RotationOffset;
-            dupe.Velocity = Vector3.Zero;
-            dupe.Acceleration = Vector3.Zero;
-            dupe.AngularVelocity = Vector3.Zero;
+            dupe.Velocity = new Vector3(0, 0, 0);
+            dupe.Acceleration = new Vector3(0, 0, 0);
+            dupe.AngularVelocity = new Vector3(0, 0, 0);
             dupe.ObjectFlags = ObjectFlags;
 
             dupe._ownershipCost = _ownershipCost;

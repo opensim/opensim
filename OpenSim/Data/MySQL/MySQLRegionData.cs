@@ -31,6 +31,7 @@ using System.Data;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Drawing;
 using OpenMetaverse;
 using log4net;
 using MySql.Data.MySqlClient;
@@ -858,6 +859,10 @@ namespace OpenSim.Data.MySQL
             createCol(prims, "SceneGroupID", typeof (String));
             // various text fields
             createCol(prims, "Text", typeof (String));
+            createCol(prims, "ColorR", typeof (Int32));
+            createCol(prims, "ColorG", typeof (Int32));
+            createCol(prims, "ColorB", typeof (Int32));
+            createCol(prims, "ColorA", typeof (Int32));
             createCol(prims, "Description", typeof (String));
             createCol(prims, "SitName", typeof (String));
             createCol(prims, "TouchName", typeof (String));
@@ -912,6 +917,7 @@ namespace OpenSim.Data.MySQL
             createCol(prims, "LoopedSound", typeof(String));
             createCol(prims, "LoopedSoundGain", typeof(Double));
             createCol(prims, "TextureAnimation", typeof(Byte[]));
+            createCol(prims, "ParticleSystem", typeof(Byte[]));
 
             createCol(prims, "OmegaX", typeof (Double));
             createCol(prims, "OmegaY", typeof (Double));
@@ -1109,6 +1115,10 @@ namespace OpenSim.Data.MySQL
             prim.Name = (String) row["Name"];
             // various text fields
             prim.Text = (String) row["Text"];
+            prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorA"]),
+                                        Convert.ToInt32(row["ColorR"]),
+                                        Convert.ToInt32(row["ColorG"]),
+                                        Convert.ToInt32(row["ColorB"]));
             prim.Description = (String) row["Description"];
             prim.SitName = (String) row["SitName"];
             prim.TouchName = (String) row["TouchName"];
@@ -1180,15 +1190,14 @@ namespace OpenSim.Data.MySQL
 
             if (!row.IsNull("TextureAnimation"))
                 prim.TextureAnimation = (Byte[])row["TextureAnimation"];
+            if (!row.IsNull("ParticleSystem"))
+                prim.ParticleSystem = (Byte[])row["ParticleSystem"];
 
             prim.RotationalVelocity = new Vector3(
                 Convert.ToSingle(row["OmegaX"]),
                 Convert.ToSingle(row["OmegaY"]),
                 Convert.ToSingle(row["OmegaZ"])
                 );
-
-            // TODO: Rotation
-            // OmegaX, OmegaY, OmegaZ
 
             prim.SetCameraEyeOffset(new Vector3(
                 Convert.ToSingle(row["CameraEyeOffsetX"]),
@@ -1419,6 +1428,10 @@ namespace OpenSim.Data.MySQL
                 // the UUID of the root part for this SceneObjectGroup
             // various text fields
             row["Text"] = prim.Text;
+            row["ColorR"] = prim.Color.R;
+            row["ColorG"] = prim.Color.G;
+            row["ColorB"] = prim.Color.B;
+            row["ColorA"] = prim.Color.A;
             row["Description"] = prim.Description;
             row["SitName"] = prim.SitName;
             row["TouchName"] = prim.TouchName;
@@ -1485,6 +1498,7 @@ namespace OpenSim.Data.MySQL
             }
 
             row["TextureAnimation"] = prim.TextureAnimation;
+            row["ParticleSystem"] = prim.ParticleSystem;
 
             row["OmegaX"] = prim.RotationalVelocity.X;
             row["OmegaY"] = prim.RotationalVelocity.Y;

@@ -31,6 +31,7 @@ using System.Data;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Drawing;
 using OpenMetaverse;
 using log4net;
 using Mono.Data.SqliteClient;
@@ -666,6 +667,10 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "SceneGroupID", typeof (String));
             // various text fields
             createCol(prims, "Text", typeof (String));
+            createCol(prims, "ColorR", typeof (Int32));
+            createCol(prims, "ColorG", typeof (Int32));
+            createCol(prims, "ColorB", typeof (Int32));
+            createCol(prims, "ColorA", typeof (Int32));
             createCol(prims, "Description", typeof (String));
             createCol(prims, "SitName", typeof (String));
             createCol(prims, "TouchName", typeof (String));
@@ -890,6 +895,10 @@ namespace OpenSim.Data.SQLite
             prim.Name = (String) row["Name"];
             // various text fields
             prim.Text = (String) row["Text"];
+            prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorA"]),
+                                        Convert.ToInt32(row["ColorR"]),
+                                        Convert.ToInt32(row["ColorG"]),
+                                        Convert.ToInt32(row["ColorB"]));
             prim.Description = (String) row["Description"];
             prim.SitName = (String) row["SitName"];
             prim.TouchName = (String) row["TouchName"];
