@@ -290,11 +290,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="item"></param>
         public void AddInventoryItem(TaskInventoryItem item)
         {
-            string name = FindAvailableInventoryName(item.Name);
-            if (name == String.Empty)
-                return;
-
-            AddInventoryItem(name, item);
+            AddInventoryItem(item.Name, item);
         }
 
         /// <summary>
@@ -335,6 +331,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             item.ParentID = UUID;
             item.ParentPartID = UUID;
+            item.Name = name;
 
             lock (m_taskInventory)
             {
