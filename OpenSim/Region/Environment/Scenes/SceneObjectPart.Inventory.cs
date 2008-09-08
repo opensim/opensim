@@ -329,6 +329,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </param>
         protected void AddInventoryItem(string name, TaskInventoryItem item)
         {
+            name = FindAvailableInventoryName(name);
+            if (name == String.Empty)
+                return;
+
             item.ParentID = UUID;
             item.ParentPartID = UUID;
 
