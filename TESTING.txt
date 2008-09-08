@@ -1,3 +1,47 @@
+=== The Quick Guide to OpenSim Unit Testing ===
+
+== Running Tests ==
+
+On Linux:
+   
+    > nant test
+
+This will print out to the console the test state.
+
+On Windows: ??
+
+
+
+Also, every checkin will run tests that are kicked off by bamboo.
+Results are posted here: http://www.opensimulator.org:8085/ as well as
+to #opensim-dev IRC channel.
+
+== Writing Tests ==
+
+Tests are written to run under NUnit.  For more information on NUnit
+please see: http://www.nunit.org/index.php
+
+== Adding Tests ==
+
+Tests should not be added to production assemblies.  They should
+instead be added to assemblies of the name
+My.Production.Assembly.Tests.dll.  This lets them easily be removed
+from production environments that don't want the bloat.
+
+Tests should be as close to the code as possible.  It is recommended
+that if you are writing tests they end up in a "Tests" sub-directory
+of the directory where the code you are testing resides.
+
+If you have added a new test assembly that hasn't existed before you
+must list it in both ".nant/local.include" and ".nant/bamboo.build"
+for it to be accessible to Linux users and to the continuous
+integration system.
+
+
+=== The Gory Details ===
+The following is the original document which started off this
+document.  It should probably be better integrated with the new info.
+
 ==UPDATE==
 
 The text immediately following is an update to the testing documentation. The
