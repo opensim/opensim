@@ -205,7 +205,10 @@ namespace OpenSim
         {
             IConfigSource DefaultConfig = new IniConfigSource();
             if (DefaultConfig.Configs["Startup"] == null)
+            {
                 DefaultConfig.AddConfig("Startup");
+            }
+
             IConfig config = DefaultConfig.Configs["Startup"];
             if (config != null)
             {
@@ -225,7 +228,9 @@ namespace OpenSim
             }
 
             if (DefaultConfig.Configs["StandAlone"] == null)
+            {
                 DefaultConfig.AddConfig("StandAlone");
+            }
 
             config = DefaultConfig.Configs["StandAlone"];
             if (config != null)
@@ -242,7 +247,10 @@ namespace OpenSim
             }
 
             if (DefaultConfig.Configs["Network"] == null)
+            {
                 DefaultConfig.AddConfig("Network");
+            }
+
             config = DefaultConfig.Configs["Network"];
             if (config != null)
             {
@@ -262,7 +270,10 @@ namespace OpenSim
             }
 
             if (DefaultConfig.Configs["RemoteAdmin"] == null)
+            {
                 DefaultConfig.AddConfig("RemoteAdmin");
+            }
+
             config = DefaultConfig.Configs["RemoteAdmin"];
             if (config != null)
             {
@@ -270,12 +281,16 @@ namespace OpenSim
             }
 
             if (DefaultConfig.Configs["Voice"] == null)
+            {
                 DefaultConfig.AddConfig("Voice");
+            }
+
             config = DefaultConfig.Configs["Voice"];
             if (config != null)
             {
                 config.Set("enabled", "false");
             }
+
             return DefaultConfig;
 
         }
@@ -741,18 +756,23 @@ namespace OpenSim
                 return;
             }
 
-            if (null != inventoryFolder)
+            if (null == inventoryFolder)
             {
-                m_log.InfoFormat("[CONSOLE]: Found folder {0} {1} at {2}", inventoryFolder.Name, inventoryFolder.ID, invPath);
-            }
-            else if (null != inventoryItem)
-            {
-                m_log.InfoFormat("[CONSOLE]: Found item {0} {1} at {2}", inventoryItem.Name, inventoryItem.ID, invPath);
+                if (null == inventoryItem)
+                {
+                    m_log.ErrorFormat("[CONSOLE]: Could not find inventory entry at path {0}", invPath);
+                    return;
+                }
+                else
+                {
+                    m_log.InfoFormat("[CONSOLE]: Found item {0} {1} at {2}", inventoryItem.Name, inventoryItem.ID,
+                                     invPath);
+                }
             }
             else
             {
-                m_log.ErrorFormat("[CONSOLE]: Could not find inventory entry at path {0}", invPath);
-                return;
+                m_log.InfoFormat("[CONSOLE]: Found folder {0} {1} at {2}", inventoryFolder.Name, inventoryFolder.ID,
+                                 invPath);
             }
         }
 

@@ -77,6 +77,7 @@ namespace OpenSim
 
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
             }
+
             base.ReadConfigSettings();
         }
 
@@ -96,13 +97,13 @@ namespace OpenSim
             base.Startup();
 
             //Run Startup Commands
-            if (m_startupCommandsFile != String.Empty)
+            if (String.IsNullOrEmpty( m_startupCommandsFile ))
             {
-                RunCommandScript(m_startupCommandsFile);
+                m_log.Info("[STARTUP]: No startup command script specified. Moving on...");
             }
             else
             {
-                m_log.Info("[STARTUP]: No startup command script specified. Moving on...");
+                RunCommandScript(m_startupCommandsFile);
             }
 
             // Start timer script (run a script every xx seconds)
@@ -365,6 +366,7 @@ namespace OpenSim
                         {
                             m_sceneManager.TrySetCurrentScene("..");
                         }
+
                         m_regionData.Remove(killScene.RegionInfo);
                         m_sceneManager.CloseScene(killScene);
                     }

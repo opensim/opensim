@@ -396,36 +396,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             //m_log.ErrorFormat("[PROXY] Got message from {0} in thread {1}, size {2}", senderEP, sd.clientEP, numBytes);
             EndPoint client = proxy_map.GetClient(senderEP);
 
-            if (client != null)
-            {
-                try
-                {
-                    client = ProxyCodec.DecodeProxyMessage(buffer, ref numBytes);
-                    try
-                    {
-                        // This message comes from a region object, forward it to the its client
-                        sd.server.SendTo(buffer, numBytes, SocketFlags.None, client);
-                        //m_log.InfoFormat("[PROXY] Sending region message from {0} to {1}, size {2}", senderEP, client, numBytes);
-                    }
-                    catch (Exception e)
-                    {
-                        OpenPort(sd); // reopen the port just in case
-                        m_log.ErrorFormat("[PROXY] Failed sending region message from {0} to {1}", senderEP, client);
-                        m_log.Error("[PROXY]" + e.Message);
-                        m_log.Error("[PROXY]" + e.StackTrace);
-                        return;
-                    }
-                }
-                catch (Exception e)
-                {
-                    OpenPort(sd); // reopen the port just in case
-                    m_log.ErrorFormat("[PROXY] Failed decoding region message from {0}", senderEP);
-                    m_log.Error("[PROXY]" + e.Message);
-                    m_log.Error("[PROXY]" + e.StackTrace);
-                    return;
-                }
-            }
-            else
+            if (client == null)
             {
                 // This message comes from a client object, forward it to the the region(s)
                 ProxyCodec.EncodeProxyMessage(buffer, ref numBytes, senderEP);
@@ -452,6 +423,35 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                             return;
                         }
                     }
+                }
+            }
+            else
+            {
+                try
+                {
+                    client = ProxyCodec.DecodeProxyMessage(buffer, ref numBytes);
+                    try
+                    {
+                        // This message comes from a region object, forward it to the its client
+                        sd.server.SendTo(buffer, numBytes, SocketFlags.None, client);
+                        //m_log.InfoFormat("[PROXY] Sending region message from {0} to {1}, size {2}", senderEP, client, numBytes);
+                    }
+                    catch (Exception e)
+                    {
+                        OpenPort(sd); // reopen the port just in case
+                        m_log.ErrorFormat("[PROXY] Failed sending region message from {0} to {1}", senderEP, client);
+                        m_log.Error("[PROXY]" + e.Message);
+                        m_log.Error("[PROXY]" + e.StackTrace);
+                        return;
+                    }
+                }
+                catch (Exception e)
+                {
+                    OpenPort(sd); // reopen the port just in case
+                    m_log.ErrorFormat("[PROXY] Failed decoding region message from {0}", senderEP);
+                    m_log.Error("[PROXY]" + e.Message);
+                    m_log.Error("[PROXY]" + e.StackTrace);
+                    return;
                 }
             }
         }

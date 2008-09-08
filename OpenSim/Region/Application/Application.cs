@@ -117,7 +117,9 @@ namespace OpenSim
             msg += "Exception: " + e.ExceptionObject.ToString() + "\r\n";
             Exception ex = (Exception)e.ExceptionObject;
             if (ex.InnerException != null)
+            {
                 msg += "InnerException: " + ex.InnerException.ToString() + "\r\n";
+            }
 
             msg += "\r\n";
             msg += "Application is terminating: " + e.IsTerminating.ToString() + "\r\n";

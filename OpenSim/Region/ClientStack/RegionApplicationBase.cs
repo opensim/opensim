@@ -138,29 +138,30 @@ namespace OpenSim.Region.ClientStack
             // TODO: Remove this cruft once MasterAvatar is fully deprecated
             //Master Avatar Setup
             UserProfileData masterAvatar;
-            if (scene.RegionInfo.MasterAvatarAssignedUUID != UUID.Zero)
-            {
-                masterAvatar = m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarAssignedUUID);
-                scene.RegionInfo.MasterAvatarFirstName = masterAvatar.FirstName;
-                scene.RegionInfo.MasterAvatarLastName = masterAvatar.SurName;
-            }
-            else
+            if (scene.RegionInfo.MasterAvatarAssignedUUID == UUID.Zero)
             {
                 masterAvatar =
                     m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName,
                                                                scene.RegionInfo.MasterAvatarLastName,
                                                                scene.RegionInfo.MasterAvatarSandboxPassword);
             }
-
-            if (masterAvatar != null)
-            {
-                m_log.InfoFormat("[PARCEL]: Found master avatar {0} {1} [" + masterAvatar.ID.ToString() + "]", scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName);
-                scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.ID;
-            }
             else
+            {
+                masterAvatar = m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarAssignedUUID);
+                scene.RegionInfo.MasterAvatarFirstName = masterAvatar.FirstName;
+                scene.RegionInfo.MasterAvatarLastName = masterAvatar.SurName;
+            }
+
+            if (masterAvatar == null)
             {
                 m_log.Info("[PARCEL]: No master avatar found, using null.");
                 scene.RegionInfo.MasterAvatarAssignedUUID = UUID.Zero;
+            }
+            else
+            {
+                m_log.InfoFormat("[PARCEL]: Found master avatar {0} {1} [" + masterAvatar.ID.ToString() + "]",
+                                 scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName);
+                scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.ID;
             }
 
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);

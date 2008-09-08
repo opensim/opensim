@@ -159,14 +159,14 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
                         state.ms_ptr.Seek(0, SeekOrigin.End);
                         // call loadbarancer function
-                        if (PacketHandler != null)
+                        if (PacketHandler == null)
                         {
-                            //MainLog.Instance.Verbose("TCPSERVER", "calling PacketHandler");
-                            PacketHandler(state.header, packet);
+                            //MainLog.Instance.Verbose("TCPSERVER", "PacketHandler not found");
                         }
                         else
                         {
-                            //MainLog.Instance.Verbose("TCPSERVER", "PacketHandler not found");
+                            //MainLog.Instance.Verbose("TCPSERVER", "calling PacketHandler");
+                            PacketHandler(state.header, packet);
                         }
 
                         int read_size = state.header.numbytes + TcpClient.internalPacketHeaderSize;
