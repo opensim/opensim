@@ -799,6 +799,49 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
 
+      <!-- For scripting in funny languages by default -->
+      <Reference name="Microsoft.JScript"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Data.Base"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+      <Reference name="DotNetOpenMail.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Region.Environment.Tests" path="OpenSim/Region/Environment" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Drawing"/>
+      <Reference name="System.Runtime.Remoting"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Data" />
+      <Reference name="OpenSim.Region.Interfaces" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+
       <!-- Unit tests -->
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="nunit.framework.dll"/>
@@ -812,8 +855,14 @@
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
 
+      <!-- 
+           TODO: this is kind of lame, we basically build a duplicate
+           assembly but with tests added in, just so that we don't
+           need to hard code in a bunch of Test directories here.  If
+           pattern="Tests/*.cs" worked, we wouldn't need this.
+      -->
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true" />
       </Files>
     </Project>
 
