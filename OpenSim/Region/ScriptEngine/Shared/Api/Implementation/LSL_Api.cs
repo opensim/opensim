@@ -5616,7 +5616,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // cut
-                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++].ToString());
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5630,7 +5630,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // cut
-                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++].ToString());
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5645,7 +5645,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
-                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++].ToString());
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
@@ -5659,7 +5659,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // cut
-                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++].ToString());
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // dimple
                                 part.Shape.PathCurve = (byte)Extrusion.Curve1;
@@ -5672,15 +5672,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
-                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++].ToString());
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 holesize = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 profilecut = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // taper_a
-                                revolutions = (float)Convert.ToDouble(rules.Data[idx++]);
-                                radiusoffset = (float)Convert.ToDouble(rules.Data[idx++]);
-                                skew = (float)Convert.ToDouble(rules.Data[idx++]);
+                                revolutions = (float)Convert.ToDouble(rules.Data[idx++].ToString());
+                                radiusoffset = (float)Convert.ToDouble(rules.Data[idx++].ToString());
+                                skew = (float)Convert.ToDouble(rules.Data[idx++].ToString());
                                 part.Shape.PathCurve = (byte)Extrusion.Curve1;
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 0);
                                 break;
@@ -5691,15 +5691,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
-                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++].ToString());
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 holesize = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 profilecut = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // taper_a
-                                revolutions = (float)Convert.ToDouble(rules.Data[idx++]);
-                                radiusoffset = (float)Convert.ToDouble(rules.Data[idx++]);
-                                skew = (float)Convert.ToDouble(rules.Data[idx++]);
+                                revolutions = (float)Convert.ToDouble(rules.Data[idx++].ToString());
+                                radiusoffset = (float)Convert.ToDouble(rules.Data[idx++].ToString());
+                                skew = (float)Convert.ToDouble(rules.Data[idx++].ToString());
                                 part.Shape.PathCurve = (byte)Extrusion.Curve1;
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 1);
                                 break;
@@ -5710,15 +5710,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 face = Convert.ToInt32(rules.Data[idx++].ToString()); // holeshape
                                 v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
-                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++].ToString());
                                 twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 holesize = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 profilecut = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // taper_a
-                                revolutions = (float)Convert.ToDouble(rules.Data[idx++]);
-                                radiusoffset = (float)Convert.ToDouble(rules.Data[idx++]);
-                                skew = (float)Convert.ToDouble(rules.Data[idx++]);
+                                revolutions = (float)Convert.ToDouble(rules.Data[idx++].ToString());
+                                radiusoffset = (float)Convert.ToDouble(rules.Data[idx++].ToString());
+                                skew = (float)Convert.ToDouble(rules.Data[idx++].ToString());
                                 part.Shape.PathCurve = (byte)Extrusion.Curve1;
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 3);
                                 break;
@@ -5744,7 +5744,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         string tex=rules.Data[idx++].ToString();
                         LSL_Types.Vector3 repeats=new LSL_Types.Vector3(rules.Data[idx++].ToString());
                         LSL_Types.Vector3 offsets=new LSL_Types.Vector3(rules.Data[idx++].ToString());
-                        double rotation=Convert.ToDouble(rules.Data[idx++]);
+                        double rotation=Convert.ToDouble(rules.Data[idx++].ToString());
 
                         SetTexture(part, tex, face);
                         ScaleTexture(part, repeats.x, repeats.y, face);
@@ -5759,7 +5759,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         face=Convert.ToInt32(rules.Data[idx++].ToString());
                         LSL_Types.Vector3 color=new LSL_Types.Vector3(rules.Data[idx++].ToString());
-                        double alpha=Convert.ToDouble(rules.Data[idx++]);
+                        double alpha=Convert.ToDouble(rules.Data[idx++].ToString());
 
                         SetColor(part, color, face);
                         SetAlpha(part, alpha, face);
@@ -5785,9 +5785,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
                         LSL_Types.LSLInteger light = new LSL_Types.LSLInteger(rules.Data[idx++].ToString());
                         LSL_Types.Vector3 lightcolor = new LSL_Types.Vector3(rules.Data[idx++].ToString());
-                        float intensity = (float)Convert.ToDouble(rules.Data[idx++]);
-                        float radius = (float)Convert.ToDouble(rules.Data[idx++]);
-                        float falloff = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float intensity = (float)Convert.ToDouble(rules.Data[idx++].ToString());
+                        float radius = (float)Convert.ToDouble(rules.Data[idx++].ToString());
+                        float falloff = (float)Convert.ToDouble(rules.Data[idx++].ToString());
 
                         SetPointLight(part, light, lightcolor, intensity, radius, falloff);
 
@@ -5796,7 +5796,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 2)
                             return;
                         face = Convert.ToInt32(rules.Data[idx++].ToString());
-                        float glow = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float glow = (float)Convert.ToDouble(rules.Data[idx++].ToString());
 
                         SetGlow(part, face, glow);
 
@@ -5806,7 +5806,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
                         face = Convert.ToInt32(rules.Data[idx++].ToString());
                         int shiny = Convert.ToInt32(rules.Data[idx++].ToString());
-                        Bumpiness bump = (Bumpiness)Convert.ToByte(rules.Data[idx++]);
+                        Bumpiness bump = (Bumpiness)Convert.ToByte(rules.Data[idx++].ToString());
 
                         SetShiny(part, face, shiny, bump);
 
@@ -5831,7 +5831,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             /* Unhandled at this time - sends "Unhandled" message
                                will enable when available
-                            byte material = (byte)Convert.ToByte( rules.Data[idx++]);
+                            byte material = (byte)Convert.ToByte( rules.Data[idx++].ToString());
                             part.Material =  material;
                             */
                             return;
