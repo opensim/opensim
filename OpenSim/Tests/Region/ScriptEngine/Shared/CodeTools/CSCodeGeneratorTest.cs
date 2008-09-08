@@ -1544,7 +1544,7 @@ default
         }
 
         [Test]
-        [ExpectedException("Tools.CSToolsException")]
+        [ExpectedException(typeof(Tools.CSToolsException))]
         public void TestSyntaxError()
         {
             string input = @"default
@@ -1574,7 +1574,7 @@ default
         }
 
         [Test]
-        [ExpectedException("Tools.CSToolsException")]
+        [ExpectedException(typeof(Tools.CSToolsException))]
         public void TestSyntaxErrorDeclaringVariableInForLoop()
         {
             string input = @"default
