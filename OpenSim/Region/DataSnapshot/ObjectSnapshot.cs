@@ -105,6 +105,9 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
                     m_log.Debug("[DATASNAPSHOT]: Found object " + obj.Name + " in scene");
 
+                    // libomv will complain about PrimFlags.JointWheel
+                    // being obsolete, so we...
+                    #pragma warning disable 0612
                     if ((obj.RootPart.Flags & PrimFlags.JointWheel) == PrimFlags.JointWheel) {
                         XmlNode xmlobject = nodeFactory.CreateNode(XmlNodeType.Element, "object", "");
 
@@ -142,6 +145,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         }
                         parent.AppendChild(xmlobject);
                     }
+                    #pragma warning disable 0612
                 }
             }
             this.Stale = false;

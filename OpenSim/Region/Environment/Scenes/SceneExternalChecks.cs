@@ -67,6 +67,9 @@ namespace OpenSim.Region.Environment.Scenes
             if (part == null)
                 return 0;
 
+            // libomv will moan about PrimFlags.ObjectYouOfficer being
+            // obsolete...
+            #pragma warning disable 0612
             uint perms=part.GetEffectiveObjectFlags() |
                 (uint)PrimFlags.ObjectModify |
                 (uint)PrimFlags.ObjectCopy |
@@ -76,6 +79,7 @@ namespace OpenSim.Region.Environment.Scenes
                 (uint)PrimFlags.ObjectAnyOwner |
                 (uint)PrimFlags.ObjectOwnerModify |
                 (uint)PrimFlags.ObjectYouOfficer;
+            #pragma warning restore 0612
 
             foreach (GenerateClientFlags check in GenerateClientFlagsCheckFunctions)
             {

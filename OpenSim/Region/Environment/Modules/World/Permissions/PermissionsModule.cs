@@ -312,6 +312,9 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             // Remove any of the objectFlags that are temporary.  These will get added back if appropriate
             // in the next bit of code
 
+            // libomv will moan about PrimFlags.ObjectYouOfficer being
+            // deprecated
+            #pragma warning disable 0612 
             objflags &= (uint)
                 ~(PrimFlags.ObjectCopy | // Tells client you can copy the object
                   PrimFlags.ObjectModify | // tells client you can modify the object
@@ -322,6 +325,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                   PrimFlags.ObjectOwnerModify | // Tells client that you're the owner of the object
                   PrimFlags.ObjectYouOfficer // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
                     );
+            #pragma warning restore 0612
 
             // Creating the three ObjectFlags options for this method to choose from.
             // Customize the OwnerMask

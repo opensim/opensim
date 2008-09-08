@@ -1509,6 +1509,9 @@ namespace OpenSim.Region.Environment.Scenes
             // * Asset/DRM permission bit "modify" is enabled
             //use CanEditObjectPosition
 
+            // libomv will complain about PrimFlags.JointWheel being
+            // deprecated, so we
+            #pragma warning disable 0612
             if (IncludeInSearch && m_parentScene.ExternalChecks.ExternalChecksCanEditObject(objid, user))
             {
                 obj.ParentGroup.RootPart.AddFlag(PrimFlags.JointWheel);
@@ -1517,6 +1520,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 obj.ParentGroup.RootPart.RemFlag(PrimFlags.JointWheel);
             }
+            #pragma warning restore 0612
         }
 
         /// <summary>
