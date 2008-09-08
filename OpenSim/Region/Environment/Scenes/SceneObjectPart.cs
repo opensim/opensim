@@ -1897,9 +1897,9 @@ namespace OpenSim.Region.Environment.Scenes
                     // remove values from aggregated script events
                     AggregateScriptEvents &= ~oldparts;
                     m_scriptEvents.Remove(scriptid);
+                    aggregateScriptEvents();
                 }
             }
-            aggregateScriptEvents();
         }
 
         /// <summary>
@@ -2354,6 +2354,8 @@ namespace OpenSim.Region.Environment.Scenes
                     // oldparts = m_scriptEvents[scriptid];
 
                     // remove values from aggregated script events
+                    if (m_scriptEvents[scriptid] == (scriptEvents) events)
+                        return;
                     m_scriptEvents[scriptid] = (scriptEvents) events;
                 }
                 else
@@ -3205,6 +3207,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void aggregateScriptEvents()
         {
+            AggregateScriptEvents = 0;
+
             // Aggregate script events
             lock (m_scriptEvents)
             {

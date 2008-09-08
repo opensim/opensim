@@ -4730,98 +4730,92 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     switch ((int)rules.Data[i])
                     {
                         case (int)ScriptBaseClass.PSYS_PART_FLAGS:
-                            prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)((uint)Convert.ToInt32(rules.Data[i + 1].ToString()));
+                            prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)(uint)rules.GetLSLIntegerItem(i + 1);
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_START_COLOR:
-                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.PartStartColor.R = (float)tempv.x;
                             prules.PartStartColor.G = (float)tempv.y;
                             prules.PartStartColor.B = (float)tempv.z;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_START_ALPHA:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                            prules.PartStartColor.A = (float)tempf;
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.PartStartColor.A = tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_END_COLOR:
-                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
-                            //prules.PartEndColor = new Color4(tempv.x,tempv.y,tempv.z,1);
-
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.PartEndColor.R = (float)tempv.x;
                             prules.PartEndColor.G = (float)tempv.y;
                             prules.PartEndColor.B = (float)tempv.z;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_END_ALPHA:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                            prules.PartEndColor.A = (float)tempf;
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.PartEndColor.A = tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_START_SCALE:
-                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.PartStartScaleX = (float)tempv.x;
                             prules.PartStartScaleY = (float)tempv.y;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_END_SCALE:
-                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.PartEndScaleX = (float)tempv.x;
                             prules.PartEndScaleY = (float)tempv.y;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_MAX_AGE:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                            prules.PartMaxAge = (float)tempf;
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.PartMaxAge = tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_ACCEL:
-                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.PartAcceleration.X = (float)tempv.x;
                             prules.PartAcceleration.Y = (float)tempv.y;
                             prules.PartAcceleration.Z = (float)tempv.z;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_PATTERN:
-                            int tmpi = int.Parse(rules.Data[i + 1].ToString());
+                            int tmpi = (int)rules.GetLSLIntegerItem(i + 1);
                             prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                             break;
 
-                        // Xantor 20080503
-                        // Wiki:    PSYS_SRC_TEXTURE      string      inventory item name or key of the particle texture
-                        //          "" = default texture.
-                        // 20080530 Updated to remove code duplication
                         case (int)ScriptBaseClass.PSYS_SRC_TEXTURE:
-                            prules.Texture = KeyOrName(rules.Data[i + 1].ToString());
+                            prules.Texture = KeyOrName(rules.GetLSLStringItem(i + 1));
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_RATE:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.BurstRate = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_PART_COUNT:
-                            prules.BurstPartCount = (byte)Convert.ToByte(rules.Data[i + 1].ToString());
+                            prules.BurstPartCount = (byte)(int)rules.GetLSLIntegerItem(i + 1);
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_RADIUS:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.BurstRadius = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_SPEED_MIN:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.BurstSpeedMin = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_SPEED_MAX:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.BurstSpeedMax = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_MAX_AGE:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.MaxAge = (float)tempf;
                             break;
 
@@ -4839,20 +4833,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PSYS_SRC_OMEGA:
                             // AL: This is an assumption, since it is the only thing that would match.
-                            tempv = (LSL_Types.Vector3)rules.Data[i + 1];
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.AngularVelocity.X = (float)tempv.x;
                             prules.AngularVelocity.Y = (float)tempv.y;
                             prules.AngularVelocity.Z = (float)tempv.z;
-                            //cast??                    prules.MaxAge = (float)rules[i + 1];
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_ANGLE_BEGIN:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.InnerAngle = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_ANGLE_END:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.OuterAngle = (float)tempf;
                             break;
                     }

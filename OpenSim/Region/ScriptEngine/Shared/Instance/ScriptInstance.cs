@@ -255,6 +255,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                             m_Engine.Log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", m_PrimName, m_ScriptName);
 
+                            part.SetScriptEvents(m_ItemID,
+                                    (int)m_Script.GetStateEventFlags(State));
+
                             if (m_RunEvents && (!m_ShuttingDown))
                             {
                                 m_RunEvents = false;
@@ -612,6 +615,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_EventQueue.Clear();
             m_Script.ResetVars();
             m_State = "default";
+
+            part.SetScriptEvents(m_ItemID,
+                                 (int)m_Script.GetStateEventFlags(State));
             if (running)
                 Start();
             m_SaveState = true;
@@ -631,6 +637,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             part.GetInventoryItem(m_ItemID).PermsGranter = UUID.Zero;
             AsyncCommandManager async = (AsyncCommandManager)m_Engine.AsyncCommands;
             async.RemoveScript(m_LocalID, m_ItemID);
+
+            m_EventQueue.Clear();
+            m_Script.ResetVars();
+            m_State = "default";
+
+            part.SetScriptEvents(m_ItemID,
+                                 (int)m_Script.GetStateEventFlags(State));
+
             if (m_CurrentEvent != "state_entry")
             {
                 m_SaveState = true;
