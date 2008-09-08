@@ -50,7 +50,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_state_entry()" +
                 "\n        {" +
                 "\n        }\n";
@@ -172,10 +172,10 @@ state another_state
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)\n" +
-                "        {\n" + 
-                "            LSL_Types.LSLInteger y = -new LSL_Types.LSLInteger(3);\n" + 
+                "        {\n" +
+                "            LSL_Types.LSLInteger y = -new LSL_Types.LSLInteger(3);\n" +
                 "            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(14) + new LSL_Types.LSLInteger(6);\n" +
                 "            y = new LSL_Types.LSLInteger(12) + new LSL_Types.LSLInteger(45) + new LSL_Types.LSLInteger(20) + x + new LSL_Types.LSLInteger(23) + new LSL_Types.LSLInteger(1) + x + y;\n" +
                 "            y = new LSL_Types.LSLInteger(12) + -new LSL_Types.LSLInteger(45) + -new LSL_Types.LSLInteger(20) + x + new LSL_Types.LSLInteger(23) + -new LSL_Types.LSLInteger(1) + x + y;\n" +
@@ -195,11 +195,11 @@ state another_state
     {
         llOwnerSay(""Testing, 1, 2, 3"");
         llSay(0, ""I can hear you!"");
-        some_custom_function(1, 2, 3 + x, 4, ""five"", ""arguments"");
+        some_custom_function(1, 2, 3 +x, 4, ""five"", ""arguments"");
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            llOwnerSay(new LSL_Types.LSLString(\"Testing, 1, 2, 3\"));" +
@@ -232,7 +232,7 @@ state another_state
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger y = 0;" +
@@ -277,7 +277,7 @@ state another_state
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLFloat y = new LSL_Types.LSLFloat(1.1);" +
@@ -315,7 +315,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n        }\n";
@@ -494,7 +494,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        LSL_Types.LSLString globalString = \"\";" +
                 "\n        LSL_Types.LSLInteger globalInt = new LSL_Types.LSLInteger(14);" +
                 "\n        LSL_Types.LSLString onefunc(LSL_Types.LSLString addition)" +
@@ -531,7 +531,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.Vector3 y = new LSL_Types.Vector3(new LSL_Types.LSLFloat(1.2), llGetMeAFloat(), new LSL_Types.LSLFloat(4.4));" +
@@ -584,7 +584,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger y = -new LSL_Types.LSLInteger(3);" +
@@ -614,7 +614,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger y = -new LSL_Types.LSLInteger(3);" +
@@ -643,7 +643,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.list l = new LSL_Types.list();" +
@@ -701,7 +701,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);" +
@@ -929,7 +929,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);" +
@@ -973,7 +973,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(1);" +
@@ -1150,7 +1150,7 @@ state statetwo
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            llSay(new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(\"Going to state 'statetwo'\"));" +
@@ -1184,7 +1184,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger x = new LSL_Types.LSLInteger(0x23);" +
@@ -1248,7 +1248,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger i = 0;" +
@@ -1289,7 +1289,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)" +
                 "\n        {" +
                 "\n            LSL_Types.LSLInteger x = 0;" +
@@ -1317,7 +1317,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_state_entry()" +
                 "\n        {" +
                 "\n            LSL_Types.Vector3 v = new LSL_Types.Vector3(x, y, -new LSL_Types.LSLFloat(0.5));" +
@@ -1346,7 +1346,7 @@ default
     }
 }
 ";
-            string expected = 
+            string expected =
                 "\n        public void default_event_state_entry()" +
                 "\n        {" +
                 "\n            LSL_Types.Vector3 v = llGetPos();" +
@@ -1421,7 +1421,7 @@ default
     }
 }";
 
-            string expected = 
+            string expected =
                 "\n        public void default_event_state_entry()" +
                 "\n        {" +
                 "\n            if (new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0))" +
@@ -1470,7 +1470,7 @@ default
     }
 }";
 
-            string expected = 
+            string expected =
                 "\n        public void default_event_state_entry()" +
                 "\n        {" +
                 "\n            for (x = new LSL_Types.LSLInteger(4); new LSL_Types.LSLInteger(1) < new LSL_Types.LSLInteger(0); x += new LSL_Types.LSLInteger(2))" +
