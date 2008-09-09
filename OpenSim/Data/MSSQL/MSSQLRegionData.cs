@@ -644,7 +644,7 @@ VALUES
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@regionUUID", regionUUID.ToString()));
-                using(SqlDataReader reader = cmd.ExecuteReader())
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
@@ -1519,7 +1519,7 @@ VALUES
 
             dataAdapter.InsertCommand = commandBuilder.GetInsertCommand(true);
             dataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand(true);
-            dataAdapter.DeleteCommand = commandBuilder.GetDeleteCommand(true);            
+            dataAdapter.DeleteCommand = commandBuilder.GetDeleteCommand(true);
         }
         #endregion
     }

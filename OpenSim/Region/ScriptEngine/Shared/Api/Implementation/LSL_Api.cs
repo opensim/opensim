@@ -7418,7 +7418,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // the object we are in
             UUID objectID = m_host.ParentUUID;
-            if(objectID == UUID.Zero) return;
+            if (objectID == UUID.Zero) return;
 
             // we need the permission first, to know which avatar we want to set the camera for
             UUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
@@ -7469,7 +7469,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // the object we are in
             UUID objectID = m_host.ParentUUID;
-            if(objectID == UUID.Zero) return;
+            if (objectID == UUID.Zero) return;
 
             // we need the permission first, to know which avatar we want to clear the camera for
             UUID agentID = m_host.TaskInventory[invItemID].PermsGranter;

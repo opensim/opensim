@@ -1581,7 +1581,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Schedule a terse update for this scene object
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
-        {		
+        {
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)

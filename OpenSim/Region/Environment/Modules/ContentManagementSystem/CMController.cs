@@ -82,7 +82,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         CMModel m_model = null;
 
         /// <value>
-        /// A list of all the scenes that should be revisioned. Controller is the only class that keeps track of all scenes in the region. 
+        /// A list of all the scenes that should be revisioned. Controller is the only class that keeps track of all scenes in the region.
         /// </value>
         Hashtable m_sceneList = Hashtable.Synchronized(new Hashtable());
         State m_state = State.NONE;
@@ -129,31 +129,31 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// </summary>
         private SceneObjectGroup GetGroupByPrim(uint localID)
         {
-            foreach(Object currScene in m_sceneList.Values)
+            foreach (Object currScene in m_sceneList.Values)
             {
-            	foreach (EntityBase ent in ((Scene)currScene).GetEntities())
-            	{
-            		if (ent is SceneObjectGroup)
-            		{
-            			if (((SceneObjectGroup)ent).HasChildPrim(localID))
-            				return (SceneObjectGroup)ent;
-            		}
-            	}
+                foreach (EntityBase ent in ((Scene)currScene).GetEntities())
+                {
+                    if (ent is SceneObjectGroup)
+                    {
+                        if (((SceneObjectGroup)ent).HasChildPrim(localID))
+                            return (SceneObjectGroup)ent;
+                    }
+                }
             }
             return null;
         }
 
         private void Initialize(CMModel model, CMView view, Scene scene, int channel)
         {
-            lock(this)
+            lock (this)
             {
-            	m_estateModule = scene.RequestModuleInterface<IEstateModule>();
-            	m_thread = new Thread( MainLoop ); 
-            	m_thread.Name = "Content Management";
-            	m_thread.IsBackground = true;
-            	m_thread.Start();
-            	ThreadTracker.Add(m_thread);
-            	m_state = State.NONE;
+                m_estateModule = scene.RequestModuleInterface<IEstateModule>();
+                m_thread = new Thread(MainLoop);
+                m_thread.Name = "Content Management";
+                m_thread.IsBackground = true;
+                m_thread.Start();
+                ThreadTracker.Add(m_thread);
+                m_state = State.NONE;
             }
         }
 
@@ -164,41 +164,41 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
             CMModel model = m_model; CMView view = m_view; int channel = m_channel;
             Work currentJob = new Work();
-            while(true)
+            while (true)
             {
-            	currentJob = m_WorkQueue.Dequeue();
-            	m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- DeQueued a request");
-            	m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- Work type: " + currentJob.Type);
-            	switch(currentJob.Type)
-            	{
-            	case WorkType.NONE:
-            		break;
-            	case WorkType.OBJECTATTRIBUTECHANGE:
-            		ObjectAttributeChanged(model, view, currentJob.LocalId);
-            		break;
-            	case WorkType.PRIMITIVEADDED:
-            		PrimitiveAdded(model, view, currentJob);
-            		break;
-            	case WorkType.OBJECTDUPLICATED:
-            		ObjectDuplicated(model, view, currentJob.LocalId);
-            		break;
-            	case WorkType.OBJECTKILLED:
-            		ObjectKilled(model, view, (SceneObjectGroup) currentJob.Data1);
-            		break;
-            	case WorkType.UNDODID:
-            		UndoDid(model, view, currentJob.UUID);
-            		break;
-            	case WorkType.NEWCLIENT:
-            		NewClient(view, (IClientAPI) currentJob.Data1);
-            		break;
-            	case WorkType.SIMCHAT:
-            		m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- Message received:  " + ((OSChatMessage) currentJob.Data1).Message);
-            		SimChat(model, view, (OSChatMessage) currentJob.Data1, channel);
-            		break;
-            	default:
-            		m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- uuuuuuuuuh, what?");
-            		break;
-            	}
+                currentJob = m_WorkQueue.Dequeue();
+                m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- DeQueued a request");
+                m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- Work type: " + currentJob.Type);
+                switch (currentJob.Type)
+                {
+                case WorkType.NONE:
+                    break;
+                case WorkType.OBJECTATTRIBUTECHANGE:
+                    ObjectAttributeChanged(model, view, currentJob.LocalId);
+                    break;
+                case WorkType.PRIMITIVEADDED:
+                    PrimitiveAdded(model, view, currentJob);
+                    break;
+                case WorkType.OBJECTDUPLICATED:
+                    ObjectDuplicated(model, view, currentJob.LocalId);
+                    break;
+                case WorkType.OBJECTKILLED:
+                    ObjectKilled(model, view, (SceneObjectGroup) currentJob.Data1);
+                    break;
+                case WorkType.UNDODID:
+                    UndoDid(model, view, currentJob.UUID);
+                    break;
+                case WorkType.NEWCLIENT:
+                    NewClient(view, (IClientAPI) currentJob.Data1);
+                    break;
+                case WorkType.SIMCHAT:
+                    m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- Message received:  " + ((OSChatMessage) currentJob.Data1).Message);
+                    SimChat(model, view, (OSChatMessage) currentJob.Data1, channel);
+                    break;
+                default:
+                    m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- uuuuuuuuuh, what?");
+                    break;
+                }
             }
         }
 
@@ -207,24 +207,24 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// </summary>
         private void NewClient(CMView view, IClientAPI client)
         {
-            if ((m_state & State.SHOWING_CHANGES) > 0) 
-            	view.SendMetaEntitiesToNewClient(client);
+            if ((m_state & State.SHOWING_CHANGES) > 0)
+                view.SendMetaEntitiesToNewClient(client);
         }
 
         /// <summary>
-        /// Only called by the MainLoop. 
+        /// Only called by the MainLoop.
         /// </summary>
         private void ObjectAttributeChanged(CMModel model, CMView view, uint LocalId)
         {
             SceneObjectGroup group = null;
-            if ((m_state & State.SHOWING_CHANGES) > 0) 
+            if ((m_state & State.SHOWING_CHANGES) > 0)
             {
-            	group = GetGroupByPrim(LocalId);
-            	if (group != null)
-            	{
-            		view.DisplayAuras( model.UpdateNormalEntityEffects(group) ); //Might be a normal entity (green aura)
-            		m_view.DisplayMetaEntity(group.UUID); //Might be a meta entity (blue aura)
-            	}
+                group = GetGroupByPrim(LocalId);
+                if (group != null)
+                {
+                    view.DisplayAuras(model.UpdateNormalEntityEffects(group)); //Might be a normal entity (green aura)
+                    m_view.DisplayMetaEntity(group.UUID); //Might be a meta entity (blue aura)
+                }
             }
         }
 
@@ -234,43 +234,43 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         private void ObjectDuplicated(CMModel model, CMView view, uint localId)
         {
             if ((m_state & State.SHOWING_CHANGES) > 0)
-            	view.DisplayAuras(model.CheckForNewEntitiesMissingAuras( GetGroupByPrim(localId).Scene ));
+                view.DisplayAuras(model.CheckForNewEntitiesMissingAuras(GetGroupByPrim(localId).Scene));
         }
 
         /// <summary>
-        /// Only called by the MainLoop. 
-        /// </summary>		
+        /// Only called by the MainLoop.
+        /// </summary>
         private void ObjectKilled(CMModel model, CMView view, SceneObjectGroup group)
         {
-            if ((m_state & State.SHOWING_CHANGES) > 0) 
+            if ((m_state & State.SHOWING_CHANGES) > 0)
             {
-            	view.RemoveOrUpdateDeletedEntity(group);
-            	model.RemoveOrUpdateDeletedEntity(group);
+                view.RemoveOrUpdateDeletedEntity(group);
+                model.RemoveOrUpdateDeletedEntity(group);
             }
         }
 
         /// <summary>
-        /// Only called by the MainLoop. 
+        /// Only called by the MainLoop.
         /// </summary>
         private void PrimitiveAdded(CMModel model, CMView view, Work currentJob)
         {
-            if ((m_state & State.SHOWING_CHANGES) > 0) 
+            if ((m_state & State.SHOWING_CHANGES) > 0)
             {
-            	foreach(Object scene in m_sceneList.Values)
-            		m_view.DisplayAuras(model.CheckForNewEntitiesMissingAuras((Scene) scene));
+                foreach (Object scene in m_sceneList.Values)
+                    m_view.DisplayAuras(model.CheckForNewEntitiesMissingAuras((Scene) scene));
             }
         }
 
         /// <summary>
-        /// Only called by the MainLoop. 
+        /// Only called by the MainLoop.
         /// </summary>
         private void UndoDid(CMModel model, CMView view, UUID uuid)
         {
-            if ((m_state & State.SHOWING_CHANGES) > 0) 
+            if ((m_state & State.SHOWING_CHANGES) > 0)
             {
-            	ContentManagementEntity ent = model.FindMetaEntityAffectedByUndo(uuid);
-            	if (ent != null)
-            		view.DisplayEntity(ent);
+                ContentManagementEntity ent = model.FindMetaEntityAffectedByUndo(uuid);
+                if (ent != null)
+                    view.DisplayEntity(ent);
             }
         }
 
@@ -328,38 +328,38 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// <summary>
         /// Takes a list of scenes and forms a new orderd list according to the proximity of scenes to the second argument.
         /// </summary>
-        protected static System.Collections.Generic.List<Scene> ScenesInOrderOfProximity( Hashtable sceneList, Scene scene)
+        protected static System.Collections.Generic.List<Scene> ScenesInOrderOfProximity(Hashtable sceneList, Scene scene)
         {
             int somethingAddedToList = 1;
             System.Collections.Generic.List<Scene> newList = new List<Scene>();
             newList.Add(scene);
 
-            if (! sceneList.ContainsValue(scene))
+            if (!sceneList.ContainsValue(scene))
             {
-            	foreach(Object sceneObj in sceneList)
-            		newList.Add((Scene) sceneObj);
-            	return newList;
+                foreach (Object sceneObj in sceneList)
+                    newList.Add((Scene) sceneObj);
+                return newList;
             }
 
-            while(somethingAddedToList > 0)
+            while (somethingAddedToList > 0)
             {
-            	somethingAddedToList = 0;
-            	for(int i = 0; i < newList.Count; i++)
-            	{
-            		foreach(Object sceneObj in sceneList.Values)
-            		{
-            			if (newList[i].CheckNeighborRegion(((Scene)sceneObj).RegionInfo) && (! newList.Contains((Scene)sceneObj)) )
-            			{
-            				newList.Add((Scene)sceneObj);
-            				somethingAddedToList++;
-            			}
-            		}
-            	}
+                somethingAddedToList = 0;
+                for (int i = 0; i < newList.Count; i++)
+                {
+                    foreach (Object sceneObj in sceneList.Values)
+                    {
+                        if (newList[i].CheckNeighborRegion(((Scene)sceneObj).RegionInfo) && (!newList.Contains((Scene)sceneObj)))
+                        {
+                            newList.Add((Scene)sceneObj);
+                            somethingAddedToList++;
+                        }
+                    }
+                }
             }
 
-            foreach(Object sceneObj in sceneList.Values)
-            	if (! newList.Contains((Scene)sceneObj))
-            		newList.Add((Scene)sceneObj);
+            foreach (Object sceneObj in sceneList.Values)
+                if (!newList.Contains((Scene)sceneObj))
+                    newList.Add((Scene)sceneObj);
 
             return newList;
         }
@@ -381,7 +381,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         protected void StartManaging(IClientAPI client)
         {
             m_log.Debug("[CONTENT MANAGEMENT] Registering channel with chat services.");
-            client.OnChatFromViewer += SimChatSent;	
+            client.OnChatFromViewer += SimChatSent;
             //init = true;
 
             OnNewClient(client);
@@ -401,19 +401,19 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         protected void StopManaging(UUID clientUUID)
         {
-            foreach(Object sceneobj in m_sceneList.Values)
+            foreach (Object sceneobj in m_sceneList.Values)
             {
-            	ScenePresence presence = ((Scene)sceneobj).GetScenePresence(clientUUID);
+                ScenePresence presence = ((Scene)sceneobj).GetScenePresence(clientUUID);
                 if (presence != null)
                 {
                     IClientAPI client = presence.ControllingClient;
                     m_log.Debug("[CONTENT MANAGEMENT] Unregistering channel with chat services.");
-                    client.OnChatFromViewer -= SimChatSent;	
-                    
+                    client.OnChatFromViewer -= SimChatSent;
+
                     m_log.Debug("[CONTENT MANAGEMENT] Removing handlers to client");
                     client.OnUpdatePrimScale -= UpdateSingleScale;
                     client.OnUpdatePrimGroupScale -= UpdateMultipleScale;
@@ -427,10 +427,10 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                     client.OnUndo -= OnUnDid;
                     //client.OnUpdatePrimGroupMouseRotation += m_innerScene.UpdatePrimRotation;
                     return;
-            	}
+                }
             }
         }
-        
+
         protected void UpdateMultiplePosition(uint localID, Vector3 pos, IClientAPI remoteClient)
         {
             Work moreWork = new Work();
@@ -479,7 +479,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         protected void UpdateSingleRotation(uint localID, Quaternion rot, IClientAPI remoteClient)
         {
@@ -504,47 +504,47 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// </summary>
         protected void commit(string message, Scene scene, CMModel model, CMView view)
         {
-            System.Collections.Generic.List<Scene> proximitySceneList = ScenesInOrderOfProximity( m_sceneList, scene);
+            System.Collections.Generic.List<Scene> proximitySceneList = ScenesInOrderOfProximity(m_sceneList, scene);
 
             string[] args = message.Split(new  char[] {' '});
 
             char[] logMessage = {' '};
-            if (args.Length > 1) 
+            if (args.Length > 1)
             {
-            	logMessage = new char[message.Length - (args[0].Length)];
-            	message.CopyTo(args[0].Length, logMessage, 0, message.Length - (args[0].Length));
-            } 
+                logMessage = new char[message.Length - (args[0].Length)];
+                message.CopyTo(args[0].Length, logMessage, 0, message.Length - (args[0].Length));
+            }
 
             m_log.Debug("[CONTENT MANAGEMENT] Saving terrain and objects of region.");
-            foreach(Scene currScene in proximitySceneList)
+            foreach (Scene currScene in proximitySceneList)
             {
-            	model.CommitRegion(currScene, new String(logMessage));
-            	view.SendSimChatMessage(scene, "Region Saved Successfully: " + currScene.RegionInfo.RegionName);
+                model.CommitRegion(currScene, new String(logMessage));
+                view.SendSimChatMessage(scene, "Region Saved Successfully: " + currScene.RegionInfo.RegionName);
             }
 
             view.SendSimChatMessage(scene, "Successfully saved all regions.");
             m_state |= State.DIRTY;
 
             if ((m_state & State.SHOWING_CHANGES) > 0) //DISPLAY NEW CHANGES INSTEAD OF OLD CHANGES
-            {	
-            	view.SendSimChatMessage(scene, "Updating differences between new revision and current environment.");
-            	//Hide objects from users and Forget about them
-            	view.HideAllMetaEntities();
-            	view.HideAllAuras();					
-            	model.DeleteAllMetaObjects();
-            	
-            	//Recreate them from backend files
-            	foreach(Scene currScene in proximitySceneList)
-            	{
-            		model.UpdateCMEntities(currScene);
-            		view.SendSimChatMessage(scene, "Finished updating differences between current scene and last revision: " + currScene.RegionInfo.RegionName);
-            	}
-            	
-            	//Display new objects to users1
-            	view.DisplayRecentChanges();
-            	view.SendSimChatMessage(scene, "Finished updating for DIFF-MODE.");
-            	m_state &= ~(State.DIRTY);
-            	m_state |= State.SHOWING_CHANGES;
+            {
+                view.SendSimChatMessage(scene, "Updating differences between new revision and current environment.");
+                //Hide objects from users and Forget about them
+                view.HideAllMetaEntities();
+                view.HideAllAuras();
+                model.DeleteAllMetaObjects();
+
+                //Recreate them from backend files
+                foreach (Scene currScene in proximitySceneList)
+                {
+                    model.UpdateCMEntities(currScene);
+                    view.SendSimChatMessage(scene, "Finished updating differences between current scene and last revision: " + currScene.RegionInfo.RegionName);
+                }
+
+                //Display new objects to users1
+                view.DisplayRecentChanges();
+                view.SendSimChatMessage(scene, "Finished updating for DIFF-MODE.");
+                m_state &= ~(State.DIRTY);
+                m_state |= State.SHOWING_CHANGES;
             }
         }
 
@@ -553,74 +553,74 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// </summary>
         protected void diffmode(Scene scene, CMModel model, CMView view)
         {
-            System.Collections.Generic.List<Scene> proximitySceneList = ScenesInOrderOfProximity( m_sceneList, scene);
+            System.Collections.Generic.List<Scene> proximitySceneList = ScenesInOrderOfProximity(m_sceneList, scene);
 
             if ((m_state & State.SHOWING_CHANGES) > 0)  // TURN OFF
             {
-            	view.SendSimChatMessage(scene, "Hiding all meta objects.");
-            	view.HideAllMetaEntities();
-            	view.HideAllAuras();
-            	view.SendSimChatMessage(scene, "Diff-mode = OFF");
-            	
-            	m_state &= ~State.SHOWING_CHANGES;
-            	return;
+                view.SendSimChatMessage(scene, "Hiding all meta objects.");
+                view.HideAllMetaEntities();
+                view.HideAllAuras();
+                view.SendSimChatMessage(scene, "Diff-mode = OFF");
+
+                m_state &= ~State.SHOWING_CHANGES;
+                return;
             }
             else // TURN ON
             {
-            	if ((m_state & State.DIRTY) != 0 || m_state == State.NONE)
-            	{
-            		view.SendSimChatMessage(scene, "Hiding meta objects and replacing with latest revision");
-            		//Hide objects from users and Forget about them
-            		view.HideAllMetaEntities();
-            		view.HideAllAuras();					
-            		model.DeleteAllMetaObjects();
-            		//Recreate them from backend files
-            		foreach(Object currScene in m_sceneList.Values)
-            			model.UpdateCMEntities((Scene) currScene);
-            	}
-            	else if ((m_state & State.DIRTY) != 0) {
-            		view.SendSimChatMessage(scene, "Forming list of meta entities with latest revision");
-            		foreach(Scene currScene in proximitySceneList)
-            			model.UpdateCMEntities(currScene);
-            	}
+                if ((m_state & State.DIRTY) != 0 || m_state == State.NONE)
+                {
+                    view.SendSimChatMessage(scene, "Hiding meta objects and replacing with latest revision");
+                    //Hide objects from users and Forget about them
+                    view.HideAllMetaEntities();
+                    view.HideAllAuras();
+                    model.DeleteAllMetaObjects();
+                    //Recreate them from backend files
+                    foreach (Object currScene in m_sceneList.Values)
+                        model.UpdateCMEntities((Scene) currScene);
+                }
+                else if ((m_state & State.DIRTY) != 0) {
+                    view.SendSimChatMessage(scene, "Forming list of meta entities with latest revision");
+                    foreach (Scene currScene in proximitySceneList)
+                        model.UpdateCMEntities(currScene);
+                }
 
-            	view.SendSimChatMessage(scene, "Displaying differences between last revision and current environment");
-            	foreach(Scene currScene in proximitySceneList)
-            		model.CheckForNewEntitiesMissingAuras(currScene);
-            	view.DisplayRecentChanges();
-            	
-            	view.SendSimChatMessage(scene, "Diff-mode = ON");
-            	m_state |= State.SHOWING_CHANGES;
-            	m_state &= ~State.DIRTY;
+                view.SendSimChatMessage(scene, "Displaying differences between last revision and current environment");
+                foreach (Scene currScene in proximitySceneList)
+                    model.CheckForNewEntitiesMissingAuras(currScene);
+                view.DisplayRecentChanges();
+
+                view.SendSimChatMessage(scene, "Diff-mode = ON");
+                m_state |= State.SHOWING_CHANGES;
+                m_state &= ~State.DIRTY;
             }
         }
 
         /// <summary>
-        /// Only called from within the SimChat method. Hides all auras and meta entities, 
-        /// retrieves the current scene object list with the most recent revision retrieved from the model for each scene, 
+        /// Only called from within the SimChat method. Hides all auras and meta entities,
+        /// retrieves the current scene object list with the most recent revision retrieved from the model for each scene,
         /// then lets the view update the clients of the new objects.
         /// </summary>
         protected void rollback(Scene scene, CMModel model, CMView view)
         {
             if ((m_state & State.SHOWING_CHANGES) > 0)
             {
-            	view.HideAllAuras();
-            	view.HideAllMetaEntities();
+                view.HideAllAuras();
+                view.HideAllMetaEntities();
             }
 
-            System.Collections.Generic.List<Scene> proximitySceneList = ScenesInOrderOfProximity( m_sceneList, scene);
-            foreach(Scene currScene in proximitySceneList)
-            	model.RollbackRegion(currScene);
+            System.Collections.Generic.List<Scene> proximitySceneList = ScenesInOrderOfProximity(m_sceneList, scene);
+            foreach (Scene currScene in proximitySceneList)
+                model.RollbackRegion(currScene);
 
-            if ((m_state & State.DIRTY) != 0 )
+            if ((m_state & State.DIRTY) != 0)
             {
-            	model.DeleteAllMetaObjects();
-            	foreach(Scene currScene in proximitySceneList)
-            		model.UpdateCMEntities(currScene);
+                model.DeleteAllMetaObjects();
+                foreach (Scene currScene in proximitySceneList)
+                    model.UpdateCMEntities(currScene);
             }
 
             if ((m_state & State.SHOWING_CHANGES) > 0)
-            	view.DisplayRecentChanges();
+                view.DisplayRecentChanges();
         }
 
         #endregion Protected Methods
@@ -642,7 +642,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
             scene.EventManager.OnNewClient += StartManaging;
             scene.EventManager.OnRemovePresence += StopManaging;
-            //	scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+            //    scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
             scene.EventManager.OnObjectBeingRemovedFromScene += GroupBeingDeleted;
         }
 
@@ -652,9 +652,9 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public void SimChat(CMModel model, CMView view, OSChatMessage e, int channel)
         {
             if (e.Channel != channel)
-            	return;
+                return;
             if (e.Sender == null)
-            	return;	
+                return;
 
             m_log.Debug("[CONTENT MANAGEMENT] Message received:  " + e.Message);
 
@@ -667,31 +667,31 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
             if (!(m_estateModule.IsManager(avatar.UUID)))
             {
-            	m_log.Debug("[CONTENT MANAGEMENT] Message sent from non Estate Manager ... ignoring.");
-            	view.SendSimChatMessage(scene, "You must be an estate manager to perform that action.");
-            	return;
+                m_log.Debug("[CONTENT MANAGEMENT] Message sent from non Estate Manager ... ignoring.");
+                view.SendSimChatMessage(scene, "You must be an estate manager to perform that action.");
+                return;
             }
 
-            switch(args[0])
+            switch (args[0])
             {
             case "ci":
             case "commit":
-            	commit(message, scene, model, view);
-            	break;
+                commit(message, scene, model, view);
+                break;
             case "dm":
             case "diff-mode":
-            	diffmode(scene, model, view);
-            	break;
+                diffmode(scene, model, view);
+                break;
             case "rb":
             case "rollback":
-            	rollback(scene, model, view);
-            	break;
+                rollback(scene, model, view);
+                break;
             case "help":
-            	m_view.DisplayHelpMenu(scene);
-            	break;
+                m_view.DisplayHelpMenu(scene);
+                break;
             default:
-            	view.SendSimChatMessage(scene, "Command not found: " + args[0]);
-            	break;
+                view.SendSimChatMessage(scene, "Command not found: " + args[0]);
+                break;
             }
         }
 
@@ -705,7 +705,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         [Flags]
         private enum State
         {
-            NONE = 0, 
+            NONE = 0,
             DIRTY = 1,  // The meta entities may not correctly represent the last revision.
             SHOWING_CHANGES = 1<<1 // The meta entities are being shown to user.
         }

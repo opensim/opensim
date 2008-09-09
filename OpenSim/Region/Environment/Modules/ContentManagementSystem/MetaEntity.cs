@@ -84,7 +84,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         }
 
         /// <summary>
-        /// Makes a new meta entity by copying the given scene object group. 
+        /// Makes a new meta entity by copying the given scene object group.
         /// The physics boolean is just a stub right now.
         /// </summary>
         public MetaEntity(SceneObjectGroup orig, bool physics)
@@ -160,19 +160,19 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
             //make new uuids
             Dictionary<UUID, SceneObjectPart> parts = new Dictionary<UUID, SceneObjectPart>();
-            foreach(SceneObjectPart part in m_Entity.Children.Values)
+            foreach (SceneObjectPart part in m_Entity.Children.Values)
             {
-            	part.ResetIDs(part.LinkNum);
-            	parts.Add(part.UUID, part);
+                part.ResetIDs(part.LinkNum);
+                parts.Add(part.UUID, part);
             }
 
             // make new localids
             foreach (SceneObjectPart part in m_Entity.Children.Values)
-            	part.LocalId = m_Entity.Scene.PrimIDAllocate();
+                part.LocalId = m_Entity.Scene.PrimIDAllocate();
 
             //finalize
             m_Entity.UpdateParentIDs();
-            m_Entity.RootPart.PhysActor = null;	
+            m_Entity.RootPart.PhysActor = null;
             m_Entity.Children = parts;
         }
 
@@ -188,8 +188,8 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             //This deletes the group without removing from any databases.
             //This is important because we are not IN any database.
             //m_Entity.FakeDeleteGroup();
-            foreach( SceneObjectPart part in m_Entity.Children.Values)
-            	client.SendKiPrimitive(m_Entity.RegionHandle, part.LocalId);
+            foreach (SceneObjectPart part in m_Entity.Children.Values)
+                client.SendKiPrimitive(m_Entity.RegionHandle, part.LocalId);
         }
 
         /// <summary>
@@ -197,10 +197,10 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// </summary>
         public virtual void HideFromAll()
         {
-            foreach( SceneObjectPart part in m_Entity.Children.Values)
-            	m_Entity.Scene.ClientManager.ForEachClient(delegate(IClientAPI controller)
-            	                                           { controller.SendKiPrimitive(m_Entity.RegionHandle, part.LocalId); }
-            	);
+            foreach (SceneObjectPart part in m_Entity.Children.Values)
+                m_Entity.Scene.ClientManager.ForEachClient(delegate(IClientAPI controller)
+                                                           { controller.SendKiPrimitive(m_Entity.RegionHandle, part.LocalId); }
+                );
         }
 
         public void SendFullUpdate(IClientAPI client)
@@ -239,40 +239,40 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             Color4 texcolor;
             try
             {
-            	tex = part.Shape.Textures;
-            	texcolor = new Color4();
+                tex = part.Shape.Textures;
+                texcolor = new Color4();
             }
             catch(Exception)
             {
-            	//m_log.ErrorFormat("[Content Management]: Exception thrown while accessing textures of scene object: " + e);
-            	return;
+                //m_log.ErrorFormat("[Content Management]: Exception thrown while accessing textures of scene object: " + e);
+                return;
             }
 
             for (uint i = 0; i < tex.FaceTextures.Length; i++)
             {
-            	try {
-            		if (tex.FaceTextures[i] != null)
-            		{
-            			texcolor = tex.FaceTextures[i].RGBA;
-            			texcolor.A = transparencyAmount;
-            			tex.FaceTextures[i].RGBA = texcolor;
-            		}
-            	}
-            	catch (Exception)
-            	{
-            		//m_log.ErrorFormat("[Content Management]: Exception thrown while accessing different face textures of object: " + e);
-            		continue;
-            	}
+                try {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        texcolor = tex.FaceTextures[i].RGBA;
+                        texcolor.A = transparencyAmount;
+                        tex.FaceTextures[i].RGBA = texcolor;
+                    }
+                }
+                catch (Exception)
+                {
+                    //m_log.ErrorFormat("[Content Management]: Exception thrown while accessing different face textures of object: " + e);
+                    continue;
+                }
             }
             try {
-            	texcolor = tex.DefaultTexture.RGBA;
-            	texcolor.A = transparencyAmount;
-            	tex.DefaultTexture.RGBA = texcolor;
-            	part.Shape.TextureEntry = tex.ToBytes();
+                texcolor = tex.DefaultTexture.RGBA;
+                texcolor.A = transparencyAmount;
+                tex.DefaultTexture.RGBA = texcolor;
+                part.Shape.TextureEntry = tex.ToBytes();
             }
             catch (Exception)
             {
-            	//m_log.Info("[Content Management]: Exception thrown while accessing default face texture of object: " + e);
+                //m_log.Info("[Content Management]: Exception thrown while accessing default face texture of object: " + e);
             }
         }
 

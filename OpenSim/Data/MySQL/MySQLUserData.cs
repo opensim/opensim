@@ -79,7 +79,7 @@ namespace OpenSim.Data.MySQL
                 m_lastConnect++;
 
                 // Overflow protection
-                if(m_lastConnect == int.MaxValue)
+                if (m_lastConnect == int.MaxValue)
                     m_lastConnect = 0;
 
                 MySQLSuperManager x = m_dbconnections[m_lastConnect%m_maxConnections];

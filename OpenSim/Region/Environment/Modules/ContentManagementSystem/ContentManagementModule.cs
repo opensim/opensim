@@ -27,7 +27,7 @@
 
 #region Header
 
-// ContentManagementModule.cs 
+// ContentManagementModule.cs
 // User: bongiojp
 
 #endregion Header
@@ -98,7 +98,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             {
                 if (source.Configs["CMS"] == null)
                     return;
-                    
+
                 m_enabled = source.Configs["CMS"].GetBoolean("enabled", false);
                 databaseDir = source.Configs["CMS"].GetString("directory", databaseDir);
                 database = source.Configs["CMS"].GetString("database", database);
@@ -122,7 +122,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 return;
             }
 
-            lock(this)
+            lock (this)
             {
                 if (!initialised) //only init once
                 {
@@ -131,7 +131,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                     m_control = new CMController(m_model, m_view, scene, channel);
                     m_model.Initialise(database);
                     m_view.Initialise(m_model);
-                    
+
                     initialised = true;
                     m_model.InitialiseDatabase(scene, databaseDir);
                 }
@@ -148,7 +148,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             if (! m_enabled)
                 return;
 
-            lock(this)
+            lock (this)
             {
                 if (!m_posted) //only post once
                 {

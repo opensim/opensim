@@ -106,13 +106,13 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         private static bool AreVectorsEquivalent(Vector3 first, Vector3 second)
         {
-            if(TruncateSignificant(first.X, 2) == TruncateSignificant(second.X, 2)
+            if (TruncateSignificant(first.X, 2) == TruncateSignificant(second.X, 2)
                && TruncateSignificant(first.Y, 2) == TruncateSignificant(second.Y, 2)
                && TruncateSignificant(first.Z, 2) == TruncateSignificant(second.Z, 2)
                )
-            	return true;
+                return true;
             else
-            	return false;
+                return false;
         }
 
         // Taken from Region/ScriptEngine/Common/LSL_BuiltIn_Commands.cs
@@ -126,7 +126,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         private static int TruncateSignificant(float num, int digits)
         {
             return (int) Math.Ceiling((Math.Truncate(num * 10 * digits)/10*digits));
-            //	return (int) ((num * (10*digits))/10*digits);
+            // return (int) ((num * (10*digits))/10*digits);
         }
 
         // Taken from Region/ScriptEngine/Common/LSL_BuiltIn_Commands.cs
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         #region Public Methods
 
         /// <summary>
-        /// Compares the attributes (Vectors, Quaternions, Strings, etc.) between two scene object parts 
+        /// Compares the attributes (Vectors, Quaternions, Strings, etc.) between two scene object parts
         /// and returns a Diff bitmask which details what the differences are.
         /// </summary>
         public static Diff FindDifferences(SceneObjectPart first, SceneObjectPart second)
@@ -164,47 +164,47 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             Diff result = 0;
 
             // VECTOR COMPARISONS
-            if(! AreVectorsEquivalent(first.Acceleration, second.Acceleration))
-            	result |= Diff.ACCELERATION;
-            if(! AreVectorsEquivalent(first.AbsolutePosition, second.AbsolutePosition))
-            	result |= Diff.POSITION;
-            if(! AreVectorsEquivalent(first.AngularVelocity, second.AngularVelocity))
-            	result |= Diff.ANGULARVELOCITY;
-            if(! AreVectorsEquivalent(first.OffsetPosition, second.OffsetPosition))
-            	result |= Diff.OFFSETPOSITION;
-            if(! AreVectorsEquivalent(first.RotationalVelocity, second.RotationalVelocity))
-            	result |= Diff.ROTATIONALVELOCITY;
-            if(! AreVectorsEquivalent(first.Scale, second.Scale))
-            	result |= Diff.SCALE;
-            if(! AreVectorsEquivalent(first.Velocity, second.Velocity))
-            	result |= Diff.VELOCITY;
+            if (!AreVectorsEquivalent(first.Acceleration, second.Acceleration))
+                result |= Diff.ACCELERATION;
+            if (!AreVectorsEquivalent(first.AbsolutePosition, second.AbsolutePosition))
+                result |= Diff.POSITION;
+            if (!AreVectorsEquivalent(first.AngularVelocity, second.AngularVelocity))
+                result |= Diff.ANGULARVELOCITY;
+            if (!AreVectorsEquivalent(first.OffsetPosition, second.OffsetPosition))
+                result |= Diff.OFFSETPOSITION;
+            if (!AreVectorsEquivalent(first.RotationalVelocity, second.RotationalVelocity))
+                result |= Diff.ROTATIONALVELOCITY;
+            if (!AreVectorsEquivalent(first.Scale, second.Scale))
+                result |= Diff.SCALE;
+            if (!AreVectorsEquivalent(first.Velocity, second.Velocity))
+                result |= Diff.VELOCITY;
 
 
             // QUATERNION COMPARISONS
-            if(! AreQuaternionsEquivalent(first.RotationOffset, second.RotationOffset))
-            	result |= Diff.ROTATIONOFFSET;			
+            if (!AreQuaternionsEquivalent(first.RotationOffset, second.RotationOffset))
+                result |= Diff.ROTATIONOFFSET;
 
 
             // MISC COMPARISONS (UUID, Byte)
-            if(first.ClickAction != second.ClickAction)
-            	result |= Diff.CLICKACTION;
-            if(first.ObjectOwner != second.ObjectOwner)
-            	result |= Diff.OBJECTOWNER;
+            if (first.ClickAction != second.ClickAction)
+                result |= Diff.CLICKACTION;
+            if (first.ObjectOwner != second.ObjectOwner)
+                result |= Diff.OBJECTOWNER;
 
 
             // STRING COMPARISONS
-            if(first.Description != second.Description)
-            	result |= Diff.DESCRIPTION;
-            if(first.Material != second.Material)
-            	result |= Diff.MATERIAL;
-            if(first.Name != second.Name)
-            	result |= Diff.NAME;
-            if(first.SitName != second.SitName)
-            	result |= Diff.SITNAME;
-            if(first.Text != second.Text)
-            	result |= Diff.TEXT;
-            if(first.TouchName != second.TouchName)
-            	result |= Diff.TOUCHNAME;
+            if (first.Description != second.Description)
+                result |= Diff.DESCRIPTION;
+            if (first.Material != second.Material)
+                result |= Diff.MATERIAL;
+            if (first.Name != second.Name)
+                result |= Diff.NAME;
+            if (first.SitName != second.SitName)
+                result |= Diff.SITNAME;
+            if (first.Text != second.Text)
+                result |= Diff.TEXT;
+            if (first.TouchName != second.TouchName)
+                result |= Diff.TOUCHNAME;
 
             x.Stop();
             TimeToDiff += x.ElapsedMilliseconds;

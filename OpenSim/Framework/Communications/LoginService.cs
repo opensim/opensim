@@ -74,7 +74,7 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// Customises the login response and fills in missing values.  This method also tells the login region to 
+        /// Customises the login response and fills in missing values.  This method also tells the login region to
         /// expect a client connection.
         /// </summary>
         /// <param name="response">The existing response</param>
@@ -89,7 +89,7 @@ namespace OpenSim.Framework.Communications
         public virtual void LogOffUser(UserProfileData theUser, string message)
         {
         }
-        
+
         /// <summary>
         /// Get the initial login inventory skeleton (in other words, the folder structure) for the given user.
         /// </summary>
@@ -298,7 +298,7 @@ namespace OpenSim.Framework.Communications
                             m_log.DebugFormat(
                                 "[LOGIN END]:  XMLRPC Authentication of user {0} {1} successful.  Sending response to client.",
                                 firstname, lastname);
-                                
+
                             return logResponse.ToXmlRpcResponse();
                         }
                         else

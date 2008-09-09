@@ -58,8 +58,8 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
     {
         #region Fields
 
-        //	private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        // Any ContentManagementEntities that represent old versions of current SceneObjectGroups or 
+        //    private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        // Any ContentManagementEntities that represent old versions of current SceneObjectGroups or
         // old versions of deleted SceneObjectGroups will be stored in this hash table.
         // The UUID keys are from the SceneObjectGroup RootPart UUIDs
         protected Hashtable m_CMEntityHash = Hashtable.Synchronized(new Hashtable()); //UUID to ContentManagementEntity
@@ -97,7 +97,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public bool AddAura(ContentManagementEntity aura)
         {
             if (m_NewlyCreatedEntityAura.ContainsKey(aura.UUID))
-            	return false;
+                return false;
             m_NewlyCreatedEntityAura.Add(aura.UUID, aura);
             return true;
         }
@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public bool AddEntity(ContentManagementEntity ent)
         {
             if (m_CMEntityHash.ContainsKey(ent.UUID))
-            	return false;
+                return false;
             m_CMEntityHash.Add(ent.UUID, ent);
             return true;
         }
@@ -115,23 +115,23 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
             System.Collections.ArrayList missingList = new System.Collections.ArrayList();
             SceneObjectGroup temp = null;
-            foreach( EntityBase currObj in currList )
+            foreach (EntityBase currObj in currList)
             {
-            	if (! (currObj is SceneObjectGroup))
-            		continue;
-            	temp = (SceneObjectGroup) currObj;
-            	
-            	if (m_CMEntityHash.ContainsKey(temp.UUID))
-            	{
-            		foreach(SceneObjectPart part in temp.Children.Values)
-            			if (!((ContentManagementEntity)m_CMEntityHash[temp.UUID]).HasChildPrim(part.UUID))
-            				missingList.Add(part);
-            	}
-            	else //Entire group is missing from revision. (and is a new part in region)
-            	{
-            		foreach(SceneObjectPart part in temp.Children.Values)
-            			missingList.Add(part);
-            	}
+                if (!(currObj is SceneObjectGroup))
+                    continue;
+                temp = (SceneObjectGroup) currObj;
+
+                if (m_CMEntityHash.ContainsKey(temp.UUID))
+                {
+                    foreach (SceneObjectPart part in temp.Children.Values)
+                        if (!((ContentManagementEntity)m_CMEntityHash[temp.UUID]).HasChildPrim(part.UUID))
+                            missingList.Add(part);
+                }
+                else //Entire group is missing from revision. (and is a new part in region)
+                {
+                    foreach (SceneObjectPart part in temp.Children.Values)
+                        missingList.Add(part);
+                }
             }
             return missingList;
         }
@@ -146,9 +146,9 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public AuraMetaEntity CreateAuraForNewlyCreatedEntity(SceneObjectPart part)
         {
             AuraMetaEntity ent = new AuraMetaEntity(part.ParentGroup.Scene,
-                                                    part.ParentGroup.Scene.PrimIDAllocate(), 
-                                                    part.GetWorldPosition(), 
-                                                    MetaEntity.TRANSLUCENT, 
+                                                    part.ParentGroup.Scene.PrimIDAllocate(),
+                                                    part.GetWorldPosition(),
+                                                    MetaEntity.TRANSLUCENT,
                                                     new Vector3(0,254,0),
                                                     part.Scale
                                                     );
@@ -168,7 +168,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
             ContentManagementEntity ent = new ContentManagementEntity(xml, scene, false);
             if (ent == null)
-            	return null;
+                return null;
             m_CMEntityHash.Add(ent.UnchangedEntity.UUID, ent);
             return ent;
         }
@@ -176,7 +176,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public bool RemoveEntity(UUID uuid)
         {
             if (!m_CMEntityHash.ContainsKey(uuid))
-            	return false;
+                return false;
             m_CMEntityHash.Remove(uuid);
             return true;
         }
@@ -184,7 +184,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public bool RemoveNewlyCreatedEntityAura(UUID uuid)
         {
             if (!m_NewlyCreatedEntityAura.ContainsKey(uuid))
-            	return false;
+                return false;
             m_NewlyCreatedEntityAura.Remove(uuid);
             return true;
         }

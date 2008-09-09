@@ -1321,7 +1321,7 @@ namespace OpenSim.Region.Environment.Scenes
         public static SceneObjectPart FromXml(XmlReader xmlReader)
         {
             // It's not necessary to persist this
-            
+
             XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
             SceneObjectPart newobject = (SceneObjectPart) serializer.Deserialize(xmlReader);
             return newobject;

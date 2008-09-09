@@ -6,11 +6,11 @@ namespace OpenSim.Framework.Communications.Cache
     public class FileAssetClient : AssetServerBase
     {
         private readonly string m_dir;
-        private readonly XmlSerializer m_xs = new XmlSerializer(typeof(AssetBase));  
+        private readonly XmlSerializer m_xs = new XmlSerializer(typeof(AssetBase));
 
         public FileAssetClient(string dir)
         {
-            if(!Directory.Exists(dir))
+            if (!Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);
             }

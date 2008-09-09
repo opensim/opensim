@@ -28,7 +28,7 @@
 #region Header
 
 // FileSystemDatabase.cs
-// User: bongiojp 
+// User: bongiojp
 
 #endregion Header
 
@@ -88,13 +88,13 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
             string scenedir;
             if (!Directory.Exists(m_repodir))
-            	Directory.CreateDirectory(m_repodir);
+                Directory.CreateDirectory(m_repodir);
 
             foreach (UUID region in m_scenes.Keys)
             {
-            	scenedir = m_repodir + Slash.DirectorySeparatorChar + region + Slash.DirectorySeparatorChar;
-            	if (!Directory.Exists(scenedir))
-            		Directory.CreateDirectory(scenedir);
+                scenedir = m_repodir + Slash.DirectorySeparatorChar + region + Slash.DirectorySeparatorChar;
+                if (!Directory.Exists(scenedir))
+                    Directory.CreateDirectory(scenedir);
             }
         }
 
@@ -102,10 +102,14 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         private void SetupSerialiser()
         {
             if (m_serialiser.Count == 0)
-            	foreach(UUID region in m_scenes.Keys)
-            		m_serialiser.Add(region,
-            		                 m_scenes[region].RequestModuleInterface<IRegionSerialiser>()
-            		                 );
+            {
+                foreach (UUID region in m_scenes.Keys)
+                {
+                    m_serialiser.Add(region,
+                                     m_scenes[region].RequestModuleInterface<IRegionSerialiser>()
+                                     );
+                }
+            }
         }
 
         #endregion Private Methods
@@ -120,7 +124,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public string GetRegionObjectHeightMap(UUID regionid)
         {
             String filename = m_repodir + Slash.DirectorySeparatorChar + regionid +
-            	Slash.DirectorySeparatorChar + "heightmap.r32";
+                Slash.DirectorySeparatorChar + "heightmap.r32";
             FileStream fs = new FileStream( filename, FileMode.Open);
             StreamReader sr = new StreamReader(fs);
             String result = sr.ReadToEnd();
@@ -132,7 +136,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public string GetRegionObjectHeightMap(UUID regionid, int revision)
         {
             String filename = m_repodir + Slash.DirectorySeparatorChar + regionid +
-            	Slash.DirectorySeparatorChar + "heightmap.r32";
+                Slash.DirectorySeparatorChar + "heightmap.r32";
             FileStream fs = new FileStream( filename, FileMode.Open);
             StreamReader sr = new StreamReader(fs);
             String result = sr.ReadToEnd();
@@ -144,14 +148,14 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public System.Collections.ArrayList GetRegionObjectXMLList(UUID regionid, int revision)
         {
             System.Collections.ArrayList objectList = new System.Collections.ArrayList();
-            string filename = m_repodir + Slash.DirectorySeparatorChar + regionid + Slash.DirectorySeparatorChar + 
-            	+ revision + Slash.DirectorySeparatorChar + "objects.xml";
+            string filename = m_repodir + Slash.DirectorySeparatorChar + regionid + Slash.DirectorySeparatorChar +
+                + revision + Slash.DirectorySeparatorChar + "objects.xml";
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
             //int primCount = 0;
             //SceneObjectGroup obj = null;
 
-            if(File.Exists(filename))
+            if (File.Exists(filename))
             {
                 XmlTextReader reader = new XmlTextReader(filename);
                 reader.WhitespaceHandling = WhitespaceHandling.None;
@@ -160,9 +164,9 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 rootNode = doc.FirstChild;
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
-            		objectList.Add(aPrimNode.OuterXml);
-            	}
-            	return objectList;
+                    objectList.Add(aPrimNode.OuterXml);
+                }
+                return objectList;
             }
             return null;
         }
@@ -172,45 +176,46 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             int revision = NumOfRegionRev(regionid);
             m_log.Info("[FSDB]: found revisions:" + revision);
             System.Collections.ArrayList xmlList = new System.Collections.ArrayList();
-            string filename = m_repodir + Slash.DirectorySeparatorChar + regionid + Slash.DirectorySeparatorChar + 
-            	+ revision + Slash.DirectorySeparatorChar + "objects.xml";
+            string filename = m_repodir + Slash.DirectorySeparatorChar + regionid + Slash.DirectorySeparatorChar +
+                + revision + Slash.DirectorySeparatorChar + "objects.xml";
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
 
-
             m_log.Info("[FSDB]: Checking if " + filename + " exists.");
-            if(File.Exists(filename))
-            {			
-            	Stopwatch x = new Stopwatch();
-            	x.Start();
-            	
+            if (File.Exists(filename))
+            {
+                Stopwatch x = new Stopwatch();
+                x.Start();
+
                 XmlTextReader reader = new XmlTextReader(filename);
                 reader.WhitespaceHandling = WhitespaceHandling.None;
                 doc.Load(reader);
                 reader.Close();
                 rootNode = doc.FirstChild;
-            	
+
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
-            		xmlList.Add(aPrimNode.OuterXml);
-            	
-            	x.Stop();
-            	TimeToDownload += x.ElapsedMilliseconds;
-            	m_log.Info("[FileSystemDatabase] Time spent retrieving xml files so far: " + TimeToDownload);
-            	
-            	return xmlList;
+                {
+                    xmlList.Add(aPrimNode.OuterXml);
+                }
+
+                x.Stop();
+                TimeToDownload += x.ElapsedMilliseconds;
+                m_log.Info("[FileSystemDatabase] Time spent retrieving xml files so far: " + TimeToDownload);
+
+                return xmlList;
             }
             return null;
         }
 
         public void Initialise(Scene scene, string dir)
         {
-            lock(this)
+            lock (this)
             {
-            	if (m_repodir == null)
-            		m_repodir = dir;
+                if (m_repodir == null)
+                    m_repodir = dir;
             }
-            lock(m_scenes)
-            	m_scenes.Add(scene.RegionInfo.RegionID, scene);
+            lock (m_scenes)
+                m_scenes.Add(scene.RegionInfo.RegionID, scene);
         }
 
         public System.Collections.Generic.SortedDictionary<string, string> ListOfRegionRevisions(UUID regionid)
@@ -224,19 +229,21 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             StreamReader sr = null;
             String logMessage = "";
             String logLocation = "";
-            foreach(string revisionDir in directories)
+            foreach (string revisionDir in directories)
             {
-            	try {
-            		logLocation = revisionDir + Slash.DirectorySeparatorChar + "log";
-            		fs = new FileStream( logLocation, FileMode.Open);
-            		sr = new StreamReader(fs);
-            		logMessage = sr.ReadToEnd();
-            		sr.Close();
-            		fs.Close();
-            		revisionDict.Add(revisionDir, logMessage);
-            	}
-            	catch (Exception)
-            	{}
+                try
+                {
+                    logLocation = revisionDir + Slash.DirectorySeparatorChar + "log";
+                    fs = new FileStream( logLocation, FileMode.Open);
+                    sr = new StreamReader(fs);
+                    logMessage = sr.ReadToEnd();
+                    sr.Close();
+                    fs.Close();
+                    revisionDict.Add(revisionDir, logMessage);
+                }
+                catch (Exception)
+                {
+                }
             }
 
             return revisionDict;
@@ -254,9 +261,9 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public void PostInitialise()
         {
             SetupSerialiser();
-            	
-            	m_log.Info("[FSDB]: Creating repository in " + m_repodir + ".");
-            	CreateDirectory();
+
+            m_log.Info("[FSDB]: Creating repository in " + m_repodir + ".");
+            CreateDirectory();
         }
 
         public void SaveRegion(UUID regionid, string regionName, string logMessage)
@@ -266,44 +273,44 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
             m_log.Info("[FSDB]: checking if scene directory exists: " + scenedir);
             if (!Directory.Exists(scenedir))
-            	Directory.CreateDirectory(scenedir);
+                Directory.CreateDirectory(scenedir);
 
             int newRevisionNum = GetMostRecentRevision(regionid)+1;
             string revisiondir = scenedir + newRevisionNum + Slash.DirectorySeparatorChar;
 
             m_log.Info("[FSDB]: checking if revision directory exists: " + revisiondir);
             if (!Directory.Exists(revisiondir))
-            	Directory.CreateDirectory(revisiondir);
+                Directory.CreateDirectory(revisiondir);
 
-            try {	
-            	Stopwatch x = new Stopwatch();
-            	x.Start();
-            	if (m_scenes.ContainsKey(regionid))
-            	{
-            		m_serialiser[regionid].SerialiseRegion(m_scenes[regionid], revisiondir);
-            	}
-            	x.Stop();
-            	TimeToSave += x.ElapsedMilliseconds;
-            	m_log.Info("[FileSystemDatabase] Time spent serialising regions to files on disk for " + regionName + ": " + x.ElapsedMilliseconds);
-            	m_log.Info("[FileSystemDatabase] Time spent serialising regions to files on disk so far: " + TimeToSave);
+            try {
+                Stopwatch x = new Stopwatch();
+                x.Start();
+                if (m_scenes.ContainsKey(regionid))
+                {
+                    m_serialiser[regionid].SerialiseRegion(m_scenes[regionid], revisiondir);
+                }
+                x.Stop();
+                TimeToSave += x.ElapsedMilliseconds;
+                m_log.Info("[FileSystemDatabase] Time spent serialising regions to files on disk for " + regionName + ": " + x.ElapsedMilliseconds);
+                m_log.Info("[FileSystemDatabase] Time spent serialising regions to files on disk so far: " + TimeToSave);
             }
             catch (Exception e)
             {
-            	m_log.ErrorFormat("[FSDB]: Serialisation of region failed: " + e);
-            	return;
+                m_log.ErrorFormat("[FSDB]: Serialisation of region failed: " + e);
+                return;
             }
 
             try {
-            	// Finish by writing log message.
-            	FileStream file = new FileStream(revisiondir + "log", FileMode.Create, FileAccess.ReadWrite);
-            	StreamWriter sw = new StreamWriter(file);
-            	sw.Write(logMessage);
-            	sw.Close();
+                // Finish by writing log message.
+                FileStream file = new FileStream(revisiondir + "log", FileMode.Create, FileAccess.ReadWrite);
+                StreamWriter sw = new StreamWriter(file);
+                sw.Write(logMessage);
+                sw.Close();
             }
             catch (Exception e)
             {
-            	m_log.ErrorFormat("[FSDB]: Failed trying to save log file " + e);
-            	return;
+                m_log.ErrorFormat("[FSDB]: Failed trying to save log file " + e);
+                return;
             }
         }
 

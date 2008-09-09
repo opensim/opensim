@@ -121,7 +121,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         public void setEstateTerrainBaseTexture(IClientAPI remoteClient, int corner, UUID texture)
         {
-            if(texture == UUID.Zero)
+            if (texture == UUID.Zero)
                 return;
 
             switch (corner)

@@ -176,8 +176,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// within this object).
         /// </summary>
         /// <param name="sceneObject"></param>
-        /// <param name="assetUuids"></param>        
-        protected void GetSceneObjectAssetUuids(UUID sceneObjectUuid, IDictionary<UUID, int> assetUuids)   
+        /// <param name="assetUuids"></param>
+        protected void GetSceneObjectAssetUuids(UUID sceneObjectUuid, IDictionary<UUID, int> assetUuids)
         {
             AssetBase objectAsset = GetAsset(sceneObjectUuid);
 

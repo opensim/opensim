@@ -161,7 +161,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             string message = e.Message;
             UUID fromID = e.SenderUUID;
 
-            if(message.Length >= 1000) // libomv limit
+            if (message.Length >= 1000) // libomv limit
                 message = message.Substring(0, 1000);
 
             if (e.Sender != null)

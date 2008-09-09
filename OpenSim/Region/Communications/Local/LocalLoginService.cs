@@ -265,7 +265,7 @@ namespace OpenSim.Region.Communications.Local
                 m_log.Warn("[LOGIN]: Not found region " + currentRegion);
                 return false;
             }
-            
+
             return true;
         }
 

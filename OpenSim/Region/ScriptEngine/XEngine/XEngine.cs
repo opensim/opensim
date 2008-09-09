@@ -216,13 +216,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (sleepTime > 0)
             {
-                m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoMaintenance), 
+                m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoMaintenance),
                                            new Object[]{ sleepTime });
             }
 
             if (saveTime > 0)
             {
-                m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup), 
+                m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup),
                                            new Object[] { saveTime });
             }
 
@@ -278,7 +278,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             instances.Clear();
 
             if (saveTime > 0)
-                m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup), 
+                m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup),
                                            new Object[] { saveTime });
 
             return 0;
@@ -301,7 +301,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             System.Threading.Thread.Sleep(sleepTime);
 
-            m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoMaintenance), 
+            m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoMaintenance),
                                        new Object[]{ sleepTime });
 
             return 0;
@@ -331,13 +331,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     {
                         m_firstStart = false;
                         m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                            new WorkItemCallback(this.DoScriptWait), 
+                            new WorkItemCallback(this.DoScriptWait),
                             new Object[0]);
                         return;
                     }
 
                     m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                            new WorkItemCallback(this.DoOnRezScriptQueue), 
+                            new WorkItemCallback(this.DoOnRezScriptQueue),
                             new Object[0]);
                 }
             }
@@ -352,7 +352,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (m_CompileQueue.Count > 0)
                 {
                     m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                            new WorkItemCallback(this.DoOnRezScriptQueue), 
+                            new WorkItemCallback(this.DoOnRezScriptQueue),
                             new Object[0]);
                 }
                 else
@@ -383,7 +383,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (m_CompileQueue.Count > 0)
                 {
                     m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                            new WorkItemCallback(this.DoOnRezScriptQueue), 
+                            new WorkItemCallback(this.DoOnRezScriptQueue),
                             new Object[0]);
                 }
                 else
@@ -493,7 +493,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     }
                     m_DomainScripts[appDomain].Add(itemID);
 
-                    ScriptInstance instance = 
+                    ScriptInstance instance =
                         new ScriptInstance(this,localID,
                                            part.UUID, itemID, assetID, assembly,
                                            m_AppDomains[appDomain],
@@ -657,7 +657,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public IScriptWorkItem QueueEventHandler(object parms)
         {
             return new XWorkItem(m_ThreadPool.QueueWorkItem(
-                                     new WorkItemCallback(this.ProcessEventHandler), 
+                                     new WorkItemCallback(this.ProcessEventHandler),
                                      parms));
         }
 
@@ -723,7 +723,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             string[] pathList = new string[] {"bin", "ScriptEngines",
                                               Path.Combine("ScriptEngines",
                                                            m_Scene.RegionInfo.RegionID.ToString())};
-            
+
             string assemblyName = args.Name;
             if (assemblyName.IndexOf(",") != -1)
                 assemblyName = args.Name.Substring(0, args.Name.IndexOf(","));

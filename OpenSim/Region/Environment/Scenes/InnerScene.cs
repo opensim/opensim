@@ -140,7 +140,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<EntityBase> updateEntities = GetEntities();
 
             foreach (EntityBase entity in updateEntities)
-            {                       				
+            {
                 entity.Update();
             }
         }
@@ -325,7 +325,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // Don't abort the whole update if one entity happens to give us an exception.
                     try
                     {
-                        m_updateList[i].Update();       
+                        m_updateList[i].Update();
                     }
                     catch (Exception e)
                     {

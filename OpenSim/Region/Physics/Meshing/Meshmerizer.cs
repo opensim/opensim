@@ -1990,7 +1990,7 @@ namespace OpenSim.Region.Physics.Meshing
                 Face f = faces[i];
                 mesh.triangles.Add(new Triangle(vertices[f.v1], vertices[f.v2], vertices[f.v3]));
             }
-            
+
             //for (int i = 0; i < numFaces; i++)
             //{
             //    Face f = primMesh.faces[i];

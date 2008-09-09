@@ -27,8 +27,8 @@
 
 #region Header
 
-// CMModel.cs 
-// User: bongiojp 
+// CMModel.cs
+// User: bongiojp
 //
 //
 
@@ -100,13 +100,13 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             ArrayList missingList = null;
             ArrayList newList = new ArrayList();
 
-            m_log.Debug("[CONTENT MANAGEMENT] Checking for new scene object parts in scene: " + scene.RegionInfo.RegionName);		
+            m_log.Debug("[CONTENT MANAGEMENT] Checking for new scene object parts in scene: " + scene.RegionInfo.RegionName);
 
             //Check if the current scene has groups not included in the current list of MetaEntities
-            //If so, then the current scene's parts that are new should be marked green.		
+            //If so, then the current scene's parts that are new should be marked green.
             missingList = m_MetaEntityCollection.CheckForMissingEntities(scene.GetEntities());
 
-            foreach(Object missingPart in missingList)
+            foreach (Object missingPart in missingList)
             {
                 if (m_MetaEntityCollection.Auras.ContainsKey(((SceneObjectPart)missingPart).UUID))
                     continue;
@@ -175,16 +175,16 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public void RemoveOrUpdateDeletedEntity(SceneObjectGroup group)
         {
             // Deal with new parts not revisioned that have been deleted.
-            foreach(SceneObjectPart part in group.Children.Values)
+            foreach (SceneObjectPart part in group.Children.Values)
                 if (m_MetaEntityCollection.Auras.ContainsKey(part.UUID))
                     m_MetaEntityCollection.RemoveNewlyCreatedEntityAura(part.UUID);
         }
 
         /// <summary>
-        /// Retrieves the latest revision of a region in xml form, 
-        /// converts it to scene object groups and scene presences, 
+        /// Retrieves the latest revision of a region in xml form,
+        /// converts it to scene object groups and scene presences,
         /// swaps the current scene's entity list with the revision's list.
-        /// Note: Since deleted objects while 
+        /// Note: Since deleted objects while
         /// </summary>
         public void RollbackRegion(Scene scene)
         {
@@ -214,26 +214,26 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 try{
                     temp = new SceneObjectGroup(xml);
                     temp.SetScene(scene);
-                    foreach(SceneObjectPart part in temp.Children.Values)
+                    foreach (SceneObjectPart part in temp.Children.Values)
                         part.RegionHandle = scene.RegionInfo.RegionHandle;
                     ReplacementList.Add(temp.UUID, (EntityBase)temp);
-                } 
+                }
                 catch(Exception e)
                 {
                     m_log.Info("[CMMODEL]: Error while creating replacement list for rollback: " + e);
-                }		
+                }
             }
 
             //If in scene but not in revision and not a client, remove them
             while (true)
             {
-                try 
+                try
                 {
-                    foreach(EntityBase entity in scene.GetEntities())
+                    foreach (EntityBase entity in scene.GetEntities())
                     {
                         if (entity == null)
                             continue;
-            			
+
                         if (entity is ScenePresence)
                         {
                             ReplacementList.Add(entity.UUID, entity);
@@ -253,9 +253,9 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 break;
             }
 
-            foreach(UUID uuid in deleteListUUIDs.Keys)
+            foreach (UUID uuid in deleteListUUIDs.Keys)
             {
-                try 
+                try
                 {
                     // I thought that the DeleteGroup() function would handle all of this, but it doesn't. I'm not sure WHAT it handles.
                     ((SceneObjectGroup)scene.Entities[uuid]).DetachFromBackup((SceneObjectGroup)scene.Entities[uuid]);
@@ -275,13 +275,13 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 scene.Entities = ReplacementList;
             }
 
-            foreach(EntityBase ent in ReplacementList.Values)
+            foreach (EntityBase ent in ReplacementList.Values)
             {
                 try
-                {	
+                {
                     if (!(ent is SceneObjectGroup))
                         continue;
-            		
+
                     if ((((SceneObjectGroup)ent).RootPart.GetEffectiveObjectFlags() & (uint) PrimFlags.Phantom) == 0)
                         ((SceneObjectGroup)ent).ApplyPhysics(true);
                     ((SceneObjectGroup)ent).AttachToBackup();
@@ -319,15 +319,15 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 m_MetaEntityCollection.CreateNewEntity(xml, scene);
             y.Stop();
             TimeToConvertXml += y.ElapsedMilliseconds;
-            m_log.Info("[FileSystemDatabase] Time spent converting xml to metaentities for " + scene.RegionInfo.RegionName + ": " + y.ElapsedMilliseconds);		
-            m_log.Info("[FileSystemDatabase] Time spent converting xml to metaentities so far: " + TimeToConvertXml);			
+            m_log.Info("[FileSystemDatabase] Time spent converting xml to metaentities for " + scene.RegionInfo.RegionName + ": " + y.ElapsedMilliseconds);
+            m_log.Info("[FileSystemDatabase] Time spent converting xml to metaentities so far: " + TimeToConvertXml);
 
             m_log.Info("[FSDB]: checking for new scene object parts missing green auras and create the auras");
             CheckForNewEntitiesMissingAuras(scene);
 
             x.Stop();
             TimeToUpdate += x.ElapsedMilliseconds;
-            m_log.Info("[FileSystemDatabase] Time spent Updating entity list for " + scene.RegionInfo.RegionName + ": " + x.ElapsedMilliseconds);		
+            m_log.Info("[FileSystemDatabase] Time spent Updating entity list for " + scene.RegionInfo.RegionName + ": " + x.ElapsedMilliseconds);
             m_log.Info("[FileSystemDatabase] Time spent Updating so far: " + TimeToUpdate);
         }
 
@@ -340,7 +340,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             System.Collections.ArrayList auraList = new System.Collections.ArrayList();
             if (group == null)
                 return null;
-            foreach(SceneObjectPart part in group.Children.Values)
+            foreach (SceneObjectPart part in group.Children.Values)
             {
                 if (m_MetaEntityCollection.Auras.ContainsKey(part.UUID))
                 {

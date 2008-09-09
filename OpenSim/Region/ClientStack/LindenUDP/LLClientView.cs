@@ -115,7 +115,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected UUID m_activeGroupID = UUID.Zero;
         protected string m_activeGroupName = String.Empty;
         protected ulong m_activeGroupPowers = 0;
-		protected Dictionary<UUID,ulong> m_groupPowers = new Dictionary<UUID, ulong>();
+        protected Dictionary<UUID,ulong> m_groupPowers = new Dictionary<UUID, ulong>();
 
         /* Instantiated Designated Event Delegates */
         //- used so we don't create new objects for each incoming packet and then toss it out later */
@@ -302,7 +302,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_activeGroupPowers; }
         }
 
-		public ulong GetGroupPowers(UUID groupID)
+        public ulong GetGroupPowers(UUID groupID)
         {
             if (m_groupPowers.ContainsKey(groupID))
                 return m_groupPowers[groupID];
@@ -645,7 +645,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void ClientLoop()
         {
             m_log.Info("[CLIENT]: Entered main packet processing loop");
-            
+
             while (true)
             {
                 LLQueItem nextPacket = m_PacketHandler.PacketQueue.Dequeue();
@@ -683,10 +683,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_PacketHandler.PacketsReceived == m_inPacketsChecked)
             {
                 // no packet came in since the last time we checked...
-                
+
                 m_probesWithNoIngressPackets++;
                 if ((m_probesWithNoIngressPackets > 30 && !m_clientBlocked)    // agent active
-                    || (m_probesWithNoIngressPackets > 90 && m_clientBlocked)) // agent paused 
+                    || (m_probesWithNoIngressPackets > 90 && m_clientBlocked)) // agent paused
                 {
                     m_clientPingTimer.Enabled = false;
 
@@ -709,7 +709,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // Something received in the meantime - we can reset the counters
                 m_probesWithNoIngressPackets = 0;
-                // ... and store the current number of packets received to find out if another one got in on the next cycle 
+                // ... and store the current number of packets received to find out if another one got in on the next cycle
                 m_inPacketsChecked = m_PacketHandler.PacketsReceived;
             }
 
@@ -749,7 +749,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(m_cirpack.m_circuitCode.m_sessionId, m_cirpack.m_circuitCode.ID, m_cirpack.m_circuitCode.Code);
                 AuthenticateResponse sessionInfo =
                     m_authenticateSessionsHandler.AuthenticateSession(m_sessionId, m_agentId, m_circuitCode);
-                    
+
                 if (!sessionInfo.Authorised)
                 {
                     //session/circuit not authorised

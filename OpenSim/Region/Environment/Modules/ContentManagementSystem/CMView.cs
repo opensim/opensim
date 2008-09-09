@@ -78,46 +78,46 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         // Auras To
         public void DisplayAuras(CMEntityCollection auraCollection)
         {
-            foreach( Object ent in auraCollection.Auras.Values)
-            	((AuraMetaEntity)ent).SendFullUpdateToAll();
+            foreach (Object ent in auraCollection.Auras.Values)
+                ((AuraMetaEntity)ent).SendFullUpdateToAll();
         }
 
         // Auras To Client
         public void DisplayAuras(CMEntityCollection auraCollection, IClientAPI client)
         {
-            foreach( Object ent in auraCollection.Auras.Values)
-            	((AuraMetaEntity)ent).SendFullUpdate(client);
+            foreach (Object ent in auraCollection.Auras.Values)
+                ((AuraMetaEntity)ent).SendFullUpdate(client);
         }
 
         // Auras from List To ALL
         public void DisplayAuras(ArrayList list)
         {
-            foreach( Object ent in list)
+            foreach (Object ent in list)
             {
-            	m_log.Debug("[CONTENT MANAGEMENT] displaying new aura riiiiiiiiiiiight NOW");
-            	((AuraMetaEntity)ent).SendFullUpdateToAll();
+                m_log.Debug("[CONTENT MANAGEMENT] displaying new aura riiiiiiiiiiiight NOW");
+                ((AuraMetaEntity)ent).SendFullUpdateToAll();
             }
         }
 
         // Entities to ALL
         public void DisplayEntities(CMEntityCollection entityCollection)
         {
-            foreach( Object ent in entityCollection.Entities.Values)
-            	((ContentManagementEntity)ent).SendFullDiffUpdateToAll();
+            foreach (Object ent in entityCollection.Entities.Values)
+                ((ContentManagementEntity)ent).SendFullDiffUpdateToAll();
         }
 
         // Entities to Client
         public void DisplayEntities(CMEntityCollection entityCollection, IClientAPI client)
         {
-            foreach( Object ent in entityCollection.Entities.Values)
-            	((ContentManagementEntity)ent).SendFullDiffUpdate(client);
+            foreach (Object ent in entityCollection.Entities.Values)
+                ((ContentManagementEntity)ent).SendFullDiffUpdate(client);
         }
 
         // Entities from List to ALL
         public void DisplayEntities(ArrayList list)
         {
-            foreach( Object ent in list)
-            	((ContentManagementEntity)ent).SendFullDiffUpdateToAll();
+            foreach (Object ent in list)
+                ((ContentManagementEntity)ent).SendFullDiffUpdateToAll();
         }
 
         // Entity to ALL
@@ -138,7 +138,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
             ContentManagementEntity group = m_model.GetMetaGroupByPrim(uuid);
             if (group != null)
-            	group.SendFullDiffUpdateToAll();
+                group.SendFullDiffUpdateToAll();
         }
 
         /// <summary>
@@ -158,14 +158,14 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         public void HideAllAuras()
         {
-            foreach(Object obj in m_model.MetaEntityCollection.Auras.Values)
-            	((MetaEntity)obj).HideFromAll();
+            foreach (Object obj in m_model.MetaEntityCollection.Auras.Values)
+                ((MetaEntity)obj).HideFromAll();
         }
 
         public void HideAllMetaEntities()
         {
-            foreach(Object obj in m_model.MetaEntityCollection.Entities.Values)
-            	((ContentManagementEntity)obj).HideFromAll();
+            foreach (Object obj in m_model.MetaEntityCollection.Entities.Values)
+                ((ContentManagementEntity)obj).HideFromAll();
         }
 
         public void Initialise(CMModel model)
@@ -183,12 +183,12 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         {
             // Deal with revisioned parts that have been deleted.
             if (m_model.MetaEntityCollection.Entities.ContainsKey(group.UUID))
-            	((ContentManagementEntity)m_model.MetaEntityCollection.Entities[group.UUID]).SendFullDiffUpdateToAll();
+                ((ContentManagementEntity)m_model.MetaEntityCollection.Entities[group.UUID]).SendFullDiffUpdateToAll();
 
             // Deal with new parts not revisioned that have been deleted.
-            foreach(SceneObjectPart part in group.Children.Values)
-            	if (m_model.MetaEntityCollection.Auras.ContainsKey(part.UUID))
-            		((AuraMetaEntity)m_model.MetaEntityCollection.Auras[part.UUID]).HideFromAll();
+            foreach (SceneObjectPart part in group.Children.Values)
+                if (m_model.MetaEntityCollection.Auras.ContainsKey(part.UUID))
+                    ((AuraMetaEntity)m_model.MetaEntityCollection.Auras[part.UUID]).HideFromAll();
         }
 
         public void SendMetaEntitiesToNewClient(IClientAPI client)

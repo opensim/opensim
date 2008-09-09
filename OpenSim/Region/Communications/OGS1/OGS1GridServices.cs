@@ -89,7 +89,7 @@ namespace OpenSim.Region.Communications.OGS1
         {
             serversInfo = servers_info;
             httpServer = httpServe;
-            
+
             //Respond to Grid Services requests
             httpServer.AddXmlRPCHandler("expect_user", ExpectUser);
             httpServer.AddXmlRPCHandler("logoff_user", LogOffUser);
@@ -602,7 +602,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="request"></param>
         /// <returns></returns>
         public XmlRpcResponse ExpectUser(XmlRpcRequest request)
-        {   
+        {
             Hashtable requestData = (Hashtable) request.Params[0];
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.SessionID = new UUID((string) requestData["session_id"]);
@@ -613,7 +613,7 @@ namespace OpenSim.Region.Communications.OGS1
             agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
             agentData.CapsPath = (string) requestData["caps_path"];
             ulong regionHandle = Convert.ToUInt64((string) requestData["regionhandle"]);
-            
+
             m_log.DebugFormat(
                 "[CLIENT]: Told by user service to prepare for a connection from {0} {1} {2}, circuit {3}",
                 agentData.firstname, agentData.lastname, agentData.AgentID, agentData.circuitcode);
@@ -669,7 +669,7 @@ namespace OpenSim.Region.Communications.OGS1
                 respdata["success"] = "TRUE";
                 resp.Value = respdata;
             }
-            
+
             return resp;
         }
         // Grid Request Processing
@@ -1679,7 +1679,7 @@ namespace OpenSim.Region.Communications.OGS1
                     // this might be cached, as we probably requested it just a moment ago...
                     RegionInfo info = RequestNeighbourInfo(regionHandle);
                     if (info != null) // just to be sure
-                    { 
+                    {
                         XmlRpcRequest request = new XmlRpcRequest("land_data", paramList);
                         string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
                         XmlRpcResponse response = request.Send(uri, 10000);

@@ -71,7 +71,7 @@ namespace OpenSim.Region.Environment.Scenes
         // FindObject(UUID)
         // FindObject(int)
         // FindPresence(UUID)
-        
+
         public void Add(SceneObjectGroup obj)
         {
             m_obj_by_uuid[obj.UUID] = obj;
@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectGroup RemoveObject(UUID uuid)
         {
             SceneObjectGroup sog = null;
-            try 
+            try
             {
                 sog = (SceneObjectGroup)m_obj_by_uuid[uuid];
                 m_obj_by_uuid.Remove(uuid);
@@ -99,11 +99,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return sog;
         }
-        
+
         public ScenePresence RemovePresence(UUID uuid)
         {
             ScenePresence sp = null;
-            try 
+            try
             {
                 sp = (ScenePresence)m_pres_by_uuid[uuid];
                 m_pres_by_uuid.Remove(uuid);
@@ -113,7 +113,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_log.ErrorFormat("RemovePresence failed for {0}", uuid, e);
                 sp = null;
             }
-            return sp;   
+            return sp;
         }
 
         public SceneObjectGroup FindObject(UUID uuid)
@@ -132,7 +132,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public SceneObjectGroup FindObject(int local)
         {
-            try 
+            try
             {
                 UUID uuid = (UUID)m_obj_by_local[local];
                 SceneObjectGroup sog = (SceneObjectGroup)m_obj_by_uuid[uuid];

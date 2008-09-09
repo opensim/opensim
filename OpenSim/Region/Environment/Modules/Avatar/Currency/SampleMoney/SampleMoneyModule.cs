@@ -820,33 +820,33 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             string secret = (string) requestData["secret"];
 
             Scene userScene = GetSceneByUUID(regionId);
-            if(userScene != null)
+            if (userScene != null)
             {
                 if (userScene.RegionInfo.regionSecret.ToString() == secret)
                 {
 
                     IClientAPI client = LocateClientObject(agentId);
-       	            if (client != null)
-       	            {
-                        
-       	                if (soundId != UUID.Zero)
-       	                    client.SendPlayAttachedSound(soundId, UUID.Zero, UUID.Zero, 1.0f, 0);
-                    
-       	                client.SendBlueBoxMessage(UUID.Zero, UUID.Zero, "", text);
-                    
-       	                retparam.Add("success", true);
-       	            }
+                       if (client != null)
+                       {
+
+                           if (soundId != UUID.Zero)
+                               client.SendPlayAttachedSound(soundId, UUID.Zero, UUID.Zero, 1.0f, 0);
+
+                           client.SendBlueBoxMessage(UUID.Zero, UUID.Zero, "", text);
+
+                           retparam.Add("success", true);
+                       }
                     else
                     {
                         retparam.Add("success", false);
                     }
-        		}
+                }
                 else
                 {
                     retparam.Add("success", false);
                 }
             }
-            
+
             ret.Value = retparam;
             return ret;
         }

@@ -686,7 +686,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         {
             // If we're currently in an event, just tell it to save upon return
             //
-            if(m_InEvent)
+            if (m_InEvent)
             {
                 m_SaveState = true;
                 return;

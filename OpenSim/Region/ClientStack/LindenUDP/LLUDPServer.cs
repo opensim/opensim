@@ -58,12 +58,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected byte[] RecvBuffer = new byte[4096];
         protected byte[] ZeroBuffer = new byte[8192];
         protected IPEndPoint ipeSender;
-        
+
         /// <value>
         /// The endpoint of a sender of a particular packet.  The port is continually changed by the various socket receive methods
         /// </value>
         protected EndPoint epSender;
-        
+
         protected EndPoint epProxy;
         protected int proxyPortOffset;
         protected AsyncCallback ReceivedData;
@@ -75,7 +75,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected IPAddress listenIP = IPAddress.Parse("0.0.0.0");
         protected IScene m_localScene;
         protected AssetCache m_assetCache;
-        
+
         /// <value>
         /// Manages authentication for agent circuits
         /// </value>
@@ -260,12 +260,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         ret = clientCircuits.TryGetValue(epSender, out circuit);
                     }
-                    
+
                     if (ret)
                     {
                         //if so then send packet to the packetserver
                         //m_log.DebugFormat("[UDPSERVER]: For endpoint {0} got packet {1}", epSender, packet.Type);
-                        
+
                         m_packetServer.InPacket(circuit, packet);
                     }
                     else if (packet.Type == PacketType.UseCircuitCode)
@@ -358,8 +358,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return;
 
                 UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
-                
-                m_log.DebugFormat("[CLIENT]: Adding new circuit for agent {0}, circuit code {1}", useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);                    
+
+                m_log.DebugFormat("[CLIENT]: Adding new circuit for agent {0}, circuit code {1}", useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
 
                 lock (clientCircuits)
                 {
@@ -386,10 +386,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (!PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy))
                     m_log.ErrorFormat(
-                        "[CLIENT]: A circuit already existed for agent {0}, circuit {1}", 
+                        "[CLIENT]: A circuit already existed for agent {0}, circuit {1}",
                         useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
             }
-            
+
             PacketPool.Instance.ReturnPacket(packet);
         }
 

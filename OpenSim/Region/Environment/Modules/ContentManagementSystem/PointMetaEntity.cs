@@ -89,7 +89,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             y.UUID = uuid;
 
             y.LocalId = LocalId;
-            	
+
             y.Shape = PrimitiveBaseShape.CreateBox();
             y.Scale = new Vector3(0.01f,0.01f,0.01f);
             y.LastOwnerID = UUID.Zero;
