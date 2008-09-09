@@ -354,8 +354,8 @@ namespace OpenSim.Data.SQLite
                             createdObjects[new UUID(objID)].AddPart(prim);
                         }
 
-                            LoadItems(prim);
-                        }
+                        LoadItems(prim);
+                    }
                     catch (Exception e)
                     {
                         m_log.Error("[REGION DB]: Failed create prim object, exception and data follows");
@@ -380,7 +380,7 @@ namespace OpenSim.Data.SQLite
 
             DataTable dbItems = ds.Tables["primitems"];
 
-            String sql = String.Format("primID = '{0}'", prim.ToString());
+            String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
             DataRow[] dbItemRows = dbItems.Select(sql);
 
             IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
