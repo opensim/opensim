@@ -89,6 +89,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return apis;
         }
 
+        private Dictionary<string, object> m_InitialValues =
+                new Dictionary<string, object>();
+        private Dictionary<string, FieldInfo> m_Fields =
+                new Dictionary<string, FieldInfo>();
+
         public void InitApi(string api, IScriptApi data)
         {
             if (!inits.ContainsKey(api))
@@ -100,12 +105,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             args[0] = data;
 
             mi.Invoke(this, args);
-        }
 
-        private Dictionary<string, object> m_InitialValues =
-                new Dictionary<string, object>();
-        private Dictionary<string, FieldInfo> m_Fields =
-                new Dictionary<string, FieldInfo>();
+            m_InitialValues = GetVars();
+        }
 
         public Dictionary<string, object> GetVars()
         {
@@ -127,7 +129,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             {
                 m_Fields[field.Name]=field;
 
-                vars[field.Name]=field.GetValue(this);
+                if(field.FieldType is LSL_Types.list) // ref type, copy
+                {
+                    LSL_Types.list v = (LSL_Types.list)field.GetValue(this);
+                    Object[] data = new Object[v.Data.Length];
+                    Array.Copy(data, 0, v.Data, 0, v.Data.Length);
+                    vars[field.Name] = data;
+                }
+                else
+                {
+                    vars[field.Name] = field.GetValue(this);
+                }
             }
 
             return vars;
@@ -139,7 +151,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             {
                 if (m_Fields.ContainsKey(var.Key))
                 {
-                    m_Fields[var.Key].SetValue(this, var.Value);
+                    if (m_Fields[var.Key].FieldType is LSL_Types.list)
+                    {
+                        LSL_Types.list v = (LSL_Types.list)m_Fields[var.Key].GetValue(this);
+                        Object[] data = (Object[])var.Value;
+                        v.Data = new Object[data.Length];
+                        Array.Copy(v.Data, 0, data, 0, data.Length);
+                        m_Fields[var.Key].SetValue(this, v);
+                    }
+                    else
+                    {
+                        m_Fields[var.Key].SetValue(this, var.Value);
+                    }
                 }
             }
         }

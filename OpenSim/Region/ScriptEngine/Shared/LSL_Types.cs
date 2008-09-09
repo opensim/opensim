@@ -419,6 +419,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         m_data=new Object[0];
                     return m_data;
                 }
+
+                set {m_data = value; }
             }
 
         // Member functions to obtain item as specific types.
