@@ -39,6 +39,8 @@ namespace OpenSim.Framework
 
     public delegate void ChatMessage(Object sender, OSChatMessage e);
 
+    public delegate void GenericMessage(Object sender, string method, List<String> args);
+
     public delegate void TextureRequest(Object sender, TextureRequestArgs e);
 
     public delegate void AvatarNowWearing(Object sender, AvatarWearingArgs e);
@@ -356,6 +358,9 @@ namespace OpenSim.Framework
 
         // [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
         uint CircuitCode { get; }
+
+        event GenericMessage OnGenericMessage;
+
         // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
         event ImprovedInstantMessage OnInstantMessage;
         // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments. Rename OnChat.")]
@@ -546,6 +551,8 @@ namespace OpenSim.Framework
         void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
                                 UUID imSessionID, string fromName, byte dialog, uint timeStamp,
                                 byte[] binaryBucket);
+
+        void SendGenericMessage(string method, List<string> message);
 
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);

@@ -159,7 +159,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event MoneyTransferRequest OnMoneyTransferRequest;
         public event ParcelBuy OnParcelBuy;
         public event Action<IClientAPI> OnConnectionClosed;
-
+        public event GenericMessage OnGenericMessage;
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatMessage OnChatFromViewer;
         public event TextureRequest OnRequestTexture;
@@ -465,6 +465,11 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public void SendGenericMessage(string method, List<string> message)
+        {
+            
+        }
+
         public virtual void SendLayerData(float[] map)
         {
         }
@@ -762,6 +767,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             get { return m_circuitCode; }
             set { m_circuitCode = value; }
         }
+
         public void SendBlueBoxMessage(UUID FromAvatarID, UUID fromSessionID, String FromAvatarName, String Message)
         {
 

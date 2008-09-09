@@ -141,7 +141,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event MoveTaskInventory OnMoveTaskItem;
         public event RemoveTaskInventory OnRemoveTaskItem;
         public event RequestAsset OnRequestAsset;
-
+        public event GenericMessage OnGenericMessage;
         public event UUIDNameRequest OnNameFromUUIDRequest;
         public event UUIDNameRequest OnUUIDGroupNameRequest;
 
@@ -377,6 +377,11 @@ namespace OpenSim.Region.Examples.SimpleModule
                                                UUID imSessionID, string fromName, byte dialog, uint timeStamp,
                                                byte[] binaryBucket)
         {
+        }
+
+        public void SendGenericMessage(string method, List<string> message)
+        {
+
         }
 
         public virtual void SendLayerData(float[] map)
@@ -751,6 +756,7 @@ namespace OpenSim.Region.Examples.SimpleModule
             get { return m_circuitCode; }
             set { m_circuitCode = value; }
         }
+
         public void SendBlueBoxMessage(UUID FromAvatarID, UUID fromSessionID, String FromAvatarName, String Message)
         {
 

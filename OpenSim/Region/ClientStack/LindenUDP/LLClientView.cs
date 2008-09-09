@@ -120,6 +120,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /* Instantiated Designated Event Delegates */
         //- used so we don't create new objects for each incoming packet and then toss it out later */
 
+        private GenericMessage handlerGenericMessage = null;
         private RequestAvatarProperties handlerRequestAvatarProperties = null; //OnRequestAvatarProperties;
         private UpdateAvatarProperties handlerUpdateAvatarProperties = null; // OnUpdateAvatarProperties;
         private ChatMessage handlerChatFromViewer = null; //OnChatFromViewer;
@@ -820,6 +821,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         # endregion
 
         // Previously ClientView.API partial class
+        public event GenericMessage OnGenericMessage;
         public event Action<IClientAPI> OnLogout;
         public event ObjectPermissions OnObjectPermissions;
         public event Action<IClientAPI> OnConnectionClosed;
@@ -1117,6 +1119,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 OutPacket(msg, ThrottleOutPacketType.Task);
             }
+        }
+
+        public void SendGenericMessage(string method, List<string> message)
+        {
+
+            GenericMessagePacket gmp = new GenericMessagePacket();
+            gmp.MethodData.Method = Utils.StringToBytes(method);
+            gmp.ParamList = new GenericMessagePacket.ParamListBlock[message.Count];
+            int i = 0;
+            foreach (string val in message)
+            {
+                gmp.ParamList[i] = new GenericMessagePacket.ParamListBlock();
+                gmp.ParamList[i++].Parameter = Utils.StringToBytes(val);
+            }
+            OutPacket(gmp, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -3320,6 +3337,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ParcelBuy, HandleParcelBuyRequest);
             AddLocalPacketHandler(PacketType.UUIDGroupNameRequest, HandleUUIDGroupNameRequest);
             AddLocalPacketHandler(PacketType.ObjectGroup, HandleObjectGroupRequest);
+            AddLocalPacketHandler(PacketType.GenericMessage, HandleGenericMessage);
         }
 
         private bool HandleMoneyTransferRequest(IClientAPI sender, Packet Pack)
@@ -3377,6 +3395,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
+            return true;
+        }
+
+        public bool HandleGenericMessage(IClientAPI sender, Packet pack)
+        {
+            GenericMessagePacket gmpack = (GenericMessagePacket) pack;
+            handlerGenericMessage = OnGenericMessage;
+
+            List<string> msg = new List<string>();
+
+            if(handlerGenericMessage != null)
+            {
+                string method = Util.FieldToString(gmpack.MethodData.Method);
+                foreach (GenericMessagePacket.ParamListBlock block in gmpack.ParamList)
+                {
+                    msg.Add(Util.FieldToString(block.Parameter));
+                }
+
+                handlerGenericMessage(this, method, msg);
+            }
             return true;
         }
 
