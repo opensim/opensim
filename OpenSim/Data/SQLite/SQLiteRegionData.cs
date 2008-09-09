@@ -130,10 +130,10 @@ namespace OpenSim.Data.SQLite
                 ds.Tables.Add(createShapeTable());
                 setupShapeCommands(shapeDa, m_conn);
 
-                    ds.Tables.Add(createItemsTable());
-                    setupItemsCommands(itemsDa, m_conn);
-                    itemsDa.Fill(ds.Tables["primitems"]);
-
+                ds.Tables.Add(createItemsTable());
+                setupItemsCommands(itemsDa, m_conn);
+                itemsDa.Fill(ds.Tables["primitems"]);
+                
                 ds.Tables.Add(createTerrainTable());
                 setupTerrainCommands(terrainDa, m_conn);
 
@@ -599,7 +599,7 @@ namespace OpenSim.Data.SQLite
                 primDa.Update(ds, "prims");
                 shapeDa.Update(ds, "primshapes");
 
-                    itemsDa.Update(ds, "primitems");
+                itemsDa.Update(ds, "primitems");
 
                 terrainDa.Update(ds, "terrain");
                 landDa.Update(ds, "land");
@@ -1184,7 +1184,7 @@ namespace OpenSim.Data.SQLite
             row["CreationDate"] = prim.CreationDate;
             row["Name"] = prim.Name;
             row["SceneGroupID"] = Util.ToRawUuidString(sceneGroupID);
-                // the UUID of the root part for this SceneObjectGroup
+            // the UUID of the root part for this SceneObjectGroup
             // various text fields
             row["Text"] = prim.Text;
             row["Description"] = prim.Description;

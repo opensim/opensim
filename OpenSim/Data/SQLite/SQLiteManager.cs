@@ -182,7 +182,7 @@ namespace OpenSim.Data.SQLite
 
             parameters["regionHandle"] = profile.regionHandle.ToString();
             parameters["regionName"] = profile.regionName;
-            parameters["uuid"] = profile.ToString();
+            parameters["uuid"] = profile.UUID.ToString();
             parameters["regionRecvKey"] = profile.regionRecvKey;
             parameters["regionSendKey"] = profile.regionSendKey;
             parameters["regionDataURI"] = profile.regionDataURI;
