@@ -11,7 +11,6 @@ This will print out to the console the test state.
 On Windows: ??
 
 
-
 Also, every checkin will run tests that are kicked off by bamboo.
 Results are posted here: http://www.opensimulator.org:8085/ as well as
 to #opensim-dev IRC channel.
