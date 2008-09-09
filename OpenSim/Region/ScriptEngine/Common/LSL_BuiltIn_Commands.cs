@@ -705,7 +705,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
             if (SenseList != null)
             {
-                if ((number >= 0) && (number <= SenseList.Length))
+                if ((number >= 0) && (number < SenseList.Length))
                 {
                     UUID SensedUUID = (UUID)SenseList.Data[number];
                     return resolveName(SensedUUID);
