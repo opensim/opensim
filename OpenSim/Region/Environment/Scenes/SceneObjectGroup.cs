@@ -357,13 +357,16 @@ namespace OpenSim.Region.Environment.Scenes
             xmlData = xmlData.Replace("</Guid></Guid>", "</Guid></UUID>");
             StringReader sr = new StringReader(xmlData);
             XmlTextReader reader = new XmlTextReader(sr);
+
             try
             {
                 reader.Read();
                 reader.ReadStartElement("SceneObjectGroup");
                 reader.ReadStartElement("RootPart");
                 m_rootPart = SceneObjectPart.FromXml(reader);
+                int linkNum = m_rootPart.LinkNum;
                 AddPart(m_rootPart);
+                m_rootPart.LinkNum = linkNum;
 
                 reader.ReadEndElement();
 
@@ -377,7 +380,9 @@ namespace OpenSim.Region.Environment.Scenes
                                 reader.Read();
                                 SceneObjectPart part = SceneObjectPart.FromXml(reader);
                                 part.LocalId = m_scene.PrimIDAllocate();
+                                linkNum = part.LinkNum;
                                 AddPart(part);
+                                part.LinkNum = linkNum;
                                 part.RegionHandle = m_regionHandle;
 
                                 part.TrimPermissions();
@@ -1459,7 +1464,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_parts.Clear();
             foreach (SceneObjectPart part in partsList)
             {
-                part.ResetIDs(m_parts.Count);
+                part.ResetIDs(part.LinkNum); // Don't change link nums
                 m_parts.Add(part.UUID, part);
             }
         }
