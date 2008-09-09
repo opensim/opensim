@@ -54,7 +54,10 @@ namespace OpenSim.Region.Environment.Scenes
         TEXTURE = 16,
         LINK = 32,
         ALLOWED_DROP = 64,
-        OWNER = 128
+        OWNER = 128,
+        REGION_RESTART = 256,
+        REGION = 512,
+        TELEPORT = 1024
     }
 
     // I don't really know where to put this except here.
