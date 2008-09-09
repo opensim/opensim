@@ -989,7 +989,8 @@ namespace OpenSim.Data.SQLite
                     new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientZ float NOT NULL default 0;", m_conn);
                 cmd.ExecuteNonQuery();
             }
-
+            prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorR"]), Convert.ToInt32(row["ColorB"]), Convert.ToInt32(row["ColorG"]));
+           
             return prim;
         }
 
@@ -1234,6 +1235,10 @@ namespace OpenSim.Data.SQLite
             row["SitTargetOrientX"] = sitTargetOrient.X;
             row["SitTargetOrientY"] = sitTargetOrient.Y;
             row["SitTargetOrientZ"] = sitTargetOrient.Z;
+            row["ColorR"] = Convert.ToInt32(prim.Color.R);
+            row["ColorG"] = Convert.ToInt32(prim.Color.G);
+            row["ColorB"] = Convert.ToInt32(prim.Color.B);
+            row["ColorA"] = Convert.ToInt32(prim.Color.A);
         }
 
         /// <summary>
