@@ -1335,8 +1335,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static explicit operator LSLInteger(LSLString s)
             {
-                // double.Parse() used because s could be "123.9" for example.
-                return new LSLInteger(double.Parse(s.m_string));
+                Regex r = new Regex("^[ ]*-?[0-9][0-9]*");
+                Match m = r.Match(s);
+                string v = m.Groups[0].Value;
+
+                if (v == String.Empty)
+                    v = "0";
+
+                return new LSLInteger(int.Parse(v));
             }
 
             public static explicit operator LSLString(double d)
@@ -1467,7 +1473,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 if (v == String.Empty)
                     v = "0";
 
-                // double.Parse() used because s could be "123.9" for example.
                 return new LSLInteger(int.Parse(v));
             }
 
