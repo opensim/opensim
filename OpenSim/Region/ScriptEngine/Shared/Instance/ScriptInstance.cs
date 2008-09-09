@@ -413,6 +413,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void SetState(string state)
         {
+            if (state == State)
+                return;
+
             PostEvent(new EventParams("state_exit", new Object[0],
                                        new DetectParams[0]));
             PostEvent(new EventParams("state", new Object[] { state },
