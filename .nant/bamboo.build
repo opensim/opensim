@@ -61,8 +61,10 @@
     <copy file="../${projectdir}.zip" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.zip" overwrite="true" />
     <copy file="../${projectdir}.tar.gz" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.tar.gz" overwrite="true" />
 
+<!--
     <echo message="Generating Doxygen documentation" />
     <exec program="doxygen" workingdir="../doc" commandline="doxygen.conf" />
-    <exec program="rsync" workingdir="../doc" commandline="-avz --delete html/ /home/afrisby/public_html/docs/html/" />
+    <exec program="rsync" workingdir="../doc" commandline="-az --delete html/ /home/afrisby/public_html/docs/html/" />
+-->
   </target>
 </project>
