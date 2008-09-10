@@ -941,8 +941,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.LSLInteger llDetectedLinkNumber(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedLinkNumber");
-            return 0;
+            EntityBase SensedObject = entityDetectedKey(number);
+            if (SensedObject == null)
+                return 0;
+            return m_host.LinkNum;
         }
 
         public void llDie()
