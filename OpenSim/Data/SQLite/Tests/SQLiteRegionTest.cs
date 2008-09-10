@@ -46,8 +46,6 @@ namespace OpenSim.Data.SQLite.Tests
         [TestFixtureSetUp]
         public void Init()
         {
-            log4net.Config.XmlConfigurator.Configure();
-            System.Console.WriteLine("Entering Init");
             connect = "URI=file:" + file + ",version=3";
             db = new SQLiteRegionData();
             db.Initialise(connect);
@@ -62,7 +60,6 @@ namespace OpenSim.Data.SQLite.Tests
         [Test]
         public void T001_LoadEmpty()
         {
-            System.Console.WriteLine("Entering T001");
             List<SceneObjectGroup> objs = db.LoadObjects(region);
             Assert.AreEqual(0, objs.Count);
         }
@@ -70,7 +67,6 @@ namespace OpenSim.Data.SQLite.Tests
         [Test]
         public void T010_StoreObject()
         {
-            System.Console.WriteLine("Entering T010");
             SceneObjectGroup sog = NewSOG();
             
             db.StoreObject(sog, region);
