@@ -133,7 +133,7 @@ namespace OpenSim.Data.SQLite
                 ds.Tables.Add(createItemsTable());
                 setupItemsCommands(itemsDa, m_conn);
                 itemsDa.Fill(ds.Tables["primitems"]);
-                
+
                 ds.Tables.Add(createTerrainTable());
                 setupTerrainCommands(terrainDa, m_conn);
 
@@ -990,7 +990,7 @@ namespace OpenSim.Data.SQLite
                 cmd.ExecuteNonQuery();
             }
             prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorR"]), Convert.ToInt32(row["ColorB"]), Convert.ToInt32(row["ColorG"]));
-           
+
             return prim;
         }
 

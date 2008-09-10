@@ -467,7 +467,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         public void SendGenericMessage(string method, List<string> message)
         {
-            
+
         }
 
         public virtual void SendLayerData(float[] map)

@@ -3405,7 +3405,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             List<string> msg = new List<string>();
 
-            if(handlerGenericMessage != null)
+            if (handlerGenericMessage != null)
             {
                 string method = Util.FieldToString(gmpack.MethodData.Method);
                 foreach (GenericMessagePacket.ParamListBlock block in gmpack.ParamList)

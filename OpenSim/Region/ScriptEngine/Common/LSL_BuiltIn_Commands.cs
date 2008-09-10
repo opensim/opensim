@@ -937,7 +937,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             EntityBase SensedObject = entityDetectedKey(number);
             if (SensedObject == null)
                 return new LSL_Types.LSLInteger(0);
-            if (m_host.GroupID == m_host.ParentGroup.RootPart.GroupID) ;
+            if (m_host.GroupID == m_host.ParentGroup.RootPart.GroupID)
                 return new LSL_Types.LSLInteger(1);
             return new LSL_Types.LSLInteger(0);
         }
