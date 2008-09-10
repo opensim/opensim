@@ -932,15 +932,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
         public LSL_Types.LSLInteger llDetectedGroup(int number)
-        {
+        { //CFK: I *think* this is right, but am not sure.
             m_host.AddScriptLPS(1);
             EntityBase SensedObject = entityDetectedKey(number);
             if (SensedObject == null)
                 return new LSL_Types.LSLInteger(0);
-//I almost get this, but not quite. So comment out the problemm line until I
-//figure it out
-//            if (m_host.GroupID == SensedObject.)
-//                return new LSL_Types.LSLInteger(1);
+            if (m_host.GroupID == m_host.ParentGroup.RootPart.GroupID) ;
+                return new LSL_Types.LSLInteger(1);
             return new LSL_Types.LSLInteger(0);
         }
 
