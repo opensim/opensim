@@ -934,8 +934,14 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.LSLInteger llDetectedGroup(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedGroup");
-            return 0;
+            EntityBase SensedObject = entityDetectedKey(number);
+            if (SensedObject == null)
+                return new LSL_Types.LSLInteger(0);
+//I almost get this, but not quite. So comment out the problemm line until I
+//figure it out
+//            if (m_host.GroupID == SensedObject.)
+//                return new LSL_Types.LSLInteger(1);
+            return new LSL_Types.LSLInteger(0);
         }
 
         public LSL_Types.LSLInteger llDetectedLinkNumber(int number)
