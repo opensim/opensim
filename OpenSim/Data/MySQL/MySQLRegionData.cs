@@ -1226,7 +1226,8 @@ namespace OpenSim.Data.MySQL
             prim.SalePrice = Convert.ToInt32(row["SalePrice"]);
             prim.ObjectSaleType = Convert.ToByte(row["SaleType"]);
 
-            prim.ClickAction = Convert.ToByte(row["ClickAction"]);
+            if (!row.IsNull("ClickAction"))
+                prim.ClickAction = Convert.ToByte(row["ClickAction"]);
 
             return prim;
         }
