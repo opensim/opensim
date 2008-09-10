@@ -4772,6 +4772,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         break;
 
+                    case PacketType.ObjectClickAction:
+                         ObjectClickActionPacket ocpacket = (ObjectClickActionPacket)Pack;
+                         Scene tScene = (Scene)m_scene;
+
+                         foreach (ObjectClickActionPacket.ObjectDataBlock odata in ocpacket.ObjectData)
+                         {
+                                byte action = odata.ClickAction;
+                                uint localId = odata.ObjectLocalID;
+                                SceneObjectPart part = tScene.GetSceneObjectPart(localId);
+                                part.ClickAction = action;
+                         }
+
+                         break;
+
                     #endregion
 
                     #region Inventory/Asset/Other related packets

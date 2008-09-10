@@ -941,6 +941,7 @@ namespace OpenSim.Data.MySQL
             createCol(prims, "SalePrice", typeof(Int32));
             createCol(prims, "SaleType", typeof (Int16));
 
+            createCol(prims, "ClickAction", typeof (Byte));
 
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] {prims.Columns["UUID"]};
@@ -1224,6 +1225,8 @@ namespace OpenSim.Data.MySQL
 
             prim.SalePrice = Convert.ToInt32(row["SalePrice"]);
             prim.ObjectSaleType = Convert.ToByte(row["SaleType"]);
+
+            prim.ClickAction = Convert.ToByte(row["ClickAction"]);
 
             return prim;
         }
@@ -1532,6 +1535,8 @@ namespace OpenSim.Data.MySQL
             row["SalePrice"] = prim.SalePrice;
             row["SaleType"] = Convert.ToInt16(prim.ObjectSaleType);
 
+            byte clickAction = prim.ClickAction;
+            row["ClickAction"] = clickAction;
         }
 
         /// <summary>
