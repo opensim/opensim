@@ -2906,11 +2906,25 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void ItemReceived(UUID itemID)
         {
+            //MIC: DEBUG
+            if (null == itemID)
+            {
+                m_log.Error("ItemReceived passed null itemID");
+                return;
+            }
+
             int attachpoint = m_appearance.GetAttachpoint(itemID);
             if (attachpoint == 0)
                 return;
 
             UUID asset = m_appearance.GetAttachedAsset(attachpoint);
+            //MIC: DEBUG
+            if (null == asset)
+            {
+                m_log.ErrorFormat("[ATTACHMENT] Unable to locate attached asset for item {0}", itemID.ToString());
+                return;
+            }
+
             if (asset == UUID.Zero) // We have just logged in
             {
                 m_log.InfoFormat("[ATTACHMENT] Rez attachment {0}",
