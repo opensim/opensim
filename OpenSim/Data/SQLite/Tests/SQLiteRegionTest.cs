@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
 using OpenSim.Framework;
 using OpenSim.Data.SQLite;
 using OpenSim.Region.Environment.Scenes;
@@ -64,24 +65,57 @@ namespace OpenSim.Data.SQLite.Tests
             Assert.AreEqual(0, objs.Count);
         }
         
+        // SOG round trips
+        //  * store objects, make sure they save
+        //  * update 
+
         [Test]
-        public void T010_StoreObject()
+        public void T010_StoreSimpleObject()
         {
-            SceneObjectGroup sog = NewSOG();
+            SceneObjectGroup sog = NewSOG("object1");
+            SceneObjectGroup sog2 = NewSOG("object2");
             
             db.StoreObject(sog, region);
+            db.StoreObject(sog2, region);
 
+            // This tests the ADO.NET driver
             List<SceneObjectGroup> objs = db.LoadObjects(region);
-            Assert.AreEqual(1, objs.Count);
+            Assert.AreEqual(2, objs.Count);
+
+            // This confirms things actually went to disk
+            db = new SQLiteRegionData();
+            db.Initialise(connect);
+
+            List<SceneObjectGroup> objs2 = db.LoadObjects(region);
+            Assert.AreEqual(2, objs2.Count);
+        }
+        
+        [Test]
+        public void T011_ObjectNames()
+        {
+            List<SceneObjectGroup> objs = db.LoadObjects(region);
+            foreach (SceneObjectGroup sog in objs)
+            {
+                SceneObjectPart p = sog.RootPart;
+                Assert.That("", Text.DoesNotMatch(p.Name));
+                Assert.That(p.Name, Text.Matches(p.Description));
+            }
         }
 
-        private SceneObjectGroup NewSOG()
+        [Test]
+        public void T010_UpdateObject()
+        {
+            
+        }
+
+
+        private SceneObjectGroup NewSOG(string name)
         {
             SceneObjectGroup sog = new SceneObjectGroup();
             SceneObjectPart sop = new SceneObjectPart();
             sop.LocalId = 1;
-            sop.Name = "";
-            sop.Description = "";
+            sop.Name = name;
+            sop.Description = name;
             sop.Text = "";
             sop.SitName = "";
             sop.TouchName = "";
