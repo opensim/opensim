@@ -26,8 +26,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
+using OpenSim.Framework;
 using OpenSim.Data.SQLite;
+using OpenSim.Region.Environment.Scenes;
+using OpenMetaverse;
 
 namespace OpenSim.Data.SQLite.Tests
 {
@@ -37,13 +41,60 @@ namespace OpenSim.Data.SQLite.Tests
         public string file = "regiontest.db";
         public string connect;
         public SQLiteRegionData db;
+        public UUID region = UUID.Zero;
         
-        [SetUp]
+        [TestFixtureSetUp]
         public void Init()
         {
+            log4net.Config.XmlConfigurator.Configure();
+            System.Console.WriteLine("Entering Init");
             connect = "URI=file:" + file + ",version=3";
             db = new SQLiteRegionData();
             db.Initialise(connect);
         }
+
+        [TestFixtureTearDown]
+        public void Cleanup()
+        {
+            System.IO.File.Delete(file);
+        }
+        
+        [Test]
+        public void T001_LoadEmpty()
+        {
+            System.Console.WriteLine("Entering T001");
+            List<SceneObjectGroup> objs = db.LoadObjects(region);
+            Assert.AreEqual(0, objs.Count);
+        }
+        
+        [Test]
+        public void T010_StoreObject()
+        {
+            System.Console.WriteLine("Entering T010");
+            SceneObjectGroup sog = NewSOG();
+            
+            db.StoreObject(sog, region);
+
+            List<SceneObjectGroup> objs = db.LoadObjects(region);
+            Assert.AreEqual(1, objs.Count);
+        }
+
+        private SceneObjectGroup NewSOG()
+        {
+            SceneObjectGroup sog = new SceneObjectGroup();
+            SceneObjectPart sop = new SceneObjectPart();
+            sop.LocalId = 1;
+            sop.Name = "";
+            sop.Description = "";
+            sop.Text = "";
+            sop.SitName = "";
+            sop.TouchName = "";
+            sop.UUID = UUID.Random();
+            sop.Shape = PrimitiveBaseShape.Default;
+            sog.AddPart(sop);
+            sog.RootPart = sop;
+            return sog;
+        }
+
     }
 }

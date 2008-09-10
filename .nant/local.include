@@ -1,3 +1,5 @@
+<!-- -*- xml -*- -->
+<!-- please leve the top comment for us emacs folks -->
 <property name="projectdir" value="opensim-0.5.5" />
 
 <target name="distdir">
