@@ -229,6 +229,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 if (textureManager != null)
                 {
+					if (extraParams == String.Empty)
+					{
+						extraParams = "256";
+					}
                     UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
                                                             extraParams, timer);
@@ -258,6 +262,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 if (textureManager != null)
                 {
+					if (extraParams == String.Empty)
+					{
+						extraParams = "256";
+					}
                     UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
                                                             extraParams, timer, true, (byte) alpha);
