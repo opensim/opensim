@@ -13,6 +13,9 @@ clean:
 test:
 	${NANT} test
 
+test-xml:
+	${NANT} test-xml
+
 tags:
 	find OpenSim -name \*\.cs | xargs etags 
 

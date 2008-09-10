@@ -1448,11 +1448,49 @@
       <Reference name="log4net.dll"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true" >
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
         <Match path="Resources" pattern="*.sql" buildAction="EmbeddedResource"/>
         <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
+
+    <Project name="OpenSim.Data.SQLite.Tests" path="OpenSim/Data/SQLite/Tests" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Data.SQLite.dll"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Data.SQLite" />
+      <Reference name="System.Drawing"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="Mono.Data.SqliteClient"/>
+      <Reference name="Mono.Addins.dll" />
+      <Reference name="log4net.dll"/>
+      <Reference name="nunit.framework.dll" />
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
 
     <Project name="OpenSim.Data.NHibernate" path="OpenSim/Data/NHibernate" type="Library">
       <Configuration name="Debug">

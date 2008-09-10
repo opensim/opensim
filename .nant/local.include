@@ -37,10 +37,28 @@
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
           <include name="./bin/OpenSim.Region.Environment.Tests.dll" />
+          <include name="./bin/OpenSim.Data.SQLite.Tests.dll" />
         </assemblies>
       </test>
     </nunit2>
 </target>
+
+<target name="test-xml" depends="build">
+      <nunit2 failonerror="true" verbose="true">
+      <formatter type="Xml" usefile="true" extension=".xml" outputdir="./test-results" />
+      <test>
+        <assemblies>
+          <include name="./bin/OpenSim.Framework.Tests.dll" />
+          <include name="./bin/OpenSim.Region.ScriptEngine.Common.Tests.dll" />
+          <include name="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
+          <include name="./bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
+          <include name="./bin/OpenSim.Region.Environment.Tests.dll" />
+          <include name="./bin/OpenSim.Data.SQLite.Tests.dll" />
+        </assemblies>
+      </test>
+    </nunit2>
+</target>
+
 
 <target name="dist" depends="distdir">
     <zip zipfile="${projectdir}.zip">
