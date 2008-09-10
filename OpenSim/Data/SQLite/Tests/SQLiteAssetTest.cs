@@ -39,7 +39,7 @@ namespace OpenSim.Data.SQLite.Tests
     [TestFixture]
     public class SQLiteAssetTest
     {
-        public string file = "assetest.db";
+        public string file = "assettest.db";
         public string connect;
         public SQLiteAssetData db;
         public UUID uuid1;
