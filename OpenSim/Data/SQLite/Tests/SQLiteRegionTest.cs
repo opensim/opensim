@@ -103,11 +103,31 @@ namespace OpenSim.Data.SQLite.Tests
         }
 
         [Test]
-        public void T010_UpdateObject()
+        public void T012_UpdateObject()
         {
-            
+            string text = "object1 text";
+            SceneObjectGroup sog = FindSOG("object1", region);
+            sog.RootPart.Text = text;
+            db.StoreObject(sog, region);
+
+            sog = FindSOG("object1", region);
+            Assert.That(text, Text.Matches(sog.RootPart.Text));
         }
 
+        // Extra private methods
+
+        private SceneObjectGroup FindSOG(string name, UUID r)
+        {
+            List<SceneObjectGroup> objs = db.LoadObjects(r);
+            foreach (SceneObjectGroup sog in objs)
+            {
+                SceneObjectPart p = sog.RootPart;
+                if (p.Name == name) {
+                    return sog;
+                }
+            }
+            return null;
+        }
 
         private SceneObjectGroup NewSOG(string name)
         {
