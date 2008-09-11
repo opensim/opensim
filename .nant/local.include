@@ -61,6 +61,10 @@
     </nunit2>
 </target>
 
+<target name="doxygen">
+  <exec program="doxygen" workingdir="doc" commandline="doxygen.conf" />
+</target>
+
 
 <target name="dist" depends="distdir">
     <zip zipfile="${projectdir}.zip">
