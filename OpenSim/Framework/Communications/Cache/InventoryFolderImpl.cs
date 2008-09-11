@@ -315,5 +315,20 @@ namespace OpenSim.Framework.Communications.Cache
 
             return folderList;
         }
+
+        public int TotalCount
+        {
+            get
+            {
+                int total = Items.Count;
+
+                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                {
+                    total = total + folder.TotalCount;
+                }
+
+                return total;
+            }
+        }
     }
 }
