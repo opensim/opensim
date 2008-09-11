@@ -69,23 +69,51 @@ namespace OpenSim.Data.SQLite.Tests
         public void T001_LoadEmpty()
         {
             Assert.That(db.ExistsAsset(uuid1), Is.False);
+            Assert.That(db.ExistsAsset(uuid2), Is.False);
+            Assert.That(db.ExistsAsset(uuid3), Is.False);
         }
         
         [Test]
         public void T010_StoreSimpleAsset()
         {
             AssetBase a1 = new AssetBase(uuid1, "asset one");
+            AssetBase a2 = new AssetBase(uuid2, "asset two");
+            AssetBase a3 = new AssetBase(uuid3, "asset three");
             db.CreateAsset(a1);
+            db.CreateAsset(a2);
+            db.CreateAsset(a3);
 
-            AssetBase a2 = db.FetchAsset(uuid1);
-            Assert.That(a1.ID.ToString(), Text.Matches(a2.ID.ToString()));
-            Assert.That(a1.Name, Text.Matches(a2.Name));
+            AssetBase a1a = db.FetchAsset(uuid1);
+            Assert.That(a1.ID.ToString(), Text.Matches(a1a.ID.ToString()));
+            Assert.That(a1.Name, Text.Matches(a1a.Name));
+
+            AssetBase a2a = db.FetchAsset(uuid2);
+            Assert.That(a2.ID.ToString(), Text.Matches(a2a.ID.ToString()));
+            Assert.That(a2.Name, Text.Matches(a2a.Name));
+
+            AssetBase a3a = db.FetchAsset(uuid3);
+            Assert.That(a3.ID.ToString(), Text.Matches(a3a.ID.ToString()));
+            Assert.That(a3.Name, Text.Matches(a3a.Name));
         }
 
         [Test]
         public void T011_ExistsSimpleAsset()
         {
             Assert.That(db.ExistsAsset(uuid1), Is.True);
+            Assert.That(db.ExistsAsset(uuid2), Is.True);
+            Assert.That(db.ExistsAsset(uuid3), Is.True);
+        }
+
+        // this has questionable use, but it is in the interface at the moment.
+        [Test]
+        public void T012_DeleteAsset()
+        {
+            db.DeleteAsset(uuid1);
+            db.DeleteAsset(uuid2);
+            db.DeleteAsset(uuid3);
+            Assert.That(db.ExistsAsset(uuid1), Is.False);
+            Assert.That(db.ExistsAsset(uuid2), Is.False);
+            Assert.That(db.ExistsAsset(uuid3), Is.False);
         }
     }
 }
