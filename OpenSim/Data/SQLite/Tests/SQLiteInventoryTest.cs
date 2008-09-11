@@ -67,6 +67,8 @@ namespace OpenSim.Data.SQLite.Tests
             owner2 = UUID.Random();
             owner3 = UUID.Random();
             name1 = "Root Folder for " + owner1.ToString();
+            name2 = "First Level folder";
+            name3 = "First Level folder 2";
         }
 
         [TestFixtureTearDown]
@@ -84,7 +86,17 @@ namespace OpenSim.Data.SQLite.Tests
 
         // 01x - folder tests
         [Test]
-        public void T010_FolderCreate()
+        public void T010_FolderNonParent()
+        {
+            InventoryFolderBase f1 = NewFolder(uuid2, uuid1, owner1, name2);
+            // the folder will go in
+            db.addInventoryFolder(f1);
+            InventoryFolderBase f1a = db.getUserRootFolder(owner1);
+            Assert.That(f1a, Is.Null);
+        }
+
+        [Test]
+        public void T011_FolderCreate()
         {
             InventoryFolderBase f1 = NewFolder(uuid1, zero, owner1, name1);
             // TODO: this is probably wrong behavior, but is what we have
@@ -99,6 +111,33 @@ namespace OpenSim.Data.SQLite.Tests
             InventoryFolderBase f1a = db.getUserRootFolder(owner1);
             Assert.That(uuid1, Is.EqualTo(f1a.ID));
             Assert.That(name1, Text.Matches(f1a.Name));
+        }
+
+        // we now have the following tree
+        // uuid1
+        //   +--- uuid2
+        //   +--- uuid3
+
+        [Test]
+        public void T012_FolderList()
+        {
+            InventoryFolderBase f2 = NewFolder(uuid3, uuid1, owner1, name3);
+            db.addInventoryFolder(f2);
+           
+            List<InventoryFolderBase> flist = db.getInventoryFolders(zero);
+            Assert.That(flist.Count, Is.EqualTo(1));
+
+            flist = db.getInventoryFolders(uuid1);
+            Assert.That(flist.Count, Is.EqualTo(2));
+
+            flist = db.getInventoryFolders(uuid2);
+            Assert.That(flist.Count, Is.EqualTo(0));
+
+            flist = db.getInventoryFolders(uuid3);
+            Assert.That(flist.Count, Is.EqualTo(0));
+
+            flist = db.getInventoryFolders(UUID.Random());
+            Assert.That(flist.Count, Is.EqualTo(0));
         }
 
         private InventoryFolderBase NewFolder(UUID id, UUID parent, UUID owner, string name)
