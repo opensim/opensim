@@ -20,6 +20,7 @@
       </fileset>
     </copy>
 
+    <exec program="svn" commandline="info" workingdir="../" output="../${projectdir}/svn.info" />
     <touch file="../${projectdir}/bin/startup_commands.txt" />
 
     <!-- Re-create the directory containig test results. -->
