@@ -42,9 +42,16 @@ namespace OpenSim.Data.SQLite.Tests
         public string file = "inventorytest.db";
         public string connect;
         public SQLiteInventoryStore db;
+        public UUID zero = UUID.Zero;
         public UUID uuid1;
         public UUID uuid2;
         public UUID uuid3;
+        public UUID owner1;
+        public UUID owner2;
+        public UUID owner3;
+        public string name1;
+        public string name2;
+        public string name3;
 
         
         [TestFixtureSetUp]
@@ -56,6 +63,10 @@ namespace OpenSim.Data.SQLite.Tests
             uuid1 = UUID.Random();
             uuid2 = UUID.Random();
             uuid3 = UUID.Random();
+            owner1 = UUID.Random();
+            owner2 = UUID.Random();
+            owner3 = UUID.Random();
+            name1 = "Root Folder for " + owner1.ToString();
         }
 
         [TestFixtureTearDown]
@@ -68,6 +79,36 @@ namespace OpenSim.Data.SQLite.Tests
         public void T001_LoadEmpty()
         {
             Assert.That(db.getInventoryItem(uuid1), Is.Null);
+            Assert.That(db.getUserRootFolder(owner1), Is.Null);
+        }
+
+        // 01x - folder tests
+        [Test]
+        public void T010_FolderCreate()
+        {
+            InventoryFolderBase f1 = NewFolder(uuid1, zero, owner1, name1);
+            // TODO: this is probably wrong behavior, but is what we have
+            // db.updateInventoryFolder(f1);
+            // InventoryFolderBase f1a = db.getUserRootFolder(owner1);
+            // Assert.That(uuid1, Is.EqualTo(f1a.ID))
+            // Assert.That(name1, Text.Matches(f1a.Name));
+            // Assert.That(db.getUserRootFolder(owner1), Is.Null);
+
+            // succeed with true
+            db.addInventoryFolder(f1);
+            InventoryFolderBase f1a = db.getUserRootFolder(owner1);
+            Assert.That(uuid1, Is.EqualTo(f1a.ID));
+            Assert.That(name1, Text.Matches(f1a.Name));
+        }
+
+        private InventoryFolderBase NewFolder(UUID id, UUID parent, UUID owner, string name)
+        {
+            InventoryFolderBase f = new InventoryFolderBase();
+            f.ID = id;
+            f.ParentID = parent;
+            f.Owner = owner;
+            f.Name = name;
+            return f;
         }
     }
 }
