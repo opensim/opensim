@@ -124,21 +124,66 @@ namespace OpenSim.Data.SQLite.Tests
             InventoryFolderBase f2 = NewFolder(uuid3, uuid1, owner1, name3);
             db.addInventoryFolder(f2);
            
-            List<InventoryFolderBase> flist = db.getInventoryFolders(zero);
-            Assert.That(flist.Count, Is.EqualTo(1));
+            Assert.That(db.getInventoryFolders(zero).Count, Is.EqualTo(1));
 
-            flist = db.getInventoryFolders(uuid1);
-            Assert.That(flist.Count, Is.EqualTo(2));
+            Assert.That(db.getInventoryFolders(uuid1).Count, Is.EqualTo(2));
 
-            flist = db.getInventoryFolders(uuid2);
-            Assert.That(flist.Count, Is.EqualTo(0));
+            Assert.That(db.getInventoryFolders(uuid2).Count, Is.EqualTo(0));
 
-            flist = db.getInventoryFolders(uuid3);
-            Assert.That(flist.Count, Is.EqualTo(0));
+            Assert.That(db.getInventoryFolders(uuid3).Count, Is.EqualTo(0));
 
-            flist = db.getInventoryFolders(UUID.Random());
-            Assert.That(flist.Count, Is.EqualTo(0));
+            Assert.That(db.getInventoryFolders(UUID.Random()).Count, Is.EqualTo(0));
+
         }
+        
+        [Test]
+        public void T013_FolderHierarchy()
+        {
+            Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0));
+
+            Assert.That(db.getFolderHierarchy(uuid1).Count, Is.EqualTo(2));
+
+            Assert.That(db.getFolderHierarchy(uuid2).Count, Is.EqualTo(0));
+
+            Assert.That(db.getFolderHierarchy(uuid3).Count, Is.EqualTo(0));
+            
+            Assert.That(db.getFolderHierarchy(UUID.Random()).Count, Is.EqualTo(0));
+        }
+
+        
+        [Test]
+        public void T014_MoveFolder()
+        {
+            InventoryFolderBase f2 = db.getInventoryFolder(uuid2);
+            f2.ParentID = uuid3;
+            db.moveInventoryFolder(f2);
+           
+            Assert.That(db.getInventoryFolders(zero).Count, Is.EqualTo(1));
+
+            Assert.That(db.getInventoryFolders(uuid1).Count, Is.EqualTo(1));
+
+            Assert.That(db.getInventoryFolders(uuid2).Count, Is.EqualTo(0));
+
+            Assert.That(db.getInventoryFolders(uuid3).Count, Is.EqualTo(1));
+
+            Assert.That(db.getInventoryFolders(UUID.Random()).Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void T015_FolderHierarchy()
+        {
+            Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0));
+
+            Assert.That(db.getFolderHierarchy(uuid1).Count, Is.EqualTo(2));
+
+            Assert.That(db.getFolderHierarchy(uuid2).Count, Is.EqualTo(0));
+
+            Assert.That(db.getFolderHierarchy(uuid3).Count, Is.EqualTo(1));
+            
+            Assert.That(db.getFolderHierarchy(UUID.Random()).Count, Is.EqualTo(0));
+        }
+
+
 
         private InventoryFolderBase NewFolder(UUID id, UUID parent, UUID owner, string name)
         {
