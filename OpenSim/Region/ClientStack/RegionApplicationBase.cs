@@ -163,10 +163,7 @@ namespace OpenSim.Region.ClientStack
                                  scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName);
                 scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.ID;
             }
-
-            scene.LoadPrimsFromStorage(regionInfo.originRegionID);
-            scene.StartTimer();
-
+            
             return scene;
         }
 
