@@ -45,11 +45,13 @@ using Nini.Config;
 using Nwc.XmlRpc;
 
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Servers;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
+
 using LLSD = OpenMetaverse.StructuredData.LLSD;
 using LLSDMap = OpenMetaverse.StructuredData.LLSDMap;
 using LLSDArray = OpenMetaverse.StructuredData.LLSDArray;
@@ -208,12 +210,35 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     //break;
                 case "rez_avatar/request":
                     return RequestRezAvatarMethod(path, request);
+                case "rez_avatar/place":
+                    return RequestRezAvatarMethod(path, request);
                     //break;
                 default:
                     return GenerateNoHandlerMessage();
             }
             //return null;
         }
+
+        // Using OpenSim.Framework.Communications.Capabilities.Caps here one time..   
+        // so the long name is probably better then a using statement
+        public void OnRegisterCaps(UUID agentID, OpenSim.Framework.Communications.Capabilities.Caps caps)
+        {
+            /* If we ever want to register our own caps here....    
+             * 
+            string capsBase = "/CAPS/" + caps.CapsObjectPath;
+            caps.RegisterHandler("CAPNAME",
+                                 new RestStreamHandler("POST", capsBase + CAPSPOSTFIX!,
+                                                       delegate(string request, string path, string param,
+                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                                       {
+                                                           return METHODHANDLER(request, path, param,
+                                                                                         agentID, caps);
+                                         }));
+            
+             *
+             */
+        }
+
 
         public LLSD RequestRezAvatarMethod(string path, LLSD request)
         {
@@ -262,8 +287,11 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             UpdateOGPState(LocalAgentID, userState);
 
             LLSDMap responseMap = new LLSDMap();
-            responseMap["sim_host"] = LLSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
+            responseMap["sim_host"] = LLSD.FromString(reg.ExternalHostName);
+            
+            // DEPRECIATED
             responseMap["sim_ip"] = LLSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
+            
             responseMap["connect"] = LLSD.FromBoolean(true);
             responseMap["sim_port"] = LLSD.FromInteger(reg.InternalEndPoint.Port);
             responseMap["region_x"] = LLSD.FromInteger(reg.RegionLocX * (uint)Constants.RegionSize); // LLX
@@ -349,14 +377,19 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             //string raCap = string.Empty;
 
             UUID AvatarRezCapUUID = UUID.Random();
-            string rezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar";
-
+            string rezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar/rez";
+            string derezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar/derez";
             // Get a reference to the user's cap so we can pull out the Caps Object Path
             OpenSim.Framework.Communications.Capabilities.Caps userCap = homeScene.GetCapsHandlerForUser(agentData.AgentID);
 
+            // DEPRECIATED
             responseMap["seed_capability"] = LLSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
-
+            
+            // REPLACEMENT
+            responseMap["region_seed_capability"] = LLSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
+            
             responseMap["rez_avatar/rez"] = LLSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + rezAvatarPath);
+            responseMap["rez_avatar/derez"] = LLSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + derezAvatarPath);
 
             // Add the user to the list of CAPS that are outstanding.
             // well allow the caps hosts in this dictionary
@@ -364,6 +397,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             {
                 if (CapsLoginID.ContainsKey(rezAvatarPath))
                 {
+                    // This is a joke, if you didn't notice...  It's so unlikely to happen, that I'll print this message if it does occur!
                     m_log.Error("[OGP]: Holy anomoly batman! Caps path already existed!  All the UUID Duplication worries were founded!");
                 }
                 else
@@ -504,7 +538,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     responseMap["look_at"] = LookAtArray;
 
                     responseMap["sim_port"] = LLSD.FromInteger(reg.InternalEndPoint.Port);
-                    responseMap["sim_host"] = LLSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());// + ":" + reg.InternalEndPoint.Port.ToString());
+                    responseMap["sim_host"] = LLSD.FromString(reg.ExternalHostName);// + ":" + reg.InternalEndPoint.Port.ToString());
+                    
+                    // DEPRECIATED
                     responseMap["sim_ip"] = LLSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
 
                     responseMap["session_id"] = LLSD.FromUUID(SessionID);
@@ -584,8 +620,19 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                         }
                     }
 
-                    string rezRespSeedCap = rezResponseMap["seed_capability"].AsString();
+                    string rezRespSeedCap = "";
+
+                    // DEPRECIATED
+                    if (rezResponseMap.ContainsKey("seed_capability"))
+                        rezRespSeedCap = rezResponseMap["seed_capability"].AsString();
+                    
+                    // REPLACEMENT
+                    if (rezResponseMap.ContainsKey("region_seed_capability"))
+                        rezRespSeedCap = rezResponseMap["region_seed_capability"].AsString();
+
+                    // DEPRECIATED
                     string rezRespSim_ip = rezResponseMap["sim_ip"].AsString();
+                    
                     string rezRespSim_host = rezResponseMap["sim_host"].AsString();
 
                     int rrPort = rezResponseMap["sim_port"].AsInteger();
@@ -598,9 +645,16 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
                     LLSDArray RezResponsePositionArray = (LLSDArray)rezResponseMap["position"];
 
+                    // DEPRECIATED
                     responseMap["seed_capability"] = LLSD.FromString(rezRespSeedCap);
+                    
+                    // REPLACEMENT r3
+                    responseMap["region_seed_capability"] = LLSD.FromString(rezRespSeedCap);
+
+                    // DEPRECIATED
                     responseMap["sim_ip"] = LLSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
-                    responseMap["sim_host"] = LLSD.FromString(Util.GetHostFromDNS(rezRespSim_host).ToString());
+                    
+                    responseMap["sim_host"] = LLSD.FromString(rezRespSim_host);
                     responseMap["sim_port"] = LLSD.FromInteger(rrPort);
                     responseMap["region_x"] = LLSD.FromInteger(rrX );
                     responseMap["region_y"] = LLSD.FromInteger(rrY );
@@ -754,7 +808,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             map["reason"] = LLSD.FromString("LLSDRequest");
             map["message"] = LLSD.FromString("No handler registered for LLSD Requests");
             map["login"] = LLSD.FromString("false");
-
+            map["connect"] = LLSD.FromString("false");
             return map;
         }
 
