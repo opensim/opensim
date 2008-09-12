@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenSim.Framework;
-using OpenSim.Data.Tests;
+using OpenSim.Data;
 using OpenSim.Region.Environment.Scenes;
 using OpenMetaverse;
 
