@@ -124,157 +124,117 @@ namespace OpenSim.Framework
         /// </summary>
         private int _creationDate;
 
-        public virtual UUID ID {
-            get {
-                return _id;
-            }
-            set {
-                _id = value;
-            }
+        public UUID ID {
+            get { return _id; }
+            set { _id = value; }
         }
 
-        public virtual int InvType
+        public int InvType
         {
             get { return _invType; }
             set { _invType = value; }
         }
 
-        public virtual UUID Folder
+        public UUID Folder
         {
             get { return _folder; }
             set { _folder = value; }
         }
 
-        public virtual UUID Owner
+        public UUID Owner
         {
             get { return _owner; }
             set { _owner = value; }
         }
 
-        public virtual UUID Creator
+        public UUID Creator
         {
             get { return _creator; }
             set { _creator = value; }
         }
 
-        public virtual string Name
+        public string Name
         {
             get { return _name; }
             set { _name = value; }
         }
 
-        public virtual string Description
+        public string Description
         {
             get { return _description; }
             set { _description = value; }
         }
 
-        public virtual uint NextPermissions
+        public uint NextPermissions
         {
             get { return _nextPermissions; }
             set { _nextPermissions = value; }
         }
 
-        public virtual uint CurrentPermissions
+        public uint CurrentPermissions
         {
             get { return _currentPermissions; }
             set { _currentPermissions = value; }
         }
 
-        public virtual uint BasePermissions
+        public uint BasePermissions
         {
             get { return _basePermissions; }
             set { _basePermissions = value; }
         }
 
-        public virtual uint EveryOnePermissions
+        public uint EveryOnePermissions
         {
             get { return _everyOnePermissions; }
             set { _everyOnePermissions = value; }
         }
 
-        public virtual int AssetType
+        public int AssetType
         {
             get { return _assetType; }
             set { _assetType = value; }
         }
 
-        public virtual UUID AssetID
+        public UUID AssetID
         {
             get { return _assetID; }
             set { _assetID = value; }
         }
 
-        public virtual UUID GroupID
+        public UUID GroupID
         {
-            get
-            {
-                return _groupID;
-            }
-            set
-            {
-                _groupID = value;
-            }
+            get { return _groupID; }
+            set { _groupID = value; }
         }
 
-        public virtual bool GroupOwned
+        public bool GroupOwned
         {
-            get
-            {
-                return _groupOwned;
-            }
-            set
-            {
-                _groupOwned = value;
-            }
+            get { return _groupOwned; }
+            set { _groupOwned = value; }
         }
 
-        public virtual int SalePrice
+        public int SalePrice
         {
-            get
-            {
-                return _salePrice;
-            }
-            set
-            {
-                _salePrice = value;
-            }
+            get { return _salePrice; }
+            set { _salePrice = value; }
         }
 
-        public virtual byte SaleType
+        public byte SaleType
         {
-            get
-            {
-                return _saleType;
-            }
-            set
-            {
-                _saleType = value;
-            }
+            get { return _saleType; }
+            set { _saleType = value; }
         }
 
-        public virtual uint Flags
+        public uint Flags
         {
-            get
-            {
-                return _flags;
-            }
-            set
-            {
-                _flags = value;
-            }
+            get { return _flags; }
+            set { _flags = value; }
         }
 
-        public virtual int CreationDate
+        public int CreationDate
         {
-            get
-            {
-                return _creationDate;
-            }
-            set
-            {
-                _creationDate = value;
-            }
+            get { return _creationDate; }
+            set { _creationDate = value; }
         }
     }
 }
