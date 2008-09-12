@@ -40,41 +40,84 @@ namespace OpenSim.Data.Tests
     {
         public IInventoryDataPlugin db;
         public UUID zero = UUID.Zero;
-        public UUID uuid1;
-        public UUID uuid2;
-        public UUID uuid3;
+
+        public UUID folder1;
+        public UUID folder2;
+        public UUID folder3;
         public UUID owner1;
         public UUID owner2;
         public UUID owner3;
+
+        public UUID item1;
+        public UUID item2;
+        public UUID item3;
+        public UUID asset1;
+        public UUID asset2;
+        public UUID asset3;
+
         public string name1;
         public string name2;
         public string name3;
+        public string iname1;
+        public string iname2;
+        public string iname3;
 
         public void SuperInit()
         {
-            uuid1 = UUID.Random();
-            uuid2 = UUID.Random();
-            uuid3 = UUID.Random();
+            folder1 = UUID.Random();
+            folder2 = UUID.Random();
+            folder3 = UUID.Random();
             owner1 = UUID.Random();
             owner2 = UUID.Random();
             owner3 = UUID.Random();
+            item1 = UUID.Random();
+            item2 = UUID.Random();
+            item3 = UUID.Random();
+            asset1 = UUID.Random();
+            asset2 = UUID.Random();
+            asset3 = UUID.Random();
+
             name1 = "Root Folder for " + owner1.ToString();
             name2 = "First Level folder";
             name3 = "First Level folder 2";
+            iname1 = "Shirt";
+            iname2 = "Text Board";
+            iname3 = "No Pants Barrel";
+            
         }
         
         [Test]
         public void T001_LoadEmpty()
         {
-            Assert.That(db.getInventoryItem(uuid1), Is.Null);
+            Assert.That(db.getInventoryFolder(zero), Is.Null);
+            Assert.That(db.getInventoryFolder(folder1), Is.Null);
+            Assert.That(db.getInventoryFolder(folder2), Is.Null);
+            Assert.That(db.getInventoryFolder(folder3), Is.Null);
+
+            Assert.That(db.getInventoryItem(zero), Is.Null);
+            Assert.That(db.getInventoryItem(item1), Is.Null);
+            Assert.That(db.getInventoryItem(item2), Is.Null);
+            Assert.That(db.getInventoryItem(item3), Is.Null);
+
+            Assert.That(db.getUserRootFolder(zero), Is.Null);
             Assert.That(db.getUserRootFolder(owner1), Is.Null);
+        }
+
+        [Test]
+        public void T999_StillNull()
+        {
+            // After all tests are run, these should still return no results
+            Assert.That(db.getInventoryFolder(zero), Is.Null);
+            Assert.That(db.getInventoryItem(zero), Is.Null);
+            Assert.That(db.getUserRootFolder(zero), Is.Null);
+            Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0));
         }
 
         // 01x - folder tests
         [Test]
         public void T010_FolderNonParent()
         {
-            InventoryFolderBase f1 = NewFolder(uuid2, uuid1, owner1, name2);
+            InventoryFolderBase f1 = NewFolder(folder2, folder1, owner1, name2);
             // the folder will go in
             db.addInventoryFolder(f1);
             InventoryFolderBase f1a = db.getUserRootFolder(owner1);
@@ -84,7 +127,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T011_FolderCreate()
         {
-            InventoryFolderBase f1 = NewFolder(uuid1, zero, owner1, name1);
+            InventoryFolderBase f1 = NewFolder(folder1, zero, owner1, name1);
             // TODO: this is probably wrong behavior, but is what we have
             // db.updateInventoryFolder(f1);
             // InventoryFolderBase f1a = db.getUserRootFolder(owner1);
@@ -95,29 +138,25 @@ namespace OpenSim.Data.Tests
             // succeed with true
             db.addInventoryFolder(f1);
             InventoryFolderBase f1a = db.getUserRootFolder(owner1);
-            Assert.That(uuid1, Is.EqualTo(f1a.ID));
+            Assert.That(folder1, Is.EqualTo(f1a.ID));
             Assert.That(name1, Text.Matches(f1a.Name));
         }
 
         // we now have the following tree
-        // uuid1
-        //   +--- uuid2
-        //   +--- uuid3
+        // folder1
+        //   +--- folder2
+        //   +--- folder3
 
         [Test]
         public void T012_FolderList()
         {
-            InventoryFolderBase f2 = NewFolder(uuid3, uuid1, owner1, name3);
+            InventoryFolderBase f2 = NewFolder(folder3, folder1, owner1, name3);
             db.addInventoryFolder(f2);
            
             Assert.That(db.getInventoryFolders(zero).Count, Is.EqualTo(1));
-
-            Assert.That(db.getInventoryFolders(uuid1).Count, Is.EqualTo(2));
-
-            Assert.That(db.getInventoryFolders(uuid2).Count, Is.EqualTo(0));
-
-            Assert.That(db.getInventoryFolders(uuid3).Count, Is.EqualTo(0));
-
+            Assert.That(db.getInventoryFolders(folder1).Count, Is.EqualTo(2));
+            Assert.That(db.getInventoryFolders(folder2).Count, Is.EqualTo(0));
+            Assert.That(db.getInventoryFolders(folder3).Count, Is.EqualTo(0));
             Assert.That(db.getInventoryFolders(UUID.Random()).Count, Is.EqualTo(0));
 
         }
@@ -126,13 +165,9 @@ namespace OpenSim.Data.Tests
         public void T013_FolderHierarchy()
         {
             Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0));
-
-            Assert.That(db.getFolderHierarchy(uuid1).Count, Is.EqualTo(2));
-
-            Assert.That(db.getFolderHierarchy(uuid2).Count, Is.EqualTo(0));
-
-            Assert.That(db.getFolderHierarchy(uuid3).Count, Is.EqualTo(0));
-            
+            Assert.That(db.getFolderHierarchy(folder1).Count, Is.EqualTo(2));
+            Assert.That(db.getFolderHierarchy(folder2).Count, Is.EqualTo(0));
+            Assert.That(db.getFolderHierarchy(folder3).Count, Is.EqualTo(0));
             Assert.That(db.getFolderHierarchy(UUID.Random()).Count, Is.EqualTo(0));
         }
 
@@ -140,18 +175,14 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T014_MoveFolder()
         {
-            InventoryFolderBase f2 = db.getInventoryFolder(uuid2);
-            f2.ParentID = uuid3;
+            InventoryFolderBase f2 = db.getInventoryFolder(folder2);
+            f2.ParentID = folder3;
             db.moveInventoryFolder(f2);
            
             Assert.That(db.getInventoryFolders(zero).Count, Is.EqualTo(1));
-
-            Assert.That(db.getInventoryFolders(uuid1).Count, Is.EqualTo(1));
-
-            Assert.That(db.getInventoryFolders(uuid2).Count, Is.EqualTo(0));
-
-            Assert.That(db.getInventoryFolders(uuid3).Count, Is.EqualTo(1));
-
+            Assert.That(db.getInventoryFolders(folder1).Count, Is.EqualTo(1));
+            Assert.That(db.getInventoryFolders(folder2).Count, Is.EqualTo(0));
+            Assert.That(db.getInventoryFolders(folder3).Count, Is.EqualTo(1));
             Assert.That(db.getInventoryFolders(UUID.Random()).Count, Is.EqualTo(0));
         }
 
@@ -159,17 +190,40 @@ namespace OpenSim.Data.Tests
         public void T015_FolderHierarchy()
         {
             Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0));
-
-            Assert.That(db.getFolderHierarchy(uuid1).Count, Is.EqualTo(2));
-
-            Assert.That(db.getFolderHierarchy(uuid2).Count, Is.EqualTo(0));
-
-            Assert.That(db.getFolderHierarchy(uuid3).Count, Is.EqualTo(1));
-            
+            Assert.That(db.getFolderHierarchy(folder1).Count, Is.EqualTo(2));
+            Assert.That(db.getFolderHierarchy(folder2).Count, Is.EqualTo(0));
+            Assert.That(db.getFolderHierarchy(folder3).Count, Is.EqualTo(1));
             Assert.That(db.getFolderHierarchy(UUID.Random()).Count, Is.EqualTo(0));
         }
 
+        // Item tests
+        public void T100_NoItems()
+        {
+            Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0));
+            Assert.That(db.getInventoryInFolder(folder1).Count, Is.EqualTo(0));
+            Assert.That(db.getInventoryInFolder(folder2).Count, Is.EqualTo(0));
+            Assert.That(db.getInventoryInFolder(folder3).Count, Is.EqualTo(0));
+        }
 
+        public void T101_CreatItems()
+        {
+            db.addInventoryItem(NewItem(item1, folder3, owner1, iname1, asset1));
+            db.addInventoryItem(NewItem(item2, folder3, owner1, iname2, asset2));
+            db.addInventoryItem(NewItem(item3, folder3, owner1, iname3, asset3));
+            Assert.That(db.getInventoryInFolder(folder3).Count, Is.EqualTo(3));
+        }
+     
+
+        private InventoryItemBase NewItem(UUID id, UUID parent, UUID owner, string name, UUID asset)
+        {
+            InventoryItemBase i = new InventoryItemBase();
+            i.ID = id;
+            i.Folder = parent;
+            i.Owner = owner;
+            i.Name = name;
+            i.AssetID = asset;
+            return i;
+        }
 
         private InventoryFolderBase NewFolder(UUID id, UUID parent, UUID owner, string name)
         {
