@@ -372,7 +372,7 @@ namespace OpenSim.Framework.Console
         // Shows data about something
         public void ShowCommands(string ShowWhat)
         {
-            m_cmdParser.Show(ShowWhat);
+            m_cmdParser.Show(new string[] { ShowWhat });
         }
 
         public void Prompt()

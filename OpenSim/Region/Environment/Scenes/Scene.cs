@@ -3468,10 +3468,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Shows various details about the sim based on the parameters supplied by the console command in openSimMain.
         /// </summary>
-        /// <param name="showWhat"></param>
-        public void Show(string showWhat)
+        /// <param name="showParams">What to show</param>
+        public void Show(string[] showParams)
         {
-            switch (showWhat)
+            switch (showParams[0])
             {
                 case "users":
                     m_log.Error("Current Region: " + RegionInfo.RegionName);

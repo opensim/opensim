@@ -269,7 +269,8 @@ namespace OpenSim
                     m_console.Notice("script - manually trigger scripts? or script commands?");
                     m_console.Notice("set-time [x] - set the current scene time phase");
                     m_console.Notice("show assets - show state of asset cache.");
-                    m_console.Notice("show users - show info about connected users.");
+                    m_console.Notice("show users - show info about connected users (only root agents).");
+                    m_console.Notice("show users full - show info about connected users (root and child agents).");
                     m_console.Notice("show modules - shows info about loaded modules.");
                     m_console.Notice("show regions - show running region information.");
                     m_console.Notice("config set section field value - set a config value");
@@ -634,7 +635,8 @@ namespace OpenSim
             m_console.Notice("script - manually trigger scripts? or script commands?");
             m_console.Notice("set-time [x] - set the current scene time phase");
             m_console.Notice("show assets - show state of asset cache.");
-            m_console.Notice("show users - show info about connected users.");
+            m_console.Notice("show users - show info about connected users (only root agents).");
+            m_console.Notice("show users full - show info about connected users (root and child agents).");
             m_console.Notice("show modules - shows info about loaded modules.");
             m_console.Notice("show regions - show running region information.");
             m_console.Notice("config set section field value - set a config value");
@@ -652,18 +654,26 @@ namespace OpenSim
         }
 
         // see BaseOpenSimServer
-        public override void Show(string ShowWhat)
+        public override void Show(string[] showParams)
         {
-            base.Show(ShowWhat);
+            base.Show(showParams);
 
-            switch (ShowWhat)
+            switch (showParams[0])
             {
                 case "assets":
                     m_assetCache.ShowState();
                     break;
 
                 case "users":
-                    IList agents = m_sceneManager.GetCurrentScenePresences();
+                    IList agents;
+                    if (showParams.Length > 1 && showParams[1] == "full")
+                    {
+                        agents = m_sceneManager.GetCurrentScenePresences();
+                    }
+                    else
+                    {
+                        agents = m_sceneManager.GetCurrentSceneAvatars();
+                    }
 
                     m_console.Notice(String.Format("\nAgents connected: {0}\n", agents.Count));
 

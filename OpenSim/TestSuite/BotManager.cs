@@ -212,8 +212,8 @@ namespace OpenSim.TestSuite
         /// <summary>
         /// Required method to implement the conscmd_callback interface
         /// </summary>
-        /// <param name="ShowWhat"></param>
-        public void Show(string ShowWhat)
+        /// <param name="showParams">What to show</param>
+        public void Show(string[] showParams)
         {
         }
     }

@@ -254,7 +254,7 @@ namespace OpenSim.Framework.Servers
                 case "show":
                     if (cmdparams.Length > 0)
                     {
-                        Show(cmdparams[0]);
+                        Show(cmdparams);
                     }
                     break;
 
@@ -317,12 +317,12 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Outputs to the console information about the region
         /// </summary>
-        /// <param name="showWhat">
-        /// What information to display (valid arguments are "uptime", "users")
+        /// <param name="showParams">
+        /// What information to display (valid arguments are "uptime", "users", ...)
         /// </param>
-        public virtual void Show(string showWhat)
+        public virtual void Show(string[] showParams)
         {
-            switch (showWhat)
+            switch (showParams[0])
             {
                 case "info":
                     Notice("Version: " + m_version);

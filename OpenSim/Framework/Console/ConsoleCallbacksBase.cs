@@ -30,6 +30,6 @@ namespace OpenSim.Framework.Console
     public interface conscmd_callback
     {
         void RunCmd(string cmd, string[] cmdparams);
-        void Show(string ShowWhat);
+        void Show(string[] showParams);
     }
 }
