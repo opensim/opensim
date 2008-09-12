@@ -93,6 +93,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_httpd.AddXmlRPCHandler("admin_create_user", XmlRpcCreateUserMethod);
                     m_httpd.AddXmlRPCHandler("admin_update_user", XmlRpcUpdateUserAccountMethod);
                     m_httpd.AddXmlRPCHandler("admin_load_xml", XmlRpcLoadXMLMethod);
+                    m_httpd.AddXmlRPCHandler("admin_save_xml", XmlRpcSaveXMLMethod);
                     m_httpd.AddXmlRPCHandler("admin_load_oar", XmlRpcLoadOARMethod);
                 }
             }
@@ -832,20 +833,19 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 switch (xml_version)
                 {
-                case "1":
-                    m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new Vector3(0, 0, 0));
-                    break;
+                    case "1":
+                        m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new Vector3(0, 0, 0));
+                        break;
 
-                case "2":
-                    m_app.SceneManager.LoadCurrentSceneFromXml2(filename);
-                    break;
+                    case "2":
+                        m_app.SceneManager.LoadCurrentSceneFromXml2(filename);
+                        break;
 
-                default:
-                    throw new Exception(String.Format("unknown Xml{0} format", xml_version));
+                    default:
+                        throw new Exception(String.Format("unknown Xml{0} format", xml_version));
                 }
 
                 responseData["loaded"]   = "true";
-
                 response.Value           = responseData;
             }
             catch (Exception e)
@@ -863,6 +863,87 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
+
+        public XmlRpcResponse XmlRpcSaveXMLMethod(XmlRpcRequest request)
+        {
+            m_log.Info("[RADMIN]: Received Save XML Administrator Request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                Hashtable requestData = (Hashtable)request.Params[0];
+
+                // check completeness
+                foreach (string p in new string[] { "password", "filename" })
+                {
+                    if (!requestData.Contains(p))
+                        throw new Exception(String.Format("missing parameter {0}", p));
+                    if (String.IsNullOrEmpty((string)requestData[p]))
+                        throw new Exception(String.Format("parameter {0} is empty"));
+                }
+
+                // check password
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                string filename = (string)requestData["filename"];
+                if (requestData.Contains("region_uuid"))
+                {
+                    UUID region_uuid = (string)requestData["region_uuid"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_uuid))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_uuid.ToString());
+                }
+                else if (requestData.Contains("region_name"))
+                {
+                    string region_name = (string)requestData["region_name"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_name))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_name);
+                }
+                else throw new Exception("neither region_name nor region_uuid given");
+
+                responseData["switched"] = "true";
+
+                string xml_version = "1";
+                if (requestData.Contains("xml_version"))
+                {
+                    xml_version = (string)requestData["xml_version"];
+                }
+
+                switch (xml_version)
+                {
+                    case "1":
+                        m_app.SceneManager.SaveCurrentSceneToXml(filename);
+                        break;
+
+                    case "2":
+                        m_app.SceneManager.SaveCurrentSceneToXml2(filename);
+                        break;
+
+                    default:
+                        throw new Exception(String.Format("unknown Xml{0} format", xml_version));
+                }
+
+                responseData["saved"] = "true";
+
+                response.Value = responseData;
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[RADMIN] LoadXml: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] LoadXml: {0}", e.ToString());
+
+                responseData["loaded"] = "false";
+                responseData["switched"] = "false";
+                responseData["error"] = e.Message;
+
+                response.Value = responseData;
+            }
+
+            return response;
+        }
 
         public void Dispose()
         {
