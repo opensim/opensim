@@ -2035,6 +2035,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
 
+        public System.Collections.Hashtable osParseJSON(string JSON)
+        { 
+            return m_LSL_Functions.osParseJSON(JSON);
+        }
+
         //for testing purposes only
         public void osSetParcelMediaTime(double time)
         {

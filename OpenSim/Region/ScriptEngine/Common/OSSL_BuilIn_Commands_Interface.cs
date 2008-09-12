@@ -63,6 +63,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         void osSetStateEvents(int events);
 
         void osOpenRemoteDataChannel(string channel);
+        
+        System.Collections.Hashtable osParseJSON(string JSON);
 
         string osGetScriptEngineName();
         void osSetParcelMediaTime(double time);
