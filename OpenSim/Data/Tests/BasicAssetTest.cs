@@ -69,15 +69,15 @@ namespace OpenSim.Data.Tests
             db.CreateAsset(a3);
 
             AssetBase a1a = db.FetchAsset(uuid1);
-            Assert.That(a1.ID.ToString(), Text.Matches(a1a.ID.ToString()));
+            Assert.That(a1.ID, Is.EqualTo(a1a.ID));
             Assert.That(a1.Name, Text.Matches(a1a.Name));
 
             AssetBase a2a = db.FetchAsset(uuid2);
-            Assert.That(a2.ID.ToString(), Text.Matches(a2a.ID.ToString()));
+            Assert.That(a2.ID, Is.EqualTo(a2a.ID));
             Assert.That(a2.Name, Text.Matches(a2a.Name));
 
             AssetBase a3a = db.FetchAsset(uuid3);
-            Assert.That(a3.ID.ToString(), Text.Matches(a3a.ID.ToString()));
+            Assert.That(a3.ID, Is.EqualTo(a3a.ID));
             Assert.That(a3.Name, Text.Matches(a3a.Name));
         }
 
