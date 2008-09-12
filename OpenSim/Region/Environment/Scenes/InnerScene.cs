@@ -1218,6 +1218,22 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        protected internal void PrimClickAction(IClientAPI remoteClient, uint primLocalID, string clickAction)
+        {
+            SceneObjectGroup group = GetGroupByPrim(primLocalID);
+            if (group != null)
+            {
+                if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
+                {
+                    SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
+                    part.ClickAction = Convert.ToByte(clickAction);
+                    group.HasGroupChanged = true;
+                }
+            }
+        }
+
+
+
         protected internal void UpdateExtraParam(UUID agentID, uint primLocalID, ushort type, bool inUse, byte[] data)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);

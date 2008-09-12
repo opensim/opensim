@@ -211,6 +211,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event ObjectSelect OnObjectSelect;
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;
+        public event GenericCall7 OnObjectClickAction;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
         public event UpdateVector OnUpdatePrimGroupPosition;

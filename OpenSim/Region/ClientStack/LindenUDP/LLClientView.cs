@@ -170,6 +170,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ObjectSelect handlerDeGrabObject = null; //OnDeGrabObject;
         private GenericCall7 handlerObjectDescription = null;
         private GenericCall7 handlerObjectName = null;
+        private GenericCall7 handlerObjectClickAction = null;
         private ObjectPermissions handlerObjectPermissions = null;
         private RequestObjectPropertiesFamily handlerRequestObjectPropertiesFamily = null; //OnRequestObjectPropertiesFamily;
         private TextureRequest handlerTextureRequest = null;
@@ -864,6 +865,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ObjectDeselect OnObjectDeselect;
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;
+        public event GenericCall7 OnObjectClickAction;
         public event ObjectIncludeInSearch OnObjectIncludeInSearch;
         public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         public event UpdatePrimFlags OnUpdatePrimFlags;
@@ -4774,16 +4776,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     case PacketType.ObjectClickAction:
                          ObjectClickActionPacket ocpacket = (ObjectClickActionPacket)Pack;
-                         Scene tScene = (Scene)m_scene;
 
-                         foreach (ObjectClickActionPacket.ObjectDataBlock odata in ocpacket.ObjectData)
+                         handlerObjectClickAction = OnObjectClickAction;
+                         if(handlerObjectClickAction != null) 
                          {
-                                byte action = odata.ClickAction;
-                                uint localId = odata.ObjectLocalID;
-                                SceneObjectPart part = tScene.GetSceneObjectPart(localId);
-                                part.ClickAction = action;
+                             foreach (ObjectClickActionPacket.ObjectDataBlock odata in ocpacket.ObjectData)
+                             {
+                                 byte action = odata.ClickAction;
+                                 uint localID = odata.ObjectLocalID;
+                                 handlerObjectClickAction(this, localID, action.ToString());
+                             }
                          }
-
                          break;
 
                     #endregion

@@ -422,6 +422,7 @@ namespace OpenSim.Framework
         event ObjectDeselect OnObjectDeselect;
         event GenericCall7 OnObjectDescription;
         event GenericCall7 OnObjectName;
+        event GenericCall7 OnObjectClickAction;
         event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         event UpdatePrimFlags OnUpdatePrimFlags;
         event UpdatePrimTexture OnUpdatePrimTexture;
