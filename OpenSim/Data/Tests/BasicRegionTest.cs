@@ -51,7 +51,7 @@ namespace OpenSim.Data.Tests
         public void T001_LoadEmpty()
         {
             List<SceneObjectGroup> objs = db.LoadObjects(region);
-            Assert.AreEqual(0, objs.Count);
+            Assert.That(objs.Count, Is.EqualTo(0));
         }
         
         // SOG round trips
@@ -69,7 +69,7 @@ namespace OpenSim.Data.Tests
 
             // This tests the ADO.NET driver
             List<SceneObjectGroup> objs = db.LoadObjects(region);
-            Assert.AreEqual(2, objs.Count);
+            Assert.That(objs.Count, Is.EqualTo(2));
         }
         
         [Test]
