@@ -16,7 +16,7 @@ OpenSim Developers
 * CW
 * Babblefrog
 * Tedd
-* justincc
+* justincc (Black Dress Technology)
 * Teravus (w3z)
 * Johan Berntsson (3Di)
 * Ckrinke (Charles Krinke)
@@ -29,6 +29,8 @@ OpenSim Developers
 * Dr Scofield (IBM)
 * dahlia
 * mikem (3Di)
+* Melanie Thielker
+* Homer_Horwitz
 
 
 Patches
@@ -54,13 +56,11 @@ Patches
 * krtaylor (IBM)
 * A_Biondi
 * lulurun 
-* Melanie Thielker
 * John R Sohn (XenReborn)
 * Xantor
 * YZh
 * Grumly57
 * Junta Kohime
-* Homer_Horwitz
 * Zha Ewry
 * Mic Bowman
 
@@ -77,6 +77,7 @@ Testers
 * Ckrinke
 * CharlieO (LSL)
 * openlifegrid.com
+* Ai Austin
 
 
 This software uses components from the following developers:
