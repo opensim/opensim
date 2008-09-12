@@ -33,7 +33,6 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Grid.ScriptServer.ScriptServer;
 using OpenSim.Region.ScriptEngine.Common;
-using OpenSim.Region.ScriptEngine.Common.TRPC;
 
 namespace OpenSim.Grid.ScriptServer
 {
