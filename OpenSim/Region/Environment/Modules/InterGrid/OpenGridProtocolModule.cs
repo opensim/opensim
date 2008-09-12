@@ -322,9 +322,6 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             useragent.LoginTime=Util.UnixTimeSinceEpoch();
             useragent.LogoutTime = 0;
             useragent.Position=agentData.startpos;
-            useragent.PositionX=agentData.startpos.X;
-            useragent.PositionY=agentData.startpos.Y;
-            useragent.PositionZ=agentData.startpos.Z;
             useragent.Region=reg.originRegionID;
             useragent.SecureSessionID=agentData.SecureSessionID;
             useragent.SessionID = agentData.SessionID;

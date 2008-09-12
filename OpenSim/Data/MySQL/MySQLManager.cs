@@ -512,6 +512,8 @@ namespace OpenSim.Data.MySQL
                 Vector3 tmp_v;
                 Vector3.TryParse((string) reader["currentPos"], out tmp_v);
                 retval.Position = tmp_v;
+                Vector3.TryParse((string)reader["currentLookAt"], out tmp_v);
+                retval.LookAt = tmp_v;
             }
             else
             {
@@ -1095,8 +1097,8 @@ namespace OpenSim.Data.MySQL
         {
             string sql = String.Empty;
             sql += "REPLACE INTO ";
-            sql += "agents (UUID, sessionID, secureSessionID, agentIP, agentPort, agentOnline, loginTime, logoutTime, currentRegion, currentHandle, currentPos) VALUES ";
-            sql += "(?UUID, ?sessionID, ?secureSessionID, ?agentIP, ?agentPort, ?agentOnline, ?loginTime, ?logoutTime, ?currentRegion, ?currentHandle, ?currentPos);";
+            sql += "agents (UUID, sessionID, secureSessionID, agentIP, agentPort, agentOnline, loginTime, logoutTime, currentRegion, currentHandle, currentPos, currentLookAt) VALUES ";
+            sql += "(?UUID, ?sessionID, ?secureSessionID, ?agentIP, ?agentPort, ?agentOnline, ?loginTime, ?logoutTime, ?currentRegion, ?currentHandle, ?currentPos, ?currentLookAt);";
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
             parameters["?UUID"] = agentdata.ProfileID.ToString();
@@ -1109,7 +1111,8 @@ namespace OpenSim.Data.MySQL
             parameters["?logoutTime"] = agentdata.LogoutTime.ToString();
             parameters["?currentRegion"] = agentdata.Region.ToString();
             parameters["?currentHandle"] = agentdata.Handle.ToString();
-            parameters["?currentPos"] = "<" + ((int)agentdata.Position.X).ToString() + "," + ((int)agentdata.Position.Y).ToString() + "," + ((int)agentdata.Position.Z).ToString() + ">";
+            parameters["?currentPos"] = "<" + (agentdata.Position.X).ToString() + "," + (agentdata.Position.Y).ToString() + "," + (agentdata.Position.Z).ToString() + ">";
+            parameters["?currentLookAt"] = "<" + (agentdata.LookAt.X).ToString() + "," + (agentdata.LookAt.Y).ToString() + "," + (agentdata.LookAt.Z).ToString() + ">";
 
             bool returnval = false;
 

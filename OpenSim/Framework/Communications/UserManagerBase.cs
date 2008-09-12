@@ -388,110 +388,27 @@ namespace OpenSim.Framework.Communications
             // Profile UUID
             agent.ProfileID = profile.ID;
 
-            // Current position (from Home)
-            agent.Handle = profile.HomeRegion;
-            agent.Position = profile.HomeLocation;
-
-            // If user specified additional start, use that
-            if (requestData.ContainsKey("start"))
+            // Current location/position/alignment
+            if (profile.CurrentAgent != null)
             {
-                string startLoc = ((string)requestData["start"]).Trim();
-                if (("last" == startLoc) && (profile.CurrentAgent != null))
-                {
-                    if ((profile.CurrentAgent.Position.X > 0)
-                        && (profile.CurrentAgent.Position.Y > 0)
-                        && (profile.CurrentAgent.Position.Z > 0)
-                        )
-                    {
-                        // TODO: Right now, currentRegion has not been used in GridServer for requesting region.
-                        // TODO: It is only using currentHandle.
-                        agent.Region = profile.CurrentAgent.Region;
-                        agent.Handle = profile.CurrentAgent.Handle;
-                        agent.Position = profile.CurrentAgent.Position;
-                    }
-                }
-
-//                if (!(startLoc == "last" || startLoc == "home"))
-//                {
-//                    // Format: uri:Ahern&162&213&34
-//                    try
-//                    {
-//                        string[] parts = startLoc.Remove(0, 4).Split('&');
-//                        //string region = parts[0];
-//
-//                        ////////////////////////////////////////////////////
-//                        //SimProfile SimInfo = new SimProfile();
-//                        //SimInfo = SimInfo.LoadFromGrid(theUser.currentAgent.currentHandle, _config.GridServerURL, _config.GridSendKey, _config.GridRecvKey);
-//                    }
-//                    catch (Exception)
-//                    {
-//                    }
-//                }
+                agent.Region = profile.CurrentAgent.Region;
+                agent.Handle = profile.CurrentAgent.Handle;
+                agent.Position = profile.CurrentAgent.Position;
+                agent.LookAt = profile.CurrentAgent.LookAt;
+            }
+            else
+            {
+                agent.Region = profile.HomeRegionID;
+                agent.Handle = profile.HomeRegion;
+                agent.Position = profile.HomeLocation;
+                agent.LookAt = profile.HomeLookAt;
             }
 
             // What time did the user login?
             agent.LoginTime = Util.UnixTimeSinceEpoch();
             agent.LogoutTime = 0;
 
-            // Current location
-            agent.InitialRegion = UUID.Zero; // Fill in later
-            agent.Region = UUID.Zero; // Fill in later
-
             profile.CurrentAgent = agent;
-        }
-
-        /// <summary>
-        /// Process a user logoff from OpenSim.
-        /// </summary>
-        /// <param name="userid"></param>
-        /// <param name="regionid"></param>
-        /// <param name="regionhandle"></param>
-        /// <param name="posx"></param>
-        /// <param name="posy"></param>
-        /// <param name="posz"></param>
-        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
-        {
-            if (StatsManager.UserStats != null)
-                StatsManager.UserStats.AddLogout();
-
-            UserProfileData userProfile;
-            UserAgentData userAgent;
-            Vector3 currentPos = new Vector3(posx, posy, posz);
-
-            userProfile = GetUserProfile(userid);
-
-            if (userProfile != null)
-            {
-                // This line needs to be in side the above if statement or the UserServer will crash on some logouts.
-                m_log.Info("[LOGOUT]: " + userProfile.FirstName + " " + userProfile.SurName + " from " + regionhandle + "(" + posx + "," + posy + "," + posz + ")");
-
-                userAgent = userProfile.CurrentAgent;
-                if (userAgent != null)
-                {
-                    userAgent.AgentOnline = false;
-                    userAgent.LogoutTime = Util.UnixTimeSinceEpoch();
-                    //userAgent.sessionID = UUID.Zero;
-                    if (regionid != UUID.Zero)
-                    {
-                        userAgent.Region = regionid;
-                    }
-
-                    userAgent.Handle = regionhandle;
-                    userAgent.Position = currentPos;
-                    userProfile.CurrentAgent = userAgent;
-
-                    CommitAgent(ref userProfile);
-                }
-                else
-                {
-                    // If currentagent is null, we can't reference it here or the UserServer crashes!
-                    m_log.Info("[LOGOUT]: didn't save logout position: " + userid.ToString());
-                }
-            }
-            else
-            {
-                m_log.Warn("[LOGOUT]: Unknown User logged out");
-            }
         }
 
         public void CreateAgent(UserProfileData profile, LLSD request)
@@ -500,6 +417,13 @@ namespace OpenSim.Framework.Communications
 
             // User connection
             agent.AgentOnline = true;
+
+            //if (request.Params.Count > 1)
+            //{
+            //    IPEndPoint RemoteIPEndPoint = (IPEndPoint)request.Params[1];
+            //    agent.AgentIP = RemoteIPEndPoint.Address.ToString();
+            //    agent.AgentPort = (uint)RemoteIPEndPoint.Port;
+            //}
 
             // Generate sessions
             RNGCryptoServiceProvider rand = new RNGCryptoServiceProvider();
@@ -514,17 +438,25 @@ namespace OpenSim.Framework.Communications
             // Profile UUID
             agent.ProfileID = profile.ID;
 
-            // Current position (from Home)
-            agent.Handle = profile.HomeRegion;
-            agent.Position = profile.HomeLocation;
+            // Current location/position/alignment
+            if (profile.CurrentAgent != null)
+            {
+                agent.Region = profile.CurrentAgent.Region;
+                agent.Handle = profile.CurrentAgent.Handle;
+                agent.Position = profile.CurrentAgent.Position;
+                agent.LookAt = profile.CurrentAgent.LookAt;
+            }
+            else
+            {
+                agent.Region = profile.HomeRegionID;
+                agent.Handle = profile.HomeRegion;
+                agent.Position = profile.HomeLocation;
+                agent.LookAt = profile.HomeLookAt;
+            }
 
             // What time did the user login?
             agent.LoginTime = Util.UnixTimeSinceEpoch();
             agent.LogoutTime = 0;
-
-            // Current location
-            agent.InitialRegion = UUID.Zero; // Fill in later
-            agent.Region = UUID.Zero; // Fill in later
 
             profile.CurrentAgent = agent;
         }
@@ -542,6 +474,70 @@ namespace OpenSim.Framework.Communications
             ret = AddUserAgent(profile.CurrentAgent);
             ret = ret & UpdateUserProfile(profile);
             return ret;
+        }
+
+        /// <summary>
+        /// Process a user logoff from OpenSim.
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <param name="regionid"></param>
+        /// <param name="regionhandle"></param>
+        /// <param name="position"></param>
+        /// <param name="lookat"></param>
+        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
+        {
+            if (StatsManager.UserStats != null)
+                StatsManager.UserStats.AddLogout();
+
+            UserProfileData userProfile = GetUserProfile(userid);
+
+            if (userProfile != null)
+            {
+                // This line needs to be in side the above if statement or the UserServer will crash on some logouts.
+                m_log.Info("[LOGOUT]: " + userProfile.FirstName + " " + userProfile.SurName + " from " + regionhandle + "(" + position.X + "," + position.Y + "," + position.Z + ")");
+
+                UserAgentData userAgent = userProfile.CurrentAgent;
+                if (userAgent != null)
+                {
+                    userAgent.AgentOnline = false;
+                    userAgent.LogoutTime = Util.UnixTimeSinceEpoch();
+                    //userAgent.sessionID = UUID.Zero;
+                    if (regionid != UUID.Zero)
+                    {
+                        userAgent.Region = regionid;
+                    }
+                    userAgent.Handle = regionhandle;
+                    userAgent.Position = position;
+                    userAgent.LookAt = lookat;
+                    //userProfile.CurrentAgent = userAgent;
+                    userProfile.LastLogin = userAgent.LogoutTime;
+
+                    CommitAgent(ref userProfile);
+                }
+                else
+                {
+                    // If currentagent is null, we can't reference it here or the UserServer crashes!
+                    m_log.Info("[LOGOUT]: didn't save logout position: " + userid.ToString());
+                }
+            }
+            else
+            {
+                m_log.Warn("[LOGOUT]: Unknown User logged out");
+            }
+        }
+
+        /// <summary>
+        /// Process a user logoff from OpenSim (deprecated as of 2008-08-27)
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <param name="regionid"></param>
+        /// <param name="regionhandle"></param>
+        /// <param name="posx"></param>
+        /// <param name="posy"></param>
+        /// <param name="posz"></param>
+        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        {
+            LogOffUser(userid, regionid, regionhandle, new Vector3(posx, posy, posz), new Vector3());
         }
 
         #endregion

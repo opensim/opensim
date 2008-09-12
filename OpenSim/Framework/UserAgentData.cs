@@ -36,14 +36,25 @@ namespace OpenSim.Framework
     public class UserAgentData
     {
         /// <summary>
+        /// The UUID of the users avatar (not the agent!)
+        /// </summary>
+        private UUID UUID;
+
+        /// <summary>
+        /// The session ID for the user (also the agent ID)
+        /// </summary>
+        private UUID sessionID;
+
+        /// <summary>
+        /// The "secure" session ID for the user
+        /// </summary>
+        /// <remarks>Not very secure. Dont rely on it for anything more than Linden Lab does.</remarks>
+        private UUID secureSessionID;
+
+        /// <summary>
         /// The IP address of the user
         /// </summary>
         private string agentIP = String.Empty;
-
-        /// <summary>
-        /// Is the user online?
-        /// </summary>
-        private bool agentOnline;
 
         /// <summary>
         /// The port of the user
@@ -51,19 +62,9 @@ namespace OpenSim.Framework
         private uint agentPort;
 
         /// <summary>
-        /// Region handle of the current region the user is in
+        /// Is the user online?
         /// </summary>
-        private ulong currentHandle;
-
-        /// <summary>
-        /// The position of the user within the region
-        /// </summary>
-        private Vector3 currentPos;
-
-        /// <summary>
-        /// Current region the user is logged into
-        /// </summary>
-        private UUID currentRegion;
+        private bool agentOnline;
 
         /// <summary>
         /// A unix timestamp from when the user logged in
@@ -76,30 +77,46 @@ namespace OpenSim.Framework
         private int logoutTime;
 
         /// <summary>
-        /// The region the user logged into initially
+        /// Region ID the user is logged into
         /// </summary>
         private UUID regionID;
 
         /// <summary>
-        /// The "secure" session ID for the user
+        /// Region handle of the current region the user is in
         /// </summary>
-        /// <remarks>Not very secure. Dont rely on it for anything more than Linden Lab does.</remarks>
-        private UUID secureSessionID;
+        private ulong regionHandle;
 
         /// <summary>
-        /// The session ID for the user (also the agent ID)
+        /// The position of the user within the region
         /// </summary>
-        private UUID sessionID;
+        private Vector3 currentPos;
 
         /// <summary>
-        /// The UUID of the users avatar (not the agent!)
+        /// Current direction the user is looking at
         /// </summary>
-        private UUID UUID;
+        private Vector3 currentLookAt = Vector3.Zero;
+
+        /// <summary>
+        /// The region the user logged into initially
+        /// </summary>
+        private UUID originRegionID;
 
         public virtual UUID ProfileID
         {
             get { return UUID; }
             set { UUID = value; }
+        }
+
+        public virtual UUID SessionID
+        {
+            get { return sessionID; }
+            set { sessionID = value; }
+        }
+
+        public virtual UUID SecureSessionID
+        {
+            get { return secureSessionID; }
+            set { secureSessionID = value; }
         }
 
         public virtual string AgentIP
@@ -120,24 +137,6 @@ namespace OpenSim.Framework
             set { agentOnline = value; }
         }
 
-        public virtual UUID SessionID
-        {
-            get { return sessionID; }
-            set { sessionID = value; }
-        }
-
-        public virtual UUID SecureSessionID
-        {
-            get { return secureSessionID; }
-            set { secureSessionID = value; }
-        }
-
-        public virtual UUID InitialRegion
-        {
-            get { return regionID; }
-            set { regionID = value; }
-        }
-
         public virtual int LoginTime
         {
             get { return loginTime; }
@@ -152,14 +151,14 @@ namespace OpenSim.Framework
 
         public virtual UUID Region
         {
-            get { return currentRegion; }
-            set { currentRegion = value; }
+            get { return regionID; }
+            set { regionID = value; }
         }
 
         public virtual ulong Handle
         {
-            get { return currentHandle; }
-            set { currentHandle = value; }
+            get { return regionHandle; }
+            set { regionHandle = value; }
         }
 
         public virtual Vector3 Position
@@ -168,6 +167,7 @@ namespace OpenSim.Framework
             set { currentPos = value; }
         }
 
+/* 2008-08-28-tyre: Not really useful
         public virtual float PositionX
         {
             get { return currentPos.X; }
@@ -185,5 +185,19 @@ namespace OpenSim.Framework
             get { return currentPos.Z; }
             set { currentPos.Z = value; }
         }
+*/
+
+        public virtual Vector3 LookAt
+        {
+            get { return currentLookAt; }
+            set { currentLookAt = value; }
+        }
+
+        public virtual UUID InitialRegion
+        {
+            get { return originRegionID; }
+            set { originRegionID = value; }
+        }
+
     }
 }

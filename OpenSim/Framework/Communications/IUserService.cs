@@ -106,7 +106,18 @@ namespace OpenSim.Framework.Communications
         /// Logs off a user on the user server
         /// </summary>
         /// <param name="UserID">UUID of the user</param>
-        /// <param name="regionData">UUID of the Region</param>
+        /// <param name="regionID">UUID of the Region</param>
+        /// <param name="regionhandle">regionhandle</param>
+        /// <param name="position">final position</param>
+        /// <param name="lookat">final lookat</param>
+        void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat);
+
+        /// <summary>
+        /// Logs off a user on the user server (deprecated as of 2008-08-27)
+        /// </summary>
+        /// <param name="UserID">UUID of the user</param>
+        /// <param name="regionID">UUID of the Region</param>
+        /// <param name="regionhandle">regionhandle</param>
         /// <param name="posx">final position x</param>
         /// <param name="posy">final position y</param>
         /// <param name="posz">final position z</param>

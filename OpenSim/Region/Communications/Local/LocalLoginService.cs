@@ -41,8 +41,7 @@ namespace OpenSim.Region.Communications.Local
 
     public class LocalLoginService : LoginService
     {
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private CommunicationsLocal m_Parent;
 
@@ -120,167 +119,167 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        private Regex reURI = new Regex(@"^uri:(?<region>[^&]+)&(?<x>\d+)&(?<y>\d+)&(?<z>\d+)$");
-
+        /// <summary>
+        /// Customises the login response and fills in missing values.
+        /// </summary>
+        /// <param name="response">The existing response</param>
+        /// <param name="theUser">The user profile</param>
+        /// <param name="startLocationRequest">The requested start location</param>
         public override bool CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
         {
-            ulong currentRegion = 0;
-
-            uint locX = 0;
-            uint locY = 0;
-            uint locZ = 0;
-            bool specificStartLocation = false;
-
-            // get start location
-            if (startLocationRequest == "last")
+            // HomeLocation
+            RegionInfo homeInfo = null;
+            // use the homeRegionID if it is stored already. If not, use the regionHandle as before
+            if (theUser.HomeRegionID != UUID.Zero)
+                homeInfo = m_Parent.GridService.RequestNeighbourInfo(theUser.HomeRegionID);
+            else
+                homeInfo = m_Parent.GridService.RequestNeighbourInfo(theUser.HomeRegion);
+            if (homeInfo != null)
             {
-                currentRegion = theUser.CurrentAgent.Handle;
-                locX = (UInt32)theUser.CurrentAgent.Position.X;
-                locY = (UInt32)theUser.CurrentAgent.Position.Y;
-                locZ = (UInt32)theUser.CurrentAgent.Position.Z;
-                response.StartLocation = "last";
-                specificStartLocation = true;
-            }
-            else if (startLocationRequest == "home")
-            {
-                currentRegion = theUser.HomeRegion;
-                response.StartLocation = "home";
+                response.Home =
+                    string.Format(
+                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                        (homeInfo.RegionLocX*Constants.RegionSize),
+                        (homeInfo.RegionLocY*Constants.RegionSize),
+                        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
             }
             else
             {
-                // use last location as default
-                currentRegion = theUser.CurrentAgent.Handle;
+                // Emergency mode: Home-region isn't available, so we can't request the region info.
+                // Use the stored home regionHandle instead.
+                // NOTE: If the home-region moves, this will be wrong until the users update their user-profile again
+                ulong regionX = theUser.HomeRegion >> 32;
+                ulong regionY = theUser.HomeRegion & 0xffffffff;
+                response.Home =
+                    string.Format(
+                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                        regionX, regionY,
+                        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+                        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+                m_log.InfoFormat("[LOGIN] Home region of user {0} {1} is not available; using computed region position {2} {3}",
+                                 theUser.FirstName, theUser.SurName,
+                                 regionX, regionY);
+            }
 
+            // StartLocation
+            RegionInfo regionInfo = null;
+            if (startLocationRequest == "home")
+            {
+                regionInfo = homeInfo;
+                theUser.CurrentAgent.Position = theUser.HomeLocation;
+                response.LookAt = "[r" + theUser.HomeLookAt.X.ToString() + ",r" + theUser.HomeLookAt.Y.ToString() + ",r" + theUser.HomeLookAt.Z.ToString() + "]";
+            }
+            else if (startLocationRequest == "last")
+            {
+                regionInfo = m_Parent.GridService.RequestNeighbourInfo(theUser.CurrentAgent.Region);
+                response.LookAt = "[r" + theUser.CurrentAgent.LookAt.X.ToString() + ",r" + theUser.CurrentAgent.LookAt.Y.ToString() + ",r" + theUser.CurrentAgent.LookAt.Z.ToString() + "]";
+            }
+            else
+            {
+                Regex reURI = new Regex(@"^uri:(?<region>[^&]+)&(?<x>\d+)&(?<y>\d+)&(?<z>\d+)$");
                 Match uriMatch = reURI.Match(startLocationRequest);
-                if (null == uriMatch)
+                if (uriMatch == null)
                 {
                     m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, but can't process it", startLocationRequest);
                 }
                 else
                 {
                     string region = uriMatch.Groups["region"].ToString();
-
-                    RegionInfo r = m_Parent.GridService.RequestClosestRegion(region);
-                    if (null == r)
+                    regionInfo = m_Parent.GridService.RequestClosestRegion(region);
+                    if (regionInfo == null)
                     {
-                        m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, can't locate region {1}",
-                                         startLocationRequest, region);
+                        m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, can't locate region {1}", startLocationRequest, region);
                     }
                     else
                     {
-                        currentRegion = r.RegionHandle;
-                        locX = UInt32.Parse(uriMatch.Groups["x"].ToString());
-                        locY = UInt32.Parse(uriMatch.Groups["y"].ToString());
-                        locZ = UInt32.Parse(uriMatch.Groups["z"].ToString());
-                        // can be: last, home, safe, url
-                        response.StartLocation = "url";
-                        specificStartLocation = true;
+                        theUser.CurrentAgent.Position = new Vector3(float.Parse(uriMatch.Groups["x"].Value),
+                            float.Parse(uriMatch.Groups["y"].Value), float.Parse(uriMatch.Groups["x"].Value));
                     }
                 }
+                response.LookAt = "[r0,r1,r0]";
+                // can be: last, home, safe, url
+                response.StartLocation = "url";
             }
 
-            RegionInfo homeReg = m_Parent.GridService.RequestNeighbourInfo(theUser.HomeRegion);
-            RegionInfo reg = m_Parent.GridService.RequestNeighbourInfo(currentRegion);
-
-            if ((homeReg != null) || (reg != null))
+            if ((regionInfo != null) && (PrepareLoginToRegion(regionInfo, theUser, response)))
             {
-                if (homeReg != null)
-                {
-                    response.Home = "{'region_handle':[r" +
-                        (homeReg.RegionLocX * Constants.RegionSize).ToString() + ",r" +
-                        (homeReg.RegionLocY * Constants.RegionSize).ToString() + "], " +
-                        "'position':[r" +
-                        theUser.HomeLocation.X.ToString() + ",r" +
-                        theUser.HomeLocation.Y.ToString() + ",r" +
-                        theUser.HomeLocation.Z.ToString() + "], " +
-                        "'look_at':[r" +
-                        theUser.HomeLocation.X.ToString() + ",r" +
-                        theUser.HomeLocation.Y.ToString() + ",r" +
-                        theUser.HomeLocation.Z.ToString() + "]}";
-                }
-                else
-                {
-                    m_log.Warn("[LOGIN]: Your home region doesn't exist");
-                    response.Home = "{'region_handle':[r" +
-                        (reg.RegionLocX * Constants.RegionSize).ToString() + ",r" +
-                        (reg.RegionLocY * Constants.RegionSize).ToString() + "], " +
-                        "'position':[r" +
-                        theUser.HomeLocation.X.ToString() + ",r" +
-                        theUser.HomeLocation.Y.ToString() + ",r" +
-                        theUser.HomeLocation.Z.ToString() + "], " +
-                        "'look_at':[r" +
-                        theUser.HomeLocation.X.ToString() + ",r" +
-                        theUser.HomeLocation.Y.ToString() + ",r" +
-                        theUser.HomeLocation.Z.ToString() + "]}";
-                }
-                string capsPath = Util.GetRandomCapsPath();
-                response.SimAddress = reg.ExternalEndPoint.Address.ToString();
-                response.SimPort = (uint) reg.ExternalEndPoint.Port;
-                response.RegionX = reg.RegionLocX;
-                response.RegionY = reg.RegionLocY;
-
-                m_log.DebugFormat(
-                    "[CAPS][LOGIN]: RegionX {0} RegionY {0}", response.RegionX, response.RegionY);
-
-                response.SeedCapability = "http://" + reg.ExternalHostName + ":" +
-                                          serversInfo.HttpListenerPort.ToString() + "/CAPS/" + capsPath + "0000/";
-
-                m_log.DebugFormat(
-                    "[CAPS]: Sending new CAPS seed url {0} to client {1}",
-                    response.SeedCapability, response.AgentID);
-
-                theUser.CurrentAgent.Region = reg.RegionID;
-                theUser.CurrentAgent.Handle = reg.RegionHandle;
-
-                // LoginResponse.BuddyList buddyList = new LoginResponse.BuddyList();
-
-                response.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(theUser.ID));
-
-                Login _login = new Login();
-                //copy data to login object
-                _login.First = response.Firstname;
-                _login.Last = response.Lastname;
-                _login.Agent = response.AgentID;
-                _login.Session = response.SessionID;
-                _login.SecureSession = response.SecureSessionID;
-                _login.CircuitCode = (uint) response.CircuitCode;
-                if (specificStartLocation)
-                    _login.StartPos = new Vector3(locX, locY, locZ);
-                else
-                    _login.StartPos = new Vector3(128, 128, 128);
-                _login.CapsPath = capsPath;
-
-                m_log.InfoFormat(
-                    "[LOGIN]: Telling region {0} @ {1},{2} ({3}:{4}) to expect user connection",
-                    reg.RegionName, response.RegionX, response.RegionY, response.SimAddress, response.SimPort);
-
-                handlerLoginToRegion = OnLoginToRegion;
-                if (handlerLoginToRegion != null)
-                {
-                    handlerLoginToRegion(currentRegion, _login);
-                }
+                    return true;
             }
-            else
+
+            // StartLocation not available, send him to a nearby region instead
+            // regionInfo = m_Parent.GridService.RequestClosestRegion("");
+            //m_log.InfoFormat("[LOGIN]: StartLocation not available sending to region {0}", regionInfo.regionName);
+
+            // Send him to default region instead
+            ulong defaultHandle = (((ulong)defaultHomeX * Constants.RegionSize) << 32) |
+                                  ((ulong)defaultHomeY * Constants.RegionSize);
+
+            if ((regionInfo != null) && (defaultHandle == regionInfo.RegionHandle))
             {
-                m_log.Warn("[LOGIN]: Not found region " + currentRegion);
+                m_log.ErrorFormat("[LOGIN]: Not trying the default region since this is the same as the selected region");
                 return false;
             }
 
-            return true;
+            m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
+            regionInfo = m_Parent.GridService.RequestNeighbourInfo(defaultHandle);
+
+            // Customise the response
+            //response.Home =
+            //    string.Format(
+            //        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+            //        (SimInfo.regionLocX * Constants.RegionSize),
+            //        (SimInfo.regionLocY*Constants.RegionSize),
+            //        theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
+            //        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+            theUser.CurrentAgent.Position = new Vector3(128,128,0);
+            response.StartLocation = "safe";
+                
+            return PrepareLoginToRegion(regionInfo, theUser, response);
         }
 
-        private LoginResponse.BuddyList ConvertFriendListItem(List<FriendListItem> LFL)
+        /// <summary>
+        /// Prepare a login to the given region.  This involves both telling the region to expect a connection
+        /// and appropriately customising the response to the user.
+        /// </summary>
+        /// <param name="sim"></param>
+        /// <param name="user"></param>
+        /// <param name="response"></param>
+        /// <returns>true if the region was successfully contacted, false otherwise</returns>
+        private bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response)
         {
-            LoginResponse.BuddyList buddylistreturn = new LoginResponse.BuddyList();
-            foreach (FriendListItem fl in LFL)
-            {
-                LoginResponse.BuddyList.BuddyInfo buddyitem = new LoginResponse.BuddyList.BuddyInfo(fl.Friend);
-                buddyitem.BuddyID = fl.Friend;
-                buddyitem.BuddyRightsHave = (int)fl.FriendListOwnerPerms;
-                buddyitem.BuddyRightsGiven = (int)fl.FriendPerms;
-                buddylistreturn.AddNewBuddy(buddyitem);
-            }
-            return buddylistreturn;
+            response.SimAddress = regionInfo.ExternalEndPoint.Address.ToString();
+            response.SimPort = (uint)regionInfo.ExternalEndPoint.Port;
+            response.RegionX = regionInfo.RegionLocX;
+            response.RegionY = regionInfo.RegionLocY;
+
+            string capsPath = Util.GetRandomCapsPath();
+            response.SeedCapability = regionInfo.ServerURI + "/CAPS/" + capsPath + "0000/";
+
+            // Notify the target of an incoming user
+            m_log.InfoFormat(
+                "[LOGIN]: Telling {0} @ {1},{2} ({3}) to prepare for client connection",
+                regionInfo.RegionName, response.RegionX, response.RegionY, regionInfo.ServerURI);
+            // Update agent with target sim
+            user.CurrentAgent.Region = regionInfo.RegionID;
+            user.CurrentAgent.Handle = regionInfo.RegionHandle;
+            // Prepare notification
+            Login loginParams = new Login();
+            loginParams.Session = user.CurrentAgent.SessionID.ToString();
+            loginParams.SecureSession = user.CurrentAgent.SecureSessionID.ToString();
+            loginParams.First = user.FirstName;
+            loginParams.Last = user.SurName;
+            loginParams.Agent = user.ID.ToString();
+            loginParams.CircuitCode = Convert.ToUInt32(response.CircuitCode);
+            loginParams.StartPos = user.CurrentAgent.Position;
+            loginParams.CapsPath = capsPath;
+
+            handlerLoginToRegion = OnLoginToRegion;
+            if (handlerLoginToRegion == null)
+                return false;
+
+            handlerLoginToRegion(user.CurrentAgent.Handle, loginParams);
+            return true;
         }
 
         // See LoginService

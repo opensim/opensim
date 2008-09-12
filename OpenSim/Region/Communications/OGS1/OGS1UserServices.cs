@@ -235,19 +235,22 @@ namespace OpenSim.Region.Communications.OGS1
         /// Logs off a user on the user server
         /// </summary>
         /// <param name="UserID">UUID of the user</param>
-        /// <param name="regionData">UUID of the Region</param>
-        /// <param name="posx">final position x</param>
-        /// <param name="posy">final position y</param>
-        /// <param name="posz">final position z</param>
-        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        /// <param name="regionID">UUID of the Region</param>
+        /// <param name="regionhandle">regionhandle</param>
+        /// <param name="position">final position</param>
+        /// <param name="lookat">final lookat</param>
+        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
         {
             Hashtable param = new Hashtable();
             param["avatar_uuid"] = userid.Guid.ToString();
             param["region_uuid"] = regionid.Guid.ToString();
             param["region_handle"] = regionhandle.ToString();
-            param["region_pos_x"] = posx.ToString();
-            param["region_pos_y"] = posy.ToString();
-            param["region_pos_z"] = posz.ToString();
+            param["region_pos_x"] = position.X.ToString();
+            param["region_pos_y"] = position.Y.ToString();
+            param["region_pos_z"] = position.Z.ToString();
+            param["lookat_x"] = lookat.X.ToString();
+            param["lookat_y"] = lookat.Y.ToString();
+            param["lookat_z"] = lookat.Z.ToString();
 
             IList parameters = new ArrayList();
             parameters.Add(param);
@@ -261,6 +264,20 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 m_log.Warn("[LOGOFF]: Unable to notify grid server of user logoff");
             }
+        }
+
+        /// <summary>
+        /// Logs off a user on the user server (deprecated as of 2008-08-27)
+        /// </summary>
+        /// <param name="UserID">UUID of the user</param>
+        /// <param name="regionID">UUID of the Region</param>
+        /// <param name="regionhandle">regionhandle</param>
+        /// <param name="posx">final position x</param>
+        /// <param name="posy">final position y</param>
+        /// <param name="posz">final position z</param>
+        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
+        {
+            LogOffUser(userid, regionid, regionhandle, new Vector3(posx, posy, posz), new Vector3());
         }
 
         public UserProfileData GetUserProfile(string firstName, string lastName)
@@ -672,7 +689,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
         /// <summary>
-        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for LLUUID friendslistowner
+        /// Returns a list of FriendsListItems that describe the friends and permissions in the friend relationship for UUID friendslistowner
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
         public List<FriendListItem> GetUserFriendList(UUID friendlistowner)

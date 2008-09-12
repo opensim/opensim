@@ -276,13 +276,25 @@ namespace OpenSim.Framework.Communications
         /// <param name="userid"></param>
         /// <param name="regionid"></param>
         /// <param name="regionhandle"></param>
+        /// <param name="position"></param>
+        /// <param name="lookat"></param>
+        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
+        {
+            m_userService.LogOffUser(userid, regionid, regionhandle, position, lookat);
+        }
+
+        /// <summary>
+        /// Logs off a user and does the appropriate communications (deprecated as of 2008-08-27)
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <param name="regionid"></param>
+        /// <param name="regionhandle"></param>
         /// <param name="posx"></param>
         /// <param name="posy"></param>
         /// <param name="posz"></param>
         public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
             m_userService.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
-
         }
 
         /// <summary>

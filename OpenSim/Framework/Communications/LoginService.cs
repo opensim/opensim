@@ -258,30 +258,19 @@ namespace OpenSim.Framework.Communications
                         InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
                         ArrayList InventoryLibRoot = new ArrayList();
                         InventoryLibRoot.Add(InventoryLibRootHash);
+
                         logResponse.InventoryLibRoot = InventoryLibRoot;
-
                         logResponse.InventoryLibraryOwner = GetLibraryOwner();
-
                         logResponse.InventoryRoot = InventoryRoot;
                         logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary();
 
-                        // Circuit Code
-                        uint circode = (uint) (Util.RandomClass.Next());
-
+                        logResponse.CircuitCode = (Int32)Util.RandomClass.Next();
                         logResponse.Lastname = userProfile.SurName;
                         logResponse.Firstname = userProfile.FirstName;
                         logResponse.AgentID = agentID.ToString();
                         logResponse.SessionID = userProfile.CurrentAgent.SessionID.ToString();
                         logResponse.SecureSessionID = userProfile.CurrentAgent.SecureSessionID.ToString();
-
-                        logResponse.CircuitCode = (Int32) circode;
-                        //logResponse.RegionX = 0; //overwritten
-                        //logResponse.RegionY = 0; //overwritten
-                        logResponse.Home = "!!null temporary value {home}!!"; // Overwritten
-                        //logResponse.LookAt = "\n[r" + TheUser.homeLookAt.X.ToString() + ",r" + TheUser.homeLookAt.Y.ToString() + ",r" + TheUser.homeLookAt.Z.ToString() + "]\n";
-                        //logResponse.SimAddress = "127.0.0.1"; //overwritten
-                        //logResponse.SimPort = 0; //overwritten
                         logResponse.Message = GetMessage();
                         logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
                         logResponse.StartLocation = startLocationRequest;
@@ -322,6 +311,11 @@ namespace OpenSim.Framework.Communications
             }
         }
 
+        /// <summary>
+        /// Called when we receive the client's initial LLSD login_to_simulator request message
+        /// </summary>
+        /// <param name="request">The LLSD request</param>
+        /// <returns>The response to send</returns>
         public LLSD LLSDLoginMethod(LLSD request)
         {
             // Temporary fix
@@ -432,30 +426,19 @@ namespace OpenSim.Framework.Communications
                         InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
                         ArrayList InventoryLibRoot = new ArrayList();
                         InventoryLibRoot.Add(InventoryLibRootHash);
+
                         logResponse.InventoryLibRoot = InventoryLibRoot;
-
                         logResponse.InventoryLibraryOwner = GetLibraryOwner();
-
                         logResponse.InventoryRoot = InventoryRoot;
                         logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary();
 
-                        // Circuit Code
-                        uint circode = (uint)(Util.RandomClass.Next());
-
+                        logResponse.CircuitCode = (Int32)Util.RandomClass.Next();
                         logResponse.Lastname = userProfile.SurName;
                         logResponse.Firstname = userProfile.FirstName;
                         logResponse.AgentID = agentID.ToString();
                         logResponse.SessionID = userProfile.CurrentAgent.SessionID.ToString();
                         logResponse.SecureSessionID = userProfile.CurrentAgent.SecureSessionID.ToString();
-
-                        logResponse.CircuitCode = (Int32)circode;
-                        //logResponse.RegionX = 0; //overwritten
-                        //logResponse.RegionY = 0; //overwritten
-                        logResponse.Home = "!!null temporary value {home}!!"; // Overwritten
-                        //logResponse.LookAt = "\n[r" + TheUser.homeLookAt.X.ToString() + ",r" + TheUser.homeLookAt.Y.ToString() + ",r" + TheUser.homeLookAt.Z.ToString() + "]\n";
-                        //logResponse.SimAddress = "127.0.0.1"; //overwritten
-                        //logResponse.SimPort = 0; //overwritten
                         logResponse.Message = GetMessage();
                         logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
                         logResponse.StartLocation = startLocationRequest;

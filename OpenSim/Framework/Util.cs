@@ -678,6 +678,7 @@ namespace OpenSim.Framework
             }
         }
 
+/* 2008-08-28-tyre: Obsolete (see LocalLoginService UserLoginService)
         public static string[] ParseStartLocationRequest(string startLocationRequest)
         {
             string[] returnstring = new string[4];
@@ -715,6 +716,7 @@ namespace OpenSim.Framework
             }
             return returnstring;
         }
+*/
 
         public static XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
         {

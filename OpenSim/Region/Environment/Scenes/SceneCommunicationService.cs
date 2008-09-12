@@ -579,7 +579,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="lookAt"></param>
         /// <param name="flags"></param>
         public virtual void RequestTeleportToLocation(ScenePresence avatar, ulong regionHandle, Vector3 position,
-                                                      Vector3 lookAt, uint flags)
+                                                      Vector3 lookAt, uint teleportFlags)
         {
             bool destRegionUp = false;
 
@@ -604,7 +604,7 @@ namespace OpenSim.Region.Environment.Scenes
                     position.Z = newPosZ;
                 }
                 avatar.ControllingClient.SendTeleportLocationStart();
-                avatar.ControllingClient.SendLocalTeleport(position, lookAt, flags);
+                avatar.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
                 avatar.Teleport(position);
             }
             else
@@ -662,7 +662,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
 
-                        avatar.ControllingClient.SendRegionTeleport(reg.RegionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
+                        avatar.ControllingClient.SendRegionTeleport(reg.RegionHandle, 13, reg.ExternalEndPoint, 4, teleportFlags,
                                                                     capsPath);
                         avatar.MakeChildAgent();
                         Thread.Sleep(5000);
@@ -716,6 +716,12 @@ namespace OpenSim.Region.Environment.Scenes
             return m_commsProvider.GridService.GetGridSettings();
         }
 
+        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
+        {
+            m_commsProvider.LogOffUser(userid, regionid, regionhandle, position, lookat);
+        }
+
+        // deprecated as of 2008-08-27
         public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
         {
              m_commsProvider.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
