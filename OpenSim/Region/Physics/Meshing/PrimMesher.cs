@@ -821,7 +821,9 @@ angles24 = [
                 newLayer.AddValue2Faces(coordsLen);
 
                 this.coords.AddRange(newLayer.coords);
-                this.faces.AddRange(newLayer.faces);
+
+                if (percentOfPath <= this.pathCutBegin || percentOfPath >= this.pathCutEnd)
+                    this.faces.AddRange(newLayer.faces);
 
                 // fill faces between layers
 
@@ -1009,7 +1011,9 @@ angles24 = [
                 newLayer.AddValue2Faces(coordsLen);
 
                 this.coords.AddRange(newLayer.coords);
-                this.faces.AddRange(newLayer.faces);
+
+                if (angle <= startAngle || angle >= endAngle)
+                    this.faces.AddRange(newLayer.faces);
 
                 // fill faces between layers
 
