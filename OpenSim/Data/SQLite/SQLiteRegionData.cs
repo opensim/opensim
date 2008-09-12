@@ -717,6 +717,9 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "SitTargetOrientY", typeof (Double));
             createCol(prims, "SitTargetOrientZ", typeof (Double));
 
+            // click action
+            createCol(prims, "ClickAction", typeof (Byte));
+
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] {prims.Columns["UUID"]};
 
@@ -991,6 +994,7 @@ namespace OpenSim.Data.SQLite
             }
             prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorR"]), Convert.ToInt32(row["ColorB"]), Convert.ToInt32(row["ColorG"]));
 
+            prim.ClickAction = Convert.ToByte(row["ClickAction"]);
             return prim;
         }
 
@@ -1239,6 +1243,9 @@ namespace OpenSim.Data.SQLite
             row["ColorG"] = Convert.ToInt32(prim.Color.G);
             row["ColorB"] = Convert.ToInt32(prim.Color.B);
             row["ColorA"] = Convert.ToInt32(prim.Color.A);
+
+            // click action
+            row["ClickAction"] = prim.ClickAction;
         }
 
         /// <summary>

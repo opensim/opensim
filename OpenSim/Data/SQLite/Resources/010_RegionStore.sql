@@ -1,0 +1,5 @@
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN ClickAction INTEGER NOT NULL default 0;
+
+COMMIT;
