@@ -2911,19 +2911,33 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void ItemReceived(UUID itemID)
         {
+            if (null == m_appearance)
+            {
+                m_log.Warn("[ATTACHMENT] Appearance has not been initialized");
+                return;
+            }
+
             int attachpoint = m_appearance.GetAttachpoint(itemID);
             if (attachpoint == 0)
                 return;
 
             UUID asset = m_appearance.GetAttachedAsset(attachpoint);
-            if (asset == UUID.Zero) // We have just logged in
+            if (UUID.Zero == asset) // We have just logged in
             {
                 m_log.InfoFormat("[ATTACHMENT] Rez attachment {0}",
                         itemID.ToString());
 
-                // Rez from inventory
-                m_scene.RezSingleAttachment(ControllingClient, itemID,
-                        (uint)attachpoint, 0, 0);
+                try
+                {
+                    // Rez from inventory
+                    m_scene.RezSingleAttachment(ControllingClient, itemID,
+                            (uint)attachpoint, 0, 0);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[ATTACHMENT] Unable to rez attachment: {0}", e.ToString());
+                }
+
                 return;
             }
 

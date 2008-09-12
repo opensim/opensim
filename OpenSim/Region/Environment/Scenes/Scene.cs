@@ -2382,24 +2382,23 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="appearance"></param>
         public void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
         {
-            appearance = null;  // VS needs this line, mono doesn't
+            appearance = new AvatarAppearance();
 
             try
             {
-                if (m_AvatarFactory == null ||
-                    !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
+                if (m_AvatarFactory != null)
                 {
-                    m_log.Warn("[APPEARANCE]: Appearance not found, creating default");
-                    appearance = new AvatarAppearance();
+                    if (m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
+                        return;
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat(
-                    "[APPERANCE]: Problem when fetching appearance for avatar {0}, {1}, using default. {2}",
-                    client.Name, client.AgentId, e);
-                appearance = new AvatarAppearance();
+                m_log.ErrorFormat("[APPEARANCE]: Problem fetching appearance for avatar {0}, {1}, {2}",
+                    client.Name, client.AgentId, e.ToString());
             }
+            m_log.Warn("[APPEARANCE]: Appearance not found, returning default");
+
         }
 
         /// <summary>
