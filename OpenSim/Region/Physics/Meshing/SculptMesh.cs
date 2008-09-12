@@ -36,8 +36,7 @@ namespace OpenSim.Region.Physics.Meshing
 {
     // This functionality based on the XNA SculptPreview by John Hurliman.
     public class SculptMesh : Mesh
-    {
-        ManagedImage managedImage;
+    {        
         Image idata = null;
         Bitmap bLOD = null;
         Bitmap bBitmap = null;
@@ -55,6 +54,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             try
             {
+                ManagedImage managedImage;  // we never use this
                 OpenJPEG.DecodeToImage(jpegData, out managedImage, out idata);
                 //int i = 0;
                 //i = i / i;

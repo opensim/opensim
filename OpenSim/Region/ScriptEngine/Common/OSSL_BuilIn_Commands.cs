@@ -719,6 +719,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 	                        //advance the counter to the letter 'e'
 	                        i = i+4;
                         break;
+                        
                         default:
 	                        // ok here we're catching all numeric types int,double,long we might want to spit these up mr accurately
 	                        // but for now we'll just do them as strings
@@ -726,7 +727,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 	                        string numberValue="";
 	                        
 	                        // just loop through until the next known marker quote mark storing the string
-	                        while(JSON[i]!='"' && JSON[i]!=',' && JSON[i]!=']' && JSON[i]!='}' && JSON[i]!=' ')
+	                        while(JSON[i] != '"' && JSON[i] != ',' && JSON[i] != ']' && JSON[i] != '}' && JSON[i] != ' ')
 	                        {
 	                            numberValue+=""+JSON[i++];
 	                        }
@@ -745,34 +746,17 @@ namespace OpenSim.Region.ScriptEngine.Common
 	                            // now lets clear the key, we're done with it and moving on
 	                            currentKey=null;
 	                        }
-	                        
-                        
+	                                                
                         break;
-                    }
-                    
-                    
-                    
-                    
-                }
-                
+                    }                                                                              
+                }                
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 LSLError("osParseJSON: The JSON string is not valid " + JSON);
             }
             
-            return jsondata;
-            
-            
-        }
-        
-        
-       
-        
-        
-        
-        
-        
-        
+            return jsondata;                        
+        }     
     }
 }
