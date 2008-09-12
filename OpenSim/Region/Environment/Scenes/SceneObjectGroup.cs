@@ -180,6 +180,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// The absolute position of this scene object in the scene
+        /// </summary>
         public override Vector3 AbsolutePosition
         {
             get
@@ -195,8 +198,9 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 Vector3 val = value;
+                
                 if ((val.X > 257f || val.X < -1f || val.Y > 257f || val.Y < -1f) && !m_rootPart.IsAttachment)
-                {
+                {                                       
                     m_scene.CrossPrimGroupIntoNewRegion(val, this);
                 }
 
@@ -899,7 +903,6 @@ namespace OpenSim.Region.Environment.Scenes
         public void ResetChildPrimPhysicsPositions()
         {
             AbsolutePosition = AbsolutePosition; // could someone in the know please explain how this works?
-            //HasGroupChanged = false;
         }
 
         public UUID GetPartsFullID(uint localID)
@@ -1090,10 +1093,10 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_physicalPrim);
                         }
-
+                        
                         // Hack to get the physics scene geometries in the right spot
-                        ResetChildPrimPhysicsPositions();
-                    }
+                        ResetChildPrimPhysicsPositions();                           
+                    }                                         
                 }
                 else
                 {
@@ -2705,6 +2708,11 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 part.TriggerScriptChangedEvent(val);
             }
+        }
+        
+        public override string ToString()
+        {
+            return String.Format("{0} {1} ({2})", Name, UUID, AbsolutePosition);
         }
     }
 }

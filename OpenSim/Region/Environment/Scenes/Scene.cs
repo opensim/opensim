@@ -1871,13 +1871,14 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Locate New region Handle and offset the prim position for the new region
-        ///
+        /// Move the given scene object into a new region depending on which region its absolute position has moved 
+        /// into. 
+        /// 
+        /// This method locates the new region handle and offsets the prim position for the new region
         /// </summary>
-        /// <param name="position">current position of Group</param>
-        /// <param name="grp">Scene Object Group that we're crossing</param>
-
-        public void CrossPrimGroupIntoNewRegion(Vector3 position, SceneObjectGroup grp)
+        /// <param name="attemptedPosition">the attempted out of region position of the scene object</param>
+        /// <param name="grp">the scene object that we're crossing</param>
+        public void CrossPrimGroupIntoNewRegion(Vector3 attemptedPosition, SceneObjectGroup grp)
         {
             if (grp == null)
                 return;
@@ -1897,53 +1898,70 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 return;
             }
-
-            m_log.Warn("Prim crossing: " + grp.ToString());
+            
             int thisx = (int)RegionInfo.RegionLocX;
             int thisy = (int)RegionInfo.RegionLocY;
 
             ulong newRegionHandle = 0;
-            Vector3 pos = position;
+            Vector3 pos = attemptedPosition;
 
-            if (position.X > Constants.RegionSize + 0.1f)
+            if (attemptedPosition.X > Constants.RegionSize + 0.1f)
             {
                 pos.X = ((pos.X - Constants.RegionSize));
-                newRegionHandle = Util.UIntsToLong((uint)((thisx + 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
+                newRegionHandle 
+                    = Util.UIntsToLong((uint)((thisx + 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
                 // x + 1
             }
-            else if (position.X < -0.1f)
+            else if (attemptedPosition.X < -0.1f)
             {
                 pos.X = ((pos.X + Constants.RegionSize));
-                newRegionHandle = Util.UIntsToLong((uint)((thisx - 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
+                newRegionHandle 
+                    = Util.UIntsToLong((uint)((thisx - 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
                 // x - 1
             }
 
-            if (position.Y > Constants.RegionSize + 0.1f)
+            if (attemptedPosition.Y > Constants.RegionSize + 0.1f)
             {
                 pos.Y = ((pos.Y - Constants.RegionSize));
-                newRegionHandle = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + 1) * Constants.RegionSize));
+                newRegionHandle 
+                    = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + 1) * Constants.RegionSize));
                 // y + 1
             }
-            else if (position.Y < -1f)
+            else if (attemptedPosition.Y < -1f)
             {
                 pos.Y = ((pos.Y + Constants.RegionSize));
-                newRegionHandle = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy - 1) * Constants.RegionSize));
+                newRegionHandle 
+                    = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy - 1) * Constants.RegionSize));
                 // y - 1
             }
 
             // Offset the positions for the new region across the border
+            Vector3 oldGroupPosition = grp.RootPart.GroupPosition;
             grp.OffsetForNewRegion(pos);
 
-            CrossPrimGroupIntoNewRegion(newRegionHandle, grp);
+            // If we fail to cross the border, then reset the position of the scene object on that border.
+            if (!CrossPrimGroupIntoNewRegion(newRegionHandle, grp))
+            {   
+                grp.OffsetForNewRegion(oldGroupPosition);                
+            }
         }
 
-        public void CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp)
+        /// <summary>
+        /// Move the given scene object into a new region
+        /// </summary>
+        /// <param name="newRegionHandle"></param>
+        /// <param name="grp">Scene Object Group that we're crossing</param> 
+        /// <returns>
+        /// true if the crossing itself was successful, false on failure
+        /// FIMXE: we still return true if the crossing object was not successfully deleted from the originating region
+        /// </returns>
+        public bool CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp)
         {
+            bool successYN = false;            
             int primcrossingXMLmethod = 0;
+            
             if (newRegionHandle != 0)
             {
-                bool successYN = false;
-
                 successYN
                     = m_sceneGridService.PrimCrossToNeighboringRegion(
                         newRegionHandle, grp.UUID, m_serialiser.SaveGroupToXml2(grp), primcrossingXMLmethod);
@@ -1955,14 +1973,15 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         DeleteSceneObject(grp);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
+                        m_log.ErrorFormat(
+                            "[INTERREGION]: Exception deleting the old object left behind on a border crossing for {0}, {1}", 
+                            grp, e);
                     }
                 }
                 else
                 {
-                    m_log.Warn("[INTERREGION]: Prim Crossing Failed!");
                     if (grp.RootPart != null)
                     {
                         if (grp.RootPart.PhysActor != null)
@@ -1970,10 +1989,26 @@ namespace OpenSim.Region.Environment.Scenes
                             grp.RootPart.PhysActor.CrossingFailure();
                         }
                     }
+                    
+                    m_log.ErrorFormat("[INTERREGION]: Prim crossing failed for {0}", grp);
                 }
             }
+            else
+            {
+                m_log.Error("[INTERREGION]: region handle was unexpectedly 0 in Scene.CrossPrimGroupIntoNewRegion()");
+            }
+            
+            return successYN;
         }
 
+        /// <summary>
+        /// Handle a scene object that is crossing into this region from another.
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="primID"></param>
+        /// <param name="objXMLData"></param>
+        /// <param name="XMLMethod"></param>
+        /// <returns></returns>
         public bool IncomingInterRegionPrimGroup(ulong regionHandle, UUID primID, string objXMLData, int XMLMethod)
         {
             m_log.Warn("{[INTERREGION]: A new prim arrived from a neighbor");

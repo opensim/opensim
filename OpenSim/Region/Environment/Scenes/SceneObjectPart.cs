@@ -108,8 +108,6 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore]
         public PhysicsActor PhysActor = null;
 
-
-
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
         //        Not a big problem as long as the script that sets it remains in the prim on startup.
@@ -443,6 +441,9 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_particleSystem = value; }
         }
 
+        /// <summary>
+        /// The position of the entire group that this prim belongs to.
+        /// </summary>
         public Vector3 GroupPosition
         {
             get
@@ -475,18 +476,14 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     try
                     {
-
                         // Root prim actually goes at Position
                         if (_parentID == 0)
                         {
                             PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
-
                         }
                         else
                         {
-
                             // To move the child prim in respect to the group position and rotation we have to calculate
-
                             Vector3 resultingposition = GetWorldPosition();
                             PhysActor.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
                             Quaternion resultingrot = GetWorldRotation();
@@ -782,8 +779,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_parentGroup; }
         }
-
-
 
         public scriptEvents ScriptEvents
         {
@@ -3321,6 +3316,11 @@ namespace OpenSim.Region.Environment.Scenes
         public bool GetForceMouselook() {
             return m_forceMouselook;
         }
+        
+        public override string ToString()
+        {
+            return String.Format("{0} {1} (parent {2}))", Name, UUID, ParentGroup);
+        }        
 
         #endregion Public Methods
     }
