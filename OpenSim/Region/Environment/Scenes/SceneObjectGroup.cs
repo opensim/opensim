@@ -1092,11 +1092,11 @@ namespace OpenSim.Region.Environment.Scenes
                         if (part.LocalId != m_rootPart.LocalId)
                         {
                             part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_physicalPrim);
-                        }
-                        
-                        // Hack to get the physics scene geometries in the right spot
-                        ResetChildPrimPhysicsPositions();                           
-                    }                                         
+                        }                                                  
+                    }    
+                    
+                    // Hack to get the physics scene geometries in the right spot
+                    ResetChildPrimPhysicsPositions();                     
                 }
                 else
                 {
