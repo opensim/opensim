@@ -558,7 +558,7 @@ namespace OpenSim.Data.MSSQL
                 sql = "select * from landaccesslist where LandUUID = @LandUUID";
                 using (AutoClosingSqlCommand cmdAccessList = _Database.Query(sql))
                 {
-                    cmdAccessList.Parameters.AddWithValue("@LandUUID", landData.GlobalID);
+                    cmdAccessList.Parameters.AddWithValue("@LandUUID", landData.GlobalID.ToString());
                     using (SqlDataReader readerAccessList = cmdAccessList.ExecuteReader())
                     {
                         while (readerAccessList.Read())
