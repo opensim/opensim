@@ -586,6 +586,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         
         public Hashtable osParseJSON(string JSON)
         {
+            m_host.AddScriptLPS(1);
+
             // see http://www.json.org/ for more details on JSON
             
             string currentKey=null;
