@@ -146,16 +146,20 @@ namespace OpenSim.Framework.Communications.Cache
         /// Recursively, in depth-first order, add all the folders we've received (stored 
         /// in a dictionary indexed by parent ID) into the tree that describes user folder
         /// heirarchy
+        /// Any folder that is resolved into the tree is also added to resolvedFolderDictionary,
+        /// indexed by folder ID.
         /// </summary>
         /// <param name="parentId">
         /// A <see cref="UUID"/>
         /// </param>
-        private void ResolveReceivedFolders(InventoryFolderImpl parentFolder, IDictionary<UUID, IList<InventoryFolderImpl>> folderDictionary)
+        private void ResolveReceivedFolders(InventoryFolderImpl parentFolder, 
+                                            IDictionary<UUID, IList<InventoryFolderImpl>> receivedFolderDictionary, 
+                                            IDictionary<UUID, InventoryFolderImpl> resolvedFolderDictionary)
         {
-            if (folderDictionary.ContainsKey(parentFolder.ID))
+            if (receivedFolderDictionary.ContainsKey(parentFolder.ID))
             {
                 List<InventoryFolderImpl> resolvedFolders = new List<InventoryFolderImpl>(); // Folders we've resolved with this invocation
-                foreach (InventoryFolderImpl folder in folderDictionary[parentFolder.ID])
+                foreach (InventoryFolderImpl folder in receivedFolderDictionary[parentFolder.ID])
                 {
                     lock (parentFolder.SubFolders)
                     {
@@ -167,16 +171,25 @@ namespace OpenSim.Framework.Communications.Cache
                         }
                         else
                         {
-                            resolvedFolders.Add(folder);
-                            parentFolder.SubFolders.Add(folder.ID, folder);
+                            if ( resolvedFolderDictionary.ContainsKey( folder.ID ) ) {
+                                m_log.WarnFormat(
+                                    "[INVENTORY CACHE]: Received folder {0} {1} from inventory service has already been received but with different parent",
+                                    folder.Name, folder.ID);
+                            }
+                            else
+                            {
+                                resolvedFolders.Add(folder);
+                                resolvedFolderDictionary[folder.ID] = folder;
+                                parentFolder.SubFolders.Add(folder.ID, folder);
+                            }                            
                         }
-                    }
+                    } // lock (parentFolder.SubFolders)
                 } // foreach (folder in pendingCategorizationFolders[parentFolder.ID])
 
-                folderDictionary.Remove(parentFolder.ID);
+                receivedFolderDictionary.Remove(parentFolder.ID);
                 foreach (InventoryFolderImpl folder in resolvedFolders)
-                    ResolveReceivedFolders(folder, folderDictionary);
-            }
+                    ResolveReceivedFolders(folder, receivedFolderDictionary, resolvedFolderDictionary);
+            } // if (receivedFolderDictionary.ContainsKey(parentFolder.ID))
         }
 
         /// <summary>
@@ -211,6 +224,13 @@ namespace OpenSim.Framework.Communications.Cache
                 IDictionary<UUID, IList<InventoryFolderImpl>> receivedFolders =
                     new Dictionary<UUID, IList<InventoryFolderImpl>>();
 
+                // collection of all folders that have been placed into the folder heirarchy starting at m_rootFolder
+                // This dictonary exists so we don't have to do an InventoryFolderImpl.FindFolder(), which is O(n) on the
+                // number of folders in our inventory. 
+                // Maybe we should make this structure a member so we can skip InventoryFolderImpl.FindFolder() calls later too?
+                IDictionary<UUID, InventoryFolderImpl> resolvedFolders =
+                    new Dictionary<UUID, InventoryFolderImpl>();
+
                 // Take all received folders, find the root folder, and put ther rest into
                 // the pendingCategorizationFolders collection
                 foreach (InventoryFolderImpl folder in folders)
@@ -222,6 +242,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     IList<InventoryFolderImpl> rootFolderList = receivedFolders[UUID.Zero];
                     m_rootFolder = rootFolderList[0];
+                    resolvedFolders[m_rootFolder.ID] = m_rootFolder;
                     if (rootFolderList.Count > 1)
                     {
                         for (int i = 1; i < rootFolderList.Count; i++)
@@ -237,7 +258,7 @@ namespace OpenSim.Framework.Communications.Cache
                 // Now take the pendingCategorizationFolders collection, and turn that into a tree,
                 // with the root being RootFolder
                 if (RootFolder != null)
-                    ResolveReceivedFolders(RootFolder, receivedFolders);
+                    ResolveReceivedFolders(RootFolder, receivedFolders, resolvedFolders);
 
                 // Generate a warning for folders that are not part of the heirarchy
                 foreach (KeyValuePair<UUID, IList<InventoryFolderImpl>> folderList in receivedFolders)
@@ -247,10 +268,10 @@ namespace OpenSim.Framework.Communications.Cache
                 }
 
                 // Take all ther received items and put them into the folder tree heirarchy
-                // TBD: This operation is O(n^2), if we made a dictionary of all folders indexed by their ID, we could make
-                //      this O(n)
-                foreach (InventoryItemBase item in items)
-                    ItemReceive(item);
+                foreach (InventoryItemBase item in items) {
+                    InventoryFolderImpl folder = resolvedFolders.ContainsKey(item.Folder) ? resolvedFolders[item.Folder] : null;
+                    ItemReceive(item, folder );
+                }
             }
             catch (Exception e)
             {
@@ -276,16 +297,17 @@ namespace OpenSim.Framework.Communications.Cache
         ///
         /// We're assuming here that items are always received after all the folders
         /// received.
+        /// If folder is null, we will search for it starting from RootFolder (an O(n) operation),
+        /// otherwise we'll just put it into folder
         /// </summary>
         /// <param name="folderInfo"></param>
-        private void ItemReceive(InventoryItemBase itemInfo)
+        private void ItemReceive(InventoryItemBase itemInfo, InventoryFolderImpl folder)
         {
             //            m_log.DebugFormat(
             //                "[INVENTORY CACHE]: Received item {0} {1} for user {2}",
             //                itemInfo.Name, itemInfo.ID, userID);
-            InventoryFolderImpl folder = null;
 
-            if ( RootFolder != null )
+            if (folder == null && RootFolder != null)
                 folder = RootFolder.FindFolder(itemInfo.Folder);
 
             if (null == folder)
@@ -550,7 +572,7 @@ namespace OpenSim.Framework.Communications.Cache
                     else
                         item.Folder = RootFolder.ID;
                 }
-                ItemReceive(item);
+                ItemReceive(item, null);
                 if (m_commsManager.SecureInventoryService != null)
                 {
                     m_commsManager.SecureInventoryService.AddItem(item, m_session_id);
