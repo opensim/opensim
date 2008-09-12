@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenSim.Framework;
+using OpenSim.Data.Tests;
 using OpenSim.Data.SQLite;
 using OpenSim.Region.Environment.Scenes;
 using OpenMetaverse;
@@ -37,83 +38,25 @@ using OpenMetaverse;
 namespace OpenSim.Data.SQLite.Tests
 {
     [TestFixture]
-    public class SQLiteAssetTest
+    public class SQLiteAssetTest : BasicAssetTest
     {
         public string file = "assettest.db";
         public string connect;
-        public SQLiteAssetData db;
-        public UUID uuid1;
-        public UUID uuid2;
-        public UUID uuid3;
-
         
         [TestFixtureSetUp]
         public void Init()
         {
+            SuperInit();
             System.Console.WriteLine("SQLiteAssetTest");
             connect = "URI=file:" + file + ",version=3";
             db = new SQLiteAssetData();
             db.Initialise(connect);
-            uuid1 = UUID.Random();
-            uuid2 = UUID.Random();
-            uuid3 = UUID.Random();
         }
 
         [TestFixtureTearDown]
         public void Cleanup()
         {
             System.IO.File.Delete(file);
-        }
-        
-        [Test]
-        public void T001_LoadEmpty()
-        {
-            Assert.That(db.ExistsAsset(uuid1), Is.False);
-            Assert.That(db.ExistsAsset(uuid2), Is.False);
-            Assert.That(db.ExistsAsset(uuid3), Is.False);
-        }
-        
-        [Test]
-        public void T010_StoreSimpleAsset()
-        {
-            AssetBase a1 = new AssetBase(uuid1, "asset one");
-            AssetBase a2 = new AssetBase(uuid2, "asset two");
-            AssetBase a3 = new AssetBase(uuid3, "asset three");
-            db.CreateAsset(a1);
-            db.CreateAsset(a2);
-            db.CreateAsset(a3);
-
-            AssetBase a1a = db.FetchAsset(uuid1);
-            Assert.That(a1.ID.ToString(), Text.Matches(a1a.ID.ToString()));
-            Assert.That(a1.Name, Text.Matches(a1a.Name));
-
-            AssetBase a2a = db.FetchAsset(uuid2);
-            Assert.That(a2.ID.ToString(), Text.Matches(a2a.ID.ToString()));
-            Assert.That(a2.Name, Text.Matches(a2a.Name));
-
-            AssetBase a3a = db.FetchAsset(uuid3);
-            Assert.That(a3.ID.ToString(), Text.Matches(a3a.ID.ToString()));
-            Assert.That(a3.Name, Text.Matches(a3a.Name));
-        }
-
-        [Test]
-        public void T011_ExistsSimpleAsset()
-        {
-            Assert.That(db.ExistsAsset(uuid1), Is.True);
-            Assert.That(db.ExistsAsset(uuid2), Is.True);
-            Assert.That(db.ExistsAsset(uuid3), Is.True);
-        }
-
-        // this has questionable use, but it is in the interface at the moment.
-        [Test]
-        public void T012_DeleteAsset()
-        {
-            db.DeleteAsset(uuid1);
-            db.DeleteAsset(uuid2);
-            db.DeleteAsset(uuid3);
-            Assert.That(db.ExistsAsset(uuid1), Is.False);
-            Assert.That(db.ExistsAsset(uuid2), Is.False);
-            Assert.That(db.ExistsAsset(uuid3), Is.False);
         }
     }
 }

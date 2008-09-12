@@ -29,33 +29,35 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
+using OpenSim.Data;
 using OpenSim.Framework;
-using OpenSim.Data.Tests;
-using OpenSim.Data.SQLite;
 using OpenSim.Region.Environment.Scenes;
 using OpenMetaverse;
 
-namespace OpenSim.Data.SQLite.Tests
+namespace OpenSim.Data.Tests
 {
-    [TestFixture]
-    public class SQLiteRegionTest : BasicRegionTest
+    public class BasicUserTest
     {
-        public string file = "regiontest.db";
-        public string connect;
-        
-        [TestFixtureSetUp]
-        public void Init()
+        public UserDataBase db;
+        public UUID uuid1;
+        public UUID uuid2;
+        public UUID uuid3;
+
+        public void SuperInit()
         {
-            SuperInit();
-            connect = "URI=file:" + file + ",version=3";
-            db = new SQLiteRegionData();
-            db.Initialise(connect);
+            uuid1 = UUID.Random();
+            uuid2 = UUID.Random();
+            uuid3 = UUID.Random();
         }
 
-        [TestFixtureTearDown]
-        public void Cleanup()
+        [Test]
+        public void T001_LoadEmpty()
         {
-            System.IO.File.Delete(file);
+            Assert.That(db.GetUserByUUID(UUID.Zero), Is.Null);
+            Assert.That(db.GetUserByUUID(uuid1), Is.Null);
+            Assert.That(db.GetUserByUUID(uuid2), Is.Null);
+            Assert.That(db.GetUserByUUID(uuid3), Is.Null);
+            Assert.That(db.GetUserByUUID(UUID.Random()), Is.Null);
         }
     }
 }

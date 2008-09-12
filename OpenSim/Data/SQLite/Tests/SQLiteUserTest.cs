@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenSim.Framework;
+using OpenSim.Data.Tests;
 using OpenSim.Data.SQLite;
 using OpenSim.Region.Environment.Scenes;
 using OpenMetaverse;
@@ -37,37 +38,24 @@ using OpenMetaverse;
 namespace OpenSim.Data.SQLite.Tests
 {
     [TestFixture]
-    public class SQLiteUserTest
+    public class SQLiteUserTest : BasicUserTest
     {
         public string file = "usertest.db";
         public string connect;
-        public SQLiteUserData db;
-        public UUID uuid1;
-        public UUID uuid2;
-        public UUID uuid3;
-
         
         [TestFixtureSetUp]
         public void Init()
         {
+            SuperInit();
             connect = "URI=file:" + file + ",version=3";
             db = new SQLiteUserData();
             db.Initialise(connect);
-            uuid1 = UUID.Random();
-            uuid2 = UUID.Random();
-            uuid3 = UUID.Random();
         }
 
         [TestFixtureTearDown]
         public void Cleanup()
         {
             System.IO.File.Delete(file);
-        }
-        
-        [Test]
-        public void T001_LoadEmpty()
-        {
-            Assert.That(db.GetUserByUUID(uuid1), Is.Null);
         }
     }
 }
