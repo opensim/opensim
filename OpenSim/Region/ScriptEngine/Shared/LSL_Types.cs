@@ -448,6 +448,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
               {
                 return (LSL_Types.key)m_data[itemIndex];
               }
+              else if (m_data[itemIndex] is String)
+              {
+                return new LSL_Types.LSLString((string)m_data[itemIndex]);
+              }
               else
               {
                 return (LSL_Types.LSLString)m_data[itemIndex];
