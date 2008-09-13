@@ -2322,7 +2322,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //m_pendingFriendRequests.Add(friendTransactionID, fromAgentID);
 
             GridInstantMessage msg = new GridInstantMessage();
-            msg.fromAgentID = new Guid(m_host.ToString()); // fromAgentID.Guid;
+            msg.fromAgentID = new Guid(m_host.UUID.ToString()); // fromAgentID.Guid;
             msg.fromAgentSession = new Guid(friendTransactionID.ToString());// fromAgentSession.UUID;
             msg.toAgentID = new Guid(user); // toAgentID.Guid;
             msg.imSessionID = new Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
