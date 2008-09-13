@@ -2660,9 +2660,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                     animID=InventoryKey(anim);
                 }
 
-                if (animID == UUID.Zero)
-                    return;
-
                 ScenePresence presence = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
 
                 if (presence != null)

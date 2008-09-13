@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Timers;
+using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
@@ -3478,6 +3479,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void InitDefaultAnimations()
         {
+            using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.Load(reader);
+                foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
+                {
+                    if (nod.Attributes["name"] != null)
+                    {
+                        string name = (string)nod.Attributes["name"].Value.ToLower();
+                        string id = (string)nod.InnerText;
+                        m_defaultAnimations.Add(name, id);
+                    }
+                }
+            }
         }
 
         public UUID GetDefaultAnimation(string name)
