@@ -205,7 +205,7 @@ namespace OpenSim.Data.SQLite
 
         public void StoreRegionSettings(RegionSettings rs)
         {
-            lock(ds)
+            lock (ds)
             {
                 DataTable regionsettings = ds.Tables["regionsettings"];
 

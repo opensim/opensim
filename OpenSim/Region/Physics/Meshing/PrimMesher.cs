@@ -976,8 +976,8 @@ angles24 = [
             while (!done) // loop through the length of the path and add the layers
             {
                 bool isEndLayer = false;
-			    if (angle == startAngle || angle >= endAngle)
-				    isEndLayer = true;
+                if (angle == startAngle || angle >= endAngle)
+                    isEndLayer = true;
                 
                 Profile newLayer = profile.Clone(isEndLayer && needEndFaces);
 

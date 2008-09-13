@@ -4793,7 +4793,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                          ObjectClickActionPacket ocpacket = (ObjectClickActionPacket)Pack;
 
                          handlerObjectClickAction = OnObjectClickAction;
-                         if(handlerObjectClickAction != null) 
+                         if (handlerObjectClickAction != null) 
                          {
                              foreach (ObjectClickActionPacket.ObjectDataBlock odata in ocpacket.ObjectData)
                              {

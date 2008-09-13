@@ -500,16 +500,17 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 
                 // TODO if we decide to do sitting in a more SL compatible way (multiple avatars per prim), this has to be fixed, too
-                if(m_sitTargetAvatar != UUID.Zero) {
+                if (m_sitTargetAvatar != UUID.Zero)
+                {
                     if (m_parentGroup != null) // TODO can there be a SOP without a SOG?
                     {
                         ScenePresence avatar;
-                        if(m_parentGroup.Scene.TryGetAvatar(m_sitTargetAvatar, out avatar)) {
+                        if (m_parentGroup.Scene.TryGetAvatar(m_sitTargetAvatar, out avatar))
+                        {
                             avatar.ParentPosition = GetWorldPosition();
                         }
                     }
                 }
-
             }
         }
 
@@ -3304,27 +3305,33 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void SetCameraAtOffset(Vector3 v) {
+        public void SetCameraAtOffset(Vector3 v)
+        {
             m_cameraAtOffset = v;
         }
 
-        public void SetCameraEyeOffset(Vector3 v) {
+        public void SetCameraEyeOffset(Vector3 v)
+        {
             m_cameraEyeOffset = v;
         }
 
-        public void SetForceMouselook(bool force) {
+        public void SetForceMouselook(bool force)
+        {
             m_forceMouselook = force;
         }
 
-        public Vector3 GetCameraAtOffset() {
+        public Vector3 GetCameraAtOffset()
+        {
             return m_cameraAtOffset;
         }
 
-        public Vector3 GetCameraEyeOffset() {
+        public Vector3 GetCameraEyeOffset()
+        {
             return m_cameraEyeOffset;
         }
 
-        public bool GetForceMouselook() {
+        public bool GetForceMouselook()
+        {
             return m_forceMouselook;
         }
         
