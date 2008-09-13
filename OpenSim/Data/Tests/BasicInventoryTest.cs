@@ -197,6 +197,7 @@ namespace OpenSim.Data.Tests
         }
 
         // Item tests
+        [Test]
         public void T100_NoItems()
         {
             Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0));
@@ -205,12 +206,33 @@ namespace OpenSim.Data.Tests
             Assert.That(db.getInventoryInFolder(folder3).Count, Is.EqualTo(0));
         }
 
+        // TODO: Feeding a bad inventory item down the data path will
+        // crash the system.  This is largely due to the builder
+        // routines.  That should be fixed and tested for.
+        [Test]
         public void T101_CreatItems()
         {
             db.addInventoryItem(NewItem(item1, folder3, owner1, iname1, asset1));
             db.addInventoryItem(NewItem(item2, folder3, owner1, iname2, asset2));
             db.addInventoryItem(NewItem(item3, folder3, owner1, iname3, asset3));
             Assert.That(db.getInventoryInFolder(folder3).Count, Is.EqualTo(3));
+        }
+        
+        [Test]
+        public void T102_CompareItems()
+        {
+            InventoryItemBase i1 = db.getInventoryItem(item1);
+            InventoryItemBase i2 = db.getInventoryItem(item2);
+            InventoryItemBase i3 = db.getInventoryItem(item3);
+            Assert.That(i1.Name, Is.EqualTo(iname1));
+            Assert.That(i2.Name, Is.EqualTo(iname2));
+            Assert.That(i3.Name, Is.EqualTo(iname3));
+            Assert.That(i1.Owner, Is.EqualTo(owner1));
+            Assert.That(i2.Owner, Is.EqualTo(owner1));
+            Assert.That(i3.Owner, Is.EqualTo(owner1));
+            Assert.That(i1.AssetID, Is.EqualTo(asset1));
+            Assert.That(i2.AssetID, Is.EqualTo(asset2));
+            Assert.That(i3.AssetID, Is.EqualTo(asset3));
         }
      
 
@@ -220,7 +242,9 @@ namespace OpenSim.Data.Tests
             i.ID = id;
             i.Folder = parent;
             i.Owner = owner;
+            i.Creator = owner;
             i.Name = name;
+            i.Description = name;
             i.AssetID = asset;
             return i;
         }

@@ -34,6 +34,7 @@ using OpenSim.Data.Tests;
 using OpenSim.Data.SQLite;
 using OpenSim.Region.Environment.Scenes;
 using OpenMetaverse;
+using log4net;
 
 namespace OpenSim.Data.SQLite.Tests
 {
@@ -47,6 +48,7 @@ namespace OpenSim.Data.SQLite.Tests
         public void Init()
         {
             SuperInit();
+            log4net.Config.XmlConfigurator.Configure();
             connect = "URI=file:" + file + ",version=3";
             db = new SQLiteInventoryStore();
             db.Initialise(connect);
