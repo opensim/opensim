@@ -59,7 +59,7 @@ namespace OpenSim.Region.DataSnapshot
 
             if (Directory.Exists(m_directory))
             {
-                m_log.Info("[DATASNAPSHOT]: Repsonse and fragment cache directory already exists.");
+                m_log.Info("[DATASNAPSHOT]: Response and fragment cache directory already exists.");
             }
             else
             {
