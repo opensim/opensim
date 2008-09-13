@@ -119,7 +119,7 @@ namespace OpenSim.Data.SQLite
             landAccessListDa = new SqliteDataAdapter(landAccessListSelectCmd);
 
             SqliteCommand regionSettingsSelectCmd = new SqliteCommand(regionSettingsSelect, m_conn);
-
+            regionSettingsDa = new SqliteDataAdapter(regionSettingsSelectCmd);
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(m_conn, assem, "RegionStore");
@@ -148,6 +148,7 @@ namespace OpenSim.Data.SQLite
                 setupLandAccessCommands(landAccessListDa, m_conn);
 
                 ds.Tables.Add(createRegionSettingsTable());
+                
                 setupRegionSettingsCommands(regionSettingsDa, m_conn);
 
                 // WORKAROUND: This is a work around for sqlite on
@@ -963,7 +964,7 @@ namespace OpenSim.Data.SQLite
             createCol(regionsettings, "fixed_sun", typeof (Int32));
             createCol(regionsettings, "sun_position", typeof (Double));
             createCol(regionsettings, "covenant", typeof(String));
-
+            regionsettings.PrimaryKey = new DataColumn[] { regionsettings.Columns["regionUUID"] };
             return regionsettings;
         }
 
