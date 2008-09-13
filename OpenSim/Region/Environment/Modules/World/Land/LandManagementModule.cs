@@ -175,6 +175,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             AddLandObject(fullSimParcel);
         }
 
+        public List<ILandObject> AllParcels()
+        {
+            return new List<ILandObject>(landList.Values);
+        }
+
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {
             List<ILandObject> parcelsNear = new List<ILandObject>();

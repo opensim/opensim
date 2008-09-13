@@ -36,6 +36,7 @@ namespace OpenSim.Region.Environment.Interfaces
     {
 
         List<ILandObject> ParcelsNearPoint(Vector3 position);
+        List<ILandObject> AllParcels();
         ILandObject GetLandObject(int x, int y);
         ILandObject GetLandObject(float x, float y);
         bool IsLandPrimCountTainted();

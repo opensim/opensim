@@ -105,6 +105,16 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             return obj;
         }
 
+        public List<ILandObject> AllParcels()
+        {
+            if (m_landManagementModule != null)
+            {
+                return m_landManagementModule.AllParcels();
+            }
+
+            return new List<ILandObject>();
+        }
+
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {
             if (m_landManagementModule != null)

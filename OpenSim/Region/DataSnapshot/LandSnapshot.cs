@@ -119,28 +119,22 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
         public XmlNode RequestSnapshotData(XmlDocument nodeFactory)
         {
-            ILandChannel landChannel = (LandChannel)m_scene.LandChannel;
-            Dictionary<int, ILandObject> landList = null;
-            try
-            {
-                Type landChannelType = typeof(LandChannel);
-                FieldInfo landListField = landChannelType.GetField("landList", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (landListField != null)
-                {
-                    landList = (Dictionary<int, ILandObject>)landListField.GetValue(landChannel);
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[DATASNAPSHOT] couldn't access field reflectively\n" + e.ToString());
-            }
+            ILandChannel landChannel = m_scene.LandChannel;
+            List<ILandObject> parcels = landChannel.AllParcels();
+
             XmlNode parent = nodeFactory.CreateNode(XmlNodeType.Element, "parceldata", "");
-            if (landList != null)
+            if (parcels != null)
             {
 
                 //foreach (KeyValuePair<int, Land> curParcel in m_landIndexed)
-                foreach (LandObject land in landList.Values)
+                foreach (ILandObject parcel_interface in parcels)
                 {
+                    // Play it safe
+                    if (!(parcel_interface is LandObject))
+                        continue;
+
+                    LandObject land = (LandObject)parcel_interface;
+
                     LandData parcel = land.landData;
                     if ((parcel.Flags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory)
                     {
