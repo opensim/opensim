@@ -869,5 +869,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             DoBackup(new Object[] {0});
         }
+
+        public IScriptApi GetApi(UUID itemID, string name)
+        {
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return null;
+            return instance.GetApi(name);
+        }
     }
 }

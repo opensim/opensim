@@ -714,5 +714,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 throw new Exception("Completed persistence save, but no file was created");
             }
         }
+
+        public IScriptApi GetApi(string name)
+        {
+            if (m_Apis.ContainsKey(name))
+                return m_Apis[name];
+            return null;
+        }
     }
 }
