@@ -112,7 +112,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         XmlNode xmlobject = nodeFactory.CreateNode(XmlNodeType.Element, "object", "");
 
                         node = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
-                        node.InnerText = obj.ToString();
+                        node.InnerText = obj.UUID.ToString();
                         xmlobject.AppendChild(node);
 
                         SceneObjectPart m_rootPart = null;
