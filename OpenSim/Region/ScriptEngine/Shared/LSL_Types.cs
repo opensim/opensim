@@ -1689,7 +1689,17 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public explicit operator LSLFloat(string s)
             {
-                return new LSLFloat(double.Parse(s));
+                Regex r = new Regex("^[ ]*-?[0-9]*\\.?[0-9]*[eE]?-?[0-9]*");
+                Match m = r.Match(s);
+                string v = m.Groups[0].Value;
+
+                while (v.Length > 0 && v.Substring(0, 1) == " ")
+                    v = v.Substring(1);
+
+                if (v == String.Empty)
+                    v = "0";
+
+                return new LSLFloat(double.Parse(v));
             }
 
             static public implicit operator LSLFloat(double d)

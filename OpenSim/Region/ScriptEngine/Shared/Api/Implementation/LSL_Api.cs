@@ -4597,8 +4597,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Types.LSLInteger llGetFreeMemory()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetFreeMemory");
-            return 0;
+//            NotImplemented("llGetFreeMemory");
+            // Make scripts desined for LSO happy
+            return 16384;
         }
 
         public LSL_Types.LSLString llGetRegionName()
