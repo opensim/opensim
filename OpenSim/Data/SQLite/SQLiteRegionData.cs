@@ -55,6 +55,7 @@ namespace OpenSim.Data.SQLite
         private const string landSelect = "select * from land";
         private const string landAccessListSelect = "select distinct * from landaccesslist";
         private const string regionbanListSelect = "select * from regionban";
+        private const string regionSettingsSelect = "select * from regionsettings";
 
         private DataSet ds;
         private SqliteDataAdapter primDa;
@@ -63,6 +64,7 @@ namespace OpenSim.Data.SQLite
         private SqliteDataAdapter terrainDa;
         private SqliteDataAdapter landDa;
         private SqliteDataAdapter landAccessListDa;
+        private SqliteDataAdapter regionSettingsDa;
 
         private SqliteConnection m_conn;
 
@@ -116,6 +118,8 @@ namespace OpenSim.Data.SQLite
             SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, m_conn);
             landAccessListDa = new SqliteDataAdapter(landAccessListSelectCmd);
 
+            SqliteCommand regionSettingsSelectCmd = new SqliteCommand(regionSettingsSelect, m_conn);
+
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(m_conn, assem, "RegionStore");
@@ -142,6 +146,9 @@ namespace OpenSim.Data.SQLite
 
                 ds.Tables.Add(createLandAccessListTable());
                 setupLandAccessCommands(landAccessListDa, m_conn);
+
+                ds.Tables.Add(createRegionSettingsTable());
+                setupRegionSettingsCommands(regionSettingsDa, m_conn);
 
                 // WORKAROUND: This is a work around for sqlite on
                 // windows, which gets really unhappy with blob columns
@@ -183,17 +190,65 @@ namespace OpenSim.Data.SQLite
                     m_log.Info("[REGION DB]: Caught fill error on landaccesslist table");
                 }
 
+                try
+                {
+                    regionSettingsDa.Fill(ds.Tables["regionsettings"]);
+                }
+                catch (Exception)
+                {
+                    m_log.Info("[REGION DB]: Caught fill error on regionsettings table");
+                }
                 return;
             }
         }
 
         public void StoreRegionSettings(RegionSettings rs)
         {
+            lock(ds)
+            {
+                DataTable regionsettings = ds.Tables["regionsettings"];
+
+                DataRow settingsRow = regionsettings.Rows.Find(rs.RegionUUID.ToString());
+                if (settingsRow == null)
+                {
+                    settingsRow = regionsettings.NewRow();
+                    fillRegionSettingsRow(settingsRow, rs);
+                    regionsettings.Rows.Add(settingsRow);
+                }
+                else
+                {
+                    fillRegionSettingsRow(settingsRow, rs);
+                }
+
+                Commit();
+            }
         }
 
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
-            return null;
+            lock (ds)
+            {
+                DataTable regionsettings = ds.Tables["regionsettings"];
+
+                string searchExp = "regionUUID = '" + regionUUID.ToString() + "'";
+                DataRow[] rawsettings = regionsettings.Select(searchExp);
+                if (rawsettings.Length == 0)
+                {
+                    RegionSettings rs = new RegionSettings();
+                    rs.RegionUUID = regionUUID;
+                    rs.OnSave += StoreRegionSettings;
+
+                    StoreRegionSettings(rs);
+
+                    return rs;
+                }
+                DataRow row = rawsettings[0];
+
+                RegionSettings newSettings = buildRegionSettings(row);
+                newSettings.OnSave += StoreRegionSettings;
+
+                return newSettings;
+            }
         }
 
         /// <summary>
@@ -871,6 +926,47 @@ namespace OpenSim.Data.SQLite
             return landaccess;
         }
 
+        private static DataTable createRegionSettingsTable()
+        {
+            DataTable regionsettings = new DataTable("regionsettings");
+            createCol(regionsettings, "regionUUID", typeof(String));
+            createCol(regionsettings, "block_terraform", typeof (Int32));
+            createCol(regionsettings, "block_fly", typeof (Int32));
+            createCol(regionsettings, "allow_damage", typeof (Int32));
+            createCol(regionsettings, "restrict_pushing", typeof (Int32));
+            createCol(regionsettings, "allow_land_resell", typeof (Int32));
+            createCol(regionsettings, "allow_land_join_divide", typeof (Int32));
+            createCol(regionsettings, "block_show_in_search", typeof (Int32));
+            createCol(regionsettings, "agent_limit", typeof (Int32));
+            createCol(regionsettings, "object_bonus", typeof (Double));
+            createCol(regionsettings, "maturity", typeof (Int32));
+            createCol(regionsettings, "disable_scripts", typeof (Int32));
+            createCol(regionsettings, "disable_collisions", typeof (Int32));
+            createCol(regionsettings, "disable_physics", typeof (Int32));
+            createCol(regionsettings, "terrain_texture_1", typeof(String));
+            createCol(regionsettings, "terrain_texture_2", typeof(String));
+            createCol(regionsettings, "terrain_texture_3", typeof(String));
+            createCol(regionsettings, "terrain_texture_4", typeof(String));
+            createCol(regionsettings, "elevation_1_nw", typeof (Double));
+            createCol(regionsettings, "elevation_2_nw", typeof (Double));
+            createCol(regionsettings, "elevation_1_ne", typeof (Double));
+            createCol(regionsettings, "elevation_2_ne", typeof (Double));
+            createCol(regionsettings, "elevation_1_se", typeof (Double));
+            createCol(regionsettings, "elevation_2_se", typeof (Double));
+            createCol(regionsettings, "elevation_1_sw", typeof (Double));
+            createCol(regionsettings, "elevation_2_sw", typeof (Double));
+            createCol(regionsettings, "water_height", typeof (Double));
+            createCol(regionsettings, "terrain_raise_limit", typeof (Double));
+            createCol(regionsettings, "terrain_lower_limit", typeof (Double));
+            createCol(regionsettings, "use_estate_sun", typeof (Int32));
+            createCol(regionsettings, "sandbox", typeof (Int32));
+            createCol(regionsettings, "fixed_sun", typeof (Int32));
+            createCol(regionsettings, "sun_position", typeof (Double));
+            createCol(regionsettings, "covenant", typeof(String));
+
+            return regionsettings;
+        }
+
         /***********************************************************************
          *
          *  Convert between ADO.NET <=> OpenSim Objects
@@ -1126,6 +1222,48 @@ namespace OpenSim.Data.SQLite
             return newData;
         }
 
+        private RegionSettings buildRegionSettings(DataRow row)
+        {
+            RegionSettings newSettings = new RegionSettings();
+
+            newSettings.RegionUUID = new UUID((string) row["regionUUID"]);
+            newSettings.BlockTerraform = Convert.ToBoolean(row["block_terraform"]);
+            newSettings.AllowDamage = Convert.ToBoolean(row["allow_damage"]);
+            newSettings.BlockFly = Convert.ToBoolean(row["block_fly"]);
+            newSettings.RestrictPushing = Convert.ToBoolean(row["restrict_pushing"]);
+            newSettings.AllowLandResell = Convert.ToBoolean(row["allow_land_resell"]);
+            newSettings.AllowLandJoinDivide = Convert.ToBoolean(row["allow_land_join_divide"]);
+            newSettings.BlockShowInSearch = Convert.ToBoolean(row["block_show_in_search"]);
+            newSettings.AgentLimit = Convert.ToInt32(row["agent_limit"]);
+            newSettings.ObjectBonus = Convert.ToDouble(row["object_bonus"]);
+            newSettings.Maturity = Convert.ToInt32(row["maturity"]);
+            newSettings.DisableScripts = Convert.ToBoolean(row["disable_scripts"]);
+            newSettings.DisableCollisions = Convert.ToBoolean(row["disable_collisions"]);
+            newSettings.DisablePhysics = Convert.ToBoolean(row["disable_physics"]);
+            newSettings.TerrainTexture1 = new UUID((String) row["terrain_texture_1"]);
+            newSettings.TerrainTexture2 = new UUID((String) row["terrain_texture_2"]);
+            newSettings.TerrainTexture3 = new UUID((String) row["terrain_texture_3"]);
+            newSettings.TerrainTexture4 = new UUID((String) row["terrain_texture_4"]);
+            newSettings.Elevation1NW = Convert.ToDouble(row["elevation_1_nw"]);
+            newSettings.Elevation2NW = Convert.ToDouble(row["elevation_2_nw"]);
+            newSettings.Elevation1NE = Convert.ToDouble(row["elevation_1_ne"]);
+            newSettings.Elevation2NE = Convert.ToDouble(row["elevation_2_ne"]);
+            newSettings.Elevation1SE = Convert.ToDouble(row["elevation_1_se"]);
+            newSettings.Elevation2SE = Convert.ToDouble(row["elevation_2_se"]);
+            newSettings.Elevation1SW = Convert.ToDouble(row["elevation_1_sw"]);
+            newSettings.Elevation2SW = Convert.ToDouble(row["elevation_2_sw"]);
+            newSettings.WaterHeight = Convert.ToDouble(row["water_height"]);
+            newSettings.TerrainRaiseLimit = Convert.ToDouble(row["terrain_raise_limit"]);
+            newSettings.TerrainLowerLimit = Convert.ToDouble(row["terrain_lower_limit"]);
+            newSettings.UseEstateSun = Convert.ToBoolean(row["use_estate_sun"]);
+            newSettings.Sandbox = Convert.ToBoolean(row["sandbox"]);
+            newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
+            newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
+            newSettings.Covenant = new UUID((String) row["covenant"]);
+
+            return newSettings;
+        }
+
         /// <summary>
         /// Build a land access entry from the persisted data.
         /// </summary>
@@ -1334,6 +1472,44 @@ namespace OpenSim.Data.SQLite
             row["LandUUID"] = Util.ToRawUuidString(parcelID);
             row["AccessUUID"] = Util.ToRawUuidString(entry.AgentID);
             row["Flags"] = entry.Flags;
+        }
+
+        private static void fillRegionSettingsRow(DataRow row, RegionSettings settings)
+        {
+            row["regionUUID"] = settings.RegionUUID.ToString();
+            row["block_terraform"] = settings.BlockTerraform;
+            row["block_fly"] = settings.BlockFly;
+            row["allow_damage"] = settings.AllowDamage;
+            row["restrict_pushing"] = settings.RestrictPushing;
+            row["allow_land_resell"] = settings.AllowLandResell;
+            row["allow_land_join_divide"] = settings.AllowLandJoinDivide;
+            row["block_show_in_search"] = settings.BlockShowInSearch;
+            row["agent_limit"] = settings.AgentLimit;
+            row["object_bonus"] = settings.ObjectBonus;
+            row["maturity"] = settings.Maturity;
+            row["disable_scripts"] = settings.DisableScripts;
+            row["disable_collisions"] = settings.DisableCollisions;
+            row["disable_physics"] = settings.DisablePhysics;
+            row["terrain_texture_1"] = settings.TerrainTexture1.ToString();
+            row["terrain_texture_2"] = settings.TerrainTexture2.ToString();
+            row["terrain_texture_3"] = settings.TerrainTexture3.ToString();
+            row["terrain_texture_4"] = settings.TerrainTexture4.ToString();
+            row["elevation_1_nw"] = settings.Elevation1NW;
+            row["elevation_2_nw"] = settings.Elevation2NW;
+            row["elevation_1_ne"] = settings.Elevation1NE;
+            row["elevation_2_ne"] = settings.Elevation2NE;
+            row["elevation_1_se"] = settings.Elevation1SE;
+            row["elevation_2_se"] = settings.Elevation2SE;
+            row["elevation_1_sw"] = settings.Elevation1SW;
+            row["elevation_2_sw"] = settings.Elevation2SW;
+            row["water_height"] = settings.WaterHeight;
+            row["terrain_raise_limit"] = settings.TerrainRaiseLimit;
+            row["terrain_lower_limit"] = settings.TerrainLowerLimit;
+            row["use_estate_sun"] = settings.UseEstateSun;
+            row["sandbox"] = settings.Sandbox;
+            row["fixed_sun"] = settings.FixedSun;
+            row["sun_position"] = settings.SunPosition;
+            row["covenant"] = settings.Covenant.ToString();
         }
 
         /// <summary>
@@ -1717,6 +1893,12 @@ namespace OpenSim.Data.SQLite
         private void setupLandAccessCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("landaccesslist", ds.Tables["landaccesslist"]);
+            da.InsertCommand.Connection = conn;
+        }
+
+        private void setupRegionSettingsCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("regionsettings", ds.Tables["regionsettings"]);
             da.InsertCommand.Connection = conn;
         }
 
