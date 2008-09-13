@@ -58,7 +58,7 @@ using System.Collections;
  * //TODO
  *
  * This probably needs some throttling mechanism but
- * its wide open right now.  This applies to both
+ * it's wide open right now.  This applies to both
  * number of requests and data volume.
  *
  * Linden puts all kinds of header fields in the requests.
@@ -77,7 +77,7 @@ using System.Collections;
  * HTTPS support
  *
  * Configurable timeout?
- * Configurable max repsonse size?
+ * Configurable max response size?
  * Configurable
  *
  * **************************************************/

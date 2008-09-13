@@ -1552,7 +1552,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetForce(LSL_Types.Vector3 force, int local)
         {
             m_host.AddScriptLPS(1);
-            //NotImplemented("llSetForce");
 
             if (m_host.ParentGroup != null)
             {
@@ -1571,8 +1570,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_Types.Vector3 force = new LSL_Types.Vector3(0.0, 0.0, 0.0);
 
             m_host.AddScriptLPS(1);
-            //NotImplemented("llGetForce");
-            //return new LSL_Types.Vector3();
 
             if (m_host.ParentGroup != null)
             {
@@ -1592,7 +1589,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             return m_host.registerTargetWaypoint(new Vector3((float)position.x, (float)position.y, (float)position.z), (float)range);
-
         }
 
         public void llTargetRemove(int number)
@@ -3566,11 +3562,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 z = rot.z / s;
             }
 
-
             return new LSL_Types.Vector3(x,y,z);
-
-
-//            NotImplemented("llRot2Axis");
         }
 
 
@@ -3588,14 +3580,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 rot.y /= length;
                 rot.z /= length;
                 rot.s /= length;
-
             }
 
             double angle = 2 * Math.Acos(rot.s);
 
             return angle;
-
-//            NotImplemented("llRot2Angle");
         }
 
         public LSL_Types.LSLFloat llAcos(double val)
@@ -3615,7 +3604,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-           return (double) Math.Acos(a.x * b.x + a.y * b.y + a.z * b.z + a.s * b.s) * 2;
+            return (double) Math.Acos(a.x * b.x + a.y * b.y + a.z * b.z + a.s * b.s) * 2;
         }
 
         public LSL_Types.LSLString llGetInventoryKey(string name)
@@ -4594,8 +4583,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Types.LSLInteger llGetFreeMemory()
         {
             m_host.AddScriptLPS(1);
-//            NotImplemented("llGetFreeMemory");
-            // Make scripts desined for LSO happy
+            // Make scripts designed for LSO happy
             return 16384;
         }
 
@@ -7146,8 +7134,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             }
             // ScriptSleep(2000);
-
-            //NotImplemented("llParcelMediaCommandList");
         }
 
         public LSL_Types.list llParcelMediaQuery(LSL_Types.list aList)
@@ -7875,8 +7861,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             llShout(ScriptBaseClass.DEBUG_CHANNEL, msg);
         }
-
-
 
         internal void NotImplemented(string command)
         {
