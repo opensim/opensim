@@ -498,6 +498,17 @@ namespace OpenSim.Region.Environment.Scenes
                         Console.WriteLine(e.Message);
                     }
                 }
+                
+                // TODO if we decide to do sitting in a more SL compatible way (multiple avatars per prim), this has to be fixed, too
+                if(m_sitTargetAvatar != UUID.Zero) {
+                    if (m_parentGroup != null) // TODO can there be a SOP without a SOG?
+                    {
+                        ScenePresence avatar;
+                        if(m_parentGroup.Scene.TryGetAvatar(m_sitTargetAvatar, out avatar)) {
+                            avatar.ParentPosition = GetWorldPosition();
+                        }
+                    }
+                }
 
             }
         }

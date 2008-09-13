@@ -287,6 +287,11 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected Vector3 m_parentPosition = new Vector3();
+        public Vector3 ParentPosition
+        {
+            get { return m_parentPosition; }
+            set { m_parentPosition = value; }
+        }
 
         /// <summary>
         /// Absolute position of this avatar in 'region cordinates'
