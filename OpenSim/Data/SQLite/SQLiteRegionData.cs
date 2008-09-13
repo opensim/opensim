@@ -660,6 +660,7 @@ namespace OpenSim.Data.SQLite
                 terrainDa.Update(ds, "terrain");
                 landDa.Update(ds, "land");
                 landAccessListDa.Update(ds, "landaccesslist");
+                regionSettingsDa.Update(ds, "regionsettings");
                 ds.AcceptChanges();
             }
         }
@@ -1901,6 +1902,8 @@ namespace OpenSim.Data.SQLite
         {
             da.InsertCommand = createInsertCommand("regionsettings", ds.Tables["regionsettings"]);
             da.InsertCommand.Connection = conn;
+            da.UpdateCommand = createUpdateCommand("regionsettings", "regionUUID=:regionUUID", ds.Tables["regionsettings"]);
+            da.UpdateCommand.Connection = conn;
         }
 
         /// <summary>
