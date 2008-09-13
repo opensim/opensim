@@ -1181,9 +1181,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (face > -1)
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.R = (float)Math.Abs(color.x - 1);
-                texcolor.G = (float)Math.Abs(color.y - 1);
-                texcolor.B = (float)Math.Abs(color.z - 1);
+                texcolor.R = (float)color.x;
+                texcolor.G = (float)color.y;
+                texcolor.B = (float)color.z;
                 tex.FaceTextures[face].RGBA = texcolor;
                 part.UpdateTexture(tex);
                 return;
@@ -1195,15 +1195,15 @@ namespace OpenSim.Region.ScriptEngine.Common
                     if (tex.FaceTextures[i] != null)
                     {
                         texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.R = (float)Math.Abs(color.x - 1);
-                        texcolor.G = (float)Math.Abs(color.y - 1);
-                        texcolor.B = (float)Math.Abs(color.z - 1);
+                        texcolor.R = (float)color.x;
+                        texcolor.G = (float)color.y;
+                        texcolor.B = (float)color.z;
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
                     texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = (float)Math.Abs(color.x - 1);
-                    texcolor.G = (float)Math.Abs(color.y - 1);
-                    texcolor.B = (float)Math.Abs(color.z - 1);
+                    texcolor.R = (float)color.x;
+                    texcolor.G = (float)color.y;
+                    texcolor.B = (float)color.z;
                     tex.DefaultTexture.RGBA = texcolor;
                 }
                 part.UpdateTexture(tex);
