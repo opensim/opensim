@@ -336,7 +336,7 @@ angles24 = [
             this.faces = new List<Face>();
         }
 
-        public Profile(int sides, float profileStart, float profileEnd, float hollow, int hollowSides)
+        public Profile(int sides, float profileStart, float profileEnd, float hollow, int hollowSides, bool createFaces)
         {
             this.coords = new List<Coord>();
             this.faces = new List<Face>();
@@ -422,7 +422,7 @@ angles24 = [
                         hollowCoords.Add(newVert);
                     }
                 }
-                else if (angle.angle > 0.0001f)
+                else if (createFaces && angle.angle > 0.0001f)
                 {
                     Face newFace = new Face();
                     newFace.v1 = 0;
@@ -437,77 +437,80 @@ angles24 = [
             {
                 hollowCoords.Reverse();
 
-                int numOuterVerts = this.coords.Count;
-                int numHollowVerts = hollowCoords.Count;
-                int numTotalVerts = numOuterVerts + numHollowVerts;
-
-                if (numOuterVerts == numHollowVerts)
+                if (createFaces)
                 {
-                    Face newFace = new Face();
+                    int numOuterVerts = this.coords.Count;
+                    int numHollowVerts = hollowCoords.Count;
+                    int numTotalVerts = numOuterVerts + numHollowVerts;
 
-                    for (int coordIndex = 0; coordIndex < numOuterVerts - 1; coordIndex++)
-                    {
-                        newFace.v1 = coordIndex;
-                        newFace.v2 = coordIndex + 1;
-                        newFace.v3 = numTotalVerts - coordIndex - 1;
-                        this.faces.Add(newFace);
-
-                        newFace.v1 = coordIndex + 1;
-                        newFace.v2 = numTotalVerts - coordIndex - 2;
-                        newFace.v3 = numTotalVerts - coordIndex - 1;
-                        this.faces.Add(newFace);
-                    }
-                }
-                else
-                {
-                    if (numOuterVerts < numHollowVerts)
+                    if (numOuterVerts == numHollowVerts)
                     {
                         Face newFace = new Face();
-                        int j = 0; // j is the index for outer vertices
-                        int maxJ = numOuterVerts - 1;
-                        for (int i = 0; i < numHollowVerts; i++) // i is the index for inner vertices
+
+                        for (int coordIndex = 0; coordIndex < numOuterVerts - 1; coordIndex++)
                         {
-                            if (j < maxJ)
-                                if (angles.angles[j + 1].angle - hollowAngles.angles[i].angle <= hollowAngles.angles[i].angle - angles.angles[j].angle)
-                                {
-                                    newFace.v1 = numTotalVerts - i - 1;
-                                    newFace.v2 = j;
-                                    newFace.v3 = j + 1;
+                            newFace.v1 = coordIndex;
+                            newFace.v2 = coordIndex + 1;
+                            newFace.v3 = numTotalVerts - coordIndex - 1;
+                            this.faces.Add(newFace);
 
-                                    this.faces.Add(newFace);
-                                    j += 1;
-                                }
-
-                            newFace.v1 = j;
-                            newFace.v2 = numTotalVerts - i - 2;
-                            newFace.v3 = numTotalVerts - i - 1;
-
+                            newFace.v1 = coordIndex + 1;
+                            newFace.v2 = numTotalVerts - coordIndex - 2;
+                            newFace.v3 = numTotalVerts - coordIndex - 1;
                             this.faces.Add(newFace);
                         }
                     }
-                    else // numHollowVerts < numOuterVerts
+                    else
                     {
-                        Face newFace = new Face();
-                        int j = 0; // j is the index for inner vertices
-                        int maxJ = numHollowVerts - 1;
-                        for (int i = 0; i < numOuterVerts; i++)
+                        if (numOuterVerts < numHollowVerts)
                         {
-                            if (j < maxJ)
-                                if (hollowAngles.angles[j + 1].angle - angles.angles[i].angle <= angles.angles[i].angle - hollowAngles.angles[j].angle)
-                                {
-                                    newFace.v1 = i;
-                                    newFace.v2 = numTotalVerts - j - 2;
-                                    newFace.v3 = numTotalVerts - j - 1;
+                            Face newFace = new Face();
+                            int j = 0; // j is the index for outer vertices
+                            int maxJ = numOuterVerts - 1;
+                            for (int i = 0; i < numHollowVerts; i++) // i is the index for inner vertices
+                            {
+                                if (j < maxJ)
+                                    if (angles.angles[j + 1].angle - hollowAngles.angles[i].angle <= hollowAngles.angles[i].angle - angles.angles[j].angle)
+                                    {
+                                        newFace.v1 = numTotalVerts - i - 1;
+                                        newFace.v2 = j;
+                                        newFace.v3 = j + 1;
 
-                                    this.faces.Add(newFace);
-                                    j += 1;
-                                }
+                                        this.faces.Add(newFace);
+                                        j += 1;
+                                    }
 
-                            newFace.v1 = numTotalVerts - j - 1;
-                            newFace.v2 = i;
-                            newFace.v3 = i + 1;
+                                newFace.v1 = j;
+                                newFace.v2 = numTotalVerts - i - 2;
+                                newFace.v3 = numTotalVerts - i - 1;
 
-                            this.faces.Add(newFace);
+                                this.faces.Add(newFace);
+                            }
+                        }
+                        else // numHollowVerts < numOuterVerts
+                        {
+                            Face newFace = new Face();
+                            int j = 0; // j is the index for inner vertices
+                            int maxJ = numHollowVerts - 1;
+                            for (int i = 0; i < numOuterVerts; i++)
+                            {
+                                if (j < maxJ)
+                                    if (hollowAngles.angles[j + 1].angle - angles.angles[i].angle <= angles.angles[i].angle - hollowAngles.angles[j].angle)
+                                    {
+                                        newFace.v1 = i;
+                                        newFace.v2 = numTotalVerts - j - 2;
+                                        newFace.v3 = numTotalVerts - j - 1;
+
+                                        this.faces.Add(newFace);
+                                        j += 1;
+                                    }
+
+                                newFace.v1 = numTotalVerts - j - 1;
+                                newFace.v2 = i;
+                                newFace.v3 = i + 1;
+
+                                this.faces.Add(newFace);
+                            }
                         }
                     }
                 }
@@ -518,10 +521,16 @@ angles24 = [
 
         public Profile Clone()
         {
+            return this.Clone(true);
+        }
+
+        public Profile Clone(bool needFaces)
+        {
             Profile clone = new Profile();
 
             clone.coords.AddRange(this.coords);
-            clone.faces.AddRange(this.faces);
+            if (needFaces)
+                clone.faces.AddRange(this.faces);
 
             return clone;
         }
@@ -781,7 +790,7 @@ angles24 = [
                     hollow *= 0.707f;
             }
 
-            Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides);
+            Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, true);
 
             if (initialProfileRot != 0.0f)
                 profile.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), initialProfileRot));
@@ -948,7 +957,17 @@ angles24 = [
                 }
             }
 
-            Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides);
+            bool needEndFaces = false;
+            if (this.pathCutBegin != 0.0 || this.pathCutEnd != 1.0)
+                needEndFaces = true;
+            else if (this.taperX != 0.0 || this.taperY != 0.0)
+                needEndFaces = true;
+            else if (this.skew != 0.0)
+                needEndFaces = true;
+            else if (twistTotal != 0.0)
+                needEndFaces = true;
+
+            Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, needEndFaces);
 
             if (initialProfileRot != 0.0f)
                 profile.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), initialProfileRot));
@@ -956,7 +975,11 @@ angles24 = [
             bool done = false;
             while (!done) // loop through the length of the path and add the layers
             {
-                Profile newLayer = profile.Clone();
+                bool isEndLayer = false;
+			    if (angle == startAngle || angle >= endAngle)
+				    isEndLayer = true;
+                
+                Profile newLayer = profile.Clone(isEndLayer && needEndFaces);
 
                 float xProfileScale = (1.0f - Math.Abs(this.skew)) * this.holeSizeX;
                 float yProfileScale = this.holeSizeY;
@@ -1012,7 +1035,7 @@ angles24 = [
 
                 this.coords.AddRange(newLayer.coords);
 
-                if (angle <= startAngle || angle >= endAngle)
+                if (isEndLayer)
                     this.faces.AddRange(newLayer.faces);
 
                 // fill faces between layers

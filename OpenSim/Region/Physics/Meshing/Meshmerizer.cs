@@ -1909,8 +1909,8 @@ namespace OpenSim.Region.Physics.Meshing
             PrimMesh primMesh = new PrimMesh(sides, profileBegin, profileEnd, profileHollow, hollowSides);
             //PrimMesh primMesh = new PrimMesh(sides, profileBegin, profileEnd, 0.0f, 4);
 
-            Profile testProfile = new Profile(sides, profileBegin, profileEnd, profileHollow, hollowSides);
-            testProfile.DumpRaw(baseDir, primName, "Profile");
+            //Profile testProfile = new Profile(sides, profileBegin, profileEnd, profileHollow, hollowSides, true);
+            //testProfile.DumpRaw(baseDir, primName, "Profile");
 
             primMesh.topShearX = pathShearX;
             primMesh.topShearY = pathShearY;
