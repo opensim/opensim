@@ -357,6 +357,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void control(uint localID, UUID itemID, UUID agentID, uint held, uint change)
         {
+            if ((change == 0) && (myScriptEngine.m_EventQueueManager.CheckEeventQueueForEvent(localID,"control"))) return;
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "control", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLString(agentID.ToString()), new LSL_Types.LSLInteger(held), new LSL_Types.LSLInteger(change)});
         }
 

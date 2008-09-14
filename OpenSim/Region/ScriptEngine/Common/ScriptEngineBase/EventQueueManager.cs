@@ -288,6 +288,31 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
         }
         #endregion
+        
+        #region " Check execution queue for a specified Event"
+        /// <summary>
+        /// checks to see if a specified event type is already in the queue
+        /// </summary>
+        /// <param name="localID">Region object ID</param>
+        /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
+        /// <returns>true if event is found , false if not found</returns>
+        /// 
+        public bool CheckEeventQueueForEvent(uint localID, string FunctionName)
+        {
+            if (eventQueue.Count > 0)
+            {
+                lock (eventQueue)
+                {
+                    foreach (EventQueueManager.QueueItemStruct QIS in eventQueue)
+                    {
+                        if ((QIS.functionName == FunctionName) && (QIS.localID == localID))
+                            return true;
+                    }
+                }
+            }
+            return false;
+        }
+        #endregion
 
         #region " Add events to execution queue "
         /// <summary>
