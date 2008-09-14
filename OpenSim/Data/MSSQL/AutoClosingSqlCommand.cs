@@ -25,9 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Data.SqlClient;
 using System.Data;
 
@@ -163,16 +160,22 @@ namespace OpenSim.Data.MSSQL
             realCommand.Prepare();
         }
 
-        IDbTransaction IDbCommand.Transaction
+//        IDbTransaction IDbCommand.Transaction
+//        {
+//            get
+//            {
+//                return realCommand.Transaction;
+//            }
+//            set
+//            {
+//                realCommand.Transaction = (SqlTransaction) value;
+//            }
+//        }
+
+        public IDbTransaction Transaction
         {
-            get
-            {
-                return realCommand.Transaction;
-            }
-            set
-            {
-                realCommand.Transaction = (SqlTransaction) value;
-            }
+            get { return realCommand.Transaction; }
+            set { realCommand.Transaction = (SqlTransaction)value; }
         }
 
         UpdateRowSource IDbCommand.UpdatedRowSource

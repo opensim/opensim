@@ -1,6 +1,6 @@
 BEGIN TRANSACTION
 
-CREATE TABLE dbo.Tmp_primshapes
+CREATE TABLE Tmp_primshapes
 	(
 	UUID varchar(36) NOT NULL,
 	Shape int NULL,
@@ -32,15 +32,15 @@ CREATE TABLE dbo.Tmp_primshapes
 	)  ON [PRIMARY]
 	 TEXTIMAGE_ON [PRIMARY]
 
-IF EXISTS(SELECT * FROM dbo.primshapes)
-	 EXEC('INSERT INTO dbo.Tmp_primshapes (UUID, Shape, ScaleX, ScaleY, ScaleZ, PCode, PathBegin, PathEnd, PathScaleX, PathScaleY, PathShearX, PathShearY, PathSkew, PathCurve, PathRadiusOffset, PathRevolutions, PathTaperX, PathTaperY, PathTwist, PathTwistBegin, ProfileBegin, ProfileEnd, ProfileCurve, ProfileHollow, State, Texture, ExtraParams)
-		SELECT CONVERT(varchar(36), UUID), Shape, ScaleX, ScaleY, ScaleZ, PCode, PathBegin, PathEnd, PathScaleX, PathScaleY, PathShearX, PathShearY, PathSkew, PathCurve, PathRadiusOffset, PathRevolutions, PathTaperX, PathTaperY, PathTwist, PathTwistBegin, ProfileBegin, ProfileEnd, ProfileCurve, ProfileHollow, State, Texture, ExtraParams FROM dbo.primshapes WITH (HOLDLOCK TABLOCKX)')
+IF EXISTS(SELECT * FROM primshapes)
+	 EXEC('INSERT INTO Tmp_primshapes (UUID, Shape, ScaleX, ScaleY, ScaleZ, PCode, PathBegin, PathEnd, PathScaleX, PathScaleY, PathShearX, PathShearY, PathSkew, PathCurve, PathRadiusOffset, PathRevolutions, PathTaperX, PathTaperY, PathTwist, PathTwistBegin, ProfileBegin, ProfileEnd, ProfileCurve, ProfileHollow, State, Texture, ExtraParams)
+		SELECT CONVERT(varchar(36), UUID), Shape, ScaleX, ScaleY, ScaleZ, PCode, PathBegin, PathEnd, PathScaleX, PathScaleY, PathShearX, PathShearY, PathSkew, PathCurve, PathRadiusOffset, PathRevolutions, PathTaperX, PathTaperY, PathTwist, PathTwistBegin, ProfileBegin, ProfileEnd, ProfileCurve, ProfileHollow, State, Texture, ExtraParams FROM primshapes WITH (HOLDLOCK TABLOCKX)')
 
-DROP TABLE dbo.primshapes
+DROP TABLE primshapes
 
-EXECUTE sp_rename N'dbo.Tmp_primshapes', N'primshapes', 'OBJECT' 
+EXECUTE sp_rename N'Tmp_primshapes', N'primshapes', 'OBJECT' 
 
-ALTER TABLE dbo.primshapes ADD CONSTRAINT
+ALTER TABLE primshapes ADD CONSTRAINT
 	PK__primshapes__0880433F PRIMARY KEY CLUSTERED 
 	(
 	UUID

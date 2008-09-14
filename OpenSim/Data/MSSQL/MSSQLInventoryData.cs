@@ -41,49 +41,53 @@ namespace OpenSim.Data.MSSQL
     /// </summary>
     public class MSSQLInventoryData : IInventoryDataPlugin
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private const string _migrationStore = "InventoryStore";
 
-        #region Helper converters to preserve unsigned bitfield-type data in DB roundtrips via signed int32s
-        private static int ConvertUint32BitFieldToInt32(uint bitField)
-        {
-            return BitConverter.ToInt32(BitConverter.GetBytes(bitField), 0);
-        }
-        private static uint ConvertInt32BitFieldToUint32(int bitField)
-        {
-            return BitConverter.ToUInt32(BitConverter.GetBytes(bitField), 0);
-        }
-        #endregion
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The database manager
         /// </summary>
         private MSSQLManager database;
 
-        public void Initialise() 
-        { 
+        #region IPlugin members
+
+        public void Initialise()
+        {
             m_log.Info("[MSSQLInventoryData]: " + Name + " cannot be default-initialized!");
-            throw new PluginNotInitialisedException (Name);
+            throw new PluginNotInitialisedException(Name);
         }
 
         /// <summary>
         /// Loads and initialises the MSSQL inventory storage interface
         /// </summary>
-        /// <param name="connect">connect string</param>
+        /// <param name="connectionString">connect string</param>
         /// <remarks>use mssql_connection.ini</remarks>
-        public void Initialise(string connect)
+        public void Initialise(string connectionString)
         {
-            // TODO: actually use the provided connect string
-            IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
-            string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
-            string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
-            string settingPersistSecurityInfo = gridDataMSSqlFile.ParseFileReadValue("persist_security_info");
-            string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
-            string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                database = new MSSQLManager(connectionString);
+            }
+            else
+            {
+                IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
+                string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
+                string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
+                string settingPersistSecurityInfo = gridDataMSSqlFile.ParseFileReadValue("persist_security_info");
+                string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
+                string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
 
-            database =
-                new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
-                                 settingPassword);
+                database =
+                    new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
+                                     settingPassword);
+            }
+
+            //TODO remove this at one point
             TestTables();
+
+            //New migrations check of store
+            database.CheckMigration(_migrationStore);
         }
 
         #region Test and initialization code
@@ -132,6 +136,37 @@ namespace OpenSim.Data.MSSQL
 
             UpgradeFoldersTable(tableList["inventoryfolders"]);
             UpgradeItemsTable(tableList["inventoryitems"]);
+
+            using (AutoClosingSqlCommand cmd = database.Query("select * from migrations where name = '" + _migrationStore + "'"))
+            {
+                //Special for Migrations to create backword compatible
+                try
+                {
+                    bool insert = true;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read()) insert = false;
+                    }
+                    if (insert)
+                    {
+                        cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch
+                {
+                    //No migrations table
+                    //HACK create one and add data
+                    cmd.CommandText = "create table migrations(name varchar(100), version int)";
+                    cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = "insert into migrations(name, version) values('migrations', 1)";
+                    cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         #endregion
@@ -150,7 +185,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         public void Dispose()
         {
-            // Do nothing.
+            database = null;
         }
 
         /// <summary>
@@ -162,39 +197,9 @@ namespace OpenSim.Data.MSSQL
             get { return database.getVersion(); }
         }
 
-        /// <summary>
-        /// Returns a list of items in a specified folder
-        /// </summary>
-        /// <param name="folderID">The folder to search</param>
-        /// <returns>A list containing inventory items</returns>
-        public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
-        {
-            try
-            {
-                List<InventoryItemBase> items = new List<InventoryItemBase>();
+        #endregion
 
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["parentFolderID"] = folderID.ToString();
-
-                using (IDbCommand result =
-                    database.Query("SELECT * FROM inventoryitems WHERE parentFolderID = @parentFolderID", param))
-                using (IDataReader reader = result.ExecuteReader())
-                {
-
-                    while (reader.Read())
-                        items.Add(readInventoryItem(reader));
-
-                    reader.Close();
-                }
-
-                return items;
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-                return null;
-            }
-        }
+        #region Folder methods
 
         /// <summary>
         /// Returns a list of the root folders within a users inventory
@@ -203,31 +208,7 @@ namespace OpenSim.Data.MSSQL
         /// <returns>A list of folder objects</returns>
         public List<InventoryFolderBase> getUserRootFolders(UUID user)
         {
-            try
-            {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["uuid"] = user.ToString();
-                param["zero"] = UUID.Zero.ToString();
-
-                using (IDbCommand result =
-                    database.Query(
-                        "SELECT * FROM inventoryfolders WHERE parentFolderID = @zero AND agentID = @uuid", param))
-                using (IDataReader reader = result.ExecuteReader())
-                {
-
-                    List<InventoryFolderBase> items = new List<InventoryFolderBase>();
-                    while (reader.Read())
-                        items.Add(readInventoryFolder(reader));
-
-                    return items;
-                }
-
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-                return null;
-            }
+            return getInventoryFolders(UUID.Zero, user);
         }
 
         /// <summary>
@@ -237,43 +218,21 @@ namespace OpenSim.Data.MSSQL
         /// <returns></returns>
         public InventoryFolderBase getUserRootFolder(UUID user)
         {
-            try
+            List<InventoryFolderBase> items = getUserRootFolders(user);
+
+            InventoryFolderBase rootFolder = null;
+
+            // There should only ever be one root folder for a user.  However, if there's more
+            // than one we'll simply use the first one rather than failing.  It would be even
+            // nicer to print some message to this effect, but this feels like it's too low a
+            // to put such a message out, and it's too minor right now to spare the time to
+            // suitably refactor.
+            if (items.Count > 0)
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["uuid"] = user.ToString();
-                param["zero"] = UUID.Zero.ToString();
-
-                using (IDbCommand result =
-                    database.Query(
-                        "SELECT * FROM inventoryfolders WHERE parentFolderID = @zero AND agentID = @uuid", param))
-                using (IDataReader reader = result.ExecuteReader())
-                {
-
-                    List<InventoryFolderBase> items = new List<InventoryFolderBase>();
-                    while (reader.Read())
-                        items.Add(readInventoryFolder(reader));
-
-                    InventoryFolderBase rootFolder = null;
-
-                    // There should only ever be one root folder for a user.  However, if there's more
-                    // than one we'll simply use the first one rather than failing.  It would be even
-                    // nicer to print some message to this effect, but this feels like it's too low a
-                    // to put such a message out, and it's too minor right now to spare the time to
-                    // suitably refactor.
-                    if (items.Count > 0)
-                    {
-                        rootFolder = items[0];
-                    }
-
-                    return rootFolder;
-                }
-
+                rootFolder = items[0];
             }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-                return null;
-            }
+
+            return rootFolder;
         }
 
         /// <summary>
@@ -283,156 +242,235 @@ namespace OpenSim.Data.MSSQL
         /// <returns>A list of inventory folders</returns>
         public List<InventoryFolderBase> getInventoryFolders(UUID parentID)
         {
-            try
-            {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["parentFolderID"] = parentID.ToString();
-
-                using (IDbCommand result =
-                    database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = @parentFolderID", param))
-                using (IDataReader reader = result.ExecuteReader())
-                {
-                    List<InventoryFolderBase> items = new List<InventoryFolderBase>();
-
-                    while (reader.Read())
-                        items.Add(readInventoryFolder(reader));
-
-                    return items;
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Reads a one item from an SQL result
-        /// </summary>
-        /// <param name="reader">The SQL Result</param>
-        /// <returns>the item read</returns>
-        private static InventoryItemBase readInventoryItem(IDataReader reader)
-        {
-            try
-            {
-                InventoryItemBase item = new InventoryItemBase();
-
-                item.ID = new UUID((string) reader["inventoryID"]);
-                item.AssetID = new UUID((string) reader["assetID"]);
-                item.AssetType = (int) reader["assetType"];
-                item.Folder = new UUID((string) reader["parentFolderID"]);
-                item.Owner = new UUID((string) reader["avatarID"]);
-                item.Name = (string) reader["inventoryName"];
-                item.Description = (string) reader["inventoryDescription"];
-                item.NextPermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryNextPermissions"]);
-                item.CurrentPermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryCurrentPermissions"]);
-                item.InvType = (int) reader["invType"];
-                item.Creator = new UUID((string) reader["creatorID"]);
-                item.BasePermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryBasePermissions"]);
-                item.EveryOnePermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryEveryOnePermissions"]);
-                item.SalePrice = (int) reader["salePrice"];
-                item.SaleType = Convert.ToByte(reader["saleType"]);
-                item.CreationDate = (int) reader["creationDate"];
-                item.GroupID = new UUID(reader["groupID"].ToString());
-                item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
-                item.Flags = ConvertInt32BitFieldToUint32((int)reader["flags"]);
-
-                return item;
-            }
-            catch (SqlException e)
-            {
-                m_log.Error(e.ToString());
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Returns a specified inventory item
-        /// </summary>
-        /// <param name="item">The item to return</param>
-        /// <returns>An inventory item</returns>
-        public InventoryItemBase getInventoryItem(UUID itemID)
-        {
-            try
-            {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["inventoryID"] = itemID.ToString();
-
-                using (IDbCommand result =
-                    database.Query("SELECT * FROM inventoryitems WHERE inventoryID = @inventoryID", param))
-                using (IDataReader reader = result.ExecuteReader())
-                {
-
-                    InventoryItemBase item = null;
-                    if (reader.Read())
-                        item = readInventoryItem(reader);
-
-                    return item;
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Reads a list of inventory folders returned by a query.
-        /// </summary>
-        /// <param name="reader">A MSSQL Data Reader</param>
-        /// <returns>A List containing inventory folders</returns>
-        protected static InventoryFolderBase readInventoryFolder(IDataReader reader)
-        {
-            try
-            {
-                InventoryFolderBase folder = new InventoryFolderBase();
-                folder.Owner = new UUID((string) reader["agentID"]);
-                folder.ParentID = new UUID((string) reader["parentFolderID"]);
-                folder.ID = new UUID((string) reader["folderID"]);
-                folder.Name = (string) reader["folderName"];
-                folder.Type = (short) reader["type"];
-                folder.Version = Convert.ToUInt16(reader["version"]);
-                return folder;
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-            }
-
-            return null;
+            return getInventoryFolders(parentID, UUID.Zero);
         }
 
         /// <summary>
         /// Returns a specified inventory folder
         /// </summary>
-        /// <param name="folder">The folder to return</param>
+        /// <param name="folderID">The folder to return</param>
         /// <returns>A folder class</returns>
         public InventoryFolderBase getInventoryFolder(UUID folderID)
         {
-            try
+            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM inventoryfolders WHERE folderID = @folderID"))
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["uuid"] = folderID.ToString();
+                command.Parameters.Add(database.CreateParameter("folderID", folderID));
 
-                using (IDbCommand result = database.Query("SELECT * FROM inventoryfolders WHERE folderID = @uuid", param))
-                using (IDataReader reader = result.ExecuteReader())
+                using (IDataReader reader = command.ExecuteReader())
                 {
-
-                    reader.Read();
-
-                    InventoryFolderBase folder = readInventoryFolder(reader);
-
-                    return folder;
+                    if (reader.Read())
+                    {
+                        return readInventoryFolder(reader);
+                    }
                 }
             }
-            catch (Exception e)
+            m_log.InfoFormat("[INVENTORY DB] : FOund no inventory folder with ID : {0}", folderID);
+            return null;
+        }
+
+        /// <summary>
+        /// Returns all child folders in the hierarchy from the parent folder and down.
+        /// Does not return the parent folder itself.
+        /// </summary>
+        /// <param name="parentID">The folder to get subfolders for</param>
+        /// <returns>A list of inventory folders</returns>
+        public List<InventoryFolderBase> getFolderHierarchy(UUID parentID)
+        {
+            //Note maybe change this to use a Dataset that loading in all folders of a user and then go throw it that way.
+            //Note this is changed so it opens only one connection to the database and not everytime it wants to get data.
+
+            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+
+            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = @parentID"))
             {
-                m_log.Error(e.ToString());
-                return null;
+                command.Parameters.Add(database.CreateParameter("@parentID", parentID));
+
+                folders.AddRange(getInventoryFolders(command));
+
+                List<InventoryFolderBase> tempFolders = new List<InventoryFolderBase>();
+
+                foreach (InventoryFolderBase folderBase in folders)
+                {
+                    tempFolders.AddRange(getFolderHierarchy(folderBase.ID, command));
+                }
+                if (tempFolders.Count > 0)
+                {
+                    folders.AddRange(tempFolders);
+                }
             }
+            return folders;
+        }
+
+        /// <summary>
+        /// Creates a new inventory folder
+        /// </summary>
+        /// <param name="folder">Folder to create</param>
+        public void addInventoryFolder(InventoryFolderBase folder)
+        {
+            string sql =
+                "INSERT INTO inventoryfolders ([folderID], [agentID], [parentFolderID], [folderName], [type], [version]) VALUES ";
+            sql += "(@folderID, @agentID, @parentFolderID, @folderName, @type, @version);";
+
+
+            using (AutoClosingSqlCommand command = database.Query(sql))
+            {
+                command.Parameters.Add(database.CreateParameter("folderID", folder.ID));
+                command.Parameters.Add(database.CreateParameter("agentID", folder.Owner));
+                command.Parameters.Add(database.CreateParameter("parentFolderID", folder.ParentID));
+                command.Parameters.Add(database.CreateParameter("folderName", folder.Name));
+                command.Parameters.Add(database.CreateParameter("type", folder.Type));
+                command.Parameters.Add(database.CreateParameter("version", folder.Version));
+
+                try
+                {
+                    //IDbCommand result = database.Query(sql, param);
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[ASSET DB] Error : {0}", e.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates an inventory folder
+        /// </summary>
+        /// <param name="folder">Folder to update</param>
+        public void updateInventoryFolder(InventoryFolderBase folder)
+        {
+            using (AutoClosingSqlCommand command = database.Query("UPDATE inventoryfolders set folderID = @folderID, " +
+                                                       "agentID = @agentID, " +
+                                                       "parentFolderID = @parentFolderID," +
+                                                       "folderName = @folderName," +
+                                                       "type = @type," +
+                                                       "version = @version where " +
+                                                       "folderID = @keyFolderID;"))
+            {
+                command.Parameters.Add(database.CreateParameter("folderID", folder.ID));
+                command.Parameters.Add(database.CreateParameter("agentID", folder.Owner));
+                command.Parameters.Add(database.CreateParameter("parentFolderID", folder.ParentID));
+                command.Parameters.Add(database.CreateParameter("folderName", folder.Name));
+                command.Parameters.Add(database.CreateParameter("type", folder.Type));
+                command.Parameters.Add(database.CreateParameter("version", folder.Version));
+                command.Parameters.Add(database.CreateParameter("@keyFolderID", folder.ID));
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[ASSET DB] Error : {0}", e.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates an inventory folder
+        /// </summary>
+        /// <param name="folder">Folder to update</param>
+        public void moveInventoryFolder(InventoryFolderBase folder)
+        {
+            using (IDbCommand command = database.Query("UPDATE inventoryfolders set " +
+                                                       "parentFolderID = @parentFolderID where " +
+                                                       "folderID = @folderID;"))
+            {
+                command.Parameters.Add(database.CreateParameter("parentFolderID", folder.ParentID));
+                command.Parameters.Add(database.CreateParameter("@folderID", folder.ID));
+
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[ASSET DB] Error : {0}", e.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete an inventory folder
+        /// </summary>
+        /// <param name="folderID">Id of folder to delete</param>
+        public void deleteInventoryFolder(UUID folderID)
+        {
+            using (SqlConnection connection = database.DatabaseConnection())
+            {
+                List<InventoryFolderBase> subFolders;
+                using (SqlCommand command = new SqlCommand("SELECT * FROM inventoryfolders WHERE parentFolderID = @parentID", connection))
+                {
+                    command.Parameters.Add(database.CreateParameter("@parentID", string.Empty));
+
+                    AutoClosingSqlCommand autoCommand = new AutoClosingSqlCommand(command);
+
+                    subFolders = getFolderHierarchy(folderID, autoCommand);
+                }
+
+                //Delete all sub-folders
+                foreach (InventoryFolderBase f in subFolders)
+                {
+                    DeleteOneFolder(f.ID, connection);
+                    DeleteItemsInFolder(f.ID, connection);
+                }
+
+                //Delete the actual row
+                DeleteOneFolder(folderID, connection);
+                DeleteItemsInFolder(folderID, connection);
+
+                connection.Close();
+            }
+        }
+
+        #endregion
+
+        #region Item Methods
+
+        /// <summary>
+        /// Returns a list of items in a specified folder
+        /// </summary>
+        /// <param name="folderID">The folder to search</param>
+        /// <returns>A list containing inventory items</returns>
+        public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
+        {
+            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM inventoryitems WHERE parentFolderID = @parentFolderID"))
+            {
+                command.Parameters.Add(database.CreateParameter("parentFolderID", folderID));
+
+                List<InventoryItemBase> items = new List<InventoryItemBase>();
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        items.Add(readInventoryItem(reader));
+                    }
+                }
+                return items;
+            }
+        }
+
+        /// <summary>
+        /// Returns a specified inventory item
+        /// </summary>
+        /// <param name="itemID">The item ID</param>
+        /// <returns>An inventory item</returns>
+        public InventoryItemBase getInventoryItem(UUID itemID)
+        {
+            using (AutoClosingSqlCommand result = database.Query("SELECT * FROM inventoryitems WHERE inventoryID = @inventoryID"))
+            {
+                result.Parameters.Add(database.CreateParameter("inventoryID", itemID));
+
+                using (IDataReader reader = result.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return readInventoryItem(reader);
+                    }
+                }
+            }
+            m_log.InfoFormat("[INVENTORY DB] : Found no inventory item with ID : {0}", itemID);
+            return null;
         }
 
         /// <summary>
@@ -448,46 +486,44 @@ namespace OpenSim.Data.MSSQL
             }
 
             string sql = "INSERT INTO inventoryitems";
-            sql +=
-                "([inventoryID], [assetID], [assetType], [parentFolderID], [avatarID], [inventoryName]"
+            sql += "([inventoryID], [assetID], [assetType], [parentFolderID], [avatarID], [inventoryName]"
                     + ", [inventoryDescription], [inventoryNextPermissions], [inventoryCurrentPermissions]"
                     + ", [invType], [creatorID], [inventoryBasePermissions], [inventoryEveryOnePermissions]"
                     + ", [salePrice], [saleType], [creationDate], [groupID], [groupOwned], [flags]) VALUES ";
-            sql +=
-                "(@inventoryID, @assetID, @assetType, @parentFolderID, @avatarID, @inventoryName, @inventoryDescription"
+            sql += "(@inventoryID, @assetID, @assetType, @parentFolderID, @avatarID, @inventoryName, @inventoryDescription"
                     + ", @inventoryNextPermissions, @inventoryCurrentPermissions, @invType, @creatorID"
                     + ", @inventoryBasePermissions, @inventoryEveryOnePermissions, @salePrice, @saleType"
                     + ", @creationDate, @groupID, @groupOwned, @flags);";
 
             using (AutoClosingSqlCommand command = database.Query(sql))
             {
-                command.Parameters.AddWithValue("inventoryID", item.ID.ToString());
-                command.Parameters.AddWithValue("assetID", item.AssetID.ToString());
-                command.Parameters.AddWithValue("assetType", item.AssetType.ToString());
-                command.Parameters.AddWithValue("parentFolderID", item.Folder.ToString());
-                command.Parameters.AddWithValue("avatarID", item.Owner.ToString());
-                command.Parameters.AddWithValue("inventoryName", item.Name);
-                command.Parameters.AddWithValue("inventoryDescription", item.Description);
-                command.Parameters.AddWithValue("inventoryNextPermissions", ConvertUint32BitFieldToInt32(item.NextPermissions));
-                command.Parameters.AddWithValue("inventoryCurrentPermissions", ConvertUint32BitFieldToInt32(item.CurrentPermissions));
-                command.Parameters.AddWithValue("invType", item.InvType);
-                command.Parameters.AddWithValue("creatorID", item.Creator.ToString());
-                command.Parameters.AddWithValue("inventoryBasePermissions", ConvertUint32BitFieldToInt32(item.BasePermissions));
-                command.Parameters.AddWithValue("inventoryEveryOnePermissions", ConvertUint32BitFieldToInt32(item.EveryOnePermissions));
-                command.Parameters.AddWithValue("salePrice", item.SalePrice);
-                command.Parameters.AddWithValue("saleType", item.SaleType);
-                command.Parameters.AddWithValue("creationDate", item.CreationDate);
-                command.Parameters.AddWithValue("groupID", item.GroupID.ToString());
-                command.Parameters.AddWithValue("groupOwned", item.GroupOwned);
-                command.Parameters.AddWithValue("flags", ConvertUint32BitFieldToInt32(item.Flags));
+                command.Parameters.Add(database.CreateParameter("inventoryID", item.ID));
+                command.Parameters.Add(database.CreateParameter("assetID", item.AssetID));
+                command.Parameters.Add(database.CreateParameter("assetType", item.AssetType));
+                command.Parameters.Add(database.CreateParameter("parentFolderID", item.Folder));
+                command.Parameters.Add(database.CreateParameter("avatarID", item.Owner));
+                command.Parameters.Add(database.CreateParameter("inventoryName", item.Name));
+                command.Parameters.Add(database.CreateParameter("inventoryDescription", item.Description));
+                command.Parameters.Add(database.CreateParameter("inventoryNextPermissions", item.NextPermissions));
+                command.Parameters.Add(database.CreateParameter("inventoryCurrentPermissions", item.CurrentPermissions));
+                command.Parameters.Add(database.CreateParameter("invType", item.InvType));
+                command.Parameters.Add(database.CreateParameter("creatorID", item.Creator));
+                command.Parameters.Add(database.CreateParameter("inventoryBasePermissions", item.BasePermissions));
+                command.Parameters.Add(database.CreateParameter("inventoryEveryOnePermissions", item.EveryOnePermissions));
+                command.Parameters.Add(database.CreateParameter("salePrice", item.SalePrice));
+                command.Parameters.Add(database.CreateParameter("saleType", item.SaleType));
+                command.Parameters.Add(database.CreateParameter("creationDate", item.CreationDate));
+                command.Parameters.Add(database.CreateParameter("groupID", item.GroupID));
+                command.Parameters.Add(database.CreateParameter("groupOwned", item.GroupOwned));
+                command.Parameters.Add(database.CreateParameter("flags", item.Flags));
 
                 try
                 {
                     command.ExecuteNonQuery();
                 }
-                catch (SqlException e)
+                catch (Exception e)
                 {
-                    m_log.Error(e.ToString());
+                    m_log.Error("[INVENTORY DB] Error inserting item :" + e.Message);
                 }
             }
 
@@ -520,26 +556,26 @@ namespace OpenSim.Data.MSSQL
                                                 "flags = @flags where " +
                                                 "inventoryID = @keyInventoryID;"))
             {
-                command.Parameters.AddWithValue("inventoryID", item.ID.ToString());
-                command.Parameters.AddWithValue("assetID", item.AssetID.ToString());
-                command.Parameters.AddWithValue("assetType", item.AssetType.ToString());
-                command.Parameters.AddWithValue("parentFolderID", item.Folder.ToString());
-                command.Parameters.AddWithValue("avatarID", item.Owner.ToString());
-                command.Parameters.AddWithValue("inventoryName", item.Name);
-                command.Parameters.AddWithValue("inventoryDescription", item.Description);
-                command.Parameters.AddWithValue("inventoryNextPermissions", ConvertUint32BitFieldToInt32(item.NextPermissions));
-                command.Parameters.AddWithValue("inventoryCurrentPermissions", ConvertUint32BitFieldToInt32(item.CurrentPermissions));
-                command.Parameters.AddWithValue("invType", item.InvType);
-                command.Parameters.AddWithValue("creatorID", item.Creator.ToString());
-                command.Parameters.AddWithValue("inventoryBasePermissions", ConvertUint32BitFieldToInt32(item.BasePermissions));
-                command.Parameters.AddWithValue("inventoryEveryOnePermissions", ConvertUint32BitFieldToInt32(item.EveryOnePermissions));
-                command.Parameters.AddWithValue("salePrice", item.SalePrice);
-                command.Parameters.AddWithValue("saleType", item.SaleType);
-                command.Parameters.AddWithValue("creationDate", item.CreationDate);
-                command.Parameters.AddWithValue("groupID", item.GroupID.ToString());
-                command.Parameters.AddWithValue("groupOwned", item.GroupOwned);
-                command.Parameters.AddWithValue("flags", ConvertUint32BitFieldToInt32(item.Flags));
-                command.Parameters.AddWithValue("@keyInventoryID", item.ID.ToString());
+                command.Parameters.Add(database.CreateParameter("inventoryID", item.ID));
+                command.Parameters.Add(database.CreateParameter("assetID", item.AssetID));
+                command.Parameters.Add(database.CreateParameter("assetType", item.AssetType));
+                command.Parameters.Add(database.CreateParameter("parentFolderID", item.Folder));
+                command.Parameters.Add(database.CreateParameter("avatarID", item.Owner));
+                command.Parameters.Add(database.CreateParameter("inventoryName", item.Name));
+                command.Parameters.Add(database.CreateParameter("inventoryDescription", item.Description));
+                command.Parameters.Add(database.CreateParameter("inventoryNextPermissions", item.NextPermissions));
+                command.Parameters.Add(database.CreateParameter("inventoryCurrentPermissions", item.CurrentPermissions));
+                command.Parameters.Add(database.CreateParameter("invType", item.InvType));
+                command.Parameters.Add(database.CreateParameter("creatorID", item.Creator));
+                command.Parameters.Add(database.CreateParameter("inventoryBasePermissions", item.BasePermissions));
+                command.Parameters.Add(database.CreateParameter("inventoryEveryOnePermissions", item.EveryOnePermissions));
+                command.Parameters.Add(database.CreateParameter("salePrice", item.SalePrice));
+                command.Parameters.Add(database.CreateParameter("saleType", item.SaleType));
+                command.Parameters.Add(database.CreateParameter("creationDate", item.CreationDate));
+                command.Parameters.Add(database.CreateParameter("groupID", item.GroupID));
+                command.Parameters.Add(database.CreateParameter("groupOwned", item.GroupOwned));
+                command.Parameters.Add(database.CreateParameter("flags", item.Flags));
+                command.Parameters.Add(database.CreateParameter("@keyInventoryID", item.ID));
 
                 try
                 {
@@ -547,225 +583,221 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch (Exception e)
                 {
-                    m_log.Error(e.ToString());
+                    m_log.Error("[INVENTORY DB] Error updating item :" + e.Message);
                 }
             }
         }
+
+        // See IInventoryDataPlugin
 
         /// <summary>
         /// Delete an item in inventory database
         /// </summary>
-        /// <param name="item">the item UUID</param>
+        /// <param name="itemID">the item UUID</param>
         public void deleteInventoryItem(UUID itemID)
+        {
+            using (AutoClosingSqlCommand command = database.Query("DELETE FROM inventoryitems WHERE inventoryID=@inventoryID"))
+            {
+                command.Parameters.Add(database.CreateParameter("inventoryID", itemID));
+                try
+                {
+
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[INVENTORY DB] Error deleting item :" + e.Message);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Private methods
+
+        /// <summary>
+        /// Delete an item in inventory database
+        /// </summary>
+        /// <param name="folderID">the item ID</param>
+        /// <param name="connection">connection to the database</param>
+        private void DeleteItemsInFolder(UUID folderID, SqlConnection connection)
+        {
+            using (SqlCommand command = new SqlCommand("DELETE FROM inventoryitems WHERE folderID=@folderID", connection))
+            {
+                command.Parameters.Add(database.CreateParameter("folderID", folderID));
+
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[INVENTORY DB] Error deleting item :" + e.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the folder hierarchy in a loop.
+        /// </summary>
+        /// <param name="parentID">parent ID.</param>
+        /// <param name="command">SQL command/connection to database</param>
+        /// <returns></returns>
+        private static List<InventoryFolderBase> getFolderHierarchy(UUID parentID, AutoClosingSqlCommand command)
+        {
+            command.Parameters["@parentID"].Value = parentID.ToString();
+
+            List<InventoryFolderBase> folders = getInventoryFolders(command);
+
+            if (folders.Count > 0)
+            {
+                List<InventoryFolderBase> tempFolders = new List<InventoryFolderBase>();
+
+                foreach (InventoryFolderBase folderBase in folders)
+                {
+                    tempFolders.AddRange(getFolderHierarchy(folderBase.ID, command));
+                }
+
+                if (tempFolders.Count > 0)
+                {
+                    folders.AddRange(tempFolders);
+                }
+            }
+            return folders;
+        }
+
+        /// <summary>
+        /// Gets the inventory folders.
+        /// </summary>
+        /// <param name="parentID">parentID, use UUID.Zero to get root</param>
+        /// <param name="user">user id, use UUID.Zero, if you want all folders from a parentID.</param>
+        /// <returns></returns>
+        private List<InventoryFolderBase> getInventoryFolders(UUID parentID, UUID user)
+        {
+            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM inventoryfolders WHERE parentFolderID = @parentID AND agentID LIKE @uuid"))
+            {
+                if (user == UUID.Zero)
+                {
+                    command.Parameters.Add(database.CreateParameter("uuid", "%"));
+                }
+                else
+                {
+                    command.Parameters.Add(database.CreateParameter("uuid", user));
+                }
+                command.Parameters.Add(database.CreateParameter("parentID", parentID));
+
+                return getInventoryFolders(command);
+            }
+        }
+
+        /// <summary>
+        /// Gets the inventory folders.
+        /// </summary>
+        /// <param name="command">SQLcommand.</param>
+        /// <returns></returns>
+        private static List<InventoryFolderBase> getInventoryFolders(AutoClosingSqlCommand command)
+        {
+            using (IDataReader reader = command.ExecuteReader())
+            {
+
+                List<InventoryFolderBase> items = new List<InventoryFolderBase>();
+                while (reader.Read())
+                {
+                    items.Add(readInventoryFolder(reader));
+                }
+                return items;
+            }
+        }
+
+        /// <summary>
+        /// Reads a list of inventory folders returned by a query.
+        /// </summary>
+        /// <param name="reader">A MSSQL Data Reader</param>
+        /// <returns>A List containing inventory folders</returns>
+        protected static InventoryFolderBase readInventoryFolder(IDataReader reader)
         {
             try
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["uuid"] = itemID.ToString();
+                InventoryFolderBase folder = new InventoryFolderBase();
+                folder.Owner = new UUID((string)reader["agentID"]);
+                folder.ParentID = new UUID((string)reader["parentFolderID"]);
+                folder.ID = new UUID((string)reader["folderID"]);
+                folder.Name = (string)reader["folderName"];
+                folder.Type = (short)reader["type"];
+                folder.Version = Convert.ToUInt16(reader["version"]);
 
-                using (IDbCommand cmd = database.Query("DELETE FROM inventoryitems WHERE inventoryID=@uuid", param))
-                {
-                    cmd.ExecuteNonQuery();
-                }
+                return folder;
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[INVENTORY DB] Error reading inventory folder :" + e.Message);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Reads a one item from an SQL result
+        /// </summary>
+        /// <param name="reader">The SQL Result</param>
+        /// <returns>the item read</returns>
+        private static InventoryItemBase readInventoryItem(IDataRecord reader)
+        {
+            try
+            {
+                InventoryItemBase item = new InventoryItemBase();
+
+                item.ID = new UUID(reader["inventoryID"].ToString());
+                item.AssetID = new UUID(reader["assetID"].ToString());
+                item.AssetType = Convert.ToInt32(reader["assetType"].ToString());
+                item.Folder = new UUID(reader["parentFolderID"].ToString());
+                item.Owner = new UUID(reader["avatarID"].ToString());
+                item.Name = reader["inventoryName"].ToString();
+                item.Description = reader["inventoryDescription"].ToString();
+                item.NextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"]);
+                item.CurrentPermissions = Convert.ToUInt32(reader["inventoryCurrentPermissions"]);
+                item.InvType = Convert.ToInt32(reader["invType"].ToString());
+                item.Creator = new UUID(reader["creatorID"].ToString());
+                item.BasePermissions = Convert.ToUInt32(reader["inventoryBasePermissions"]);
+                item.EveryOnePermissions = Convert.ToUInt32(reader["inventoryEveryOnePermissions"]);
+                item.SalePrice = Convert.ToInt32(reader["salePrice"]);
+                item.SaleType = Convert.ToByte(reader["saleType"]);
+                item.CreationDate = Convert.ToInt32(reader["creationDate"]);
+                item.GroupID = new UUID(reader["groupID"].ToString());
+                item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
+                item.Flags = Convert.ToUInt32(reader["flags"]);
+
+                return item;
             }
             catch (SqlException e)
             {
-                m_log.Error(e.ToString());
+                m_log.Error("[INVENTORY DB] Error reading inventory item :" + e.Message);
             }
-        }
 
-        /// <summary>
-        /// Creates a new inventory folder
-        /// </summary>
-        /// <param name="folder">Folder to create</param>
-        public void addInventoryFolder(InventoryFolderBase folder)
-        {
-            string sql =
-                "INSERT INTO inventoryfolders ([folderID], [agentID], [parentFolderID], [folderName], [type], [version]) VALUES ";
-            sql += "(@folderID, @agentID, @parentFolderID, @folderName, @type, @version);";
-
-
-            using (AutoClosingSqlCommand command = database.Query(sql))
-            {
-                command.Parameters.AddWithValue("folderID", folder.ID.ToString());
-                command.Parameters.AddWithValue("agentID", folder.Owner.ToString());
-                command.Parameters.AddWithValue("parentFolderID", folder.ParentID.ToString());
-                command.Parameters.AddWithValue("folderName", folder.Name);
-                command.Parameters.AddWithValue("type", folder.Type);
-                command.Parameters.AddWithValue("version", Convert.ToInt32(folder.Version));
-
-                try
-                {
-                    //IDbCommand result = database.Query(sql, param);
-                    command.ExecuteNonQuery();
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(e.ToString());
-                }
-            }
-        }
-
-        /// <summary>
-        /// Updates an inventory folder
-        /// </summary>
-        /// <param name="folder">Folder to update</param>
-        public void updateInventoryFolder(InventoryFolderBase folder)
-        {
-            using (IDbCommand command = database.Query("UPDATE inventoryfolders set folderID = @folderID, " +
-                                                "agentID = @agentID, " +
-                                                "parentFolderID = @parentFolderID," +
-                                                "folderName = @folderName," +
-                                                "type = @type," +
-                                                "version = @version where " +
-                                                "folderID = @keyFolderID;"))
-            {
-                SqlParameter param1 = new SqlParameter("@folderID", folder.ID.ToString());
-                SqlParameter param2 = new SqlParameter("@agentID", folder.Owner.ToString());
-                SqlParameter param3 = new SqlParameter("@parentFolderID", folder.ParentID.ToString());
-                SqlParameter param4 = new SqlParameter("@folderName", folder.Name);
-                SqlParameter param5 = new SqlParameter("@type", folder.Type);
-                SqlParameter param6 = new SqlParameter("@version", Convert.ToInt32(folder.Version));
-                SqlParameter param7 = new SqlParameter("@keyFolderID", folder.ID.ToString());
-                command.Parameters.Add(param1);
-                command.Parameters.Add(param2);
-                command.Parameters.Add(param3);
-                command.Parameters.Add(param4);
-                command.Parameters.Add(param5);
-                command.Parameters.Add(param6);
-                command.Parameters.Add(param7);
-
-                try
-                {
-                    command.ExecuteNonQuery();
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(e.ToString());
-                }
-            }
-        }
-
-        /// <summary>
-        /// Updates an inventory folder
-        /// </summary>
-        /// <param name="folder">Folder to update</param>
-        public void moveInventoryFolder(InventoryFolderBase folder)
-        {
-            using (IDbCommand command = database.Query("UPDATE inventoryfolders set folderID = @folderID, " +
-                                                "parentFolderID = @parentFolderID," +
-                                                "folderID = @keyFolderID;"))
-            {
-                SqlParameter param1 = new SqlParameter("@folderID", folder.ID.ToString());
-                SqlParameter param2 = new SqlParameter("@parentFolderID", folder.ParentID.ToString());
-                SqlParameter param3 = new SqlParameter("@keyFolderID", folder.ID.ToString());
-                command.Parameters.Add(param1);
-                command.Parameters.Add(param2);
-                command.Parameters.Add(param3);
-
-                try
-                {
-                    command.ExecuteNonQuery();
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(e.ToString());
-                }
-            }
-        }
-
-        /// <summary>
-        /// Append a list of all the child folders of a parent folder
-        /// </summary>
-        /// <param name="folders">list where folders will be appended</param>
-        /// <param name="parentID">ID of parent</param>
-        protected void getInventoryFolders(ref List<InventoryFolderBase> folders, UUID parentID)
-        {
-            List<InventoryFolderBase> subfolderList = getInventoryFolders(parentID);
-
-            foreach (InventoryFolderBase f in subfolderList)
-                folders.Add(f);
-        }
-
-        // See IInventoryDataPlugin
-        public List<InventoryFolderBase> getFolderHierarchy(UUID parentID)
-        {
-            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
-            getInventoryFolders(ref folders, parentID);
-
-            for (int i = 0; i < folders.Count; i++)
-                getInventoryFolders(ref folders, folders[i].ID);
-
-            return folders;
+            return null;
         }
 
         /// <summary>
         /// Delete a folder in inventory databasae
         /// </summary>
         /// <param name="folderID">the folder UUID</param>
-        protected void deleteOneFolder(UUID folderID)
+        /// <param name="connection">connection to database</param>
+        private void DeleteOneFolder(UUID folderID, SqlConnection connection)
         {
             try
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["folderID"] = folderID.ToString();
-
-                using (IDbCommand cmd = database.Query("DELETE FROM inventoryfolders WHERE folderID=@folderID", param))
+                using (SqlCommand command = new SqlCommand("DELETE FROM inventoryfolders WHERE folderID=@folderID", connection))
                 {
-                    cmd.ExecuteNonQuery();
+                    command.Parameters.Add(database.CreateParameter("folderID", folderID));
+
+                    command.ExecuteNonQuery();
                 }
             }
             catch (SqlException e)
             {
-                m_log.Error(e.ToString());
+                m_log.Error("[INVENTORY DB] Error deleting folder :" + e.Message);
             }
         }
-
-        /// <summary>
-        /// Delete an item in inventory database
-        /// </summary>
-        /// <param name="folderID">the item ID</param>
-        protected void deleteItemsInFolder(UUID folderID)
-        {
-            try
-            {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["parentFolderID"] = folderID.ToString();
-
-
-                using (IDbCommand cmd =
-                    database.Query("DELETE FROM inventoryitems WHERE parentFolderID=@parentFolderID", param))
-                {
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (SqlException e)
-            {
-                m_log.Error(e.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Delete an inventory folder
-        /// </summary>
-        /// <param name="folderId">Id of folder to delete</param>
-        public void deleteInventoryFolder(UUID folderID)
-        {
-            // lock (database)
-            {
-                List<InventoryFolderBase> subFolders = getFolderHierarchy(folderID);
-
-                //Delete all sub-folders
-                foreach (InventoryFolderBase f in subFolders)
-                {
-                    deleteOneFolder(f.ID);
-                    deleteItemsInFolder(f.ID);
-                }
-
-                //Delete the actual row
-                deleteOneFolder(folderID);
-                deleteItemsInFolder(folderID);
-            }
-        }
+        #endregion
     }
 }

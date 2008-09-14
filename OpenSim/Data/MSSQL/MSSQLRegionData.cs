@@ -44,14 +44,19 @@ namespace OpenSim.Data.MSSQL
     /// </summary>
     public class MSSQLRegionDataStore : IRegionDataStore
     {
+        private const string _migrationStore = "RegionStore";
+
         // private static FileSystemDataStore Instance = new FileSystemDataStore();
         private static readonly ILog _Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// The database manager
+        /// </summary>
         private MSSQLManager _Database;
 
-//        private const string _PrimSelect = "SELECT * FROM PRIMS WHERE RegionUUID = @RegionUUID AND (SceneGroupID LIKE @SceneGroupID OR UUID = @UUID)";
-//        private const string _ShapeSelect = "SELECT * FROM PRIMSHAPES WHERE UUID in (SELECT UUID FROM PRIMS WHERE RegionUUID = @RegionUUID AND (SceneGroupID LIKE @SceneGroupID OR UUID = @UUID))";
-//        private const string _ItemsSelect = "SELECT * FROM PRIMITEMS WHERE primID in (SELECT UUID FROM PRIMS WHERE RegionUUID = @RegionUUID AND (SceneGroupID LIKE @SceneGroupID OR UUID = @UUID))";
+        /// <summary>
+        /// Const for the prim store..
+        /// </summary>
         private const string _PrimSelect = "SELECT * FROM PRIMS WHERE RegionUUID = @RegionUUID AND (SceneGroupID LIKE @SceneGroupID OR UUID IN (@UUID))";
         private const string _ShapeSelect = "SELECT * FROM PRIMSHAPES WHERE UUID in (SELECT UUID FROM PRIMS WHERE RegionUUID = @RegionUUID AND (SceneGroupID LIKE @SceneGroupID OR UUID IN (@UUID)))";
         private const string _ItemsSelect = "SELECT * FROM PRIMITEMS WHERE primID in (SELECT UUID FROM PRIMS WHERE RegionUUID = @RegionUUID AND (SceneGroupID LIKE @SceneGroupID OR UUID IN (@UUID)))";
@@ -81,31 +86,14 @@ namespace OpenSim.Data.MSSQL
                 string settingUserId = iniFile.ParseFileReadValue("user_id");
                 string settingPassword = iniFile.ParseFileReadValue("password");
 
-                _Database =
-                    new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
-                                     settingPassword);
-
-
-                SqlConnectionStringBuilder conBuilder = new SqlConnectionStringBuilder();
-                conBuilder.DataSource = settingDataSource;
-                conBuilder.InitialCatalog = settingInitialCatalog;
-                conBuilder.PersistSecurityInfo = Convert.ToBoolean(settingPersistSecurityInfo);
-                conBuilder.UserID = settingUserId;
-                conBuilder.Password = settingPassword;
-                conBuilder.ApplicationName = Assembly.GetEntryAssembly().Location;
-
-                connectionString = conBuilder.ToString();
+                _Database = new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId, settingPassword);
             }
 
             //Migration settings
-            Assembly assem = GetType().Assembly;
+            _Database.CheckMigration(_migrationStore);
 
             using (SqlConnection connection = _Database.DatabaseConnection())
             {
-                MSSQLMigration m = new MSSQLMigration(connection, assem, "RegionStore");
-
-                m.Update();
-
                 //Create Dataset. Not filled!!!
                 _PrimsDataSet = new DataSet("primsdata");
 
@@ -243,7 +231,7 @@ namespace OpenSim.Data.MSSQL
                     catch (Exception e)
                     {
                         _Log.Error("[REGION DB]: Failed create prim object, exception and data follows");
-                        _Log.Info("[REGION DB]: " + e.ToString());
+                        _Log.Info("[REGION DB]: " + e.Message);
                         foreach (DataColumn col in prims.Columns)
                         {
                             _Log.Info("[REGION DB]: Col: " + col.ColumnName + " => " + primRow[col]);
@@ -259,71 +247,76 @@ namespace OpenSim.Data.MSSQL
 
             #region Experimental
 
-//
-//            //Get all prims
-//            string sql = "select * from prims where RegionUUID = @RegionUUID";
-//
-//            using (AutoClosingSqlCommand cmdPrims = _Database.Query(sql))
-//            {
-//                cmdPrims.Parameters.AddWithValue("@RegionUUID", regionUUID.ToString());
-//                using (SqlDataReader readerPrims = cmdPrims.ExecuteReader())
-//                {
-//                    while (readerPrims.Read())
-//                    {
-//                        string uuid = (string)readerPrims["UUID"];
-//                        string objID = (string)readerPrims["SceneGroupID"];
-//                        SceneObjectPart prim = buildPrim(readerPrims);
-//
-//                        //Setting default shape, will change shape ltr
-//                        prim.Shape = PrimitiveBaseShape.Default;
-//
-//                        //Load inventory items of prim
-//                        //LoadItems(prim);
-//
-//                        if (uuid == objID)
-//                        {
-//                            SceneObjectGroup group = new SceneObjectGroup();
-//
-//                            group.AddPart(prim);
-//                            group.RootPart = prim;
-//
-//                            createdObjects.Add(group.UUID, group);
-//                            retvals.Add(group);
-//                        }
-//                        else
-//                        {
-//                            createdObjects[new UUID(objID)].AddPart(prim);
-//                        }
-//                    }
-//                }
-//            }
-//            m_log.Info("[REGION DB]: Loaded " + retvals.Count + " prim objects for region: " + regionUUID);
-//
-//            //Find all shapes related with prims
-//            sql = "select * from primshapes";
-//            using (AutoClosingSqlCommand cmdShapes = _Database.Query(sql))
-//            {
-//                using (SqlDataReader readerShapes = cmdShapes.ExecuteReader())
-//                {
-//                    while (readerShapes.Read())
-//                    {
-//                        UUID UUID = new UUID((string) readerShapes["UUID"]);
-//
-//                        foreach (SceneObjectGroup objectGroup in createdObjects.Values)
-//                        {
-//                            if (objectGroup.Children.ContainsKey(UUID))
-//                            {
-//                                objectGroup.Children[UUID].Shape = buildShape(readerShapes);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            return retvals;
+            //
+            //            //Get all prims
+            //            string sql = "select * from prims where RegionUUID = @RegionUUID";
+            //
+            //            using (AutoClosingSqlCommand cmdPrims = _Database.Query(sql))
+            //            {
+            //                cmdPrims.Parameters.AddWithValue("@RegionUUID", regionUUID.ToString());
+            //                using (SqlDataReader readerPrims = cmdPrims.ExecuteReader())
+            //                {
+            //                    while (readerPrims.Read())
+            //                    {
+            //                        string uuid = (string)readerPrims["UUID"];
+            //                        string objID = (string)readerPrims["SceneGroupID"];
+            //                        SceneObjectPart prim = buildPrim(readerPrims);
+            //
+            //                        //Setting default shape, will change shape ltr
+            //                        prim.Shape = PrimitiveBaseShape.Default;
+            //
+            //                        //Load inventory items of prim
+            //                        //LoadItems(prim);
+            //
+            //                        if (uuid == objID)
+            //                        {
+            //                            SceneObjectGroup group = new SceneObjectGroup();
+            //
+            //                            group.AddPart(prim);
+            //                            group.RootPart = prim;
+            //
+            //                            createdObjects.Add(group.UUID, group);
+            //                            retvals.Add(group);
+            //                        }
+            //                        else
+            //                        {
+            //                            createdObjects[new UUID(objID)].AddPart(prim);
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //            m_log.Info("[REGION DB]: Loaded " + retvals.Count + " prim objects for region: " + regionUUID);
+            //
+            //            //Find all shapes related with prims
+            //            sql = "select * from primshapes";
+            //            using (AutoClosingSqlCommand cmdShapes = _Database.Query(sql))
+            //            {
+            //                using (SqlDataReader readerShapes = cmdShapes.ExecuteReader())
+            //                {
+            //                    while (readerShapes.Read())
+            //                    {
+            //                        UUID UUID = new UUID((string) readerShapes["UUID"]);
+            //
+            //                        foreach (SceneObjectGroup objectGroup in createdObjects.Values)
+            //                        {
+            //                            if (objectGroup.Children.ContainsKey(UUID))
+            //                            {
+            //                                objectGroup.Children[UUID].Shape = buildShape(readerShapes);
+            //                            }
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //            return retvals;
 
             #endregion
         }
 
+        /// <summary>
+        /// Stores all object's details apart from inventory
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="regionUUID"></param>
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
             //Retrieve all values of current region, and current scene/or prims
@@ -374,10 +367,6 @@ namespace OpenSim.Data.MSSQL
                             fillShapeRow(shapeRow, prim);
                         }
                     }
-                }
-                else
-                {
-                    // m_log.Info("[DATASTORE]: Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
                 }
             }
 
@@ -430,7 +419,7 @@ namespace OpenSim.Data.MSSQL
             //TODO add index on PrimID in DB, if not already exist
             using (AutoClosingSqlCommand cmd = _Database.Query("DELETE PRIMITEMS WHERE primID = @primID"))
             {
-                cmd.Parameters.AddWithValue("@primID", primID.ToString());
+                cmd.Parameters.Add(_Database.CreateParameter("@primID", primID));
                 cmd.ExecuteNonQuery();
             }
 
@@ -470,7 +459,7 @@ namespace OpenSim.Data.MSSQL
 
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    int rev = 0;
+                    int rev;
                     if (reader.Read())
                     {
                         MemoryStream str = new MemoryStream((byte[])reader["Heightfield"]);
@@ -509,22 +498,21 @@ namespace OpenSim.Data.MSSQL
             string sql = "delete from terrain where RegionUUID=@RegionUUID";
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                cmd.Parameters.AddWithValue("@RegionUUID", regionID.ToString());
+                cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
                 cmd.ExecuteNonQuery();
             }
 
-            sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
-                               " values(@RegionUUID, @Revision, @Heightfield)";
+            sql = "insert into terrain(RegionUUID, Revision, Heightfield) values(@RegionUUID, @Revision, @Heightfield)";
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                cmd.Parameters.AddWithValue("@RegionUUID", regionID.ToString());
-                cmd.Parameters.AddWithValue("@Revision", revision);
-                cmd.Parameters.AddWithValue("@Heightfield", serializeTerrain(terrain));
+                cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
+                cmd.Parameters.Add(_Database.CreateParameter("@Revision", revision));
+                cmd.Parameters.Add(_Database.CreateParameter("@Heightfield", serializeTerrain(terrain)));
                 cmd.ExecuteNonQuery();
             }
 
-            _Log.Info("[REGION DB]: Stored terrain revision r" + revision);
+            _Log.Info("[REGION DB]: Stored terrain revision r " + revision);
         }
 
         /// <summary>
@@ -541,12 +529,13 @@ namespace OpenSim.Data.MSSQL
             //Retrieve all land data from region
             using (AutoClosingSqlCommand cmdLandData = _Database.Query(sql))
             {
-                cmdLandData.Parameters.AddWithValue("@RegionUUID", regionUUID.ToString());
+                cmdLandData.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionUUID));
 
                 using (SqlDataReader readerLandData = cmdLandData.ExecuteReader())
                 {
                     while (readerLandData.Read())
                     {
+                        //                        LandData data = buildLandData(readerLandData);
                         landDataForRegion.Add(buildLandData(readerLandData));
                     }
                 }
@@ -558,7 +547,7 @@ namespace OpenSim.Data.MSSQL
                 sql = "select * from landaccesslist where LandUUID = @LandUUID";
                 using (AutoClosingSqlCommand cmdAccessList = _Database.Query(sql))
                 {
-                    cmdAccessList.Parameters.AddWithValue("@LandUUID", landData.GlobalID.ToString());
+                    cmdAccessList.Parameters.Add(_Database.CreateParameter("@LandUUID", landData.GlobalID));
                     using (SqlDataReader readerAccessList = cmdAccessList.ExecuteReader())
                     {
                         while (readerAccessList.Read())
@@ -643,7 +632,7 @@ VALUES
             RegionSettings regionSettings;
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                cmd.Parameters.Add(_Database.CreateParameter("@regionUUID", regionUUID.ToString()));
+                cmd.Parameters.Add(_Database.CreateParameter("@regionUUID", regionUUID));
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
@@ -674,7 +663,7 @@ VALUES
         public void StoreRegionSettings(RegionSettings regionSettings)
         {
             //Little check if regionUUID already exist in DB
-            string regionUUID = null;
+            string regionUUID;
             using (AutoClosingSqlCommand cmd = _Database.Query("SELECT regionUUID FROM regionsettings WHERE regionUUID = @regionUUID"))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@regionUUID", regionSettings.RegionUUID));
@@ -724,7 +713,7 @@ VALUES
         {
             DataTable dbItems = _PrimsDataSet.Tables["primitems"];
 
-            String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
+            String sql = String.Format("primID = '{0}'", prim.UUID);
             DataRow[] dbItemRows = dbItems.Select(sql);
 
             IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
@@ -1446,6 +1435,12 @@ VALUES
 
         #endregion
 
+        /// <summary>
+        /// Retrieves the prims data for region.
+        /// </summary>
+        /// <param name="regionUUID">The region UUID.</param>
+        /// <param name="sceneGroupID">The scene group ID.</param>
+        /// <param name="primID">The prim ID.</param>
         private void RetrievePrimsDataForRegion(UUID regionUUID, UUID sceneGroupID, string primID)
         {
             using (SqlConnection connection = _Database.DatabaseConnection())
@@ -1482,6 +1477,9 @@ VALUES
             }
         }
 
+        /// <summary>
+        /// Commits the dataset.
+        /// </summary>
         private void CommitDataSet()
         {
             lock (_PrimsDataSet)
@@ -1513,6 +1511,10 @@ VALUES
             }
         }
 
+        /// <summary>
+        /// Create commands for a dataadapter.
+        /// </summary>
+        /// <param name="dataAdapter">The data adapter.</param>
         private static void SetupCommands(SqlDataAdapter dataAdapter)
         {
             SqlCommandBuilder commandBuilder = new SqlCommandBuilder(dataAdapter);

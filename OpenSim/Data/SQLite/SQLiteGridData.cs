@@ -210,6 +210,25 @@ namespace OpenSim.Data.SQLite
             return AddProfile(profile);
         }
 
+                /// <summary>
+        /// Deletes a sim profile from the database
+        /// </summary>
+        /// <param name="uuid">the sim UUID</param>
+        /// <returns>Successful?</returns>
+        //public DataResponse DeleteProfile(RegionProfileData profile)
+        override public DataResponse DeleteProfile(string uuid)
+        {
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["uuid"] = uuid;
+
+            IDbCommand result = database.Query("DELETE FROM regions WHERE uuid = @uuid", param);
+            if (result.ExecuteNonQuery() > 0)
+            {
+                return DataResponse.RESPONSE_OK;
+            }
+            return DataResponse.RESPONSE_ERROR;
+        }
+
         /// <summary>
         /// DEPRECATED. Attempts to authenticate a region by comparing a shared secret.
         /// </summary>

@@ -434,7 +434,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="uuid">the sim UUID</param>
         /// <returns>Successful?</returns>
         //public DataResponse DeleteProfile(RegionProfileData profile)
-        public DataResponse DeleteProfile(string uuid)
+        override public DataResponse DeleteProfile(string uuid)
         {
             MySQLSuperManager dbm = GetLockedConnection();
 

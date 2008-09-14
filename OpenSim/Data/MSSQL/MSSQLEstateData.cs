@@ -39,6 +39,8 @@ namespace OpenSim.Data.MSSQL
 {
     public class MSSQLEstateData : IEstateDataStore
     {
+        private const string _migrationStore = "EstateStore";
+
         private static readonly ILog _Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private MSSQLManager _Database;
@@ -74,15 +76,7 @@ namespace OpenSim.Data.MSSQL
             }
 
             //Migration settings
-            using (SqlConnection connection = _Database.DatabaseConnection())
-            {
-                Assembly assem = GetType().Assembly;
-                MSSQLMigration migration = new MSSQLMigration(connection, assem, "EstateStore");
-
-                migration.Update();
-
-                connection.Close();
-            }
+            _Database.CheckMigration(_migrationStore);
 
             //Interesting way to get parameters! Maybe implement that also with other types
             Type t = typeof(EstateSettings);

@@ -28,9 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
@@ -42,6 +41,8 @@ namespace OpenSim.Data.MSSQL
     /// </summary>
     public class MSSQLGridData : GridDataBase
     {
+        private const string _migrationStore = "GridStore";
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
@@ -49,49 +50,62 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         private MSSQLManager database;
 
-        private string m_regionsTableName;
+        private string m_regionsTableName = "regions";
+
+        #region IPlugin Members
 
         override public void Initialise()
         {
-            m_log.Info("[MSSQLGridData]: " + Name + " cannot be default-initialized!");
-            throw new PluginNotInitialisedException (Name);
+            m_log.Info("[GRID DB]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException(Name);
         }
 
         /// <summary>
         /// Initialises the Grid Interface
         /// </summary>
-        /// <param name="connect">connect string</param>
+        /// <param name="connectionString">connect string</param>
         /// <remarks>use mssql_connection.ini</remarks>
-        override public void Initialise(string connect)
+        override public void Initialise(string connectionString)
         {
-            // TODO: make the connect string actually do something
-            IniFile iniFile = new IniFile("mssql_connection.ini");
-
-            string settingDataSource = iniFile.ParseFileReadValue("data_source");
-            string settingInitialCatalog = iniFile.ParseFileReadValue("initial_catalog");
-            string settingPersistSecurityInfo = iniFile.ParseFileReadValue("persist_security_info");
-            string settingUserId = iniFile.ParseFileReadValue("user_id");
-            string settingPassword = iniFile.ParseFileReadValue("password");
-
-            m_regionsTableName = iniFile.ParseFileReadValue("regionstablename");
-            if (m_regionsTableName == null)
+            if (string.IsNullOrEmpty(connectionString))
             {
-                m_regionsTableName = "regions";
+                database = new MSSQLManager(connectionString);
+            }
+            else
+            {
+                // TODO: make the connect string actually do something
+                IniFile iniFile = new IniFile("mssql_connection.ini");
+
+                string settingDataSource = iniFile.ParseFileReadValue("data_source");
+                string settingInitialCatalog = iniFile.ParseFileReadValue("initial_catalog");
+                string settingPersistSecurityInfo = iniFile.ParseFileReadValue("persist_security_info");
+                string settingUserId = iniFile.ParseFileReadValue("user_id");
+                string settingPassword = iniFile.ParseFileReadValue("password");
+
+                m_regionsTableName = iniFile.ParseFileReadValue("regionstablename");
+                if (m_regionsTableName == null)
+                {
+                    m_regionsTableName = "regions";
+                }
+
+                database =
+                    new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
+                                     settingPassword);
             }
 
-            database =
-                new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
-                                 settingPassword);
-
+            //TODO this can be removed at a certain time
             TestTables();
+
+            //New migrations check of store
+            database.CheckMigration(_migrationStore);
         }
 
         /// <summary>
-        ///
+        /// Test is region
         /// </summary>
         private void TestTables()
         {
-            using (IDbCommand cmd = database.Query("SELECT TOP 1 * FROM " + m_regionsTableName, new Dictionary<string, string>()))
+            using (AutoClosingSqlCommand cmd = database.Query("SELECT TOP 1 * FROM " + m_regionsTableName, new Dictionary<string, string>()))
             {
                 try
                 {
@@ -103,6 +117,36 @@ namespace OpenSim.Data.MSSQL
                     database.ExecuteResourceSql("Mssql-regions.sql");
                 }
             }
+            using (AutoClosingSqlCommand cmd = database.Query("select * from migrations where name = '" + _migrationStore + "'"))
+            {
+                //Special for Migrations to create backword compatible
+                try
+                {
+                    bool insert = true;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read()) insert = false;
+                    }
+                    if (insert)
+                    {
+                        cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch
+                {
+                    //No migrations table
+                    //HACK create one and add data
+                    cmd.CommandText = "create table migrations(name varchar(100), version int)";
+                    cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = "insert into migrations(name, version) values('migrations', 1)";
+                    cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         /// <summary>
@@ -110,7 +154,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         override public void Dispose()
         {
-            // nothing to close
+            database = null;
         }
 
         /// <summary>
@@ -131,18 +175,44 @@ namespace OpenSim.Data.MSSQL
             get { return "0.1"; }
         }
 
+        #endregion
+
+        #region Public override GridDataBase methods
+
         /// <summary>
-        /// NOT IMPLEMENTED,
         /// Returns a list of regions within the specified ranges
         /// </summary>
-        /// <param name="a">minimum X coordinate</param>
-        /// <param name="b">minimum Y coordinate</param>
-        /// <param name="c">maximum X coordinate</param>
-        /// <param name="d">maximum Y coordinate</param>
+        /// <param name="xmin">minimum X coordinate</param>
+        /// <param name="ymin">minimum Y coordinate</param>
+        /// <param name="xmax">maximum X coordinate</param>
+        /// <param name="ymax">maximum Y coordinate</param>
         /// <returns>null</returns>
         /// <remarks>always return null</remarks>
-        override public RegionProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
+        override public RegionProfileData[] GetProfilesInRange(uint xmin, uint ymin, uint xmax, uint ymax)
         {
+            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM regions WHERE locX >= @xmin AND locX <= @xmax AND locY >= @ymin AND locY <= @ymax"))
+            {
+                command.Parameters.Add(database.CreateParameter("xmin", xmin));
+                command.Parameters.Add(database.CreateParameter("ymin", ymin));
+                command.Parameters.Add(database.CreateParameter("xmax", xmax));
+                command.Parameters.Add(database.CreateParameter("ymax", ymax));
+
+                List<RegionProfileData> rows = new List<RegionProfileData>();
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        rows.Add(ReadSimRow(reader));
+                    }
+                }
+
+                if (rows.Count > 0)
+                {
+                    return rows.ToArray();
+                }
+            }
+            m_log.Info("[GRID DB] : Found no regions within range.");
             return null;
         }
 
@@ -153,22 +223,20 @@ namespace OpenSim.Data.MSSQL
         /// <returns>Sim profile</returns>
         override public RegionProfileData GetProfileByHandle(ulong handle)
         {
-
-            Dictionary<string, string> param = new Dictionary<string, string>();
-            param["handle"] = handle.ToString();
-
-            try
+            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM " + m_regionsTableName + " WHERE regionHandle = @handle"))
             {
-                using (IDbCommand result = database.Query("SELECT * FROM " + m_regionsTableName + " WHERE regionHandle = @handle", param))
-                using (IDataReader reader = result.ExecuteReader())
+                command.Parameters.Add(database.CreateParameter("handle", handle));
+
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
-                    return database.getRegionRow(reader);
+                    if (reader.Read())
+                    {
+                        return ReadSimRow(reader);
+                    }
                 }
             }
-            catch
-            {
-                return null;
-            }
+            m_log.InfoFormat("[GRID DB] : No region found with handle : {0}", handle);
+            return null;
         }
 
         /// <summary>
@@ -178,50 +246,49 @@ namespace OpenSim.Data.MSSQL
         /// <returns>The sim profile</returns>
         override public RegionProfileData GetProfileByUUID(UUID uuid)
         {
-            Dictionary<string, string> param = new Dictionary<string, string>();
-            param["uuid"] = uuid.ToString();
-
-            using (IDbCommand result = database.Query("SELECT * FROM " + m_regionsTableName + " WHERE uuid = @uuid", param))
-            using (IDataReader reader = result.ExecuteReader())
+            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM " + m_regionsTableName + " WHERE uuid = @uuid"))
             {
-                return database.getRegionRow(reader);
-            }
+                command.Parameters.Add(database.CreateParameter("uuid", uuid));
 
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return ReadSimRow(reader);
+                    }
+                }
+            }
+            m_log.InfoFormat("[GRID DB] : No region found with UUID : {0}", uuid);
+            return null;
         }
 
         /// <summary>
         /// Returns a sim profile from it's Region name string
         /// </summary>
-        /// <param name="uuid">The region name search query</param>
+        /// <param name="regionName">The region name search query</param>
         /// <returns>The sim profile</returns>
         override public RegionProfileData GetProfileByString(string regionName)
         {
             if (regionName.Length > 2)
             {
-                try
+                using (AutoClosingSqlCommand command = database.Query("SELECT top 1 * FROM " + m_regionsTableName + " WHERE regionName like @regionName order by regionName"))
                 {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-                    // Add % because this is a like query.
-                    param["?regionName"] = regionName + "%";
-                    // Order by statement will return shorter matches first.  Only returns one record or no record.
-                    using (IDbCommand result = database.Query("SELECT top 1 * FROM " + m_regionsTableName + " WHERE regionName like ?regionName order by regionName", param))
-                    using (IDataReader reader = result.ExecuteReader())
-                    {
-                        return database.getRegionRow(reader);
-                    }
+                    command.Parameters.Add(database.CreateParameter("regionName", regionName + "%"));
 
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return ReadSimRow(reader);
+                        }
+                    }
                 }
-                catch (Exception e)
-                {
-                    m_log.Error(e.ToString());
-                    return null;
-                }
-            }
-            else
-            {
-                m_log.Error("[GRID DB]: Searched for a Region Name shorter then 3 characters");
+                m_log.InfoFormat("[GRID DB] : No region found with regionName : {0}", regionName);
                 return null;
             }
+
+            m_log.Error("[GRID DB]: Searched for a Region Name shorter then 3 characters");
+            return null;
         }
 
         /// <summary>
@@ -231,14 +298,11 @@ namespace OpenSim.Data.MSSQL
         /// <returns>A dataresponse enum indicating success</returns>
         override public DataResponse AddProfile(RegionProfileData profile)
         {
-            if (insertRegionRow(profile))
+            if (InsertRegionRow(profile))
             {
                 return DataResponse.RESPONSE_OK;
             }
-            else
-            {
-                return DataResponse.RESPONSE_ERROR;
-            }
+            return DataResponse.RESPONSE_ERROR;
         }
 
         /// <summary>
@@ -246,155 +310,42 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="profile">The profile to update</param>
         /// <returns>A dataresponse enum indicating success</returns>
-        public override DataResponse UpdateProfile(RegionProfileData profile)
+        override public DataResponse UpdateProfile(RegionProfileData profile)
         {
-            if (updateRegionRow(profile))
+            if (UpdateRegionRow(profile))
             {
                 return DataResponse.RESPONSE_OK;
             }
-            else
-            {
-                return DataResponse.RESPONSE_ERROR;
-            }
+            return DataResponse.RESPONSE_ERROR;
         }
 
         /// <summary>
-        /// Update the specified region in the database
+        /// Deletes a sim profile from the database
         /// </summary>
-        /// <param name="profile">The profile to update</param>
-        /// <returns>success ?</returns>
-        public bool updateRegionRow(RegionProfileData profile)
-        {
-            //Insert new region
-            string sql =
-                "UPDATE " + m_regionsTableName + @" SET
-                [regionHandle]=@regionHandle, [regionName]=@regionName,
-                [regionRecvKey]=@regionRecvKey, [regionSecret]=@regionSecret, [regionSendKey]=@regionSendKey,
-                [regionDataURI]=@regionDataURI, [serverIP]=@serverIP, [serverPort]=@serverPort, [serverURI]=@serverURI,
-                [locX]=@locX, [locY]=@locY, [locZ]=@locZ, [eastOverrideHandle]=@eastOverrideHandle,
-                [westOverrideHandle]=@westOverrideHandle, [southOverrideHandle]=@southOverrideHandle,
-                [northOverrideHandle]=@northOverrideHandle, [regionAssetURI]=@regionAssetURI,
-                [regionAssetRecvKey]=@regionAssetRecvKey, [regionAssetSendKey]=@regionAssetSendKey,
-                [regionUserURI]=@regionUserURI, [regionUserRecvKey]=@regionUserRecvKey, [regionUserSendKey]=@regionUserSendKey,
-                [regionMapTexture]=@regionMapTexture, [serverHttpPort]=@serverHttpPort,
-                [serverRemotingPort]=@serverRemotingPort, [owner_uuid]=@owner_uuid
-                where [uuid]=@uuid";
-
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
-
-            parameters["regionHandle"] = profile.regionHandle.ToString();
-            parameters["regionName"] = profile.regionName;
-            parameters["uuid"] = profile.ToString();
-            parameters["regionRecvKey"] = profile.regionRecvKey;
-            parameters["regionSecret"] = profile.regionSecret;
-            parameters["regionSendKey"] = profile.regionSendKey;
-            parameters["regionDataURI"] = profile.regionDataURI;
-            parameters["serverIP"] = profile.serverIP;
-            parameters["serverPort"] = profile.serverPort.ToString();
-            parameters["serverURI"] = profile.serverURI;
-            parameters["locX"] = profile.regionLocX.ToString();
-            parameters["locY"] = profile.regionLocY.ToString();
-            parameters["locZ"] = profile.regionLocZ.ToString();
-            parameters["eastOverrideHandle"] = profile.regionEastOverrideHandle.ToString();
-            parameters["westOverrideHandle"] = profile.regionWestOverrideHandle.ToString();
-            parameters["northOverrideHandle"] = profile.regionNorthOverrideHandle.ToString();
-            parameters["southOverrideHandle"] = profile.regionSouthOverrideHandle.ToString();
-            parameters["regionAssetURI"] = profile.regionAssetURI;
-            parameters["regionAssetRecvKey"] = profile.regionAssetRecvKey;
-            parameters["regionAssetSendKey"] = profile.regionAssetSendKey;
-            parameters["regionUserURI"] = profile.regionUserURI;
-            parameters["regionUserRecvKey"] = profile.regionUserRecvKey;
-            parameters["regionUserSendKey"] = profile.regionUserSendKey;
-            parameters["regionMapTexture"] = profile.regionMapTextureID.ToString();
-            parameters["serverHttpPort"] = profile.httpPort.ToString();
-            parameters["serverRemotingPort"] = profile.remotingPort.ToString();
-            parameters["owner_uuid"] = profile.owner_uuid.ToString();
-
-            bool returnval = false;
-
-            try
-            {
-                using (IDbCommand result = database.Query(sql, parameters))
-                {
-
-                    if (result.ExecuteNonQuery() == 1)
-                        returnval = true;
-
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.Error("MSSQLManager : " + e.ToString());
-            }
-
-            return returnval;
-        }
-        /// <summary>
-        /// Creates a new region in the database
-        /// </summary>
-        /// <param name="profile">The region profile to insert</param>
+        /// <param name="uuid">the sim UUID</param>
         /// <returns>Successful?</returns>
-        public bool insertRegionRow(RegionProfileData profile)
+        //public DataResponse DeleteProfile(RegionProfileData profile)
+        override public DataResponse DeleteProfile(string uuid)
         {
-            //Insert new region
-            string sql =
-                "INSERT INTO " + m_regionsTableName + @" ([regionHandle], [regionName], [uuid], [regionRecvKey], [regionSecret], [regionSendKey], [regionDataURI], 
-                                                      [serverIP], [serverPort], [serverURI], [locX], [locY], [locZ], [eastOverrideHandle], [westOverrideHandle], 
-                                                      [southOverrideHandle], [northOverrideHandle], [regionAssetURI], [regionAssetRecvKey], [regionAssetSendKey], 
-                                                      [regionUserURI], [regionUserRecvKey], [regionUserSendKey], [regionMapTexture], [serverHttpPort], 
-                                                      [serverRemotingPort], [owner_uuid]) 
-                                                VALUES (@regionHandle, @regionName, @uuid, @regionRecvKey, @regionSecret, @regionSendKey, @regionDataURI, 
-                                                        @serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, 
-                                                        @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, @regionAssetSendKey, 
-                                                        @regionUserURI, @regionUserRecvKey, @regionUserSendKey, @regionMapTexture, @serverHttpPort, @serverRemotingPort, @owner_uuid);";
-
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
-
-            parameters["regionHandle"] = profile.regionHandle.ToString();
-            parameters["regionName"] = profile.regionName;
-            parameters["uuid"] = profile.ToString();
-            parameters["regionRecvKey"] = profile.regionRecvKey;
-            parameters["regionSecret"] = profile.regionSecret;
-            parameters["regionSendKey"] = profile.regionSendKey;
-            parameters["regionDataURI"] = profile.regionDataURI;
-            parameters["serverIP"] = profile.serverIP;
-            parameters["serverPort"] = profile.serverPort.ToString();
-            parameters["serverURI"] = profile.serverURI;
-            parameters["locX"] = profile.regionLocX.ToString();
-            parameters["locY"] = profile.regionLocY.ToString();
-            parameters["locZ"] = profile.regionLocZ.ToString();
-            parameters["eastOverrideHandle"] = profile.regionEastOverrideHandle.ToString();
-            parameters["westOverrideHandle"] = profile.regionWestOverrideHandle.ToString();
-            parameters["northOverrideHandle"] = profile.regionNorthOverrideHandle.ToString();
-            parameters["southOverrideHandle"] = profile.regionSouthOverrideHandle.ToString();
-            parameters["regionAssetURI"] = profile.regionAssetURI;
-            parameters["regionAssetRecvKey"] = profile.regionAssetRecvKey;
-            parameters["regionAssetSendKey"] = profile.regionAssetSendKey;
-            parameters["regionUserURI"] = profile.regionUserURI;
-            parameters["regionUserRecvKey"] = profile.regionUserRecvKey;
-            parameters["regionUserSendKey"] = profile.regionUserSendKey;
-            parameters["regionMapTexture"] = profile.regionMapTextureID.ToString();
-            parameters["serverHttpPort"] = profile.httpPort.ToString();
-            parameters["serverRemotingPort"] = profile.remotingPort.ToString();
-            parameters["owner_uuid"] = profile.owner_uuid.ToString();
-
-            bool returnval = false;
-
-            try
+            using (AutoClosingSqlCommand command = database.Query("DELETE FROM regions WHERE uuid = @uuid;"))
             {
-                using (IDbCommand result = database.Query(sql, parameters))
+                command.Parameters.Add(database.CreateParameter("uuid", uuid));
+                try
                 {
-                    if (result.ExecuteNonQuery() == 1)
-                        returnval = true;
+                    command.ExecuteNonQuery();
+                    return DataResponse.RESPONSE_OK;
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[GRID DB] : Error deleting region info, error is : {0}", e.Message);
+                    return DataResponse.RESPONSE_ERROR;
                 }
             }
-            catch (Exception e)
-            {
-                m_log.Error("[GRID DB]: " + e.ToString());
-            }
-
-            return returnval;
         }
+
+        #endregion
+
+        #region Methods that are not used or deprecated (still needed because of base class)
 
         /// <summary>
         /// DEPRECATED. Attempts to authenticate a region by comparing a shared secret.
@@ -436,6 +387,7 @@ namespace OpenSim.Data.MSSQL
 
         /// <summary>
         /// NOT IMPLEMENTED
+        /// WHEN IS THIS GONNA BE IMPLEMENTED.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -444,5 +396,218 @@ namespace OpenSim.Data.MSSQL
         {
             return null;
         }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Reads a region row from a database reader
+        /// </summary>
+        /// <param name="reader">An active database reader</param>
+        /// <returns>A region profile</returns>
+        private static RegionProfileData ReadSimRow(IDataRecord reader)
+        {
+            RegionProfileData retval = new RegionProfileData();
+
+            // Region Main gotta-have-or-we-return-null parts
+            UInt64 tmp64;
+            if (!UInt64.TryParse(reader["regionHandle"].ToString(), out tmp64))
+            {
+                return null;
+            }
+
+            retval.regionHandle = tmp64;
+
+            UUID tmp_uuid;
+            if (!UUID.TryParse((string)reader["uuid"], out tmp_uuid))
+            {
+                return null;
+            }
+
+            retval.UUID = tmp_uuid;
+
+            // non-critical parts
+            retval.regionName = reader["regionName"].ToString();
+            retval.originUUID = new UUID((string)reader["originUUID"]);
+
+            // Secrets
+            retval.regionRecvKey = reader["regionRecvKey"].ToString();
+            retval.regionSecret = reader["regionSecret"].ToString();
+            retval.regionSendKey = reader["regionSendKey"].ToString();
+
+            // Region Server
+            retval.regionDataURI = reader["regionDataURI"].ToString();
+            retval.regionOnline = false; // Needs to be pinged before this can be set.
+            retval.serverIP = reader["serverIP"].ToString();
+            retval.serverPort = Convert.ToUInt32(reader["serverPort"]);
+            retval.serverURI = reader["serverURI"].ToString();
+            retval.httpPort = Convert.ToUInt32(reader["serverHttpPort"].ToString());
+            retval.remotingPort = Convert.ToUInt32(reader["serverRemotingPort"].ToString());
+
+            // Location
+            retval.regionLocX = Convert.ToUInt32(reader["locX"].ToString());
+            retval.regionLocY = Convert.ToUInt32(reader["locY"].ToString());
+            retval.regionLocZ = Convert.ToUInt32(reader["locZ"].ToString());
+
+            // Neighbours - 0 = No Override
+            retval.regionEastOverrideHandle = Convert.ToUInt64(reader["eastOverrideHandle"].ToString());
+            retval.regionWestOverrideHandle = Convert.ToUInt64(reader["westOverrideHandle"].ToString());
+            retval.regionSouthOverrideHandle = Convert.ToUInt64(reader["southOverrideHandle"].ToString());
+            retval.regionNorthOverrideHandle = Convert.ToUInt64(reader["northOverrideHandle"].ToString());
+
+            // Assets
+            retval.regionAssetURI = reader["regionAssetURI"].ToString();
+            retval.regionAssetRecvKey = reader["regionAssetRecvKey"].ToString();
+            retval.regionAssetSendKey = reader["regionAssetSendKey"].ToString();
+
+            // Userserver
+            retval.regionUserURI = reader["regionUserURI"].ToString();
+            retval.regionUserRecvKey = reader["regionUserRecvKey"].ToString();
+            retval.regionUserSendKey = reader["regionUserSendKey"].ToString();
+
+            // World Map Addition
+            UUID.TryParse((string)reader["regionMapTexture"], out retval.regionMapTextureID);
+            UUID.TryParse((string)reader["owner_uuid"], out retval.owner_uuid);
+
+            return retval;
+        }
+
+        /// <summary>
+        /// Update the specified region in the database
+        /// </summary>
+        /// <param name="profile">The profile to update</param>
+        /// <returns>success ?</returns>
+        private bool UpdateRegionRow(RegionProfileData profile)
+        {
+            bool returnval = false;
+
+            //Insert new region
+            string sql =
+                "UPDATE " + m_regionsTableName + @" SET
+                [regionHandle]=@regionHandle, [regionName]=@regionName,
+                [regionRecvKey]=@regionRecvKey, [regionSecret]=@regionSecret, [regionSendKey]=@regionSendKey,
+                [regionDataURI]=@regionDataURI, [serverIP]=@serverIP, [serverPort]=@serverPort, [serverURI]=@serverURI,
+                [locX]=@locX, [locY]=@locY, [locZ]=@locZ, [eastOverrideHandle]=@eastOverrideHandle,
+                [westOverrideHandle]=@westOverrideHandle, [southOverrideHandle]=@southOverrideHandle,
+                [northOverrideHandle]=@northOverrideHandle, [regionAssetURI]=@regionAssetURI,
+                [regionAssetRecvKey]=@regionAssetRecvKey, [regionAssetSendKey]=@regionAssetSendKey,
+                [regionUserURI]=@regionUserURI, [regionUserRecvKey]=@regionUserRecvKey, [regionUserSendKey]=@regionUserSendKey,
+                [regionMapTexture]=@regionMapTexture, [serverHttpPort]=@serverHttpPort,
+                [serverRemotingPort]=@serverRemotingPort, [owner_uuid]=@owner_uuid , [originUUID]=@originUUID
+                where [uuid]=@uuid";
+
+            using (AutoClosingSqlCommand command = database.Query(sql))
+            {
+                command.Parameters.Add(database.CreateParameter("regionHandle", profile.regionHandle));
+                command.Parameters.Add(database.CreateParameter("regionName", profile.regionName));
+                command.Parameters.Add(database.CreateParameter("uuid", profile.UUID));
+                command.Parameters.Add(database.CreateParameter("regionRecvKey", profile.regionRecvKey));
+                command.Parameters.Add(database.CreateParameter("regionSecret", profile.regionSecret));
+                command.Parameters.Add(database.CreateParameter("regionSendKey", profile.regionSendKey));
+                command.Parameters.Add(database.CreateParameter("regionDataURI", profile.regionDataURI));
+                command.Parameters.Add(database.CreateParameter("serverIP", profile.serverIP));
+                command.Parameters.Add(database.CreateParameter("serverPort", profile.serverPort));
+                command.Parameters.Add(database.CreateParameter("serverURI", profile.serverURI));
+                command.Parameters.Add(database.CreateParameter("locX", profile.regionLocX));
+                command.Parameters.Add(database.CreateParameter("locY", profile.regionLocY));
+                command.Parameters.Add(database.CreateParameter("locZ", profile.regionLocZ));
+                command.Parameters.Add(database.CreateParameter("eastOverrideHandle", profile.regionEastOverrideHandle));
+                command.Parameters.Add(database.CreateParameter("westOverrideHandle", profile.regionWestOverrideHandle));
+                command.Parameters.Add(database.CreateParameter("northOverrideHandle", profile.regionNorthOverrideHandle));
+                command.Parameters.Add(database.CreateParameter("southOverrideHandle", profile.regionSouthOverrideHandle));
+                command.Parameters.Add(database.CreateParameter("regionAssetURI", profile.regionAssetURI));
+                command.Parameters.Add(database.CreateParameter("regionAssetRecvKey", profile.regionAssetRecvKey));
+                command.Parameters.Add(database.CreateParameter("regionAssetSendKey", profile.regionAssetSendKey));
+                command.Parameters.Add(database.CreateParameter("regionUserURI", profile.regionUserURI));
+                command.Parameters.Add(database.CreateParameter("regionUserRecvKey", profile.regionUserRecvKey));
+                command.Parameters.Add(database.CreateParameter("regionUserSendKey", profile.regionUserSendKey));
+                command.Parameters.Add(database.CreateParameter("regionMapTexture", profile.regionMapTextureID));
+                command.Parameters.Add(database.CreateParameter("serverHttpPort", profile.httpPort));
+                command.Parameters.Add(database.CreateParameter("serverRemotingPort", profile.remotingPort));
+                command.Parameters.Add(database.CreateParameter("owner_uuid", profile.owner_uuid));
+                command.Parameters.Add(database.CreateParameter("originUUID", profile.originUUID));
+
+                try
+                {
+                    command.ExecuteNonQuery();
+                    returnval = true;
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[GRID DB] : Error updating region, error: " + e.Message);
+                }
+            }
+
+            return returnval;
+        }
+
+        /// <summary>
+        /// Creates a new region in the database
+        /// </summary>
+        /// <param name="profile">The region profile to insert</param>
+        /// <returns>Successful?</returns>
+        private bool InsertRegionRow(RegionProfileData profile)
+        {
+            bool returnval = false;
+
+            //Insert new region
+            string sql =
+                "INSERT INTO " + m_regionsTableName + @" ([regionHandle], [regionName], [uuid], [regionRecvKey], [regionSecret], [regionSendKey], [regionDataURI], 
+                                                      [serverIP], [serverPort], [serverURI], [locX], [locY], [locZ], [eastOverrideHandle], [westOverrideHandle], 
+                                                      [southOverrideHandle], [northOverrideHandle], [regionAssetURI], [regionAssetRecvKey], [regionAssetSendKey], 
+                                                      [regionUserURI], [regionUserRecvKey], [regionUserSendKey], [regionMapTexture], [serverHttpPort], 
+                                                      [serverRemotingPort], [owner_uuid], [originUUID]) 
+                                                VALUES (@regionHandle, @regionName, @uuid, @regionRecvKey, @regionSecret, @regionSendKey, @regionDataURI, 
+                                                        @serverIP, @serverPort, @serverURI, @locX, @locY, @locZ, @eastOverrideHandle, @westOverrideHandle, 
+                                                        @southOverrideHandle, @northOverrideHandle, @regionAssetURI, @regionAssetRecvKey, @regionAssetSendKey, 
+                                                        @regionUserURI, @regionUserRecvKey, @regionUserSendKey, @regionMapTexture, @serverHttpPort, @serverRemotingPort, @owner_uuid, @originUUID);";
+
+            using (AutoClosingSqlCommand command = database.Query(sql))
+            {
+                command.Parameters.Add(database.CreateParameter("regionHandle", profile.regionHandle));
+                command.Parameters.Add(database.CreateParameter("regionName", profile.regionName));
+                command.Parameters.Add(database.CreateParameter("uuid", profile.UUID));
+                command.Parameters.Add(database.CreateParameter("regionRecvKey", profile.regionRecvKey));
+                command.Parameters.Add(database.CreateParameter("regionSecret", profile.regionSecret));
+                command.Parameters.Add(database.CreateParameter("regionSendKey", profile.regionSendKey));
+                command.Parameters.Add(database.CreateParameter("regionDataURI", profile.regionDataURI));
+                command.Parameters.Add(database.CreateParameter("serverIP", profile.serverIP));
+                command.Parameters.Add(database.CreateParameter("serverPort", profile.serverPort));
+                command.Parameters.Add(database.CreateParameter("serverURI", profile.serverURI));
+                command.Parameters.Add(database.CreateParameter("locX", profile.regionLocX));
+                command.Parameters.Add(database.CreateParameter("locY", profile.regionLocY));
+                command.Parameters.Add(database.CreateParameter("locZ", profile.regionLocZ));
+                command.Parameters.Add(database.CreateParameter("eastOverrideHandle", profile.regionEastOverrideHandle));
+                command.Parameters.Add(database.CreateParameter("westOverrideHandle", profile.regionWestOverrideHandle));
+                command.Parameters.Add(database.CreateParameter("northOverrideHandle", profile.regionNorthOverrideHandle));
+                command.Parameters.Add(database.CreateParameter("southOverrideHandle", profile.regionSouthOverrideHandle));
+                command.Parameters.Add(database.CreateParameter("regionAssetURI", profile.regionAssetURI));
+                command.Parameters.Add(database.CreateParameter("regionAssetRecvKey", profile.regionAssetRecvKey));
+                command.Parameters.Add(database.CreateParameter("regionAssetSendKey", profile.regionAssetSendKey));
+                command.Parameters.Add(database.CreateParameter("regionUserURI", profile.regionUserURI));
+                command.Parameters.Add(database.CreateParameter("regionUserRecvKey", profile.regionUserRecvKey));
+                command.Parameters.Add(database.CreateParameter("regionUserSendKey", profile.regionUserSendKey));
+                command.Parameters.Add(database.CreateParameter("regionMapTexture", profile.regionMapTextureID));
+                command.Parameters.Add(database.CreateParameter("serverHttpPort", profile.httpPort));
+                command.Parameters.Add(database.CreateParameter("serverRemotingPort", profile.remotingPort));
+                command.Parameters.Add(database.CreateParameter("owner_uuid", profile.owner_uuid));
+                command.Parameters.Add(database.CreateParameter("originUUID", profile.originUUID));
+
+                try
+                {
+                    command.ExecuteNonQuery();
+                    returnval = true;
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[GRID DB] : Error inserting region, error: " + e.Message);
+                }
+            }
+
+            return returnval;
+        }
+
+        #endregion
     }
 }

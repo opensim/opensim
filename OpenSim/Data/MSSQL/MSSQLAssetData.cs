@@ -41,43 +41,82 @@ namespace OpenSim.Data.MSSQL
     /// </summary>
     internal class MSSQLAssetData : AssetDataBase
     {
+        private const string _migrationStore = "AssetStore";
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Database manager
+        /// </summary>
         private MSSQLManager database;
 
-        #region IAssetProviderPlugin Members
+        #region IPlugin Members
+
+        override public void Dispose() { }
 
         /// <summary>
-        /// Migration method
-        /// <list type="bullet">
-        /// <item>Execute "CreateAssetsTable.sql" if tableName == null</item>
-        /// </list>
+        /// <para>Initialises asset interface</para>
         /// </summary>
-        /// <param name="tableName">Name of table</param>
-        private void UpgradeAssetsTable(string tableName)
+        override public void Initialise()
         {
-            // null as the version, indicates that the table didn't exist
-            if (tableName == null)
+            m_log.Info("[MSSQLUserData]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException(Name);
+        }
+
+        /// <summary>
+        /// Initialises asset interface
+        /// </summary>
+        /// <para>
+        /// a string instead of file, if someone writes the support
+        /// </para>
+        /// <param name="connectionString">connect string</param>
+        override public void Initialise(string connectionString)
+        {
+            if (string.IsNullOrEmpty(connectionString))
             {
-                m_log.Info("[ASSET DB]: Creating new database tables");
-                database.ExecuteResourceSql("CreateAssetsTable.sql");
-                return;
+                database = new MSSQLManager(connectionString);
+            }
+            else
+            {
+
+                IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
+                string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
+                string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
+                string settingPersistSecurityInfo = gridDataMSSqlFile.ParseFileReadValue("persist_security_info");
+                string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
+                string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
+
+                database =
+                    new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
+                                     settingPassword);
             }
 
+            //TODO can be removed at some time!!
+            TestTables();
+
+            //New migration to check for DB changes
+            database.CheckMigration(_migrationStore);
         }
 
         /// <summary>
-        /// Ensure that the assets related tables exists and are at the latest version
+        /// Database provider version.
         /// </summary>
-        private void TestTables()
+        override public string Version
         {
-            Dictionary<string, string> tableList = new Dictionary<string, string>();
-
-            tableList["assets"] = null;
-            database.GetTableVersion(tableList);
-
-            UpgradeAssetsTable(tableList["assets"]);
+            get { return database.getVersion(); }
         }
+
+        /// <summary>
+        /// The name of this DB provider.
+        /// </summary>
+        override public string Name
+        {
+            get { return "MSSQL Asset storage engine"; }
+        }
+
+        #endregion
+
+        #region IAssetProviderPlugin Members
 
         /// <summary>
         /// Fetch Asset from database
@@ -86,13 +125,26 @@ namespace OpenSim.Data.MSSQL
         /// <returns></returns>
         override public AssetBase FetchAsset(UUID assetID)
         {
-            Dictionary<string, string> param = new Dictionary<string, string>();
-            param["id"] = assetID.ToString();
-
-            using (IDbCommand result = database.Query("SELECT * FROM assets WHERE id = @id", param))
-            using (IDataReader reader = result.ExecuteReader())
+            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM assets WHERE id = @id"))
             {
-                return database.getAssetRow(reader);
+                command.Parameters.Add(database.CreateParameter("id", assetID));
+                using (IDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        AssetBase asset = new AssetBase();
+                        // Region Main
+                        asset.FullID = new UUID((string)reader["id"]);
+                        asset.Name = (string)reader["name"];
+                        asset.Description = (string)reader["description"];
+                        asset.Type = Convert.ToSByte(reader["assetType"]);
+                        asset.Local = Convert.ToBoolean(reader["local"]);
+                        asset.Temporary = Convert.ToBoolean(reader["temporary"]);
+                        asset.Data = (byte[])reader["data"];
+                        return asset;
+                    }
+                    return null; // throw new Exception("No rows to return");
+                }
             }
         }
 
@@ -102,34 +154,27 @@ namespace OpenSim.Data.MSSQL
         /// <param name="asset">the asset</param>
         override public void CreateAsset(AssetBase asset)
         {
-            if (ExistsAsset((UUID) asset.FullID))
+            if (ExistsAsset(asset.FullID))
             {
                 return;
             }
 
-
-            using (AutoClosingSqlCommand cmd =
-                database.Query(
+            using (AutoClosingSqlCommand command = database.Query(
                     "INSERT INTO assets ([id], [name], [description], [assetType], [local], [temporary], [data])" +
                     " VALUES " +
                     "(@id, @name, @description, @assetType, @local, @temporary, @data)"))
             {
-
                 //SqlParameter p = cmd.Parameters.Add("id", SqlDbType.NVarChar);
                 //p.Value = asset.FullID.ToString();
-                cmd.Parameters.AddWithValue("id", asset.FullID.ToString());
-                cmd.Parameters.AddWithValue("name", asset.Name);
-                cmd.Parameters.AddWithValue("description", asset.Description);
-                SqlParameter e = cmd.Parameters.Add("assetType", SqlDbType.TinyInt);
-                e.Value = asset.Type;
-                SqlParameter g = cmd.Parameters.Add("local", SqlDbType.TinyInt);
-                g.Value = asset.Local;
-                SqlParameter h = cmd.Parameters.Add("temporary", SqlDbType.TinyInt);
-                h.Value = asset.Temporary;
-                SqlParameter i = cmd.Parameters.Add("data", SqlDbType.Image);
-                i.Value = asset.Data;
+                command.Parameters.Add(database.CreateParameter("id", asset.FullID));
+                command.Parameters.Add(database.CreateParameter("name", asset.Name));
+                command.Parameters.Add(database.CreateParameter("description", asset.Description));
+                command.Parameters.Add(database.CreateParameter("assetType", asset.Type));
+                command.Parameters.Add(database.CreateParameter("local", asset.Local));
+                command.Parameters.Add(database.CreateParameter("temporary", asset.Temporary));
+                command.Parameters.Add(database.CreateParameter("data", asset.Data));
 
-                cmd.ExecuteNonQuery();
+                command.ExecuteNonQuery();
             }
         }
 
@@ -139,7 +184,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="asset">the asset</param>
         override public void UpdateAsset(AssetBase asset)
         {
-            using (IDbCommand command = database.Query("UPDATE assets set id = @id, " +
+            using (AutoClosingSqlCommand command = database.Query("UPDATE assets set id = @id, " +
                                                 "name = @name, " +
                                                 "description = @description," +
                                                 "assetType = @assetType," +
@@ -148,22 +193,14 @@ namespace OpenSim.Data.MSSQL
                                                 "data = @data where " +
                                                 "id = @keyId;"))
             {
-                SqlParameter param1 = new SqlParameter("@id", asset.FullID.ToString());
-                SqlParameter param2 = new SqlParameter("@name", asset.Name);
-                SqlParameter param3 = new SqlParameter("@description", asset.Description);
-                SqlParameter param4 = new SqlParameter("@assetType", asset.Type);
-                SqlParameter param6 = new SqlParameter("@local", asset.Local);
-                SqlParameter param7 = new SqlParameter("@temporary", asset.Temporary);
-                SqlParameter param8 = new SqlParameter("@data", asset.Data);
-                SqlParameter param9 = new SqlParameter("@keyId", asset.FullID.ToString());
-                command.Parameters.Add(param1);
-                command.Parameters.Add(param2);
-                command.Parameters.Add(param3);
-                command.Parameters.Add(param4);
-                command.Parameters.Add(param6);
-                command.Parameters.Add(param7);
-                command.Parameters.Add(param8);
-                command.Parameters.Add(param9);
+                command.Parameters.Add(database.CreateParameter("id", asset.FullID));
+                command.Parameters.Add(database.CreateParameter("name", asset.Name));
+                command.Parameters.Add(database.CreateParameter("description", asset.Description));
+                command.Parameters.Add(database.CreateParameter("assetType", asset.Type));
+                command.Parameters.Add(database.CreateParameter("local", asset.Local));
+                command.Parameters.Add(database.CreateParameter("temporary", asset.Temporary));
+                command.Parameters.Add(database.CreateParameter("data", asset.Data));
+                command.Parameters.Add(database.CreateParameter("@keyId", asset.FullID));
 
                 try
                 {
@@ -192,57 +229,69 @@ namespace OpenSim.Data.MSSQL
 
         #endregion
 
-        #region IPlugin Members
-
-        override public void Dispose() { }
+        #region Private Methods
 
         /// <summary>
-        /// <para>Initialises asset interface</para>
-        /// <para>
-        /// TODO: this would allow you to pass in connnect info as
-        /// a string instead of file, if someone writes the support
-        /// </para>
+        /// Migration method
+        /// <list type="bullet">
+        /// <item>Execute "CreateAssetsTable.sql" if tableName == null</item>
+        /// </list>
         /// </summary>
-        /// <param name="connect">connect string</param>
-        override public void Initialise(string connect)
+        /// <param name="tableName">Name of table</param>
+        private void UpgradeAssetsTable(string tableName)
         {
-            Initialise();
+            // null as the version, indicates that the table didn't exist
+            if (tableName == null)
+            {
+                m_log.Info("[ASSET DB]: Creating new database tables");
+                database.ExecuteResourceSql("CreateAssetsTable.sql");
+                return;
+            }
         }
 
         /// <summary>
-        /// Initialises asset interface
+        /// Ensure that the assets related tables exists and are at the latest version
         /// </summary>
-        /// <remarks>it use mssql_connection.ini</remarks>
-        override public void Initialise()
+        private void TestTables()
         {
-            IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
-            string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
-            string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
-            string settingPersistSecurityInfo = gridDataMSSqlFile.ParseFileReadValue("persist_security_info");
-            string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
-            string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
+            Dictionary<string, string> tableList = new Dictionary<string, string>();
 
-            database =
-                new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
-                                 settingPassword);
+            tableList["assets"] = null;
+            database.GetTableVersion(tableList);
 
-            TestTables();
-        }
+            UpgradeAssetsTable(tableList["assets"]);
 
-        /// <summary>
-        /// Database provider version.
-        /// </summary>
-        override public string Version
-        {
-            get { return database.getVersion(); }
-        }
+            //Special for Migrations
+            using (AutoClosingSqlCommand cmd = database.Query("select * from migrations where name = '" + _migrationStore + "'"))
+            {
+                try
+                {
+                    bool insert = true;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read()) insert = false;
+                    }
+                    if (insert)
+                    {
+                        cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch
+                {
+                    //No migrations table
+                    //HACK create one and add data
+                    cmd.CommandText = "create table migrations(name varchar(100), version int)";
+                    cmd.ExecuteNonQuery();
 
-        /// <summary>
-        /// The name of this DB provider.
-        /// </summary>
-        override public string Name
-        {
-            get { return "MSSQL Asset storage engine"; }
+                    cmd.CommandText = "insert into migrations(name, version) values('migrations', 1)";
+                    cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
         }
 
         #endregion

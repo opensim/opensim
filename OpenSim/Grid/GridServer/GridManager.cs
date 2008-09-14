@@ -136,8 +136,9 @@ namespace OpenSim.Grid.GridServer
                 {
                     return plugin.GetProfileByHandle(handle);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    m_log.Debug("[storage]: " + ex.Message);
                     m_log.Warn("[storage]: Unable to find region " + handle.ToString() + " via " + plugin.Name);
                 }
             }
@@ -500,14 +501,11 @@ namespace OpenSim.Grid.GridServer
             RegionProfileData neighbour;
             Hashtable NeighbourBlock;
 
-            bool fastMode = false; // Only compatible with MySQL right now
+            //First use the fast method. (not implemented in SQLLite)
+            Dictionary<ulong, RegionProfileData> neighbours = GetRegions(sim.regionLocX - 1, sim.regionLocY - 1, sim.regionLocX + 1, sim.regionLocY + 1);
 
-            if (fastMode)
+            if (neighbours.Count > 0)
             {
-                Dictionary<ulong, RegionProfileData> neighbours =
-                    GetRegions(sim.regionLocX - 1, sim.regionLocY - 1, sim.regionLocX + 1,
-                               sim.regionLocY + 1);
-
                 foreach (KeyValuePair<ulong, RegionProfileData> aSim in neighbours)
                 {
                     NeighbourBlock = new Hashtable();
@@ -657,8 +655,7 @@ namespace OpenSim.Grid.GridServer
                 //TheSim = GetRegion(new UUID((string) requestData["UUID"]));
                 uuid = requestData["UUID"].ToString();
                 m_log.InfoFormat("[LOGOUT]: Logging out region: {0}", uuid);
-
-                //                logToDB((new UUID((string)requestData["UUID"])).ToString(),"XmlRpcDeleteRegionMethod","", 5,"Attempting delete with UUID.");
+//                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcDeleteRegionMethod","", 5,"Attempting delete with UUID.");
             }
             else
             {
@@ -671,9 +668,12 @@ namespace OpenSim.Grid.GridServer
                 //OpenSim.Data.MySQL.MySQLGridData dbengine = new OpenSim.Data.MySQL.MySQLGridData();
                 try
                 {
-                    MySQLGridData mysqldata = (MySQLGridData)(plugin);
+                    //Nice are we not using multiple databases?
+                    //MySQLGridData mysqldata = (MySQLGridData)(plugin);
+
                     //DataResponse insertResponse = mysqldata.DeleteProfile(TheSim);
-                    DataResponse insertResponse = mysqldata.DeleteProfile(uuid);
+                    DataResponse insertResponse = plugin.DeleteProfile(uuid);
+
                     switch (insertResponse)
                     {
                         case DataResponse.RESPONSE_OK:
@@ -696,7 +696,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch (Exception)
                 {
-                    m_log.Error("storage Unable to delete region " + uuid + " via MySQL");
+                    m_log.Error("storage Unable to delete region " + uuid + " via " + plugin.Name);
                     //MainLog.Instance.Warn("storage", e.ToString());
                 }
             }

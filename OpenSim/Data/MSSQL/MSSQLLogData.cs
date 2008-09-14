@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Data.SqlClient;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Data;
@@ -39,6 +40,8 @@ namespace OpenSim.Data.MSSQL
     /// </summary>
     internal class MSSQLLogData : ILogDataPlugin
     {
+        private const string _migrationStore = "LogStore";
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
@@ -48,7 +51,7 @@ namespace OpenSim.Data.MSSQL
 
         public void Initialise()
         {
-            m_log.Info("[MSSQLLogData]: " + Name + " cannot be default-initialized!");
+            m_log.Info("[LOG DB]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException (Name);
         }
 
@@ -57,18 +60,37 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         public void Initialise(string connect)
         {
-            // TODO: do something with the connect string
-            IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
-            string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
-            string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
-            string settingPersistSecurityInfo = gridDataMSSqlFile.ParseFileReadValue("persist_security_info");
-            string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
-            string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
+            if (string.IsNullOrEmpty(connect))
+            {
+                database = new MSSQLManager(connect);
+            }
+            else
+            {
+                // TODO: do something with the connect string
+                IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
+                string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
+                string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
+                string settingPersistSecurityInfo = gridDataMSSqlFile.ParseFileReadValue("persist_security_info");
+                string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
+                string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
 
-            database =
-                new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
-                                 settingPassword);
+                database =
+                    new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
+                                     settingPassword);
+            }
 
+            //TODO when can this be removed
+            TestTable();
+
+            //Updating mechanisme
+            database.CheckMigration(_migrationStore);
+        }
+
+        /// <summary>
+        /// Can be removed someday!!!
+        /// </summary>
+        private void TestTable()
+        {
             using (IDbCommand cmd = database.Query("select top 1 * from logs", new Dictionary<string, string>()))
             {
                 try
@@ -80,9 +102,38 @@ namespace OpenSim.Data.MSSQL
                     database.ExecuteResourceSql("Mssql-logs.sql");
                 }
             }
+            using (AutoClosingSqlCommand cmd = database.Query("select * from migrations where name = '" + _migrationStore + "'"))
+            {
+                //Special for Migrations to create backword compatible
+                try
+                {
+                    bool insert = true;
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read()) insert = false;
+                    }
+                    if (insert)
+                    {
+                        cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch
+                {
+                    //No migrations table
+                    //HACK create one and add data
+                    cmd.CommandText = "create table migrations(name varchar(100), version int)";
+                    cmd.ExecuteNonQuery();
 
+                    cmd.CommandText = "insert into migrations(name, version) values('migrations', 1)";
+                    cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
-
+        
         /// <summary>
         /// Saves a log item to the database
         /// </summary>
@@ -95,13 +146,28 @@ namespace OpenSim.Data.MSSQL
         public void saveLog(string serverDaemon, string target, string methodCall, string arguments, int priority,
                             string logMessage)
         {
-            try
+            string sql = "INSERT INTO logs ([target], [server], [method], [arguments], [priority], [message]) VALUES ";
+            sql += "(@target, @server, @method, @arguments, @priority, @message);";
+
+            using (AutoClosingSqlCommand command = database.Query(sql))
             {
-                database.insertLogRow(serverDaemon, target, methodCall, arguments, priority, logMessage);
-            }
-            catch
-            {
-                // it didn't log, don't worry about it
+                command.Parameters.Add(database.CreateParameter("server", serverDaemon));
+                command.Parameters.Add(database.CreateParameter("target",target));
+                command.Parameters.Add(database.CreateParameter("method", methodCall));
+                command.Parameters.Add(database.CreateParameter("arguments", arguments));
+                command.Parameters.Add(database.CreateParameter("priority", priority.ToString()));
+                command.Parameters.Add(database.CreateParameter("message", logMessage));
+
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    //Are we not in a loop here
+                    //m_log.Error(e.ToString());
+                    Console.WriteLine("[LOG DB] Error logging : " + e.Message);
+                }
             }
         }
 
@@ -119,7 +185,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         public void Dispose()
         {
-            // Do nothing.
+            database = null;
         }
 
         /// <summary>

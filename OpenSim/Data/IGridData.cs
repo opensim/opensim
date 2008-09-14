@@ -96,8 +96,26 @@ namespace OpenSim.Data
         /// <returns>RESPONSE_OK if successful, error if not.</returns>
         DataResponse AddProfile(RegionProfileData profile);
 
+        /// <summary>
+        /// Updates a profile in the database
+        /// </summary>
+        /// <param name="profile"></param>
+        /// <returns></returns>
         DataResponse UpdateProfile(RegionProfileData profile);
 
+        /// <summary>
+        /// Remove a profile from the database
+        /// </summary>
+        /// <param name="UUID">ID of profile to remove</param>
+        /// <returns></returns>
+        DataResponse DeleteProfile(string UUID);
+
+        /// <summary>
+        /// Function not used????
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         ReservationData GetReservationAtPoint(uint x, uint y);
     }
 
