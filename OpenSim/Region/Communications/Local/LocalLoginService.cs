@@ -41,18 +41,18 @@ namespace OpenSim.Region.Communications.Local
 
     public class LocalLoginService : LoginService
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private CommunicationsLocal m_Parent;
+        protected CommunicationsLocal m_Parent;
 
-        private NetworkServersInfo serversInfo;
-        private uint defaultHomeX;
-        private uint defaultHomeY;
-        private bool authUsers = false;
+        protected NetworkServersInfo serversInfo;
+        protected uint defaultHomeX;
+        protected uint defaultHomeY;
+        protected bool authUsers = false;
 
         public event LoginToRegionEvent OnLoginToRegion;
 
-        private LoginToRegionEvent handlerLoginToRegion = null; // OnLoginToRegion;
+        protected LoginToRegionEvent handlerLoginToRegion = null; // OnLoginToRegion;
 
         public LocalLoginService(UserManagerBase userManager, string welcomeMess,
                                  CommunicationsLocal parent, NetworkServersInfo serversInfo,
@@ -246,7 +246,7 @@ namespace OpenSim.Region.Communications.Local
         /// <param name="user"></param>
         /// <param name="response"></param>
         /// <returns>true if the region was successfully contacted, false otherwise</returns>
-        private bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response)
+        protected bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response)
         {
             response.SimAddress = regionInfo.ExternalEndPoint.Address.ToString();
             response.SimPort = (uint)regionInfo.ExternalEndPoint.Port;

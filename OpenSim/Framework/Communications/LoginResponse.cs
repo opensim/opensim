@@ -307,7 +307,7 @@ namespace OpenSim.Framework.Communications
 
         #endregion
 
-        public XmlRpcResponse ToXmlRpcResponse()
+        public virtual XmlRpcResponse ToXmlRpcResponse()
         {
             try
             {

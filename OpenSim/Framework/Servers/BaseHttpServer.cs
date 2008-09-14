@@ -104,15 +104,9 @@ namespace OpenSim.Framework.Servers
         {
             lock (m_rpcHandlers)
             {
-                if (!m_rpcHandlers.ContainsKey(method))
-                {
-                    m_rpcHandlers.Add(method, handler);
-                    return true;
-                }
+                m_rpcHandlers[method] = handler;
+                return true;
             }
-
-            //must already have a handler for that path so return false
-            return false;
         }
 
         public bool AddHTTPHandler(string method, GenericHTTPMethod handler)

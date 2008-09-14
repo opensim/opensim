@@ -103,7 +103,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="request">The XMLRPC request</param>
         /// <returns>The response to send</returns>
-        public XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
+        public virtual XmlRpcResponse XmlRpcLoginMethod(XmlRpcRequest request)
         {
             // Temporary fix
             m_loginMutex.WaitOne();
@@ -123,8 +123,8 @@ namespace OpenSim.Framework.Communications
                 UserProfileData userProfile;
                 LoginResponse logResponse = new LoginResponse();
 
-                string firstname = String.Empty;
-                string lastname = String.Empty;
+                string firstname;
+                string lastname;
 
                 if (GoodXML)
                 {
@@ -230,7 +230,7 @@ namespace OpenSim.Framework.Communications
                     try
                     {
                         UUID agentID = userProfile.ID;
-                        InventoryData inventData = null;
+                        InventoryData inventData;
 
                         try
                         {
@@ -265,7 +265,7 @@ namespace OpenSim.Framework.Communications
                         logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary();
 
-                        logResponse.CircuitCode = (Int32)Util.RandomClass.Next();
+                        logResponse.CircuitCode = Util.RandomClass.Next();
                         logResponse.Lastname = userProfile.SurName;
                         logResponse.Firstname = userProfile.FirstName;
                         logResponse.AgentID = agentID.ToString();
@@ -298,7 +298,7 @@ namespace OpenSim.Framework.Communications
                     }
                     catch (Exception e)
                     {
-                        m_log.Info("[LOGIN END]:  XMLRPC Login failed, " + e.ToString());
+                        m_log.Info("[LOGIN END]:  XMLRPC Login failed, " + e);
                     }
                 }
 

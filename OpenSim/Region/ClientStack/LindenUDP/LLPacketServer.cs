@@ -31,7 +31,6 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.ClientStack.LindenUDP;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -40,8 +39,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //private static readonly log4net.ILog m_log
         //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly LLClientStackNetworkHandler m_networkHandler;
-        private IScene m_scene;
+        protected readonly LLClientStackNetworkHandler m_networkHandler;
+        protected IScene m_scene;
 
         //private readonly ClientManager m_clientManager = new ClientManager();
         //public ClientManager ClientManager
