@@ -408,7 +408,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             if (httpSSL)
             {
                 rezHttpProtocol = "https://";
-
+                regionCapsHttpProtocol = "https://";
                 urlport = httpsslport.ToString();
 
                 if (httpsCN.Length > 0)
@@ -416,8 +416,6 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             }
             
 
-            // Be warned that the two following lines assume http not 
-            // https since region caps are not implemented in https currently
 
             // DEPRECIATED
             responseMap["seed_capability"] = LLSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
