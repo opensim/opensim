@@ -805,6 +805,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
 
+            // Moved this from SendInitialData to ensure that m_appearance is initialized
+            // before the inventory is processed in MakeRootAgent. This fixes a race condition
+            // related to the handling of attachments
+            m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
+
             if (m_isChildAgent)
             {
                 m_isChildAgent = false;
@@ -1712,14 +1717,14 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }
 
-
         /// <summary>
         /// Do everything required once a client completes its movement into a region
         /// </summary>
         public void SendInitialData()
         {
-            // Needed for standalone
-            m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
+            // Moved this into CompleteMovement to ensure that m_appearance is initialized before
+            // the inventory arrives
+            // m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
 
             // Note: because Quaternion is a struct, it can't be null
             Quaternion rot = m_bodyRot;

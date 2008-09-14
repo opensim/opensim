@@ -722,6 +722,12 @@ namespace OpenSim.Data.MySQL
                 reader.Dispose();
                 result.Dispose();
 
+                if (null == appearance)
+                {
+                    m_log.WarnFormat("[USER DB] No appearance found for user {0}", user.ToString());
+                    return null;
+                }
+                
                 appearance.SetAttachments(GetUserAttachments(user));
 
                 return appearance;
