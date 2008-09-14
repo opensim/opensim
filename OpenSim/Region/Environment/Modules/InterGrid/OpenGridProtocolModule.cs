@@ -26,15 +26,12 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 using OpenMetaverse;
@@ -42,12 +39,7 @@ using OpenMetaverse.StructuredData;
 
 using log4net;
 using Nini.Config;
-using Nwc.XmlRpc;
-
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Communications.Capabilities;
-using OpenSim.Framework.Statistics;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;

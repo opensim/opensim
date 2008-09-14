@@ -35,7 +35,6 @@ using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
@@ -141,15 +140,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         /// <param name="_listenIP"></param>
         /// <param name="port"></param>
-        /// <param name="proxyPortOffset"></param>
+        /// <param name="proxyPortOffsetParm"></param>
         /// <param name="allow_alternate_port"></param>
         /// <param name="assetCache"></param>
         /// <param name="circuitManager"></param>
         public void Initialise(
-            IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager circuitManager)
+            IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager circuitManager)
         {
-            this.proxyPortOffset = proxyPortOffset;
-            listenPort = (uint) (port + proxyPortOffset);
+            proxyPortOffset = proxyPortOffsetParm;
+            listenPort = (uint) (port + proxyPortOffsetParm);
             listenIP = _listenIP;
             Allow_Alternate_Port = allow_alternate_port;
             m_assetCache = assetCache;
@@ -159,7 +158,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Return new port
             // This because in Grid mode it is not really important what port the region listens to as long as it is correctly registered.
             // So the option allow_alternate_ports="true" was added to default.xml
-            port = (uint)(listenPort - proxyPortOffset);
+            port = (uint)(listenPort - proxyPortOffsetParm);
         }
 
         protected virtual void CreatePacketServer()
@@ -175,7 +174,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void OnReceivedData(IAsyncResult result)
         {
             ipeSender = new IPEndPoint(listenIP, 0);
-            epSender = (EndPoint) ipeSender;
+            epSender = ipeSender;
             Packet packet = null;
 
             int numBytes = 1;
@@ -218,7 +217,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //
                 int z;
                 for (z = numBytes ; z < RecvBuffer.Length ; z++)
-                    RecvBuffer[z] = (byte)0;
+                    RecvBuffer[z] = 0;
 
                 epProxy = epSender;
                 if (proxyPortOffset != 0)
@@ -242,7 +241,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 catch (Exception e)
                 {
-                    m_log.Debug("[CLIENT]: " + e.ToString());
+                    m_log.Debug("[CLIENT]: " + e);
                 }
             }
 
@@ -255,7 +254,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // do we already have a circuit for this endpoint
                     uint circuit;
 
-                    bool ret = false;
+                    bool ret;
                     lock (clientCircuits)
                     {
                         ret = clientCircuits.TryGetValue(epSender, out circuit);
@@ -312,7 +311,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (Exception a)
             {
-                m_log.Info("[UDPSERVER]: " + a.ToString());
+                m_log.Info("[UDPSERVER]: " + a);
             }
 
             try
@@ -413,8 +412,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_log.Info("[UDPSERVER]: UDP socket bound, getting ready to listen");
 
             ipeSender = new IPEndPoint(listenIP, 0);
-            epSender = (EndPoint)ipeSender;
-            ReceivedData = new AsyncCallback(OnReceivedData);
+            epSender = ipeSender;
+            ReceivedData = OnReceivedData;
             m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 
             m_log.Info("[UDPSERVER]: Listening on port " + newPort);
@@ -429,7 +428,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //EndPoint packetSender)
         {
             // find the endpoint for this circuit
-            EndPoint sendto = null;
+            EndPoint sendto;
             try {
                 sendto = (EndPoint)clientCircuits_reverse[circuitcode];
             } catch {
@@ -457,7 +456,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public virtual void RemoveClientCircuit(uint circuitcode)
         {
-            EndPoint sendto = null;
+            EndPoint sendto;
             if (clientCircuits_reverse.Contains(circuitcode))
             {
                 sendto = (EndPoint)clientCircuits_reverse[circuitcode];
@@ -497,14 +496,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!clientCircuits.ContainsKey(userEP))
                     clientCircuits.Add(userEP, useCircuit.CircuitCode.Code);
                 else
-                    m_log.Error("[CLIENT]: clientCircuits already contans entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+                    m_log.Error("[CLIENT]: clientCircuits already contans entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
             }
 
             // This data structure is synchronized, so we don't need the lock
             if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
                 clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, userEP);
             else
-                m_log.Error("[CLIENT]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+                m_log.Error("[CLIENT]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
 
             lock (proxyCircuits)
             {
