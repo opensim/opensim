@@ -104,6 +104,15 @@ namespace OpenSim.Framework.Communications.Capabilities
         private bool m_dumpAssetsToFile;
         private string m_regionName;
 
+        public bool SSLCaps
+        {
+            get { return m_httpListener.UseSSL; }
+        }
+        public string SSLCommonName
+        {
+            get { return m_httpListener.SSLCommonName; }
+        }
+
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
         public NewInventoryItem AddNewInventoryItem = null;
@@ -119,10 +128,19 @@ namespace OpenSim.Framework.Communications.Capabilities
             m_capsObjectPath = capsPath;
             m_httpListener = httpServer;
             m_httpListenerHostName = httpListen;
+
             m_httpListenPort = httpPort;
+
+            if (httpServer.UseSSL)
+            {
+                m_httpListenPort = httpServer.SSLPort;
+                httpListen = httpServer.SSLCommonName;
+                httpPort = httpServer.SSLPort;
+            }
+
             m_agentID = agent;
             m_dumpAssetsToFile = dumpAssetsToFile;
-            m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort);
+            m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort, httpServer.UseSSL);
             m_regionName = regionName;
         }
 
@@ -541,7 +559,13 @@ namespace OpenSim.Framework.Communications.Capabilities
 
                 m_httpListener.AddStreamHandler(
                     new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
-                string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
+                
+                string protocol = "http://";
+
+                if (m_httpListener.UseSSL)
+                    protocol = "https://";
+
+                string uploaderURL = protocol + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
                                      uploaderPath;
 
                 LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
@@ -587,7 +611,13 @@ namespace OpenSim.Framework.Communications.Capabilities
 
             m_httpListener.AddStreamHandler(
                 new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
-            string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
+
+            string protocol = "http://";
+
+            if (m_httpListener.UseSSL)
+                protocol = "https://";
+
+            string uploaderURL = protocol + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
                                  uploaderPath;
 
             LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
@@ -646,7 +676,13 @@ namespace OpenSim.Framework.Communications.Capabilities
                                   llsdRequest.asset_type, capsBase + uploaderPath, m_httpListener, m_dumpAssetsToFile);
             m_httpListener.AddStreamHandler(
                 new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
-            string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
+
+            string protocol = "http://";
+
+            if (m_httpListener.UseSSL)
+                protocol = "https://";
+
+            string uploaderURL = protocol + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
                                  uploaderPath;
 
             LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();

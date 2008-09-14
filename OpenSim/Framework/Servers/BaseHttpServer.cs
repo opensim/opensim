@@ -61,14 +61,26 @@ namespace OpenSim.Framework.Servers
         protected uint m_sslport;
         protected bool m_ssl = false;
         protected bool m_firstcaps = true;
+        protected string m_SSLCommonName = "";
 
         public uint SSLPort
         {
             get { return m_sslport; }
         }
+
+        public string SSLCommonName
+        {
+            get { return m_SSLCommonName; }
+        }
+
         public uint Port
         {
             get { return m_port; }
+        }
+
+        public bool UseSSL
+        {
+            get { return m_ssl; }
         }
 
         public BaseHttpServer(uint port)
@@ -82,6 +94,7 @@ namespace OpenSim.Framework.Servers
             m_port = port;
             
         }
+
 
         public BaseHttpServer(uint port, bool ssl, uint sslport, string CN)
         {
@@ -102,6 +115,8 @@ namespace OpenSim.Framework.Servers
             
             if (CN.Length > 0)
                 searchCN = CN.ToUpper();
+
+            m_SSLCommonName = searchCN;
 
             Type t = Type.GetType("Mono.Runtime");
             if (t != null)
