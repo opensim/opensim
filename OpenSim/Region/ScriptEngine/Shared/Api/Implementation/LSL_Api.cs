@@ -990,9 +990,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face > -1)
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.R = (float)color.x;
-                texcolor.G = (float)color.y;
-                texcolor.B = (float)color.z;
+                texcolor.R = (float)Math.Min(Math.Max(color.x, 0.0), 1.0);
+                texcolor.G = (float)Math.Min(Math.Max(color.y, 0.0), 1.0);
+                texcolor.B = (float)Math.Min(Math.Max(color.z, 0.0), 1.0);
                 tex.FaceTextures[face].RGBA = texcolor;
                 part.UpdateTexture(tex);
                 return;
@@ -1004,15 +1004,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (tex.FaceTextures[i] != null)
                     {
                         texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.R = (float)color.x;
-                        texcolor.G = (float)color.y;
-                        texcolor.B = (float)color.z;
+                        texcolor.R = (float)Math.Min(Math.Max(color.x, 0.0), 1.0);
+                        texcolor.G = (float)Math.Min(Math.Max(color.y, 0.0), 1.0);
+                        texcolor.B = (float)Math.Min(Math.Max(color.z, 0.0), 1.0);
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
                     texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = (float)color.x;
-                    texcolor.G = (float)color.y;
-                    texcolor.B = (float)color.z;
+                    texcolor.R = (float)Math.Min(Math.Max(color.x, 0.0), 1.0);
+                    texcolor.G = (float)Math.Min(Math.Max(color.y, 0.0), 1.0);
+                    texcolor.B = (float)Math.Min(Math.Max(color.z, 0.0), 1.0);
                     tex.DefaultTexture.RGBA = texcolor;
                 }
                 part.UpdateTexture(tex);
@@ -1253,9 +1253,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (light)
             {
                 part.Shape.LightEntry = true;
-                part.Shape.LightColorR = (float)color.x;
-                part.Shape.LightColorG = (float)color.y;
-                part.Shape.LightColorB = (float)color.z;
+                part.Shape.LightColorR = (float)Math.Min(Math.Max(color.x, 0.0), 1.0);
+                part.Shape.LightColorG = (float)Math.Min(Math.Max(color.y, 0.0), 1.0);
+                part.Shape.LightColorB = (float)Math.Min(Math.Max(color.z, 0.0), 1.0);
                 part.Shape.LightIntensity = intensity;
                 part.Shape.LightRadius = radius;
                 part.Shape.LightFalloff = falloff;
