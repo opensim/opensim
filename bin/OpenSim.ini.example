@@ -169,6 +169,15 @@ dump_assets_to_file = false
 http_listener_port = 9000
 remoting_listener_port = 8895
 
+; ssl config: Experimental!  The auto https config only really works definately on windows XP now
+; you need a Cert Request/Signed pair installed in the MY store with the CN specified below
+; you can use https on other platforms, but you'll need to configure the httpapi yourself for now
+http_listener_ssl = false ; Also create a SSL server
+http_listener_cn = "localhost" ; Use the cert with the common name
+http_listener_sslport = 9001 ; Use this port for SSL connections
+http_listener_ssl_cert = "" ; Currently unused, but will be used for OSHttpServer
+
+
 ; Uncomment below to enable llRemoteData/remote channels
 ; remoteDataPort = 20800
 

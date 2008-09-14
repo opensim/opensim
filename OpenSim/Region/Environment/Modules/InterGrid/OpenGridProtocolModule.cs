@@ -86,6 +86,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         private Dictionary<UUID, OGPState> m_OGPState = new Dictionary<UUID, OGPState>();
         private string LastNameSuffix = "_EXTERNAL";
         private string FirstNamePrefix = "";
+        private string httpsCN = "";
+        private bool httpSSL = false;
+        private uint httpsslport = 0;
 
         #region IRegionModule Members
 
@@ -93,6 +96,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         {
             bool enabled = false;
             IConfig cfg = null;
+            IConfig httpcfg = null;
             try
             {
                 cfg = config.Configs["OpenGridProtocol"];
@@ -100,6 +104,16 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             {
                 enabled = false;
             }
+
+            try
+            {
+                httpcfg = config.Configs["Network"];
+            }
+            catch (NullReferenceException)
+            {
+               
+            }
+
             if (cfg != null)
             {
                 enabled = cfg.GetBoolean("ogp_enabled", false);
@@ -136,6 +150,20 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
                         if (!m_scene.Contains(scene))
                             m_scene.Add(scene);
+                    }
+                }
+            }
+            lock (m_scene)
+            {
+                if (m_scene.Count == 1)
+                {
+                    if (httpcfg != null)
+                    {
+                        httpSSL = httpcfg.GetBoolean("http_listener_ssl", false);
+                        httpsCN = httpcfg.GetString("http_listener_cn", scene.RegionInfo.ExternalHostName);
+                        if (httpsCN.Length == 0)
+                            httpsCN = scene.RegionInfo.ExternalHostName;
+                        httpsslport = (uint)httpcfg.GetInt("http_listener_sslport",((int)scene.RegionInfo.HttpPort + 1));
                     }
                 }
             }
@@ -371,14 +399,35 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             // Get a reference to the user's cap so we can pull out the Caps Object Path
             OpenSim.Framework.Communications.Capabilities.Caps userCap = homeScene.GetCapsHandlerForUser(agentData.AgentID);
 
+            string rezHttpProtocol = "http://";
+            string regionCapsHttpProtocol = "http://";
+            string httpaddr = reg.ExternalHostName;
+            string urlport = reg.HttpPort.ToString();
+
+
+            if (httpSSL)
+            {
+                rezHttpProtocol = "https://";
+
+                urlport = httpsslport.ToString();
+
+                if (httpsCN.Length > 0)
+                    httpaddr = httpsCN;
+            }
+            
+
+            // Be warned that the two following lines assume http not 
+            // https since region caps are not implemented in https currently
+
             // DEPRECIATED
-            responseMap["seed_capability"] = LLSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
+            responseMap["seed_capability"] = LLSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
             
             // REPLACEMENT
-            responseMap["region_seed_capability"] = LLSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
+            responseMap["region_seed_capability"] = LLSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
+
             
-            responseMap["rez_avatar/rez"] = LLSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + rezAvatarPath);
-            responseMap["rez_avatar/derez"] = LLSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + derezAvatarPath);
+            responseMap["rez_avatar/rez"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);
+            responseMap["rez_avatar/derez"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + derezAvatarPath);
 
             // Add the user to the list of CAPS that are outstanding.
             // well allow the caps hosts in this dictionary

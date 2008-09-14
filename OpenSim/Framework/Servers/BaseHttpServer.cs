@@ -26,18 +26,21 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Xml;
 using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
+
 
 namespace OpenSim.Framework.Servers
 {
@@ -55,9 +58,14 @@ namespace OpenSim.Framework.Servers
         protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
 
         protected uint m_port;
+        protected uint m_sslport;
         protected bool m_ssl = false;
         protected bool m_firstcaps = true;
 
+        public uint SSLPort
+        {
+            get { return m_sslport; }
+        }
         public uint Port
         {
             get { return m_port; }
@@ -72,7 +80,123 @@ namespace OpenSim.Framework.Servers
         {
             m_ssl = ssl;
             m_port = port;
+            
         }
+
+        public BaseHttpServer(uint port, bool ssl, uint sslport, string CN)
+        {
+            m_ssl = ssl;
+            m_port = port;
+            if (m_ssl)
+            {
+                bool result = SetupSsl((int)sslport, CN);
+                m_sslport = sslport;
+            }
+        }
+
+        
+        
+        public bool SetupSsl(int port, string CN)
+        {
+            string searchCN = Environment.MachineName.ToUpper();
+            
+            if (CN.Length > 0)
+                searchCN = CN.ToUpper();
+
+            Type t = Type.GetType("Mono.Runtime");
+            if (t != null)
+            {
+                // TODO Mono User Friendly HTTPS setup
+                // if this doesn't exist, then mono people can still manually use httpcfg
+            }
+            else
+            {
+                // Windows.
+                // Search through the store for a certificate with a Common name specified in OpenSim.ini.
+                // We need to find it's hash so we can pass it to httpcfg
+                X509Store store = new X509Store(StoreLocation.LocalMachine);
+                //Use the first cert to configure Ssl
+                store.Open(OpenFlags.ReadOnly);
+                //Assumption is we have certs. If not then this call will fail :(
+                try
+                {
+                    bool found = false;
+                    //X509Certificate2.CreateFromCertFile("testCert.cer");
+
+                    foreach (X509Certificate2 cert in store.Certificates)
+                    {
+                        String certHash = cert.GetCertHashString();
+                        //Only install certs issued for the machine and has the name as the machine name
+                        if (cert.Subject.ToUpper().IndexOf(searchCN) >= 0)
+                        {
+                            string httpcfgparams = String.Format("set ssl -i 0.0.0.0:{1} -c \"MY\" -h {0}", certHash, port);
+                            try
+                            {
+                                found = true;
+
+                                ExecuteHttpcfgCommand(httpcfgparams);
+ 
+                                break;
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.WarnFormat("[HTTPS]: Automatic HTTPS setup failed.  Do you have httpcfg.exe in your path?  If not, you can download it in the windowsXP Service Pack 2 Support Tools, here: http://www.microsoft.com/downloads/details.aspx?FamilyID=49ae8576-9bb9-4126-9761-ba8011fabf38&displaylang=en.  When you get it installed type, httpcfg {0}", httpcfgparams);
+                                return false;
+                            }
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        m_log.WarnFormat("[HTTPS]: We didn't find a certificate that matched the common name {0}.  Automatic HTTPS setup failed, you may have certificate errors.  To fix this, make sure you generate a certificate request(CSR) using OpenSSL or the IIS snap-in with the common name you specified in opensim.ini. Then get it signed by a certification authority or sign it yourself with OpenSSL and the junkCA.  Finally, be sure to import the cert to the 'MY' store(StoreLocation.LocalMachine)", searchCN);
+                        return false;
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[HTTPS]: We didn't any certificates in your LocalMachine certificate store.  Automatic HTTPS setup failed, you may have certificate errors.  To fix this, make sure you generate a certificate request(CSR) using OpenSSL or the IIS snap-inwith the common name you specified in opensim.ini. Then get it signed by a certification authority or sign it yourself with OpenSSL and the junkCA.  Finally, be sure to import the cert to the 'MY' store(StoreLocation.LocalMachine). The configured common name is {0}", searchCN);
+                    return false;
+                }
+                finally
+                {
+                    if (store != null)
+                    {
+                        store.Close();
+                    }
+                }
+            }
+            return true;
+        }
+
+        private void ExecuteHttpcfgCommand(string p)
+        {
+            
+            string file = "httpcfg";
+
+            ProcessStartInfo info = new ProcessStartInfo(file, p);
+            // Redirect output so we can read it.
+            info.RedirectStandardOutput = true;
+            // To redirect, we must not use shell execute.
+            info.UseShellExecute = false;
+
+            // Create and execute the process.
+            Process httpcfgprocess = Process.Start(info);
+            httpcfgprocess.Start();
+            string result = httpcfgprocess.StandardOutput.ReadToEnd();
+            if (result.Contains("HttpSetServiceConfiguration completed with"))
+            {
+                //success
+            
+            }
+            else
+            {
+                //fail
+                m_log.WarnFormat("[HTTPS]:Error binding certificate with the requested port.  Message:{0}", result);
+            }
+            
+        }
+
 
         /// <summary>
         /// Add a stream handler to the http server.  If the handler already exists, then nothing happens.
@@ -907,7 +1031,8 @@ namespace OpenSim.Framework.Servers
                 }
                 else
                 {
-                    m_httpListener.Prefixes.Add("https://+:" + m_port + "/");
+                    m_httpListener.Prefixes.Add("https://+:" + (m_sslport) + "/");
+                    m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
                 }
                 m_httpListener.Start();
 
@@ -921,7 +1046,7 @@ namespace OpenSim.Framework.Servers
             catch (Exception e)
             {
                 m_log.Warn("[HTTPD]: Error - " + e.Message);
-                m_log.Warn("Tip: Do you have permission to listen on port " + m_port + "?");
+                m_log.Warn("Tip: Do you have permission to listen on port " + m_port + "," + m_sslport + "?");
             }
         }
 

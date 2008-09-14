@@ -49,6 +49,9 @@ namespace OpenSim.Framework
         public string UserRecvKey = String.Empty;
         public string UserSendKey = String.Empty;
         public string UserURL = String.Empty;
+        public bool HttpUsesSSL = false;
+        public string HttpSSLCN = "";
+        public uint httpSSLPort = 9001;
 
 
         public NetworkServersInfo()
@@ -78,6 +81,10 @@ namespace OpenSim.Framework
 
             HttpListenerPort =
                 (uint) config.Configs["Network"].GetInt("http_listener_port", (int) DefaultHttpListenerPort);
+            httpSSLPort =
+                (uint)config.Configs["Network"].GetInt("http_listener_sslport", ((int)DefaultHttpListenerPort+1));
+            HttpUsesSSL = config.Configs["Network"].GetBoolean("http_listener_ssl", false);
+            HttpSSLCN = config.Configs["Network"].GetString("http_listener_cn", "");
             RemotingListenerPort =
                 (uint) config.Configs["Network"].GetInt("remoting_listener_port", (int) RemotingListenerPort);
             GridURL =

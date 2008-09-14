@@ -81,7 +81,12 @@ namespace OpenSim.Region.ClientStack
 
             Initialize();
 
-            m_httpServer = new BaseHttpServer(m_httpServerPort);
+            m_httpServer = new BaseHttpServer(m_httpServerPort,m_networkServersInfo.HttpUsesSSL,m_networkServersInfo.httpSSLPort, m_networkServersInfo.HttpSSLCN);
+            if (m_networkServersInfo.HttpUsesSSL && (m_networkServersInfo.HttpListenerPort == m_networkServersInfo.httpSSLPort))
+            {
+                m_log.Error("[HTTP]: HTTP Server config failed.   HTTP Server and HTTPS server must be on different ports");
+            }
+
 
             m_log.Info("[REGION]: Starting HTTP server");
 
