@@ -453,9 +453,9 @@ namespace OpenSim.Grid.MessagingServer
             else
             {
                 agentData.startpos =
-                     new Vector3(Convert.ToUInt32(requestData["positionx"]),
-                                  Convert.ToUInt32(requestData["positiony"]),
-                                  Convert.ToUInt32(requestData["positionz"]));
+                     new Vector3(Convert.ToSingle(requestData["positionx"]),
+                                 Convert.ToSingle(requestData["positiony"]),
+                                 Convert.ToSingle(requestData["positionz"]));
                 agentData.child = false;
             }
 
