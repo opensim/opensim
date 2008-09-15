@@ -34,8 +34,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
     {
         public static double MetersToSphericalStrength(double size)
         {
-            //return Math.Pow(2, size);
-            return (size + 1) * 2.0; // MCP: a more useful brush size range
+            return Math.Pow(2, size);
         }
 
         public static double SphericalFactor(double x, double y, double rx, double ry, double size)

@@ -42,7 +42,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 
             double sum = 0.0;
             double step2 = 0.0;
-            double durationFactor = 0.15; //MCP: tuned, but would be nice to come from ini file
 
             // compute delta map
             for (x = 0; x < map.Width; x++)
@@ -66,7 +65,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
             {
                 for (y = 0; y < map.Height; y++)
                 {
-                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength) * duration * durationFactor;
+                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength) * duration;
 
                     if (z > 0) // add in non-zero amount
                     {
