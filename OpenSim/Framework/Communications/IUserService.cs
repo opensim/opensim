@@ -40,8 +40,6 @@ namespace OpenSim.Framework.Communications
         /// <returns>A user profile.  Returns null if no profile is found</returns>
         UserProfileData GetUserProfile(string firstName, string lastName);
 
-        //UserProfileData GetUserProfile(string name);
-
         /// <summary>
         /// Loads a user profile from a database by UUID
         /// </summary>
@@ -59,27 +57,12 @@ namespace OpenSim.Framework.Communications
         UserProfileData SetupMasterUser(UUID userId);
 
         /// <summary>
-        /// Add a new user profile
-        /// </summary>
-        /// <param name="user"></param>
-        UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);
-
-        /// <summary>
         /// Update the user's profile.
         /// </summary>
         /// <param name="data">UserProfileData object with updated data. Should be obtained 
         ///                    via a call to GetUserProfile().</param>
         /// <returns>true if the update could be applied, false if it could not be applied.</returns>
         bool UpdateUserProfile(UserProfileData data);
-        
-        /// <summary>
-        /// Reset a user password
-        /// </summary>
-        /// <param name="firstName"></param>
-        /// <param name="lastName"></param>
-        /// <param name="newPassword"></param>
-        /// <returns>true if the update was successful, false otherwise</returns>
-        bool ResetUserPassword(string firstName, string lastName, string newPassword);
 
         /// <summary>
         /// Adds a new friend to the database for XUser

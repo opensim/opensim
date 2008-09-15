@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Communications
     /// <summary>
     /// Base class for user management (create, read, etc)
     /// </summary>
-    public abstract class UserManagerBase : IUserService, IAvatarService
+    public abstract class UserManagerBase : IUserService, IUserServiceAdmin, IAvatarService
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

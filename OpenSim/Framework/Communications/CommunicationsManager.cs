@@ -98,6 +98,11 @@ namespace OpenSim.Framework.Communications
             get { return m_networkServersInfo; }
         }
         protected NetworkServersInfo m_networkServersInfo;
+             
+        /// <summary>
+        /// Interface to administrative user service calls.
+        /// </summary>
+        protected IUserServiceAdmin m_userServiceAdmin;        
 
         /// <summary>
         /// Constructor
@@ -243,7 +248,7 @@ namespace OpenSim.Framework.Communications
         {
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
 
-            m_userService.AddUserProfile(firstName, lastName, md5PasswdHash, regX, regY);
+            m_userServiceAdmin.AddUserProfile(firstName, lastName, md5PasswdHash, regX, regY);
             UserProfileData userProf = UserService.GetUserProfile(firstName, lastName);
             if (userProf == null)
             {
@@ -266,7 +271,7 @@ namespace OpenSim.Framework.Communications
         /// <returns>true if the update was successful, false otherwise</returns>
         public bool ResetUserPassword(string firstName, string lastName, string newPassword)
         {
-            return m_userService.ResetUserPassword(firstName, lastName, newPassword);
+            return m_userServiceAdmin.ResetUserPassword(firstName, lastName, newPassword);
         }
 
         #region Friend Methods

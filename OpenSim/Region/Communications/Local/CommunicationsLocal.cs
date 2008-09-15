@@ -39,6 +39,7 @@ namespace OpenSim.Region.Communications.Local
             BaseHttpServer httpServer,
             AssetCache assetCache,
             IUserService userService,
+            IUserServiceAdmin userServiceAdmin,
             LocalInventoryService inventoryService,
             IInterRegionCommunications interRegionService,
             IGridServices gridService, bool dumpAssetsToFile)
@@ -48,6 +49,7 @@ namespace OpenSim.Region.Communications.Local
             m_defaultInventoryHost = inventoryService.Host;
             m_interServiceInventoryService = inventoryService;
             m_userService = userService;
+            m_userServiceAdmin = userServiceAdmin;
             m_avatarService = (IAvatarService)userService;
             m_gridService = gridService;
             m_interRegion = interRegionService;

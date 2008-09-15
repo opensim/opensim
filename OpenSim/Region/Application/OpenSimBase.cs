@@ -383,7 +383,7 @@ namespace OpenSim
                 LocalBackEndServices backendService = new LocalBackEndServices();
 
                 CommunicationsLocal localComms =
-                    new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService,
+                    new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, userService,
                                             inventoryService, backendService, backendService, m_dumpAssetsToFile);
                 m_commsManager = localComms;
 
