@@ -107,7 +107,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
         internal float m_ScriptDelayFactor = 1.0f;
         internal float m_ScriptDistanceFactor = 1.0f;
-        internal Dictionary<string, bool> m_FunctionPerms = new Dictionary<string, bool>();
+        internal Dictionary<string, List<UUID> > m_FunctionPerms = new Dictionary<string, List<UUID> >();
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
@@ -184,15 +184,52 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!m_FunctionPerms.ContainsKey(function))
             {
-                m_FunctionPerms[function] =
-                    m_ScriptEngine.Config.GetBoolean("Allow_"+function, true);
+                string perm = m_ScriptEngine.Config.GetString("Allow_"+function, "true");
+                bool allowed;
+
+                if (bool.TryParse(perm, out allowed))
+                {
+                    // Boolean given
+                    if(allowed)
+                        m_FunctionPerms[function] = null; // a null value is all
+                    else
+                        m_FunctionPerms[function] = new List<UUID>(); // Empty list = none
+                }
+                else
+                {
+                    m_FunctionPerms[function] = new List<UUID>();
+
+                    string[] ids = perm.Split(new char[] {','});
+                    foreach (string id in ids)
+                    {
+                        string current = id.Trim();
+                        UUID uuid;
+
+                        if (UUID.TryParse(current, out uuid))
+                        {
+                            m_FunctionPerms[function].Add(uuid);
+                        }
+                    }
+                }
             }
 
-            if (!m_FunctionPerms[function])
-                return;
-
-            if (level > m_MaxThreatLevel)
-                throw new Exception("Threat level too high - "+function);
+            // If the list is null, then the value was true / undefined
+            // Threat level governs permissions in this case
+            //
+            // If the list is non-null, then it is a list of UUIDs allowed
+            // to use that particular function. False causes an empty
+            // list and therefore means "no one"
+            //
+            if (m_FunctionPerms[function] == null) // No list = true
+            {
+                if (level > m_MaxThreatLevel)
+                    throw new Exception("Threat level too high - "+function);
+            }
+            else
+            {
+                if (!m_FunctionPerms[function].Contains(m_host.OwnerID))
+                    throw new Exception("Threat level too high - "+function);
+            }
         }
 
         protected void ScriptSleep(int delay)

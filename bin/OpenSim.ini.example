@@ -692,6 +692,17 @@ ScriptDelayFactor = 1.0
 ; The factor the 10 m distances llimits are multiplied by
 ScriptDistanceLimitFactor = 1.0
 
+; OS Functions enable/disable
+; For each function, you can add one line, as shown
+
+; true is the default for all functions, and allows them if below threat level
+; Allow_osSetRegionWaterHeight = true
+
+; false disables the function completely
+; Allow_osSetRegionWaterHeight = false
+
+; Comma separated list of UUIDS allows the function for that list of UUIDS
+; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb
 
 [GridInfo]
 
