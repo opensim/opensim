@@ -36,6 +36,7 @@ using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
+using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
@@ -46,6 +47,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal SceneObjectPart m_host;
         internal uint m_localID;
         internal UUID m_itemID;
+        internal AsyncCommandManager AsyncCommands = null;
+        internal float m_ScriptDelayFactor = 1.0f;
+        internal float m_ScriptDistanceFactor = 1.0f;
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
@@ -53,6 +57,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host = host;
             m_localID = localID;
             m_itemID = itemID;
+
+            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            if (config.Configs["XEngine"] == null)
+                config.AddConfig("XEngine");
+
+            m_ScriptDelayFactor = config.Configs["XEngine"].
+                    GetFloat("ScriptDelayFactor", 1.0f);
+            m_ScriptDistanceFactor = config.Configs["XEngine"].
+                    GetFloat("ScriptDistanceLimitFactor", 1.0f);
+
+            AsyncCommands = (AsyncCommandManager)ScriptEngine.AsyncCommands;
         }
 
         //
@@ -67,6 +82,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 lease.InitialLeaseTime = TimeSpan.Zero;
             }
             return lease;
+        }
+
+        protected void ScriptSleep(int delay)
+        {
+            delay = (int)((float)delay * m_ScriptDelayFactor);
+            if (delay == 0)
+                return;
+            System.Threading.Thread.Sleep(delay);
         }
 
         //
@@ -310,6 +333,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_host.ParentGroup.RootPart.SetFloatOnWater(floatYN);
                 }
             }
+        }
+
+        // Teleport functions
+        public void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        {
+            m_host.AddScriptLPS(1);
+            UUID agentId = new UUID();
+            if (UUID.TryParse(agent, out agentId))
+            {
+                ScenePresence presence = World.GetScenePresence(agentId);
+                if (presence != null)
+                {
+                    // agent must be over owners land to avoid abuse
+                    if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
+                    {
+                        World.RequestTeleportLocation(presence.ControllingClient, regionName,
+                            new Vector3((float)position.x, (float)position.y, (float)position.z),
+                            new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation);
+                        // ScriptSleep(5000);
+                    }
+                }
+            }
+        }
+
+        public void osTeleportAgent(string agent, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        {
+            osTeleportAgent(agent, World.RegionInfo.RegionName, position, lookat);
         }
 
         // Adam's super super custom animation functions

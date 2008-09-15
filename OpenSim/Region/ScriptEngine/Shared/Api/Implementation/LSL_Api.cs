@@ -87,7 +87,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             AsyncCommands = (AsyncCommandManager)ScriptEngine.AsyncCommands;
         }
 
-        private void ScriptSleep(int delay)
+        protected void ScriptSleep(int delay)
         {
             delay = (int)((float)delay * m_ScriptDelayFactor);
             if (delay == 0)

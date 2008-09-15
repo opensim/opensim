@@ -44,6 +44,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetParcelMediaURL(string url);
         void osSetPrimFloatOnWater(int floatYN);
 
+        // Teleport commands
+        void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
+        void osTeleportAgent(string agent, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
+
         // Animation commands
         void osAvatarPlayAnimation(string avatar, string animation);
         void osAvatarStopAnimation(string avatar, string animation);

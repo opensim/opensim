@@ -37,7 +37,7 @@ using rotation = OpenSim.Region.ScriptEngine.Common.LSL_Types.Quaternion;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
-    public class BuiltIn_Commands_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface, IScript
+    public class BuiltIn_Commands_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface, OSSL_BuilIn_Commands_Interface, IScript
     {
         //
         // Included as base for any LSL-script that is compiled.
@@ -1940,6 +1940,18 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void osSetPrimFloatOnWater(int floatYN)
         {
             m_LSL_Functions.osSetPrimFloatOnWater(floatYN);
+        }
+
+        // Teleport Functions
+
+        public void osTeleportAgent(string agent, string regionName, vector position, vector lookat)
+        {
+            m_LSL_Functions.osTeleportAgent(agent, regionName, position, lookat);
+        }
+
+        public void osTeleportAgent(string agent, vector position, vector lookat)
+        {
+            m_LSL_Functions.osTeleportAgent(agent, position, lookat);
         }
 
         // Animation Functions

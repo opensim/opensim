@@ -32,7 +32,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
-
+using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 //using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.Common
@@ -434,6 +434,34 @@ namespace OpenSim.Region.ScriptEngine.Common
                     m_host.ParentGroup.RootPart.SetFloatOnWater(floatYN);
                 }
             }
+        }
+
+        // Teleport functions
+        public void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        {
+            m_host.AddScriptLPS(1);
+            UUID agentId = new UUID();
+            if (UUID.TryParse(agent, out agentId))
+            {
+                ScenePresence presence = World.GetScenePresence(agentId);
+                if (presence != null)
+                {
+                    // agent must be over owners land to avoid abuse
+                    if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
+                    {
+                        World.RequestTeleportLocation(presence.ControllingClient, regionName,
+                            new Vector3((float)position.x, (float)position.y, (float)position.z),
+                            new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation);
+                        // ScriptSleep(5000);
+
+                    }
+                }
+            }
+        }
+
+        public void osTeleportAgent(string agent, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        {
+            osTeleportAgent(agent, World.RegionInfo.RegionName, position, lookat);
         }
 
         // Adam's super super custom animation functions

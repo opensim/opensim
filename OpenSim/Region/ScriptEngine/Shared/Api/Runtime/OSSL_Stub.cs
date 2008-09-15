@@ -122,6 +122,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osSetPrimFloatOnWater(floatYN);
         }
 
+        // Teleport Functions
+
+        public void osTeleportAgent(string agent, string regionName, vector position, vector lookat)
+        {
+            m_OSSL_Functions.osTeleportAgent(agent, regionName, position, lookat);
+        }
+
+        public void osTeleportAgent(string agent, vector position, vector lookat)
+        {
+            m_OSSL_Functions.osTeleportAgent(agent, position, lookat);
+        }
+
         // Animation Functions
 
         public void osAvatarPlayAnimation(string avatar, string animation)

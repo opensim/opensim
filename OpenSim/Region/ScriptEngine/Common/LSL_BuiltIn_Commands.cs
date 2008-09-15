@@ -88,7 +88,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         private float m_distanceFactor = 1.0f;
 
 
-        private void ScriptSleep(int delay)
+        protected void ScriptSleep(int delay)
         {
             delay = (int)((float)delay * m_delayFactor);
             if (delay == 0)
