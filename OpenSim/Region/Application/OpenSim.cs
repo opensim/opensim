@@ -243,51 +243,6 @@ namespace OpenSim
                     Debug(cmdparams);
                     break;
 
-                case "help":
-                    m_console.Notice("alert - send alert to a designated user or all users.");
-                    m_console.Notice("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
-                    m_console.Notice("  alert general [Message] - send an alert to all users.");
-                    m_console.Notice("backup - persist simulator objects to the database ahead of the normal schedule.");
-                    m_console.Notice("clear-assets - clear the asset cache");
-                    m_console.Notice("create-region <name> <regionfile.xml> - create a new region");
-                    m_console.Notice("change-region <name> - select the region that single region commands operate upon.");
-                    m_console.Notice("command-script [filename] - Execute command in a file.");
-                    m_console.Notice("debug - debugging commands");
-                    m_console.Notice("  debug packet 0..255 - print incoming/outgoing packets (0=off)");
-                    m_console.Notice("  debug scene [scripting] [collision] [physics] - Enable/Disable debug stuff, each can be True/False");
-                    m_console.Notice("edit-scale [prim name] [x] [y] [z] - resize given prim");
-                    m_console.Notice("export-map [filename] - save image of world map");
-                    m_console.Notice("force-update - force an update of prims in the scene");
-                    m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
-                    m_console.Notice("remove-region [name] - remove a region");
-                    m_console.Notice("load-xml [filename] - load prims from XML (DEPRECATED)");
-                    m_console.Notice("save-xml [filename] - save prims to XML (DEPRECATED)");
-                    m_console.Notice("save-xml2 [filename] - save prims to XML using version 2 format");
-                    m_console.Notice("load-xml2 [filename] - load prims from XML using version 2 format");
-                    m_console.Notice("load-oar [filename] - load an OpenSimulator region archive.  This replaces everything in the current region.");
-                    m_console.Notice("save-oar [filename] - Save the current region to an OpenSimulator region archive.");
-                    m_console.Notice("script - manually trigger scripts? or script commands?");
-                    m_console.Notice("set-time [x] - set the current scene time phase");
-                    m_console.Notice("show assets - show state of asset cache.");
-                    m_console.Notice("show users - show info about connected users (only root agents).");
-                    m_console.Notice("show users full - show info about connected users (root and child agents).");
-                    m_console.Notice("show modules - shows info about loaded modules.");
-                    m_console.Notice("show regions - show running region information.");
-                    m_console.Notice("config set section field value - set a config value");
-                    m_console.Notice("config get section field - get a config value");
-                    m_console.Notice("config save - save OpenSim.ini");
-                    m_console.Notice("terrain help - show help for terrain commands.");
-                    ShowPluginCommandsHelp(CombineParams(cmdparams, 0), m_console);
-
-                    if (m_sandbox)
-                    {
-                        m_console.Notice("");
-                        m_console.Notice("create user - adds a new user.");
-                        m_console.Notice("reset user password - reset a user's password.");
-                    }
-
-                    break;
-
                 case "save-xml":
                     SaveXml(cmdparams);
                     break;

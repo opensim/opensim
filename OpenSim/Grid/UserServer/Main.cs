@@ -227,12 +227,6 @@ namespace OpenSim.Grid.UserServer
 
             switch (cmd)
             {
-                case "help":
-                    m_console.Notice("create user - create a new user");
-                    m_console.Notice(
-                        "logoff-user <firstname> <lastname> <message> - logs off the specified user from the grid");
-                    break;
-
                 case "create":
                     do_create(cmdparams[0]);
                     break;
@@ -308,6 +302,15 @@ namespace OpenSim.Grid.UserServer
 
                     break;
             }
+        }
+        
+        protected override void ShowHelp(string[] helpArgs)
+        {
+            base.ShowHelp(helpArgs);  
+
+            m_console.Notice("create user - create a new user");
+            m_console.Notice(
+                "logoff-user <firstname> <lastname> <message> - logs off the specified user from the grid");
         }
 
         public override void Shutdown()

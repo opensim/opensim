@@ -150,14 +150,18 @@ namespace OpenSim.Grid.MessagingServer
 
             switch (cmd)
             {
-                case "help":
-                    m_console.Notice("clear-cache - Clears region cache.  Should be done when regions change position.  The region cache gets stale after a while.");
-                    break;
                 case "clear-cache":
                     int entries = msgsvc.ClearRegionCache();
                     m_console.Notice("Region cache cleared! Cleared " + entries.ToString() + " entries");
                     break;
             }
+        }
+        
+        protected override void ShowHelp(string[] helpArgs)
+        {
+            base.ShowHelp(helpArgs);
+            
+            m_console.Notice("clear-cache - Clears region cache.  Should be done when regions change position.  The region cache gets stale after a while.");
         }
 
         public override void Shutdown()
