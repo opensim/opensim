@@ -116,10 +116,6 @@ namespace OpenSim.Framework
 
         # endregion
 
-        public Util()
-        {
-        }
-
         public static Random RandomClass
         {
             get { return randomClass; }
@@ -256,6 +252,11 @@ namespace OpenSim.Framework
             return epoch.AddSeconds(seconds);
         }
 
+        /// <summary>
+        /// Return an md5 hash of the given string
+        /// </summary>
+        /// <param name="pass"></param>
+        /// <returns></returns>
         public static string Md5Hash(string pass)
         {
             MD5 md5 = MD5CryptoServiceProvider.Create();

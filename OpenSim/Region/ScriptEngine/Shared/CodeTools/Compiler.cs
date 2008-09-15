@@ -512,7 +512,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             //parameters.WarningLevel = 1; // Should be 4?
             parameters.TreatWarningsAsErrors = false;
 
-//Console.WriteLine(Script);
+Console.WriteLine(Script);
             CompilerResults results;
             switch (lang)
             {
@@ -575,6 +575,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                             ", '" + CompErr.ErrorText + "'\r\n";
                     }
                 }
+                
                 Console.WriteLine("[COMPILER MESSAGES]: " + errtext);
                 if (!File.Exists(OutFile))
                 {

@@ -102,7 +102,7 @@ namespace OpenSim.Framework.Servers
             m_port = port;
             if (m_ssl)
             {
-                bool result = SetupSsl((int)sslport, CN);
+                SetupSsl((int)sslport, CN);
                 m_sslport = sslport;
             }
         }
@@ -155,7 +155,7 @@ namespace OpenSim.Framework.Servers
                             }
                             catch (Exception e)
                             {
-                                m_log.WarnFormat("[HTTPS]: Automatic HTTPS setup failed.  Do you have httpcfg.exe in your path?  If not, you can download it in the windowsXP Service Pack 2 Support Tools, here: http://www.microsoft.com/downloads/details.aspx?FamilyID=49ae8576-9bb9-4126-9761-ba8011fabf38&displaylang=en.  When you get it installed type, httpcfg {0}", httpcfgparams);
+                                m_log.WarnFormat("[HTTPS]: Automatic HTTPS setup failed.  Do you have httpcfg.exe in your path?  If not, you can download it in the windowsXP Service Pack 2 Support Tools, here: http://www.microsoft.com/downloads/details.aspx?FamilyID=49ae8576-9bb9-4126-9761-ba8011fabf38&displaylang=en.  When you get it installed type, httpcfg {0} - {1}", httpcfgparams, e);
                                 return false;
                             }
                         }
@@ -170,7 +170,7 @@ namespace OpenSim.Framework.Servers
                 }
                 catch (Exception e)
                 {
-                    m_log.WarnFormat("[HTTPS]: We didn't any certificates in your LocalMachine certificate store.  Automatic HTTPS setup failed, you may have certificate errors.  To fix this, make sure you generate a certificate request(CSR) using OpenSSL or the IIS snap-inwith the common name you specified in opensim.ini. Then get it signed by a certification authority or sign it yourself with OpenSSL and the junkCA.  Finally, be sure to import the cert to the 'MY' store(StoreLocation.LocalMachine). The configured common name is {0}", searchCN);
+                    m_log.WarnFormat("[HTTPS]: We didn't any certificates in your LocalMachine certificate store.  Automatic HTTPS setup failed, you may have certificate errors.  To fix this, make sure you generate a certificate request(CSR) using OpenSSL or the IIS snap-inwith the common name you specified in opensim.ini. Then get it signed by a certification authority or sign it yourself with OpenSSL and the junkCA.  Finally, be sure to import the cert to the 'MY' store(StoreLocation.LocalMachine). The configured common name is {0} - {1}", searchCN, e);
                     return false;
                 }
                 finally
