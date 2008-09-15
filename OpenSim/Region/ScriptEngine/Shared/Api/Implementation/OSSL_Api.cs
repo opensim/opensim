@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
 using OpenMetaverse;
 using Nini.Config;
@@ -106,6 +107,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
         internal float m_ScriptDelayFactor = 1.0f;
         internal float m_ScriptDistanceFactor = 1.0f;
+        internal Dictionary<string, bool> m_FunctionPerms = new Dictionary<string, bool>();
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
@@ -177,6 +179,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void CheckThreatLevel(ThreatLevel level, string function)
         {
+            if (!m_FunctionPerms.ContainsKey(function))
+            {
+                m_FunctionPerms[function] =
+                    m_ScriptEngine.Config.GetBoolean("Allow_"+function, true);
+            }
+
+            if (!m_FunctionPerms[function])
+                return;
+
             if (level > m_MaxThreatLevel)
                 throw new Exception("Threat level too high - "+function);
         }
