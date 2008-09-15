@@ -469,6 +469,11 @@ namespace OpenSim.Region.Communications.OGS1
         {
             throw new Exception("The method or operation is not implemented.");
         }
+        
+        public bool ResetUserPassword(string firstName, string lastName, string newPassword)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }        
 
         // TODO
         public bool UpdateUserProfile(UserProfileData data)

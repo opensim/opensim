@@ -361,8 +361,6 @@ namespace OpenSim.Framework.Communications
         /// <param name="request">The users loginrequest</param>
         public void CreateAgent(UserProfileData profile, XmlRpcRequest request)
         {
-            Hashtable requestData = (Hashtable) request.Params[0];
-
             UserAgentData agent = new UserAgentData();
 
             // User connection
@@ -574,6 +572,33 @@ namespace OpenSim.Framework.Communications
 
             return user.ID;
         }
+        
+        /// <summary>
+        /// Reset a user password
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="newPassword"></param>
+        /// <returns>true if the update was successful, false otherwise</returns>
+        public bool ResetUserPassword(string firstName, string lastName, string newPassword)
+        {
+            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(newPassword) + ":" + String.Empty);
+            
+            UserProfileData profile = GetUserProfile(firstName, lastName);
+            
+            if (null == profile)
+            {
+                m_log.ErrorFormat("[USERSTORAGE]: Could not find user {0} {1}", firstName, lastName);
+                return false;
+            }
+            
+            profile.PasswordHash = md5PasswdHash;
+            profile.PasswordSalt = String.Empty;
+            
+            UpdateUserProfile(profile);
+            
+            return true;
+        }        
 
         public bool UpdateUserProfileProperties(UserProfileData UserProfile)
         {

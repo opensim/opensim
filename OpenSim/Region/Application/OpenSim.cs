@@ -283,6 +283,7 @@ namespace OpenSim
                     {
                         m_console.Notice("");
                         m_console.Notice("create user - adds a new user.");
+                        m_console.Notice("reset user password - reset a user's password.");
                     }
 
                     break;
@@ -493,6 +494,10 @@ namespace OpenSim
                         m_commsManager.AddInventoryService(cmdparams[0]);
                     }
                     break;
+                                    
+                case "reset":
+                    Reset(cmdparams);
+                    break;                
 
                 default:
                     string[] tmpPluginArgs = new string[cmdparams.Length + 1];
@@ -543,6 +548,30 @@ namespace OpenSim
                     break;
             }
         }
+        
+        /// <summary>
+        /// Execute switch for some of the reset commands
+        /// </summary>
+        /// <param name="args"></param>
+        protected void Reset(string[] args)
+        {
+            if (args.Length == 0)
+                return;
+
+            switch (args[0])
+            {
+                case "user":
+                
+                    switch (args[1])
+                    {
+                        case "password":
+                            ResetUserPassword(args);
+                            break;
+                    }
+                
+                    break;
+            }
+        }        
 
         /// <summary>
         /// Turn on some debugging values for OpenSim.
@@ -650,6 +679,7 @@ namespace OpenSim
             {
                 m_console.Notice("");
                 m_console.Notice("create user - adds a new user.");
+                m_console.Notice("reset user password - reset a user's password.");
             }
         }
 
@@ -769,6 +799,31 @@ namespace OpenSim
                 m_log.ErrorFormat("[CONSOLE]: A user with the name {0} {1} already exists!", firstName, lastName);
             }
         }
+        
+        /// <summary>
+        /// Reset a user password.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        private void ResetUserPassword(string[] cmdparams)
+        {
+            string firstName;
+            string lastName;
+            string newPassword;
+            
+            if (cmdparams.Length < 3)
+                firstName = MainConsole.Instance.CmdPrompt("First name");
+            else firstName = cmdparams[2];
+
+            if ( cmdparams.Length < 4 )
+                lastName = MainConsole.Instance.CmdPrompt("Last name");
+            else lastName = cmdparams[3];
+
+            if ( cmdparams.Length < 5 )
+                newPassword = MainConsole.Instance.PasswdPrompt("New password");
+            else newPassword = cmdparams[4];
+            
+            m_commsManager.ResetUserPassword(firstName, lastName, newPassword);
+        }                        
 
         protected void SaveXml(string[] cmdparams)
         {

@@ -256,6 +256,18 @@ namespace OpenSim.Framework.Communications
                 return userProf.ID;
             }
         }
+        
+        /// <summary>
+        /// Reset a user password
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="newPassword"></param>
+        /// <returns>true if the update was successful, false otherwise</returns>
+        public bool ResetUserPassword(string firstName, string lastName, string newPassword)
+        {
+            return m_userService.ResetUserPassword(firstName, lastName, newPassword);
+        }
 
         #region Friend Methods
 
