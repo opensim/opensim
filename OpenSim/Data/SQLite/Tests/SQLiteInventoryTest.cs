@@ -48,9 +48,12 @@ namespace OpenSim.Data.SQLite.Tests
         public void Init()
         {
             SuperInit();
-            try {
+            try
+            {
                 log4net.Config.XmlConfigurator.Configure();
-            } catch (Exception e) {
+            }
+            catch (Exception)
+            {
                 // I don't care, just leave log4net off
             }
             connect = "URI=file:" + file + ",version=3";
