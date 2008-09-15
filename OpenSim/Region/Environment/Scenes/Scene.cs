@@ -2254,7 +2254,7 @@ namespace OpenSim.Region.Environment.Scenes
                         return;
                     }
                     UserProfile.HomeRegionID = info.RegionID;
-                    CommsManager.UserService.UpdateUserProfileProperties(UserProfile);
+                    CommsManager.UserService.UpdateUserProfile(UserProfile);
                 }
                 else
                 {
@@ -2355,7 +2355,7 @@ namespace OpenSim.Region.Environment.Scenes
                 UserProfile.HomeRegion = RegionInfo.RegionHandle;
                 UserProfile.HomeLocation = position;
                 UserProfile.HomeLookAt = lookAt;
-                CommsManager.UserService.UpdateUserProfileProperties(UserProfile);
+                CommsManager.UserService.UpdateUserProfile(UserProfile);
 
                 remoteClient.SendAgentAlertMessage("Set home to here if supported by login service",false);
             }

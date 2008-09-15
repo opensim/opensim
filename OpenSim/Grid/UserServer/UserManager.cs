@@ -695,7 +695,7 @@ namespace OpenSim.Grid.UserServer
             }
 
             // call plugin!
-            bool ret = UpdateUserProfileProperties(userProfile);
+            bool ret = UpdateUserProfile(userProfile);
             responseData["returnString"] = ret.ToString();
             response.Value = responseData;
             return response;

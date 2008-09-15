@@ -600,29 +600,6 @@ namespace OpenSim.Framework.Communications
             return true;
         }        
 
-        public bool UpdateUserProfileProperties(UserProfileData UserProfile)
-        {
-            if (null == GetUserProfile(UserProfile.ID))
-            {
-                m_log.Info("[USERSTORAGE]: Failed to find User by UUID " + UserProfile.ID.ToString());
-                return false;
-            }
-            foreach (IUserDataPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.UpdateUserProfile(UserProfile);
-                }
-                catch (Exception e)
-                {
-                    m_log.Info("[USERSTORAGE]: Unable to update user " + UserProfile.ID.ToString()
-                               + " via " + plugin.Name + "(" + e.ToString() + ")");
-                    return false;
-                }
-            }
-            return true;
-        }
-
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName);
         public abstract UserProfileData SetupMasterUser(string firstName, string lastName, string password);
         public abstract UserProfileData SetupMasterUser(UUID uuid);

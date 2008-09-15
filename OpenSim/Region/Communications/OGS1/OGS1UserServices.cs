@@ -475,38 +475,32 @@ namespace OpenSim.Region.Communications.OGS1
             throw new Exception("The method or operation is not implemented.");
         }        
 
-        // TODO
-        public bool UpdateUserProfile(UserProfileData data)
-        {
-            return false;
-        }
-
-        public bool UpdateUserProfileProperties(UserProfileData UserProfile)
+        public bool UpdateUserProfile(UserProfileData userProfile)
         {
             m_log.Debug("[OGS1 USER SERVICES]: Asking UserServer to update profile.");
             Hashtable param = new Hashtable();
-            param["avatar_uuid"] = UserProfile.ID.ToString();
-            //param["AllowPublish"] = UserProfile.ToString();
-            param["FLImageID"] = UserProfile.FirstLifeImage.ToString();
-            param["ImageID"] = UserProfile.Image.ToString();
+            param["avatar_uuid"] = userProfile.ID.ToString();
+            //param["AllowPublish"] = userProfile.ToString();
+            param["FLImageID"] = userProfile.FirstLifeImage.ToString();
+            param["ImageID"] = userProfile.Image.ToString();
             //param["MaturePublish"] = MaturePublish.ToString();
-            param["AboutText"] = UserProfile.AboutText;
-            param["FLAboutText"] = UserProfile.FirstLifeAboutText;
-            //param["ProfileURL"] = UserProfile.ProfileURL.ToString();
+            param["AboutText"] = userProfile.AboutText;
+            param["FLAboutText"] = userProfile.FirstLifeAboutText;
+            //param["ProfileURL"] = userProfile.ProfileURL.ToString();
 
-            param["home_region"] = UserProfile.HomeRegion.ToString();
-            param["home_region_id"] = UserProfile.HomeRegionID.ToString();
+            param["home_region"] = userProfile.HomeRegion.ToString();
+            param["home_region_id"] = userProfile.HomeRegionID.ToString();
 
-            param["home_pos_x"] = UserProfile.HomeLocationX.ToString();
-            param["home_pos_y"] = UserProfile.HomeLocationY.ToString();
-            param["home_pos_z"] = UserProfile.HomeLocationZ.ToString();
-            param["home_look_x"] = UserProfile.HomeLookAtX.ToString();
-            param["home_look_y"] = UserProfile.HomeLookAtY.ToString();
-            param["home_look_z"] = UserProfile.HomeLookAtZ.ToString();
-            param["user_flags"] = UserProfile.UserFlags.ToString();
-            param["god_level"] = UserProfile.GodLevel.ToString();
-            param["custom_type"] = UserProfile.CustomType.ToString();
-            param["partner"] = UserProfile.Partner.ToString();
+            param["home_pos_x"] = userProfile.HomeLocationX.ToString();
+            param["home_pos_y"] = userProfile.HomeLocationY.ToString();
+            param["home_pos_z"] = userProfile.HomeLocationZ.ToString();
+            param["home_look_x"] = userProfile.HomeLookAtX.ToString();
+            param["home_look_y"] = userProfile.HomeLookAtY.ToString();
+            param["home_look_z"] = userProfile.HomeLookAtZ.ToString();
+            param["user_flags"] = userProfile.UserFlags.ToString();
+            param["god_level"] = userProfile.GodLevel.ToString();
+            param["custom_type"] = userProfile.CustomType.ToString();
+            param["partner"] = userProfile.Partner.ToString();
 
             IList parameters = new ArrayList();
             parameters.Add(param);
@@ -535,6 +529,7 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.Warn("[GRID]: Unable to update user profile, UserServer didn't understand me!");
                 return false;
             }
+            
             return true;
         }
 

@@ -134,7 +134,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
             {
                 return;
             }
-            if (m_scene.CommsManager.UserService.UpdateUserProfileProperties(Profile))
+            
+            if (m_scene.CommsManager.UserService.UpdateUserProfile(Profile))
             {
                 RequestAvatarProperty(remoteClient, newProfile.ID);
             }

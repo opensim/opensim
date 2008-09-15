@@ -350,7 +350,7 @@ namespace OpenSim.Framework.Communications
 
         public void UpdateAvatarPropertiesRequest(IClientAPI remote_client, UserProfileData UserProfile)
         {
-            m_userService.UpdateUserProfileProperties(UserProfile);
+            m_userService.UpdateUserProfile(UserProfile);
             return;
         }
 
