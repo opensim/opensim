@@ -40,6 +40,61 @@ using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
+    //////////////////////////////////////////////////////////////
+    //
+    // Level description
+    //
+    // None     - Function is no threat at all. It doesn't constitute
+    //            an threat to either users or the system and has no
+    //            known side effects
+    //
+    // Nuisance - Abuse of this command can cause a nuisance to the
+    //            region operator, such as log message spew
+    //
+    // VeryLow  - Extreme levels ob abuse of this function can cause
+    //            impaired functioning of the region, or very gullible
+    //            users can be tricked into experiencing harmless effects
+    //
+    // Low      - Intentional abuse can cause crashes or malfunction
+    //            under certain circumstances, which can easily be rectified,
+    //            or certain users can be tricked into certain situations
+    //            in an avoidable manner.
+    //
+    // Moderate - Intentional abuse can cause denial of service and crashes
+    //            with potential of data or state loss, or trusting users
+    //            can be tricked into embarrassing or uncomfortable
+    //            situationsa.
+    //
+    // High     - Casual abuse can cause impaired functionality or temporary
+    //            denial of service conditions. Intentional abuse can easily
+    //            cause crashes with potential data loss, or can be used to
+    //            trick experienced and cautious users into unwanted situations,
+    //            or changes global data permanently and without undo ability
+    //
+    // VeryHigh - Even normal use may, depending on the number of instances,
+    //            or frequency of use, result in severe service impairment
+    //            or crash with loss of data, or can be used to cause
+    //            unwanted or harmful effects on users without giving the
+    //            user a means to avoid it.
+    //
+    // Severe   - Even casual use is a danger to region stability, or function
+    //            allows console or OS command execution, or function allows
+    //            taking money without consent, or allows deletion or
+    //            modification of user data, or allows the compromise of
+    //            sensitive data by design.
+
+    public enum ThreatLevel
+    {
+        None = 0,
+        Nuisance = 1,
+        VeryLow = 2,
+        Low = 3,
+        Moderate = 4,
+        High = 5,
+        VeryHigh = 6,
+        Severe = 7
+    };
+        
     [Serializable]
     public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
     {
@@ -47,7 +102,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal SceneObjectPart m_host;
         internal uint m_localID;
         internal UUID m_itemID;
-        internal AsyncCommandManager AsyncCommands = null;
+        internal bool m_OSFunctionsEnabled = false;
+        internal ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
         internal float m_ScriptDelayFactor = 1.0f;
         internal float m_ScriptDistanceFactor = 1.0f;
 
@@ -58,16 +114,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_localID = localID;
             m_itemID = itemID;
 
-            IConfigSource config = new IniConfigSource(Application.iniFilePath);
-            if (config.Configs["XEngine"] == null)
-                config.AddConfig("XEngine");
+            if (m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+                m_OSFunctionsEnabled = true;
 
-            m_ScriptDelayFactor = config.Configs["XEngine"].
-                    GetFloat("ScriptDelayFactor", 1.0f);
-            m_ScriptDistanceFactor = config.Configs["XEngine"].
-                    GetFloat("ScriptDistanceLimitFactor", 1.0f);
+            m_ScriptDelayFactor =
+                    m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
+            m_ScriptDistanceFactor =
+                    m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
 
-            AsyncCommands = (AsyncCommandManager)ScriptEngine.AsyncCommands;
+            string risk = m_ScriptEngine.Config.GetString("OSFunctionThreatLevel", "VeryLow");
+            switch (risk)
+            {
+            case "None":
+                m_MaxThreatLevel = ThreatLevel.None;
+                break;
+            case "VeryLow":
+                m_MaxThreatLevel = ThreatLevel.VeryLow;
+                break;
+            case "Low":
+                m_MaxThreatLevel = ThreatLevel.Low;
+                break;
+            case "Moderate":
+                m_MaxThreatLevel = ThreatLevel.Moderate;
+                break;
+            case "High":
+                m_MaxThreatLevel = ThreatLevel.High;
+                break;
+            case "VeryHigh":
+                m_MaxThreatLevel = ThreatLevel.VeryHigh;
+                break;
+            case "Severe":
+                m_MaxThreatLevel = ThreatLevel.Severe;
+                break;
+            default:
+                break;
+            }
         }
 
         //
@@ -84,6 +165,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return lease;
         }
 
+        public Scene World
+        {
+            get { return m_ScriptEngine.World; }
+        }
+
+        internal void OSSLError(string msg)
+        {
+            throw new Exception("OSSL Runtime Error: " + msg);
+        }
+
+        protected void CheckThreatLevel(ThreatLevel level, string function)
+        {
+            if (level > m_MaxThreatLevel)
+                throw new Exception("Threat level too high - "+function);
+        }
+
         protected void ScriptSleep(int delay)
         {
             delay = (int)((float)delay * m_ScriptDelayFactor);
@@ -98,11 +195,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public int osTerrainSetHeight(int x, int y, double val)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osTerrainSetHeight: permission denied");
                 return 0;
             }
+            CheckThreatLevel(ThreatLevel.High, "osTerrainSetHeight");
 
             m_host.AddScriptLPS(1);
             if (x > 255 || x < 0 || y > 255 || y < 0)
@@ -121,11 +219,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public double osTerrainGetHeight(int x, int y)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osTerrainGetHeight: permission denied");
                 return 0.0;
             }
+            CheckThreatLevel(ThreatLevel.None, "osTerrainGetHeight");
 
             m_host.AddScriptLPS(1);
             if (x > 255 || x < 0 || y > 255 || y < 0)
@@ -136,11 +235,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public int osRegionRestart(double seconds)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osRegionRestart: permission denied");
                 return 0;
             }
+            // This is High here because region restart is not reliable
+            // it may result in the region staying down or becoming
+            // unstable. This should be changed to Low or VeryLow once
+            // The underlying functionality is fixed, since the security
+            // as such is sound
+            //
+            CheckThreatLevel(ThreatLevel.High, "osRegionRestart");
 
             m_host.AddScriptLPS(1);
             if (World.ExternalChecks.ExternalChecksCanIssueEstateCommand(m_host.OwnerID, false))
@@ -156,11 +262,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osRegionNotice(string msg)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osRegionNotice: permission denied");
                 return;
             }
+
+            // This implementation provides absolutely no security
+            // It's high griefing potential makes this classification
+            // necessary
+            //
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osRegionNotice");
 
             m_host.AddScriptLPS(1);
             World.SendGeneralAlert(msg);
@@ -168,11 +280,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osSetRot(UUID target, Quaternion rotation)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetRot: permission denied");
                 return;
             }
+
+            // This function has no security. It can be used to destroy
+            // arbitrary builds the user would normally have no rights to
+            //
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osSetRot");
 
             m_host.AddScriptLPS(1);
             if (World.Entities.ContainsKey(target))
@@ -188,11 +305,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
                                              int timer)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetDynamicTextureURL: permission denied");
                 return String.Empty;
             }
+
+            // This may be upgraded depending on the griefing or DOS
+            // potential, or guarded with a delay
+            //
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureURL");
 
             m_host.AddScriptLPS(1);
             if (dynamicID == String.Empty)
@@ -214,11 +336,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
                                              int timer, int alpha)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetDynamicTextureURLBlend: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureURLBlend");
 
             m_host.AddScriptLPS(1);
             if (dynamicID == String.Empty)
@@ -240,11 +364,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams,
                                            int timer)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetDynamicTextureData: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureData");
 
             m_host.AddScriptLPS(1);
             if (dynamicID == String.Empty)
@@ -273,11 +399,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
                                           int timer, int alpha)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetDynamicTextureDataBlend: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureDataBlend");
 
             m_host.AddScriptLPS(1);
             if (dynamicID == String.Empty)
@@ -306,24 +434,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public bool osConsoleCommand(string command)
         {
             m_host.AddScriptLPS(1);
-            if (m_ScriptEngine.Config.GetBoolean("AllowosConsoleCommand", false))
+            if (!m_OSFunctionsEnabled)
             {
-                if (World.ExternalChecks.ExternalChecksCanRunConsoleCommand(m_host.OwnerID))
-                {
-                    MainConsole.Instance.RunCommand(command);
-                    return true;
-                }
+                OSSLError("osConsoleCommand: permission denied");
                 return false;
+            }
+
+            CheckThreatLevel(ThreatLevel.Severe, "osConsoleCommand");
+
+            if (World.ExternalChecks.ExternalChecksCanRunConsoleCommand(m_host.OwnerID))
+            {
+                MainConsole.Instance.RunCommand(command);
+                return true;
             }
             return false;
         }
+
         public void osSetPrimFloatOnWater(int floatYN)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetPrimFloatOnWater: permission denied");
                 return;
             }
+
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetPrimFloatOnWater");
 
             m_host.AddScriptLPS(1);
             if (m_host.ParentGroup != null)
@@ -338,6 +473,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // Teleport functions
         public void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
+            if (!m_OSFunctionsEnabled)
+            {
+                OSSLError("osTeleportAgent: permission denied");
+                return;
+            }
+
+            // High because there is no security check. High griefer potential
+            //
+            CheckThreatLevel(ThreatLevel.High, "osTeleportAgent");
+
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
             if (UUID.TryParse(agent, out agentId))
@@ -351,7 +496,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         World.RequestTeleportLocation(presence.ControllingClient, regionName,
                             new Vector3((float)position.x, (float)position.y, (float)position.z),
                             new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation);
-                        // ScriptSleep(5000);
+                        ScriptSleep(5000);
                     }
                 }
             }
@@ -365,11 +510,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // Adam's super super custom animation functions
         public void osAvatarPlayAnimation(string avatar, string animation)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osAvatarPlayAnimation: permission denied");
                 return;
             }
+
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osAvatarPlayAnimation");
 
             m_host.AddScriptLPS(1);
             if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
@@ -381,11 +528,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osAvatarStopAnimation(string avatar, string animation)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osAvatarStopAnimation: permission denied");
                 return;
             }
+
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osAvatarStopAnimation");
 
             m_host.AddScriptLPS(1);
             if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
@@ -398,11 +547,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //Texture draw functions
         public string osMovePen(string drawList, int x, int y)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osMovePen: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.None, "osMovePen");
 
             m_host.AddScriptLPS(1);
             drawList += "MoveTo " + x + "," + y + ";";
@@ -411,11 +562,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawLine(string drawList, int startX, int startY, int endX, int endY)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osDrawLine: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.None, "osDrawLine");
 
             m_host.AddScriptLPS(1);
             drawList += "MoveTo "+ startX+","+ startY +"; LineTo "+endX +","+endY +"; ";
@@ -424,11 +577,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawLine(string drawList, int endX, int endY)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osDrawLine: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.None, "osDrawLine");
 
             m_host.AddScriptLPS(1);
             drawList += "LineTo " + endX + "," + endY + "; ";
@@ -437,11 +592,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawText(string drawList, string text)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osDrawText: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.None, "osDrawText");
 
             m_host.AddScriptLPS(1);
             drawList += "Text " + text + "; ";
@@ -450,11 +607,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawEllipse(string drawList, int width, int height)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osDrawEllipse: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.None, "osDrawEllipse");
 
             m_host.AddScriptLPS(1);
             drawList += "Ellipse " + width + "," + height + "; ";
@@ -463,11 +622,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawRectangle(string drawList, int width, int height)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osDrawRectangle: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.None, "osDrawRectangle");
 
             m_host.AddScriptLPS(1);
             drawList += "Rectangle " + width + "," + height + "; ";
@@ -476,11 +637,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawFilledRectangle(string drawList, int width, int height)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osDrawFilledRectangle: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.None, "osDrawFilledRectangle");
 
             m_host.AddScriptLPS(1);
             drawList += "FillRectangle " + width + "," + height + "; ";
@@ -489,11 +652,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osSetFontSize(string drawList, int fontSize)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetFontSize: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.None, "osSetFontSize");
 
             m_host.AddScriptLPS(1);
             drawList += "FontSize "+ fontSize +"; ";
@@ -502,11 +667,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osSetPenSize(string drawList, int penSize)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetPenSize: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.None, "osSetPenSize");
 
             m_host.AddScriptLPS(1);
             drawList += "PenSize " + penSize + "; ";
@@ -515,11 +682,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osSetPenColour(string drawList, string colour)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetPenColour: permission denied");
                 return String.Empty;
             }
+
+            CheckThreatLevel(ThreatLevel.None, "osSetPenColour");
 
             m_host.AddScriptLPS(1);
             drawList += "PenColour " + colour + "; ";
@@ -528,35 +697,46 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawImage(string drawList, int width, int height, string imageUrl)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osDrawImage: permission denied");
                 return String.Empty;
             }
 
-           m_host.AddScriptLPS(1);
-           drawList +="Image " +width + "," + height+ ","+ imageUrl +"; " ;
-           return drawList;
+            CheckThreatLevel(ThreatLevel.None, "osDrawImage");
+
+            m_host.AddScriptLPS(1);
+            drawList +="Image " +width + "," + height+ ","+ imageUrl +"; " ;
+            return drawList;
         }
 
         public void osSetStateEvents(int events)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetStateEvents: permission denied");
                 return;
             }
+
+            // This function is a hack. There is no reason for it's existence
+            // anymore, since state events now work properly.
+            // It was probably added as a crutch or debugging aid, and
+            // should be removed
+            //
+            CheckThreatLevel(ThreatLevel.High, "osSetStateEvents");
 
             m_host.SetScriptEvents(m_itemID, events);
         }
 
         public void osSetRegionWaterHeight(double height)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetRegionWaterHeight: permission denied");
                 return;
             }
+
+            CheckThreatLevel(ThreatLevel.High, "osSetRegionWaterHeight");
 
             m_host.AddScriptLPS(1);
             //Check to make sure that the script's owner is the estate manager/master
@@ -569,11 +749,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public double osList2Double(LSL_Types.list src, int index)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osList2Double: permission denied");
                 return 0.0;
             }
+
+            // There is really no double type in OSSL. C# and other
+            // have one, but the current implementation of LSL_Types.list
+            // is not allowed to contain any.
+            // This really should be removed.
+            //
+            CheckThreatLevel(ThreatLevel.None, "osList2Double");
 
             m_host.AddScriptLPS(1);
             if (index < 0)
@@ -589,11 +776,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osSetParcelMediaURL(string url)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetParcelMediaURL: permission denied");
                 return;
             }
+
+            // What actually is the difference to the LL function?
+            //
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelMediaURL");
 
             m_host.AddScriptLPS(1);
             UUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
@@ -611,23 +802,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.SetLandMediaURL(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, url);
         }
 
-        public Scene World
-        {
-            get { return m_ScriptEngine.World; }
-        }
-
-        internal void OSSLError(string msg)
-        {
-            throw new Exception("OSSL Runtime Error: " + msg);
-        }
-
         public string osGetScriptEngineName()
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osGetScriptEngineName: permission denied");
                 return "";
             }
+
+            // This gets a "high" because knowing the engine may be used
+            // to exploit engine-specific bugs or induce usage patterns
+            // that trigger engine-specific failures.
+            // Besides, public grid users aren't supposed to know.
+            //
+            CheckThreatLevel(ThreatLevel.High, "osGetScriptEngineName");
 
             m_host.AddScriptLPS(1);
 
@@ -657,11 +845,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //for testing purposes only
         public void osSetParcelMediaTime(double time)
         {
-            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (!m_OSFunctionsEnabled)
             {
                 OSSLError("osSetParcelMediaTime: permission denied");
                 return;
             }
+
+            // This gets very high because I have no idea what it does.
+            // If someone knows, please adjust. If it;s no longer needed,
+            // please remove.
+            //
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osSetParcelMediaTime");
 
             m_host.AddScriptLPS(1);
 

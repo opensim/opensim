@@ -677,6 +677,8 @@ AllowedCompilers = lsl,vb,js,cs
 CompileWithDebugInformation = true
 ; Allow the use of os* functions (some are dangerous)
 AllowOSFunctions = false
+; Threat level to allow, one of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
+OSFunctionThreatLevel = VeryLow
 ; Interval (s) between background save of script states
 SaveInterval = 120
 ; Interval (s) between maintenance runs (0 = disable)
@@ -685,8 +687,6 @@ MaintenanceInterval = 10
 EventLimit = 30
 ; If a script overruns it's event limit, kill the script?
 KillTimedOutScripts = false
-; Allow OS console command functionality (VERY DANGEROUS!!)
-AllowosConsoleCommand = false
 ; Sets the multiplier for the scripting delays
 ScriptDelayFactor = 1.0
 ; The factor the 10 m distances llimits are multiplied by
