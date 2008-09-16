@@ -2996,7 +2996,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return;
             SceneObjectGroup parentPrim = m_host.ParentGroup;
             SceneObjectPart childPrim = null;
-            switch(linknum)
+            switch (linknum)
             {
                 case BuiltIn_Commands_BaseClass.LINK_ROOT:
                     break;
@@ -3004,7 +3004,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 case BuiltIn_Commands_BaseClass.LINK_ALL_OTHERS:
                 case BuiltIn_Commands_BaseClass.LINK_ALL_CHILDREN:
                 case BuiltIn_Commands_BaseClass.LINK_THIS:
-                    foreach(SceneObjectPart part in parentPrim.Children.Values)
+                    foreach (SceneObjectPart part in parentPrim.Children.Values)
                     {
                         if (part.UUID != m_host.UUID)
                         {
