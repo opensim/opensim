@@ -4385,11 +4385,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 for (int i = 0; i < length; i++)
                 {
-                   if (src.Data[i].Equals(test.Data[0]))
+                   if (AreEqual(src.Data[i], test.Data[0]))
                    {
                        int j;
                        for (j = 1; j < test.Length; j++)
-                           if (!src.Data[i+j].Equals(test.Data[j]))
+                           if (!AreEqual(src.Data[i+j], test.Data[j]))
                                break;
                        if (j == test.Length)
                        {
@@ -4402,6 +4402,18 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             return index;
 
+        }
+
+        private bool AreEqual(object src, object test)
+        {
+            if (src.GetType().FullName == "System.String")
+            {
+                return src.ToString() == test.ToString();
+            }
+            else
+            {
+                return src.Equals(test);
+            }
         }
 
         public string llGetObjectName()
