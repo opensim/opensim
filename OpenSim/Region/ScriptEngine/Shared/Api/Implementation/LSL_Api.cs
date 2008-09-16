@@ -7279,9 +7279,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (quick_pay_buttons.Data.Length != 4)
+            if (quick_pay_buttons.Data.Length < 4)
             {
-                LSLError("List must have 4 elements");
+                LSLError("List must have at least 4 elements");
                 return;
             }
             m_host.ParentGroup.RootPart.PayPrice[0]=price;
