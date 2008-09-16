@@ -470,6 +470,23 @@ namespace OpenSim.Data.SQLite
             {
                 int revision = Util.UnixTimeSinceEpoch();
 
+                // This is added to get rid of the infinitely growing
+                // terrain databases which negatively impact on SQLite
+                // over time.  Before reenabling this feature there
+                // needs to be a limitter put on the number of
+                // revisions in the database, as this old
+                // implementation is a DOS attack waiting to happen.
+
+                using (
+                    SqliteCommand cmd =
+                        new SqliteCommand("delete from terrain where RegionUUID=:RegionUUID and Revision <= :Revision",
+                                          m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
+                    cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
+                    cmd.ExecuteNonQuery();
+                }
+
                 // the following is an work around for .NET.  The perf
                 // issues associated with it aren't as bad as you think.
                 m_log.Info("[REGION DB]: Storing terrain revision r" + revision.ToString());
@@ -481,23 +498,6 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
                     cmd.Parameters.Add(new SqliteParameter(":Heightfield", serializeTerrain(ter)));
-                    cmd.ExecuteNonQuery();
-                }
-
-                // This is added to get rid of the infinitely growing
-                // terrain databases which negatively impact on SQLite
-                // over time.  Before reenabling this feature there
-                // needs to be a limitter put on the number of
-                // revisions in the database, as this old
-                // implementation is a DOS attack waiting to happen.
-
-                using (
-                    SqliteCommand cmd =
-                        new SqliteCommand("delete from terrain where RegionUUID=:RegionUUID and Revision < :Revision",
-                                          m_conn))
-                {
-                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", Util.ToRawUuidString(regionID)));
-                    cmd.Parameters.Add(new SqliteParameter(":Revision", revision));
                     cmd.ExecuteNonQuery();
                 }
             }

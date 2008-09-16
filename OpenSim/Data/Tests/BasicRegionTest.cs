@@ -40,17 +40,31 @@ namespace OpenSim.Data.Tests
     public class BasicRegionTest
     {
         public IRegionDataStore db;
-        public UUID region;
+        public UUID region1;
+        public UUID region2;
+        public double height1;
+        public double height2;
 
         public void SuperInit()
         {
-            region = UUID.Random();
+            try
+            {
+                log4net.Config.XmlConfigurator.Configure();
+            }
+            catch (Exception)
+            {
+                // I don't care, just leave log4net off
+            }
+
+            region1 = UUID.Random();
+            height1 = 20;
+            height2 = 100;
         }
 
         [Test]
         public void T001_LoadEmpty()
         {
-            List<SceneObjectGroup> objs = db.LoadObjects(region);
+            List<SceneObjectGroup> objs = db.LoadObjects(region1);
             Assert.That(objs.Count, Is.EqualTo(0));
         }
         
@@ -64,18 +78,18 @@ namespace OpenSim.Data.Tests
             SceneObjectGroup sog = NewSOG("object1");
             SceneObjectGroup sog2 = NewSOG("object2");
             
-            db.StoreObject(sog, region);
-            db.StoreObject(sog2, region);
+            db.StoreObject(sog, region1);
+            db.StoreObject(sog2, region1);
 
             // This tests the ADO.NET driver
-            List<SceneObjectGroup> objs = db.LoadObjects(region);
+            List<SceneObjectGroup> objs = db.LoadObjects(region1);
             Assert.That(objs.Count, Is.EqualTo(2));
         }
         
         [Test]
         public void T011_ObjectNames()
         {
-            List<SceneObjectGroup> objs = db.LoadObjects(region);
+            List<SceneObjectGroup> objs = db.LoadObjects(region1);
             foreach (SceneObjectGroup sog in objs)
             {
                 SceneObjectPart p = sog.RootPart;
@@ -88,15 +102,72 @@ namespace OpenSim.Data.Tests
         public void T012_UpdateObject()
         {
             string text = "object1 text";
-            SceneObjectGroup sog = FindSOG("object1", region);
+            SceneObjectGroup sog = FindSOG("object1", region1);
             sog.RootPart.Text = text;
-            db.StoreObject(sog, region);
+            db.StoreObject(sog, region1);
 
-            sog = FindSOG("object1", region);
+            sog = FindSOG("object1", region1);
             Assert.That(text, Is.EqualTo(sog.RootPart.Text));
         }
 
+        [Test]
+        public void T300_NoTerrain()
+        {
+            double[,] t1 = db.LoadTerrain(region1);
+        }
+
+        [Test]
+        public void T301_CreateTerrain()
+        {
+            double[,] t1 = GenTerrain(height1);
+            db.StoreTerrain(t1, region1);
+        }
+
+        [Test]
+        public void T302_FetchTerrain()
+        {
+            double[,] baseterrain1 = GenTerrain(height1);
+            double[,] baseterrain2 = GenTerrain(height2);
+            double[,] t1 = db.LoadTerrain(region1);
+            Assert.That(CompareTerrain(t1, baseterrain1), Is.True);
+            Assert.That(CompareTerrain(t1, baseterrain2), Is.False);
+        }
+
+        [Test]
+        public void T303_UpdateTerrain()
+        {
+            double[,] baseterrain1 = GenTerrain(height1);
+            double[,] baseterrain2 = GenTerrain(height2);
+            db.StoreTerrain(baseterrain2, region1);
+
+            double[,] t1 = db.LoadTerrain(region1);
+            Assert.That(CompareTerrain(t1, baseterrain1), Is.False);
+            Assert.That(CompareTerrain(t1, baseterrain2), Is.True);
+        }
+
         // Extra private methods
+
+        private double[,] GenTerrain(double value)
+        {
+            double[,] terret = new double[256,256];
+            terret.Initialize();
+            for (int x = 0; x < 256; x++) 
+                for (int y = 0; y < 256; y++)
+                    terret[x,y] = value;
+            
+            return terret;
+        }
+        
+        private bool CompareTerrain(double[,] one, double[,] two)
+        {
+            for (int x = 0; x < 256; x++) 
+                for (int y = 0; y < 256; y++)
+                    if (one[x,y] != two[x,y]) 
+                        return false;
+
+            return true;
+        }
+
 
         private SceneObjectGroup FindSOG(string name, UUID r)
         {
