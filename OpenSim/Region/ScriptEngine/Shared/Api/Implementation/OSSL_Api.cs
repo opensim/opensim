@@ -190,7 +190,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (bool.TryParse(perm, out allowed))
                 {
                     // Boolean given
-                    if(allowed)
+                    if (allowed)
                         m_FunctionPerms[function] = null; // a null value is all
                     else
                         m_FunctionPerms[function] = new List<UUID>(); // Empty list = none
