@@ -55,6 +55,7 @@ namespace OpenSim.Data.SQLite
 
         private const string userSelect = "select * from users";
         private const string userFriendsSelect = "select a.ownerID as ownerID,a.friendID as friendID,a.friendPerms as friendPerms,b.friendPerms as ownerperms, b.ownerID as fownerID, b.friendID as ffriendID from userfriends as a, userfriends as b";
+        private const string userAgentSelect = "select * from useragents";
 
         private const string AvatarPickerAndSQL = "select * from users where username like :username and surname like :surname";
         private const string AvatarPickerOrSQL = "select * from users where username like :username or surname like :surname";
@@ -63,6 +64,7 @@ namespace OpenSim.Data.SQLite
         private DataSet ds;
         private SqliteDataAdapter da;
         private SqliteDataAdapter daf;
+        private SqliteDataAdapter dua;
         SqliteConnection g_conn;
 
         public override void Initialise()
@@ -98,6 +100,7 @@ namespace OpenSim.Data.SQLite
 
             ds = new DataSet();
             da = new SqliteDataAdapter(new SqliteCommand(userSelect, conn));
+            dua = new SqliteDataAdapter(new SqliteCommand(userAgentSelect, conn));
             daf = new SqliteDataAdapter(new SqliteCommand(userFriendsSelect, conn));
 
             lock (ds)
@@ -108,6 +111,9 @@ namespace OpenSim.Data.SQLite
 
                 setupUserCommands(da, conn);
                 da.Fill(ds.Tables["users"]);
+
+                setupAgentCommands(dua, conn);
+                dua.Fill(ds.Tables["useragents"]);
 
                 setupUserFriendsCommands(daf, conn);
                 daf.Fill(ds.Tables["userfriends"]);
@@ -132,11 +138,6 @@ namespace OpenSim.Data.SQLite
                 if (row != null)
                 {
                     UserProfileData user = buildUserProfile(row);
-                    row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(uuid));
-                    if (row != null)
-                    {
-                        user.CurrentAgent = buildUserAgent(row);
-                    }
                     return user;
                 }
                 else
@@ -162,11 +163,6 @@ namespace OpenSim.Data.SQLite
                 if (rows.Length > 0)
                 {
                     UserProfileData user = buildUserProfile(rows[0]);
-                    DataRow row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(user.ID));
-                    if (row != null)
-                    {
-                        user.CurrentAgent = buildUserAgent(row);
-                    }
                     return user;
                 }
                 else
@@ -356,13 +352,17 @@ namespace OpenSim.Data.SQLite
         /// <returns>A matching user profile</returns>
         override public UserAgentData GetAgentByUUID(UUID uuid)
         {
-            try
+            lock (ds)
             {
-                return GetUserByUUID(uuid).CurrentAgent;
-            }
-            catch (Exception)
-            {
-                return null;
+                DataRow row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(uuid));
+                if (row != null)
+                {
+                    return buildUserAgent(row);
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
@@ -384,14 +384,14 @@ namespace OpenSim.Data.SQLite
         /// <returns>A user agent</returns>
         override public UserAgentData GetAgentByName(string fname, string lname)
         {
-            try
+            UserAgentData agent = null;
+
+            UserProfileData profile = GetUserByName(fname, lname);
+            if (profile != null)
             {
-                return GetUserByName(fname, lname).CurrentAgent;
+                agent = GetAgentByUUID(profile.ID);
             }
-            catch (Exception)
-            {
-                return null;
-            }
+            return agent;
         }
 
         /// <summary>
@@ -442,45 +442,7 @@ namespace OpenSim.Data.SQLite
                     fillUserRow(row, user);
 
                 }
-                // This is why we're getting the 'logins never log-off'..    because It isn't clearing the
-                // useragents table once the useragent is null
-                //
-                // A database guy should look at this and figure out the best way to clear the useragents table.
-                if (user.CurrentAgent != null)
-                {
-                    DataTable ua = ds.Tables["useragents"];
-                    row = ua.Rows.Find(Util.ToRawUuidString(user.ID));
-                    if (row == null)
-                    {
-                        row = ua.NewRow();
-                        fillUserAgentRow(row, user.CurrentAgent);
-                        ua.Rows.Add(row);
-                    }
-                    else
-                    {
-                        fillUserAgentRow(row, user.CurrentAgent);
-                    }
-                }
-                else
-                {
-                    // I just added this to help the standalone login situation.
-                    //It still needs to be looked at by a Database guy
-                    DataTable ua = ds.Tables["useragents"];
-                    row = ua.Rows.Find(Util.ToRawUuidString(user.ID));
-
-                    if (row == null)
-                    {
-                        // do nothing
-                    }
-                    else
-                    {
-                        row.Delete();
-                        ua.AcceptChanges();
-                    }
-                }
-
-                m_log.Info("[USER DB]: " +
-                                         "Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
+                m_log.Info("[USER DB]: Syncing user database: " + ds.Tables["users"].Rows.Count + " users stored");
                 // save changes off to disk
                 da.Update(ds, "users");
             }
@@ -510,7 +472,26 @@ namespace OpenSim.Data.SQLite
         /// <param name="agent">The agent to add to the database</param>
         override public void AddNewUserAgent(UserAgentData agent)
         {
-            // Do nothing. yet.
+            DataTable agents = ds.Tables["useragents"];
+            lock (ds)
+            {
+                DataRow row = agents.Rows.Find(Util.ToRawUuidString(agent.ProfileID));
+                if (row == null)
+                {
+                    row = agents.NewRow();
+                    fillUserAgentRow(row, agent);
+                    agents.Rows.Add(row);
+                }
+                else
+                {
+                    fillUserAgentRow(row, agent);
+
+                }
+                m_log.Info("[USER DB]: Syncing useragent database: " + ds.Tables["useragents"].Rows.Count + " agents stored");
+                // save changes off to disk
+                dua.Update(ds, "useragents");
+            }
+
         }
 
         /// <summary>
@@ -522,7 +503,7 @@ namespace OpenSim.Data.SQLite
         /// <returns>Success?</returns>
         override public bool MoneyTransferRequest(UUID from, UUID to, uint amount)
         {
-            return true;
+            return false; // for consistency with the MySQL impl
         }
 
         /// <summary>
@@ -535,7 +516,7 @@ namespace OpenSim.Data.SQLite
         /// <returns>Success?</returns>
         override public bool InventoryTransferRequest(UUID from, UUID to, UUID item)
         {
-            return true;
+            return false; //for consistency with the MySQL impl
         }
 
 
@@ -814,8 +795,10 @@ namespace OpenSim.Data.SQLite
         {
             UserAgentData ua = new UserAgentData();
 
-            ua.ProfileID = new UUID((String) row["UUID"]);
-            ua.AgentIP = (String) row["agentIP"];
+            UUID tmp;
+            UUID.TryParse((String)row["UUID"], out tmp);
+            ua.ProfileID = tmp;
+            ua.AgentIP = (String)row["agentIP"];
             ua.AgentPort = Convert.ToUInt32(row["agentPort"]);
             ua.AgentOnline = Convert.ToBoolean(row["agentOnline"]);
             ua.SessionID = new UUID((String) row["sessionID"]);
@@ -840,7 +823,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="ua"></param>
         private static void fillUserAgentRow(DataRow row, UserAgentData ua)
         {
-            row["UUID"] = ua.ProfileID;
+            row["UUID"] = Util.ToRawUuidString(ua.ProfileID);
             row["agentIP"] = ua.AgentIP;
             row["agentPort"] = ua.AgentPort;
             row["agentOnline"] = ua.AgentOnline;
@@ -881,6 +864,20 @@ namespace OpenSim.Data.SQLite
 
             SqliteCommand delete = new SqliteCommand("delete from users where UUID = :UUID");
             delete.Parameters.Add(SQLiteUtil.createSqliteParameter("UUID", typeof(String)));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
+        }
+
+        private void setupAgentCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = SQLiteUtil.createInsertCommand( "useragents", ds.Tables["useragents"]);
+            da.InsertCommand.Connection = conn;
+            
+            da.UpdateCommand = SQLiteUtil.createUpdateCommand( "useragents", "UUID=:UUID", ds.Tables["useragents"]);
+            da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand( "delete from useragents where UUID = :ProfileID");
+            delete.Parameters.Add( SQLiteUtil.createSqliteParameter( "ProfileID", typeof(String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
