@@ -79,8 +79,8 @@ namespace OpenSim.Data.Tests
             foreach (SceneObjectGroup sog in objs)
             {
                 SceneObjectPart p = sog.RootPart;
-                Assert.That("", Text.DoesNotMatch(p.Name));
-                Assert.That(p.Name, Text.Matches(p.Description));
+                Assert.That("", Is.Not.EqualTo(p.Name));
+                Assert.That(p.Name, Is.EqualTo(p.Description));
             }
         }
 
@@ -93,7 +93,7 @@ namespace OpenSim.Data.Tests
             db.StoreObject(sog, region);
 
             sog = FindSOG("object1", region);
-            Assert.That(text, Text.Matches(sog.RootPart.Text));
+            Assert.That(text, Is.EqualTo(sog.RootPart.Text));
         }
 
         // Extra private methods
