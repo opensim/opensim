@@ -1138,7 +1138,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // don't backup while it's selected or you're asking for changes mid stream.
                     if ((!IsSelected) && (RootPart != null))
                     {
-                        m_log.InfoFormat(
+                        m_log.DebugFormat(
                             "[SCENE]: Storing {0}, {1} in {2}",
                             Name, UUID, m_scene.RegionInfo.RegionName);
 
