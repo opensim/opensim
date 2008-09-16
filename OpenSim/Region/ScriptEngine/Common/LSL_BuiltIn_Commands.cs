@@ -2986,13 +2986,78 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llBreakLink(int linknum)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llBreakLink");
+            UUID invItemID = InventorySelf();
+            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_CHANGE_LINKS) == 0)
+            {
+                ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
+                return;
+            }
+            if (linknum < BuiltIn_Commands_BaseClass.LINK_THIS)
+                return;
+            SceneObjectGroup parentPrim = m_host.ParentGroup;
+            SceneObjectPart childPrim = null;
+            switch(linknum)
+            {
+                case BuiltIn_Commands_BaseClass.LINK_ROOT:
+                    break;
+                case BuiltIn_Commands_BaseClass.LINK_SET:
+                case BuiltIn_Commands_BaseClass.LINK_ALL_OTHERS:
+                case BuiltIn_Commands_BaseClass.LINK_ALL_CHILDREN:
+                case BuiltIn_Commands_BaseClass.LINK_THIS:
+                    foreach(SceneObjectPart part in parentPrim.Children.Values)
+                    {
+                        if (part.UUID != m_host.UUID)
+                        {
+                            childPrim = part;
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    childPrim = parentPrim.GetLinkNumPart(linknum);
+                    if (childPrim.UUID == m_host.UUID)
+                        childPrim = null;
+                    break;
+            }
+            if (linknum == BuiltIn_Commands_BaseClass.LINK_ROOT)
+            {
+                // Restructuring Multiple Prims.
+                List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
+                parts.Remove(parentPrim.RootPart);
+                foreach (SceneObjectPart part in parts)
+                {
+                    parentPrim.DelinkFromGroup(part.LocalId, true);
+                }
+                parentPrim.TriggerScriptChangedEvent(Changed.LINK);
+                if (parts.Count > 0) {
+                    SceneObjectPart newRoot = parts[0];
+                    parts.Remove(newRoot);
+                    foreach (SceneObjectPart part in parts)
+                    {
+                        part.UpdateFlag = 0;
+                        newRoot.ParentGroup.LinkToGroup(part.ParentGroup);
+                    }
+                }
+            }
+            else
+            {
+                if (childPrim == null)
+                    return;
+                parentPrim.DelinkFromGroup(childPrim.LocalId, true);
+                parentPrim.TriggerScriptChangedEvent(Changed.LINK);
+            }
         }
 
         public void llBreakAllLinks()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llBreakAllLinks");
+            SceneObjectGroup parentPrim = m_host.ParentGroup;
+            List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
+            parts.Remove(parentPrim.RootPart);
+            foreach (SceneObjectPart part in parts) {
+                parentPrim.DelinkFromGroup(part.LocalId, true);
+                parentPrim.TriggerScriptChangedEvent(Changed.LINK);
+            }
         }
 
         public string llGetLinkKey(int linknum)
