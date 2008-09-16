@@ -58,6 +58,7 @@ namespace OpenSim.Data.Tests
         public string name1;
         public string name2;
         public string name3;
+        public string niname1;
         public string iname1;
         public string iname2;
         public string iname3;
@@ -80,6 +81,7 @@ namespace OpenSim.Data.Tests
             name1 = "Root Folder for " + owner1.ToString();
             name2 = "First Level folder";
             name3 = "First Level folder 2";
+            niname1 = "My Shirt";
             iname1 = "Shirt";
             iname2 = "Text Board";
             iname3 = "No Pants Barrel";
@@ -235,6 +237,23 @@ namespace OpenSim.Data.Tests
             Assert.That(i3.AssetID, Is.EqualTo(asset3));
         }
      
+        [Test]
+        public void T103UpdateItem()
+        {
+            // TODO: probably shouldn't have the ability to have an
+            // owner of an item in a folder not owned by the user
+
+            InventoryItemBase i1 = db.getInventoryItem(item1);
+            i1.Name = niname1;
+            i1.Description = niname1;
+            i1.Owner = owner2;
+            db.updateInventoryItem(i1);
+            
+            i1 = db.getInventoryItem(item1);
+            Assert.That(i1.Name, Is.EqualTo(niname1));
+            Assert.That(i1.Description, Is.EqualTo(niname1));
+            Assert.That(i1.Owner, Is.EqualTo(owner2));
+        }
 
         private InventoryItemBase NewItem(UUID id, UUID parent, UUID owner, string name, UUID asset)
         {
