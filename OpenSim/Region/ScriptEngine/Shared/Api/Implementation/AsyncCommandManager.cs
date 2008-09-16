@@ -149,6 +149,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        /// <summary>
+        /// Main loop for the manager thread
+        /// </summary>
         private static void CmdHandlerThreadLoop()
         {
             while (true)

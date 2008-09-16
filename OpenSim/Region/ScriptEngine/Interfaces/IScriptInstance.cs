@@ -50,6 +50,9 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         bool Wait(TimeSpan t);
     }
 
+    /// <summary>
+    /// Interface for interaction with a particular script instance
+    /// </summary>
     public interface IScriptInstance
     {
         bool Running { get; set; }
@@ -75,6 +78,11 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         void SetState(string state);
 
         void PostEvent(EventParams data);
+        
+        /// <summary>
+        /// Process the next event queued for this script
+        /// </summary>
+        /// <returns></returns>
         object EventProcessor();
 
         int EventTime();

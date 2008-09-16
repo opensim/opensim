@@ -173,24 +173,24 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             ThreadPriority prio = ThreadPriority.BelowNormal;
             switch (priority)
             {
-            case "Lowest":
-                prio = ThreadPriority.Lowest;
-                break;
-            case "BelowNormal":
-                prio = ThreadPriority.BelowNormal;
-                break;
-            case "Normal":
-                prio = ThreadPriority.Normal;
-                break;
-            case "AboveNormal":
-                prio = ThreadPriority.AboveNormal;
-                break;
-            case "Highest":
-                prio = ThreadPriority.Highest;
-                break;
-            default:
-                m_log.ErrorFormat("[XEngine] Invalid thread priority: '{0}'. Assuming BelowNormal", priority);
-                break;
+                case "Lowest":
+                    prio = ThreadPriority.Lowest;
+                    break;
+                case "BelowNormal":
+                    prio = ThreadPriority.BelowNormal;
+                    break;
+                case "Normal":
+                    prio = ThreadPriority.Normal;
+                    break;
+                case "AboveNormal":
+                    prio = ThreadPriority.AboveNormal;
+                    break;
+                case "Highest":
+                    prio = ThreadPriority.Highest;
+                    break;
+                default:
+                    m_log.ErrorFormat("[XEngine] Invalid thread priority: '{0}'. Assuming BelowNormal", priority);
+                    break;
             }
 
             lock (m_ScriptEngines)
@@ -659,24 +659,31 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return new XWorkItem(m_ThreadPool.QueueWorkItem(
                                      new WorkItemCallback(this.ProcessEventHandler),
                                      parms));
-        }
-
-        //
-        // The main script engine worker
-        //
+        }     
+        
+        /// <summary>
+        /// Process a previously posted script event.
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <returns></returns>
         private object ProcessEventHandler(object parms)
         {
             CultureInfo USCulture = new CultureInfo("en-US");
             Thread.CurrentThread.CurrentCulture = USCulture;
 
             IScriptInstance instance = (ScriptInstance) parms;
+            
+            //m_log.DebugFormat("[XENGINE]: Processing event for {0}", instance);
 
             return instance.EventProcessor();
         }
 
-        //
-        // Post event to an entire prim
-        //
+        /// <summary>
+        /// Post event to an entire prim
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
         public bool PostObjectEvent(uint localID, EventParams p)
         {
             bool result = false;
@@ -699,9 +706,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return result;
         }
 
-        //
-        // Post an event to a single script
-        //
+        /// <summary>
+        /// Post an event to a single script
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
         public bool PostScriptEvent(UUID itemID, EventParams p)
         {
             if (m_Scripts.ContainsKey(itemID))

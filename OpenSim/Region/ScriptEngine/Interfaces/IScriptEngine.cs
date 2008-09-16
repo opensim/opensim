@@ -36,28 +36,40 @@ using Amib.Threading;
 
 namespace OpenSim.Region.ScriptEngine.Interfaces
 {
+    /// <summary>
+    /// An interface for a script API module to communicate with
+    /// the engine it's running under
+    /// </summary>
     public interface IScriptEngine
     {
-        //
-        // An interface for a script API module to communicate with
-        // the engine it's running under
-        //
-
         Scene World { get; }
         IConfig Config { get; }
         Object AsyncCommands { get; }
         ILog Log { get; }
         string ScriptEngineName { get; }
 
+        /// <summary>
+        /// Post an event to a single script
+        /// </summary>
         bool PostScriptEvent(UUID itemID, EventParams parms);
+        
+        /// <summary>
+        /// Post event to an entire prim
+        /// </summary>
         bool PostObjectEvent(uint localID, EventParams parms);
+        
         void ApiResetScript(UUID itemID);
         void ResetScript(UUID itemID);
         void SetScriptState(UUID itemID, bool state);
         bool GetScriptState(UUID itemID);
         void SetState(UUID itemID, string newState);
         int GetStartParameter(UUID itemID);
+           
+        /// <summary>
+        /// Queue an event for execution
+        /// </summary>
         IScriptWorkItem QueueEventHandler(object parms);
+        
         IScriptApi GetApi(UUID itemID, string name);
 
         DetectParams GetDetectParams(UUID item, int number);

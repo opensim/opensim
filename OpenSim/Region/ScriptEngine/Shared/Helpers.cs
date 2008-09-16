@@ -161,13 +161,16 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
     }
 
+    /// <summary>
+    /// Holds all the data required to execute a scripting event.
+    /// </summary>
     public class EventParams
     {
         public EventParams(string eventName, Object[] eventParams, DetectParams[] detectParams)
         {
-            EventName=eventName;
-            Params=eventParams;
-            DetectParams=detectParams;
+            EventName = eventName;
+            Params = eventParams;
+            DetectParams = detectParams;
         }
 
         public string EventName;

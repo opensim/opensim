@@ -35,7 +35,7 @@ using System.Reflection;
 using System.Globalization;
 using System.Xml;
 using OpenMetaverse;
-using log4net;
+//using log4net;
 using Nini.Config;
 using Amib.Threading;
 using OpenSim.Framework;
@@ -52,8 +52,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 {
     public class ScriptInstance : IScriptInstance
     {
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private IScriptEngine m_Engine;
-        private IScriptWorkItem m_CurrentResult=null;
+        private IScriptWorkItem m_CurrentResult = null;
         private Queue m_EventQueue = new Queue(32);
         private bool m_RunEvents = false;
         private UUID m_ItemID;
@@ -455,6 +457,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
         }
 
+        /// <summary>
+        /// Process the next event queued for this script
+        /// </summary>
+        /// <returns></returns>        
         public object EventProcessor()
         {
             EventParams data = null;
@@ -470,6 +476,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 if (data.EventName == "timer")
                     m_TimerQueued = false;
             }
+            
+            //m_log.DebugFormat("[XENGINE]: Processing event {0} for {1}", data.EventName, this);
 
             m_DetectParams = data.DetectParams;
 
@@ -720,6 +728,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (m_Apis.ContainsKey(name))
                 return m_Apis[name];
             return null;
+        }
+        
+        public override string ToString()
+        {
+            return String.Format("{0} {1} on {2}", m_ScriptName, m_ItemID, m_PrimName);   
         }
     }
 }

@@ -57,7 +57,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
-        // private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         internal IScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;
@@ -7925,7 +7925,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         public LSL_Types.LSLString llGetNotecardLine(string name, int line)
-        {
+        {       
             m_host.AddScriptLPS(1);
 
             foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
@@ -7935,6 +7935,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     UUID tid = AsyncCommands.
                             DataserverPlugin.RegisterRequest(m_localID,
                             m_itemID, item.AssetID.ToString());
+                    
                     if (NotecardCache.IsCached(item.AssetID))
                     {
                         AsyncCommands.
@@ -7943,6 +7944,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // ScriptSleep(100);
                         return tid.ToString();
                     }
+                    
                     WithNotecard(item.AssetID, delegate (UUID id, AssetBase a)
                     {
                         System.Text.ASCIIEncoding enc =

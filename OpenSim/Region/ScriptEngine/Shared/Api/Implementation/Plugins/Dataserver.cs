@@ -75,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 ds.startTime = DateTime.Now;
 
-                DataserverRequests[identifier]=ds;
+                DataserverRequests[identifier] = ds;
 
                 return ds.ID;
             }
@@ -90,7 +90,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 if (!DataserverRequests.ContainsKey(identifier))
                     return;
 
-                ds=DataserverRequests[identifier];
+                ds = DataserverRequests[identifier];
                 DataserverRequests.Remove(identifier);
             }
 
