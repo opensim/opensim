@@ -160,15 +160,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             int minThreads = m_ScriptConfig.GetInt("MinThreads", 2);
-            int maxThreads = m_ScriptConfig.GetInt("MaxThreads", 2);
+            int maxThreads = m_ScriptConfig.GetInt("MaxThreads", 100);
             int idleTimeout = m_ScriptConfig.GetInt("IdleTimeout", 60);
             string priority = m_ScriptConfig.GetString("Priority", "BelowNormal");
             int maxScriptQueue = m_ScriptConfig.GetInt("MaxScriptEventQueue",300);
             int stackSize = m_ScriptConfig.GetInt("ThreadStackSize", 262144);
-            int sleepTime = m_ScriptConfig.GetInt("MaintenanceInterval", 10)*1000;
+            int sleepTime = m_ScriptConfig.GetInt("MaintenanceInterval", 10) * 1000;
             m_EventLimit = m_ScriptConfig.GetInt("EventLimit", 30);
             m_KillTimedOutScripts = m_ScriptConfig.GetBoolean("KillTimedOutScripts", false);
-            int saveTime = m_ScriptConfig.GetInt("SaveInterval", 300)*1000;
+            int saveTime = m_ScriptConfig.GetInt("SaveInterval", 120) * 1000;
 
             ThreadPriority prio = ThreadPriority.BelowNormal;
             switch (priority)
