@@ -4691,8 +4691,18 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.Vector3 llGetAgentSize(string id)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetAgentSize");
-            return new LSL_Types.Vector3();
+            ScenePresence avatar = World.GetScenePresence(id);
+            LSL_Types.Vector3 agentSize;
+            if (avatar == null)
+            {
+                agentSize = BuiltIn_Commands_BaseClass.ZERO_VECTOR;
+            }
+            else
+            {
+                PhysicsVector size = avatar.PhysicsActor.Size;
+                agentSize = new LSL_Types.Vector3(size.X, size.Y, size.Z);
+            }
+            return agentSize;
         }
 
         public LSL_Types.LSLInteger llSameGroup(string agent)

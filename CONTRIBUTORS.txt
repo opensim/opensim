@@ -75,8 +75,8 @@ LSL Devs
 Testers
 
 * Ai Austin
-* Ckrinke
 * CharlieO (LSL)
+* Ckrinke
 * openlifegrid.com
 
 
