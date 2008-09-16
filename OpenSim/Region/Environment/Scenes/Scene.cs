@@ -885,7 +885,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             EventManager.TriggerOnBackup(m_storageManager.DataStore);
             m_backingup = false;
-            //return true;
         }
 
         #endregion

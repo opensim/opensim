@@ -1124,39 +1124,50 @@ namespace OpenSim.Region.Environment.Scenes
         #region Events
 
         /// <summary>
-        /// Processes backup
+        /// Processes backup.
         /// </summary>
         /// <param name="datastore"></param>
         public void ProcessBackup(IRegionDataStore datastore)
         {
-            if (HasGroupChanged)
+            // Since this is the top of the section of call stack for backing up a particular scene object, don't let
+            // any exception propogate upwards.
+            try
             {
-                // don't backup while it's selected or you're asking for changes mid stream.
-                if ((!IsSelected) && (RootPart != null))
+                if (HasGroupChanged)
                 {
-                    m_log.InfoFormat(
-                        "[SCENE]: Storing object {0}, {1} in {2}",
-                        Name, UUID, m_scene.RegionInfo.RegionName);
+                    // don't backup while it's selected or you're asking for changes mid stream.
+                    if ((!IsSelected) && (RootPart != null))
+                    {
+                        m_log.InfoFormat(
+                            "[SCENE]: Storing {0}, {1} in {2}",
+                            Name, UUID, m_scene.RegionInfo.RegionName);
 
-                    SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
-                    backup_group.RootPart.Velocity = RootPart.Velocity;
-                    backup_group.RootPart.Acceleration = RootPart.Acceleration;
-                    backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;
-                    backup_group.RootPart.ParticleSystem = RootPart.ParticleSystem;
+                        SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
+                        backup_group.RootPart.Velocity = RootPart.Velocity;
+                        backup_group.RootPart.Acceleration = RootPart.Acceleration;
+                        backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;
+                        backup_group.RootPart.ParticleSystem = RootPart.ParticleSystem;
 
-                    datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
-                    HasGroupChanged = false;
+                        datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
+                        HasGroupChanged = false;
 
-                    backup_group.ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
+                        backup_group.ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
 
-                    backup_group = null;
+                        backup_group = null;
+                    }
+    //                else
+    //                {
+    //                    m_log.DebugFormat(
+    //                        "[SCENE]: Did not update persistence of object {0} {1}, selected = {2}",
+    //                        Name, UUID, IsSelected);
+    //                }
                 }
-//                else
-//                {
-//                    m_log.DebugFormat(
-//                        "[SCENE]: Did not update persistence of object {0} {1}, selected = {2}",
-//                        Name, UUID, IsSelected);
-//                }
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[SCENE]: Storing of {0}, {1} in {2} failed with exception {3}", 
+                    Name, UUID, m_scene.RegionInfo.RegionName, e);
             }
         }
 
