@@ -35,34 +35,34 @@ OpenSim Developers
 
 Patches
 
-* BigFootAg
-* CharlieO
-* jhurliman
-* kinoc (Daxtron Labs)
-* dmiles (Daxtron Labs)
-* daTwitch 
-* mikkopa/_someone - RealXtend
-* openlifegrid.com
-* Daedius
+* A_Biondi
 * alex_carnell
-* webmage (IBM)
-* jimbo2120 (IBM)
-* nornalbion
 * awebb (IBM)
+* BigFootAg
 * brianw/Sir_Ahzz
+* CharlieO
 * ChrisDown
+* Daedius
+* daTwitch 
 * devalnor-#708
 * Diva Canto
-* krtaylor (IBM)
-* A_Biondi
-* lulurun 
+* dmiles (Daxtron Labs)
+* Grumly57
+* jhurliman
+* jimbo2120 (IBM)
 * John R Sohn (XenReborn)
+* Junta Kohime
+* kinoc (Daxtron Labs)
+* krtaylor (IBM)
+* lulurun 
+* Mic Bowman
+* mikkopa/_someone - RealXtend
+* nornalbion
+* openlifegrid.com
+* webmage (IBM)
 * Xantor
 * YZh
-* Grumly57
-* Junta Kohime
 * Zha Ewry
-* Mic Bowman
 
 
 LSL Devs
@@ -74,10 +74,10 @@ LSL Devs
 
 Testers
 
+* Ai Austin
 * Ckrinke
 * CharlieO (LSL)
 * openlifegrid.com
-* Ai Austin
 
 
 This software uses components from the following developers:
