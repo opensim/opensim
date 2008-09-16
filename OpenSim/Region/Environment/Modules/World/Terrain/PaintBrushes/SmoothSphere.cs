@@ -40,8 +40,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
             int x, y;
             double[,] tweak = new double[map.Width,map.Height];
 
-            double area = strength;
+            double area = strength; 
             double step = strength / 4.0;
+            duration = 0.0045; //MCP Should be read from ini file
+ 
 
             // compute delta map
             for (x = 0; x < map.Width; x++)

@@ -33,9 +33,11 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
     public class RaiseSphere : ITerrainPaintableEffect
     {
         #region ITerrainPaintableEffect Members
+        
 
         public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength, double duration)
         {
+            duration = 0.03; //MCP Should be read from ini file
             strength = TerrainUtil.MetersToSphericalStrength(strength);
 
             int x;

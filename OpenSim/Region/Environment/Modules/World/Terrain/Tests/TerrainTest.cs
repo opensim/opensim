@@ -40,14 +40,14 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.Tests
             TerrainChannel x = new TerrainChannel(256, 256);
             ITerrainPaintableEffect effect = new RaiseSphere();
 
-            effect.PaintEffect(x, 128.0, 128.0, 50, 0.1);
+            effect.PaintEffect(x, 128.0, 128.0, 100, 0.1);
             Assert.That(x[128, 128] > 0.0, "Raise brush not raising values.");
             Assert.That(x[0, 128] > 0.0, "Raise brush lowering edge values.");
 
             x = new TerrainChannel(256, 256);
             effect = new LowerSphere();
 
-            effect.PaintEffect(x, 128.0, 128.0, 50, 0.1);
+            effect.PaintEffect(x, 128.0, 128.0, 100, 0.1);
             Assert.That(x[128, 128] < 0.0, "Lower not lowering values.");
             Assert.That(x[0, 128] < 0.0, "Lower brush affecting edge values.");
         }

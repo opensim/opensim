@@ -42,6 +42,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 
             double sum = 0.0;
             double step2 = 0.0;
+ 			duration = 0.009; //MCP Should be read from ini file
+ 
 
             // compute delta map
             for (x = 0; x < map.Width; x++)

@@ -37,7 +37,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
         public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength, double duration)
         {
             strength = TerrainUtil.MetersToSphericalStrength(strength);
-
+            duration = 0.03; //MCP Should be read from ini file
+ 
             int x;
             for (x = 0; x < map.Width; x++)
             {
