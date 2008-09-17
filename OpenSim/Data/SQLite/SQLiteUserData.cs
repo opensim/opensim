@@ -813,6 +813,11 @@ namespace OpenSim.Data.SQLite
                 Convert.ToSingle(row["currentPosY"]),
                 Convert.ToSingle(row["currentPosZ"])
                 );
+            ua.LookAt = new Vector3(
+                Convert.ToSingle(row["currentLookAtX"]),
+                Convert.ToSingle(row["currentLookAtY"]),
+                Convert.ToSingle(row["currentLookAtZ"])
+                );
             return ua;
         }
 
@@ -838,6 +843,9 @@ namespace OpenSim.Data.SQLite
             row["currentPosX"] = ua.Position.X;
             row["currentPosY"] = ua.Position.Y;
             row["currentPosZ"] = ua.Position.Z;
+            row["currentLookAtX"] = ua.LookAt.X;
+            row["currentLookAtY"] = ua.LookAt.Y;
+            row["currentLookAtZ"] = ua.LookAt.Z;
         }
 
         /***********************************************************************
