@@ -3250,9 +3250,54 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llRequestAgentData(string id, int data)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRequestAgentData");
+
+            UserProfileData userProfile =
+                    World.CommsManager.UserService.GetUserProfile(id);
+
+            UserAgentData userAgent =
+                    World.CommsManager.UserService.GetAgentByUUID(id);
+
+            if (userProfile == null || userAgent == null)
+                return UUID.Zero.ToString();
+
+            string reply = String.Empty;
+
+            switch (data)
+            {
+            case BuiltIn_Commands_BaseClass.DATA_ONLINE: // DATA_ONLINE (0|1)
+                if (userProfile.CurrentAgent.AgentOnline)
+                    reply = "1";
+                else
+                    reply = "0";
+                break;
+            case BuiltIn_Commands_BaseClass.DATA_NAME: // DATA_NAME (First Last)
+                reply = userProfile.FirstName + " " + userProfile.SurName;
+                break;
+            case BuiltIn_Commands_BaseClass.DATA_BORN: // DATA_BORN (YYYY-MM-DD)
+                DateTime born = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+                born = born.AddSeconds(userProfile.Created);
+                reply = born.ToString("yyyy-MM-dd");
+                break;
+            case BuiltIn_Commands_BaseClass.DATA_RATING: // DATA_RATING (0,0,0,0,0,0)
+                reply = "0,0,0,0,0,0";
+                break;
+            case BuiltIn_Commands_BaseClass.DATA_PAYINFO: // DATA_PAYINFO (0|1|2|3)
+                reply = "0";
+                break;
+            default:
+                return UUID.Zero.ToString(); // Raise no event
+            }
+
+            UUID rq = UUID.Random();
+
+            UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
+                m_localID, m_itemID, rq.ToString());
+
+            m_ScriptEngine.m_ASYNCLSLCommandManager.
+                m_Dataserver.DataserverReply(rq.ToString(), reply);
+
             // ScriptSleep(100);
-            return String.Empty;
+            return tid.ToString();
         }
 
         public string llRequestInventoryData(string name)
