@@ -145,11 +145,20 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         // Attributes of the parcel node
                         XmlAttribute scripts_attr = nodeFactory.CreateAttribute("scripts");
                         scripts_attr.Value = GetScriptsPermissions(parcel);
+                        XmlAttribute build_attr = nodeFactory.CreateAttribute("build");
+                        build_attr.Value = GetBuildPermissions(parcel);
+                        XmlAttribute public_attr = nodeFactory.CreateAttribute("public");
+                        public_attr.Value = GetPublicPermissions(parcel);
+                        // Check the category of the Parcel
                         XmlAttribute category_attr = nodeFactory.CreateAttribute("category");
                         category_attr.Value = parcel.Category.ToString();
+                        
+
                         //XmlAttribute entities_attr = nodeFactory.CreateAttribute("entities");
                         //entities_attr.Value = land.primsOverMe.Count.ToString();
                         xmlparcel.Attributes.Append(scripts_attr);
+                        xmlparcel.Attributes.Append(build_attr);
+                        xmlparcel.Attributes.Append(public_attr);
                         xmlparcel.Attributes.Append(category_attr);
                         //xmlparcel.Attributes.Append(entities_attr);
 
@@ -273,6 +282,24 @@ namespace OpenSim.Region.DataSnapshot.Providers
         private string GetScriptsPermissions(LandData parcel)
         {
             if ((parcel.Flags & (uint)Parcel.ParcelFlags.AllowOtherScripts) == (uint)Parcel.ParcelFlags.AllowOtherScripts)
+                return "yes";
+            else
+                return "no";
+
+        }
+
+        private string GetPublicPermissions(LandData parcel)
+        {
+            if ((parcel.Flags & (uint)Parcel.ParcelFlags.UseAccessList) == (uint)Parcel.ParcelFlags.UseAccessList)
+                return "yes";
+            else
+                return "no";
+
+        }
+
+        private string GetBuildPermissions(LandData parcel)
+        {
+            if ((parcel.Flags & (uint)Parcel.ParcelFlags.CreateObjects) == (uint)Parcel.ParcelFlags.CreateObjects)
                 return "yes";
             else
                 return "no";

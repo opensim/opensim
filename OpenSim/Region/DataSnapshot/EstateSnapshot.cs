@@ -58,30 +58,60 @@ namespace OpenSim.Region.DataSnapshot.Providers
             if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                 ownerid = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
-            // Can't fail because if it weren't in cache, we wouldn't be here
-            //
             UserProfileData userProfile = m_scene.CommsManager.UserService.GetUserProfile(ownerid);
 
             //TODO: Change to query userserver about the master avatar UUID ?
-            String firstname = userProfile.FirstName;
-            String lastname = userProfile.SurName;
+            String firstname;
+            String lastname;
 
-            //TODO: Fix the marshalling system to have less copypasta gruntwork
-            XmlNode user = factory.CreateNode(XmlNodeType.Element, "user", "");
-            XmlAttribute type = (XmlAttribute)factory.CreateNode(XmlNodeType.Attribute, "type", "");
-            type.Value = "owner";
-            user.Attributes.Append(type);
+            if (userProfile != null)
+            {
+                firstname = userProfile.FirstName;
+                lastname = userProfile.SurName;
 
-            //TODO: Create more TODOs
-            XmlNode username = factory.CreateNode(XmlNodeType.Element, "name", "");
-            username.InnerText = firstname + " " + lastname;
-            user.AppendChild(username);
+                //TODO: Fix the marshalling system to have less copypasta gruntwork
+                XmlNode user = factory.CreateNode(XmlNodeType.Element, "user", "");
+                XmlAttribute type = (XmlAttribute)factory.CreateNode(XmlNodeType.Attribute, "type", "");
+                type.Value = "owner";
+                user.Attributes.Append(type);
 
-            XmlNode useruuid = factory.CreateNode(XmlNodeType.Element, "uuid", "");
-            useruuid.InnerText = ownerid.ToString();
-            user.AppendChild(useruuid);
+                //TODO: Create more TODOs
+                XmlNode username = factory.CreateNode(XmlNodeType.Element, "name", "");
+                username.InnerText = firstname + " " + lastname;
+                user.AppendChild(username);
 
-            estatedata.AppendChild(user);
+                XmlNode useruuid = factory.CreateNode(XmlNodeType.Element, "uuid", "");
+                useruuid.InnerText = ownerid.ToString();
+                user.AppendChild(useruuid);
+
+                estatedata.AppendChild(user);
+            }
+
+            XmlNode estatename = factory.CreateNode(XmlNodeType.Element, "name", "");
+            estatename.InnerText = m_scene.RegionInfo.EstateSettings.EstateName.ToString();
+            estatedata.AppendChild(estatename);
+
+            XmlNode estateid = factory.CreateNode(XmlNodeType.Element, "id", "");
+            estateid.InnerText = m_scene.RegionInfo.EstateSettings.EstateID.ToString();
+            estatedata.AppendChild(estateid);
+
+            XmlNode parentid = factory.CreateNode(XmlNodeType.Element, "parentid", "");
+            parentid.InnerText = m_scene.RegionInfo.EstateSettings.ParentEstateID.ToString();
+            estatedata.AppendChild(parentid);
+
+            XmlNode flags = factory.CreateNode(XmlNodeType.Element, "flags", "");
+
+            XmlAttribute teleport = (XmlAttribute)factory.CreateNode(XmlNodeType.Attribute, "teleport", "");
+            teleport.Value = m_scene.RegionInfo.EstateSettings.AllowDirectTeleport.ToString();
+            flags.Attributes.Append(teleport);
+
+            XmlAttribute publicaccess = (XmlAttribute)factory.CreateNode(XmlNodeType.Attribute, "public", "");
+            publicaccess.Value = m_scene.RegionInfo.EstateSettings.PublicAccess.ToString();
+            flags.Attributes.Append(publicaccess);
+
+
+            estatedata.AppendChild(flags);
+
 
             this.Stale = false;
             return estatedata;

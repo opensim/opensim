@@ -245,6 +245,10 @@ namespace OpenSim.Region.DataSnapshot
             infopiece.InnerText = scene.RegionInfo.RegionName;
             infoblock.AppendChild(infopiece);
 
+            infopiece = basedoc.CreateNode(XmlNodeType.Element, "handle", "");
+            infopiece.InnerText = scene.RegionInfo.RegionHandle.ToString();
+            infoblock.AppendChild(infopiece);
+
             docElement.AppendChild(infoblock);
 
             m_log.Debug("[DATASNAPSHOT]: Generated region node");
