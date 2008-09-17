@@ -879,12 +879,13 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = part.ParentGroup;
             if (group != null)
             {
-                int type = group.RemoveInventoryItem(localID, itemID);
-                part.GetProperties(remoteClient);
-                if (type == 10)
+                TaskInventoryItem item = group.GetInventoryItem(localID, itemID);
+                if (item.Type == 10)
                 {
                     EventManager.TriggerRemoveScript(localID, itemID);
                 }
+                group.RemoveInventoryItem(localID, itemID);
+                part.GetProperties(remoteClient);
             }
             else
             {

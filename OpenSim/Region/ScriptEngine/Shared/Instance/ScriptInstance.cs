@@ -77,6 +77,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private int m_MaxScriptQueue;
         private bool m_SaveState = true;
         private bool m_ShuttingDown = false;
+        private int m_ControlEventsInQueue = 0;
+        private int m_LastControlLevel = 0;
 
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
 
@@ -320,6 +322,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
         }
 
+        private void ReleaseControls()
+        {
+            SceneObjectPart part=m_Engine.World.GetSceneObjectPart(m_LocalID);
+            if (part != null && part.TaskInventory.ContainsKey(m_ItemID))
+            {
+                UUID permsGranter = part.TaskInventory[m_ItemID].PermsGranter;
+                int permsMask = part.TaskInventory[m_ItemID].PermsMask;
+
+                if ((permsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
+                {
+
+                    ScenePresence presence = m_Engine.World.GetScenePresence(permsGranter);
+                    if (presence != null)
+                        presence.UnRegisterControlEventsToScript(m_LocalID, m_ItemID);
+                }
+            }
+        }
+
+        public void DestroyScriptInstance()
+        {
+            ReleaseControls();
+        }
+
         public void RemoveState()
         {
             string savedState = Path.Combine(Path.GetDirectoryName(m_Assembly),
@@ -439,7 +464,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 if (m_EventQueue.Count >= m_MaxScriptQueue)
                     return;
 
-                m_EventQueue.Enqueue(data);
                 if (data.EventName == "timer")
                 {
                     if (m_TimerQueued)
@@ -447,8 +471,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     m_TimerQueued = true;
                 }
 
-                if (!m_RunEvents)
-                    return;
+                if (data.EventName == "control")
+                {
+                    int held = ((LSL_Types.LSLInteger)data.Params[1]).value;
+                    int changed= ((LSL_Types.LSLInteger)data.Params[2]).value;
+
+                    // If the last message was a 0 (nothing held)
+                    // and this one is also nothing held, drop it
+                    //
+                    if (m_LastControlLevel == held && held == 0)
+                        return;
+
+                    // If there is one or more queued, then queue
+                    // only changed ones, else queue unconditionally
+                    //
+                    if (m_ControlEventsInQueue > 0)
+                    {
+                        if (m_LastControlLevel == held)
+                            return;
+                    }
+
+                    m_LastControlLevel = held;
+                    m_ControlEventsInQueue++;
+                }
+
+                m_EventQueue.Enqueue(data);
 
                 if (m_CurrentResult == null)
                 {
@@ -475,6 +522,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 }
                 if (data.EventName == "timer")
                     m_TimerQueued = false;
+                if (data.EventName == "control")
+                {
+                    if (m_ControlEventsInQueue > 0)
+                        m_ControlEventsInQueue--;
+                }
             }
             
             //m_log.DebugFormat("[XENGINE]: Processing event {0} for {1}", data.EventName, this);
@@ -616,6 +668,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             bool running = Running;
 
             RemoveState();
+            ReleaseControls();
 
             Stop(0);
             SceneObjectPart part=m_Engine.World.GetSceneObjectPart(m_LocalID);
@@ -641,6 +694,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             // bool running = Running;
 
             RemoveState();
+            ReleaseControls();
 
             m_Script.ResetVars();
             SceneObjectPart part=m_Engine.World.GetSceneObjectPart(m_LocalID);

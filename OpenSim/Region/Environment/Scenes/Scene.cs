@@ -1742,6 +1742,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             //SceneObjectPart rootPart = group.GetChildPart(group.UUID);
 
+            group.RemoveScriptInstances();
+
             foreach (SceneObjectPart part in group.Children.Values)
             {
                 if (part.PhysActor != null)

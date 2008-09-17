@@ -2553,6 +2553,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (agentID == UUID.Zero || perm == 0) // Releasing permissions
             {
+                llReleaseControls();
+
                 m_host.TaskInventory[invItemID].PermsGranter=UUID.Zero;
                 m_host.TaskInventory[invItemID].PermsMask=0;
 
@@ -2563,6 +2565,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 return;
             }
+
+            if ( m_host.TaskInventory[invItemID].PermsGranter != agentID || (perm & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
+                llReleaseControls();
 
             m_host.AddScriptLPS(1);
 
@@ -2647,6 +2652,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             client.OnScriptAnswer-=handleScriptAnswer;
             m_waitingForScriptAnswer=false;
+
+            if((answer & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
+                llReleaseControls();
 
             m_host.TaskInventory[invItemID].PermsMask=answer;
             m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(

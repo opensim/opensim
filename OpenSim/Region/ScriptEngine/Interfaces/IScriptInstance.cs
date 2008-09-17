@@ -93,6 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         DetectParams GetDetectParams(int idx);
         UUID GetDetectID(int idx);
         void SaveState(string assembly);
+        void DestroyScriptInstance();
 
         IScriptApi GetApi(string name);
     }

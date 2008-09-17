@@ -565,6 +565,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
 
                 instance.RemoveState();
+                instance.DestroyScriptInstance();
 
                 instance = null;
 

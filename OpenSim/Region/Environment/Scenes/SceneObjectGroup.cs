@@ -958,7 +958,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.RemoveScriptInstances();
+//                    part.RemoveScriptInstances();
 
                     List<ScenePresence> avatars = Scene.GetScenePresences();
                     for (int i = 0; i < avatars.Count; i++)
