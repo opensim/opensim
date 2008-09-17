@@ -47,6 +47,10 @@ Import it into your MY store on windows.
 
 Mono, you must use httpcfg in the Mono-1.9.1/lib/mono/2.0 folder.
  httpcfg -add -port <TYPE HTTPS PORT> -pvk <TYPE PRIVATE KEY FILE> -cert MyCert
+ From Lexa:
+ It expect the key to be in the windows pvk format
+ pvk -in host.key -nocrypt -out host.pvk -topvk" and use -pvk host.pvk
+ pvk is a package on FreeBSD that gets installed as part of the Mono installation
 
 After that, make sure to set-up your opensim.ini!
 
