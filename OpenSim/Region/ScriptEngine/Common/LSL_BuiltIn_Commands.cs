@@ -932,14 +932,17 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
         public LSL_Types.LSLInteger llDetectedGroup(int number)
-        { //CFK: I *think* this is right, but am not sure.
+        {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
+            UUID SensedUUID = uuidDetectedKey(number);
+            if (SensedUUID == UUID.Zero)
                 return new LSL_Types.LSLInteger(0);
-            if (m_host.GroupID == m_host.ParentGroup.RootPart.GroupID)
+            ScenePresence presence = World.GetScenePresence(SensedUUID);
+            IClientAPI client = presence.ControllingClient;
+            if (m_host.GroupID == client.ActiveGroupId)
                 return new LSL_Types.LSLInteger(1);
-            return new LSL_Types.LSLInteger(0);
+            else
+                return new LSL_Types.LSLInteger(0);
         }
 
         public LSL_Types.LSLInteger llDetectedLinkNumber(int number)
@@ -4708,8 +4711,17 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.LSLInteger llSameGroup(string agent)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSameGroup");
-            return 0;
+            UUID agentId = new UUID();
+            if (!UUID.TryParse(agent, out agentId))
+                return new LSL_Types.LSLInteger(0);
+            ScenePresence presence = World.GetScenePresence(agentId);
+            if (presence == null)
+                return new LSL_Types.LSLInteger(0);
+            IClientAPI client = presence.ControllingClient;
+            if (m_host.GroupID == client.ActiveGroupId)
+                return new LSL_Types.LSLInteger(1);
+            else
+                return new LSL_Types.LSLInteger(0);
         }
 
         public void llUnSit(string id)
