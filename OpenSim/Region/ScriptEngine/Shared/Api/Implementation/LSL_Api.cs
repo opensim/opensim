@@ -2116,11 +2116,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             m_host.AddScriptLPS(1);
-            bool found = false;
-
-            // Instead of using return;, I'm using continue; because in our TaskInventory implementation
-            // it's possible to have two items with the same task inventory name.
-            // this is an easter egg of sorts.
 
             foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
@@ -2130,7 +2125,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (inv.Value.InvType != (int)InventoryType.Object)
                     {
                         llSay(0, "Unable to create requested object. Object is missing from database.");
-                        continue;
+                        return;
                     }
 
                     Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
@@ -2165,15 +2160,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     //Recoil.
                     llApplyImpulse(new LSL_Types.Vector3(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
-                    found = true;
                     // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
                     ScriptSleep((int)((groupmass * velmag) / 10));
                     // ScriptSleep(100);
-                    break;
+                    return;
                 }
             }
-            if (!found)
-                llSay(0, "Could not find object " + inventory);
+            llSay(0, "Could not find object " + inventory);
         }
 
         public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
@@ -2830,6 +2823,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             parentPrim.RootPart.AddFlag(PrimFlags.CreateSelected);
+            parentPrim.HasGroupChanged = true;
+            parentPrim.ScheduleGroupForFullUpdate();
             parentPrim.GetProperties(client);
 
             ScriptSleep(1000);
