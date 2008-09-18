@@ -466,10 +466,10 @@ namespace OpenSim.Region.Physics.Meshing
             // Deal with cuts now
             if ((profileBegin != 0) || (profileEnd != 0))
             {
-                double fProfileBeginAngle = profileBegin/50000.0*360.0;
+                double fProfileBeginAngle = profileBegin / 50000.0*360.0;
                     // In degree, for easier debugging and understanding
                 fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
-                double fProfileEndAngle = 360.0 - profileEnd/50000.0*360.0; // Pathend comes as complement to 1.0
+                double fProfileEndAngle = 360.0 - profileEnd / 50000.0*360.0; // Pathend comes as complement to 1.0
                 fProfileEndAngle -= (90.0 + 45.0);
 
                 // avoid some problem angles until the hull subtraction routine is fixed
@@ -2024,7 +2024,6 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (primShape.SculptEntry && primShape.SculptType != (byte)0 && primShape.SculptData.Length > 0)
             {
-
                 SculptMesh smesh = CreateSculptMesh(primName, primShape, size, lod);
                 mesh = (Mesh)smesh;
                 //CalcNormals(mesh);

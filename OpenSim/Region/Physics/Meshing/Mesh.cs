@@ -74,7 +74,6 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
 
-
         public void Add(Triangle triangle)
         {
             int i;
@@ -134,7 +133,6 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
         }
-
 
         public void Add(List<Vertex> lv)
         {
@@ -243,7 +241,6 @@ namespace OpenSim.Region.Physics.Meshing
         {
             pinnedVirtexes.Free();
             pinnedIndex.Free();
-
         }
 
         /// <summary>
@@ -255,7 +252,6 @@ namespace OpenSim.Region.Physics.Meshing
             vertices = null;
             primMesh = null;
         }
-
 
         public void Append(Mesh newMesh)
         {

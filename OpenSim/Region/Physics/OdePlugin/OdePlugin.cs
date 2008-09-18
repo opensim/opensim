@@ -1732,7 +1732,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             catch (Exception e)
                             {
-                                m_log.Error("[PHYSICS]: " + e.Message.ToString() + e.TargetSite.ToString());
+                                m_log.ErrorFormat("[PHYSICS]: {0}, {1}, {2}", e.Message, e.TargetSite, e);
                                 ode.dunlock(world);
                             }
 

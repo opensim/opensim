@@ -81,9 +81,8 @@ namespace OpenSim.Region.Physics.Meshing
                     idata.Dispose();
                 }
             }
-
-
         }
+        
         private Vertex ColorToVertex(Color input)
         {
             return new Vertex(
@@ -91,6 +90,7 @@ namespace OpenSim.Region.Physics.Meshing
                 ((float)input.G - 128) / RANGE,
                 ((float)input.B - 128) / RANGE);
         }
+        
         private void LoadPoles()
         {
             northpole = new Vertex(0, 0, 0);
@@ -144,6 +144,7 @@ namespace OpenSim.Region.Physics.Meshing
                 return lod;
             }
         }
+        
         private void DoLOD()
         {
             int x_max = Math.Min(Scale, bBitmap.Width);
@@ -199,13 +200,14 @@ namespace OpenSim.Region.Physics.Meshing
             }
 
         }
+        
         public void clearStuff()
         {
             this.triangles.Clear();
             this.vertices.Clear();
             //normals = new float[0];
-
         }
+        
         public void processSculptTexture()
         {
             int x_max = Math.Min(Scale, bBitmap.Width);
