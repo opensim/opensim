@@ -252,7 +252,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         //These are the implementations of the various ll-functions used by the LSL scripts.
-        //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
         public LSL_Types.LSLFloat llSin(double f)
         {
             m_host.AddScriptLPS(1);
@@ -1040,7 +1039,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
                 texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
@@ -1050,7 +1049,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.UpdateTexture(tex);
                 return;
             }
-            else if (face == -1)
+            else if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (uint i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1076,14 +1075,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void SetGlow(SceneObjectPart part, int face, float glow)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].Glow = glow;
                 part.UpdateTexture(tex);
                 return;
             }
-            else if (face == -1)
+            else if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (uint i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1123,7 +1122,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].Shiny = sval;
@@ -1131,9 +1130,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.UpdateTexture(tex);
                 return;
             }
-            else if (face == -1)
+            else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (uint i = 0; i < 32; i++)
+                for (uint i = 0; i < GetNumberOfSides(part); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1151,16 +1150,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void SetFullBright(SceneObjectPart part, int face, bool bright)
         {
              Primitive.TextureEntry tex = part.Shape.Textures;
-             if (face > -1)
+             if (face >= 0 && face < GetNumberOfSides(part))
              {
                  tex.CreateFace((uint) face);
                  tex.FaceTextures[face].Fullbright = bright;
                  part.UpdateTexture(tex);
                  return;
              }
-             else if (face == -1)
+             else if (face == ScriptBaseClass.ALL_SIDES)
              {
-                 for (uint i = 0; i < 32; i++)
+                 for (uint i = 0; i < GetNumberOfSides(part); i++)
                  {
                      if (tex.FaceTextures[i] != null)
                      {
@@ -1176,16 +1175,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Types.LSLFloat llGetAlpha(int face)
         {
             m_host.AddScriptLPS(1);
-            Primitive.TextureEntry tex = m_host.Shape.Textures;
-            if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
+
+            return GetAlpha(m_host, face);
+        }
+
+        private LSL_Types.LSLFloat GetAlpha(SceneObjectPart part, int face)
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
-                return (double)((tex.DefaultTexture.RGBA.A * 255) / 255);
+                int i;
+                double sum = 0.0;
+                for (i = 0 ; i < GetNumberOfSides(part) ; i++)
+                    sum += (double)((tex.GetFace((uint)i).RGBA.A * 255) / 255);
+                return sum;
             }
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 return (double)((tex.GetFace((uint)face).RGBA.A * 255) / 255);
             }
-            return 0;
+            return 0.0;
         }
 
         public void llSetAlpha(double alpha, int face)
@@ -1199,7 +1208,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
                 texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
@@ -1207,7 +1216,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.UpdateTexture(tex);
                 return;
             }
-            else if (face == -1)
+            else if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (int i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1325,23 +1334,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Types.Vector3 llGetColor(int face)
         {
             m_host.AddScriptLPS(1);
-            Primitive.TextureEntry tex = m_host.Shape.Textures;
+            return GetColor(m_host, face);
+        }
+
+        private LSL_Types.Vector3 GetColor(SceneObjectPart part, int face)
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
-            LSL_Types.Vector3 rgb;
-            if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
+            LSL_Types.Vector3 rgb = new LSL_Types.Vector3();
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
-                texcolor = tex.DefaultTexture.RGBA;
-                rgb.x = (255 - (texcolor.R * 255)) / 255;
-                rgb.y = (255 - (texcolor.G * 255)) / 255;
-                rgb.z = (255 - (texcolor.B * 255)) / 255;
+                int i;
+
+                for (i = 0 ; i < GetNumberOfSides(part) ; i++)
+                {
+                    texcolor = tex.GetFace((uint)i).RGBA;
+                    rgb.x += texcolor.R;
+                    rgb.y += texcolor.G;
+                    rgb.z += texcolor.B;
+                }
+                
+                rgb.x /= (float)GetNumberOfSides(part);
+                rgb.y /= (float)GetNumberOfSides(part);
+                rgb.z /= (float)GetNumberOfSides(part);
+
                 return rgb;
             }
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 texcolor = tex.GetFace((uint)face).RGBA;
-                rgb.x = (255 - (texcolor.R * 255)) / 255;
-                rgb.y = (255 - (texcolor.G * 255)) / 255;
-                rgb.z = (255 - (texcolor.B * 255)) / 255;
+                rgb.x = texcolor.R;
+                rgb.y = texcolor.G;
+                rgb.z = texcolor.B;
                 return rgb;
             }
             else
@@ -1371,7 +1395,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Primitive.TextureEntry tex = part.Shape.Textures;
 
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.TextureID = textureID;
@@ -1379,9 +1403,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.UpdateTexture(tex);
                 return;
             }
-            else if (face == -1)
+            else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (uint i = 0; i < 32; i++)
+                for (uint i = 0; i < GetNumberOfSides(part); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1405,7 +1429,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private void ScaleTexture(SceneObjectPart part, double u, double v, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.RepeatU = (float)u;
@@ -1414,9 +1438,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.UpdateTexture(tex);
                 return;
             }
-            if (face == -1)
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < 32; i++)
+                for (int i = 0; i < GetNumberOfSides(part); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1441,7 +1465,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private void OffsetTexture(SceneObjectPart part, double u, double v, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.OffsetU = (float)u;
@@ -1450,9 +1474,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.UpdateTexture(tex);
                 return;
             }
-            if (face == -1)
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < 32; i++)
+                for (int i = 0; i < GetNumberOfSides(part); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1477,7 +1501,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private void RotateTexture(SceneObjectPart part, double rotation, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.Rotation = (float)rotation;
@@ -1485,9 +1509,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.UpdateTexture(tex);
                 return;
             }
-            if (face == -1)
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < 32; i++)
+                for (int i = 0; i < GetNumberOfSides(part); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1503,12 +1527,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Types.LSLString llGetTexture(int face)
         {
             m_host.AddScriptLPS(1);
-            Primitive.TextureEntry tex = m_host.Shape.Textures;
-            if (face == -1)
+            return GetTexture(m_host, face);
+        }
+
+        private LSL_Types.LSLString GetTexture(SceneObjectPart part, int face)
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
                 face = 0;
             }
-            if (face > -1)
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 Primitive.TextureEntryFace texface;
                 texface = tex.GetFace((uint)face);
@@ -3469,7 +3498,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return GetNumberOfSides(m_host);
         }
 
-        public LSL_Types.LSLInteger GetNumberOfSides(SceneObjectPart part)
+        private int GetNumberOfSides(SceneObjectPart part)
         {
             int ret = 0;
             bool hasCut;
@@ -3701,16 +3730,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Types.Vector3 llGetTextureOffset(int face)
         {
             m_host.AddScriptLPS(1);
-            Primitive.TextureEntry tex = m_host.Shape.Textures;
-            LSL_Types.Vector3 offset;
-            if (face == -1)
+            return GetTextureOffset(m_host, face);
+        }
+
+        private LSL_Types.Vector3 GetTextureOffset(SceneObjectPart part, int face)
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            LSL_Types.Vector3 offset = new LSL_Types.Vector3();
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
                 face = 0;
             }
-            offset.x = tex.GetFace((uint)face).OffsetU;
-            offset.y = tex.GetFace((uint)face).OffsetV;
-            offset.z = 0.0;
-            return offset;
+            if(face >= 0 && face < GetNumberOfSides(part))
+            {
+                offset.x = tex.GetFace((uint)face).OffsetU;
+                offset.y = tex.GetFace((uint)face).OffsetV;
+                offset.z = 0.0;
+                return offset;
+            }
+            else
+            {
+                return offset;
+            }
         }
 
         public LSL_Types.Vector3 llGetTextureScale(int side)
@@ -3731,12 +3772,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Types.LSLFloat llGetTextureRot(int face)
         {
             m_host.AddScriptLPS(1);
-            Primitive.TextureEntry tex = m_host.Shape.Textures;
+            return GetTextureRot(m_host, face);
+        }
+
+        private LSL_Types.LSLFloat GetTextureRot(SceneObjectPart part, int face)
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
             if (face == -1)
             {
                 face = 0;
             }
-            return tex.GetFace((uint)face).Rotation;
+            if (face >= 0 && face < GetNumberOfSides(part))
+            {
+                return tex.GetFace((uint)face).Rotation;
+            }
+            else
+            {
+                return 0.0;
+            }
         }
 
         public LSL_Types.LSLInteger llSubStringIndex(string source, string pattern)
@@ -4385,7 +4438,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             pTexAnim.Flags = (Primitive.TextureAnimMode)mode;
 
             //ALL_SIDES
-            if (face == -1)
+            if (face == ScriptBaseClass.ALL_SIDES)
                     face = 255;
 
             pTexAnim.Face = (uint)face;
@@ -5807,11 +5860,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 2)
                             return;
-                    // TODO: LSL constant ALL_SIDES (value -1) is inserted into LSL_Types.list
-                    //       as a raw CLI Int32. When / if this is inserted as an
-                    //       LSL_Types.LSLInteger extract value using LSL_Types.list.GetLSLIntegerItem
-                    //    face = rules.GetLSLIntegerItem(idx++);
-                        face = (int)rules.GetLSLIntegerItem(idx++);
+                        face = rules.GetLSLIntegerItem(idx++);
                         float glow = (float)rules.GetLSLFloatItem(idx++);
 
                         SetGlow(part, face, glow);
@@ -5830,11 +5879,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                      case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                          if (remain < 2)
                              return;
-                   // TODO: LSL constant ALL_SIDES (value -1) is inserted into LSL_Types.list
-                   //       as a raw CLI Int32. When / if this is inserted as an
-                   //       LSL_Types.LSLInteger extract value using LSL_Types.list.GetLSLIntegerItem
-                   //      face = rules.GetLSLIntegerItem(idx++);
-                         face = (int)rules.GetLSLIntegerItem(idx++);
+                         face = rules.GetLSLIntegerItem(idx++);
                          bool st = rules.GetLSLIntegerItem(idx++);
                          SetFullBright(part, face , st);
                          break;
@@ -6019,7 +6064,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 Primitive.TextureEntry tex = part.Shape.Textures;
                 Color4 texcolor;
-                if (face > -1)
+                if (face >= 0 && face < GetNumberOfSides(m_host))
                 {
                     texcolor = tex.CreateFace((uint)face).RGBA;
                     texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
@@ -6027,12 +6072,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     part.UpdateTexture(tex);
                     return;
                 }
-                else if (face == -1)
+                else if (face == ScriptBaseClass.ALL_SIDES)
                 {
                     texcolor = tex.DefaultTexture.RGBA;
                     texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
                     tex.DefaultTexture.RGBA = texcolor;
-                    for (uint i = 0; i < 32; i++)
+                    for (uint i = 0; i < GetNumberOfSides(m_host); i++)
                     {
                         if (tex.FaceTextures[i] != null)
                         {
@@ -6242,7 +6287,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         int face = (int)rules.GetLSLIntegerItem(idx++);
                         Primitive.TextureEntry tex = m_host.Shape.Textures;
-                        if (face == -1) // ALL_SIDES
+                        if (face == ScriptBaseClass.ALL_SIDES)
                         {
                             for (face = 0 ; face < GetNumberOfSides(m_host) ; face++)
                             {
@@ -6260,16 +6305,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                            Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                            if (face >= 0 && face < GetNumberOfSides(m_host))
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
 
-                            res.Add(new LSL_Types.LSLString(texface.TextureID.ToString()));
-                            res.Add(new LSL_Types.Vector3(texface.RepeatU,
-                                                          texface.RepeatV,
-                                                          0));
-                            res.Add(new LSL_Types.Vector3(texface.OffsetU,
-                                                          texface.OffsetV,
-                                                          0));
-                            res.Add(new LSL_Types.LSLFloat(texface.Rotation));
+                                res.Add(new LSL_Types.LSLString(texface.TextureID.ToString()));
+                                res.Add(new LSL_Types.Vector3(texface.RepeatU,
+                                                              texface.RepeatV,
+                                                              0));
+                                res.Add(new LSL_Types.Vector3(texface.OffsetU,
+                                                              texface.OffsetV,
+                                                              0));
+                                res.Add(new LSL_Types.LSLFloat(texface.Rotation));
+                            }
                         }
                         break;
 
@@ -6281,24 +6329,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         tex = m_host.Shape.Textures;
                         Color4 texcolor;
-                        if (face == -1) // ALL_SIDES
+                        if (face == ScriptBaseClass.ALL_SIDES)
                         {
                             for (face = 0 ; face < GetNumberOfSides(m_host) ; face++)
                             {
                                 texcolor = tex.GetFace((uint)face).RGBA;
-                                res.Add(new LSL_Types.Vector3((255 - (texcolor.R * 255)) / 255,
-                                                              (255 - (texcolor.G * 255)) / 255,
-                                                              (255 - (texcolor.B * 255)) / 255));
-                                res.Add(new LSL_Types.LSLFloat((texcolor.A * 255) / 255));
+                                res.Add(new LSL_Types.Vector3(texcolor.R,
+                                                              texcolor.G,
+                                                              texcolor.B));
+                                res.Add(new LSL_Types.LSLFloat(texcolor.A));
                             }
                         }
                         else
                         {
                             texcolor = tex.GetFace((uint)face).RGBA;
-                            res.Add(new LSL_Types.Vector3((255 - (texcolor.R * 255)) / 255,
-                                                          (255 - (texcolor.G * 255)) / 255,
-                                                          (255 - (texcolor.B * 255)) / 255));
-                            res.Add(new LSL_Types.LSLFloat((texcolor.A * 255) / 255));
+                            res.Add(new LSL_Types.Vector3(texcolor.R,
+                                                          texcolor.G,
+                                                          texcolor.B));
+                            res.Add(new LSL_Types.LSLFloat(texcolor.A));
                         }
                         break;
 
