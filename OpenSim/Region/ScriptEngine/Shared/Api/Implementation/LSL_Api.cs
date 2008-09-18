@@ -1187,12 +1187,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 int i;
                 double sum = 0.0;
                 for (i = 0 ; i < GetNumberOfSides(part) ; i++)
-                    sum += (double)((tex.GetFace((uint)i).RGBA.A * 255) / 255);
+                    sum += (double)tex.GetFace((uint)i).RGBA.A;
                 return sum;
             }
             if (face >= 0 && face < GetNumberOfSides(part))
             {
-                return (double)((tex.GetFace((uint)face).RGBA.A * 255) / 255);
+                return (double)tex.GetFace((uint)face).RGBA.A;
             }
             return 0.0;
         }
