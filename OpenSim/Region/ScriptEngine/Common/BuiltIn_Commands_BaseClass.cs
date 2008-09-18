@@ -1601,7 +1601,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetNumberOfPrims();
         }
 
-        public int llGetNumberOfNotecardLines(string name)
+        public string llGetNumberOfNotecardLines(string name)
         {
             return m_LSL_Functions.llGetNumberOfNotecardLines(name);
         }

@@ -540,7 +540,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: integer llGetNumberOfPrims()
         LSL_Types.LSLInteger llGetNumberOfPrims();
         //wiki: key llGetNumberOfNotecardLines(string name)
-        int llGetNumberOfNotecardLines(string name);
+        string llGetNumberOfNotecardLines(string name);
         //wiki: list llGetBoundingBox(key object)
         LSL_Types.list llGetBoundingBox(string obj);
         //wiki: vector llGetGeometricCenter()

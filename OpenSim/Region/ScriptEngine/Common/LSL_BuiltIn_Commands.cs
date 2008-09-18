@@ -8210,22 +8210,26 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             throw new Exception("LSL Runtime Error: " + msg);
         }
-        public int llGetNumberOfNotecardLines(string name)
+
+        public string llGetNumberOfNotecardLines(string name)
         {
             m_host.AddScriptLPS(1);
-
-            // TODO: this script function should actually return
-            // the number of lines via the dataserver event
-            // once it is implemented - krtaylor
 
             String[] notecardLines = GetNotecardLines(name);
             if (!String.IsNullOrEmpty(notecardLines[0]))
             {
-                return notecardLines.Length;
+                UUID rq = UUID.Random();
+
+                UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
+                    m_localID, m_itemID, rq.ToString());
+
+                m_ScriptEngine.m_ASYNCLSLCommandManager.
+                    m_Dataserver.DataserverReply(rq.ToString(), notecardLines.Length.ToString());
+                return tid.ToString();
             }
             else
             {
-                return 0;
+                return UUID.Zero.ToString();
             }
             // ScriptSleep(100);
         }
@@ -8234,24 +8238,27 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
 
-            // TODO: this script function should actually return
-            // the requested notecard line via the dataserver event
-            // once it is implemented - krtaylor
-
             String[] notecardLines = GetNotecardLines(name);
 
-            line--; // array starts at 0
+            // line index starts at zero
             if ((!String.IsNullOrEmpty(notecardLines[0])) &&
                 (line >= 0) &&
                 (line < notecardLines.Length))
             {
                 // ScriptSleep(100);
-                return notecardLines[line];
+                UUID rq = UUID.Random();
+
+                UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
+                    m_localID, m_itemID, rq.ToString());
+
+                m_ScriptEngine.m_ASYNCLSLCommandManager.
+                    m_Dataserver.DataserverReply(rq.ToString(), notecardLines[line]);
+                return tid.ToString();
             }
             else
             {
                 // ScriptSleep(100);
-                return String.Empty;
+                return UUID.Zero.ToString();
             }
         }
 
