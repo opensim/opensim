@@ -7294,13 +7294,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     switch ((ParcelMediaCommandEnum) aList.Data[i])
                     {
                         case ParcelMediaCommandEnum.Url:
-                            list.Add(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaURL);
+                            list.Add(new LSL_Types.LSLString(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaURL));
                             break;
                         case ParcelMediaCommandEnum.Desc:
-                            list.Add(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).Description);
+                            list.Add(new LSL_Types.LSLString(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).Description));
                             break;
                         case ParcelMediaCommandEnum.Texture:
-                            list.Add(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaID);
+                            list.Add(new LSL_Types.LSLString(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaID.ToString()));
                             break;
                         default:
                             ParcelMediaCommandEnum mediaCommandEnum = ParcelMediaCommandEnum.Url;
