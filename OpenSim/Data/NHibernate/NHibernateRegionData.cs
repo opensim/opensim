@@ -105,6 +105,8 @@ namespace OpenSim.Data.NHibernate
          *
          **********************************************************************/
 
+        public void Dispose() {}
+
         public void StoreRegionSettings(RegionSettings rs)
         {
         }

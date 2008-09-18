@@ -43,6 +43,10 @@ namespace OpenSim.Data.Null
             return;
         }
 
+        public void Dispose()
+        {
+        }
+
         public void StoreRegionSettings(RegionSettings rs)
         {
         }

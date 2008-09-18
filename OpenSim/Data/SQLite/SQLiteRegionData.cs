@@ -203,6 +203,46 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        public void Dispose()
+        {
+            if(m_conn != null) {
+                m_conn.Close();
+                m_conn = null;
+            }
+            if(ds != null) {
+                ds.Dispose();
+                ds = null;
+            }
+            if(primDa != null) {
+                primDa.Dispose();
+                primDa = null;
+            }
+            if(shapeDa != null) {
+                shapeDa.Dispose();
+                shapeDa = null;
+            }
+            if(itemsDa != null) {
+                itemsDa.Dispose();
+                itemsDa = null;
+            }
+            if(terrainDa != null) {
+                terrainDa.Dispose();
+                terrainDa = null;
+            }
+            if(landDa != null) {
+                landDa.Dispose();
+                landDa = null;
+            }
+            if(landAccessListDa != null) {
+                landAccessListDa.Dispose();
+                landAccessListDa = null;
+            }
+            if(regionSettingsDa != null) {
+                regionSettingsDa.Dispose();
+                regionSettingsDa = null;
+            }
+        }
+        
         public void StoreRegionSettings(RegionSettings rs)
         {
             lock (ds)

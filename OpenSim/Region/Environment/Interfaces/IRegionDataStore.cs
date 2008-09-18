@@ -42,6 +42,11 @@ namespace OpenSim.Region.Environment.Interfaces
         void Initialise(string filename);
 
         /// <summary>
+        /// Dispose the database
+        /// </summary>
+        void Dispose();
+        
+        /// <summary>
         /// Stores all object's details apart from inventory
         /// </summary>
         /// <param name="obj"></param>

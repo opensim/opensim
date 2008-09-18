@@ -122,7 +122,30 @@ namespace OpenSim.Data.SQLite
             return;
         }
 
-        public override void Dispose () {}
+        public override void Dispose ()
+        {
+            if(g_conn != null) {
+                g_conn.Close();
+                g_conn = null;
+            }
+            if(ds != null) {
+                ds.Dispose();
+                ds = null;
+            }
+            if(da != null) {
+                da.Dispose();
+                da = null;
+            }
+            if(daf != null) {
+                daf.Dispose();
+                daf = null;
+            }
+            if(dua != null) {
+                dua.Dispose();
+                dua = null;
+            }
+            aplist = null;
+        }
 
         /// <summary>
         /// see IUserDataPlugin,

@@ -56,7 +56,14 @@ namespace OpenSim.Data.SQLite
 
         private SqliteConnection m_conn;
 
-        override public void Dispose() { }
+        override public void Dispose()
+        {
+            if (m_conn != null)
+            {
+                m_conn.Close();
+                m_conn = null;
+            }
+        }
 
         /// <summary>
         /// <list type="bullet">

@@ -46,6 +46,7 @@ namespace OpenSim.Data.SQLite
         private const string invItemsSelect = "select * from inventoryitems";
         private const string invFoldersSelect = "select * from inventoryfolders";
 
+        private SqliteConnection conn;
         private DataSet ds;
         private SqliteDataAdapter invItemsDa;
         private SqliteDataAdapter invFoldersDa;
@@ -71,7 +72,7 @@ namespace OpenSim.Data.SQLite
                 dbconnect = "URI=file:inventoryStore.db,version=3";
             }
             m_log.Info("[INVENTORY DB]: Sqlite - connecting: " + dbconnect);
-            SqliteConnection conn = new SqliteConnection(dbconnect);
+            conn = new SqliteConnection(dbconnect);
 
             conn.Open();
 
@@ -99,6 +100,29 @@ namespace OpenSim.Data.SQLite
             m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
 
             ds.AcceptChanges();
+        }
+
+        /// <summary>
+        /// Closes the inventory interface
+        /// </summary>
+        public void Dispose()
+        {
+            if(conn != null) {
+                conn.Close();
+                conn = null;
+            }
+            if(invItemsDa != null) {
+                invItemsDa.Dispose();
+                invItemsDa = null;
+            }
+            if(invFoldersDa != null) {
+                invFoldersDa.Dispose();
+                invFoldersDa = null;
+            }
+            if(ds != null) {
+                ds.Dispose();
+                ds = null;
+            }
         }
 
         /// <summary>
@@ -275,13 +299,6 @@ namespace OpenSim.Data.SQLite
         public void Shutdown()
         {
             // TODO: DataSet commit
-        }
-
-        /// <summary>
-        /// Closes the inventory interface
-        /// </summary>
-        public void Dispose()
-        {
         }
 
         /// <summary>

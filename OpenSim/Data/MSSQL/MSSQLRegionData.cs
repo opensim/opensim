@@ -156,6 +156,11 @@ namespace OpenSim.Data.MSSQL
 
             //After this we have a empty fully configured DataSet.
         }
+        
+        /// <summary>
+        /// Dispose the database
+        /// </summary>
+        public void Dispose() {}
 
         /// <summary>
         /// Loads the objects present in the region.

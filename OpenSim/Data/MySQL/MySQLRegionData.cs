@@ -203,6 +203,8 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        public void Dispose() {}
+
         /// <summary>
         /// Get the wait_timeout value for our connection
         /// </summary>
