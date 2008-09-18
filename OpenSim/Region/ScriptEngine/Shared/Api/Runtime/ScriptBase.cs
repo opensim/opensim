@@ -129,7 +129,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             {
                 m_Fields[field.Name]=field;
 
-                if (field.FieldType is LSL_Types.list) // ref type, copy
+                if (field.FieldType == typeof(LSL_Types.list)) // ref type, copy
                 {
                     LSL_Types.list v = (LSL_Types.list)field.GetValue(this);
                     Object[] data = new Object[v.Data.Length];
