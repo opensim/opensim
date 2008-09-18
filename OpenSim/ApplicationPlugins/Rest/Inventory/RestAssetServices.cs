@@ -57,7 +57,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (!qPrefix.StartsWith(Rest.UrlPathSeparator))
             {
-                qPrefix = Rest.Prefix + Rest.UrlPathSeparator + qPrefix;
+				Rest.Log.InfoFormat("{0} Prefixing domain name ({1})", MsgId, qPrefix);
+                qPrefix = String.Format("{0}{1}{2}", Rest.Prefix, Rest.UrlPathSeparator, qPrefix);
+				Rest.Log.InfoFormat("{0} Fully qualified domain name is <{1}>", MsgId, qPrefix);
             }
 
             // Register interface using the fully-qualified prefix
@@ -85,7 +87,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         public void Close()
         {
             enabled = false;
-            Rest.Log.InfoFormat("{0} Asset services closing down", MsgId);
+            Rest.Log.InfoFormat("{0} Asset services ({1}) closing down", MsgId, qPrefix);
         }
 
         // Properties
@@ -110,7 +112,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             AssetRequestData rdata = (AssetRequestData) rparm;
 
-            Rest.Log.DebugFormat("{0} REST Asset handler ENTRY", MsgId);
+            Rest.Log.DebugFormat("{0} REST Asset handler ({1}) ENTRY", MsgId, qPrefix);
 
             // Now that we know this is a serious attempt to
             // access inventory data, we should find out who
@@ -184,14 +186,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         #endregion Interface
 
+        /// <summary>
+        /// The only parameter we recognize is a UUID.If an asset with this identification is 
+        /// found, it's content, base-64 encoded, is returned to the client.
+        /// </summary>
+
         private void DoGet(AssetRequestData rdata)
         {
             bool istexture = false;
 
             Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
-
-            // The only parameter we accept is an UUID for
-            // the asset
 
             if (rdata.Parameters.Length == 1)
             {
@@ -226,15 +230,19 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             rdata.Complete();
-            rdata.Respond("Asset " + rdata.method + ": Normal completion");
+            rdata.Respond(String.Format("Asset <{0}> : Normal completion", rdata.method));
+
         }
+
+        /// <summary>
+        /// The only parameter we recognize is a UUID. The enclosed asset data (base-64 encoded)
+        /// is decoded and stored in the database, identified by the supplied UUID.
+        /// </summary>
 
         private void DoPut(AssetRequestData rdata)
         {
-            Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
 
-            // The only parameter we accept is an UUID for
-            // the asset
+            Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
 
             if (rdata.Parameters.Length == 1)
             {
@@ -265,8 +273,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             rdata.Complete();
-            rdata.Respond("Asset " + rdata.method + ": Normal completion");
+            rdata.Respond(String.Format("Asset <{0}>: Normal completion", rdata.method));
+
         }
+
+        /// <summary>
+        /// Asset processing has no special data area requirements.
+        /// </summary>
 
         internal class AssetRequestData : RequestData
         {

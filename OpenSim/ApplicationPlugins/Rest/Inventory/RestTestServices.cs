@@ -58,7 +58,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (!qPrefix.StartsWith(Rest.UrlPathSeparator))
             {
-                qPrefix = Rest.Prefix + Rest.UrlPathSeparator + qPrefix;
+				Rest.Log.InfoFormat("{0} Domain is relative, adding absolute prefix", MsgId);
+                qPrefix = String.Format("{0}{1}{2}", Rest.Prefix, Rest.UrlPathSeparator, qPrefix);
+				Rest.Log.InfoFormat("{0} Domain is now <{1}>", MsgId, qPrefix);
             }
 
             // Load test cases

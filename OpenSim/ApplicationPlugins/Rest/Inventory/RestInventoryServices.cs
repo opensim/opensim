@@ -66,7 +66,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (!qPrefix.StartsWith(Rest.UrlPathSeparator))
             {
-                qPrefix = Rest.Prefix + Rest.UrlPathSeparator + qPrefix;
+				Rest.Log.InfoFormat("{0} Domain is relative, adding absolute prefix", MsgId);
+                qPrefix = String.Format("{0}{1}{2}", Rest.Prefix, Rest.UrlPathSeparator, qPrefix);
+				Rest.Log.InfoFormat("{0} Domain is now <{1}>", MsgId, qPrefix);
             }
 
             // Register interface using the absolute URI.
@@ -262,7 +264,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // TODO
             // If something went wrong in inventory processing the thread could stall here
             // indefinitely. There should be a watchdog timer to fail the request if the
-            // response is not recieved in a timely fashion.
+            // response is not received in a timely fashion.
 
             rdata.uuid = rdata.userProfile.ID;
 
@@ -330,7 +332,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 default :
                     Rest.Log.WarnFormat("{0} Method {1} not supported for {2}",
                                          MsgId, rdata.method, rdata.path);
-                    rdata.Fail(Rest.HttpStatusCodeMethodNotAllowed, rdata.method+" not supported");
+                    rdata.Fail(Rest.HttpStatusCodeMethodNotAllowed, 
+								String.Format("{0} not supported", rdata.method));
                     break;
             }
         }
@@ -591,8 +594,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 if (created)
                 {
                     // Must include a location header with a URI that identifies the new resource.
-                    rdata.AddHeader(Rest.HttpHeaderLocation,String.Format("http://{0}{1}/{2}",
-                             rdata.hostname+":"+rdata.port,rdata.path,newnode));
+                    rdata.AddHeader(Rest.HttpHeaderLocation,String.Format("http://{0}{1}:{2}/{3}",
+                             rdata.hostname, rdata.port,rdata.path,newnode));
                     rdata.Complete(Rest.HttpStatusCodeCreated);
                 }
                 else
@@ -607,7 +610,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     }
                 }
 
-                rdata.Respond("Inventory " + rdata.method + ": Normal completion");
+                rdata.Respond(String.Format("Profile {0} : Normal completion", rdata.method));
             }
             else
             {
@@ -872,7 +875,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 }
             }
 
-            rdata.Respond("Inventory " + rdata.method + ": Normal completion");
+            rdata.Respond(String.Format("Profile {0} : Normal completion", rdata.method));
+
         }
 
         /// <summary>
@@ -927,7 +931,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             }
 
             rdata.Complete();
-            rdata.Respond("Inventory " + rdata.method + ": Normal completion");
+            rdata.Respond(String.Format("Profile {0} : Normal completion", rdata.method));
         }
 
 #endregion method-specific processing
@@ -1061,7 +1065,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             Rest.Log.DebugFormat("{0} {1}: Resource {2} not found",
                                  MsgId, rdata.method, rdata.path);
-            rdata.Fail(Rest.HttpStatusCodeNotFound, "resource "+rdata.path+" not found");
+            rdata.Fail(Rest.HttpStatusCodeNotFound, 
+                        String.Format("resource {0}:{1} not found", rdata.method, rdata.path));
 
             return null; /* Never reached */
         }
@@ -1189,9 +1194,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 {
                     // Fetching an Item has a special significance. In this
                     // case we also want to fetch the associated asset.
-                    // To make it interesting, we'll d this via redirection.
-                    string asseturl = "http://" + rdata.hostname + ":" + rdata.port +
-                        "/admin/assets" + Rest.UrlPathSeparator + ifound.AssetID.ToString();
+                    // To make it interesting, we'll do this via redirection.
+                    string asseturl = String.Format("http://{0}:{1}/{2}{3}{4}", rdata.hostname, rdata.port,
+                        "admin/assets",Rest.UrlPathSeparator,ifound.AssetID.ToString());
                     rdata.Redirect(asseturl,Rest.PERMANENT);
                     Rest.Log.DebugFormat("{0} Never Reached", MsgId);
                 }

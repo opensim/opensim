@@ -58,6 +58,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal static CommunicationsManager     Comms             = null;
         internal static IInventoryServices        InventoryServices = null;
         internal static IUserService              UserServices      = null;
+        internal static IAvatarService            AvatarServices    = null;
         internal static AssetCache                AssetServices     = null;
         internal static string                    Prefix            = null;
         internal static IConfig                   Config            = null;

@@ -123,7 +123,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// construction, or during initialization.
         ///
         /// I was not able to make this code work within a constructor
-        /// so it is islated within this method.
+        /// so it is isolated within this method.
         /// </summary>
 
         private void LoadHandlers()
@@ -222,7 +222,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     return;
                 }
 
-                Rest.Log.InfoFormat("{0} Plugin will be enabled", MsgId);
+                Rest.Log.InfoFormat("{0} Rest <{1}> plugin will be enabled", MsgId, Name);
+                Rest.Log.InfoFormat("{0} Configuration parameters read from <{1}>", MsgId, ConfigName);
 
                 // These are stored in static variables to make
                 // them easy to reach from anywhere in the assembly.
@@ -233,6 +234,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.UserServices      = Rest.Comms.UserService;
                 Rest.InventoryServices = Rest.Comms.InventoryService;
                 Rest.AssetServices     = Rest.Comms.AssetCache;
+                Rest.AvatarServices    = Rest.Comms.AvatarService;
                 Rest.Config            = Config;
                 Rest.Prefix            = Prefix;
                 Rest.GodKey            = GodKey;
@@ -261,15 +263,18 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // The supplied prefix MUST be absolute
 
                 if (Rest.Prefix.Substring(0,1) != Rest.UrlPathSeparator)
-                    Rest.Prefix = Rest.UrlPathSeparator+Rest.Prefix;
+                {
+					Rest.Log.WarnFormat("{0} Prefix <{1}> is not absolute and must be", MsgId, Rest.Prefix);
+					Rest.Log.InfoFormat("{0} Prefix changed to </{1}>", MsgId, Rest.Prefix);
+                    Rest.Prefix = String.Format("{0}{1}", Rest.UrlPathSeparator, Rest.Prefix);
+                }
 
                 // If data dumping is requested, report on the chosen line
                 // length.
 
                 if (Rest.DumpAsset)
                 {
-                    Rest.Log.InfoFormat("{0} Dump {1} bytes per line", MsgId,
-                                        Rest.DumpLineSize);
+                    Rest.Log.InfoFormat("{0} Dump {1} bytes per line", MsgId, Rest.DumpLineSize);
                 }
 
                 // Load all of the handlers present in the
@@ -361,11 +366,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// underlying handlers and looks for the best match. It returns
         /// true if a match is found.
         /// The matching process could be made arbitrarily complex.
+        /// Note: The match is case-insensitive.
         /// </summary>
 
         public bool Match(OSHttpRequest request, OSHttpResponse response)
         {
-            string path = request.RawUrl;
+
+            string path = request.RawUrl.ToLower();
 
             Rest.Log.DebugFormat("{0} Match ENTRY", MsgId);
 
@@ -483,6 +490,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// If there is a stream handler registered that can handle the
         /// request, then fine. If the request is not matched, do
         /// nothing.
+        /// Note: The selection is case-insensitive
         /// </summary>
 
         private bool FindStreamHandler(OSHttpRequest request, OSHttpResponse response)
@@ -490,7 +498,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             RequestData rdata = new RequestData(request, response, String.Empty);
 
             string bestMatch = null;
-            string path      = String.Format("{0}:{1}", rdata.method, rdata.path);
+            string path      = String.Format("{0}:{1}", rdata.method, rdata.path).ToLower();
 
             Rest.Log.DebugFormat("{0} Checking for stream handler for <{1}>", MsgId, path);
 
@@ -567,6 +575,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// handler was located. The boolean indicates whether or not the request has been
         /// handled, not whether or not the request was successful - that information is in
         /// the response.
+        /// Note: The selection process is case-insensitive
         /// </summary>
 
         internal bool FindPathHandler(OSHttpRequest request, OSHttpResponse response)
@@ -585,7 +594,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             foreach (string pattern in pathHandlers.Keys)
             {
-                if (request.RawUrl.StartsWith(pattern))
+                if (request.RawUrl.ToLower().StartsWith(pattern))
                 {
                     if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
                     {
