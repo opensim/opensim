@@ -86,6 +86,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_httpd = openSim.HttpServer;
 
                     m_httpd.AddXmlRPCHandler("admin_create_region", XmlRpcCreateRegionMethod);
+                    m_httpd.AddXmlRPCHandler("admin_delete_region", XmlRpcDeleteRegionMethod);
                     m_httpd.AddXmlRPCHandler("admin_shutdown", XmlRpcShutdownMethod);
                     m_httpd.AddXmlRPCHandler("admin_broadcast", XmlRpcAlertMethod);
                     m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod);
@@ -344,8 +345,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>internal port (integer)</description></item>
         /// <item><term>external_address</term>
         ///       <description>external IP address</description></item>
-        /// <item><term>datastore</term>
-        ///       <description>datastore parameter (?)</description></item>
         /// <item><term>persist</term>
         ///       <description>if true, persist the region info
         ///       ('true' or 'false')</description></item>
@@ -378,7 +377,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                               "region_master_first", "region_master_last",
                                                               "region_master_password",
                                                               "listen_ip", "external_address"});
-                checkIntegerParams(request, new string[] { "region_x", "region_y", "listen_port"});
+                checkIntegerParams(request, new string[] {"region_x", "region_y", "listen_port"});
 
                 // check password
                 if (!String.IsNullOrEmpty(requiredPassword) &&
@@ -390,7 +389,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (requestData.ContainsKey("region_id") &&
                     !String.IsNullOrEmpty((string)requestData["region_id"]))
                 {
-                    regionID = (string) requestData["region_id"];
+                    regionID = (string)requestData["region_id"];
                     if (m_app.SceneManager.TryGetScene(regionID, out scene))
                         throw new Exception(String.Format("region UUID already in use by region {0}, UUID {1}, <{2},{3}>",
                                                           scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
@@ -482,6 +481,68 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 m_log.ErrorFormat("[RADMIN] CreateRegion: failed {0}", e.Message);
                 m_log.DebugFormat("[RADMIN] CreateRegion: failed {0}", e.ToString());
+
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
+
+                response.Value = responseData;
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Delete a new region.
+        /// <summary>
+        /// <param name="request">incoming XML RPC request</param>
+        /// <remarks>
+        /// XmlRpcCreateRegionMethod takes the following XMLRPC
+        /// parameters
+        /// <list type="table">
+        /// <listheader><term>parameter name</term><description>description</description></listheader>
+        /// <item><term>password</term>
+        ///       <description>admin password as set in OpenSim.ini</description></item>
+        /// <item><term>region_name</term>
+        ///       <description>desired region name</description></item>
+        /// <item><term>region_id</term>
+        ///       <description>(optional) desired region UUID</description></item>
+        /// </list>
+        ///
+        /// XmlRpcCreateRegionMethod returns
+        /// <list type="table">
+        /// <listheader><term>name</term><description>description</description></listheader>
+        /// <item><term>success</term>
+        ///       <description>true or false</description></item>
+        /// <item><term>error</term>
+        ///       <description>error message if success is false</description></item>
+        /// </list>
+        /// </remarks>
+        public XmlRpcResponse XmlRpcDeleteRegionMethod(XmlRpcRequest request)
+        {
+            m_log.Info("[RADMIN]: DeleteRegion: new request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try {
+                Hashtable requestData = (Hashtable) request.Params[0];
+                checkStringParameters(request, new string[] {"password", "region_name"});
+
+                Scene scene = null;
+                string regionName = (string)requestData["region_name"];
+                if (!m_app.SceneManager.TryGetScene(regionName, out scene))
+                    throw new Exception(String.Format("region \"{0}\" does not exist", regionName));
+                
+                m_app.RemoveRegion(scene, true);
+
+                responseData["success"] = "true";
+                responseData["region_name"] = regionName;
+
+                response.Value = responseData;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[RADMIN] DeleteRegion: failed {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] DeleteRegion: failed {0}", e.ToString());
 
                 responseData["success"] = "false";
                 responseData["error"] = e.Message;

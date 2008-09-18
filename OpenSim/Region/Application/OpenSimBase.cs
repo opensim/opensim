@@ -589,6 +589,37 @@ namespace OpenSim
             return clientServer;
         }
 
+        public void RemoveRegion(Scene scene, bool cleanup)
+        {
+            // only need to check this if we are not at the
+            // root level
+            if ((m_sceneManager.CurrentScene != null) &&
+                (m_sceneManager.CurrentScene.RegionInfo.RegionID == scene.RegionInfo.RegionID))
+            {
+                m_sceneManager.TrySetCurrentScene("..");
+            }
+            
+            scene.DeleteAllSceneObjects();
+            m_regionData.Remove(scene.RegionInfo);
+            m_sceneManager.CloseScene(scene);
+
+            if (!cleanup) 
+                return;
+
+            if (!String.IsNullOrEmpty(scene.RegionInfo.RegionFile))
+            {
+                File.Delete(scene.RegionInfo.RegionFile);
+                m_log.InfoFormat("[OPENSIM MAIN] deleting region file \"{0}\"", scene.RegionInfo.RegionFile);
+            }
+        }
+
+        public void RemoveRegion(string name, bool cleanUp)
+        {
+            Scene target;
+            if (m_sceneManager.TryGetScene(name, out target))
+                RemoveRegion(target, cleanUp);
+        } 
+
         protected override StorageManager CreateStorageManager(string connectionstring, string estateconnectionstring)
         {
             return new StorageManager(m_storageDll, connectionstring, estateconnectionstring);

@@ -196,6 +196,7 @@ namespace OpenSim.Framework
         public bool commFailTF = false;
         public ConfigurationMember configMember;
         public string DataStore = String.Empty;
+        public string RegionFile = String.Empty;
         public bool isSandbox = false;
         private EstateSettings m_estateSettings;
         private RegionSettings m_regionSettings;
@@ -221,6 +222,7 @@ namespace OpenSim.Framework
             configMember =
                 new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
             configMember.performConfigurationRetrieve();
+            RegionFile = filename;
         }
 
         public RegionInfo(string description, XmlNode xmlNode, bool skipConsoleConfig)
@@ -364,6 +366,7 @@ namespace OpenSim.Framework
             configMember = new ConfigurationMember(filename, description, loadConfigurationOptionsFromMe,
                                                    ignoreIncomingConfiguration, false);
             configMember.performConfigurationRetrieve();
+            RegionFile = filename;
         }
 
         public void loadConfigurationOptionsFromMe()

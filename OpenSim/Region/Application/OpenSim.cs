@@ -311,22 +311,23 @@ namespace OpenSim
                     break;
 
                 case "remove-region":
-                    string regName = CombineParams(cmdparams, 0);
+                    string regRemoveName = CombineParams(cmdparams, 0);
+
+                    Scene removeScene;
+                    if (m_sceneManager.TryGetScene(regRemoveName, out removeScene))
+                        RemoveRegion(removeScene, false);
+                    else
+                        m_console.Error("no region with that name");
+                    break;
+
+                case "delete-region":
+                    string regDeleteName = CombineParams(cmdparams, 0);
 
                     Scene killScene;
-                    if (m_sceneManager.TryGetScene(regName, out killScene))
-                    {
-                        // only need to check this if we are not at the
-                        // root level
-                        if ((m_sceneManager.CurrentScene != null) &&
-                            (m_sceneManager.CurrentScene.RegionInfo.RegionID == killScene.RegionInfo.RegionID))
-                        {
-                            m_sceneManager.TrySetCurrentScene("..");
-                        }
-
-                        m_regionData.Remove(killScene.RegionInfo);
-                        m_sceneManager.CloseScene(killScene);
-                    }
+                    if (m_sceneManager.TryGetScene(regDeleteName, out killScene))
+                        RemoveRegion(killScene, true);
+                    else
+                        m_console.Error("no region with that name");
                     break;
 
                 case "restart":
@@ -610,6 +611,7 @@ namespace OpenSim
             m_console.Notice("force-update - force an update of prims in the scene");
             m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
             m_console.Notice("remove-region [name] - remove a region");
+            m_console.Notice("delete-region [name] - delete a region");
             m_console.Notice("load-xml [filename] - load prims from XML (DEPRECATED)");
             m_console.Notice("save-xml [filename] - save prims to XML (DEPRECATED)");
             m_console.Notice("save-xml2 [filename] - save prims to XML using version 2 format");

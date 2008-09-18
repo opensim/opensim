@@ -30,7 +30,6 @@ using System.Collections;
 using OpenMetaverse;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
-using OpenMetaverse;
 
 namespace OpenSim.Data
 {

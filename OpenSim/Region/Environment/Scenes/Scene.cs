@@ -624,7 +624,7 @@ namespace OpenSim.Region.Environment.Scenes
             // close the inner scene
             m_innerScene.Close();
             // De-register with region communications (events cleanup)
-            UnRegisterReginWithComms();
+            UnRegisterRegionWithComms();
 
             // Shut down all non shared modules.
             foreach (IRegionModule module in Modules.Values)
@@ -1775,10 +1775,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>true if the object was in the scene, false if it was not</returns>
         public bool UnlinkSceneObject(UUID uuid, bool resultOfLinkingObjects)
         {
-            if (m_innerScene.DeleteSceneObject(uuid,resultOfLinkingObjects))
+            if (m_innerScene.DeleteSceneObject(uuid, resultOfLinkingObjects))
             {
                 m_storageManager.DataStore.RemoveObject(uuid, m_regInfo.RegionID);
-
                 return true;
             }
 
@@ -2568,7 +2567,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         ///
         /// </summary>
-        public void UnRegisterReginWithComms()
+        public void UnRegisterRegionWithComms()
         {
             m_sceneGridService.KiPrimitive -= SendKiPrimitive;
             m_sceneGridService.OnLogOffUser -= HandleLogOffUserFromGrid;
