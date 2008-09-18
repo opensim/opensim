@@ -205,6 +205,14 @@ namespace OpenSim.Data.Tests
         // common failure case is people adding new fields that aren't
         // initialized, but have non-null db constraints.  We should
         // honestly be passing more and more null things in here.
+        // 
+        // Please note that in Sqlite.BuildPrim there is a commented out inline version 
+        // of this so you can debug and step through the build process and check the fields
+        // 
+        // Real World Value: Tests for situation where extending a SceneObjectGroup/SceneObjectPart
+        //                   causes the application to crash at the database layer because of null values 
+        //                   in NOT NULL fields
+        //
         private SceneObjectGroup NewSOG(string name)
         {
             SceneObjectGroup sog = new SceneObjectGroup();
@@ -218,7 +226,8 @@ namespace OpenSim.Data.Tests
             sop.UUID = UUID.Random();
             sop.Shape = PrimitiveBaseShape.Default;
             sog.AddPart(sop);
-            sog.RootPart = sop;
+            sog.RootPart = sop; 
+            
             return sog;
         }
 

@@ -211,6 +211,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // It's not necessary to persist this
             m_TextureAnimation = new byte[0];
+            m_particleSystem = new byte[0];
         }
 
         public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, UUID ownerID, uint localID,
@@ -256,7 +257,13 @@ namespace OpenSim.Region.Environment.Scenes
             Velocity = new Vector3(0, 0, 0);
             AngularVelocity = new Vector3(0, 0, 0);
             Acceleration = new Vector3(0, 0, 0);
+
+            
+
             m_TextureAnimation = new byte[0];
+            m_particleSystem = new byte[0];
+
+            
 
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
@@ -304,6 +311,8 @@ namespace OpenSim.Region.Environment.Scenes
             RotationOffset = rotation;
             ObjectFlags = flags;
 
+            m_TextureAnimation = new byte[0];
+            m_particleSystem = new byte[0];
             // Since we don't store script state, this is only a 'temporary' objectflag now
             // If the object is scripted, the script will get loaded and this will be set again
             ObjectFlags &= ~(uint)(PrimFlags.Scripted | PrimFlags.Touch);
@@ -317,7 +326,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected SceneObjectPart(SerializationInfo info, StreamingContext context)
         {
             //System.Console.WriteLine("SceneObjectPart Deserialize BGN");
-
+            m_TextureAnimation = new byte[0];
+            m_particleSystem = new byte[0];
             if (info == null)
             {
                 throw new ArgumentNullException("info");

@@ -774,6 +774,39 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "SitTargetOrientY", typeof (Double));
             createCol(prims, "SitTargetOrientZ", typeof (Double));
 
+            createCol(prims, "PayPrice", typeof(Int32));
+            createCol(prims, "PayButton1", typeof(Int32));
+            createCol(prims, "PayButton2", typeof(Int32));
+            createCol(prims, "PayButton3", typeof(Int32));
+            createCol(prims, "PayButton4", typeof(Int32));
+
+            createCol(prims, "LoopedSound", typeof(String));
+            createCol(prims, "LoopedSoundGain", typeof(Double));
+            createCol(prims, "TextureAnimation", typeof(String));
+            createCol(prims, "ParticleSystem", typeof(String));
+
+            createCol(prims, "OmegaX", typeof(Double));
+            createCol(prims, "OmegaY", typeof(Double));
+            createCol(prims, "OmegaZ", typeof(Double));
+
+            createCol(prims, "CameraEyeOffsetX", typeof(Double));
+            createCol(prims, "CameraEyeOffsetY", typeof(Double));
+            createCol(prims, "CameraEyeOffsetZ", typeof(Double));
+
+            createCol(prims, "CameraAtOffsetX", typeof(Double));
+            createCol(prims, "CameraAtOffsetY", typeof(Double));
+            createCol(prims, "CameraAtOffsetZ", typeof(Double));
+
+            createCol(prims, "ForceMouselook", typeof(Int16));
+
+            createCol(prims, "ScriptAccessPin", typeof(Int32));
+
+            createCol(prims, "AllowedDrop", typeof(Int16));
+            createCol(prims, "DieAtEdge", typeof(Int16));
+
+            createCol(prims, "SalePrice", typeof(Int32));
+            createCol(prims, "SaleType", typeof(Int16));
+
             // click action
             createCol(prims, "ClickAction", typeof (Byte));
 
@@ -984,9 +1017,29 @@ namespace OpenSim.Data.SQLite
         /// <returns></returns>
         private SceneObjectPart buildPrim(DataRow row)
         {
+            // Code commented.  Uncomment to test the unit test inline.
+            
+            // The unit test mentions this commented code for the purposes 
+            // of debugging a unit test failure
+            
+            // SceneObjectGroup sog = new SceneObjectGroup();
+            // SceneObjectPart sop = new SceneObjectPart();
+            // sop.LocalId = 1;
+            // sop.Name = "object1";
+            // sop.Description = "object1";
+            // sop.Text = "";
+            // sop.SitName = "";
+            // sop.TouchName = "";
+            // sop.UUID = UUID.Random();
+            // sop.Shape = PrimitiveBaseShape.Default;
+            // sog.AddPart(sop);
+            // sog.RootPart = sop; 
+            // Add breakpoint in above line.  Check sop fields.
+
             // TODO: this doesn't work yet because something more
             // interesting has to be done to actually get these values
             // back out.  Not enough time to figure it out yet.
+            
             SceneObjectPart prim = new SceneObjectPart();
             prim.UUID = new UUID((String) row["UUID"]);
             // explicit conversion of integers is required, which sort
@@ -1093,6 +1146,52 @@ namespace OpenSim.Data.SQLite
             prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorR"]), Convert.ToInt32(row["ColorB"]), Convert.ToInt32(row["ColorG"]));
 
             prim.ClickAction = Convert.ToByte(row["ClickAction"]);
+            prim.PayPrice[0] = Convert.ToInt32(row["PayPrice"]);
+            prim.PayPrice[1] = Convert.ToInt32(row["PayButton1"]);
+            prim.PayPrice[2] = Convert.ToInt32(row["PayButton2"]);
+            prim.PayPrice[3] = Convert.ToInt32(row["PayButton3"]);
+            prim.PayPrice[4] = Convert.ToInt32(row["PayButton4"]);
+
+            prim.Sound = new UUID(row["LoopedSound"].ToString());
+            prim.SoundGain = Convert.ToSingle(row["LoopedSoundGain"]);
+            prim.SoundFlags = 1; // If it's persisted at all, it's looped
+
+            if (!row.IsNull("TextureAnimation"))
+                prim.TextureAnimation = Convert.FromBase64String(row["TextureAnimation"].ToString());
+            if (!row.IsNull("ParticleSystem"))
+                prim.ParticleSystem = Convert.FromBase64String(row["ParticleSystem"].ToString());
+
+            prim.RotationalVelocity = new Vector3(
+                Convert.ToSingle(row["OmegaX"]),
+                Convert.ToSingle(row["OmegaY"]),
+                Convert.ToSingle(row["OmegaZ"])
+                );
+
+            prim.SetCameraEyeOffset(new Vector3(
+                Convert.ToSingle(row["CameraEyeOffsetX"]),
+                Convert.ToSingle(row["CameraEyeOffsetY"]),
+                Convert.ToSingle(row["CameraEyeOffsetZ"])
+                ));
+
+            prim.SetCameraAtOffset(new Vector3(
+                Convert.ToSingle(row["CameraAtOffsetX"]),
+                Convert.ToSingle(row["CameraAtOffsetY"]),
+                Convert.ToSingle(row["CameraAtOffsetZ"])
+                ));
+
+            if (Convert.ToInt16(row["ForceMouselook"]) != 0)
+                prim.SetForceMouselook(true);
+
+            prim.ScriptAccessPin = Convert.ToInt32(row["ScriptAccessPin"]);
+
+            if (Convert.ToInt16(row["AllowedDrop"]) != 0)
+                prim.AllowedDrop = true;
+
+            if (Convert.ToInt16(row["DieAtEdge"]) != 0)
+                prim.DIE_AT_EDGE = true;
+
+            prim.SalePrice = Convert.ToInt32(row["SalePrice"]);
+            prim.ObjectSaleType = Convert.ToByte(row["SaleType"]);
             return prim;
         }
 
@@ -1383,6 +1482,59 @@ namespace OpenSim.Data.SQLite
             row["ColorG"] = Convert.ToInt32(prim.Color.G);
             row["ColorB"] = Convert.ToInt32(prim.Color.B);
             row["ColorA"] = Convert.ToInt32(prim.Color.A);
+            row["PayPrice"] = prim.PayPrice[0];
+            row["PayButton1"] = prim.PayPrice[1];
+            row["PayButton2"] = prim.PayPrice[2];
+            row["PayButton3"] = prim.PayPrice[3];
+            row["PayButton4"] = prim.PayPrice[4];
+
+
+            row["TextureAnimation"] = Convert.ToBase64String(prim.TextureAnimation);
+            row["ParticleSystem"] = Convert.ToBase64String(prim.ParticleSystem);
+
+            row["OmegaX"] = prim.RotationalVelocity.X;
+            row["OmegaY"] = prim.RotationalVelocity.Y;
+            row["OmegaZ"] = prim.RotationalVelocity.Z;
+
+            row["CameraEyeOffsetX"] = prim.GetCameraEyeOffset().X;
+            row["CameraEyeOffsetY"] = prim.GetCameraEyeOffset().Y;
+            row["CameraEyeOffsetZ"] = prim.GetCameraEyeOffset().Z;
+
+            row["CameraAtOffsetX"] = prim.GetCameraAtOffset().X;
+            row["CameraAtOffsetY"] = prim.GetCameraAtOffset().Y;
+            row["CameraAtOffsetZ"] = prim.GetCameraAtOffset().Z;
+
+
+            if ((prim.SoundFlags & 1) != 0) // Looped
+            {
+                row["LoopedSound"] = prim.Sound.ToString();
+                row["LoopedSoundGain"] = prim.SoundGain;
+            }
+            else
+            {
+                row["LoopedSound"] = UUID.Zero.ToString();
+                row["LoopedSoundGain"] = 0.0f;
+            }
+
+            if (prim.GetForceMouselook())
+                row["ForceMouselook"] = 1;
+            else
+                row["ForceMouselook"] = 0;
+
+            row["ScriptAccessPin"] = prim.ScriptAccessPin;
+
+            if (prim.AllowedDrop)
+                row["AllowedDrop"] = 1;
+            else
+                row["AllowedDrop"] = 0;
+
+            if (prim.DIE_AT_EDGE)
+                row["DieAtEdge"] = 1;
+            else
+                row["DieAtEdge"] = 0;
+
+            row["SalePrice"] = prim.SalePrice;
+            row["SaleType"] = Convert.ToInt16(prim.ObjectSaleType);
 
             // click action
             row["ClickAction"] = prim.ClickAction;
