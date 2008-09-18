@@ -291,9 +291,9 @@ namespace OpenSim.Region.DataSnapshot.Providers
         private string GetPublicPermissions(LandData parcel)
         {
             if ((parcel.Flags & (uint)Parcel.ParcelFlags.UseAccessList) == (uint)Parcel.ParcelFlags.UseAccessList)
-                return "yes";
-            else
                 return "no";
+            else
+                return "yes";
 
         }
 
