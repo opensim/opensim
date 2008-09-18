@@ -57,9 +57,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (!qPrefix.StartsWith(Rest.UrlPathSeparator))
             {
-				Rest.Log.InfoFormat("{0} Prefixing domain name ({1})", MsgId, qPrefix);
+                Rest.Log.InfoFormat("{0} Prefixing domain name ({1})", MsgId, qPrefix);
                 qPrefix = String.Format("{0}{1}{2}", Rest.Prefix, Rest.UrlPathSeparator, qPrefix);
-				Rest.Log.InfoFormat("{0} Fully qualified domain name is <{1}>", MsgId, qPrefix);
+                Rest.Log.InfoFormat("{0} Fully qualified domain name is <{1}>", MsgId, qPrefix);
             }
 
             // Register interface using the fully-qualified prefix

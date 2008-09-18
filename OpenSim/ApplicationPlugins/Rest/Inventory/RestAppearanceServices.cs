@@ -65,9 +65,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (!qPrefix.StartsWith(Rest.UrlPathSeparator))
             {
-				Rest.Log.InfoFormat("{0} Domain is relative, adding absolute prefix", MsgId);
+                Rest.Log.InfoFormat("{0} Domain is relative, adding absolute prefix", MsgId);
                 qPrefix = String.Format("{0}{1}{2}", Rest.Prefix, Rest.UrlPathSeparator, qPrefix);
-				Rest.Log.InfoFormat("{0} Domain is now <{1}>", MsgId, qPrefix);
+                Rest.Log.InfoFormat("{0} Domain is now <{1}>", MsgId, qPrefix);
             }
 
             // Register interface using the absolute URI.
@@ -282,7 +282,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     Rest.Log.WarnFormat("{0} Method {1} not supported for {2}",
                                          MsgId, rdata.method, rdata.path);
                     rdata.Fail(Rest.HttpStatusCodeMethodNotAllowed, 
-							String.Format("{0} not supported", rdata.method));
+                               String.Format("{0} not supported", rdata.method));
                     break;
             }
         }
@@ -669,7 +669,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                             case "VisualParameters" :
                                 {
                                     xml.ReadContentAsBase64(rdata.userAppearance.VisualParams,
-											0,rdata.userAppearance.VisualParams.Length);
+                                                            0, rdata.userAppearance.VisualParams.Length);
                                     indata = true;
                                 }
                             break;

@@ -2728,7 +2728,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             client.OnScriptAnswer-=handleScriptAnswer;
             m_waitingForScriptAnswer=false;
 
-            if((answer & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
+            if ((answer & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
                 llReleaseControls();
 
             m_host.TaskInventory[invItemID].PermsMask=answer;
@@ -2815,7 +2815,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 //                byte uf = childPrim.RootPart.UpdateFlag;
                 childPrim.RootPart.UpdateFlag = 0;
                 parentPrim.LinkToGroup(childPrim);
-//                if(uf != (Byte)0)
+//                if (uf != (Byte)0)
 //                    parent.RootPart.UpdateFlag = uf;
             }
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
@@ -3742,7 +3742,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 face = 0;
             }
-            if(face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < GetNumberOfSides(part))
             {
                 offset.x = tex.GetFace((uint)face).OffsetU;
                 offset.y = tex.GetFace((uint)face).OffsetV;

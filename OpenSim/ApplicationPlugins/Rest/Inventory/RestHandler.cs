@@ -264,8 +264,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 if (Rest.Prefix.Substring(0,1) != Rest.UrlPathSeparator)
                 {
-					Rest.Log.WarnFormat("{0} Prefix <{1}> is not absolute and must be", MsgId, Rest.Prefix);
-					Rest.Log.InfoFormat("{0} Prefix changed to </{1}>", MsgId, Rest.Prefix);
+                    Rest.Log.WarnFormat("{0} Prefix <{1}> is not absolute and must be", MsgId, Rest.Prefix);
+                    Rest.Log.InfoFormat("{0} Prefix changed to </{1}>", MsgId, Rest.Prefix);
                     Rest.Prefix = String.Format("{0}{1}", Rest.UrlPathSeparator, Rest.Prefix);
                 }
 
