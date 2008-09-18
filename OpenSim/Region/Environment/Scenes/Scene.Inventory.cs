@@ -2138,7 +2138,7 @@ namespace OpenSim.Region.Environment.Scenes
                         group.ClearPartAttachmentData();
                     }
                     group.UpdateGroupRotation(rot);
-                    group.ApplyPhysics(m_physicalPrim);
+                    //group.ApplyPhysics(m_physicalPrim);
                     group.Velocity = vel;
                     group.CreateScriptInstances(param, true);
                     rootPart.ScheduleFullUpdate();
