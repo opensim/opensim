@@ -55,7 +55,8 @@ namespace OpenSim.Data.SQLite.Tests
         [TestFixtureTearDown]
         public void Cleanup()
         {
-            // System.IO.File.Delete(file);
+            db.Dispose();
+            System.IO.File.Delete(file);
         }
     }
 }
