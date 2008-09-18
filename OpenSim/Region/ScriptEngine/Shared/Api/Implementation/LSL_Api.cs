@@ -139,7 +139,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (m_host.ParentGroup != null)
                     return new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
                 return ret;
-                break;
+
             case ScriptBaseClass.LINK_ROOT:
                 if (m_host.ParentGroup != null)
                 {
@@ -148,7 +148,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return ret;
                 }
                 return ret;
-                break;
+
             case ScriptBaseClass.LINK_ALL_OTHERS:
                 if (m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
@@ -156,7 +156,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (ret.Contains(m_host))
                     ret.Remove(m_host);
                 return ret;
-                break;
+
             case ScriptBaseClass.LINK_ALL_CHILDREN:
                 if (m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
@@ -164,10 +164,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (ret.Contains(m_host.ParentGroup.RootPart))
                     ret.Remove(m_host.ParentGroup.RootPart);
                 return ret;
-                break;
+
             case ScriptBaseClass.LINK_THIS:
                 return ret;
-                break;
+
             default:
                 if (linkType < 0 || m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
@@ -177,7 +177,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ret = new List<SceneObjectPart>();
                 ret.Add(target);
                 return ret;
-                break;
+
             }
         }
 

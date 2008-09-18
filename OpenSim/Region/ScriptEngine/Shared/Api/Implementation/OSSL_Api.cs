@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
 using OpenMetaverse;
@@ -730,5 +731,191 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             World.ParcelMediaSetTime((float)time);
         }
+        
+        
+            
+        public Hashtable osParseJSON(string JSON)
+        {
+            if (!m_OSFunctionsEnabled)
+            {
+                OSSLError("osParseJSON: permission denied");
+                return null;
+            }
+            
+            CheckThreatLevel(ThreatLevel.None, "osParseJSON");
+            
+            m_host.AddScriptLPS(1);
+
+            // see http://www.json.org/ for more details on JSON
+            
+            string currentKey=null;
+            Stack objectStack = new Stack(); // objects in JSON can be nested so we need to keep a track of this
+            Hashtable jsondata = new Hashtable(); // the hashtable to be returned
+            
+            try
+            {
+                
+                // iterate through the serialised stream of tokens and store at the right depth in the hashtable
+                // the top level hashtable may contain more nested hashtables within it each containing an objects representation
+                for (int i=0;i<JSON.Length; i++)
+                {
+                    
+                    // Console.WriteLine(""+JSON[i]); 
+                    switch(JSON[i])
+                    {
+                        case '{':
+                            // create hashtable and add it to the stack or array if we are populating one, we can have a lot of nested objects in JSON
+                            
+                            Hashtable currentObject = new Hashtable();  
+                            if(objectStack.Count==0) // the stack should only be empty for the first outer object
+                            {
+                                
+                                objectStack.Push(jsondata);
+                            }
+                            else if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            {
+                                // add it to the parent array
+                                ((ArrayList)objectStack.Peek()).Add(currentObject);
+                                objectStack.Push(currentObject);
+                            }
+                            else
+                            { 
+                                // add it to the parent hashtable
+                                ((Hashtable)objectStack.Peek()).Add(currentKey,currentObject);
+                                objectStack.Push(currentObject);
+                            }  
+                            
+                            // clear the key
+                            currentKey=null;
+                        break;
+                        case '}':
+                            // pop the hashtable off the stack
+                            objectStack.Pop();
+                        break;
+                        case '"':// string boundary
+                            
+                            string tokenValue="";
+                            i++; // move to next char
+                            
+                            // just loop through until the next quote mark storing the string
+                            while(JSON[i]!='"')
+                            {
+                                tokenValue+=JSON[i++];
+                            }
+                            
+                            // ok we've got a string, if we've got an array on the top of the stack then we store it
+                            if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            {
+                                ((ArrayList)objectStack.Peek()).Add(tokenValue);
+                            }
+                            else if(currentKey==null)   // no key stored and its not an array this must be a key so store it
+                            {
+                                currentKey = tokenValue;
+                            }
+                            else   
+                            {
+                                // we have a key so lets store this value
+                                ((Hashtable)objectStack.Peek()).Add(currentKey,tokenValue);
+                                // now lets clear the key, we're done with it and moving on
+                                currentKey=null;
+                            }
+                        
+                        break;
+                        case ':':// key : value separator
+                        // just ignore
+                        break;
+                        case ' ':// spaces
+                        // just ignore
+                        break;
+                        case '[': // array start
+                            ArrayList currentArray = new ArrayList(); 
+                            
+                            if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            {   
+                                ((ArrayList)objectStack.Peek()).Add(currentArray);
+                            }
+                            else   
+                            {  
+                                ((Hashtable)objectStack.Peek()).Add(currentKey,currentArray);
+                                // clear the key
+                                currentKey=null;
+                            }
+                            objectStack.Push(currentArray);
+                        
+                        break;
+                        case ',':// seperator
+                            // just ignore
+                        break;
+                        case ']'://Array end
+                            // pop the array off the stack
+                            objectStack.Pop();
+                        break;
+                        case 't': // we've found a character start not in quotes, it must be a boolean true
+                        
+                            if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            {
+                                ((ArrayList)objectStack.Peek()).Add(true);
+                            }
+                            else
+                            { 
+                                ((Hashtable)objectStack.Peek()).Add(currentKey,true);
+                            }
+                            
+                            //advance the counter to the letter 'e'
+                            i = i+3;
+                        break;
+                        case 'f': // we've found a character start not in quotes, it must be a boolean false
+                            
+                            if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            { 
+                                ((ArrayList)objectStack.Peek()).Add(false);
+                            }
+                            else
+                            {
+                                ((Hashtable)objectStack.Peek()).Add(currentKey,false);
+                            }
+                            //advance the counter to the letter 'e'
+                            i = i+4;
+                        break;
+                        
+                        default:
+                            // ok here we're catching all numeric types int,double,long we might want to spit these up mr accurately
+                            // but for now we'll just do them as strings
+                            
+                            string numberValue="";
+                            
+                            // just loop through until the next known marker quote mark storing the string
+                            while(JSON[i] != '"' && JSON[i] != ',' && JSON[i] != ']' && JSON[i] != '}' && JSON[i] != ' ')
+                            {
+                                numberValue+=""+JSON[i++];
+                            }
+                            
+                            i--; // we want to process this caracter that marked the end of this string in the main loop
+                            
+                            // ok we've got a string, if we've got an array on the top of the stack then we store it
+                            if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            {
+                                ((ArrayList)objectStack.Peek()).Add(numberValue);
+                            }
+                            else   
+                            {
+                                // we have a key so lets store this value
+                                ((Hashtable)objectStack.Peek()).Add(currentKey,numberValue);
+                                // now lets clear the key, we're done with it and moving on
+                                currentKey=null;
+                            }
+                                                    
+                        break;
+                    }                                                                              
+                }                
+            }
+            catch(Exception)
+            {
+                OSSLError("osParseJSON: The JSON string is not valid " + JSON);
+            }
+            
+            return jsondata;                        
+        }     
+        
     }
 }

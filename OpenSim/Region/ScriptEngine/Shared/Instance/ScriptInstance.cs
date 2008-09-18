@@ -474,7 +474,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 if (data.EventName == "control")
                 {
                     int held = ((LSL_Types.LSLInteger)data.Params[1]).value;
-                    int changed= ((LSL_Types.LSLInteger)data.Params[2]).value;
+                    // int changed = ((LSL_Types.LSLInteger)data.Params[2]).value;
 
                     // If the last message was a 0 (nothing held)
                     // and this one is also nothing held, drop it

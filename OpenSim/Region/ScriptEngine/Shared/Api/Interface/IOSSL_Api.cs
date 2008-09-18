@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+using System.Collections;
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
     public interface IOSSL_Api
@@ -71,5 +71,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         string osGetScriptEngineName();
         void osSetParcelMediaTime(double time);
+        Hashtable osParseJSON(string JSON);
+        
     }
 }

@@ -219,5 +219,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osSetParcelMediaTime(time);
         }
+        
+        public Hashtable osParseJSON(string JSON)
+        {
+            return m_OSSL_Functions.osParseJSON(JSON);
+        }
     }
 }
