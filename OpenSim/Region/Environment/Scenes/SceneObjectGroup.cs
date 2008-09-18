@@ -1519,6 +1519,12 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_isDeleted)
                 return;
 
+            // This is what happens when an orphanced link set child prim's
+            // group was queued when it was linked
+            //
+            if (m_rootPart == null)
+                return;
+
             lock (m_parts)
             {
                 //if (m_rootPart.m_IsAttachment)
@@ -1815,6 +1821,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             m_scene.UnlinkSceneObject(objectGroup.UUID, true);
+            objectGroup.Children.Clear();
+            objectGroup.RootPart = null;
 
             // TODO Deleting the original group object may cause problems later on if they have already
             // made it into the update queue.  However, sending out updates for those parts is now

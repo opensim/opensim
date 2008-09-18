@@ -2812,10 +2812,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     parentPrim = targetPart.ParentGroup;
                     childPrim = m_host.ParentGroup;
                 }
-                byte uf = childPrim.RootPart.UpdateFlag;
+//                byte uf = childPrim.RootPart.UpdateFlag;
                 childPrim.RootPart.UpdateFlag = 0;
                 parentPrim.LinkToGroup(childPrim);
-                childPrim.RootPart.UpdateFlag = uf;
+//                if(uf != (Byte)0)
+//                    parent.RootPart.UpdateFlag = uf;
             }
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             parentPrim.RootPart.AddFlag(PrimFlags.CreateSelected);
