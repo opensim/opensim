@@ -2294,14 +2294,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (CollisionEventsThisFrame == null)
                 return;
 
-            //if (CollisionEventsThisFrame.m_objCollisionList == null)
-            //    return;
+            base.SendCollisionUpdate(CollisionEventsThisFrame);
 
-            if (CollisionEventsThisFrame.m_objCollisionList.Count > 0)
-            {
-                base.SendCollisionUpdate(CollisionEventsThisFrame);
+            if(CollisionEventsThisFrame.m_objCollisionList.Count == 0)
+                CollisionEventsThisFrame = null;
+            else
                 CollisionEventsThisFrame = new CollisionEventUpdate();
-            }
         }
 
         public override bool SubscribedEvents()

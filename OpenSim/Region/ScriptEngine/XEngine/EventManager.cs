@@ -198,10 +198,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 det.Add(d);
             }
 
-            myScriptEngine.PostObjectEvent(localID, new EventParams(
-                    "collision_start",
-                    new Object[] { new LSL_Types.LSLInteger(1) },
-                    det.ToArray()));
+            if (det.Count > 0)
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                        "collision_start",
+                        new Object[] { new LSL_Types.LSLInteger(det.Count) },
+                        det.ToArray()));
         }
 
         public void collision(uint localID, ColliderArgs col)
@@ -217,9 +218,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 det.Add(d);
             }
 
-            myScriptEngine.PostObjectEvent(localID, new EventParams(
-                    "collision", new Object[] { new LSL_Types.LSLInteger(1) },
-                    det.ToArray()));
+            if (det.Count > 0)
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                        "collision", new Object[] { new LSL_Types.LSLInteger(det.Count) },
+                        det.ToArray()));
         }
 
         public void collision_end(uint localID, ColliderArgs col)
@@ -235,10 +237,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 det.Add(d);
             }
 
-            myScriptEngine.PostObjectEvent(localID, new EventParams(
-                    "collision_end",
-                    new Object[] { new LSL_Types.LSLInteger(1) },
-                    det.ToArray()));
+            if (det.Count > 0)
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                        "collision_end",
+                        new Object[] { new LSL_Types.LSLInteger(det.Count) },
+                        det.ToArray()));
         }
 
         public void land_collision_start(uint localID, UUID itemID)

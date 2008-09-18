@@ -79,6 +79,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private bool m_ShuttingDown = false;
         private int m_ControlEventsInQueue = 0;
         private int m_LastControlLevel = 0;
+        private bool m_CollisionInQueue = false;
 
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
 
@@ -495,6 +496,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     m_ControlEventsInQueue++;
                 }
 
+                if (data.EventName == "collision")
+                {
+                    if (m_CollisionInQueue)
+                        return;
+                    if (data.DetectParams == null)
+                        return;
+
+                    m_CollisionInQueue = true;
+                }
+
                 m_EventQueue.Enqueue(data);
 
                 if (m_CurrentResult == null)
@@ -510,146 +521,159 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// <returns></returns>        
         public object EventProcessor()
         {
-            EventParams data = null;
-
-            lock (m_EventQueue)
+            lock(m_Script)
             {
-                data = (EventParams) m_EventQueue.Dequeue();
-                if (data == null) // Shouldn't happen
+                EventParams data = null;
+
+                lock (m_EventQueue)
                 {
-                    m_CurrentResult = null;
-                    return 0;
-                }
-                if (data.EventName == "timer")
-                    m_TimerQueued = false;
-                if (data.EventName == "control")
-                {
-                    if (m_ControlEventsInQueue > 0)
-                        m_ControlEventsInQueue--;
-                }
-            }
-            
-            //m_log.DebugFormat("[XENGINE]: Processing event {0} for {1}", data.EventName, this);
-
-            m_DetectParams = data.DetectParams;
-
-            if (data.EventName == "state") // Hardcoded state change
-            {
-//                m_Engine.Log.DebugFormat("[Script] Script {0}.{1} state set to {2}",
-//                        m_PrimName, m_ScriptName, data.Params[0].ToString());
-                m_State=data.Params[0].ToString();
-                AsyncCommandManager async = (AsyncCommandManager)m_Engine.AsyncCommands;
-                async.RemoveScript(
-                    m_LocalID, m_ItemID);
-
-                SceneObjectPart part = m_Engine.World.GetSceneObjectPart(
-                    m_LocalID);
-                if (part != null)
-                {
-                    part.SetScriptEvents(m_ItemID,
-                                         (int)m_Script.GetStateEventFlags(State));
-                }
-            }
-            else
-            {
-                SceneObjectPart part = m_Engine.World.GetSceneObjectPart(
-                    m_LocalID);
-//                m_Engine.Log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
-//                        m_PrimName, m_ScriptName, data.EventName, m_State);
-
-                try
-                {
-                    m_CurrentEvent = data.EventName;
-                    m_EventStart = DateTime.Now;
-                    m_InEvent = true;
-
-                    m_Script.ExecuteEvent(State, data.EventName, data.Params);
-
-                    m_InEvent = false;
-                    m_CurrentEvent = String.Empty;
-
-                    if (m_SaveState)
+                    data = (EventParams) m_EventQueue.Dequeue();
+                    if (data == null) // Shouldn't happen
                     {
-                        // This will be the very first event we deliver
-                        // (state_entry) in defualt state
-                        //
-
-                        SaveState(m_Assembly);
-
-                        m_SaveState = false;
+                        if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
+                        {
+                            m_CurrentResult = m_Engine.QueueEventHandler(this);
+                        }
+                        else
+                        {
+                            m_CurrentResult = null;
+                        }
+                        return 0;
                     }
-                }
-                catch (Exception e)
-                {
-                    m_InEvent = false;
-                    m_CurrentEvent = String.Empty;
 
-                    if (!(e is TargetInvocationException) || (!(e.InnerException is EventAbortException) && (!(e.InnerException is SelfDeleteException))))
+                    if (data.EventName == "timer")
+                        m_TimerQueued = false;
+                    if (data.EventName == "control")
                     {
-                        if (e is System.Threading.ThreadAbortException)
-                        {
-                            lock (m_EventQueue)
-                            {
-                                if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
-                                {
-                                    m_CurrentResult=m_Engine.QueueEventHandler(this);
-                                }
-                                else
-                                {
-                                    m_CurrentResult = null;
-                                }
-                            }
-
-                            m_DetectParams = null;
-
-                            return 0;
-                        }
-
-                        try
-                        {
-                            // DISPLAY ERROR INWORLD
-                            string text = "Runtime error:\n" + e.InnerException.ToString();
-                            if (text.Length > 1000)
-                                text = text.Substring(0, 1000);
-                            m_Engine.World.SimChat(Utils.StringToBytes(text),
-                                                   ChatTypeEnum.DebugChannel, 2147483647,
-                                                   part.AbsolutePosition,
-                                                   part.Name, part.UUID, false);
-                        }
-                        catch (Exception e2) // LEGIT: User Scripting
-                        {
-                            m_Engine.Log.Error("[Script]: "+
-                                               "Error displaying error in-world: " +
-                                               e2.ToString());
-                            m_Engine.Log.Error("[Script]: " +
-                                               "Errormessage: Error compiling script:\r\n" +
-                                               e.ToString());
-                        }
+                        if (m_ControlEventsInQueue > 0)
+                            m_ControlEventsInQueue--;
                     }
-                    else if ((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
-                    {
-                        m_InSelfDelete = true;
-                        if (part != null && part.ParentGroup != null)
-                            m_Engine.World.DeleteSceneObject(part.ParentGroup);
-                    }
+                    if (data.EventName == "collision")
+                        m_CollisionInQueue = false;
                 }
-            }
+                
+                //m_log.DebugFormat("[XENGINE]: Processing event {0} for {1}", data.EventName, this);
 
-            lock (m_EventQueue)
-            {
-                if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
+                m_DetectParams = data.DetectParams;
+
+                if (data.EventName == "state") // Hardcoded state change
                 {
-                    m_CurrentResult = m_Engine.QueueEventHandler(this);
+    //                m_Engine.Log.DebugFormat("[Script] Script {0}.{1} state set to {2}",
+    //                        m_PrimName, m_ScriptName, data.Params[0].ToString());
+                    m_State=data.Params[0].ToString();
+                    AsyncCommandManager async = (AsyncCommandManager)m_Engine.AsyncCommands;
+                    async.RemoveScript(
+                        m_LocalID, m_ItemID);
+
+                    SceneObjectPart part = m_Engine.World.GetSceneObjectPart(
+                        m_LocalID);
+                    if (part != null)
+                    {
+                        part.SetScriptEvents(m_ItemID,
+                                             (int)m_Script.GetStateEventFlags(State));
+                    }
                 }
                 else
                 {
-                    m_CurrentResult = null;
+                    SceneObjectPart part = m_Engine.World.GetSceneObjectPart(
+                        m_LocalID);
+    //                m_Engine.Log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
+    //                        m_PrimName, m_ScriptName, data.EventName, m_State);
+
+                    try
+                    {
+                        m_CurrentEvent = data.EventName;
+                        m_EventStart = DateTime.Now;
+                        m_InEvent = true;
+
+                        m_Script.ExecuteEvent(State, data.EventName, data.Params);
+
+                        m_InEvent = false;
+                        m_CurrentEvent = String.Empty;
+
+                        if (m_SaveState)
+                        {
+                            // This will be the very first event we deliver
+                            // (state_entry) in defualt state
+                            //
+
+                            SaveState(m_Assembly);
+
+                            m_SaveState = false;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_InEvent = false;
+                        m_CurrentEvent = String.Empty;
+
+                        if (!(e is TargetInvocationException) || (!(e.InnerException is EventAbortException) && (!(e.InnerException is SelfDeleteException))))
+                        {
+                            if (e is System.Threading.ThreadAbortException)
+                            {
+                                lock (m_EventQueue)
+                                {
+                                    if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
+                                    {
+                                        m_CurrentResult=m_Engine.QueueEventHandler(this);
+                                    }
+                                    else
+                                    {
+                                        m_CurrentResult = null;
+                                    }
+                                }
+
+                                m_DetectParams = null;
+
+                                return 0;
+                            }
+
+                            try
+                            {
+                                // DISPLAY ERROR INWORLD
+                                string text = "Runtime error:\n" + e.InnerException.ToString();
+                                if (text.Length > 1000)
+                                    text = text.Substring(0, 1000);
+                                m_Engine.World.SimChat(Utils.StringToBytes(text),
+                                                       ChatTypeEnum.DebugChannel, 2147483647,
+                                                       part.AbsolutePosition,
+                                                       part.Name, part.UUID, false);
+                            }
+                            catch (Exception e2) // LEGIT: User Scripting
+                            {
+                                m_Engine.Log.Error("[Script]: "+
+                                                   "Error displaying error in-world: " +
+                                                   e2.ToString());
+                                m_Engine.Log.Error("[Script]: " +
+                                                   "Errormessage: Error compiling script:\r\n" +
+                                                   e.ToString());
+                            }
+                        }
+                        else if ((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
+                        {
+                            m_InSelfDelete = true;
+                            if (part != null && part.ParentGroup != null)
+                                m_Engine.World.DeleteSceneObject(part.ParentGroup);
+                        }
+                    }
                 }
+
+                lock (m_EventQueue)
+                {
+                    if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
+                    {
+                        m_CurrentResult = m_Engine.QueueEventHandler(this);
+                    }
+                    else
+                    {
+                        m_CurrentResult = null;
+                    }
+                }
+
+                m_DetectParams = null;
+
+                return 0;
             }
-
-            m_DetectParams = null;
-
-            return 0;
         }
 
         public int EventTime()
@@ -730,6 +754,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public DetectParams GetDetectParams(int idx)
         {
+            if (m_DetectParams == null)
+                return null;
             if (idx < 0 || idx >= m_DetectParams.Length)
                 return null;
 
@@ -738,6 +764,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public UUID GetDetectID(int idx)
         {
+            if (m_DetectParams == null)
+                return UUID.Zero;
             if (idx < 0 || idx >= m_DetectParams.Length)
                 return UUID.Zero;
 
