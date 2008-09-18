@@ -6045,8 +6045,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (handlerActivateGesture != null)
                         {
                             handlerActivateGesture(this,
-                                activateGesturePacket.Data[0].AssetID,
-                                                        activateGesturePacket.Data[0].ItemID);
+                                                   activateGesturePacket.Data[0].AssetID,
+                                                   activateGesturePacket.Data[0].ItemID);
                         }
                         else m_log.Error("Null pointer for activateGesture");
 
