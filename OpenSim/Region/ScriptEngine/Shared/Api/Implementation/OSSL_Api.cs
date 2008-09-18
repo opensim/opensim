@@ -736,12 +736,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
         public Hashtable osParseJSON(string JSON)
         {
-            if (!m_OSFunctionsEnabled)
-            {
-                OSSLError("osParseJSON: permission denied");
-                return null;
-            }
-            
             CheckThreatLevel(ThreatLevel.None, "osParseJSON");
             
             m_host.AddScriptLPS(1);
