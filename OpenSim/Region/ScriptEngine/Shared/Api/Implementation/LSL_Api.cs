@@ -128,6 +128,59 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return World.GetCommander(name);
         }
 
+        private List<SceneObjectPart> GetLinkParts(int linkType)
+        {
+            List<SceneObjectPart> ret = new List<SceneObjectPart>();
+            ret.Add(m_host);
+
+            switch (linkType)
+            {
+            case ScriptBaseClass.LINK_SET:
+                if (m_host.ParentGroup != null)
+                    return new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                return ret;
+                break;
+            case ScriptBaseClass.LINK_ROOT:
+                if (m_host.ParentGroup != null)
+                {
+                    ret = new List<SceneObjectPart>();
+                    ret.Add(m_host.ParentGroup.RootPart);
+                    return ret;
+                }
+                return ret;
+                break;
+            case ScriptBaseClass.LINK_ALL_OTHERS:
+                if (m_host.ParentGroup ==  null)
+                    return new List<SceneObjectPart>();
+                ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                if (ret.Contains(m_host))
+                    ret.Remove(m_host);
+                return ret;
+                break;
+            case ScriptBaseClass.LINK_ALL_CHILDREN:
+                if (m_host.ParentGroup ==  null)
+                    return new List<SceneObjectPart>();
+                ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                if (ret.Contains(m_host.ParentGroup.RootPart))
+                    ret.Remove(m_host.ParentGroup.RootPart);
+                return ret;
+                break;
+            case ScriptBaseClass.LINK_THIS:
+                return ret;
+                break;
+            default:
+                if (linkType < 0 || m_host.ParentGroup ==  null)
+                    return new List<SceneObjectPart>();
+                SceneObjectPart target = m_host.ParentGroup.GetLinkNumPart(linkType);
+                if (target == null)
+                    return new List<SceneObjectPart>();
+                ret = new List<SceneObjectPart>();
+                ret.Add(target);
+                return ret;
+                break;
+            }
+        }
+
         private UUID InventorySelf()
         {
             UUID invItemID = new UUID();
@@ -999,7 +1052,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == -1)
             {
-                for (uint i = 0; i < 32; i++)
+                for (uint i = 0; i < llGetNumberOfSides(); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -2702,96 +2755,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face)
         {
-            m_host.AddScriptLPS(1);
-            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
-            if (linknumber > -1)
-            {
-                Primitive.TextureEntry tex = part.Shape.Textures;
-                Color4 texcolor;
-                if (face > -1)
-                {
-                    texcolor = tex.CreateFace((uint)face).RGBA;
-                    texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                    texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                    texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                    tex.FaceTextures[face].RGBA = texcolor;
-                    part.UpdateTexture(tex);
-                    return;
-                }
-                else if (face == -1)
-                {
-                    texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                    texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                    texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                    tex.DefaultTexture.RGBA = texcolor;
-                    for (uint i = 0; i < 32; i++)
-                    {
-                        if (tex.FaceTextures[i] != null)
-                        {
-                            texcolor = tex.FaceTextures[i].RGBA;
-                            texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                            texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                            texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                            tex.FaceTextures[i].RGBA = texcolor;
-                        }
-                    }
-                    texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                    texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                    texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                    tex.DefaultTexture.RGBA = texcolor;
-                    part.UpdateTexture(tex);
-                    return;
-                }
-                return;
-            }
-            else if (linknumber == -1)
-            {
-                int num = m_host.ParentGroup.PrimCount;
-                for (int w = 0; w < num; w++)
-                {
-                    linknumber = w;
-                    part = m_host.ParentGroup.GetLinkNumPart(linknumber);
-                    Primitive.TextureEntry tex = part.Shape.Textures;
-                    Color4 texcolor;
-                    if (face > -1)
-                    {
-                        texcolor = tex.CreateFace((uint)face).RGBA;
-                        texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                        texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                        texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                        tex.FaceTextures[face].RGBA = texcolor;
-                        part.UpdateTexture(tex);
-                    }
-                    else if (face == -1)
-                    {
-                        texcolor = tex.DefaultTexture.RGBA;
-                        texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                        texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                        texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                        tex.DefaultTexture.RGBA = texcolor;
-                        for (uint i = 0; i < 32; i++)
-                        {
-                            if (tex.FaceTextures[i] != null)
-                            {
-                                texcolor = tex.FaceTextures[i].RGBA;
-                                texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                                texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                                texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                                tex.FaceTextures[i].RGBA = texcolor;
-                            }
-                        }
-                        texcolor = tex.DefaultTexture.RGBA;
-                        texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                        texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                        texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                        tex.DefaultTexture.RGBA = texcolor;
-                        part.UpdateTexture(tex);
-                    }
-                }
-                return;
-            }
+            List<SceneObjectPart> parts = GetLinkParts(linknumber);
+
+            foreach (SceneObjectPart part in parts)
+                SetColor(part, color, face);
         }
 
         public void llCreateLink(string target, int parent)
