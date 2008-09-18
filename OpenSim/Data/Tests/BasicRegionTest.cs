@@ -77,12 +77,31 @@ namespace OpenSim.Data.Tests
         {
             SceneObjectGroup sog = NewSOG("object1");
             SceneObjectGroup sog2 = NewSOG("object2");
-            
-            db.StoreObject(sog, region1);
-            db.StoreObject(sog2, region1);
+
+            // in case the objects don't store
+            try 
+            {
+                db.StoreObject(sog, region1);
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine("Exception in storing object {0} {1}", sog.ToString(), e);
+                Assert.Fail();
+            }
+                    
+            try 
+            {
+                db.StoreObject(sog2, region1);
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine("Exception in storing object {0} {1}", sog2.ToString(), e);
+                Assert.Fail();
+            }
 
             // This tests the ADO.NET driver
             List<SceneObjectGroup> objs = db.LoadObjects(region1);
+            
             Assert.That(objs.Count, Is.EqualTo(2));
         }
         
@@ -182,6 +201,10 @@ namespace OpenSim.Data.Tests
             return null;
         }
 
+        // This builds a minimalistic Prim, 1 SOG with 1 root SOP.  A
+        // common failure case is people adding new fields that aren't
+        // initialized, but have non-null db constraints.  We should
+        // honestly be passing more and more null things in here.
         private SceneObjectGroup NewSOG(string name)
         {
             SceneObjectGroup sog = new SceneObjectGroup();
