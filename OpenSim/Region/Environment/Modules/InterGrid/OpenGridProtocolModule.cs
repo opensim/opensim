@@ -760,7 +760,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     //LLSDMap outboundRequestMap = new LLSDMap();
                     LLSDMap inboundRequestMap = (LLSDMap)request;
                     string rezAvatarString = inboundRequestMap["rez_avatar"].AsString();
-
+                    if (rezAvatarString.Length == 0)
+                    {
+                        rezAvatarString = inboundRequestMap["rez_avatar/rez"].AsString();
+                    }
                     LLSDArray LookAtArray = new LLSDArray();
                     LookAtArray.Add(LLSD.FromInteger(1));
                     LookAtArray.Add(LLSD.FromInteger(1));
@@ -801,6 +804,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     // REPLACEMENT
                     if (rezResponseMap.ContainsKey("region_seed_capability"))
                         rezRespSeedCap = rezResponseMap["region_seed_capability"].AsString();
+
+                    // REPLACEMENT
+                    if (rezResponseMap.ContainsKey("rez_avatar/rez"))
+                        rezRespSeedCap = rezResponseMap["rez_avatar/rez"].AsString();
 
                     // DEPRECIATED
                     string rezRespSim_ip = rezResponseMap["sim_ip"].AsString();
