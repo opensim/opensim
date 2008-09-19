@@ -45,6 +45,15 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
+            try
+            {
+                log4net.Config.XmlConfigurator.Configure();
+            }
+            catch (Exception)
+            {
+                // I don't care, just leave log4net off
+            }
+
             uuid1 = UUID.Random();
             uuid2 = UUID.Random();
             uuid3 = UUID.Random();
