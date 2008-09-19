@@ -608,6 +608,8 @@ namespace OpenSim.Framework.Servers
             LLSD llsdRequest = null;
             LLSD llsdResponse = null;
 
+            bool LegacyLLSDLoginLibOMV = (requestBody.Contains("passwd") && requestBody.Contains("mac") && requestBody.Contains("viewer_digest"));
+
             try
             {
                 llsdRequest = LLSDParser.DeserializeXml(requestBody);
@@ -622,7 +624,7 @@ namespace OpenSim.Framework.Servers
 
                 LLSDMethod llsdhandler = null;
 
-                if (TryGetLLSDHandler(request.RawUrl, out llsdhandler))
+                if (TryGetLLSDHandler(request.RawUrl, out llsdhandler) && !LegacyLLSDLoginLibOMV)
                 {
                     // we found a registered llsd handler to service this request
                     llsdResponse = llsdhandler(request.RawUrl, llsdRequest, request.RemoteIPEndPoint.ToString());
