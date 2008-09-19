@@ -752,11 +752,14 @@ namespace OpenSim.Framework.Servers
 
             foreach (string pattern in m_llsdHandlers.Keys)
             {
-                if (searchquery.StartsWith(searchquery))
+                if (searchquery.ToLower().StartsWith(pattern.ToLower()))
                 {
                     if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
                     {
-                        bestMatch = pattern;
+                        // You have to specifically register for '/' and to get it, you must specificaly request it
+                        //
+                        if (pattern == "/" && searchquery == "/" || pattern != "/")
+                            bestMatch = pattern; 
                     }
                 }
             }

@@ -33,6 +33,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
 using System.Threading;
+using System.Web;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -75,8 +76,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         public int src_version;
         public int src_parent_estate_id;
         public bool visible_to_parent;
+        public string teleported_into_region;
     }
-
+    
     public class OpenGridProtocolModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -84,6 +86,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
         private Dictionary<string, AgentCircuitData> CapsLoginID = new Dictionary<string, AgentCircuitData>();
         private Dictionary<UUID, OGPState> m_OGPState = new Dictionary<UUID, OGPState>();
+        private Dictionary<string, string> m_loginToRegionState = new Dictionary<string, string>();
+        
+
         private string LastNameSuffix = "_EXTERNAL";
         private string FirstNamePrefix = "";
         private string httpsCN = "";
@@ -127,7 +132,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                         if (m_scene.Count == 0)
                         {
                             scene.AddLLSDHandler("/agent/", ProcessAgentDomainMessage);
-                            scene.AddLLSDHandler("/", ProcessAgentDomainMessage);
+                            scene.AddLLSDHandler("/", ProcessRegionDomainSeed);
                             try
                             {
                                 ServicePointManager.ServerCertificateValidationCallback += customXertificateValidation;
@@ -147,6 +152,12 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                                 }
                             }
 
+                        }
+                        // can't pick the region 'agent' because it would conflict with our agent domain handler
+                        // a zero length region name would conflict with are base region seed cap
+                        if (!SceneListDuplicateCheck(scene.RegionInfo.RegionName) && scene.RegionInfo.RegionName.ToLower() != "agent" && scene.RegionInfo.RegionName.Length > 0)
+                        {
+                            scene.AddLLSDHandler("/" + HttpUtility.UrlPathEncode(scene.RegionInfo.RegionName.ToLower()),ProcessRegionDomainSeed);
                         }
 
                         if (!m_scene.Contains(scene))
@@ -196,6 +207,26 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
         #endregion
 
+        public LLSD ProcessRegionDomainSeed(string path, LLSD request, string endpoint)
+        {
+            string[] pathSegments = path.Split('/');
+            
+            if (pathSegments.Length <= 1)
+            {
+                return GenerateNoHandlerMessage();
+
+            }
+            
+            return GenerateRezAvatarRequestMessage(pathSegments[1]);
+            
+            
+
+            //m_log.InfoFormat("[OGP]: path {0}, segments {1} segment[1] {2} Last segment {3}",
+            //                 path, pathSegments.Length, pathSegments[1], pathSegments[pathSegments.Length - 1]);
+            //return new LLSDMap();
+
+        }
+
         public LLSD ProcessAgentDomainMessage(string path, LLSD request, string endpoint)
         {
             // /agent/*
@@ -206,12 +237,10 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 return GenerateNoHandlerMessage();
                 
             }
-
             if (pathSegments[0].Length == 0 && pathSegments[1].Length == 0)
             {
                 return GenerateRezAvatarRequestMessage("");
             }
-
             m_log.InfoFormat("[OGP]: path {0}, segments {1} segment[1] {2} Last segment {3}",
                              path, pathSegments.Length, pathSegments[1], pathSegments[pathSegments.Length - 1]);
 
@@ -248,7 +277,33 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
         private LLSD GenerateRezAvatarRequestMessage(string regionname)
         {
-            Scene region = GetRootScene();
+            Scene region = null;
+            bool usedroot = false;
+
+            if (regionname.Length == 0)
+            {
+                region = GetRootScene();
+                usedroot = true;
+            }
+            else
+            {
+                region = GetScene(HttpUtility.UrlDecode(regionname).ToLower());
+            }
+
+            // this shouldn't happen since we don't listen for a region that is down..   but 
+            // it might if the region was taken down or is in the middle of restarting
+
+            if (region == null)
+            {
+                region = GetRootScene();
+                usedroot = true;
+            }
+            
+            UUID statekeeper = UUID.Random();
+
+            
+            
+
             RegionInfo reg = region.RegionInfo;
 
             LLSDMap responseMap = new LLSDMap();
@@ -256,7 +311,18 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             //string regionCapsHttpProtocol = "http://";
             string httpaddr = reg.ExternalHostName;
             string urlport = reg.HttpPort.ToString();
-            string requestpath = "/agent/" + UUID.Zero + "/rez_avatar/request";
+            string requestpath = "/agent/" + statekeeper + "/rez_avatar/request";
+
+            if (!usedroot)
+            {
+                lock (m_loginToRegionState)
+                {
+                    if (!m_loginToRegionState.ContainsKey(requestpath))
+                    {
+                        m_loginToRegionState.Add(requestpath, region.RegionInfo.RegionName.ToLower());
+                    }
+                }
+            }
 
             if (httpSSL)
             {
@@ -301,8 +367,26 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             LLSDMap requestMap = (LLSDMap)request;
 
-            Scene homeScene = GetRootScene();
 
+            Scene homeScene = null;
+
+            lock (m_loginToRegionState)
+            {
+                if (m_loginToRegionState.ContainsKey(path))
+                {
+                    homeScene = GetScene(m_loginToRegionState[path]);
+                    m_loginToRegionState.Remove(path);
+
+                    if (homeScene == null)
+                        homeScene = GetRootScene();
+                }
+                else
+                {
+                    homeScene = GetRootScene();
+                }
+            }
+
+            // Homescene is still null, we must have no regions that are up
             if (homeScene == null)
                 return GenerateNoHandlerMessage();
 
@@ -338,6 +422,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             userState.src_can_see_mainland = requestMap["src_can_see_mainland"].AsBoolean();
             userState.src_estate_id = requestMap["src_estate_id"].AsInteger();
             userState.local_agent_id = LocalAgentID;
+            userState.teleported_into_region = reg.RegionName.ToLower();
 
             UpdateOGPState(LocalAgentID, userState);
 
@@ -548,8 +633,15 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 userData.SecureSessionID = SecureSessionID;
                 userData.SessionID = SessionID;
 
+                OGPState userState = GetOGPState(userData.AgentID);
+
                 // Locate a home scene suitable for the user.
-                Scene homeScene = GetRootScene();
+                Scene homeScene = null;
+
+                homeScene = GetScene(userState.teleported_into_region);
+                
+                if (homeScene == null)
+                    homeScene = GetRootScene();
 
                 if (homeScene != null)
                 {
@@ -562,7 +654,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     homeScene.ChangeCircuitCode(userData.circuitcode,(uint)circuitcode);
 
                     // Load state
-                    OGPState userState = GetOGPState(userData.AgentID);
+                    
 
                     // Keep state changes
                     userState.first_name = requestMap["first_name"].AsString();
@@ -926,6 +1018,24 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             return ReturnScene;
         }
 
+        private Scene GetScene(string scenename)
+        {
+            Scene ReturnScene = null;
+            lock (m_scene)
+            {
+                foreach (Scene s in m_scene)
+                {
+                    if (s.RegionInfo.RegionName.ToLower() == scenename)
+                    {
+                        ReturnScene = s;
+                        break;
+                    }
+                }
+            }
+
+            return ReturnScene;
+        }
+
         private ulong GetOSCompatibleRegionHandle(RegionInfo reg)
         {
             return Util.UIntsToLong(reg.RegionLocX, reg.RegionLocY);
@@ -957,6 +1067,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             returnState.src_version = 1;
             returnState.src_parent_estate_id = 1;
             returnState.visible_to_parent = true;
+            returnState.teleported_into_region = "";
 
             return returnState;
         }
@@ -998,6 +1109,22 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     m_OGPState.Add(agentId,state);
                 }
             }
+        }
+        private bool SceneListDuplicateCheck(string str)
+        {
+            // no lock, called from locked space!
+            bool found = false;
+            
+            foreach (Scene s in m_scene)
+            {
+                if (s.RegionInfo.RegionName == str)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            return found;
         }
 
         public void ShutdownConnection(UUID avatarId, OpenGridProtocolModule mod)
