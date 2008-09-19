@@ -406,9 +406,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             // Get the asset ID of the script, so we can check if we
             // already have it.
 
+            // We must look for the part outside the m_Scripts lock because GetSceneObjectPart later triggers the
+            // m_parts lock on SOG.  At the same time, a scene object that is being deleted will take the m_parts lock
+            // and then later on try to take the m_scripts lock in this class when it calls OnRemoveScript()            
             SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
             if (part == null)
+            {
+                Log.Error("[Script] SceneObjectPart unavailable. Script NOT started.");
                 return false;
+            }     
 
             TaskInventoryItem item = part.GetInventoryItem(itemID);
             if (item == null)
@@ -494,7 +500,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_DomainScripts[appDomain].Add(itemID);
 
                     ScriptInstance instance =
-                        new ScriptInstance(this,localID,
+                        new ScriptInstance(this, part.LocalId,
                                            part.UUID, itemID, assetID, assembly,
                                            m_AppDomains[appDomain],
                                            part.ParentGroup.RootPart.Name,
