@@ -253,7 +253,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             LLSDMap responseMap = new LLSDMap();
             string rezHttpProtocol = "http://";
-            string regionCapsHttpProtocol = "http://";
+            //string regionCapsHttpProtocol = "http://";
             string httpaddr = reg.ExternalHostName;
             string urlport = reg.HttpPort.ToString();
             string requestpath = "/agent/" + UUID.Zero + "/rez_avatar/request";
@@ -261,7 +261,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             if (httpSSL)
             {
                 rezHttpProtocol = "https://";
-                regionCapsHttpProtocol = "https://";
+                //regionCapsHttpProtocol = "https://";
                 urlport = httpsslport.ToString();
 
                 if (httpsCN.Length > 0)

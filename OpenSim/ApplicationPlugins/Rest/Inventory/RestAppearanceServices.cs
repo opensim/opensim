@@ -45,7 +45,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
     public class RestAppearanceServices : IRest
     {
         private static readonly int PARM_USERID = 0;
-        private static readonly int PARM_PATH   = 1;
+        //private static readonly int PARM_PATH   = 1;
 
         private bool       enabled = false;
         private string     qPrefix = "appearance";
