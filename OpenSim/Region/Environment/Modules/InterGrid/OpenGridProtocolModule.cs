@@ -312,7 +312,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             //int RegionPort = (int)reg.HttpPort;
 
             UUID RemoteAgentID = requestMap["agent_id"].AsUUID();
-
+            
             // will be used in the future.  The client always connects with the aditi agentid currently
             UUID LocalAgentID = RemoteAgentID;
 
@@ -342,6 +342,15 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             UpdateOGPState(LocalAgentID, userState);
 
             LLSDMap responseMap = new LLSDMap();
+
+            if (RemoteAgentID == UUID.Zero)
+            {
+                responseMap["connect"] = LLSD.FromBoolean(false);
+                responseMap["message"] = LLSD.FromString("No agent ID was specified in rez_avatar/request");
+                m_log.Error("[OGP]: rez_avatar/request failed because no avatar UUID was provided in the request body");
+                return responseMap;
+            }
+
             responseMap["sim_host"] = LLSD.FromString(reg.ExternalHostName);
             
             // DEPRECIATED

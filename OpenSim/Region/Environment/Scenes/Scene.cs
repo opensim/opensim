@@ -2620,7 +2620,14 @@ namespace OpenSim.Region.Environment.Scenes
                 m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
                 // rewrite session_id
                 CachedUserInfo userinfo = CommsManager.UserProfileCacheService.GetUserDetails(agent.AgentID);
-                userinfo.SessionID = agent.SessionID;
+                if (userinfo != null)
+                {
+                    userinfo.SessionID = agent.SessionID;
+                }
+                else
+                {
+                    m_log.WarnFormat("[USERINFO CACHE]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
+                }
             }
             else
             {
