@@ -1526,6 +1526,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return false;
             }
 
+            // if it's a standard box or sphere with no cuts or hollows or twist, return false since ODE can use an internal representation for the prim
+            if ((pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1)
+                || (pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight))
+            {
+                if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
+                    && pbs.ProfileHollow == 0
+                    && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
+                    && pbs.PathBegin == 0 && pbs.PathEnd == 0
+                    //&& pbs.PathTaperX == 0 && pbs.PathTaperY == 0
+                    && pbs.PathScaleX == 100 && pbs.PathScaleY == 100)
+                    return false;
+            }
+
         //    if (pbs.ProfileHollow != 0)
         //        return true;
 

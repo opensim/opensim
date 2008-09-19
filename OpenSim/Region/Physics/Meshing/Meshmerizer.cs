@@ -2022,6 +2022,10 @@ namespace OpenSim.Region.Physics.Meshing
         {
             Mesh mesh = null;
 
+#if SPAM
+            reportPrimParams(primName, primShape);
+#endif
+
             if (primShape.SculptEntry && primShape.SculptType != (byte)0 && primShape.SculptData.Length > 0)
             {
                 SculptMesh smesh = CreateSculptMesh(primName, primShape, size, lod);
