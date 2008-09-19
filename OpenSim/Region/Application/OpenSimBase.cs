@@ -84,7 +84,6 @@ namespace OpenSim
         public bool m_gridLocalAsset;
         public bool m_see_into_region_from_neighbor;
 
-        protected LocalLoginService m_loginService;
         protected GridInfoService m_gridInfoService;
 
         protected string m_storageDll;
@@ -368,6 +367,8 @@ namespace OpenSim
             base.Startup();
 
             m_stats = StatsManager.StartCollectingSimExtraStats();
+            
+            LibraryRootFolder libraryRootFolder = new LibraryRootFolder();
 
             // StandAlone mode? m_sandbox is determined by !startupConfig.GetBoolean("gridmode", false)
             if (m_sandbox)
@@ -378,28 +379,28 @@ namespace OpenSim
                 LocalUserServices userService =
                     new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
                                           m_networkServersInfo.DefaultHomeLocY, inventoryService);
-                userService.AddPlugin(m_standaloneUserPlugin, m_standaloneUserSource);
+                userService.AddPlugin(m_standaloneUserPlugin, m_standaloneUserSource);                
 
                 LocalBackEndServices backendService = new LocalBackEndServices();
-
-                CommunicationsLocal localComms =
-                    new CommunicationsLocal(m_networkServersInfo, m_httpServer, m_assetCache, userService, userService,
-                                            inventoryService, backendService, backendService, m_dumpAssetsToFile);
-                m_commsManager = localComms;
-
-                m_loginService =
-                    new LocalLoginService(userService, m_standaloneWelcomeMessage, localComms, m_networkServersInfo,
-                                          m_standaloneAuthenticate);
-                m_loginService.OnLoginToRegion += backendService.AddNewSession;
+                
+                LocalLoginService loginService =
+                    new LocalLoginService(
+                        userService, m_standaloneWelcomeMessage, inventoryService, backendService, m_networkServersInfo,
+                        m_standaloneAuthenticate, libraryRootFolder);              
+                
+                m_commsManager 
+                    = new CommunicationsLocal(
+                        m_networkServersInfo, m_httpServer, m_assetCache, userService, userService,
+                        inventoryService, backendService, backendService, libraryRootFolder, m_dumpAssetsToFile);  
 
                 // set up XMLRPC handler for client's initial login request message
-                m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
+                m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
 
                 // provides the web form login
-                m_httpServer.AddHTTPHandler("login", m_loginService.ProcessHTMLLogin);
+                m_httpServer.AddHTTPHandler("login", loginService.ProcessHTMLLogin);
 
                 // Provides the LLSD login
-                m_httpServer.SetDefaultLLSDHandler(m_loginService.LLSDLoginMethod);
+                m_httpServer.SetDefaultLLSDHandler(loginService.LLSDLoginMethod);
 
                 // provide grid info
                 // m_gridInfoService = new GridInfoService(m_config.Source.Configs["Startup"].GetString("inifile", Path.Combine(Util.configDir(), "OpenSim.ini")));
@@ -410,7 +411,9 @@ namespace OpenSim
             else
             {
                 // We are in grid mode
-                m_commsManager = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache);
+                m_commsManager 
+                    = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache, libraryRootFolder);
+                
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
             }
 
@@ -421,6 +424,9 @@ namespace OpenSim
             m_moduleLoader = new ModuleLoader(m_config.Source);
 
             LoadPlugins();
+                                    
+            // Only enable logins to the regions once we have completely finished starting up
+            m_commsManager.GridService.RegionLoginsEnabled = true;
         }
 
         protected override void Initialize()

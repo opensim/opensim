@@ -39,7 +39,7 @@ namespace OpenSim.Region.Communications.Local
     public class LocalBackEndServices : IGridServices, IInterRegionCommunications
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        
         protected Dictionary<ulong, RegionInfo> m_regions = new Dictionary<ulong, RegionInfo>();
 
         protected Dictionary<ulong, RegionCommsListener> m_regionListeners =
@@ -50,6 +50,13 @@ namespace OpenSim.Region.Communications.Local
         private Dictionary<string, string> m_queuedGridSettings = new Dictionary<string, string>();
 
         public string _gdebugRegionName = String.Empty;
+        
+        public bool RegionLoginsEnabled
+        {
+            get { return m_regionLoginsEnabled; }
+            set { m_regionLoginsEnabled = value; }
+        }
+        private bool m_regionLoginsEnabled;
 
         public bool CheckRegion(string address, uint port)
         {
@@ -68,10 +75,6 @@ namespace OpenSim.Region.Communications.Local
         {
             get { return _rdebugRegionName; }
             set { _rdebugRegionName = value; }
-        }
-
-        public LocalBackEndServices()
-        {
         }
 
         /// <summary>

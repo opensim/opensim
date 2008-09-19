@@ -87,9 +87,7 @@ namespace OpenSim.Region.ClientStack
                 m_log.Error("[HTTP]: HTTP Server config failed.   HTTP Server and HTTPS server must be on different ports");
             }
 
-
             m_log.Info("[REGION]: Starting HTTP server");
-
             m_httpServer.Start();
         }
 

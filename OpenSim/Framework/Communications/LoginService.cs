@@ -239,8 +239,8 @@ namespace OpenSim.Framework.Communications
                         catch (Exception e)
                         {
                             m_log.ErrorFormat(
-                                "[LOGIN END]:  XMLRPC Error retrieving inventory skeleton of agent {0}, {1} - {2}",
-                                agentID, e.GetType(), e.Message);
+                                "[LOGIN END]: Error retrieving inventory skeleton of agent {0} - {1}",
+                                agentID, e);
 
                             return logResponse.CreateLoginInventoryFailedResponse();
                         }

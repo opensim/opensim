@@ -51,14 +51,15 @@ namespace OpenSim.Region.Communications.OGS1
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        // FIXME: LocalBackEndServices should to be refactored into a separate common parent class rather than
+        // encapsulated.
         private LocalBackEndServices m_localBackend = new LocalBackEndServices();
+        
         private Dictionary<ulong, RegionInfo> m_remoteRegionInfoCache = new Dictionary<ulong, RegionInfo>();
         // private List<SimpleRegionInfo> m_knownRegions = new List<SimpleRegionInfo>();
         private Dictionary<ulong, int> m_deadRegionCache = new Dictionary<ulong, int>();
         private Dictionary<string, string> m_queuedGridSettings = new Dictionary<string, string>();
         private List<RegionInfo> m_regionsOnInstance = new List<RegionInfo>();
-
-
 
         public BaseHttpServer httpListener;
         public NetworkServersInfo serversInfo;
@@ -79,6 +80,16 @@ namespace OpenSim.Region.Communications.OGS1
             get { return _rdebugRegionName; }
             set { _rdebugRegionName = value; }
         }
+        
+        /// <summary>
+        /// Doesn't have any effect yet!
+        /// </summary>
+        public bool RegionLoginsEnabled
+        {
+            get { return m_regionLoginsEnabled; }
+            set { m_regionLoginsEnabled = value; }
+        }
+        private bool m_regionLoginsEnabled;       
 
         /// <summary>
         /// Contructor.  Adds "expect_user" and "check" xmlrpc method handlers

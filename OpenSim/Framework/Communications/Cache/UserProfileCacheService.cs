@@ -51,12 +51,20 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         private readonly Dictionary<UUID, CachedUserInfo> m_userProfiles = new Dictionary<UUID, CachedUserInfo>();
 
-        public readonly LibraryRootFolder libraryRoot = new LibraryRootFolder();
+        /// <summary>
+        /// The root library folder.
+        /// </summary>
+        public readonly LibraryRootFolder LibraryRoot;
 
-        // Methods
-        public UserProfileCacheService(CommunicationsManager commsManager)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="commsManager"></param>
+        /// <param name="libraryRootFolder"></param>
+        public UserProfileCacheService(CommunicationsManager commsManager, LibraryRootFolder libraryRootFolder)
         {
             m_commsManager = commsManager;
+            LibraryRoot = libraryRootFolder;
         }
 
         /// <summary>
@@ -293,10 +301,10 @@ namespace OpenSim.Framework.Communications.Cache
             // FIXME MAYBE: We're not handling sortOrder!
 
             InventoryFolderImpl fold = null;
-            if ((fold = libraryRoot.FindFolder(folderID)) != null)
+            if ((fold = LibraryRoot.FindFolder(folderID)) != null)
             {
                 remoteClient.SendInventoryFolderDetails(
-                    libraryRoot.Owner, folderID, fold.RequestListOfItems(),
+                    LibraryRoot.Owner, folderID, fold.RequestListOfItems(),
                     fold.RequestListOfFolders(), fetchFolders, fetchItems);
 
                 return;
@@ -337,7 +345,7 @@ namespace OpenSim.Framework.Communications.Cache
             // FIXME MAYBE: We're not handling sortOrder!
 
             InventoryFolderImpl fold;
-            if ((fold = libraryRoot.FindFolder(folderID)) != null)
+            if ((fold = LibraryRoot.FindFolder(folderID)) != null)
             {
                 return fold.RequestListOfItems();
             }
@@ -428,7 +436,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void HandleFetchInventory(IClientAPI remoteClient, UUID itemID, UUID ownerID)
         {
-            if (ownerID == libraryRoot.Owner)
+            if (ownerID == LibraryRoot.Owner)
             {
                 //Console.WriteLine("request info for library item");
 

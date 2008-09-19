@@ -112,11 +112,11 @@ namespace OpenSim.Framework.Communications
         /// <param name="assetCache"></param>
         /// <param name="dumpAssetsToFile"></param>
         public CommunicationsManager(NetworkServersInfo serversInfo, BaseHttpServer httpServer, AssetCache assetCache,
-                                     bool dumpAssetsToFile)
+                                     bool dumpAssetsToFile, LibraryRootFolder libraryRootFolder)
         {
             m_networkServersInfo = serversInfo;
             m_assetCache = assetCache;
-            m_userProfileCacheService = new UserProfileCacheService(this);
+            m_userProfileCacheService = new UserProfileCacheService(this, libraryRootFolder);
          //   m_transactionsManager = new AgentAssetTransactionsManager(this, dumpAssetsToFile);
         }
 
@@ -356,7 +356,7 @@ namespace OpenSim.Framework.Communications
 
         public void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
         {
-            if (uuid == m_userProfileCacheService.libraryRoot.Owner)
+            if (uuid == m_userProfileCacheService.LibraryRoot.Owner)
             {
                 remote_client.SendNameReply(uuid, "Mr", "OpenSim");
             }
@@ -375,7 +375,6 @@ namespace OpenSim.Framework.Communications
         {
             string[] returnstring = new string[0];
             bool doLookup = false;
-
 
             lock (m_nameRequestCache)
             {
@@ -405,8 +404,8 @@ namespace OpenSim.Framework.Communications
                     }
                 }
             }
+            
             return returnstring;
-
         }
 
         public bool UUIDNameCachedTest(UUID uuid)

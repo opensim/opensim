@@ -42,8 +42,8 @@ namespace OpenSim.Region.Communications.Local
             IUserServiceAdmin userServiceAdmin,
             LocalInventoryService inventoryService,
             IInterRegionCommunications interRegionService,
-            IGridServices gridService, bool dumpAssetsToFile)
-            : base(serversInfo, httpServer, assetCache, dumpAssetsToFile)
+            IGridServices gridService, LibraryRootFolder libraryRootFolder, bool dumpAssetsToFile)
+            : base(serversInfo, httpServer, assetCache, dumpAssetsToFile, libraryRootFolder)
         {
             AddInventoryService(inventoryService);
             m_defaultInventoryHost = inventoryService.Host;

@@ -33,6 +33,11 @@ namespace OpenSim.Framework.Communications
     public interface IGridServices
     {
         string gdebugRegionName { get; set; }
+        
+        /// <summary>
+        /// If true, then regions will accept logins from the user service.  If false, then they will not.
+        /// </summary>
+        bool RegionLoginsEnabled { get; set; }
 
         /// <summary>
         /// Register a region with the grid service.
@@ -42,7 +47,7 @@ namespace OpenSim.Framework.Communications
         /// <exception cref="System.Exception">Thrown if region registration failed</exception>
         RegionCommsListener RegisterRegion(RegionInfo regionInfos);
 
-        bool DeregisterRegion(RegionInfo regionInfo);
+        bool DeregisterRegion(RegionInfo regionInfo);   
 
         /// <summary>
         /// Get information about the regions neighbouring the given co-ordinates.

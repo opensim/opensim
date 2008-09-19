@@ -500,7 +500,7 @@ namespace OpenSim.Region.Environment.Scenes
                 "[AGENT INVENTORY]: CopyInventoryItem received by {0} with oldAgentID {1}, oldItemID {2}, new FolderID {3}, newName {4}",
                 remoteClient.AgentId, oldAgentID, oldItemID, newFolderID, newName);
 
-            InventoryItemBase item = CommsManager.UserProfileCacheService.libraryRoot.FindItem(oldItemID);
+            InventoryItemBase item = CommsManager.UserProfileCacheService.LibraryRoot.FindItem(oldItemID);
 
             if (item == null)
             {
@@ -1207,7 +1207,7 @@ namespace OpenSim.Region.Environment.Scenes
                             // XXX clumsy, possibly should be one call
                             if (null == item)
                             {
-                                item = CommsManager.UserProfileCacheService.libraryRoot.FindItem(itemID);
+                                item = CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);
                             }
 
                             if (item != null)
@@ -1272,7 +1272,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // XXX clumsy, possibly should be one call
                     if (null == item)
                     {
-                        item = CommsManager.UserProfileCacheService.libraryRoot.FindItem(itemID);
+                        item = CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);
                     }
 
                     if (item != null)

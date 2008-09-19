@@ -34,6 +34,7 @@ using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Communications.Local
 {
@@ -43,27 +44,41 @@ namespace OpenSim.Region.Communications.Local
     {
         protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected CommunicationsLocal m_Parent;
-
         protected NetworkServersInfo serversInfo;
         protected uint defaultHomeX;
         protected uint defaultHomeY;
         protected bool authUsers = false;
+        
+        /// <summary>
+        /// Used by the login service to make requests to the inventory service.
+        /// </summary>
+        protected IInterServiceInventoryServices m_interServiceInventoryService;
+        
+        /// <summary>
+        /// Used to make requests to the local regions.
+        /// </summary>
+        protected IGridServices m_gridService;
 
         public event LoginToRegionEvent OnLoginToRegion;
 
         protected LoginToRegionEvent handlerLoginToRegion = null; // OnLoginToRegion;
 
-        public LocalLoginService(UserManagerBase userManager, string welcomeMess,
-                                 CommunicationsLocal parent, NetworkServersInfo serversInfo,
-                                 bool authenticate)
-            : base(userManager, parent.UserProfileCacheService.libraryRoot, welcomeMess)
+        public LocalLoginService(
+            UserManagerBase userManager, string welcomeMess,
+            IInterServiceInventoryServices interServiceInventoryService, LocalBackEndServices gridService,
+            NetworkServersInfo serversInfo,
+            bool authenticate, LibraryRootFolder libraryRootFolder)
+            : base(userManager, libraryRootFolder, welcomeMess)
         {
-            m_Parent = parent;
             this.serversInfo = serversInfo;
             defaultHomeX = this.serversInfo.DefaultHomeLocX;
             defaultHomeY = this.serversInfo.DefaultHomeLocY;
             authUsers = authenticate;
+            
+            m_interServiceInventoryService = interServiceInventoryService;
+            m_gridService = gridService;
+            
+            OnLoginToRegion += gridService.AddNewSession;            
         }
 
         public override UserProfileData GetTheUser(string firstname, string lastname)
@@ -84,7 +99,7 @@ namespace OpenSim.Region.Communications.Local
                 profile = m_userManager.GetUserProfile(firstname, lastname);
                 if (profile != null)
                 {
-                    m_Parent.InterServiceInventoryService.CreateNewUserInventory(profile.ID);
+                    m_interServiceInventoryService.CreateNewUserInventory(profile.ID);
                 }
 
                 return profile;
@@ -129,11 +144,12 @@ namespace OpenSim.Region.Communications.Local
         {
             // HomeLocation
             RegionInfo homeInfo = null;
+            
             // use the homeRegionID if it is stored already. If not, use the regionHandle as before
             if (theUser.HomeRegionID != UUID.Zero)
-                homeInfo = m_Parent.GridService.RequestNeighbourInfo(theUser.HomeRegionID);
+                homeInfo = m_gridService.RequestNeighbourInfo(theUser.HomeRegionID);
             else
-                homeInfo = m_Parent.GridService.RequestNeighbourInfo(theUser.HomeRegion);
+                homeInfo = m_gridService.RequestNeighbourInfo(theUser.HomeRegion);
             if (homeInfo != null)
             {
                 response.Home =
@@ -172,7 +188,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else if (startLocationRequest == "last")
             {
-                regionInfo = m_Parent.GridService.RequestNeighbourInfo(theUser.CurrentAgent.Region);
+                regionInfo = m_gridService.RequestNeighbourInfo(theUser.CurrentAgent.Region);
                 response.LookAt = "[r" + theUser.CurrentAgent.LookAt.X.ToString() + ",r" + theUser.CurrentAgent.LookAt.Y.ToString() + ",r" + theUser.CurrentAgent.LookAt.Z.ToString() + "]";
             }
             else
@@ -186,7 +202,7 @@ namespace OpenSim.Region.Communications.Local
                 else
                 {
                     string region = uriMatch.Groups["region"].ToString();
-                    regionInfo = m_Parent.GridService.RequestClosestRegion(region);
+                    regionInfo = m_gridService.RequestClosestRegion(region);
                     if (regionInfo == null)
                     {
                         m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, can't locate region {1}", startLocationRequest, region);
@@ -208,7 +224,7 @@ namespace OpenSim.Region.Communications.Local
             }
 
             // StartLocation not available, send him to a nearby region instead
-            // regionInfo = m_Parent.GridService.RequestClosestRegion("");
+            // regionInfo = m_gridService.RequestClosestRegion("");
             //m_log.InfoFormat("[LOGIN]: StartLocation not available sending to region {0}", regionInfo.regionName);
 
             // Send him to default region instead
@@ -222,7 +238,7 @@ namespace OpenSim.Region.Communications.Local
             }
 
             m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
-            regionInfo = m_Parent.GridService.RequestNeighbourInfo(defaultHandle);
+            regionInfo = m_gridService.RequestNeighbourInfo(defaultHandle);
 
             // Customise the response
             //response.Home =
@@ -274,24 +290,26 @@ namespace OpenSim.Region.Communications.Local
             loginParams.StartPos = user.CurrentAgent.Position;
             loginParams.CapsPath = capsPath;
 
-            handlerLoginToRegion = OnLoginToRegion;
-            if (handlerLoginToRegion == null)
-                return false;
-
-            handlerLoginToRegion(user.CurrentAgent.Handle, loginParams);
-            return true;
+            if (m_gridService.RegionLoginsEnabled)
+            {
+                handlerLoginToRegion = OnLoginToRegion;
+                handlerLoginToRegion(user.CurrentAgent.Handle, loginParams);
+                return true;
+            }
+            
+            return false;
         }
 
         // See LoginService
         protected override InventoryData GetInventorySkeleton(UUID userID)
         {
-            List<InventoryFolderBase> folders = m_Parent.InterServiceInventoryService.GetInventorySkeleton(userID);
+            List<InventoryFolderBase> folders = m_interServiceInventoryService.GetInventorySkeleton(userID);
 
             // If we have user auth but no inventory folders for some reason, create a new set of folders.
             if (null == folders || 0 == folders.Count)
             {
-                m_Parent.InterServiceInventoryService.CreateNewUserInventory(userID);
-                folders = m_Parent.InterServiceInventoryService.GetInventorySkeleton(userID);
+                m_interServiceInventoryService.CreateNewUserInventory(userID);
+                folders = m_interServiceInventoryService.GetInventorySkeleton(userID);
             }
 
             UUID rootID = UUID.Zero;
