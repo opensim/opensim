@@ -2318,6 +2318,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llRezAtRoot(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
         {
             m_host.AddScriptLPS(1);
+            if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
+                return;
             bool found = false;
 
             float dist = (float)llVecDist(llGetPos(), pos);
