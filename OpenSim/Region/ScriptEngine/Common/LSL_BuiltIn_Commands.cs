@@ -562,7 +562,15 @@ namespace OpenSim.Region.ScriptEngine.Common
             LSL_Types.Vector3 axis = LSL_Types.Vector3.Norm(crossProduct);
             double s = Math.Sin(angle / 2);
 
-            return new LSL_Types.Quaternion(axis.x * s, axis.y * s, axis.z * s, (float)Math.Cos(angle / 2));
+            double x = axis.x * s;
+            double y = axis.y * s;
+            double z = axis.z * s;
+            double w = Math.Cos(angle / 2);
+
+            if(Double.IsNaN(x) || Double.IsNaN(y) || Double.IsNaN(z) || Double.IsNaN(w))
+                return new LSL_Types.Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+
+            return new LSL_Types.Quaternion((float)x, (float)y, (float)z, (float)w);
         }
 
         public void llWhisper(int channelID, string text)
