@@ -425,7 +425,7 @@ namespace OpenSim
 
             LoadPlugins();
                                     
-            // Only enable logins to the regions once we have completely finished starting up
+            // Only enable logins to the regions once we have completely finished starting up (apart from scripts)
             m_commsManager.GridService.RegionLoginsEnabled = true;
         }
 

@@ -613,7 +613,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="request"></param>
         /// <returns></returns>
         public XmlRpcResponse ExpectUser(XmlRpcRequest request)
-        {
+        {            
             Hashtable requestData = (Hashtable) request.Params[0];
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.SessionID = new UUID((string) requestData["session_id"]);
@@ -627,7 +627,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             m_log.DebugFormat(
                 "[CLIENT]: Told by user service to prepare for a connection from {0} {1} {2}, circuit {3}",
-                agentData.firstname, agentData.lastname, agentData.AgentID, agentData.circuitcode);
+                agentData.firstname, agentData.lastname, agentData.AgentID, agentData.circuitcode);            
 
             if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
             {
@@ -644,45 +644,62 @@ namespace OpenSim.Region.Communications.OGS1
                 agentData.child = false;
             }
 
-            RegionInfo[] regions = m_regionsOnInstance.ToArray();
-            bool banned = false;
-
-            for (int i = 0; i < regions.Length; i++)
-            {
-                if (regions[i] != null)
-                {
-                    if (regions[i].RegionHandle == regionHandle)
-                    {
-                        if (regions[i].EstateSettings.IsBanned(agentData.AgentID))
-                        {
-                            banned = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
             XmlRpcResponse resp = new XmlRpcResponse();
-
-            if (banned)
+                        
+            if (!m_regionLoginsEnabled)
             {
-                m_log.InfoFormat("[CLIENT]: Denying access for user {0} {1} because user is banned",agentData.firstname,agentData.lastname);
+                m_log.InfoFormat(
+                    "[CLIENT]: Denying access for user {0} {1} because region login is currently disabled",
+                    agentData.firstname, agentData.lastname);
 
                 Hashtable respdata = new Hashtable();
                 respdata["success"] = "FALSE";
-                respdata["reason"] = "banned";
-                resp.Value = respdata;
+                respdata["reason"] = "region login currently disabled";
+                resp.Value = respdata;                
             }
             else
             {
-                m_localBackend.TriggerExpectUser(regionHandle, agentData);
-                Hashtable respdata = new Hashtable();
-                respdata["success"] = "TRUE";
-                resp.Value = respdata;
+                RegionInfo[] regions = m_regionsOnInstance.ToArray();
+                bool banned = false;
+
+                for (int i = 0; i < regions.Length; i++)
+                {
+                    if (regions[i] != null)
+                    {
+                        if (regions[i].RegionHandle == regionHandle)
+                        {
+                            if (regions[i].EstateSettings.IsBanned(agentData.AgentID))
+                            {
+                                banned = true;
+                                break;
+                            }
+                        }
+                    }
+                }                
+            
+                if (banned)
+                {
+                    m_log.InfoFormat(
+                        "[CLIENT]: Denying access for user {0} {1} because user is banned",
+                        agentData.firstname, agentData.lastname);
+
+                    Hashtable respdata = new Hashtable();
+                    respdata["success"] = "FALSE";
+                    respdata["reason"] = "banned";
+                    resp.Value = respdata;
+                }
+                else
+                {
+                    m_localBackend.TriggerExpectUser(regionHandle, agentData);
+                    Hashtable respdata = new Hashtable();
+                    respdata["success"] = "TRUE";
+                    resp.Value = respdata;
+                }
             }
 
             return resp;
         }
+        
         // Grid Request Processing
         /// <summary>
         /// Ooops, our Agent must be dead if we're getting this request!
