@@ -650,7 +650,7 @@ namespace OpenSim.Framework.Servers
                 llsdResponse = GenerateNoLLSDHandlerResponse();
             }
 
-            response.ContentType = "application/xml+llsd";
+            response.ContentType = "application/llsd+xml";
 
             byte[] buffer = LLSDParser.SerializeXmlBytes(llsdResponse);
 

@@ -127,6 +127,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                         if (m_scene.Count == 0)
                         {
                             scene.AddLLSDHandler("/agent/", ProcessAgentDomainMessage);
+                            scene.AddLLSDHandler("/", ProcessAgentDomainMessage);
                             try
                             {
                                 ServicePointManager.ServerCertificateValidationCallback += customXertificateValidation;
@@ -200,9 +201,15 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             // /agent/*
 
             string[] pathSegments = path.Split('/');
-            if (pathSegments.Length < 1)
+            if (pathSegments.Length <= 1)
             {
                 return GenerateNoHandlerMessage();
+                
+            }
+
+            if (pathSegments[0].Length == 0 && pathSegments[1].Length == 0)
+            {
+                return GenerateRezAvatarRequestMessage("");
             }
 
             m_log.InfoFormat("[OGP]: path {0}, segments {1} segment[1] {2} Last segment {3}",
@@ -237,6 +244,34 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     return GenerateNoHandlerMessage();
             }
             //return null;
+        }
+
+        private LLSD GenerateRezAvatarRequestMessage(string regionname)
+        {
+            Scene region = GetRootScene();
+            RegionInfo reg = region.RegionInfo;
+
+            LLSDMap responseMap = new LLSDMap();
+            string rezHttpProtocol = "http://";
+            string regionCapsHttpProtocol = "http://";
+            string httpaddr = reg.ExternalHostName;
+            string urlport = reg.HttpPort.ToString();
+            string requestpath = "/agent/" + UUID.Zero + "/rez_avatar/request";
+
+            if (httpSSL)
+            {
+                rezHttpProtocol = "https://";
+                regionCapsHttpProtocol = "https://";
+                urlport = httpsslport.ToString();
+
+                if (httpsCN.Length > 0)
+                    httpaddr = httpsCN;
+            }
+
+            responseMap["connect"] = LLSD.FromBoolean(true);
+            responseMap["rez_avatar/request"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + requestpath);
+            
+            return responseMap;
         }
 
         // Using OpenSim.Framework.Communications.Capabilities.Caps here one time..   
@@ -393,7 +428,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             //string raCap = string.Empty;
 
-            UUID AvatarRezCapUUID = UUID.Random();
+            UUID AvatarRezCapUUID = LocalAgentID;
             string rezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar/rez";
             string derezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar/derez";
             // Get a reference to the user's cap so we can pull out the Caps Object Path
