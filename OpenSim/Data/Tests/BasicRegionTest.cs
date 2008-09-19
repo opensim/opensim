@@ -65,7 +65,10 @@ namespace OpenSim.Data.Tests
         public void T001_LoadEmpty()
         {
             List<SceneObjectGroup> objs = db.LoadObjects(region1);
+            List<LandData> land = db.LoadLandObjects(region1);
+
             Assert.That(objs.Count, Is.EqualTo(0));
+            Assert.That(land.Count, Is.EqualTo(0));
         }
         
         // SOG round trips
@@ -127,6 +130,16 @@ namespace OpenSim.Data.Tests
 
             sog = FindSOG("object1", region1);
             Assert.That(text, Is.EqualTo(sog.RootPart.Text));
+        }
+
+        [Test]
+        public void T100_DefaultRegionInfo()
+        {
+            RegionSettings r1 = db.LoadRegionSettings(region1);
+            Assert.That(r1.RegionUUID, Is.EqualTo(region1));
+
+            RegionSettings r2 = db.LoadRegionSettings(region2);
+            Assert.That(r2.RegionUUID, Is.EqualTo(region2));
         }
 
         [Test]
