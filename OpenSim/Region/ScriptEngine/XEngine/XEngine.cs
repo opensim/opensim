@@ -500,8 +500,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_DomainScripts[appDomain].Add(itemID);
 
                     ScriptInstance instance =
-                        new ScriptInstance(this, part.LocalId,
-                                           part.UUID, itemID, assetID, assembly,
+                        new ScriptInstance(this, part,
+                                           itemID, assetID, assembly,
                                            m_AppDomains[appDomain],
                                            part.ParentGroup.RootPart.Name,
                                            item.Name, startParam, postOnRez,

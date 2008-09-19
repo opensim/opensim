@@ -164,16 +164,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             set { m_StartParam = value; }
         }
 
-        public ScriptInstance(IScriptEngine engine, uint localID,
-                UUID objectID, UUID itemID, UUID assetID, string assembly,
+        public ScriptInstance(IScriptEngine engine, SceneObjectPart part,
+                UUID itemID, UUID assetID, string assembly,
                 AppDomain dom, string primName, string scriptName,
                 int startParam, bool postOnRez, StateSource stateSource,
                 int maxScriptQueue)
         {
             m_Engine = engine;
 
-            m_LocalID = localID;
-            m_ObjectID = objectID;
+            m_LocalID = part.LocalId;
+            m_ObjectID = part.UUID;
             m_ItemID = itemID;
             m_AssetID = assetID;
             m_PrimName = primName;
@@ -184,17 +184,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             ApiManager am = new ApiManager();
 
-            SceneObjectPart part=engine.World.GetSceneObjectPart(localID);
-            if (part == null)
-            {
-                engine.Log.Error("[Script] SceneObjectPart unavailable. Script NOT started.");
-                return;
-            }
-
             foreach (string api in am.GetApis())
             {
                 m_Apis[api] = am.CreateApi(api);
-                m_Apis[api].Initialize(engine, part, localID, itemID);
+                m_Apis[api].Initialize(engine, part, m_LocalID, itemID);
             }
 
             try
