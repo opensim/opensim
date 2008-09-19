@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -41,7 +42,7 @@ namespace OpenSim.Data.SQLite.Tests
     [TestFixture]
     public class SQLiteInventoryTest : BasicInventoryTest
     {
-        public string file = "inventorytest.db";
+        public string file;
         public string connect;
         
         [TestFixtureSetUp]
@@ -56,7 +57,10 @@ namespace OpenSim.Data.SQLite.Tests
             {
                 // I don't care, just leave log4net off
             }
+            
+            file = Path.GetTempFileName() + ".db";
             connect = "URI=file:" + file + ",version=3";
+            
             db = new SQLiteInventoryStore();
             db.Initialise(connect);
         }

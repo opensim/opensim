@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -47,6 +48,7 @@ namespace OpenSim.Data.SQLite.Tests
         public void Init()
         {
             SuperInit();
+            file = Path.GetTempFileName() + ".db";
             connect = "URI=file:" + file + ",version=3";
             db = new SQLiteRegionData();
             db.Initialise(connect);

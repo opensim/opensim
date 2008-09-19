@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -40,14 +41,14 @@ namespace OpenSim.Data.SQLite.Tests
     [TestFixture]
     public class SQLiteAssetTest : BasicAssetTest
     {
-        public string file = "assettest.db";
+        public string file;
         public string connect;
         
         [TestFixtureSetUp]
         public void Init()
         {
             SuperInit();
-            System.Console.WriteLine("SQLiteAssetTest");
+            file = Path.GetTempFileName() + ".db";
             connect = "URI=file:" + file + ",version=3";
             db = new SQLiteAssetData();
             db.Initialise(connect);
