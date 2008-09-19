@@ -133,8 +133,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 {
                     LSL_Types.list v = (LSL_Types.list)field.GetValue(this);
                     Object[] data = new Object[v.Data.Length];
-                    Array.Copy(data, 0, v.Data, 0, v.Data.Length);
-                    vars[field.Name] = data;
+                    Array.Copy(v.Data, 0, data, 0, v.Data.Length);
+                    LSL_Types.list c = new LSL_Types.list();
+                    c.Data = data;
+                    vars[field.Name] = c;
                 }
                 else
                 {
@@ -151,12 +153,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             {
                 if (m_Fields.ContainsKey(var.Key))
                 {
-                    if (m_Fields[var.Key].FieldType is LSL_Types.list)
+                    if (m_Fields[var.Key].FieldType == typeof(LSL_Types.list))
                     {
                         LSL_Types.list v = (LSL_Types.list)m_Fields[var.Key].GetValue(this);
                         Object[] data = (Object[])var.Value;
                         v.Data = new Object[data.Length];
-                        Array.Copy(v.Data, 0, data, 0, data.Length);
+                        Array.Copy(data, 0, v.Data, 0, data.Length);
                         m_Fields[var.Key].SetValue(this, v);
                     }
                     else
