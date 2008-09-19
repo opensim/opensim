@@ -107,19 +107,23 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         public void Dispose()
         {
-            if(conn != null) {
+            if (conn != null)
+            {
                 conn.Close();
                 conn = null;
             }
-            if(invItemsDa != null) {
+            if (invItemsDa != null)
+            {
                 invItemsDa.Dispose();
                 invItemsDa = null;
             }
-            if(invFoldersDa != null) {
+            if (invFoldersDa != null)
+            {
                 invFoldersDa.Dispose();
                 invFoldersDa = null;
             }
-            if(ds != null) {
+            if (ds != null)
+            {
                 ds.Dispose();
                 ds = null;
             }
@@ -500,7 +504,8 @@ namespace OpenSim.Data.SQLite
                                     // Current folder already has a sibling - append to sibling list
                                     hashtable[curFolder.ParentID].Add(curFolder);
                                 }
-                                else {
+                                else
+                                {
                                     List<InventoryFolderBase> siblingList = new List<InventoryFolderBase>();
                                     siblingList.Add(curFolder);
                                     // Current folder has no known (yet) siblings
