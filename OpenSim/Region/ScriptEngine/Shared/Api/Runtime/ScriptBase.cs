@@ -159,7 +159,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             foreach (KeyValuePair<string, object> var in vars)
             {
-                FieldInfo field = (FieldInfo)var.Value;
                 if (m_Fields.ContainsKey(var.Key))
                 {
                     if (m_Fields[var.Key].FieldType == typeof(LSL_Types.list))
@@ -170,15 +169,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                         Array.Copy(data, 0, v.Data, 0, data.Length);
                         m_Fields[var.Key].SetValue(this, v);
                     }
-                    else if(field.FieldType == typeof(LSL_Types.LSLInteger) || 
-                            field.FieldType == typeof(LSL_Types.LSLString) ||
-                            field.FieldType == typeof(LSL_Types.LSLFloat) ||
-                            field.FieldType == typeof(Int32) ||
-                            field.FieldType == typeof(Double) ||
-                            field.FieldType == typeof(Single) ||
-                            field.FieldType == typeof(String) ||
-                            field.FieldType == typeof(Byte) ||
-                            field.FieldType == typeof(short))
+                    else if(m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLInteger) || 
+                            m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLString) ||
+                            m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLFloat) ||
+                            m_Fields[var.Key].FieldType == typeof(Int32) ||
+                            m_Fields[var.Key].FieldType == typeof(Double) ||
+                            m_Fields[var.Key].FieldType == typeof(Single) ||
+                            m_Fields[var.Key].FieldType == typeof(String) ||
+                            m_Fields[var.Key].FieldType == typeof(Byte) ||
+                            m_Fields[var.Key].FieldType == typeof(short))
                     {
                         m_Fields[var.Key].SetValue(this, var.Value);
                     }
