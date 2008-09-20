@@ -170,7 +170,8 @@ namespace OpenSim.Framework.Communications.Capabilities
                 m_capsHandlers["UpdateScriptAgentInventory"] = m_capsHandlers["UpdateNotecardAgentInventory"];
                 m_capsHandlers["UpdateNotecardTaskInventory"] =
                     new RestStreamHandler("POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory);
-                m_capsHandlers["UpdateScriptTaskInventory"] = m_capsHandlers["UpdateNotecardTaskInventory"];
+                // LL doesn't offer this
+                // m_capsHandlers["UpdateScriptTaskInventory"] = m_capsHandlers["UpdateNotecardTaskInventory"];
 
                 // justincc: I've disabled the CAPS service for now to fix problems with selecting textures, and
                 // subsequent inventory breakage, in the edit object pane (such as mantis 1085).  This requires
