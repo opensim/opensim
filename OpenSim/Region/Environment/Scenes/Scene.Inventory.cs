@@ -254,10 +254,10 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data);
+            AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)item.Type, data);
             AssetCache.AddAsset(asset);
 
-            if (isScriptRunning)
+            if (isScriptRunning && item.Type == 10)
             {
                 part.RemoveScriptInstance(item.ItemID);
             }
@@ -267,7 +267,7 @@ namespace OpenSim.Region.Environment.Scenes
             part.GetProperties(remoteClient);
 
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
-            if (isScriptRunning)
+            if (isScriptRunning && item.Type == 10)
             {
                 part.CreateScriptInstance(item.ItemID, 0, false);
             }
