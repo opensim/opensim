@@ -552,7 +552,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             // REPLACEMENT
             responseMap["region_seed_capability"] = LLSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
 
-            
+            responseMap["rez_avatar"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);
             responseMap["rez_avatar/rez"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);
             responseMap["rez_avatar/derez"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + derezAvatarPath);
 

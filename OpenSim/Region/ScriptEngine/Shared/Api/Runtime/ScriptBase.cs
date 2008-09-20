@@ -138,7 +138,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                     c.Data = data;
                     vars[field.Name] = c;
                 }
-                else if(field.FieldType == typeof(LSL_Types.LSLInteger) || 
+                else if (field.FieldType == typeof(LSL_Types.LSLInteger) || 
                         field.FieldType == typeof(LSL_Types.LSLString) ||
                         field.FieldType == typeof(LSL_Types.LSLFloat) ||
                         field.FieldType == typeof(Int32) ||
@@ -146,7 +146,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                         field.FieldType == typeof(Single) ||
                         field.FieldType == typeof(String) ||
                         field.FieldType == typeof(Byte) ||
-                        field.FieldType == typeof(Short))
+                        field.FieldType == typeof(short))
                 {
                     vars[field.Name] = field.GetValue(this);
                 }
@@ -159,6 +159,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             foreach (KeyValuePair<string, object> var in vars)
             {
+                FieldInfo field = (FieldInfo)var.Value;
                 if (m_Fields.ContainsKey(var.Key))
                 {
                     if (m_Fields[var.Key].FieldType == typeof(LSL_Types.list))
@@ -177,7 +178,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                             field.FieldType == typeof(Single) ||
                             field.FieldType == typeof(String) ||
                             field.FieldType == typeof(Byte) ||
-                            field.FieldType == typeof(Short))
+                            field.FieldType == typeof(short))
                     {
                         m_Fields[var.Key].SetValue(this, var.Value);
                     }
