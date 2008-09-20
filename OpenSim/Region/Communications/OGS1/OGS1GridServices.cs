@@ -51,8 +51,9 @@ namespace OpenSim.Region.Communications.OGS1
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // FIXME: LocalBackEndServices should to be refactored into a separate common parent class rather than
-        // encapsulated.
+        /// <summary>
+        /// Encapsulate local backend services for manipulation of local regions
+        /// </summary>
         private LocalBackEndServices m_localBackend = new LocalBackEndServices();
         
         private Dictionary<ulong, RegionInfo> m_remoteRegionInfoCache = new Dictionary<ulong, RegionInfo>();
@@ -64,32 +65,25 @@ namespace OpenSim.Region.Communications.OGS1
         public BaseHttpServer httpListener;
         public NetworkServersInfo serversInfo;
         public BaseHttpServer httpServer;
-
-        public string _gdebugRegionName = String.Empty;
-
+        
         public string gdebugRegionName
         {
-            get { return _gdebugRegionName; }
-            set { _gdebugRegionName = value; }
-        }
-
-        public string _rdebugRegionName = String.Empty;
+            get { return m_localBackend.gdebugRegionName; }
+            set { m_localBackend.gdebugRegionName = value; }
+        }  
 
         public string rdebugRegionName
         {
             get { return _rdebugRegionName; }
             set { _rdebugRegionName = value; }
         }
+        private string _rdebugRegionName = String.Empty;
         
-        /// <summary>
-        /// Doesn't have any effect yet!
-        /// </summary>
         public bool RegionLoginsEnabled
         {
-            get { return m_regionLoginsEnabled; }
-            set { m_regionLoginsEnabled = value; }
-        }
-        private bool m_regionLoginsEnabled;       
+            get { return m_localBackend.RegionLoginsEnabled; }
+            set { m_localBackend.RegionLoginsEnabled = value; }
+        }      
 
         /// <summary>
         /// Contructor.  Adds "expect_user" and "check" xmlrpc method handlers
@@ -195,6 +189,7 @@ namespace OpenSim.Region.Communications.OGS1
                     "[OGS1 GRID SERVICES]: Region {0} successfully registered with grid at {1}",
                     regionInfo.RegionName, serversInfo.GridURL);
             }
+            
             return m_localBackend.RegisterRegion(regionInfo);
         }
 
@@ -223,7 +218,6 @@ namespace OpenSim.Region.Communications.OGS1
                 return false;
             }
 
-            // What does DeregisterRegion() do?
             return m_localBackend.DeregisterRegion(regionInfo);
         }
 
@@ -572,6 +566,7 @@ namespace OpenSim.Region.Communications.OGS1
             param["ymax"] = maxY;
             IList parameters = new ArrayList();
             parameters.Add(param);
+            
             try
             {
                 XmlRpcRequest req = new XmlRpcRequest("map_block", parameters);
@@ -646,7 +641,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             XmlRpcResponse resp = new XmlRpcResponse();
                         
-            if (!m_regionLoginsEnabled)
+            if (!RegionLoginsEnabled)
             {
                 m_log.InfoFormat(
                     "[CLIENT]: Denying access for user {0} {1} because region login is currently disabled",
@@ -708,7 +703,8 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public XmlRpcResponse LogOffUser(XmlRpcRequest request)
         {
-            m_log.Debug("[CONNECTION DEBUGGING]: LogOff User Called ");
+            m_log.Debug("[CONNECTION DEBUGGING]: LogOff User Called");
+            
             Hashtable requestData = (Hashtable)request.Params[0];
             string message = (string)requestData["message"];
             UUID agentID = UUID.Zero;
@@ -718,10 +714,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
 
-
             m_localBackend.TriggerLogOffUser(regionHandle, agentID, RegionSecret,message);
-
-
 
             return new XmlRpcResponse();
         }
@@ -913,9 +906,9 @@ namespace OpenSim.Region.Communications.OGS1
                     }
                     remObject = null;
                     m_log.Info("[OGS1 GRID SERVICES]: " +
-                               gdebugRegionName + ": OGS1 tried to InformRegionOfChildAgent for " +
-                               agentData.firstname + " " + agentData.lastname + " and got " +
-                               retValue.ToString());
+                           m_localBackend._gdebugRegionName + ": OGS1 tried to InformRegionOfChildAgent for " +
+                           agentData.firstname + " " + agentData.lastname + " and got " +
+                           retValue.ToString());
 
                     return retValue;
                 }
@@ -1029,7 +1022,9 @@ namespace OpenSim.Region.Communications.OGS1
                             m_log.Warn("[OGS1 GRID SERVICES]: remoting object not found");
                         }
                         remObject = null;
-                        m_log.Info("[INTER]: " + gdebugRegionName + ": OGS1 tried to inform region I'm up");
+                        
+                        m_log.Info(
+                            "[INTER]: " + m_localBackend._gdebugRegionName + ": OGS1 tried to inform region I'm up");
 
                         return retValue;
                     }
@@ -1472,62 +1467,38 @@ namespace OpenSim.Region.Communications.OGS1
         {
             //m_log.Info("[INTER]: " + gdebugRegionName + ": Incoming OGS1 Agent " + agentData.firstname + " " + agentData.lastname);
 
-            try
-            {
-                return m_localBackend.IncomingChildAgent(regionHandle, agentData);
-            }
-            catch (RemotingException)
-            {
-                //m_log.Error("Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
-                return false;
-            }
+            return m_localBackend.IncomingChildAgent(regionHandle, agentData);
         }
 
         public bool TriggerRegionUp(RegionUpData regionData, ulong regionhandle)
         {
-            m_log.Info("[OGS1 GRID SERVICES]: " +
-                       gdebugRegionName + "Incoming OGS1 RegionUpReport:  " + "(" + regionData.X +
-                       "," + regionData.Y + "). Giving this region a fresh set of 'dead' tries");
+            m_log.Info(
+               "[OGS1 GRID SERVICES]: " +
+               m_localBackend._gdebugRegionName + "Incoming OGS1 RegionUpReport:  " + "(" + regionData.X +
+               "," + regionData.Y + "). Giving this region a fresh set of 'dead' tries");
+            
             RegionInfo nRegionInfo = new RegionInfo();
             nRegionInfo.SetEndPoint("127.0.0.1", regionData.PORT);
             nRegionInfo.ExternalHostName = regionData.IPADDR;
             nRegionInfo.RegionLocX = regionData.X;
             nRegionInfo.RegionLocY = regionData.Y;
 
-
-            try
+            lock (m_deadRegionCache)
             {
-                lock (m_deadRegionCache)
+                if (m_deadRegionCache.ContainsKey(nRegionInfo.RegionHandle))
                 {
-                    if (m_deadRegionCache.ContainsKey(nRegionInfo.RegionHandle))
-                    {
-                        m_deadRegionCache.Remove(nRegionInfo.RegionHandle);
-                    }
+                    m_deadRegionCache.Remove(nRegionInfo.RegionHandle);
                 }
-
-                return m_localBackend.TriggerRegionUp(nRegionInfo, regionhandle);
             }
 
-            catch (RemotingException e)
-            {
-                m_log.Error("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
-                return false;
-            }
+            return m_localBackend.TriggerRegionUp(nRegionInfo, regionhandle);
         }
 
         public bool TriggerChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
         {
             //m_log.Info("[INTER]: Incoming OGS1 Child Agent Data Update");
 
-            try
-            {
-                return m_localBackend.TriggerChildAgentUpdate(regionHandle, cAgentData);
-            }
-            catch (RemotingException e)
-            {
-                m_log.Error("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
-                return false;
-            }
+            return m_localBackend.TriggerChildAgentUpdate(regionHandle, cAgentData);
         }
 
         /// <summary>
@@ -1538,18 +1509,9 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public bool IncomingPrim(ulong regionHandle, UUID primID, string objData, int XMLMethod)
         {
-            // Is this necessary?
-            try
-            {
-                m_localBackend.TriggerExpectPrim(regionHandle, primID, objData, XMLMethod);
-                return true;
-                //m_localBackend.
-            }
-            catch (RemotingException e)
-            {
-                m_log.Error("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
-                return false;
-            }
+            m_localBackend.TriggerExpectPrim(regionHandle, primID, objData, XMLMethod);
+            
+            return true;
         }
 
         /// <summary>
@@ -1561,41 +1523,17 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public bool TriggerExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
         {
-            try
-            {
-                return m_localBackend.TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
-            }
-            catch (RemotingException e)
-            {
-                m_log.Error("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
-                return false;
-            }
+            return m_localBackend.TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
         }
 
         public bool TriggerExpectPrimCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isPhysical)
         {
-            try
-            {
-                return m_localBackend.TriggerExpectPrimCrossing(regionHandle, agentID, position, isPhysical);
-            }
-            catch (RemotingException e)
-            {
-                m_log.Error("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to adjacent region.\n" + e.ToString());
-                return false;
-            }
+            return m_localBackend.TriggerExpectPrimCrossing(regionHandle, agentID, position, isPhysical);
         }
 
         public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
         {
-            try
-            {
-                return m_localBackend.TriggerTellRegionToCloseChildConnection(regionHandle, agentID);
-            }
-            catch (RemotingException)
-            {
-                m_log.Info("[OGS1 GRID SERVICES]: Remoting Error: Unable to connect to neighbour to tell it to close a child connection");
-                return false;
-            }
+            return m_localBackend.TriggerTellRegionToCloseChildConnection(regionHandle, agentID);
         }
 
         #endregion
