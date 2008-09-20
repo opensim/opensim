@@ -645,23 +645,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// Main packet processing loop for the UDP component of the client session.  Both incoming and outgoing
+        /// packets are processed here. 
+        /// </summary>
         protected virtual void ClientLoop()
         {
-            m_log.Info("[CLIENT]: Entered main packet processing loop");
+            m_log.DebugFormat(
+                "[CLIENT]: Entered main packet processing loop for {0} {1}", FirstName, LastName);
 
             while (true)
             {
                 LLQueItem nextPacket = m_PacketHandler.PacketQueue.Dequeue();
-                if (nextPacket == null)
-                {
-                    m_log.Error("Got a NULL packet in Client Loop, bailing out of our client loop");
-                    break;
-                }
+                
                 if (nextPacket.Incoming)
                 {
                     DebugPacket("IN", nextPacket.Packet);
                     m_PacketHandler.ProcessInPacket(nextPacket);
-                }
+                }                
                 else
                 {
                     DebugPacket("OUT", nextPacket.Packet);

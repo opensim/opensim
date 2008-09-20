@@ -135,7 +135,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /* STANDARD QUEUE MANIPULATION INTERFACES */
 
-
         public void Enqueue(LLQueItem item)
         {
             if (!m_enabled)
