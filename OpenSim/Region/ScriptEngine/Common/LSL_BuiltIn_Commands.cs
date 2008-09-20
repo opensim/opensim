@@ -8252,18 +8252,32 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             // line index starts at zero
             if ((!String.IsNullOrEmpty(notecardLines[0])) &&
-                (line >= 0) &&
-                (line < notecardLines.Length))
+                (line >= 0))
             {
-                // ScriptSleep(100);
-                UUID rq = UUID.Random();
+                if (line < notecardLines.Length)
+                {
+                    // ScriptSleep(100);
+                    UUID rq = UUID.Random();
 
-                UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
-                    m_localID, m_itemID, rq.ToString());
+                    UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
+                        m_localID, m_itemID, rq.ToString());
 
-                m_ScriptEngine.m_ASYNCLSLCommandManager.
-                    m_Dataserver.DataserverReply(rq.ToString(), notecardLines[line]);
-                return tid.ToString();
+                    m_ScriptEngine.m_ASYNCLSLCommandManager.
+                        m_Dataserver.DataserverReply(rq.ToString(), notecardLines[line]);
+                    return tid.ToString();
+                }
+                else
+                {
+                    // ScriptSleep(100);
+                    UUID rq = UUID.Random();
+
+                    UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
+                        m_localID, m_itemID, rq.ToString());
+
+                    m_ScriptEngine.m_ASYNCLSLCommandManager.
+                        m_Dataserver.DataserverReply(rq.ToString(), BuiltIn_Commands_BaseClass.EOF);
+                    return tid.ToString();
+                }
             }
             else
             {
