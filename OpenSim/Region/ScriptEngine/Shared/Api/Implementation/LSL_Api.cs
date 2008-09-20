@@ -8067,6 +8067,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return tid.ToString();
                 }
             }
+            // if we got to here, we didn't find the notecard the script was asking for
+            // => complain loudly, as specified by the LSL docs
+            ShoutError("Notecard '" + name + "' could not be found.");
+
             // ScriptSleep(100);
             return UUID.Zero.ToString();
         }
@@ -8109,8 +8113,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
+            // if we got to here, we didn't find the notecard the script was asking for
+            // => complain loudly, as specified by the LSL docs
+            ShoutError("Notecard '" + name + "' could not be found.");
+
             // ScriptSleep(100);
-            return String.Empty;
+            return UUID.Zero.ToString();
         }
 
     }
@@ -8169,6 +8177,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                 case 0:
                     words = input[idx].Split(' '); // Linden text ver
+                    // Notecards are created *really* empty. Treat that as "no text" (just like after saving an empty notecard)
+                    if (words.Length < 3)
+                        return new String[0];
+
                     int version = int.Parse(words[3]);
                     if (version != 2)
                         return new String[0];
