@@ -240,11 +240,17 @@ namespace OpenSim.Region.DataSnapshot
             XmlDocument requestedSnap = new XmlDocument();
             requestedSnap.AppendChild(requestedSnap.CreateXmlDeclaration("1.0", null, null));
             requestedSnap.AppendChild(requestedSnap.CreateWhitespace("\r\n"));
+
             XmlNode regiondata = requestedSnap.CreateNode(XmlNodeType.Element, "regiondata", "");
             try
             {
                 if (regionName == null || regionName == "")
                 {
+                    XmlNode timerblock = requestedSnap.CreateNode(XmlNodeType.Element, "expire", "");
+                    timerblock.InnerText = m_period.ToString();
+                    regiondata.AppendChild(timerblock);
+
+                    regiondata.AppendChild(requestedSnap.CreateWhitespace("\r\n"));
                     foreach (Scene scene in m_scenes)
                     {
                         regiondata.AppendChild(m_snapStore.GetScene(scene, requestedSnap));
