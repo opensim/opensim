@@ -164,7 +164,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                     if (m_Fields[var.Key].FieldType == typeof(LSL_Types.list))
                     {
                         LSL_Types.list v = (LSL_Types.list)m_Fields[var.Key].GetValue(this);
-                        Object[] data = (Object[])var.Value;
+                        Object[] data = ((LSL_Types.list)var.Value).Data;
                         v.Data = new Object[data.Length];
                         Array.Copy(data, 0, v.Data, 0, data.Length);
                         m_Fields[var.Key].SetValue(this, v);
