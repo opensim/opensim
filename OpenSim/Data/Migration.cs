@@ -236,11 +236,9 @@ namespace OpenSim.Data
 
             foreach (string s in names)
             {
-                m_log.InfoFormat("[MIGRATIONS]: testing resource {0}", s);
                 Match m = _match.Match(s);
                 if (m.Success)
                 {
-                    m_log.Info("[MIGRATIONS]: Match: " + m.Groups[1].ToString());
                     int version = int.Parse(m.Groups[1].ToString());
                     if (version > after) {
                         using (Stream resource = _assem.GetManifestResourceStream(s))
