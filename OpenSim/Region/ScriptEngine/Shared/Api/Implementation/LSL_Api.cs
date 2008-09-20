@@ -4002,20 +4002,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
             }
 
-            if (src.Data[index] is Int32)
+            if (src.Data[index] is LSL_Types.LSLInteger || src.Data[index] is Int32)
                 return 1;
-            if (src.Data[index] is Double)
+            if (src.Data[index] is LSL_Types.LSLFloat || src.Data[index] is Single || src.Data[index] is Double)
                 return 2;
-            if (src.Data[index] is String)
+            if (src.Data[index] is LSL_Types.LSLString || src.Data[index] is String)
             {
                 UUID tuuid;
                 if (UUID.TryParse(src.Data[index].ToString(), out tuuid))
                 {
-                    return 3;
+                    return 4;
                 }
                 else
                 {
-                    return 4;
+                    return 3;
                 }
             }
             if (src.Data[index] is LSL_Types.Vector3)
