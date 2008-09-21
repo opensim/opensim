@@ -69,8 +69,15 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
 
         public void Close()
         {
-            if (scriptEngine != null)
-                scriptEngine.Close();
+            try
+            {
+                if (scriptEngine != null)
+                    scriptEngine.Close();
+            }
+            catch (Exception ex)
+            {
+                scriptEngine.m_log.Error("[ScriptEngine]: Unable to close engine \"" + tempScriptEngineName + "\": " + ex.ToString());
+            }
         }
 
         public string Name
