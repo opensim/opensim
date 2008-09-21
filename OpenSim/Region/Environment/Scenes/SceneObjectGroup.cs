@@ -1220,11 +1220,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         internal void SendPartTerseUpdate(IClientAPI remoteClient, SceneObjectPart part)
         {
-            if (m_rootPart.UUID == part.UUID)
+            SceneObjectPart rootPart = m_rootPart;
+            
+            // TODO: that could by caused by some race condition with attachments on sim-crossing
+            if (rootPart == null) return;
+
+            if (rootPart.UUID == part.UUID)
             {
-                if (m_rootPart.IsAttachment)
+                if (rootPart.IsAttachment)
                 {
-                    part.SendTerseUpdateToClient(remoteClient, m_rootPart.AttachedPos);
+                    part.SendTerseUpdateToClient(remoteClient, rootPart.AttachedPos);
                 }
                 else
                 {
