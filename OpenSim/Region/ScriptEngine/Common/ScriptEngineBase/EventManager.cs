@@ -194,6 +194,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
         {
+            if (script.Length > 15)
+            {
+                if (script.Substring(0, 15) == "//DotNetEngine:")
+                {
+                    script = "//" + script.Substring(15);
+                    engine = "DotNetEngine";
+                }
+            }
+
             if (engine != "DotNetEngine")
                 return;
 
