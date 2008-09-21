@@ -1373,7 +1373,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                             value = int.Parse(v, System.Globalization.NumberStyles.Integer);
                         }
                     }
-                    catch (OverflowException oe)
+                    catch (OverflowException)
                     {
                         value = -1;
                     }

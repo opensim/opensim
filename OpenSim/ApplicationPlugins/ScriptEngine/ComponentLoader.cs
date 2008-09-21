@@ -40,10 +40,10 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
     internal class ComponentLoader
     {
         internal static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private ScriptEnginePlugin scriptEnginePlugin;
+        //private ScriptEnginePlugin scriptEnginePlugin;
         public ComponentLoader(ScriptEnginePlugin sep)
         {
-            scriptEnginePlugin = sep;
+            //scriptEnginePlugin = sep;
         }
 
         /// <summary>

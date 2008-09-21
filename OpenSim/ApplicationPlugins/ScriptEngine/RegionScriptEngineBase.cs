@@ -171,7 +171,7 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
                 {
                     p.Close();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // TODO: Print error to console
                 }

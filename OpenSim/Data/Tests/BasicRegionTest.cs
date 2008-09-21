@@ -145,7 +145,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T300_NoTerrain()
         {
-            double[,] t1 = db.LoadTerrain(region1);
+            db.LoadTerrain(region1);
         }
 
         [Test]
