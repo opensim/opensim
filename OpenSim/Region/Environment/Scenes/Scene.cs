@@ -2357,7 +2357,8 @@ namespace OpenSim.Region.Environment.Scenes
                 UserProfile.HomeLookAt = lookAt;
                 CommsManager.UserService.UpdateUserProfile(UserProfile);
 
-                remoteClient.SendAgentAlertMessage("Set home to here if supported by login service",false);
+                // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
+                remoteClient.SendAgentAlertMessage("Home position set.",false);
             }
             else
             {
