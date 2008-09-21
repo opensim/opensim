@@ -436,6 +436,18 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 {
                     return (LSL_Types.LSLInteger)m_data[itemIndex];
                 }
+                else if (m_data[itemIndex] is Int32)
+                {
+                    return new LSL_Types.LSLFloat((int)m_data[itemIndex]);
+                }
+                else if (m_data[itemIndex] is float)
+                {
+                    return new LSL_Types.LSLFloat((float)m_data[itemIndex]);
+                }
+                else if (m_data[itemIndex] is Double)
+                {
+                    return new LSL_Types.LSLFloat((Double)m_data[itemIndex]);
+                }
                 else
                 {
                     return (LSL_Types.LSLFloat)m_data[itemIndex];
