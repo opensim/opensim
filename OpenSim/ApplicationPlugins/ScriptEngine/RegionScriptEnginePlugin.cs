@@ -69,7 +69,8 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
 
         public void Close()
         {
-            scriptEngine.Close();
+            if (scriptEngine != null)
+                scriptEngine.Close();
         }
 
         public string Name
