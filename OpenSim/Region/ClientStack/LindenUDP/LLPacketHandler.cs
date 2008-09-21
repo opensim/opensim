@@ -96,6 +96,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // A list of the packets we haven't acked yet
         //
         private Dictionary<uint,uint> m_PendingAcks = new Dictionary<uint,uint>();
+        
         // Dictionary of the packets that need acks from the client.
         //
         private class AckData
@@ -109,6 +110,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             public Packet Packet;
             public Object Identifier;
         }
+        
         private Dictionary<uint, AckData> m_NeedAck =
                 new Dictionary<uint, AckData>();
 

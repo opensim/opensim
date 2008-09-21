@@ -141,11 +141,11 @@ namespace OpenSim.Region.Communications.OGS1
             SendParams.Add(GridParams);
 
             // Send Request
+            XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
             XmlRpcResponse GridResp;
+            
             try
-            {
-                XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
-
+            {                
                 // The timeout should always be significantly larger than the timeout for the grid server to request
                 // the initial status of the region before confirming registration.
                 GridResp = GridReq.Send(serversInfo.GridURL, 90000);
@@ -154,7 +154,9 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 Exception e2
                     = new Exception(
-                        String.Format("Unable to connect to grid at {0}. Grid service not running?", serversInfo.GridURL),
+                        String.Format(
+                            "Unable to register region with grid at {0}. Grid service not running?", 
+                            serversInfo.GridURL),
                         e);
 
                 throw(e2);
@@ -193,6 +195,7 @@ namespace OpenSim.Region.Communications.OGS1
             return m_localBackend.RegisterRegion(regionInfo);
         }
 
+        // see IGridServices
         public bool DeregisterRegion(RegionInfo regionInfo)
         {
             Hashtable GridParams = new Hashtable();
@@ -205,7 +208,24 @@ namespace OpenSim.Region.Communications.OGS1
 
             // Send Request
             XmlRpcRequest GridReq = new XmlRpcRequest("simulator_after_region_moved", SendParams);
-            XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 10000);
+            XmlRpcResponse GridResp = null;
+            
+            try
+            {            
+                GridResp = GridReq.Send(serversInfo.GridURL, 10000);
+            }
+            catch (Exception e)
+            {
+                Exception e2
+                    = new Exception(
+                        String.Format(
+                            "Unable to deregister region with grid at {0}. Grid service not running?", 
+                            serversInfo.GridURL),
+                        e);
+
+                throw(e2);
+            }
+        
             Hashtable GridRespData = (Hashtable) GridResp.Value;
 
             // Hashtable griddatahash = GridRespData;

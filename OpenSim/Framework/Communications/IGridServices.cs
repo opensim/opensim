@@ -47,6 +47,12 @@ namespace OpenSim.Framework.Communications
         /// <exception cref="System.Exception">Thrown if region registration failed</exception>
         RegionCommsListener RegisterRegion(RegionInfo regionInfos);
 
+        /// <summary>
+        /// Deregister a region with the grid service.
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <returns></returns>
+        /// <exception cref="System.Exception">Thrown if region deregistration failed</exception>
         bool DeregisterRegion(RegionInfo regionInfo);   
 
         /// <summary>

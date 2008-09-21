@@ -135,7 +135,18 @@ namespace OpenSim.Region.Environment.Scenes
                 regionCommsHost.OnAvatarCrossingIntoRegion -= AgentCrossing;
                 regionCommsHost.OnCloseAgentConnection -= CloseConnection;
                 regionCommsHost.OnGetLandData -= FetchLandData;
-                m_commsProvider.GridService.DeregisterRegion(m_regionInfo);
+                
+                try
+                {
+                    m_commsProvider.GridService.DeregisterRegion(m_regionInfo);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[GRID]: Deregistration of region {0} from the grid failed - {1}.  Continuing", 
+                        m_regionInfo.RegionName, e);
+                }
+                
                 regionCommsHost = null;
             }
         }
