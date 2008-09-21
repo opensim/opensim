@@ -2091,6 +2091,7 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.Environment" />
