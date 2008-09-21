@@ -180,7 +180,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (SceneObjectGroup sceneObject in sceneObjects)
             {
-                 sceneObject.CreateScriptInstances(0, true);
+                 sceneObject.CreateScriptInstances(0, true, "");
             }
         }
 

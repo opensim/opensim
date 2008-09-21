@@ -67,6 +67,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private int m_SleepTime;
         private int m_SaveTime;
         private ThreadPriority m_Prio;
+        private bool m_Enabled = true;
 
 // disable warning: need to keep a reference to XEngine.EventManager
 // alive to avoid it being garbage collected
@@ -151,20 +152,25 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         //
         public void Initialise(Scene scene, IConfigSource configSource)
         {
+            m_ScriptConfig = configSource.Configs["XEngine"];
+
+            if (m_ScriptConfig == null)
+            {
+//                m_log.ErrorFormat("[XEngine] No script configuration found. Scripts disabled");
+                return;
+            }
+
+            m_Enabled = m_ScriptConfig.GetBoolean("Enabled", true);
+
+            if (!m_Enabled)
+                return;
+
             AppDomain.CurrentDomain.AssemblyResolve +=
                 OnAssemblyResolve;
 
             m_log.InfoFormat("[XEngine] Initializing scripts in region {0}",
                              scene.RegionInfo.RegionName);
             m_Scene = scene;
-
-            m_ScriptConfig = configSource.Configs["XEngine"];
-
-            if (m_ScriptConfig == null)
-            {
-                m_log.ErrorFormat("[XEngine] No script configuration found. Scripts disabled");
-                return;
-            }
 
             m_MinThreads = m_ScriptConfig.GetInt("MinThreads", 2);
             m_MaxThreads = m_ScriptConfig.GetInt("MaxThreads", 100);
@@ -220,6 +226,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void PostInitialise()
         {
+            if (!m_Enabled)
+                return;
+
             m_EventManager = new EventManager(this);
 
             m_Compiler = new Compiler(this);
@@ -330,8 +339,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return false; }
         }
 
-        public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez)
+        public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
         {
+            if (engine != "XEngine")
+                return;
+
             Object[] parms = new Object[]{localID, itemID, script, startParam, postOnRez};
 
             lock (m_CompileQueue)

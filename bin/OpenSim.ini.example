@@ -107,22 +107,8 @@ physical_prim = true
 ; ## ScriptEngine
 ; ##
 
-; These are region modules loaded into each region to provide script support
-; Scripts may be everything from LSL or C# scripts put in prims to whole game systems that controls the whole grid.
-; You can load multiple modules by separating them with a coma.
-;
-; Example:
-;script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll,OpenSim.Region.ScriptEngine.RemoteServer.dll
-;
-; This is the current ScriptEngine:
-script_engine = "OpenSim.Region.ScriptEngine.DotNetEngine.dll"
-
-; This is the new XEngine
-;script_engine = "OpenSim.Region.ScriptEngine.XEngine.dll"
-
-;Experimental remote ScriptServer plugin (does not currently work):
-;script_engine = "OpenSim.Region.ScriptEngine.RemoteServer.dll"
-
+DefaultScriptEngine = "DotNetEngine"
+;DefaultScriptEngine = "XEngine"
 
 [StandAlone]
 accounts_authenticate = true
@@ -447,6 +433,7 @@ asterisk_salt = paluempalum
 
 
 [ScriptEngine.DotNetEngine]
+Enabled = true
 ;
 ; These settings are specific to DotNetEngine script engine
 ; Other script engines based on OpenSim.Region.ScriptEngine.Common.dll will have almost identical settings, but in another section of this config file.
@@ -651,8 +638,8 @@ AutoSavePeriod = 15 ; Number of minutes between autosave backups
 
 
 [XEngine]
-; Use the newer LSL to CS compiler (under test)
-UseNewCompiler = true
+; Enable this engine in this OpenSim instance
+Enabled = true
 ; How many threads to keep alive even if nothing is happening
 MinThreads = 2
 ; How many threads to start at maximum load

@@ -95,7 +95,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnPermissionErrorDelegate OnPermissionError;
 
-        public delegate void NewRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez);
+        public delegate void NewRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine);
 
         public event NewRezScript OnRezScript;
 
@@ -519,12 +519,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez)
+        public void TriggerRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
         {
             handlerRezScript = OnRezScript;
             if (handlerRezScript != null)
             {
-                handlerRezScript(localID, itemID, script, startParam, postOnRez);
+                handlerRezScript(localID, itemID, script, startParam,
+                        postOnRez, engine);
             }
         }
 

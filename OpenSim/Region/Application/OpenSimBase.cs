@@ -78,7 +78,6 @@ namespace OpenSim
 
         public string m_physicsEngine;
         public string m_meshEngineName;
-        public string m_scriptEngine;
         public bool m_sandbox;
         public bool user_accounts;
         public bool m_gridLocalAsset;
@@ -222,6 +221,8 @@ namespace OpenSim
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
                 config.Set("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
+                config.Set("DefaultScriptEngine", "DotNetEngine");
+
                 config.Set("asset_database", "sqlite");
                 config.Set("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
@@ -321,7 +322,6 @@ namespace OpenSim
                     = startupConfig.GetString("storage_connection_string", "URI=file:OpenSim.db,version=3");
                 m_estateConnectionString
                     = startupConfig.GetString("estate_connection_string", m_storageConnectionString);
-                m_scriptEngine = startupConfig.GetString("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
                 m_assetStorage = startupConfig.GetString("asset_database", "local");
                 m_clientstackDll = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
@@ -521,31 +521,6 @@ namespace OpenSim
             // This needs to be ahead of the script engine load, so the
             // script module can pick up events exposed by a module
             m_moduleLoader.InitialiseSharedModules(scene);
-
-            //m_moduleLoader.PickupModules(scene, "ScriptEngines");
-            //m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);
-
-            if (string.IsNullOrEmpty(m_scriptEngine))
-            {
-                m_log.Info("[MODULES]: No script engine module specified");
-            }
-            else
-            {
-                m_log.Info("[MODULES]: Loading scripting engine modules");
-                foreach (string module in m_scriptEngine.Split(','))
-                {
-                    string mod = module.Trim(" \t".ToCharArray()); // Clean up name
-                    m_log.Info("[MODULES]: Loading scripting engine: " + mod);
-                    try
-                    {
-                        modules.AddRange(m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", mod), scene));
-                    }
-                    catch (Exception ex)
-                    {
-                        m_log.Error("[MODULES]: Failed to load script engine: " + ex.ToString());
-                    }
-                }
-            }
 
             scene.SetModuleInterfaces();
             

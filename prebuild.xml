@@ -1847,12 +1847,12 @@
     <Project name="OpenSim.Region.ScriptEngine.XEngine" path="OpenSim/Region/ScriptEngine/XEngine" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
@@ -2424,17 +2424,17 @@
     <Project name="OpenSim.Region.ScriptEngine.DotNetEngine" path="OpenSim/Region/ScriptEngine/DotNetEngine" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath>
+      <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>

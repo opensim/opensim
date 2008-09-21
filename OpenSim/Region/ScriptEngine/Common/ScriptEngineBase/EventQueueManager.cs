@@ -353,6 +353,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="param">Array of parameters to match event mask</param>
         public void AddToScriptQueue(uint localID, UUID itemID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
         {
+            List<UUID> keylist = new List<UUID>(m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID));
+
+            if (!keylist.Contains(itemID)) // We don't manage that script
+                return;
+
             lock (eventQueue)
             {
                 if (eventQueue.Count >= EventExecutionMaxQueueSize)

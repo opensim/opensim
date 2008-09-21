@@ -65,31 +65,36 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine = _ScriptEngine;
             ReadConfig();
 
-            // Hook up to events from OpenSim
-            // We may not want to do it because someone is controlling us and will deliver events to us
             if (performHookUp)
             {
-                myScriptEngine.Log.Info("[" + myScriptEngine.ScriptEngineName + "]: Hooking up to server events");
-                myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
-                myScriptEngine.World.EventManager.OnObjectDeGrab += touch_end;
                 myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
-                myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
-                myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
-                myScriptEngine.World.EventManager.OnScriptAtTargetEvent += at_target;
-                myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
-                myScriptEngine.World.EventManager.OnScriptControlEvent += control;
-                myScriptEngine.World.EventManager.OnScriptColliderStart += collision_start;
-                myScriptEngine.World.EventManager.OnScriptColliding += collision;
-                myScriptEngine.World.EventManager.OnScriptCollidingEnd += collision_end;
-
-                // TODO: HOOK ALL EVENTS UP TO SERVER!
-                IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
-                if (money != null)
-                {
-                    money.OnObjectPaid+=HandleObjectPaid;
-                }
-
             }
+        }
+        
+        public void HookUpEvents()
+        {
+            // Hook up to events from OpenSim
+            // We may not want to do it because someone is controlling us and will deliver events to us
+
+            myScriptEngine.Log.Info("[" + myScriptEngine.ScriptEngineName + "]: Hooking up to server events");
+            myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
+            myScriptEngine.World.EventManager.OnObjectDeGrab += touch_end;
+            myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
+            myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
+            myScriptEngine.World.EventManager.OnScriptAtTargetEvent += at_target;
+            myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
+            myScriptEngine.World.EventManager.OnScriptControlEvent += control;
+            myScriptEngine.World.EventManager.OnScriptColliderStart += collision_start;
+            myScriptEngine.World.EventManager.OnScriptColliding += collision;
+            myScriptEngine.World.EventManager.OnScriptCollidingEnd += collision_end;
+
+            // TODO: HOOK ALL EVENTS UP TO SERVER!
+            IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
+            if (money != null)
+            {
+                money.OnObjectPaid+=HandleObjectPaid;
+            }
+
         }
 
         public void ReadConfig()
@@ -187,8 +192,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_end", detstruct, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
-        public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez)
+        public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
         {
+            if (engine != "DotNetEngine")
+                return;
+
             myScriptEngine.Log.Debug("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +
                               script.Length);
             myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script, startParam, postOnRez);

@@ -166,6 +166,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private bool m_physics_enabled = true;
         private bool m_scripts_enabled = true;
+        private string m_defaultScriptEngine;
 
         #endregion
 
@@ -197,6 +198,11 @@ namespace OpenSim.Region.Environment.Scenes
         public int TimePhase
         {
             get { return m_timePhase; }
+        }
+
+        public string DefaultScriptEngine
+        {
+            get { return m_defaultScriptEngine; }
         }
 
         // Local reference to the objects in the scene (which are held in innerScene)
@@ -314,6 +320,8 @@ namespace OpenSim.Region.Environment.Scenes
                 IConfig startupConfig = m_config.Configs["Startup"];
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", 65536.0f);
                 m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
+
+                m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "DotNetEngine");
             }
             catch (Exception)
             {
@@ -574,7 +582,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             if (ent is SceneObjectGroup)
                             {
-                                ((SceneObjectGroup)ent).CreateScriptInstances(0, false);
+                                ((SceneObjectGroup)ent).CreateScriptInstances(0, false, "");
                             }
                         }
                     }

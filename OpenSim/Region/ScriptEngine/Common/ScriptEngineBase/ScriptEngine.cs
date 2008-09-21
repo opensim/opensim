@@ -56,6 +56,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public IConfigSource ConfigSource;
         public IConfig ScriptConfigSource;
         public abstract string ScriptEngineName { get; }
+        private bool m_enabled = true;
+        private bool m_hookUpToServer = false;
 
         /// <summary>
         /// How many seconds between re-reading config-file. 0 = never. ScriptEngine will try to adjust to new config changes.
@@ -91,6 +93,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             World = Sceneworld;
             ConfigSource = config;
+            m_hookUpToServer = HookUpToServer;
+
             m_log.Info("[" + ScriptEngineName + "]: ScriptEngine initializing");
 
             // Make sure we have config
@@ -98,13 +102,16 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 ConfigSource.AddConfig(ScriptEngineName);
             ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
 
+            m_enabled = ScriptConfigSource.GetBoolean("Enabled", true);
+            if (!m_enabled)
+                return;
+
             //m_log.Info("[" + ScriptEngineName + "]: InitializeEngine");
 
             // Create all objects we'll be using
             m_EventQueueManager = new EventQueueManager(this);
             m_EventManager = new EventManager(this, HookUpToServer);
             // We need to start it
-            newScriptManager.Start();
             m_ScriptManager = newScriptManager;
             m_AppDomainManager = new AppDomainManager(this);
             m_ASYNCLSLCommandManager = new AsyncCommandManager(this);
@@ -116,6 +123,17 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             // Should we iterate the region for scripts that needs starting?
             // Or can we assume we are loaded before anything else so we can use proper events?
+        }
+
+        public void PostInitialise()
+        {
+            if (!m_enabled)
+                return;
+
+            if (m_hookUpToServer)
+                m_EventManager.HookUpEvents();
+
+            m_ScriptManager.Start();
         }
 
         public void Shutdown()
@@ -154,10 +172,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         #region IRegionModule
 
         public abstract void Initialise(Scene scene, IConfigSource config);
-
-        public void PostInitialise()
-        {
-        }
 
         public void Close()
         {

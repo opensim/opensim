@@ -69,7 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (group is SceneObjectGroup)
                 {
-                    ((SceneObjectGroup) group).CreateScriptInstances(0, false);
+                    ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine);
                 }
             }
         }
@@ -269,7 +269,9 @@ namespace OpenSim.Region.Environment.Scenes
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
             if (isScriptRunning)
             {
-                part.CreateScriptInstance(item.ItemID, 0, false);
+                // Needs to determine which engine was running it and use that
+                //
+                part.CreateScriptInstance(item.ItemID, 0, false, DefaultScriptEngine);
             }
         }
 
@@ -1289,7 +1291,7 @@ System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.T
 
                             part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
                             // TODO: set this to "true" when scripts in inventory have persistent state to fire on_rez
-                            part.CreateScriptInstance(copyID, 0, false);
+                            part.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine);
 
                             //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
                             //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
@@ -1353,7 +1355,7 @@ System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.T
                 part.AddInventoryItem(taskItem);
                 part.GetProperties(remoteClient);
 
-                part.CreateScriptInstance(taskItem, 0, false);
+                part.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine);
             }
         }
 
@@ -1449,7 +1451,7 @@ System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.T
 
             if (running > 0)
             {
-                destPart.CreateScriptInstance(destTaskItem, 0, false);
+                destPart.CreateScriptInstance(destTaskItem, 0, false, DefaultScriptEngine);
             }
 
             ScenePresence avatar;
@@ -2037,7 +2039,7 @@ System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.T
                             }
 
                             // TODO: make this true to fire on_rez when scripts have state while in inventory
-                            group.CreateScriptInstances(0, false);
+                            group.CreateScriptInstances(0, false, DefaultScriptEngine);
 
                             if (!attachment)
                                 rootPart.ScheduleFullUpdate();
@@ -2141,7 +2143,7 @@ System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.T
                     group.UpdateGroupRotation(rot);
                     //group.ApplyPhysics(m_physicalPrim);
                     group.Velocity = vel;
-                    group.CreateScriptInstances(param, true);
+                    group.CreateScriptInstances(param, true, DefaultScriptEngine);
                     rootPart.ScheduleFullUpdate();
 
                     if (!ExternalChecks.ExternalChecksBypassPermissions())

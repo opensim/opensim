@@ -82,7 +82,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
         // private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
-        private bool m_UseCompiler = true;
 
         public IScriptEngine m_scriptEngine;
         public Compiler(IScriptEngine scriptEngine)
@@ -93,8 +92,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         public bool in_startup = true;
         public void ReadConfig()
         {
-            m_UseCompiler = m_scriptEngine.Config.GetBoolean("UseNewCompiler", true);
-
             // Get some config
             WriteScriptSourceToDebugFile = m_scriptEngine.Config.GetBoolean("WriteScriptSourceToDebugFile", true);
             CompileWithDebugInformation = m_scriptEngine.Config.GetBoolean("CompileWithDebugInformation", true);
@@ -327,14 +324,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             {
                 // Its LSL, convert it to C#
                 //compileScript = LSL_Converter.Convert(Script);
-                if (m_UseCompiler)
-                    LSL_Converter = (ICodeConverter)new CSCodeGenerator();
-                else
-                    LSL_Converter = (ICodeConverter)new LSL2CSConverter();
+                LSL_Converter = (ICodeConverter)new CSCodeGenerator();
                 compileScript = LSL_Converter.Convert(Script);
 
-                if (m_UseCompiler)
-                    m_positionMap = ((CSCodeGenerator) LSL_Converter).PositionMap;
+                m_positionMap = ((CSCodeGenerator) LSL_Converter).PositionMap;
 
                 l = enumCompileType.cs;
             }
@@ -549,31 +542,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                         severity = "Warning";
                     }
 
-                    if (m_UseCompiler)
+                    KeyValuePair<int, int> lslPos;
+
+                    try
                     {
-                        KeyValuePair<int, int> lslPos;
-
-                        try
-                        {
-                            lslPos = m_positionMap[new KeyValuePair<int, int>(CompErr.Line, CompErr.Column)];
-                        }
-                        catch (KeyNotFoundException)  // we don't have this line/column mapped
-                        {
-                            m_scriptEngine.Log.Debug(String.Format("[Compiler]: Lookup of C# line {0}, column {1} failed.", CompErr.Line, CompErr.Column));
-                            lslPos = new KeyValuePair<int, int>(-CompErr.Line, -CompErr.Column);
-                        }
-
-                        // The Second Life viewer's script editor begins
-                        // countingn lines and columns at 0, so we subtract 1.
-                        errtext += String.Format("Line {0}, column {1}, {4} Number: {2}, '{3}'\r\n", lslPos.Key - 1, lslPos.Value - 1, CompErr.ErrorNumber, CompErr.ErrorText, severity);
-
+                        lslPos = m_positionMap[new KeyValuePair<int, int>(CompErr.Line, CompErr.Column)];
                     }
-                    else
+                    catch (KeyNotFoundException)  // we don't have this line/column mapped
                     {
-                        errtext += "Line number " + (CompErr.Line - LinesToRemoveOnError) +
-                            ", " + severity + " Number: " + CompErr.ErrorNumber +
-                            ", '" + CompErr.ErrorText + "'\r\n";
+                        m_scriptEngine.Log.Debug(String.Format("[Compiler]: Lookup of C# line {0}, column {1} failed.", CompErr.Line, CompErr.Column));
+                        lslPos = new KeyValuePair<int, int>(-CompErr.Line, -CompErr.Column);
                     }
+
+                    // The Second Life viewer's script editor begins
+                    // countingn lines and columns at 0, so we subtract 1.
+                    errtext += String.Format("Line {0}, column {1}, {4} Number: {2}, '{3}'\r\n", lslPos.Key - 1, lslPos.Value - 1, CompErr.ErrorNumber, CompErr.ErrorText, severity);
                 }
                 
                 Console.WriteLine("[COMPILER MESSAGES]: " + errtext);

@@ -64,6 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private static bool PrivateThread;
         private int LoadUnloadMaxQueueSize;
         private Object scriptLock = new Object();
+        private bool m_started = false;
 
         // Load/Unload structure
         private struct LUStruct
@@ -119,6 +120,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public abstract void Initialize();
         public void Start()
         {
+            m_started = true;
+
             ReadConfig();
             Initialize();
 
@@ -213,6 +216,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void DoScriptLoadUnload()
         {
+            if (!m_started)
+                return;
+
             lock (LUQueue)
             {
                 if (LUQueue.Count > 0)
@@ -258,7 +264,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             lock (LUQueue)
             {
-                if (LUQueue.Count >= LoadUnloadMaxQueueSize)
+                if ((LUQueue.Count >= LoadUnloadMaxQueueSize) && m_started)
                 {
                     m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: ERROR: Load/unload queue item count is at " + LUQueue.Count + ". Config variable \"LoadUnloadMaxQueueSize\" is set to " + LoadUnloadMaxQueueSize + ", so ignoring new script.");
                     return;
