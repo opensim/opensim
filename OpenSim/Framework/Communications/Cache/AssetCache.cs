@@ -253,7 +253,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
                 
-                NewAssetRequest req = new NewAssetRequest(assetId, callback);
+                NewAssetRequest req = new NewAssetRequest(callback);
                 AssetRequestsList requestList;
 
                 lock (RequestLists)
@@ -267,7 +267,7 @@ namespace OpenSim.Framework.Communications.Cache
                     else
                     {
                         // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
-                        requestList = new AssetRequestsList(assetId);
+                        requestList = new AssetRequestsList();
                         requestList.TimeRequested = DateTime.Now;
                         requestList.Requests.Add(req);           
                         
@@ -675,30 +675,31 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// A list of requests for a particular asset.
+        /// </summary>
         public class AssetRequestsList
         {
-            public UUID AssetID;
+            /// <summary>
+            /// A list of requests for assets
+            /// </summary>
             public List<NewAssetRequest> Requests = new List<NewAssetRequest>();
             
             /// <summary>
             /// Record the time that this request was first made.
             /// </summary>
             public DateTime TimeRequested;
-
-            public AssetRequestsList(UUID assetID)
-            {
-                AssetID = assetID;
-            }
         }
 
+        /// <summary>
+        /// Represent a request for an asset that has yet to be fulfilled.
+        /// </summary>
         public class NewAssetRequest
         {
-            public UUID AssetID;
             public AssetRequestCallback Callback;
 
-            public NewAssetRequest(UUID assetID, AssetRequestCallback callback)
+            public NewAssetRequest(AssetRequestCallback callback)
             {
-                AssetID = assetID;
                 Callback = callback;
             }
         }
