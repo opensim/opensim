@@ -254,10 +254,10 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)item.Type, data);
+            AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data);
             AssetCache.AddAsset(asset);
 
-            if (isScriptRunning && item.Type == 10)
+            if (isScriptRunning)
             {
                 part.RemoveScriptInstance(item.ItemID);
             }
@@ -267,7 +267,7 @@ namespace OpenSim.Region.Environment.Scenes
             part.GetProperties(remoteClient);
 
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
-            if (isScriptRunning && item.Type == 10)
+            if (isScriptRunning)
             {
                 part.CreateScriptInstance(item.ItemID, 0, false);
             }
@@ -1235,6 +1235,7 @@ namespace OpenSim.Region.Environment.Scenes
                 else // Updating existing item with new perms etc
                 {
                     TaskInventoryItem prevItem = part.GetInventoryItem(itemID);
+System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.ToString(), itemInfo.AssetID.ToString());
                     itemInfo.AssetID = prevItem.AssetID;
                     if (part.UpdateInventoryItem(itemInfo))
                         part.GetProperties(remoteClient);
