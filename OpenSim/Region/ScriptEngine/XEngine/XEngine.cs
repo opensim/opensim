@@ -60,6 +60,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private Scene m_Scene;
         private IConfig m_ScriptConfig;
         private Compiler m_Compiler;
+        private int m_MinThreads;
+        private int m_MaxThreads ;
+        private int m_IdleTimeout;
+        private int m_StackSize;
+        private int m_SleepTime;
+        private int m_SaveTime;
+        private ThreadPriority m_Prio;
 
 // disable warning: need to keep a reference to XEngine.EventManager
 // alive to avoid it being garbage collected
@@ -159,34 +166,35 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return;
             }
 
-            int minThreads = m_ScriptConfig.GetInt("MinThreads", 2);
-            int maxThreads = m_ScriptConfig.GetInt("MaxThreads", 100);
-            int idleTimeout = m_ScriptConfig.GetInt("IdleTimeout", 60);
+            m_MinThreads = m_ScriptConfig.GetInt("MinThreads", 2);
+            m_MaxThreads = m_ScriptConfig.GetInt("MaxThreads", 100);
+            m_IdleTimeout = m_ScriptConfig.GetInt("IdleTimeout", 60);
             string priority = m_ScriptConfig.GetString("Priority", "BelowNormal");
-            int maxScriptQueue = m_ScriptConfig.GetInt("MaxScriptEventQueue",300);
-            int stackSize = m_ScriptConfig.GetInt("ThreadStackSize", 262144);
-            int sleepTime = m_ScriptConfig.GetInt("MaintenanceInterval", 10) * 1000;
+            m_MaxScriptQueue = m_ScriptConfig.GetInt("MaxScriptEventQueue",300);
+            m_StackSize = m_ScriptConfig.GetInt("ThreadStackSize", 262144);
+            m_SleepTime = m_ScriptConfig.GetInt("MaintenanceInterval", 10) * 1000;
+
             m_EventLimit = m_ScriptConfig.GetInt("EventLimit", 30);
             m_KillTimedOutScripts = m_ScriptConfig.GetBoolean("KillTimedOutScripts", false);
-            int saveTime = m_ScriptConfig.GetInt("SaveInterval", 120) * 1000;
+            m_SaveTime = m_ScriptConfig.GetInt("SaveInterval", 120) * 1000;
 
-            ThreadPriority prio = ThreadPriority.BelowNormal;
+            m_Prio = ThreadPriority.BelowNormal;
             switch (priority)
             {
                 case "Lowest":
-                    prio = ThreadPriority.Lowest;
+                    m_Prio = ThreadPriority.Lowest;
                     break;
                 case "BelowNormal":
-                    prio = ThreadPriority.BelowNormal;
+                    m_Prio = ThreadPriority.BelowNormal;
                     break;
                 case "Normal":
-                    prio = ThreadPriority.Normal;
+                    m_Prio = ThreadPriority.Normal;
                     break;
                 case "AboveNormal":
-                    prio = ThreadPriority.AboveNormal;
+                    m_Prio = ThreadPriority.AboveNormal;
                     break;
                 case "Highest":
-                    prio = ThreadPriority.Highest;
+                    m_Prio = ThreadPriority.Highest;
                     break;
                 default:
                     m_log.ErrorFormat("[XEngine] Invalid thread priority: '{0}'. Assuming BelowNormal", priority);
@@ -198,14 +206,24 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_ScriptEngines.Add(this);
             }
 
-            m_EventManager = new EventManager(this);
+            scene.RegisterModuleInterface<IScriptModule>(this);
 
-            StartEngine(minThreads, maxThreads, idleTimeout, prio,
-                        maxScriptQueue, stackSize);
+            // Needs to be here so we can queue the scripts that need starting
+            //
+            m_Scene.EventManager.OnRezScript += OnRezScript;
+
+            // Complete basic setup of the thread pool
+            //
+            SetupEngine(m_MinThreads, m_MaxThreads, m_IdleTimeout, m_Prio,
+                        m_MaxScriptQueue, m_StackSize);
+        }
+
+        public void PostInitialise()
+        {
+            m_EventManager = new EventManager(this);
 
             m_Compiler = new Compiler(this);
 
-            m_Scene.EventManager.OnRezScript += OnRezScript;
             m_Scene.EventManager.OnRemoveScript += OnRemoveScript;
             m_Scene.EventManager.OnScriptReset += OnScriptReset;
             m_Scene.EventManager.OnStartScript += OnStartScript;
@@ -214,23 +232,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             m_AsyncCommands = new AsyncCommandManager(this);
 
-            if (sleepTime > 0)
+            if (m_SleepTime > 0)
             {
                 m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoMaintenance),
-                                           new Object[]{ sleepTime });
+                                           new Object[]{ m_SleepTime });
             }
 
-            if (saveTime > 0)
+            if (m_SaveTime > 0)
             {
                 m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup),
-                                           new Object[] { saveTime });
+                                           new Object[] { m_SaveTime });
             }
 
-            scene.RegisterModuleInterface<IScriptModule>(this);
-        }
-
-        public void PostInitialise()
-        {
             m_ThreadPool.Start();
         }
 
@@ -641,7 +654,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         //
         // Start processing
         //
-        private void StartEngine(int minThreads, int maxThreads,
+        private void SetupEngine(int minThreads, int maxThreads,
                                  int idleTimeout, ThreadPriority threadPriority,
                                  int maxScriptQueue, int stackSize)
         {
