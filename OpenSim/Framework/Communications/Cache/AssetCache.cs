@@ -68,7 +68,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Assets requests which are waiting for asset server data.  This includes texture requests
         /// </summary>
-         private Dictionary<UUID, AssetRequest> RequestedAssets;
+        private Dictionary<UUID, AssetRequest> RequestedAssets;
 
         /// <summary>
         /// Asset requests with data which are ready to be sent back to requesters.  This includes textures.
@@ -80,9 +80,10 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         private Dictionary<UUID, AssetRequestsList> RequestLists;
 
+        /// <summary>
+        /// The 'server' from which assets can be requested and to which assets are persisted. 
+        /// </summary>
         private readonly IAssetServer m_assetServer;
-
-        private readonly Thread m_assetCacheThread;
 
         /// <summary>
         /// Report statistical data.
@@ -175,11 +176,11 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetServer = assetServer;
             m_assetServer.SetReceiver(this);
 
-            m_assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
-            m_assetCacheThread.Name = "AssetCacheThread";
-            m_assetCacheThread.IsBackground = true;
-            m_assetCacheThread.Start();
-            ThreadTracker.Add(m_assetCacheThread);
+            Thread assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
+            assetCacheThread.Name = "AssetCacheThread";
+            assetCacheThread.IsBackground = true;
+            assetCacheThread.Start();
+            ThreadTracker.Add(assetCacheThread);
         }
 
         /// <summary>
@@ -252,7 +253,6 @@ namespace OpenSim.Framework.Communications.Cache
         {
             //m_log.DebugFormat("[ASSET CACHE]: Requesting {0} {1}", isTexture ? "texture" : "asset", assetId);
 
-
             // Xantor 20080526:
             // if a request is made for an asset which is not in the cache yet, but has already been requested by
             // something else, queue up the callbacks on that requestor instead of swamping the assetserver
@@ -266,9 +266,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
             else
             {
-#if DEBUG
                 // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
-#endif
 
                 NewAssetRequest req = new NewAssetRequest(assetId, callback);
                 AssetRequestsList requestList;
@@ -389,7 +387,6 @@ namespace OpenSim.Framework.Communications.Cache
         /// real solution here is a much better cache archicture, but
         /// this is a stop gap measure until we have such a thing.
         /// </summary>
-
         public void ExpireAsset(UUID uuid)
         {
             // uuid is unique, so no need to worry about it showing up
