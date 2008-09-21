@@ -252,7 +252,7 @@ namespace OpenSim.Framework.Communications.Cache
             else
             {
                 // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
-
+                
                 NewAssetRequest req = new NewAssetRequest(assetId, callback);
                 AssetRequestsList requestList;
 
@@ -268,8 +268,11 @@ namespace OpenSim.Framework.Communications.Cache
                     {
                         // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
                         requestList = new AssetRequestsList(assetId);
-                        RequestLists.Add(assetId, requestList);
-                        requestList.Requests.Add(req);
+                        requestList.TimeRequested = DateTime.Now;
+                        requestList.Requests.Add(req);           
+                        
+                        RequestLists.Add(assetId, requestList);                        
+                        
                         m_assetServer.RequestAsset(assetId, isTexture);
                     }
                 }
@@ -446,6 +449,9 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (reqList != null)
             {
+                if (StatsManager.SimExtraStats != null)
+                    StatsManager.SimExtraStats.AddAssetRequestTimeAfterCacheMiss(DateTime.Now - reqList.TimeRequested);
+                
                 foreach (NewAssetRequest req in reqList.Requests)
                 {
                     // Xantor 20080526 are we really calling all the callbacks if multiple queued for 1 request? -- Yes, checked
@@ -479,6 +485,9 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (reqList != null)
             {
+                if (StatsManager.SimExtraStats != null)
+                    StatsManager.SimExtraStats.AddAssetRequestTimeAfterCacheMiss(DateTime.Now - reqList.TimeRequested);
+                
                 foreach (NewAssetRequest req in reqList.Requests)
                 {
                     req.Callback(assetID, null);
@@ -670,6 +679,11 @@ namespace OpenSim.Framework.Communications.Cache
         {
             public UUID AssetID;
             public List<NewAssetRequest> Requests = new List<NewAssetRequest>();
+            
+            /// <summary>
+            /// Record the time that this request was first made.
+            /// </summary>
+            public DateTime TimeRequested;
 
             public AssetRequestsList(UUID assetID)
             {

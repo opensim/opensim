@@ -45,6 +45,7 @@ namespace OpenSim.Framework.Statistics
         private long texturesInCache;
         private long assetCacheMemoryUsage;
         private long textureCacheMemoryUsage;
+        private TimeSpan assetRequestTimeAfterCacheMiss;
         private long blockedMissingTextureRequests;
 
         private long assetServiceRequestFailures;
@@ -86,6 +87,11 @@ namespace OpenSim.Framework.Statistics
         public long TexturesInCache { get { return texturesInCache; } }
         public long AssetCacheMemoryUsage { get { return assetCacheMemoryUsage; } }
         public long TextureCacheMemoryUsage { get { return textureCacheMemoryUsage; } }
+        
+        /// <summary>
+        /// This is the time it took for the last asset request made in response to a cache miss.
+        /// </summary>
+        public TimeSpan AssetRequestTimeAfterCacheMiss { get { return assetRequestTimeAfterCacheMiss; } }
 
         /// <summary>
         /// Number of persistent requests for missing textures we have started blocking from clients.  To some extent
@@ -148,7 +154,7 @@ namespace OpenSim.Framework.Statistics
         }
 
         /// <summary>
-        /// Signal that the asset cache can be cleared.
+        /// Signal that the asset cache has been cleared.
         /// </summary>
         public void ClearAssetCacheStatistics()
         {
@@ -156,6 +162,11 @@ namespace OpenSim.Framework.Statistics
             assetCacheMemoryUsage = 0;
             texturesInCache = 0;
             textureCacheMemoryUsage = 0;
+        }
+        
+        public void AddAssetRequestTimeAfterCacheMiss(TimeSpan ts)
+        {
+            assetRequestTimeAfterCacheMiss = ts;
         }
 
         public void AddBlockedMissingTextureRequest()
@@ -245,10 +256,12 @@ namespace OpenSim.Framework.Statistics
                 string.Format(
 @"Asset cache contains   {0,6} non-texture assets using {1,10} K
 Texture cache contains {2,6} texture     assets using {3,10} K
-Blocked client requests for missing textures: {4}
-Asset service request failures: {5}"+ Environment.NewLine,
+Latest asset request time after cache miss: {4}s
+Blocked client requests for missing textures: {5}
+Asset service request failures: {6}"+ Environment.NewLine,
                     AssetsInCache, Math.Round(AssetCacheMemoryUsage / 1024.0),
                     TexturesInCache, Math.Round(TextureCacheMemoryUsage / 1024.0),
+                    assetRequestTimeAfterCacheMiss.Milliseconds / 1000.0,
                     BlockedMissingTextureRequests,
                     AssetServiceRequestFailures));
 
