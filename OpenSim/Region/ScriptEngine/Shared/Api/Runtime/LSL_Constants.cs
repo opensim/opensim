@@ -474,5 +474,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CAMERA_FOCUS_Z = 20;
         public const int CAMERA_POSITION_LOCKED = 21;
         public const int CAMERA_FOCUS_LOCKED = 22;
+
+        // constants for llGetParcelDetails
+        public const int PARCEL_DETAILS_NAME = 0;
+        public const int PARCEL_DETAILS_DESC = 1;
+        public const int PARCEL_DETAILS_OWNER = 2;
+        public const int PARCEL_DETAILS_GROUP = 3;
+        public const int PARCEL_DETAILS_AREA = 4;
     }
 }
