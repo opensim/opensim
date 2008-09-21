@@ -1353,16 +1353,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static explicit operator LSLInteger(LSLString s)
             {
-                Regex r = new Regex("^[ ]*-?[0-9][0-9xX]?[0-9a-fA-F]*");
-                Match m = r.Match(s);
-                string v = m.Groups[0].Value;
-
-                if (v == String.Empty)
-                    v = "0";
-
-                if (v.Contains("x") || v.Contains("X"))
-                    return new LSLInteger(int.Parse(v.Substring(2), System.Globalization.NumberStyles.HexNumber));
-                return new LSLInteger(int.Parse(v, System.Globalization.NumberStyles.Integer));
+                return new LSLInteger(s.m_string);
             }
 
             public static explicit operator LSLString(double d)
@@ -1445,7 +1436,30 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLInteger(string s)
             {
-                value = (int)double.Parse(s);
+                Regex r = new Regex("^[ ]*-?[0-9][0-9xX]?[0-9a-fA-F]*");
+                Match m = r.Match(s);
+                string v = m.Groups[0].Value;
+
+                if (v == String.Empty)
+                {
+                    value = 0;
+                }
+                else
+                {
+                    try
+                    {
+                        if (v.Contains("x") || v.Contains("X"))
+                            value = int.Parse(v.Substring(2),
+                                   System.Globalization.NumberStyles.HexNumber);
+                        else
+                            value = int.Parse(v,
+                                   System.Globalization.NumberStyles.Integer);
+                    }
+                    catch (OverflowException oe)
+                    {
+                        value = -1;
+                    }
+                }
             }
 
             #endregion
@@ -1486,16 +1500,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public explicit operator LSLInteger(string s)
             {
-                Regex r = new Regex("^[ ]*-?[0-9][0-9xX]?[0-9a-fA-F]*");
-                Match m = r.Match(s);
-                string v = m.Groups[0].Value;
-
-                if (v == String.Empty)
-                    v = "0";
-
-                if (v.Contains("x") || v.Contains("X"))
-                    return new LSLInteger(int.Parse(v.Substring(2), System.Globalization.NumberStyles.HexNumber));
-                return new LSLInteger(int.Parse(v, System.Globalization.NumberStyles.Integer));
+                return new LSLInteger(s);
             }
 
             static public implicit operator LSLInteger(uint u)

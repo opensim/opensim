@@ -1269,8 +1269,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public static explicit operator LSLInteger(LSLString s)
             {
-                // double.Parse() used because s could be "123.9" for example.
-                return new LSLInteger(double.Parse(s.m_string));
+                return new LSLInteger(s.m_string);
             }
 
             public static explicit operator LSLString(double d)
@@ -1353,7 +1352,32 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public LSLInteger(string s)
             {
-                value = (int)double.Parse(s);
+                Regex r = new Regex("^[ ]*-?[0-9][0-9xX]?[0-9a-fA-F]*");
+                Match m = r.Match(s);
+                string v = m.Groups[0].Value;
+
+                if (v == String.Empty)
+                {
+                    value = 0;
+                }
+                else
+                {
+                    try
+                    {
+                        if (v.Contains("x") || v.Contains("X"))
+                        {
+                            value = int.Parse(v.Substring(2), System.Globalization.NumberStyles.HexNumber);
+                        }
+                        else
+                        {
+                            value = int.Parse(v, System.Globalization.NumberStyles.Integer);
+                        }
+                    }
+                    catch (OverflowException oe)
+                    {
+                        value = -1;
+                    }
+                }
             }
 
             #endregion
@@ -1394,8 +1418,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             static public explicit operator LSLInteger(string s)
             {
-                // double.Parse() used because s could be "123.9" for example.
-                return new LSLInteger(double.Parse(s));
+                return new LSLInteger(s);
             }
 
             static public implicit operator LSLInteger(uint u)

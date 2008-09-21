@@ -62,6 +62,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_stringIntSet.Add("123.9", 123);
             m_stringIntSet.Add("999999999", 999999999);
             m_stringIntSet.Add("-99999999", -99999999);
+            m_stringIntSet.Add("", 0);
+            m_stringIntSet.Add("aa", 0);
+            m_stringIntSet.Add("42", 42);
+            m_stringIntSet.Add("42 is the answer", 42);
+            m_stringIntSet.Add(" 42", 42);
+            m_stringIntSet.Add("42,123,456", 42);
+            m_stringIntSet.Add("0xff", 255);
+            m_stringIntSet.Add("12345678900000", -1);
         }
 
         /// <summary>
