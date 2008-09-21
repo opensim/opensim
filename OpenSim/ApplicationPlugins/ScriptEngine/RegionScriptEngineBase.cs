@@ -72,21 +72,25 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
             foreach (string c in ComponentList)
             {
                 m_log.Info("[" + Name + "]: Loading: " + c);
-                try
+                lock (Components)
                 {
-                    if (ComponentRegistry.providers.ContainsKey(c))
-                        Components.Add(Activator.CreateInstance(ComponentRegistry.providers[c]) as ComponentBase);
-                    else
-                        m_log.Error("[" + Name + "]: Component \"" + c + "\" not found, can not load");
-                } catch (Exception ex)
-                {
-                    m_log.Error("[" + Name + "]: Exception loading \"" + c + "\": " + ex.ToString());
+                    try
+                    {
+                        if (ComponentRegistry.providers.ContainsKey(c))
+                            Components.Add(Activator.CreateInstance(ComponentRegistry.providers[c]) as ComponentBase);
+                        else
+                            m_log.Error("[" + Name + "]: Component \"" + c + "\" not found, can not load");
+                    }
+                    catch (Exception ex)
+                    {
+                        m_log.Error("[" + Name + "]: Exception loading \"" + c + "\": " + ex.ToString());
+                    }
                 }
             }
-            
+
 
             // Run Initialize on all our providers, hand over a reference of ourself.
-            foreach (ComponentBase p in Components)
+            foreach (ComponentBase p in Components.ToArray())
             {
                 try
                 {
@@ -94,12 +98,17 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("[" + Name + "]: Error initializing \"" + p.GetType().FullName + "\": " + ex.ToString());
-                    Components.Remove(p);
+                    lock (Components)
+                    {
+                        m_log.Error("[" + Name + "]: Error initializing \"" + p.GetType().FullName + "\": " +
+                                    ex.ToString());
+                        if (Components.Contains(p))
+                            Components.Remove(p);
+                    }
                 }
             }
             // All modules has been initialized, call Start() on them.
-            foreach (ComponentBase p in Components)
+            foreach (ComponentBase p in Components.ToArray())
             {
                 try
                 {
@@ -107,8 +116,12 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("[" + Name + "]: Error starting \"" + p.GetType().FullName + "\": " + ex.ToString());
-                    Components.Remove(p);
+                    lock (Components)
+                    {
+                        m_log.Error("[" + Name + "]: Error starting \"" + p.GetType().FullName + "\": " + ex.ToString());
+                        if (Components.Contains(p))
+                            Components.Remove(p);
+                    }
                 }
             }
 
@@ -149,7 +162,7 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
             PreClose();
 
             // Then Call Close() on all components
-            foreach (ComponentBase p in Components)
+            foreach (ComponentBase p in Components.ToArray())
             {
                 try
                 {

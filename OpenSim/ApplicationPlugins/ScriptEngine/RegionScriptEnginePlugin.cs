@@ -45,8 +45,17 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
         {
             // New region is being created
             // Create a new script engine
-            scriptEngine = Activator.CreateInstance(ComponentRegistry.scriptEngines[tempScriptEngineName]) as RegionScriptEngineBase;
-            scriptEngine.Initialize(scene, source);
+            try
+            {
+                scriptEngine =
+                    Activator.CreateInstance(ComponentRegistry.scriptEngines[tempScriptEngineName]) as
+                    RegionScriptEngineBase;
+                scriptEngine.Initialize(scene, source);
+            }
+            catch (Exception ex)
+            {
+                scriptEngine.m_log.Error("[ScriptEngine]: Unable to load engine \"" + tempScriptEngineName + "\": " + ex.ToString());
+            }
         }
 
         public void PostInitialise()
