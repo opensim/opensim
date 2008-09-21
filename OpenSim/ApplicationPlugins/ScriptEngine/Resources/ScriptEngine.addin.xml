@@ -1,0 +1,12 @@
+<Addin id="ScriptEngine" version="0.1">
+    <Runtime>
+        <Import assembly="OpenSim.ApplicationPlugins.ScriptEngine.dll" />
+    </Runtime>
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+        <Addin id="RegionProxy" version="0.1" />
+    </Dependencies>
+    <Extension path="/OpenSim/Startup">
+        <Plugin id="ScriptEngine" type="OpenSim.ApplicationPlugins.ScriptEngine.ScriptEnginePlugin" />
+    </Extension>
+</Addin>

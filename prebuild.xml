@@ -2069,6 +2069,296 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.ApplicationPlugins.ScriptEngine" path="OpenSim/ApplicationPlugins/ScriptEngine" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <ReferencePath>../../../bin/ScriptEngines/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.ClientStack"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.Interfaces" />
+      <Reference name="OpenSim.Region.Physics.Manager" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true" >
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
+      </Files>
+    </Project>
+
+
+    <Project name="OpenSim.ScriptEngine.Components.DotNetEngine.Commands_LSL" path="OpenSim/ScriptEngine/Components/DotNetEngine/Commands_LSL" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../bin/</ReferencePath>
+      <ReferencePath>../../../../../bin/ScriptEngines/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.Interfaces" />
+      <Reference name="OpenSim.Region.Physics.Manager" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.ApplicationPlugins.ScriptEngine"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true" >
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.ScriptEngine.Components.DotNetEngine.Commands_OSSL" path="OpenSim/ScriptEngine/Components/DotNetEngine/Commands_OSSL" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../bin/</ReferencePath>
+      <ReferencePath>../../../../../bin/ScriptEngines/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.Interfaces" />
+      <Reference name="OpenSim.Region.Physics.Manager" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.ApplicationPlugins.ScriptEngine"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true" >
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.ScriptEngine.Components.DotNetEngine.Compilers" path="OpenSim/ScriptEngine/Components/DotNetEngine/Compilers" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../bin/</ReferencePath>
+      <ReferencePath>../../../../../bin/ScriptEngines/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.Interfaces" />
+      <Reference name="OpenSim.Region.Physics.Manager" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.ApplicationPlugins.ScriptEngine"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true" >
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.ScriptEngine.Components.DotNetEngine.Events" path="OpenSim/ScriptEngine/Components/DotNetEngine/Events" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../bin/</ReferencePath>
+      <ReferencePath>../../../../../bin/ScriptEngines/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.Interfaces" />
+      <Reference name="OpenSim.Region.Physics.Manager" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.ApplicationPlugins.ScriptEngine"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true" >
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler" path="OpenSim/ScriptEngine/Components/DotNetEngine/Scheduler" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../bin/</ReferencePath>
+      <ReferencePath>../../../../../bin/ScriptEngines/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.Interfaces" />
+      <Reference name="OpenSim.Region.Physics.Manager" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.ApplicationPlugins.ScriptEngine"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true" >
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.ScriptEngine.Engines.DotNetEngine" path="OpenSim/ScriptEngine/Engines/DotNetEngine" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.Interfaces" />
+      <Reference name="OpenSim.Region.Physics.Manager" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.ApplicationPlugins.ScriptEngine"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true" >
+          <Exclude name="Tests" pattern="Tests" />
+        </Match>
+      </Files>
+    </Project>
+
+
+
     <Project name="OpenSim.Region.ScriptEngine.Common" path="OpenSim/Region/ScriptEngine/Common" type="Library">
       <Configuration name="Debug">
         <Options>
