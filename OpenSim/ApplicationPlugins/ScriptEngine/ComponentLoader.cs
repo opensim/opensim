@@ -72,13 +72,19 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
                                 {
                                     // We have found an type which is derived from ProdiverBase, add it to provider list
                                     m_log.InfoFormat("[ScriptEngine]: Adding component: {0}", componentType.Name);
-                                    ComponentRegistry.providers.Add(componentType.Name, componentType);
+                                    lock (ComponentRegistry.providers)
+                                    {
+                                        ComponentRegistry.providers.Add(componentType.Name, componentType);
+                                    }
                                 }
                                 if (componentType.IsSubclassOf(typeof(RegionScriptEngineBase)))
                                 {
                                     // We have found an type which is derived from RegionScriptEngineBase, add it to engine list
                                     m_log.InfoFormat("[ScriptEngine]: Adding script engine: {0}", componentType.Name);
-                                    ComponentRegistry.scriptEngines.Add(componentType.Name, componentType);
+                                    lock (ComponentRegistry.scriptEngines)
+                                    {
+                                        ComponentRegistry.scriptEngines.Add(componentType.Name, componentType);
+                                    }
                                 }
                             }
                         }

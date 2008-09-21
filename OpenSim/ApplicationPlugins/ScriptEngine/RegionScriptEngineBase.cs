@@ -74,16 +74,19 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
                 m_log.Info("[" + Name + "]: Loading: " + c);
                 lock (Components)
                 {
-                    try
+                    lock (ComponentRegistry.providers)
                     {
-                        if (ComponentRegistry.providers.ContainsKey(c))
-                            Components.Add(Activator.CreateInstance(ComponentRegistry.providers[c]) as ComponentBase);
-                        else
-                            m_log.Error("[" + Name + "]: Component \"" + c + "\" not found, can not load");
-                    }
-                    catch (Exception ex)
-                    {
-                        m_log.Error("[" + Name + "]: Exception loading \"" + c + "\": " + ex.ToString());
+                        try
+                        {
+                            if (ComponentRegistry.providers.ContainsKey(c))
+                                Components.Add(Activator.CreateInstance(ComponentRegistry.providers[c]) as ComponentBase);
+                            else
+                                m_log.Error("[" + Name + "]: Component \"" + c + "\" not found, can not load");
+                        }
+                        catch (Exception ex)
+                        {
+                            m_log.Error("[" + Name + "]: Exception loading \"" + c + "\": " + ex.ToString());
+                        }
                     }
                 }
             }

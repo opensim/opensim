@@ -43,13 +43,17 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
         public RegionScriptEngineBase scriptEngine;
         public void Initialise(Scene scene, IConfigSource source)
         {
+            return;
             // New region is being created
             // Create a new script engine
             try
             {
-                scriptEngine =
-                    Activator.CreateInstance(ComponentRegistry.scriptEngines[tempScriptEngineName]) as
-                    RegionScriptEngineBase;
+                lock (ComponentRegistry.scriptEngines)
+                {
+                    scriptEngine =
+                        Activator.CreateInstance(ComponentRegistry.scriptEngines[tempScriptEngineName]) as
+                        RegionScriptEngineBase;
+                }
                 scriptEngine.Initialize(scene, source);
             }
             catch (Exception ex)
