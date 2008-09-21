@@ -710,6 +710,9 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence avatar = m_scene.GetScenePresence(agentID);
             if (avatar != null)
             {
+                // don't attach attachments to child agents
+                if (avatar.IsChildAgent) return;
+
                 DetachFromBackup(this);
                 m_rootPart.AttachedAvatar = agentID;
 
