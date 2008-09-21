@@ -46,7 +46,7 @@ namespace OpenSim.Framework.Communications.Cache
     /// sends packetised data directly back to the client.  The only point where they meet is AssetReceived() and
     /// AssetNotFound(), which means they do share the same asset and texture caches.
     ///
-    /// TODO  Assets in this cache are effectively immortal (they are never disposed off through old age).
+    /// TODO: Assets in this cache are effectively immortal (they are never disposed of through old age).
     /// This is not a huge problem at the moment since other memory use usually dwarfs that used by assets
     /// but it's something to bear in mind.
     /// </summary>
@@ -206,24 +206,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Only get an asset if we already have it in the cache.
         /// </summary>
-        /// <param name="assetId"></param></param>
-        /// <returns></returns>
-        //private AssetBase GetCachedAsset(UUID assetId)
-        //{
-        //    AssetBase asset = null;
-
-        //    if (Textures.ContainsKey(assetId))
-        //    {
-        //        asset = Textures[assetId];
-        //    }
-        //    else if (Assets.ContainsKey(assetId))
-        //    {
-        //        asset = Assets[assetId];
-        //    }
-
-        //    return asset;
-        //}
-
+        /// <param name="assetId"></param>
+        /// <param name="asset"></param>
+        /// <returns>true if the asset was in the cache, false if it was not</returns>
         private bool TryGetCachedAsset(UUID assetId, out AssetBase asset)
         {
             if (Textures.ContainsKey(assetId))
@@ -451,42 +436,21 @@ namespace OpenSim.Framework.Communications.Cache
             }
 
             // Notify requesters for this asset
-            if (RequestLists.ContainsKey(asset.FullID))
+            AssetRequestsList reqList = null;
+            
+            lock (RequestLists)
+            {                                
+                if (RequestLists.TryGetValue(asset.FullID, out reqList))                      
+                    RequestLists.Remove(asset.FullID);
+            }
+
+            if (reqList != null)
             {
-                AssetRequestsList reqList = null;
-                lock (RequestLists)
+                foreach (NewAssetRequest req in reqList.Requests)
                 {
-                    //m_log.Info("AssetCache: Lock taken on requestLists (AssetReceived #1)");
-                    reqList = RequestLists[asset.FullID];
-
-                }
-                //m_log.Info("AssetCache: Lock released on requestLists (AssetReceived #1)");
-                if (reqList != null)
-                {
-                    //making a copy of the list is not ideal
-                    //but the old method of locking around this whole block of code was causing a multi-thread lock
-                    //between this and the TextureDownloadModule
-                    //while the localAsset thread running this and trying to send a texture to the callback in the
-                    //texturedownloadmodule , and hitting a lock in there. While the texturedownload thread (which was holding
-                    // the lock in the texturedownload module) was trying to
-                    //request a new asset and hitting a lock in here on the RequestLists.
-
-                    List<NewAssetRequest> theseRequests = new List<NewAssetRequest>(reqList.Requests);
-                    reqList.Requests.Clear();
-
-                    lock (RequestLists)
-                    {
-                       // m_log.Info("AssetCache: Lock taken on requestLists (AssetReceived #2)");
-                        RequestLists.Remove(asset.FullID);
-                    }
-                    //m_log.Info("AssetCache: Lock released on requestLists (AssetReceived #2)");
-
-                    foreach (NewAssetRequest req in theseRequests)
-                    {
-                        // Xantor 20080526 are we really calling all the callbacks if multiple queued for 1 request? -- Yes, checked
-                        // m_log.DebugFormat("[ASSET CACHE]: Callback for asset {0}", asset.FullID);
-                        req.Callback(asset.FullID, asset);
-                    }
+                    // Xantor 20080526 are we really calling all the callbacks if multiple queued for 1 request? -- Yes, checked
+                    // m_log.DebugFormat("[ASSET CACHE]: Callback for asset {0}", asset.FullID);
+                    req.Callback(asset.FullID, asset);
                 }
             }
         }
@@ -509,27 +473,13 @@ namespace OpenSim.Framework.Communications.Cache
             AssetRequestsList reqList = null;
             lock (RequestLists)
             {
-                //  m_log.Info("AssetCache: Lock taken on requestLists (AssetNotFound #1)");
-                if (RequestLists.ContainsKey(assetID))
-                {
-                   reqList = RequestLists[assetID];
-                }
+                if (RequestLists.TryGetValue(assetID, out reqList))                      
+                    RequestLists.Remove(assetID);
             }
-            // m_log.Info("AssetCache: Lock released on requestLists (AssetNotFound #1)");
 
             if (reqList != null)
             {
-                List<NewAssetRequest> theseRequests = new List<NewAssetRequest>(reqList.Requests);
-                reqList.Requests.Clear();
-
-                lock (RequestLists)
-                {
-                    //  m_log.Info("AssetCache: Lock taken on requestLists (AssetNotFound #2)");
-                    RequestLists.Remove(assetID);
-                }
-                //  m_log.Info("AssetCache: Lock released on requestLists (AssetNotFound #2)");
-
-                foreach (NewAssetRequest req in theseRequests)
+                foreach (NewAssetRequest req in reqList.Requests)
                 {
                     req.Callback(assetID, null);
                 }
@@ -578,6 +528,7 @@ namespace OpenSim.Framework.Communications.Cache
                 source = 3;
                 //Console.WriteLine("asset request " + requestID);
             }
+            
             //check to see if asset is in local cache, if not we need to request it from asset server.
             //Console.WriteLine("asset request " + requestID);
             if (!Assets.ContainsKey(requestID))
@@ -636,6 +587,7 @@ namespace OpenSim.Framework.Communications.Cache
                 //no requests waiting
                 return;
             }
+            
             // if less than 5, do all of them
             int num = Math.Min(5, AssetRequests.Count);
 
@@ -688,18 +640,10 @@ namespace OpenSim.Framework.Communications.Cache
             //public bool AssetInCache;
             //public int TimeRequested;
             public int DiscardLevel = -1;
-
-            public AssetRequest()
-            {
-            }
         }
 
         public class AssetInfo : AssetBase
         {
-            public AssetInfo()
-            {
-            }
-
             public AssetInfo(AssetBase aBase)
             {
                 Data = aBase.Data;
@@ -712,10 +656,6 @@ namespace OpenSim.Framework.Communications.Cache
 
         public class TextureImage : AssetBase
         {
-            public TextureImage()
-            {
-            }
-
             public TextureImage(AssetBase aBase)
             {
                 Data = aBase.Data;
