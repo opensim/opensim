@@ -755,18 +755,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     
                     // Console.WriteLine(""+JSON[i]); 
-                    switch(JSON[i])
+                    switch (JSON[i])
                     {
                         case '{':
                             // create hashtable and add it to the stack or array if we are populating one, we can have a lot of nested objects in JSON
                             
                             Hashtable currentObject = new Hashtable();  
-                            if(objectStack.Count==0) // the stack should only be empty for the first outer object
+                            if (objectStack.Count==0) // the stack should only be empty for the first outer object
                             {
                                 
                                 objectStack.Push(jsondata);
                             }
-                            else if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            else if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
                             {
                                 // add it to the parent array
                                 ((ArrayList)objectStack.Peek()).Add(currentObject);
@@ -792,17 +792,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             i++; // move to next char
                             
                             // just loop through until the next quote mark storing the string
-                            while(JSON[i]!='"')
+                            while (JSON[i]!='"')
                             {
                                 tokenValue+=JSON[i++];
                             }
                             
                             // ok we've got a string, if we've got an array on the top of the stack then we store it
-                            if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
                             {
                                 ((ArrayList)objectStack.Peek()).Add(tokenValue);
                             }
-                            else if(currentKey==null)   // no key stored and its not an array this must be a key so store it
+                            else if (currentKey==null)   // no key stored and its not an array this must be a key so store it
                             {
                                 currentKey = tokenValue;
                             }
@@ -824,7 +824,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case '[': // array start
                             ArrayList currentArray = new ArrayList(); 
                             
-                            if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
                             {   
                                 ((ArrayList)objectStack.Peek()).Add(currentArray);
                             }
@@ -846,7 +846,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
                         case 't': // we've found a character start not in quotes, it must be a boolean true
                         
-                            if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
                             {
                                 ((ArrayList)objectStack.Peek()).Add(true);
                             }
@@ -860,7 +860,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
                         case 'f': // we've found a character start not in quotes, it must be a boolean false
                             
-                            if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
                             { 
                                 ((ArrayList)objectStack.Peek()).Add(false);
                             }
@@ -879,7 +879,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             string numberValue="";
                             
                             // just loop through until the next known marker quote mark storing the string
-                            while(JSON[i] != '"' && JSON[i] != ',' && JSON[i] != ']' && JSON[i] != '}' && JSON[i] != ' ')
+                            while (JSON[i] != '"' && JSON[i] != ',' && JSON[i] != ']' && JSON[i] != '}' && JSON[i] != ' ')
                             {
                                 numberValue+=""+JSON[i++];
                             }
@@ -887,7 +887,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             i--; // we want to process this caracter that marked the end of this string in the main loop
                             
                             // ok we've got a string, if we've got an array on the top of the stack then we store it
-                            if(objectStack.Peek().ToString()=="System.Collections.ArrayList")
+                            if (objectStack.Peek().ToString()=="System.Collections.ArrayList")
                             {
                                 ((ArrayList)objectStack.Peek()).Add(numberValue);
                             }

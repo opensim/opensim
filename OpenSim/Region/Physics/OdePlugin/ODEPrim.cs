@@ -1335,7 +1335,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 IMesh mesh = null;
 
-                if(_parent_scene.needsMeshing(_pbs))
+                if (_parent_scene.needsMeshing(_pbs))
                     mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
 
                 //IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
@@ -2303,7 +2303,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             base.SendCollisionUpdate(CollisionEventsThisFrame);
 
-            if(CollisionEventsThisFrame.m_objCollisionList.Count == 0)
+            if (CollisionEventsThisFrame.m_objCollisionList.Count == 0)
                 CollisionEventsThisFrame = null;
             else
                 CollisionEventsThisFrame = new CollisionEventUpdate();

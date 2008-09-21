@@ -169,7 +169,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                         Array.Copy(data, 0, v.Data, 0, data.Length);
                         m_Fields[var.Key].SetValue(this, v);
                     }
-                    else if(m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLInteger) || 
+                    else if (m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLInteger) || 
                             m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLString) ||
                             m_Fields[var.Key].FieldType == typeof(LSL_Types.LSLFloat) ||
                             m_Fields[var.Key].FieldType == typeof(Int32) ||

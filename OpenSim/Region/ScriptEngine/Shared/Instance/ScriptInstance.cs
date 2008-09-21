@@ -514,7 +514,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// <returns></returns>        
         public object EventProcessor()
         {
-            lock(m_Script)
+            lock (m_Script)
             {
                 EventParams data = null;
 

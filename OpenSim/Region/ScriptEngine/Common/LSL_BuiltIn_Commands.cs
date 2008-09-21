@@ -567,7 +567,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             double z = axis.z * s;
             double w = Math.Cos(angle / 2);
 
-            if(Double.IsNaN(x) || Double.IsNaN(y) || Double.IsNaN(z) || Double.IsNaN(w))
+            if (Double.IsNaN(x) || Double.IsNaN(y) || Double.IsNaN(z) || Double.IsNaN(w))
                 return new LSL_Types.Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
             return new LSL_Types.Quaternion((float)x, (float)y, (float)z, (float)w);
