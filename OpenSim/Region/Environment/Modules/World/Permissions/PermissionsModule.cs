@@ -952,7 +952,77 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return false;
+                if (objectID == UUID.Zero) // User inventory
+                {
+                    CachedUserInfo userInfo =
+                            scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
+                    if (userInfo == null)
+                        return false;
+
+                    if (userInfo.RootFolder == null)
+                        return false;
+
+                    InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(script);
+                    if (assetRequestItem == null) // Library item
+                    {
+                        assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(script);
+
+                        if (assetRequestItem != null) // Implicitly readable
+                            return true;
+                    }
+
+                    // SL is rather harebrained here. In SL, a script you
+                    // have mod/copy no trans is readable. This subverts
+                    // permissions, but is used in some products, most
+                    // notably Hippo door plugin and HippoRent 5 networked
+                    // prim counter.
+                    // To enable this broken SL-ism, remove Transfer from
+                    // the below expressions.
+                    // Trying to improve on SL perms by making a script
+                    // readable only if it's really full perms
+                    //
+                    if ((assetRequestItem.CurrentPermissions &
+                            ((uint)PermissionMask.Modify |
+                            (uint)PermissionMask.Copy |
+                            (uint)PermissionMask.Transfer)) !=
+                            ((uint)PermissionMask.Modify |
+                            (uint)PermissionMask.Copy |
+                            (uint)PermissionMask.Transfer))
+                        return false;
+                }
+                else // Prim inventory
+                {
+                    SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+
+                    if (part == null)
+                        return false;
+
+                    if (part.OwnerID != user)
+                        return false;
+
+                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                        return false;
+
+                    TaskInventoryItem ti = part.GetInventoryItem(script);
+
+                    if (ti == null)
+                        return false;
+
+                    if (ti.OwnerID != user)
+                        return false;
+
+                    // Require full perms
+                    if ((ti.CurrentPermissions &
+                            ((uint)PermissionMask.Modify |
+                            (uint)PermissionMask.Copy |
+                            (uint)PermissionMask.Transfer)) !=
+                            ((uint)PermissionMask.Modify |
+                            (uint)PermissionMask.Copy |
+                            (uint)PermissionMask.Transfer))
+                        return false;
+                }
+
+                return true;
             }
 
             private bool CanViewNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
@@ -960,7 +1030,62 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return false;
+                if (objectID == UUID.Zero) // User inventory
+                {
+                    CachedUserInfo userInfo =
+                            scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
+                    if (userInfo == null)
+                        return false;
+
+                    if (userInfo.RootFolder == null)
+                        return false;
+
+                    InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(notecard);
+                    if (assetRequestItem == null) // Library item
+                    {
+                        assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
+
+                        if (assetRequestItem != null) // Implicitly readable
+                            return true;
+                    }
+
+                    // Notecards are always readable unless no copy
+                    //
+                    if ((assetRequestItem.CurrentPermissions &
+                            (uint)PermissionMask.Copy) !=
+                            (uint)PermissionMask.Copy)
+                        return false;
+                }
+                else // Prim inventory
+                {
+                    SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+
+                    if (part == null)
+                        return false;
+
+                    if (part.OwnerID != user)
+                        return false;
+
+                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                        return false;
+
+                    TaskInventoryItem ti = part.GetInventoryItem(notecard);
+
+                    if (ti == null)
+                        return false;
+
+                    if (ti.OwnerID != user)
+                        return false;
+
+                    // Notecards are always readable unless no copy
+                    //
+                    if ((ti.CurrentPermissions &
+                            (uint)PermissionMask.Copy) !=
+                            (uint)PermissionMask.Copy)
+                        return false;
+                }
+
+                return true;
             }
 
         #endregion

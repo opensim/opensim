@@ -4835,6 +4835,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     case PacketType.TransferRequest:
                         //Console.WriteLine("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
                         TransferRequestPacket transfer = (TransferRequestPacket)Pack;
+System.Console.WriteLine("Transfer request, source {0}", transfer.TransferInfo.SourceType);
                         // Validate inventory transfers
                         // Has to be done here, because AssetCache can't do it
                         //
@@ -4890,8 +4891,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                             return;
                                     }
 
-                                    if ((assetRequestItem.CurrentPermissions & ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
-                                        break;
+                                    // At this point, we need to apply perms
+                                    // only to notecards and scripts. All
+                                    // other asset types are always available
+                                    //
+                                    if (assetRequestItem.AssetType == 10)
+                                    {
+                                        if (!((Scene)m_scene).ExternalChecks.ExternalChecksCanViewScript(itemID, UUID.Zero, AgentId))
+                                        {
+                                            SendAgentAlertMessage("Insufficient permissions to view script", false);
+                                            break;
+                                        }
+                                    }
+                                    else if (assetRequestItem.AssetType == 7)
+                                    {
+                                        if (!((Scene)m_scene).ExternalChecks.ExternalChecksCanViewNotecard(itemID, UUID.Zero, AgentId))
+                                        {
+                                            SendAgentAlertMessage("Insufficient permissions to view notecard", false);
+                                            break;
+                                        }
+                                    }
+
                                     if (assetRequestItem.AssetID != requestID)
                                         break;
                                 }
