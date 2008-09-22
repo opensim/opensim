@@ -1727,9 +1727,8 @@ namespace OpenSim.Region.Communications.OGS1
             if (landData != null)
             {
                 // for now, only push out the data we need for answering a ParcelInfoReqeust
-                // FIXME: these Replace calls are necessary as LLVector3.Parse can't parse vectors with spaces in them. Can be removed as soon as we switch to a newer version
-                hash["AABBMax"] = landData.AABBMax.ToString().Replace(" ", "");
-                hash["AABBMin"] = landData.AABBMin.ToString().Replace(" ", "");
+                hash["AABBMax"] = landData.AABBMax.ToString();
+                hash["AABBMin"] = landData.AABBMin.ToString();
                 hash["Area"] = landData.Area.ToString();
                 hash["AuctionID"] = landData.AuctionID.ToString();
                 hash["Description"] = landData.Description;
@@ -1739,7 +1738,7 @@ namespace OpenSim.Region.Communications.OGS1
                 hash["OwnerID"] = landData.OwnerID.ToString();
                 hash["SalePrice"] = landData.SalePrice.ToString();
                 hash["SnapshotID"] = landData.SnapshotID.ToString();
-                hash["UserLocation"] = landData.UserLocation.ToString().Replace(" ", "");
+                hash["UserLocation"] = landData.UserLocation.ToString();
             }
 
             XmlRpcResponse response = new XmlRpcResponse();
