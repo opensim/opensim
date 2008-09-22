@@ -163,7 +163,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckDuplicateObject(CanDuplicateObject); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckDeleteObject(CanDeleteObject); //MAYBE FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditObject(CanEditObject);//MAYBE FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckEditObject(CanEditObjectInventory);//MAYBE FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckEditObjectInventory(CanEditObjectInventory);//MAYBE FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditParcel(CanEditParcel); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditScript(CanEditScript); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditNotecard(CanEditNotecard); //NOT YET IMPLEMENTED
