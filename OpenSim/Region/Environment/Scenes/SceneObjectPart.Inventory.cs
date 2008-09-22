@@ -532,24 +532,6 @@ namespace OpenSim.Region.Environment.Scenes
                     uint baseMask = item.BasePermissions;
                     uint ownerMask = item.CurrentPermissions;
 
-                    if (item.InvType == 10) // Script
-                    {
-                        if ((item.OwnerID != client.AgentId) && m_parentGroup.Scene.ExternalChecks.ExternalChecksCanViewScript(item.ItemID, UUID, client.AgentId))
-                        {
-                            ownerID = client.AgentId;
-                            baseMask = 0x7fffffff;
-                            ownerMask = 0x7fffffff;
-                            everyoneMask = (uint)(PermissionMask.Move | PermissionMask.Transfer);
-                        }
-                        if ((item.OwnerID != client.AgentId) && m_parentGroup.Scene.ExternalChecks.ExternalChecksCanEditScript(item.ItemID, UUID, client.AgentId))
-                        {
-                            ownerID = client.AgentId;
-                            baseMask = 0x7fffffff;
-                            ownerMask = 0x7fffffff;
-                            everyoneMask = (uint)(PermissionMask.Move | PermissionMask.Transfer | PermissionMask.Modify);
-                        }
-                    }
-
                     invString.AddItemStart();
                     invString.AddNameValueLine("item_id", item.ItemID.ToString());
                     invString.AddNameValueLine("parent_id", UUID.ToString());
