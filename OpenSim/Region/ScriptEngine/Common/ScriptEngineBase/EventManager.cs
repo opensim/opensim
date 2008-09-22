@@ -204,6 +204,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 if (firstline.Length > 2 && firstline.Substring(0, 2) == "//" && colon != -1)
                 {
                     engine = firstline.Substring(2, colon-2);
+                    script = "//" + script.Substring(script.IndexOf(':')+1);
                 }
             }
 
