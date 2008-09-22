@@ -235,7 +235,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                 ci = t.GetConstructor(parms);
                                 ht = ci.Invoke(args);
                                 tests.Add((ITest)ht);
-                                Rest.Log.WarnFormat("{0} Test {1} added", MsgId, t);
+                                Rest.Log.InfoFormat("{0} Test {1} added", MsgId, t);
                             }
                         }
                         catch (Exception e)

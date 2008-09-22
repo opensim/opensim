@@ -65,7 +65,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
         public void Initialize()
         {
             enabled = true;
-            Rest.Log.InfoFormat("{0} Remote services initialize", MsgId);
+            Rest.Log.InfoFormat("{0} Remote services initialized", MsgId);
         }
 
         // Called by the plug-in to halt REST processing. Local processing is

@@ -1186,11 +1186,21 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (part != null)
             {
-                if (part.OwnerID != remoteClient.AgentId)
-                    return;
 
-                if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                    return;
+                // replacing the following two checks with the
+                // ExternalChecks.ExternalChecksCanEditObject(...)
+                // call
+
+                // if (part.OwnerID != remoteClient.AgentId)
+                //     return;
+
+                // if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                //     return;
+
+                if (!ExternalChecks.ExternalChecksCanEditObject(part.UUID, remoteClient.AgentId))
+				{
+					return;
+				}
 
                 TaskInventoryItem currentItem = part.GetInventoryItem(itemID);
 
@@ -1283,11 +1293,23 @@ System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.T
                         SceneObjectPart part = GetSceneObjectPart(localID);
                         if (part != null)
                         {
+
+							/*
                             if (part.OwnerID != remoteClient.AgentId)
+                            {
                                 return;
+                            }
 
                             if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                            {
                                 return;
+                            }
+							*/
+
+							if (!ExternalChecks.ExternalChecksCanEditObject(part.UUID, remoteClient.AgentId))
+							{
+								return;
+							}
 
                             part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
                             // TODO: set this to "true" when scripts in inventory have persistent state to fire on_rez

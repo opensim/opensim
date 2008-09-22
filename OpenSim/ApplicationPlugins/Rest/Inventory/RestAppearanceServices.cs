@@ -45,7 +45,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
     public class RestAppearanceServices : IRest
     {
         private static readonly int PARM_USERID = 0;
-        //private static readonly int PARM_PATH   = 1;
+        // private static readonly int PARM_PATH   = 1;
 
         private bool       enabled = false;
         private string     qPrefix = "appearance";
@@ -166,6 +166,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             try
             {
+                // digest scheme seems borked: disable it for the time
+                // being
+                rdata.scheme = Rest.AS_BASIC;
                 if (!rdata.IsAuthenticated)
                 {
                     rdata.Fail(Rest.HttpStatusCodeNotAuthorized,String.Format("user \"{0}\" could not be authenticated", rdata.userName));
@@ -335,12 +338,18 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             AvatarAppearance old = Rest.AvatarServices.GetUserAppearance(rdata.userProfile.ID);
             rdata.userAppearance = new AvatarAppearance();
 
-            rdata.userAppearance.Owner = old.Owner;
+            rdata.userAppearance.Owner  = old.Owner;
+            rdata.userAppearance.Serial = old.Serial;
 
             if (GetUserAppearance(rdata))
             {
                 modified = rdata.userAppearance != null;
                 created  = !modified;
+                Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+            }
+            else
+            {
+                created  = true;
                 Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
             }
 
@@ -383,11 +392,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             rdata.userAppearance = Rest.AvatarServices.GetUserAppearance(rdata.userProfile.ID);
 
-            if (GetUserAppearance(rdata))
+            // If the user exists then this is considered a modification regardless
+            // of what may, or may not be, specified in the payload.
+
+            if (rdata.userAppearance != null)
             {
-                modified = rdata.userAppearance != null;
-                created  = !modified;
-                Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+				modified = true;
+				Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
             }
 
             if (created)
@@ -463,6 +474,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                 if (xml.MoveToAttribute("Height"))
                                 {
                                     rdata.userAppearance.AvatarHeight = (float) Convert.ToDouble(xml.Value);
+                                    indata = true;
+                                }
+                                if (xml.MoveToAttribute("Owner"))
+                                {
+                                    rdata.userAppearance.Owner = xml.Value;
+                                    indata = true;
+                                }
+                                if (xml.MoveToAttribute("Serial"))
+                                {
+                                    rdata.userAppearance.Serial = Convert.ToInt32(xml.Value);
                                     indata = true;
                                 }
                             break;
@@ -687,6 +708,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             rdata.writer.WriteStartElement("Appearance");
             rdata.writer.WriteAttributeString("Height", rdata.userAppearance.AvatarHeight.ToString());
+            rdata.writer.WriteAttributeString("Owner", rdata.userAppearance.Owner.ToString());
+            rdata.writer.WriteAttributeString("Serial", rdata.userAppearance.Serial.ToString());
 
             rdata.writer.WriteStartElement("Body");
             rdata.writer.WriteAttributeString("Item",rdata.userAppearance.BodyItem.ToString());

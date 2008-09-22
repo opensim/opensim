@@ -167,6 +167,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             try
             {
+                // digest scheme seems borked: disable it for the time
+                // being
+                rdata.scheme = Rest.AS_BASIC;
                 if (!rdata.IsAuthenticated)
                 {
                     rdata.Fail(Rest.HttpStatusCodeNotAuthorized,String.Format("user \"{0}\" could not be authenticated", rdata.userName));

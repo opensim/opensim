@@ -392,7 +392,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         /// Supported Digest algorithms
 
-        public const string Digest_MD5                    = "MD5"; // assumedd efault if omitted
+        public const string Digest_MD5                    = "MD5"; // assumed default if omitted
         public const string Digest_MD5Sess                = "MD5-sess";
 
         public const string Qop_Auth                      = "auth";
