@@ -610,14 +610,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
                 SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
 
-                // Commented because this behavior causes issues for IBM
-                // With this commented, strange viewer issues can be observed
-                // when trying to edit scripts and/or notecards in
-                // "Hacked god mode"
                 // TODO: add group support!
                 //
-//                if(part.OwnerID != editorID)
-//                    return false;
+                if(part.OwnerID != editorID)
+                    return false;
 
                 return GenericObjectPermission(editorID, objectID, false);
             }
