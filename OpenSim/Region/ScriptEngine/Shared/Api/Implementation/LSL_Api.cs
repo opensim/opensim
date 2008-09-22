@@ -3815,7 +3815,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID key = new UUID();
             if (UUID.TryParse(id, out key))
             {
-                return World.GetSceneObjectPart(World.Entities[key].LocalId).OwnerID.ToString();
+                try
+                {
+                    SceneObjectPart obj = World.GetSceneObjectPart(World.Entities[key].LocalId);
+                    if (obj == null)
+                        return id; // the key is for an agent so just return the key
+                    else
+                        return obj.OwnerID.ToString();
+                }
+                catch (KeyNotFoundException)
+                {
+                    return id; // The Object/Agent not in the region so just return the key
+                }
             }
             else
             {
