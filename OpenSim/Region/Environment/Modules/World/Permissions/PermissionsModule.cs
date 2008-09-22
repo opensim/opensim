@@ -163,6 +163,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckDuplicateObject(CanDuplicateObject); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckDeleteObject(CanDeleteObject); //MAYBE FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditObject(CanEditObject);//MAYBE FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckEditObject(CanEditObjectInventory);//MAYBE FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditParcel(CanEditParcel); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditScript(CanEditScript); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditNotecard(CanEditNotecard); //NOT YET IMPLEMENTED
@@ -598,6 +599,25 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
+
+                return GenericObjectPermission(editorID, objectID, false);
+            }
+
+            private bool CanEditObjectInventory(UUID objectID, UUID editorID, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
+
+                // Commented because this behavior causes issues for IBM
+                // With this commented, strange viewer issues can be observed
+                // when trying to edit scripts and/or notecards in
+                // "Hacked god mode"
+                // TODO: add group support!
+                //
+//                if(part.OwnerID != editorID)
+//                    return false;
 
                 return GenericObjectPermission(editorID, objectID, false);
             }

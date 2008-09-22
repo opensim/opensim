@@ -343,6 +343,33 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
+        public delegate bool CanEditObjectInventory(UUID objectID, UUID editorID, Scene scene);
+        private List<CanEditObjectInventory> CanEditObjectInventoryCheckFunctions = new List<CanEditObjectInventory>();
+
+        public void addCheckEditObjectInventory(CanEditObjectInventory delegateFunc)
+        {
+            if (!CanEditObjectInventoryCheckFunctions.Contains(delegateFunc))
+                CanEditObjectInventoryCheckFunctions.Add(delegateFunc);
+        }
+
+        public void removeCheckEditObjectInventory(CanEditObjectInventory delegateFunc)
+        {
+            if (CanEditObjectInventoryCheckFunctions.Contains(delegateFunc))
+                CanEditObjectInventoryCheckFunctions.Remove(delegateFunc);
+        }
+
+        public bool ExternalChecksCanEditObjectInventory(UUID objectID, UUID editorID)
+        {
+            foreach (CanEditObjectInventory check in CanEditObjectInventoryCheckFunctions)
+            {
+                if (check(objectID, editorID, m_scene) == false)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         #endregion
 
         #region MOVE OBJECT

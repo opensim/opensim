@@ -1186,18 +1186,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (part != null)
             {
-
-                // replacing the following two checks with the
-                // ExternalChecks.ExternalChecksCanEditObject(...)
-                // call
-
-                // if (part.OwnerID != remoteClient.AgentId)
-                //     return;
-
-                // if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                //     return;
-
-                if (!ExternalChecks.ExternalChecksCanEditObject(part.UUID, remoteClient.AgentId))
+                if (!ExternalChecks.ExternalChecksCanEditObjectInventory(part.UUID, remoteClient.AgentId))
 				{
 					return;
 				}
@@ -1293,20 +1282,7 @@ System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.T
                         SceneObjectPart part = GetSceneObjectPart(localID);
                         if (part != null)
                         {
-
-							/*
-                            if (part.OwnerID != remoteClient.AgentId)
-                            {
-                                return;
-                            }
-
-                            if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                            {
-                                return;
-                            }
-							*/
-
-							if (!ExternalChecks.ExternalChecksCanEditObject(part.UUID, remoteClient.AgentId))
+							if (!ExternalChecks.ExternalChecksCanEditObjectInventory(part.UUID, remoteClient.AgentId))
 							{
 								return;
 							}
