@@ -341,12 +341,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
         {
-            if (script.Length > 10)
+            int lineEnd = script.IndexOf('\n');
+
+            if (lineEnd != 1)
             {
-                if (script.Substring(0, 10) == "//XEngine:")
+                string firstline = script.Substring(0, lineEnd).Trim();
+
+                int colon = firstline.IndexOf(':');
+                if (firstline.Length > 2 && firstline.Substring(0, 2) == "//" && colon != -1)
                 {
-                    script = "//" + script.Substring(10);
-                    engine = "XEngine";
+                    engine = firstline.Substring(2, colon-2);
                 }
             }
 
