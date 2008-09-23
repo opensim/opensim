@@ -390,7 +390,7 @@ namespace OpenSim.Framework.Servers
                     return;
                 }
 
-                if (request.AcceptTypes.Length > 0)
+                if (request.AcceptTypes != null && request.AcceptTypes.Length > 0)
                 {
                     foreach (string strAccept in request.AcceptTypes)
                     {
