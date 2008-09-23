@@ -446,7 +446,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             responseMap["connect"] = LLSD.FromBoolean(true);
             responseMap["sim_port"] = LLSD.FromInteger(reg.InternalEndPoint.Port);
             responseMap["region_x"] = LLSD.FromInteger(reg.RegionLocX * (uint)Constants.RegionSize); // LLX
-            responseMap["region_Y"] = LLSD.FromInteger(reg.RegionLocY * (uint)Constants.RegionSize); // LLY
+            responseMap["region_y"] = LLSD.FromInteger(reg.RegionLocY * (uint)Constants.RegionSize); // LLY
             responseMap["region_id"] = LLSD.FromUUID(reg.originRegionID);
             responseMap["sim_access"] = LLSD.FromString((reg.RegionSettings.Maturity == 1) ? "Mature" : "PG");
 
