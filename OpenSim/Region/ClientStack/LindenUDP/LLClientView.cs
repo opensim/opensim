@@ -4835,7 +4835,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     case PacketType.TransferRequest:
                         //Console.WriteLine("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
                         TransferRequestPacket transfer = (TransferRequestPacket)Pack;
-System.Console.WriteLine("Transfer request, source {0}", transfer.TransferInfo.SourceType);
                         // Validate inventory transfers
                         // Has to be done here, because AssetCache can't do it
                         //

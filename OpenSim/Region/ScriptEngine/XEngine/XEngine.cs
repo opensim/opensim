@@ -67,7 +67,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private int m_SleepTime;
         private int m_SaveTime;
         private ThreadPriority m_Prio;
-        private bool m_Enabled = true;
+        private bool m_Enabled = false;
 
 // disable warning: need to keep a reference to XEngine.EventManager
 // alive to avoid it being garbage collected

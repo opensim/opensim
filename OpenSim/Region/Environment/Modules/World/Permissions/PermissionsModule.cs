@@ -631,13 +631,77 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return false;
+                // If you can view it, you can edit it
+                // There is no viewing a no mod script
+                //
+                return CanViewScript(script, objectID, user, scene);
             }
 
             private bool CanEditNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                if (objectID == UUID.Zero) // User inventory
+                {
+                    CachedUserInfo userInfo =
+                            scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
+                    if (userInfo == null)
+                        return false;
+
+                    if (userInfo.RootFolder == null)
+                        return false;
+
+                    InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(notecard);
+                    if (assetRequestItem == null) // Library item
+                    {
+                        assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
+
+                        if (assetRequestItem != null) // Implicitly readable
+                            return true;
+                    }
+
+                    // Notecards must be both mod and copy to be saveable
+                    // This is because of they're not copy, you can't read
+                    // them, and if they're not mod, well, then they're
+                    // not mod. Duh.
+                    //
+                    if ((assetRequestItem.CurrentPermissions &
+                            ((uint)PermissionMask.Modify |
+                            (uint)PermissionMask.Copy)) !=
+                            ((uint)PermissionMask.Modify |
+                            (uint)PermissionMask.Copy))
+                        return false;
+                }
+                else // Prim inventory
+                {
+                    SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+
+                    if (part == null)
+                        return false;
+
+                    if (part.OwnerID != user)
+                        return false;
+
+                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                        return false;
+
+                    TaskInventoryItem ti = part.GetInventoryItem(notecard);
+
+                    if (ti == null)
+                        return false;
+
+                    if (ti.OwnerID != user)
+                        return false;
+
+                    // Require full perms
+                    if ((ti.CurrentPermissions &
+                            ((uint)PermissionMask.Modify |
+                            (uint)PermissionMask.Copy)) !=
+                            ((uint)PermissionMask.Modify |
+                            (uint)PermissionMask.Copy))
+                        return false;
+                }
 
                 return true;
             }

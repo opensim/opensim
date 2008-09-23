@@ -171,6 +171,23 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (item != null)
                     {
+                        if ((InventoryType) item.InvType == InventoryType.Notecard)
+                        {
+                            if (!ExternalChecks.ExternalChecksCanEditNotecard(itemID, UUID.Zero, remoteClient.AgentId))
+                            {
+                                remoteClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
+                                return UUID.Zero;
+                            }
+                        }
+                        else if ((InventoryType) item.InvType == InventoryType.LSL)
+                        {
+                            if (!ExternalChecks.ExternalChecksCanEditScript(itemID, UUID.Zero, remoteClient.AgentId))
+                            {
+                                remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
+                                return UUID.Zero;
+                            }
+                        }
+
                         AssetBase asset =
                             CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data);
                         AssetCache.AddAsset(asset);
@@ -179,15 +196,6 @@ namespace OpenSim.Region.Environment.Scenes
                         userInfo.UpdateItem(item);
 
                         // remoteClient.SendInventoryItemCreateUpdate(item);
-                        if ((InventoryType) item.InvType == InventoryType.Notecard)
-                        {
-                            //do we want to know about updated note cards?
-                        }
-                        else if ((InventoryType) item.InvType == InventoryType.LSL)
-                        {
-                            // do we want to know about updated scripts
-                        }
-
                         return (asset.FullID);
                     }
                 }
@@ -228,6 +236,12 @@ namespace OpenSim.Region.Environment.Scenes
         public void CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, UUID itemId,
                                                        UUID primId, bool isScriptRunning, byte[] data)
         {
+            if (!ExternalChecks.ExternalChecksCanEditScript(itemId, primId, remoteClient.AgentId))
+            {
+                remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
+                return;
+            }
+
             // Retrieve group
             SceneObjectPart part = GetSceneObjectPart(primId);
             SceneObjectGroup group = part.ParentGroup;

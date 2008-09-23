@@ -56,7 +56,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public IConfigSource ConfigSource;
         public IConfig ScriptConfigSource;
         public abstract string ScriptEngineName { get; }
-        private bool m_enabled = true;
+        private bool m_enabled = false;
         private bool m_hookUpToServer = false;
 
         /// <summary>
