@@ -397,8 +397,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (rdata.userAppearance != null)
             {
-				modified = true;
-				Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+                modified = true;
+                Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
             }
 
             if (created)

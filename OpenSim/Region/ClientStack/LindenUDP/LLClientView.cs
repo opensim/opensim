@@ -5286,7 +5286,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
 
                     case PacketType.RezScript:
-						m_log.DebugFormat("[AMW] RezScript");
+                        m_log.DebugFormat("[AMW] RezScript");
                         //Console.WriteLine(Pack.ToString());
                         RezScriptPacket rezScriptx = (RezScriptPacket)Pack;
 

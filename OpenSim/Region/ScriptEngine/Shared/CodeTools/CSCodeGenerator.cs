@@ -730,11 +730,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     c.Value = c.Value.Insert(dotIndex, "0");
                 c.Value = "new LSL_Types.LSLFloat("+c.Value+")";
             }
-            else if("LSL_Types.LSLInteger" == c.Type)
+            else if ("LSL_Types.LSLInteger" == c.Type)
             {
                 c.Value = "new LSL_Types.LSLInteger("+c.Value+")";
             }
-            else if("LSL_Types.LSLString" == c.Type)
+            else if ("LSL_Types.LSLString" == c.Type)
             {
                 c.Value = "new LSL_Types.LSLString(\""+c.Value+"\")";
             }

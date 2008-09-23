@@ -612,7 +612,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
                 // TODO: add group support!
                 //
-                if(part.OwnerID != editorID)
+                if (part.OwnerID != editorID)
                     return false;
 
                 return GenericObjectPermission(editorID, objectID, false);

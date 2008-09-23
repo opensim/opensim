@@ -248,8 +248,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         private void DoPut(AssetRequestData rdata)
         {
 
-			bool modified = false;
-			bool created  = false;
+            bool modified = false;
+            bool created  = false;
 
             Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
 
@@ -269,7 +269,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 AssetBase asset = Rest.AssetServices.GetAsset(uuid, false);
 
                 modified = (asset != null);
-				created  = !modified;
+                created  = !modified;
 
                 asset             = new AssetBase();
                 asset.FullID      = uuid;
@@ -283,7 +283,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 if (asset.ID != rdata.Parameters[0])
                 {
                     Rest.Log.WarnFormat("{0} URI and payload disagree on UUID U:{1} vs P:{2}", 
-								MsgId, rdata.Parameters[0], asset.ID);
+                                        MsgId, rdata.Parameters[0], asset.ID);
                 }
 
                 Rest.AssetServices.AddAsset(asset);
@@ -323,8 +323,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         private void DoPost(AssetRequestData rdata)
         {
 
-			bool modified = false;
-			bool created  = false;
+            bool modified = false;
+            bool created  = false;
 
             Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
 
@@ -347,7 +347,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             AssetBase asset = Rest.AssetServices.GetAsset(uuid, false);
 
             modified = (asset != null);
-			created  = !modified;
+            created  = !modified;
 
             asset             = new AssetBase();
             asset.FullID      = uuid;
