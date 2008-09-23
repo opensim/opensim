@@ -394,7 +394,7 @@ namespace OpenSim.Framework.Servers
                 {
                     foreach (string strAccept in request.AcceptTypes)
                     {
-                        if (strAccept == "application/llsd+xml")
+                        if (strAccept.Contains("application/llsd+xml"))
                         {
                             HandleLLSDRequests(request, response);
                             return;
