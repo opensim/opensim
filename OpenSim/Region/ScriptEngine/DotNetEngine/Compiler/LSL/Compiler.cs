@@ -72,7 +72,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private string FilePrefix;
         private string ScriptEnginesPath = "ScriptEngines";
 
-        //private static LSL2CSConverter LSL_Converter = new LSL2CSConverter();
         private static CSCodeGenerator LSL_Converter = new CSCodeGenerator();
         private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; // mapping between LSL and C# line/column numbers
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();

@@ -728,14 +728,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 int dotIndex = c.Value.IndexOf('.') + 1;
                 if (0 < dotIndex && (dotIndex == c.Value.Length || !Char.IsDigit(c.Value[dotIndex])))
                     c.Value = c.Value.Insert(dotIndex, "0");
+                c.Value = "new LSL_Types.LSLFloat("+c.Value+")";
+            }
+            else if("LSL_Types.LSLInteger" == c.Type)
+            {
+                c.Value = "new LSL_Types.LSLInteger("+c.Value+")";
+            }
+            else if("LSL_Types.LSLString" == c.Type)
+            {
+                c.Value = "new LSL_Types.LSLString(\""+c.Value+"\")";
             }
 
-            // need to quote strings
-            if ("LSL_Types.LSLString" == c.Type)
-                retstr += Generate("\"");
             retstr += Generate(c.Value, c);
-            if ("LSL_Types.LSLString" == c.Type)
-                retstr += Generate("\"");
 
             return retstr;
         }
