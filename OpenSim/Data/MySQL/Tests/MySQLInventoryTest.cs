@@ -49,14 +49,6 @@ namespace OpenSim.Data.MySQL.Tests
         public void Init()
         {
             SuperInit();
-            try
-            {
-                log4net.Config.XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
             
             Assert.Ignore();
             
@@ -68,7 +60,7 @@ namespace OpenSim.Data.MySQL.Tests
         [TestFixtureTearDown]
         public void Cleanup()
         {
-            db.Dispose();
+
         }
     }
 }
