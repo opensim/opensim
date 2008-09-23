@@ -40,7 +40,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     /// An interface for a script API module to communicate with
     /// the engine it's running under
     /// </summary>
-    public interface IScriptEngine
+    public interface IScriptEngine : IEventReceiver
     {
         Scene World { get; }
         IConfig Config { get; }
@@ -48,16 +48,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         ILog Log { get; }
         string ScriptEngineName { get; }
 
-        /// <summary>
-        /// Post an event to a single script
-        /// </summary>
-        bool PostScriptEvent(UUID itemID, EventParams parms);
-        
-        /// <summary>
-        /// Post event to an entire prim
-        /// </summary>
-        bool PostObjectEvent(uint localID, EventParams parms);
-        
         void ApiResetScript(UUID itemID);
         void ResetScript(UUID itemID);
         void SetScriptState(UUID itemID, bool state);
