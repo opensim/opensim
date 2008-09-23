@@ -655,7 +655,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(notecard);
                     if (assetRequestItem == null) // Library item
                     {
-                        assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
+                        assetRequestItem = scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
 
                         if (assetRequestItem != null) // Implicitly readable
                             return true;
