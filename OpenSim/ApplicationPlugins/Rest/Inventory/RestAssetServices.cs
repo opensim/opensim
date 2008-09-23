@@ -170,6 +170,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     DoPut(rdata);
                     break;
                 case "post" :
+                    DoPost(rdata);
+                    break;
                 case "delete" :
                 default :
                     Rest.Log.WarnFormat("{0} Asset: Method not supported: {1}",
@@ -238,6 +240,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         }
 
         /// <summary>
+        /// UPDATE existing item, if it exists. URI identifies the item in question.
         /// The only parameter we recognize is a UUID. The enclosed asset data (base-64 encoded)
         /// is decoded and stored in the database, identified by the supplied UUID.
         /// </summary>
@@ -245,10 +248,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         private void DoPut(AssetRequestData rdata)
         {
 
+			bool modified = false;
+			bool created  = false;
+
             Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
 
             if (rdata.Parameters.Length == 1)
             {
+
                 rdata.initXmlReader();
                 XmlReader xml = rdata.reader;
 
@@ -258,16 +265,29 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     rdata.Fail(Rest.HttpStatusCodeBadRequest,"invalid request data");
                 }
 
-                AssetBase asset = new AssetBase();
-                asset.ID = rdata.Parameters[0];
-                asset.Name = xml.GetAttribute("name");
+                UUID uuid = new UUID(rdata.Parameters[0]);
+                AssetBase asset = Rest.AssetServices.GetAsset(uuid, false);
+
+                modified = (asset != null);
+				created  = !modified;
+
+                asset             = new AssetBase();
+                asset.FullID      = uuid;
+                asset.Name        = xml.GetAttribute("name");
                 asset.Description = xml.GetAttribute("desc");
-                asset.Type = SByte.Parse(xml.GetAttribute("type"));
-                asset.Local = Int32.Parse(xml.GetAttribute("local")) != 0;
-                asset.Temporary = Int32.Parse(xml.GetAttribute("temporary")) != 0;
-                asset.Data = Convert.FromBase64String(xml.ReadElementContentAsString("Asset", ""));
+                asset.Type        = SByte.Parse(xml.GetAttribute("type"));
+                asset.Local       = Int32.Parse(xml.GetAttribute("local")) != 0;
+                asset.Temporary   = Int32.Parse(xml.GetAttribute("temporary")) != 0;
+                asset.Data        = Convert.FromBase64String(xml.ReadElementContentAsString("Asset", ""));
+
+                if (asset.ID != rdata.Parameters[0])
+                {
+                    Rest.Log.WarnFormat("{0} URI and payload disagree on UUID U:{1} vs P:{2}", 
+								MsgId, rdata.Parameters[0], asset.ID);
+                }
 
                 Rest.AssetServices.AddAsset(asset);
+
             }
             else
             {
@@ -275,8 +295,88 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 rdata.Fail(Rest.HttpStatusCodeNotFound, "invalid parameters");
             }
 
-            rdata.Complete();
-            rdata.Respond(String.Format("Asset <{0}>: Normal completion", rdata.method));
+            if (created)
+            {
+                rdata.Complete(Rest.HttpStatusCodeCreated);
+            }
+            else
+            {
+                if (modified)
+                {
+                    rdata.Complete(Rest.HttpStatusCodeOK);
+                }
+                else
+                {
+                    rdata.Complete(Rest.HttpStatusCodeNoContent);
+                }
+            }
+
+            rdata.Respond(String.Format("Asset {0} : Normal completion", rdata.method));
+
+        }
+
+        /// <summary>
+        /// CREATE new item, replace if it exists. URI identifies the context for the item in question.
+        /// No parameters are required for POST, just thepayload.
+        /// </summary>
+
+        private void DoPost(AssetRequestData rdata)
+        {
+
+			bool modified = false;
+			bool created  = false;
+
+            Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
+
+            if (rdata.Parameters.Length != 0)
+            {
+                Rest.Log.WarnFormat("{0} Parameters ignored <{1}>", MsgId, rdata.path);
+                Rest.Log.InfoFormat("{0} POST of an asset has no parameters", MsgId, rdata.path);
+            }
+
+            rdata.initXmlReader();
+            XmlReader xml = rdata.reader;
+
+            if (!xml.ReadToFollowing("Asset"))
+            {
+                Rest.Log.DebugFormat("{0} Invalid request data: <{1}>", MsgId, rdata.path);
+                rdata.Fail(Rest.HttpStatusCodeBadRequest,"invalid request data");
+            }
+
+            UUID uuid = new UUID(xml.GetAttribute("id"));
+            AssetBase asset = Rest.AssetServices.GetAsset(uuid, false);
+
+            modified = (asset != null);
+			created  = !modified;
+
+            asset             = new AssetBase();
+            asset.FullID      = uuid;
+            asset.Name        = xml.GetAttribute("name");
+            asset.Description = xml.GetAttribute("desc");
+            asset.Type        = SByte.Parse(xml.GetAttribute("type"));
+            asset.Local       = Int32.Parse(xml.GetAttribute("local")) != 0;
+            asset.Temporary   = Int32.Parse(xml.GetAttribute("temporary")) != 0;
+            asset.Data        = Convert.FromBase64String(xml.ReadElementContentAsString("Asset", ""));
+
+            Rest.AssetServices.AddAsset(asset);
+
+            if (created)
+            {
+                rdata.Complete(Rest.HttpStatusCodeCreated);
+            }
+            else
+            {
+                if (modified)
+                {
+                    rdata.Complete(Rest.HttpStatusCodeOK);
+                }
+                else
+                {
+                    rdata.Complete(Rest.HttpStatusCodeNoContent);
+                }
+            }
+
+            rdata.Respond(String.Format("Asset {0} : Normal completion", rdata.method));
 
         }
 
