@@ -28,6 +28,7 @@
 using System;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Scripting.HttpRequest;
+using OpenSim.Region.ScriptEngine.Shared;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins
 {

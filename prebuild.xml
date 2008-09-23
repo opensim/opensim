@@ -1910,6 +1910,7 @@
       <Reference name="OpenSim.Region.Interfaces" />
       <Reference name="OpenSim.Region.Physics.Manager" />
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -1920,27 +1921,6 @@
         <Match pattern="*.cs" recurse="true" >
           <Exclude name="Tests" pattern="Tests" />
         </Match>
-      </Files>
-    </Project>
-
-    <Project name="OpenSim.Region.ScriptEngine.Common.Tests" path="OpenSim/Region/ScriptEngine/Common/Tests" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="OpenSim.Region.ScriptEngine.Common"/>
-      <Reference name="OpenSim.Tests.Common"/>
-      <Reference name="nunit.framework.dll" />
-      <Files>
-        <Match pattern="*.cs" recurse="false"/>
       </Files>
     </Project>
 
@@ -1968,6 +1948,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="Microsoft.JScript"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>

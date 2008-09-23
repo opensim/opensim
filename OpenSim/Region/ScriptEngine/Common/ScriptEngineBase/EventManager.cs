@@ -35,6 +35,7 @@ using OpenSim.Region.Interfaces;
 using OpenSim.Region;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.ScriptEngine.Shared;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {

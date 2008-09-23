@@ -32,6 +32,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common;
+using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine

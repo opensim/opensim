@@ -34,6 +34,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 //using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
+using OpenSim.Region.ScriptEngine.Shared;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {

@@ -31,6 +31,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.ScriptEngine.Shared;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins
 {
