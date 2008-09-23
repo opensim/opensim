@@ -164,12 +164,12 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             switch (linkType)
             {
-            case BuiltIn_Commands_BaseClass.LINK_SET:
+            case ScriptBaseClass.LINK_SET:
                 if (m_host.ParentGroup != null)
                     return new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
                 return ret;
 
-            case BuiltIn_Commands_BaseClass.LINK_ROOT:
+            case ScriptBaseClass.LINK_ROOT:
                 if (m_host.ParentGroup != null)
                 {
                     ret = new List<SceneObjectPart>();
@@ -178,7 +178,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
                 return ret;
 
-            case BuiltIn_Commands_BaseClass.LINK_ALL_OTHERS:
+            case ScriptBaseClass.LINK_ALL_OTHERS:
                 if (m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
                 ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
@@ -186,7 +186,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     ret.Remove(m_host);
                 return ret;
 
-            case BuiltIn_Commands_BaseClass.LINK_ALL_CHILDREN:
+            case ScriptBaseClass.LINK_ALL_CHILDREN:
                 if (m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
                 ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
@@ -194,7 +194,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     ret.Remove(m_host.ParentGroup.RootPart);
                 return ret;
 
-            case BuiltIn_Commands_BaseClass.LINK_THIS:
+            case ScriptBaseClass.LINK_THIS:
                 return ret;
 
             default:
@@ -1085,7 +1085,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             int statusrotationaxis = 0;
 
-            if ((status & BuiltIn_Commands_BaseClass.STATUS_PHYSICS) == BuiltIn_Commands_BaseClass.STATUS_PHYSICS)
+            if ((status & ScriptBaseClass.STATUS_PHYSICS) == ScriptBaseClass.STATUS_PHYSICS)
             {
                 if (value == 1)
                 {
@@ -1110,7 +1110,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     m_host.ScriptSetPhysicsStatus(false);
             }
 
-            if ((status & BuiltIn_Commands_BaseClass.STATUS_PHANTOM) == BuiltIn_Commands_BaseClass.STATUS_PHANTOM)
+            if ((status & ScriptBaseClass.STATUS_PHANTOM) == ScriptBaseClass.STATUS_PHANTOM)
             {
                 if (value == 1)
                     m_host.ScriptSetPhantomStatus(true);
@@ -1118,32 +1118,32 @@ namespace OpenSim.Region.ScriptEngine.Common
                     m_host.ScriptSetPhantomStatus(false);
             }
 
-            if ((status & BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS) == BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS)
+            if ((status & ScriptBaseClass.STATUS_CAST_SHADOWS) == ScriptBaseClass.STATUS_CAST_SHADOWS)
             {
                 m_host.AddFlag(PrimFlags.CastShadows);
             }
 
-            if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_X) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_X)
+            if ((status & ScriptBaseClass.STATUS_ROTATE_X) == ScriptBaseClass.STATUS_ROTATE_X)
             {
-                statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_X;
+                statusrotationaxis |= ScriptBaseClass.STATUS_ROTATE_X;
             }
 
-            if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y)
+            if ((status & ScriptBaseClass.STATUS_ROTATE_Y) == ScriptBaseClass.STATUS_ROTATE_Y)
             {
-                statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y;
+                statusrotationaxis |= ScriptBaseClass.STATUS_ROTATE_Y;
             }
 
-            if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z)
+            if ((status & ScriptBaseClass.STATUS_ROTATE_Z) == ScriptBaseClass.STATUS_ROTATE_Z)
             {
-                statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z;
+                statusrotationaxis |= ScriptBaseClass.STATUS_ROTATE_Z;
             }
 
-            if ((status & BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB) == BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB)
+            if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB) == ScriptBaseClass.STATUS_BLOCK_GRAB)
             {
                 NotImplemented("llSetStatus - STATUS_BLOCK_GRAB");
             }
 
-            if ((status & BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE) == BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE)
+            if ((status & ScriptBaseClass.STATUS_DIE_AT_EDGE) == ScriptBaseClass.STATUS_DIE_AT_EDGE)
             {
                 if (value == 1)
                     m_host.SetDieAtEdge(true);
@@ -1151,12 +1151,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                     m_host.SetDieAtEdge(false);
             }
 
-            if ((status & BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE) == BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE)
+            if ((status & ScriptBaseClass.STATUS_RETURN_AT_EDGE) == ScriptBaseClass.STATUS_RETURN_AT_EDGE)
             {
                 NotImplemented("llSetStatus - STATUS_RETURN_AT_EDGE");
             }
 
-            if ((status & BuiltIn_Commands_BaseClass.STATUS_SANDBOX) == BuiltIn_Commands_BaseClass.STATUS_SANDBOX)
+            if ((status & ScriptBaseClass.STATUS_SANDBOX) == ScriptBaseClass.STATUS_SANDBOX)
             {
                 NotImplemented("llSetStatus - STATUS_SANDBOX");
             }
@@ -1173,54 +1173,54 @@ namespace OpenSim.Region.ScriptEngine.Common
             // Console.WriteLine(m_host.ToString() + " status is " + m_host.GetEffectiveObjectFlags().ToString());
             switch (status)
             {
-                case BuiltIn_Commands_BaseClass.STATUS_PHYSICS:
+                case ScriptBaseClass.STATUS_PHYSICS:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == (uint)PrimFlags.Physics)
                     {
                         return 1;
                     }
                     return 0;
 
-                case BuiltIn_Commands_BaseClass.STATUS_PHANTOM:
+                case ScriptBaseClass.STATUS_PHANTOM:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) == (uint)PrimFlags.Phantom)
                     {
                         return 1;
                     }
                     return 0;
 
-                case BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS:
+                case ScriptBaseClass.STATUS_CAST_SHADOWS:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.CastShadows) == (uint)PrimFlags.CastShadows)
                     {
                         return 1;
                     }
                     return 0;
 
-                case BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB:
+                case ScriptBaseClass.STATUS_BLOCK_GRAB:
                     NotImplemented("llGetStatus - STATUS_BLOCK_GRAB");
                     return 0;
 
-                case BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE:
+                case ScriptBaseClass.STATUS_DIE_AT_EDGE:
                     if (m_host.GetDieAtEdge())
                         return 1;
                     else
                         return 0;
 
-                case BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE:
+                case ScriptBaseClass.STATUS_RETURN_AT_EDGE:
                     NotImplemented("llGetStatus - STATUS_RETURN_AT_EDGE");
                     return 0;
 
-                case BuiltIn_Commands_BaseClass.STATUS_ROTATE_X:
+                case ScriptBaseClass.STATUS_ROTATE_X:
                     NotImplemented("llGetStatus - STATUS_ROTATE_X");
                     return 0;
 
-                case BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y:
+                case ScriptBaseClass.STATUS_ROTATE_Y:
                     NotImplemented("llGetStatus - STATUS_ROTATE_Y");
                     return 0;
 
-                case BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z:
+                case ScriptBaseClass.STATUS_ROTATE_Z:
                     NotImplemented("llGetStatus - STATUS_ROTATE_Z");
                     return 0;
 
-                case BuiltIn_Commands_BaseClass.STATUS_SANDBOX:
+                case ScriptBaseClass.STATUS_SANDBOX:
                     NotImplemented("llGetStatus - STATUS_SANDBOX");
                     return 0;
             }
@@ -1297,7 +1297,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            else if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (uint i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1330,7 +1330,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            else if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (uint i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1378,7 +1378,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            else if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (uint i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1405,7 +1405,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                  part.UpdateTexture(tex);
                  return;
              }
-             else if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+             else if (face == ScriptBaseClass.ALL_SIDES)
              {
                  for (uint i = 0; i < GetNumberOfSides(part); i++)
                  {
@@ -1429,7 +1429,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         private LSL_Float GetAlpha(SceneObjectPart part, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
                 int i;
                 double sum = 0.0;
@@ -1463,7 +1463,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            else if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (int i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1589,7 +1589,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
             LSL_Vector rgb = new LSL_Vector();
-            if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
                 int i;
 
@@ -1650,7 +1650,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            else if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (uint i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1685,7 +1685,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (int i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1721,7 +1721,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (int i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1756,7 +1756,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
                 for (int i = 0; i < GetNumberOfSides(part); i++)
                 {
@@ -1780,7 +1780,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         private LSL_String GetTexture(SceneObjectPart part, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
                 face = 0;
             }
@@ -2379,7 +2379,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
                 return 0;
 
-            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_DEBIT) == 0)
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
             {
                 LSLError("No permissions to give money");
                 return 0;
@@ -2559,7 +2559,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 if (presence != null)
                 {
-                    if ((m_host.TaskInventory[InventorySelf()].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) != 0)
+                    if ((m_host.TaskInventory[InventorySelf()].PermsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                     {
                         presence.RegisterControlEventsToScript(controls, accept, pass_on, m_localID, m_itemID);
 
@@ -2585,12 +2585,12 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 if (presence != null)
                 {
-                    if ((m_host.TaskInventory[InventorySelf()].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) != 0)
+                    if ((m_host.TaskInventory[InventorySelf()].PermsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                     {
                         // Unregister controls from Presence
                         presence.UnRegisterControlEventsToScript(m_localID, m_itemID);
                         // Remove Take Control permission.
-                        m_host.TaskInventory[InventorySelf()].PermsMask &= ~BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS;
+                        m_host.TaskInventory[InventorySelf()].PermsMask &= ~ScriptBaseClass.PERMISSION_TAKE_CONTROLS;
                     }
                 }
             }
@@ -2763,7 +2763,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
                 return;
 
-            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
             {
                 ScenePresence presence = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
 
@@ -2790,7 +2790,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
                 return;
 
-            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
             {
                 UUID animID = new UUID();
 
@@ -2872,7 +2872,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return;
             }
 
-            if ( m_host.TaskInventory[invItemID].PermsGranter != agentID || (perm & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) == 0)
+            if ( m_host.TaskInventory[invItemID].PermsGranter != agentID || (perm & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
                 llReleaseControls();
 
             m_host.AddScriptLPS(1);
@@ -2880,10 +2880,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (m_host.ParentGroup.RootPart.IsAttachment && agent == m_host.ParentGroup.RootPart.AttachedAvatar)
             {
                 // When attached, certain permissions are implicit if requested from owner
-                int implicitPerms = BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS |
-                        BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION |
-                        BuiltIn_Commands_BaseClass.PERMISSION_CONTROL_CAMERA |
-                        BuiltIn_Commands_BaseClass.PERMISSION_ATTACH;
+                int implicitPerms = ScriptBaseClass.PERMISSION_TAKE_CONTROLS |
+                        ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
+                        ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
+                        ScriptBaseClass.PERMISSION_ATTACH;
 
                 if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
                 {
@@ -2901,9 +2901,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             else if (m_host.SitTargetAvatar == agentID) // Sitting avatar
             {
                 // When agent is sitting, certain permissions are implicit if requested from sitting agent
-                int implicitPerms = BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION |
-                        BuiltIn_Commands_BaseClass.PERMISSION_CONTROL_CAMERA |
-                        BuiltIn_Commands_BaseClass.PERMISSION_TRACK_CAMERA;
+                int implicitPerms = ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
+                        ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
+                        ScriptBaseClass.PERMISSION_TRACK_CAMERA;
 
                 if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
                 {
@@ -2959,7 +2959,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             client.OnScriptAnswer-=handleScriptAnswer;
             m_waitingForScriptAnswer=false;
 
-            if ((answer & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) == 0)
+            if ((answer & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
                 llReleaseControls();
 
             m_host.TaskInventory[invItemID].PermsMask=answer;
@@ -3111,7 +3111,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             UUID invItemID = InventorySelf();
-            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_CHANGE_LINKS) == 0) {
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0) {
               ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
               return;
             }
@@ -3147,23 +3147,23 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             UUID invItemID = InventorySelf();
-            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_CHANGE_LINKS) == 0)
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0)
             {
                 ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
                 return;
             }
-            if (linknum < BuiltIn_Commands_BaseClass.LINK_THIS)
+            if (linknum < ScriptBaseClass.LINK_THIS)
                 return;
             SceneObjectGroup parentPrim = m_host.ParentGroup;
             SceneObjectPart childPrim = null;
             switch (linknum)
             {
-                case BuiltIn_Commands_BaseClass.LINK_ROOT:
+                case ScriptBaseClass.LINK_ROOT:
                     break;
-                case BuiltIn_Commands_BaseClass.LINK_SET:
-                case BuiltIn_Commands_BaseClass.LINK_ALL_OTHERS:
-                case BuiltIn_Commands_BaseClass.LINK_ALL_CHILDREN:
-                case BuiltIn_Commands_BaseClass.LINK_THIS:
+                case ScriptBaseClass.LINK_SET:
+                case ScriptBaseClass.LINK_ALL_OTHERS:
+                case ScriptBaseClass.LINK_ALL_CHILDREN:
+                case ScriptBaseClass.LINK_THIS:
                     foreach (SceneObjectPart part in parentPrim.Children.Values)
                     {
                         if (part.UUID != m_host.UUID)
@@ -3179,7 +3179,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         childPrim = null;
                     break;
             }
-            if (linknum == BuiltIn_Commands_BaseClass.LINK_ROOT)
+            if (linknum == ScriptBaseClass.LINK_ROOT)
             {
                 // Restructuring Multiple Prims.
                 List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
@@ -3423,24 +3423,24 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             switch (data)
             {
-            case BuiltIn_Commands_BaseClass.DATA_ONLINE: // DATA_ONLINE (0|1)
+            case ScriptBaseClass.DATA_ONLINE: // DATA_ONLINE (0|1)
                 if (userProfile.CurrentAgent.AgentOnline)
                     reply = "1";
                 else
                     reply = "0";
                 break;
-            case BuiltIn_Commands_BaseClass.DATA_NAME: // DATA_NAME (First Last)
+            case ScriptBaseClass.DATA_NAME: // DATA_NAME (First Last)
                 reply = userProfile.FirstName + " " + userProfile.SurName;
                 break;
-            case BuiltIn_Commands_BaseClass.DATA_BORN: // DATA_BORN (YYYY-MM-DD)
+            case ScriptBaseClass.DATA_BORN: // DATA_BORN (YYYY-MM-DD)
                 DateTime born = new DateTime(1970, 1, 1, 0, 0, 0, 0);
                 born = born.AddSeconds(userProfile.Created);
                 reply = born.ToString("yyyy-MM-dd");
                 break;
-            case BuiltIn_Commands_BaseClass.DATA_RATING: // DATA_RATING (0,0,0,0,0,0)
+            case ScriptBaseClass.DATA_RATING: // DATA_RATING (0,0,0,0,0,0)
                 reply = "0,0,0,0,0,0";
                 break;
-            case BuiltIn_Commands_BaseClass.DATA_PAYINFO: // DATA_PAYINFO (0|1|2|3)
+            case ScriptBaseClass.DATA_PAYINFO: // DATA_PAYINFO (0|1|2|3)
                 reply = "0";
                 break;
             default:
@@ -3569,7 +3569,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             switch ((int)linknum)
             {
 
-                case (int)BuiltIn_Commands_BaseClass.LINK_ROOT:
+                case (int)ScriptBaseClass.LINK_ROOT:
 
                     SceneObjectPart part = m_host.ParentGroup.RootPart;
 
@@ -3593,7 +3593,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     break;
 
-                case (int)BuiltIn_Commands_BaseClass.LINK_SET:
+                case (int)ScriptBaseClass.LINK_SET:
 
                     foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
                     {
@@ -3618,7 +3618,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     break;
 
-                case (int)BuiltIn_Commands_BaseClass.LINK_ALL_OTHERS:
+                case (int)ScriptBaseClass.LINK_ALL_OTHERS:
 
                     foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
                     {
@@ -3648,7 +3648,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     break;
 
-                case (int)BuiltIn_Commands_BaseClass.LINK_ALL_CHILDREN:
+                case (int)ScriptBaseClass.LINK_ALL_CHILDREN:
 
                     foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
                     {
@@ -3678,7 +3678,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     break;
 
-                case (int)BuiltIn_Commands_BaseClass.LINK_THIS:
+                case (int)ScriptBaseClass.LINK_THIS:
 
                     foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
                     {
@@ -3774,46 +3774,46 @@ namespace OpenSim.Region.ScriptEngine.Common
         private int getScriptPrimType(PrimitiveBaseShape primShape)
         {
             if (primShape.SculptEntry)
-                return BuiltIn_Commands_BaseClass.PRIM_TYPE_SCULPT;
+                return ScriptBaseClass.PRIM_TYPE_SCULPT;
             if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
             {
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
-                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX;
+                    return ScriptBaseClass.PRIM_TYPE_BOX;
                 else if (primShape.PathCurve == (byte)Extrusion.Curve1)
-                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_TUBE;
+                    return ScriptBaseClass.PRIM_TYPE_TUBE;
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
             {
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
-                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER;
+                    return ScriptBaseClass.PRIM_TYPE_CYLINDER;
                 // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
                 else if (primShape.PathCurve == (byte)Extrusion.Curve1)
-                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_TORUS;
+                    return ScriptBaseClass.PRIM_TYPE_TORUS;
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
             {
                 if (primShape.PathCurve == (byte)Extrusion.Curve1 || primShape.PathCurve == (byte)Extrusion.Curve2)
-                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_SPHERE;
+                    return ScriptBaseClass.PRIM_TYPE_SPHERE;
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
             {
                 if (primShape.PathCurve == (byte)Extrusion.Straight)
-                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM;
+                    return ScriptBaseClass.PRIM_TYPE_PRISM;
                 else if (primShape.PathCurve == (byte)Extrusion.Curve1)
-                    return BuiltIn_Commands_BaseClass.PRIM_TYPE_RING;
+                    return ScriptBaseClass.PRIM_TYPE_RING;
             }
-            return BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX;
+            return ScriptBaseClass.PRIM_TYPE_BOX;
         }
 
         // Helper functions to understand if object has cut, hollow, dimple, and other affecting number of faces
         private void hasCutHollowDimpleProfileCut(int primType, PrimitiveBaseShape shape, out bool hasCut, out bool hasHollow,
             out bool hasDimple, out bool hasProfileCut)
         {
-            if (primType == BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX
+            if (primType == ScriptBaseClass.PRIM_TYPE_BOX
                 ||
-                primType == BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER
+                primType == ScriptBaseClass.PRIM_TYPE_CYLINDER
                 ||
-                primType == BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM)
+                primType == ScriptBaseClass.PRIM_TYPE_PRISM)
 
                 hasCut = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0);
             else
@@ -3844,46 +3844,46 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             switch (primType)
             {
-                case BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX:
+                case ScriptBaseClass.PRIM_TYPE_BOX:
                     ret = 6;
                     if (hasCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
-                case BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER:
+                case ScriptBaseClass.PRIM_TYPE_CYLINDER:
                     ret = 3;
                     if (hasCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
-                case BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM:
+                case ScriptBaseClass.PRIM_TYPE_PRISM:
                     ret = 5;
                     if (hasCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
-                case BuiltIn_Commands_BaseClass.PRIM_TYPE_SPHERE:
+                case ScriptBaseClass.PRIM_TYPE_SPHERE:
                     ret = 1;
                     if (hasCut) ret += 2;
                     if (hasDimple) ret += 2;
                     if (hasHollow) ret += 3; // Emulate lsl on secondlife (according to documentation it should have added only +1)
                     break;
-                case BuiltIn_Commands_BaseClass.PRIM_TYPE_TORUS:
+                case ScriptBaseClass.PRIM_TYPE_TORUS:
                     ret = 1;
                     if (hasCut) ret += 2;
                     if (hasProfileCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
-                case BuiltIn_Commands_BaseClass.PRIM_TYPE_TUBE:
+                case ScriptBaseClass.PRIM_TYPE_TUBE:
                     ret = 4;
                     if (hasCut) ret += 2;
                     if (hasProfileCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
-                case BuiltIn_Commands_BaseClass.PRIM_TYPE_RING:
+                case ScriptBaseClass.PRIM_TYPE_RING:
                     ret = 3;
                     if (hasCut) ret += 2;
                     if (hasProfileCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
-                case BuiltIn_Commands_BaseClass.PRIM_TYPE_SCULPT:
+                case ScriptBaseClass.PRIM_TYPE_SCULPT:
                     ret = 1;
                     break;
             }
@@ -4074,7 +4074,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
             LSL_Vector offset = new LSL_Vector();
-            if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+            if (face == ScriptBaseClass.ALL_SIDES)
             {
                 face = 0;
             }
@@ -4944,7 +4944,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             LSL_Vector agentSize;
             if (avatar == null)
             {
-                agentSize = BuiltIn_Commands_BaseClass.ZERO_VECTOR;
+                agentSize = ScriptBaseClass.ZERO_VECTOR;
             }
             else
             {
@@ -5175,23 +5175,23 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     switch ((int)rules.Data[i])
                     {
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_FLAGS:
+                        case (int)ScriptBaseClass.PSYS_PART_FLAGS:
                             prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)((uint)Convert.ToInt32(rules.Data[i + 1].ToString()));
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_COLOR:
+                        case (int)ScriptBaseClass.PSYS_PART_START_COLOR:
                             tempv = (LSL_Vector)rules.Data[i + 1];
                             prules.PartStartColor.R = (float)tempv.x;
                             prules.PartStartColor.G = (float)tempv.y;
                             prules.PartStartColor.B = (float)tempv.z;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_ALPHA:
+                        case (int)ScriptBaseClass.PSYS_PART_START_ALPHA:
                             tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                             prules.PartStartColor.A = (float)tempf;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_COLOR:
+                        case (int)ScriptBaseClass.PSYS_PART_END_COLOR:
                             tempv = (LSL_Vector)rules.Data[i + 1];
                             //prules.PartEndColor = new Color4(tempv.x,tempv.y,tempv.z,1);
 
@@ -5200,36 +5200,36 @@ namespace OpenSim.Region.ScriptEngine.Common
                             prules.PartEndColor.B = (float)tempv.z;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_ALPHA:
+                        case (int)ScriptBaseClass.PSYS_PART_END_ALPHA:
                             tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                             prules.PartEndColor.A = (float)tempf;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_START_SCALE:
+                        case (int)ScriptBaseClass.PSYS_PART_START_SCALE:
                             tempv = (LSL_Vector)rules.Data[i + 1];
                             prules.PartStartScaleX = (float)tempv.x;
                             prules.PartStartScaleY = (float)tempv.y;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_SCALE:
+                        case (int)ScriptBaseClass.PSYS_PART_END_SCALE:
                             tempv = (LSL_Vector)rules.Data[i + 1];
                             prules.PartEndScaleX = (float)tempv.x;
                             prules.PartEndScaleY = (float)tempv.y;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_PART_MAX_AGE:
+                        case (int)ScriptBaseClass.PSYS_PART_MAX_AGE:
                             tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                             prules.PartMaxAge = (float)tempf;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ACCEL:
+                        case (int)ScriptBaseClass.PSYS_SRC_ACCEL:
                             tempv = (LSL_Vector)rules.Data[i + 1];
                             prules.PartAcceleration.X = (float)tempv.x;
                             prules.PartAcceleration.Y = (float)tempv.y;
                             prules.PartAcceleration.Z = (float)tempv.z;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_PATTERN:
+                        case (int)ScriptBaseClass.PSYS_SRC_PATTERN:
                             int tmpi = int.Parse(rules.Data[i + 1].ToString());
                             prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                             break;
@@ -5238,40 +5238,40 @@ namespace OpenSim.Region.ScriptEngine.Common
                         // Wiki:    PSYS_SRC_TEXTURE      string      inventory item name or key of the particle texture
                         //          "" = default texture.
                         // 20080530 Updated to remove code duplication
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TEXTURE:
+                        case (int)ScriptBaseClass.PSYS_SRC_TEXTURE:
                             prules.Texture = KeyOrName(rules.Data[i + 1].ToString());
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RATE:
+                        case (int)ScriptBaseClass.PSYS_SRC_BURST_RATE:
                             tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                             prules.BurstRate = (float)tempf;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_PART_COUNT:
+                        case (int)ScriptBaseClass.PSYS_SRC_BURST_PART_COUNT:
                             prules.BurstPartCount = (byte)Convert.ToByte(rules.Data[i + 1].ToString());
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RADIUS:
+                        case (int)ScriptBaseClass.PSYS_SRC_BURST_RADIUS:
                             tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                             prules.BurstRadius = (float)tempf;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_SPEED_MIN:
+                        case (int)ScriptBaseClass.PSYS_SRC_BURST_SPEED_MIN:
                             tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                             prules.BurstSpeedMin = (float)tempf;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_SPEED_MAX:
+                        case (int)ScriptBaseClass.PSYS_SRC_BURST_SPEED_MAX:
                             tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                             prules.BurstSpeedMax = (float)tempf;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_MAX_AGE:
+                        case (int)ScriptBaseClass.PSYS_SRC_MAX_AGE:
                             tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
                             prules.MaxAge = (float)tempf;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TARGET_KEY:
+                        case (int)ScriptBaseClass.PSYS_SRC_TARGET_KEY:
                             UUID key = UUID.Zero;
                             if (UUID.TryParse(rules.Data[i + 1].ToString(), out key))
                             {
@@ -5283,7 +5283,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                             }
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_OMEGA:
+                        case (int)ScriptBaseClass.PSYS_SRC_OMEGA:
                             // AL: This is an assumption, since it is the only thing that would match.
                             tempv = rules.GetVector3Item(i + 1);
                             prules.AngularVelocity.X = (float)tempv.x;
@@ -5291,12 +5291,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                             prules.AngularVelocity.Z = (float)tempv.z;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ANGLE_BEGIN:
+                        case (int)ScriptBaseClass.PSYS_SRC_ANGLE_BEGIN:
                             tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.InnerAngle = (float)tempf;
                             break;
 
-                        case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_ANGLE_END:
+                        case (int)ScriptBaseClass.PSYS_SRC_ANGLE_END:
                             tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.OuterAngle = (float)tempf;
                             break;
@@ -5700,12 +5700,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             ObjectShapePacket.ObjectDataBlock shapeBlock = new ObjectShapePacket.ObjectDataBlock();
 
-            if (holeshape != (int)BuiltIn_Commands_BaseClass.PRIM_HOLE_DEFAULT &&
-                holeshape != (int)BuiltIn_Commands_BaseClass.PRIM_HOLE_CIRCLE &&
-                holeshape != (int)BuiltIn_Commands_BaseClass.PRIM_HOLE_SQUARE &&
-                holeshape != (int)BuiltIn_Commands_BaseClass.PRIM_HOLE_TRIANGLE)
+            if (holeshape != (int)ScriptBaseClass.PRIM_HOLE_DEFAULT &&
+                holeshape != (int)ScriptBaseClass.PRIM_HOLE_CIRCLE &&
+                holeshape != (int)ScriptBaseClass.PRIM_HOLE_SQUARE &&
+                holeshape != (int)ScriptBaseClass.PRIM_HOLE_TRIANGLE)
             {
-                holeshape = (int)BuiltIn_Commands_BaseClass.PRIM_HOLE_DEFAULT;
+                holeshape = (int)ScriptBaseClass.PRIM_HOLE_DEFAULT;
             }
             shapeBlock.ProfileCurve = (byte)holeshape;
             if (cut.x < 0f)
@@ -5990,13 +5990,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             shapeBlock.PathScaleX = 100;
             shapeBlock.PathScaleY = 150;
 
-            if (type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_CYLINDER &&
-                type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_PLANE &&
-                type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_SPHERE &&
-                type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_TORUS)
+            if (type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_CYLINDER &&
+                type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_PLANE &&
+                type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE &&
+                type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_TORUS)
             {
                 // default
-                type = (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_SPHERE;
+                type = (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE;
             }
 
             // retain pathcurve
@@ -6037,7 +6037,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 switch (code)
                 {
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_POSITION:
+                    case (int)ScriptBaseClass.PRIM_POSITION:
                         if (remain < 1)
                             return;
 
@@ -6045,7 +6045,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetPos(part, v);
 
                         break;
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_SIZE:
+                    case (int)ScriptBaseClass.PRIM_SIZE:
                         if (remain < 1)
                             return;
 
@@ -6053,7 +6053,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetScale(part, v);
 
                         break;
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_ROTATION:
+                    case (int)ScriptBaseClass.PRIM_ROTATION:
                         if (remain < 1)
                             return;
 
@@ -6062,7 +6062,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE:
+                    case (int)ScriptBaseClass.PRIM_TYPE:
                         if (remain < 3)
                             return;
 
@@ -6081,7 +6081,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                         switch (code)
                         {
-                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX:
+                            case (int)ScriptBaseClass.PRIM_TYPE_BOX:
                                 if (remain < 6)
                                     return;
 
@@ -6095,7 +6095,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear, 1);
                                 break;
 
-                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER:
+                            case (int)ScriptBaseClass.PRIM_TYPE_CYLINDER:
                                 if (remain < 6)
                                     return;
 
@@ -6110,7 +6110,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear, 0);
                                 break;
 
-                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM:
+                            case (int)ScriptBaseClass.PRIM_TYPE_PRISM:
                                 if (remain < 6)
                                     return;
 
@@ -6124,7 +6124,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear, 3);
                                 break;
 
-                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_SPHERE:
+                            case (int)ScriptBaseClass.PRIM_TYPE_SPHERE:
                                 if (remain < 5)
                                     return;
 
@@ -6137,7 +6137,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, 5);
                                 break;
 
-                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_TORUS:
+                            case (int)ScriptBaseClass.PRIM_TYPE_TORUS:
                                 if (remain < 11)
                                     return;
 
@@ -6156,7 +6156,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 0);
                                 break;
 
-                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_TUBE:
+                            case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
                                 if (remain < 11)
                                     return;
 
@@ -6175,7 +6175,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 1);
                                 break;
 
-                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_RING:
+                            case (int)ScriptBaseClass.PRIM_TYPE_RING:
                                 if (remain < 11)
                                     return;
 
@@ -6194,7 +6194,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 3);
                                 break;
 
-                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_SCULPT:
+                            case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
                                 if (remain < 2)
                                     return;
 
@@ -6207,7 +6207,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_TEXTURE:
+                    case (int)ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 5)
                             return;
 
@@ -6224,7 +6224,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_COLOR:
+                    case (int)ScriptBaseClass.PRIM_COLOR:
                         if (remain < 3)
                             return;
 
@@ -6236,7 +6236,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetAlpha(part, alpha, face);
 
                         break;
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_FLEXIBLE:
+                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
                         if (remain < 7)
                             return;
 
@@ -6251,7 +6251,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetFlexi(part, flexi, softness, gravity, friction, wind, tension, force);
 
                         break;
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_POINT_LIGHT:
+                    case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
                         if (remain < 5)
                             return;
                         bool light = rules.GetLSLIntegerItem(idx++);
@@ -6263,7 +6263,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetPointLight(part, light, lightcolor, intensity, radius, falloff);
 
                         break;
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_GLOW:
+                    case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 2)
                             return;
                         face = rules.GetLSLIntegerItem(idx++);
@@ -6272,7 +6272,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetGlow(part, face, glow);
 
                         break;
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_BUMP_SHINY:
+                    case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 3)
                             return;
                         face = (int)rules.GetLSLIntegerItem(idx++);
@@ -6282,14 +6282,14 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetShiny(part, face, shiny, bump);
 
                         break;
-                      case (int)BuiltIn_Commands_BaseClass.PRIM_FULLBRIGHT:
+                      case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                          if (remain < 2)
                              return;
                          face = rules.GetLSLIntegerItem(idx++);
                          bool st = rules.GetLSLIntegerItem(idx++);
                          SetFullBright(part, face , st);
                          break;
-                      case (int)BuiltIn_Commands_BaseClass.PRIM_MATERIAL:
+                      case (int)ScriptBaseClass.PRIM_MATERIAL:
                          if (remain < 1)
                              return;
                         if (part != null)
@@ -6302,7 +6302,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                             return;
                         }
                         break;
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_PHANTOM:
+                    case (int)ScriptBaseClass.PRIM_PHANTOM:
                         if (remain < 1)
                              return;
 
@@ -6317,7 +6317,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                          part.ScriptSetPhantomStatus(phantom);
                         part.ScheduleFullUpdate();
                         break;
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_PHYSICS:
+                    case (int)ScriptBaseClass.PRIM_PHYSICS:
                         if (remain < 1)
                              return;
                          string phy = rules.Data[idx++].ToString();
@@ -6478,7 +6478,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     part.UpdateTexture(tex);
                     return;
                 }
-                else if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+                else if (face == ScriptBaseClass.ALL_SIDES)
                 {
                     texcolor = tex.DefaultTexture.RGBA;
                     texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
@@ -6571,60 +6571,60 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 switch (code)
                 {
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_MATERIAL:
+                    case (int)ScriptBaseClass.PRIM_MATERIAL:
                         res.Add(new LSL_Integer(m_host.Material));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_PHYSICS:
+                    case (int)ScriptBaseClass.PRIM_PHYSICS:
                         if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) != 0)
                             res.Add(new LSL_Integer(1));
                         else
                             res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_TEMP_ON_REZ:
+                    case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
                         if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) != 0)
                             res.Add(new LSL_Integer(1));
                         else
                             res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_PHANTOM:
+                    case (int)ScriptBaseClass.PRIM_PHANTOM:
                         if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0)
                             res.Add(new LSL_Integer(1));
                         else
                             res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_POSITION:
+                    case (int)ScriptBaseClass.PRIM_POSITION:
                         res.Add(new LSL_Vector(m_host.AbsolutePosition.X,
                                                       m_host.AbsolutePosition.Y,
                                                       m_host.AbsolutePosition.Z));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_SIZE:
+                    case (int)ScriptBaseClass.PRIM_SIZE:
                         res.Add(new LSL_Vector(m_host.Scale.X,
                                                       m_host.Scale.Y,
                                                       m_host.Scale.Z));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_ROTATION:
+                    case (int)ScriptBaseClass.PRIM_ROTATION:
                         res.Add(new LSL_Rotation(m_host.RotationOffset.X,
                                                          m_host.RotationOffset.Y,
                                                          m_host.RotationOffset.Z,
                                                          m_host.RotationOffset.W));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE:
+                    case (int)ScriptBaseClass.PRIM_TYPE:
                         // implementing box
                         PrimitiveBaseShape Shape = m_host.Shape;
                         int primType = getScriptPrimType(m_host.Shape);
                         res.Add(new LSL_Integer(primType));
                         switch (primType)
                         {
-                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX:
-                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER:
-                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM:
+                            case ScriptBaseClass.PRIM_TYPE_BOX:
+                            case ScriptBaseClass.PRIM_TYPE_CYLINDER:
+                            case ScriptBaseClass.PRIM_TYPE_PRISM:
                                 res.Add(new LSL_Integer(Shape.ProfileCurve));
                                 res.Add(new LSL_Vector(Shape.ProfileBegin / 50000.0, 1 - Shape.ProfileEnd / 50000.0, 0));
                                 res.Add(new LSL_Float(Shape.ProfileHollow / 50000.0));
@@ -6633,7 +6633,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 res.Add(new LSL_Vector(Shape.PathShearX / 100.0, Shape.PathShearY / 100.0, 0));
                                 break;
 
-                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_SPHERE:
+                            case ScriptBaseClass.PRIM_TYPE_SPHERE:
                                 res.Add(new LSL_Integer(Shape.ProfileCurve));
                                 res.Add(new LSL_Vector(Shape.PathBegin / 50000.0, 1 - Shape.PathEnd / 50000.0, 0));
                                 res.Add(new LSL_Float(Shape.ProfileHollow / 50000.0));
@@ -6641,14 +6641,14 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 res.Add(new LSL_Vector(Shape.ProfileBegin / 50000.0, 1 - Shape.ProfileEnd / 50000.0, 0));
                                 break;
 
-                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_SCULPT:
+                            case ScriptBaseClass.PRIM_TYPE_SCULPT:
                                 res.Add(Shape.SculptTexture.ToString());
                                 res.Add(new LSL_Integer(Shape.SculptType));
                                 break;
 
-                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_RING:
-                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_TUBE:
-                            case BuiltIn_Commands_BaseClass.PRIM_TYPE_TORUS:
+                            case ScriptBaseClass.PRIM_TYPE_RING:
+                            case ScriptBaseClass.PRIM_TYPE_TUBE:
+                            case ScriptBaseClass.PRIM_TYPE_TORUS:
                                 // holeshape
                                 res.Add(new LSL_Integer(Shape.ProfileCurve));
 
@@ -6687,13 +6687,13 @@ namespace OpenSim.Region.ScriptEngine.Common
                         }
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_TEXTURE:
+                    case (int)ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
                             return res;
 
                         int face = (int)rules.GetLSLIntegerItem(idx++);
                         Primitive.TextureEntry tex = m_host.Shape.Textures;
-                        if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+                        if (face == ScriptBaseClass.ALL_SIDES)
                         {
                             for (face = 0 ; face < GetNumberOfSides(m_host) ; face++)
                             {
@@ -6727,7 +6727,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         }
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_COLOR:
+                    case (int)ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
                             return res;
 
@@ -6735,7 +6735,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                         tex = m_host.Shape.Textures;
                         Color4 texcolor;
-                        if (face == BuiltIn_Commands_BaseClass.ALL_SIDES)
+                        if (face == ScriptBaseClass.ALL_SIDES)
                         {
                             for (face = 0 ; face < GetNumberOfSides(m_host) ; face++)
                             {
@@ -6756,7 +6756,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         }
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_BUMP_SHINY:
+                    case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         // TODO--------------
                         if (remain < 1)
                             return res;
@@ -6767,7 +6767,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_FULLBRIGHT:
+                    case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                         // TODO--------------
                         if (remain < 1)
                             return res;
@@ -6777,7 +6777,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_FLEXIBLE:
+                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
                         PrimitiveBaseShape shape = m_host.Shape;
 
                         if (shape.FlexiEntry)
@@ -6794,7 +6794,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                                       shape.FlexiForceZ));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_TEXGEN:
+                    case (int)ScriptBaseClass.PRIM_TEXGEN:
                         // TODO--------------
                         // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
@@ -6805,7 +6805,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_POINT_LIGHT:
+                    case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
                         shape = m_host.Shape;
 
                         if (shape.LightEntry)
@@ -6820,7 +6820,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         res.Add(new LSL_Float(shape.LightFalloff));   // falloff
                         break;
 
-                    case (int)BuiltIn_Commands_BaseClass.PRIM_GLOW:
+                    case (int)ScriptBaseClass.PRIM_GLOW:
                         // TODO--------------
                         if (remain < 1)
                             return res;
@@ -7285,27 +7285,27 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             int permmask = 0;
 
-            if (mask == BuiltIn_Commands_BaseClass.MASK_BASE)//0
+            if (mask == ScriptBaseClass.MASK_BASE)//0
             {
                 permmask = (int)m_host.BaseMask;
             }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_OWNER)//1
+            else if (mask == ScriptBaseClass.MASK_OWNER)//1
             {
                 permmask = (int)m_host.OwnerMask;
             }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_GROUP)//2
+            else if (mask == ScriptBaseClass.MASK_GROUP)//2
             {
                 permmask = (int)m_host.GroupMask;
             }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_EVERYONE)//3
+            else if (mask == ScriptBaseClass.MASK_EVERYONE)//3
             {
                 permmask = (int)m_host.EveryoneMask;
             }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_NEXT)//4
+            else if (mask == ScriptBaseClass.MASK_NEXT)//4
             {
                 permmask = (int)m_host.NextOwnerMask;
             }
@@ -7324,27 +7324,27 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 if (World.ExternalChecks.ExternalChecksCanRunConsoleCommand(m_host.OwnerID))
                 {
-                    if (mask == BuiltIn_Commands_BaseClass.MASK_BASE)//0
+                    if (mask == ScriptBaseClass.MASK_BASE)//0
                     {
                         m_host.BaseMask = (uint)value;
                     }
 
-                    else if (mask == BuiltIn_Commands_BaseClass.MASK_OWNER)//1
+                    else if (mask == ScriptBaseClass.MASK_OWNER)//1
                     {
                         m_host.OwnerMask = (uint)value;
                     }
 
-                    else if (mask == BuiltIn_Commands_BaseClass.MASK_GROUP)//2
+                    else if (mask == ScriptBaseClass.MASK_GROUP)//2
                     {
                         m_host.GroupMask = (uint)value;
                     }
 
-                    else if (mask == BuiltIn_Commands_BaseClass.MASK_EVERYONE)//3
+                    else if (mask == ScriptBaseClass.MASK_EVERYONE)//3
                     {
                         m_host.EveryoneMask = (uint)value;
                     }
 
-                    else if (mask == BuiltIn_Commands_BaseClass.MASK_NEXT)//4
+                    else if (mask == ScriptBaseClass.MASK_NEXT)//4
                     {
                         m_host.NextOwnerMask = (uint)value;
                     }
@@ -7767,7 +7767,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSL_Vector();
             if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
                return new LSL_Vector();
-            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRACK_CAMERA) == 0)
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
                 ShoutError("No permissions to track the camera");
                 return new LSL_Vector();
@@ -7913,7 +7913,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             // we need the permission first, to know which avatar we want to set the camera for
             UUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
             if (agentID == UUID.Zero) return;
-            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_CONTROL_CAMERA) == 0) return;
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CONTROL_CAMERA) == 0) return;
 
             ScenePresence presence = World.GetScenePresence(agentID);
 
@@ -7928,9 +7928,9 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 // some special cases: Vector parameters are split into 3 float parameters (with type+1, type+2, type+3)
                 switch (type) {
-                case BuiltIn_Commands_BaseClass.CAMERA_FOCUS:
-                case BuiltIn_Commands_BaseClass.CAMERA_FOCUS_OFFSET:
-                case BuiltIn_Commands_BaseClass.CAMERA_POSITION:
+                case ScriptBaseClass.CAMERA_FOCUS:
+                case ScriptBaseClass.CAMERA_FOCUS_OFFSET:
+                case ScriptBaseClass.CAMERA_POSITION:
                     LSL_Vector v = (LSL_Vector)data[i];
                     parameters.Add(type + 1, (float)v.x);
                     parameters.Add(type + 2, (float)v.y);
@@ -7964,7 +7964,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             // we need the permission first, to know which avatar we want to clear the camera for
             UUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
             if (agentID == UUID.Zero) return;
-            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_CONTROL_CAMERA) == 0) return;
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CONTROL_CAMERA) == 0) return;
 
             ScenePresence presence = World.GetScenePresence(agentID);
 
@@ -7980,27 +7980,27 @@ namespace OpenSim.Region.ScriptEngine.Common
             LSL_List nums = LSL_List.ToDoubleList(src);
             switch (operation)
             {
-                case BuiltIn_Commands_BaseClass.LIST_STAT_RANGE:
+                case ScriptBaseClass.LIST_STAT_RANGE:
                     return nums.Range();
-                case BuiltIn_Commands_BaseClass.LIST_STAT_MIN:
+                case ScriptBaseClass.LIST_STAT_MIN:
                     return nums.Min();
-                case BuiltIn_Commands_BaseClass.LIST_STAT_MAX:
+                case ScriptBaseClass.LIST_STAT_MAX:
                     return nums.Max();
-                case BuiltIn_Commands_BaseClass.LIST_STAT_MEAN:
+                case ScriptBaseClass.LIST_STAT_MEAN:
                     return nums.Mean();
-                case BuiltIn_Commands_BaseClass.LIST_STAT_MEDIAN:
+                case ScriptBaseClass.LIST_STAT_MEDIAN:
                     return nums.Median();
-                case BuiltIn_Commands_BaseClass.LIST_STAT_NUM_COUNT:
+                case ScriptBaseClass.LIST_STAT_NUM_COUNT:
                     return nums.NumericLength();
-                case BuiltIn_Commands_BaseClass.LIST_STAT_STD_DEV:
+                case ScriptBaseClass.LIST_STAT_STD_DEV:
                     return nums.StdDev();
-                case BuiltIn_Commands_BaseClass.LIST_STAT_SUM:
+                case ScriptBaseClass.LIST_STAT_SUM:
                     return nums.Sum();
-                case BuiltIn_Commands_BaseClass.LIST_STAT_SUM_SQUARES:
+                case ScriptBaseClass.LIST_STAT_SUM_SQUARES:
                     return nums.SumSqrs();
-                case BuiltIn_Commands_BaseClass.LIST_STAT_GEOMETRIC_MEAN:
+                case ScriptBaseClass.LIST_STAT_GEOMETRIC_MEAN:
                     return nums.GeometricMean();
-                case BuiltIn_Commands_BaseClass.LIST_STAT_HARMONIC_MEAN:
+                case ScriptBaseClass.LIST_STAT_HARMONIC_MEAN:
                     return nums.HarmonicMean();
                 default:
                     return 0.0;
@@ -8302,9 +8302,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_String llStringTrim(string src, int type)
         {
             m_host.AddScriptLPS(1);
-            if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM_HEAD) { return src.TrimStart(); }
-            if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM_TAIL) { return src.TrimEnd(); }
-            if (type == (int)BuiltIn_Commands_BaseClass.STRING_TRIM) { return src.Trim(); }
+            if (type == (int)ScriptBaseClass.STRING_TRIM_HEAD) { return src.TrimStart(); }
+            if (type == (int)ScriptBaseClass.STRING_TRIM_TAIL) { return src.TrimEnd(); }
+            if (type == (int)ScriptBaseClass.STRING_TRIM) { return src.Trim(); }
             return src;
         }
 
@@ -8403,7 +8403,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         internal void ShoutError(string msg)
         {
-            llShout(BuiltIn_Commands_BaseClass.DEBUG_CHANNEL, msg);
+            llShout(ScriptBaseClass.DEBUG_CHANNEL, msg);
         }
 
 
@@ -8478,7 +8478,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         m_localID, m_itemID, rq.ToString());
 
                     m_ScriptEngine.m_ASYNCLSLCommandManager.
-                        m_Dataserver.DataserverReply(rq.ToString(), BuiltIn_Commands_BaseClass.EOF);
+                        m_Dataserver.DataserverReply(rq.ToString(), ScriptBaseClass.EOF);
                     return tid.ToString();
                 }
             }

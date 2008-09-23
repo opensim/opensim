@@ -268,7 +268,7 @@ PrologCallback sayit(object ans)
 Generated CS Code
  ===================================
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog;using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;
-namespace SecondLife { public class Script : OpenSim.Region.ScriptEngine.Common.BuiltIn_Commands_BaseClass { 
+namespace SecondLife { public class Script : OpenSim.Region.ScriptEngine.Common.ScriptBaseClass { 
 static OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP YP=null;public Script() {  YP= new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP(); } 
 //cs
   public void default_event_touch_start(int N ) 
@@ -411,7 +411,7 @@ Generated CS Code
  ===================================
 
 using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog; using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;
-namespace SecondLife { public class Script : OpenSim.Region.ScriptEngine.Common.BuiltIn_Commands_BaseClass { 
+namespace SecondLife { public class Script : OpenSim.Region.ScriptEngine.Common.ScriptBaseClass { 
 static OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP YP=null; public Script() {  YP= new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP(); } 
 //cs
 
