@@ -357,10 +357,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             List<UUID> keylist = m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID);
 
-System.Console.WriteLine("==> got {0} keys", keylist.Count);
             if (!keylist.Contains(itemID)) // We don't manage that script
             {
-System.Console.WriteLine("==> Script not found");
                 return false;
             }
 
@@ -383,7 +381,6 @@ System.Console.WriteLine("==> Script not found");
 
                 // Add it to queue
                 eventQueue.Enqueue(QIS);
-System.Console.WriteLine("==> PostedEvent");
             }
             return true;
         }
