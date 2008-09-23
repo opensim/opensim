@@ -68,6 +68,5 @@
     <exec program="rsync" workingdir="../doc" commandline="-az - - delete html/ /home/afrisby/public_html/docs/html/" />
 -->
  <!-- ensure a clean checkout each time -->
-   <delete dir="../" />
   </target>
 </project>

@@ -49,14 +49,6 @@ namespace OpenSim.Data.SQLite.Tests
         public void Init()
         {
             SuperInit();
-            try
-            {
-                log4net.Config.XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
             
             file = Path.GetTempFileName() + ".db";
             connect = "URI=file:" + file + ",version=3";
