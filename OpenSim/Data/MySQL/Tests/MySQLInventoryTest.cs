@@ -43,24 +43,35 @@ namespace OpenSim.Data.MySQL.Tests
     public class MySQLInventoryTest : BasicInventoryTest
     {
         public string file;
-        public string connect;
+        public MySQLManager database;
+        public string connect = "Server=localhost;Port=3306;Database=opensim-nunit;User ID=opensim-nunit;Password=opensim-nunit;Pooling=false;";
         
         [TestFixtureSetUp]
         public void Init()
         {
             SuperInit();
-            
-            Assert.Ignore();
-            
-            file = Path.GetTempFileName() + ".db";
-            connect = "URI=file:" + file + ",version=3";
-            
+            try 
+            {
+                database = new MySQLManager(connect);
+                db = new MySQLInventoryData();
+                db.Initialise(connect);
+            } 
+            catch (Exception e)
+            {
+                System.Console.WriteLine("Exception {0}", e);
+                Assert.Ignore();
+            }
         }
 
         [TestFixtureTearDown]
         public void Cleanup()
         {
-
+            if (database != null)
+            {
+                database.ExecuteSql("drop table migrations");
+                database.ExecuteSql("drop table inventoryitems");
+                database.ExecuteSql("drop table inventoryfolders");
+            }
         }
     }
 }
