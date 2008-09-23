@@ -355,10 +355,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="param">Array of parameters to match event mask</param>
         public bool AddToScriptQueue(uint localID, UUID itemID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
         {
-            List<UUID> keylist = new List<UUID>(m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID));
+            List<UUID> keylist = m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID);
 
+System.Console.WriteLine("==> got {0} keys", keylist.Count);
             if (!keylist.Contains(itemID)) // We don't manage that script
+            {
+System.Console.WriteLine("==> Script not found");
                 return false;
+            }
 
             lock (eventQueue)
             {
@@ -379,6 +383,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
                 // Add it to queue
                 eventQueue.Enqueue(QIS);
+System.Console.WriteLine("==> PostedEvent");
             }
             return true;
         }

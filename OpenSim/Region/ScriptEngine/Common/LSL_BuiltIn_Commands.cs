@@ -44,6 +44,7 @@ using OpenSim.Region.Environment.Modules.World.Land;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
+using OpenSim.Region.ScriptEngine.Shared;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -154,6 +155,59 @@ namespace OpenSim.Region.ScriptEngine.Common
         public ICommander GetCommander(string name)
         {
             return World.GetCommander(name);
+        }
+
+        private List<SceneObjectPart> GetLinkParts(int linkType)
+        {
+            List<SceneObjectPart> ret = new List<SceneObjectPart>();
+            ret.Add(m_host);
+
+            switch (linkType)
+            {
+            case BuiltIn_Commands_BaseClass.LINK_SET:
+                if (m_host.ParentGroup != null)
+                    return new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                return ret;
+
+            case BuiltIn_Commands_BaseClass.LINK_ROOT:
+                if (m_host.ParentGroup != null)
+                {
+                    ret = new List<SceneObjectPart>();
+                    ret.Add(m_host.ParentGroup.RootPart);
+                    return ret;
+                }
+                return ret;
+
+            case BuiltIn_Commands_BaseClass.LINK_ALL_OTHERS:
+                if (m_host.ParentGroup ==  null)
+                    return new List<SceneObjectPart>();
+                ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                if (ret.Contains(m_host))
+                    ret.Remove(m_host);
+                return ret;
+
+            case BuiltIn_Commands_BaseClass.LINK_ALL_CHILDREN:
+                if (m_host.ParentGroup ==  null)
+                    return new List<SceneObjectPart>();
+                ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                if (ret.Contains(m_host.ParentGroup.RootPart))
+                    ret.Remove(m_host.ParentGroup.RootPart);
+                return ret;
+
+            case BuiltIn_Commands_BaseClass.LINK_THIS:
+                return ret;
+
+            default:
+                if (linkType < 0 || m_host.ParentGroup ==  null)
+                    return new List<SceneObjectPart>();
+                SceneObjectPart target = m_host.ParentGroup.GetLinkNumPart(linkType);
+                if (target == null)
+                    return new List<SceneObjectPart>();
+                ret = new List<SceneObjectPart>();
+                ret.Add(target);
+                return ret;
+
+            }
         }
 
         private UUID InventorySelf()
@@ -2431,20 +2485,23 @@ namespace OpenSim.Region.ScriptEngine.Common
                     // objects rezzed with this method are die_at_edge by default.
                     new_group.RootPart.SetDieAtEdge(true);
 
-                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "object_rez", EventQueueManager.llDetectNull, new Object[] { new LSL_String(new_group.RootPart.ToString()) });
+                    m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                            "object_rez", new Object[] {
+                            new LSL_String(
+                            new_group.RootPart.UUID.ToString()) },
+                            new DetectParams[0]));
+
                     float groupmass = new_group.GetMass();
 
                     //Recoil.
                     llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
-                    found = true;
                     // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
                     ScriptSleep((int)((groupmass * velmag) / 10));
                     // ScriptSleep(100);
-                    break;
+                    return;
                 }
             }
-            if (!found)
-                llSay(0, "Could not find object " + inventory);
+            llSay(0, "Could not find object " + inventory);
         }
 
         public void llRezObject(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param)
@@ -2807,8 +2864,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_host.TaskInventory[invItemID].PermsGranter=UUID.Zero;
                 m_host.TaskInventory[invItemID].PermsMask=0;
 
-                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                    m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {new LSL_Integer(0)});
+                m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                        "run_time_permissions", new Object[] {
+                        new LSL_Integer(0) },
+                        new DetectParams[0]));
 
                 return;
             }
@@ -2831,8 +2890,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                     m_host.TaskInventory[invItemID].PermsGranter=agentID;
                     m_host.TaskInventory[invItemID].PermsMask=perm;
 
-                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                        m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {new LSL_Integer(perm)});
+                    m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                            "run_time_permissions", new Object[] {
+                            new LSL_Integer(perm) },
+                            new DetectParams[0]));
 
                     return;
                 }
@@ -2849,8 +2910,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                     m_host.TaskInventory[invItemID].PermsGranter=agentID;
                     m_host.TaskInventory[invItemID].PermsMask=perm;
 
-                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                        m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {new LSL_Integer(perm)});
+                    m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                            "run_time_permissions", new Object[] {
+                            new LSL_Integer(perm) },
+                            new DetectParams[0]));
 
                     return;
                 }
@@ -2877,8 +2940,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
             // Requested agent is not in range, refuse perms
-            m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {new LSL_Integer(0)});
+            m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                    "run_time_permissions", new Object[] {
+                    new LSL_Integer(0) },
+                    new DetectParams[0]));
         }
 
         void handleScriptAnswer(IClientAPI client, UUID taskID, UUID itemID, int answer)
@@ -2894,9 +2959,14 @@ namespace OpenSim.Region.ScriptEngine.Common
             client.OnScriptAnswer-=handleScriptAnswer;
             m_waitingForScriptAnswer=false;
 
+            if ((answer & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) == 0)
+                llReleaseControls();
+
             m_host.TaskInventory[invItemID].PermsMask=answer;
-            m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {new LSL_Integer(answer)});
+            m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                    "run_time_permissions", new Object[] {
+                    new LSL_Integer(answer) },
+                    new DetectParams[0]));
         }
 
         public LSL_String llGetPermissionsKey()
@@ -3515,9 +3585,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
                             };
 
-                            m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                                partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
-                            );
+                            m_ScriptEngine.PostScriptEvent(partItemID,
+                                    new EventParams("link_message",
+                                    resobj, new DetectParams[0]));
                         }
                     }
 
@@ -3532,16 +3602,16 @@ namespace OpenSim.Region.ScriptEngine.Common
                         {
                             if (item.Type == 10)
                             {
-                                partLocalID = partInst.LocalId;
+                                // partLocalID = partInst.LocalId;
                                 partItemID = item.ItemID;
                                 Object[] resobj = new object[]
                                 {
                                     new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
                                 };
 
-                                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                                    partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
-                                );
+                                m_ScriptEngine.PostScriptEvent(partItemID,
+                                        new EventParams("link_message",
+                                        resobj, new DetectParams[0]));
                             }
                         }
                     }
@@ -3560,16 +3630,16 @@ namespace OpenSim.Region.ScriptEngine.Common
                             {
                                 if (item.Type == 10)
                                 {
-                                    partLocalID = partInst.LocalId;
+                                    // partLocalID = partInst.LocalId;
                                     partItemID = item.ItemID;
                                     Object[] resobj = new object[]
                                     {
                                         new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
                                     };
 
-                                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                                        partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
-                                    );
+                                    m_ScriptEngine.PostScriptEvent(partItemID,
+                                            new EventParams("link_message",
+                                            resobj, new DetectParams[0]));
                                 }
                             }
 
@@ -3590,16 +3660,16 @@ namespace OpenSim.Region.ScriptEngine.Common
                             {
                                 if (item.Type == 10)
                                 {
-                                    partLocalID = partInst.LocalId;
+                                    // partLocalID = partInst.LocalId;
                                     partItemID = item.ItemID;
                                     Object[] resobj = new object[]
                                     {
                                         new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
                                     };
 
-                                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                                        partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
-                                    );
+                                    m_ScriptEngine.PostScriptEvent(partItemID,
+                                            new EventParams("link_message",
+                                            resobj, new DetectParams[0]));
                                 }
                             }
 
@@ -3621,9 +3691,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
                             };
 
-                            m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                                m_localID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
-                            );
+                            m_ScriptEngine.PostScriptEvent(partItemID,
+                                    new EventParams("link_message",
+                                    resobj, new DetectParams[0]));
                         }
                     }
 
@@ -3641,16 +3711,16 @@ namespace OpenSim.Region.ScriptEngine.Common
                             {
                                 if (item.Type == 10)
                                 {
-                                    partLocalID = partInst.LocalId;
+                                    // partLocalID = partInst.LocalId;
                                     partItemID = item.ItemID;
                                     Object[] resObjDef = new object[]
                                     {
                                         new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
                                     };
 
-                                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                                        partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resObjDef
-                                    );
+                                    m_ScriptEngine.PostScriptEvent(partItemID,
+                                            new EventParams("link_message",
+                                            resObjDef, new DetectParams[0]));
                                 }
                             }
 
@@ -5589,7 +5659,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID, UUID.Zero);
                 object[] resobj = new object[] { new LSL_Integer(1), new LSL_String(channelID.ToString()), new LSL_String(UUID.Zero.ToString()), new LSL_String(String.Empty), new LSL_Integer(0), new LSL_String(String.Empty) };
-                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj);
+                m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                        "remote_data", resobj,
+                        new DetectParams[0]));
             }
             // ScriptSleep(1000);
         }

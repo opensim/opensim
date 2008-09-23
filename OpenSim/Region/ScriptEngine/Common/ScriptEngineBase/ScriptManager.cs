@@ -341,6 +341,16 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             Script.Exec.ExecuteEvent(FunctionName, args);
         }
 
+        public uint GetLocalID(UUID itemID)
+        {
+            foreach (KeyValuePair<uint, Dictionary<UUID, IScript> > k in Scripts)
+            {
+                if (k.Value.ContainsKey(itemID))
+                    return k.Key;
+            }
+            return 0;
+        }
+
         public int GetStateEventFlags(uint localID, UUID itemID)
         {
             // Console.WriteLine("GetStateEventFlags for <" + localID + "," + itemID + ">");
@@ -368,22 +378,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public List<UUID> GetScriptKeys(uint localID)
         {
-            if (localID == 0) // Find it
-            {
-                List<UUID> keylist = new List<UUID>();
-
-                foreach (Dictionary<UUID, IScript> d in Scripts.Values)
-                {
-                    foreach (UUID id in d.Keys)
-                    {
-                        if (!keylist.Contains(id))
-                            keylist.Add(id);
-                    }
-                }
-            }
-
             if (Scripts.ContainsKey(localID) == false)
-                return null;
+                return new List<UUID>();
 
             Dictionary<UUID, IScript> Obj;
             Scripts.TryGetValue(localID, out Obj);
@@ -395,6 +391,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             lock (scriptLock)
             {
+                IScript Script = null;
+
                 if (Scripts.ContainsKey(localID) == false)
                     return null;
 
@@ -404,7 +402,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     return null;
 
                 // Get script
-                IScript Script;
                 Obj.TryGetValue(itemID, out Script);
                 return Script;
             }

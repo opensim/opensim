@@ -197,7 +197,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public bool PostScriptEvent(UUID itemID, EventParams p)
         {
-            return m_EventQueueManager.AddToScriptQueue(0, itemID, p.EventName, EventQueueManager.llDetectNull, p.Params);
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            return m_EventQueueManager.AddToScriptQueue(localID, itemID, p.EventName, EventQueueManager.llDetectNull, p.Params);
         }
 
         #endregion
