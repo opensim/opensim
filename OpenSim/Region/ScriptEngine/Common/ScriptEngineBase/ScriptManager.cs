@@ -366,15 +366,29 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         #region Internal functions to keep track of script
 
-        public Dictionary<UUID, IScript>.KeyCollection GetScriptKeys(uint localID)
+        public List<UUID> GetScriptKeys(uint localID)
         {
+            if (localID == 0) // Find it
+            {
+                List<UUID> keylist = new List<UUID>();
+
+                foreach (Dictionary<UUID, IScript> d in Scripts.Values)
+                {
+                    foreach (UUID id in d.Keys)
+                    {
+                        if (!keylist.Contains(id))
+                            keylist.Add(id);
+                    }
+                }
+            }
+
             if (Scripts.ContainsKey(localID) == false)
                 return null;
 
             Dictionary<UUID, IScript> Obj;
             Scripts.TryGetValue(localID, out Obj);
 
-            return Obj.Keys;
+            return new List<UUID>(Obj.Keys);
         }
 
         public IScript GetScript(uint localID, UUID itemID)

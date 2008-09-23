@@ -32,6 +32,9 @@ using log4net;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.ScriptEngine.Interfaces;
+using OpenMetaverse;
+using OpenSim.Region.ScriptEngine.Shared;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
@@ -40,7 +43,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// </summary>
     ///
     [Serializable]
-    public abstract class ScriptEngine : IRegionModule, ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule
+    public abstract class ScriptEngine : IRegionModule, ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule, IEventReceiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -185,6 +188,16 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public bool IsSharedModule
         {
             get { return false; }
+        }
+
+        public bool PostObjectEvent(uint localID, EventParams p)
+        {
+            return m_EventQueueManager.AddToObjectQueue(localID, p.EventName, EventQueueManager.llDetectNull, p.Params);
+        }
+
+        public bool PostScriptEvent(UUID itemID, EventParams p)
+        {
+            return m_EventQueueManager.AddToScriptQueue(0, itemID, p.EventName, EventQueueManager.llDetectNull, p.Params);
         }
 
         #endregion

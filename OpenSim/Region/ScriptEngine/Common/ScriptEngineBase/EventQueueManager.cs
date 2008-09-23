@@ -322,7 +322,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="localID">Region object ID</param>
         /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
         /// <param name="param">Array of parameters to match event mask</param>
-        public void AddToObjectQueue(uint localID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
+        public bool AddToObjectQueue(uint localID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
         {
             // Determine all scripts in Object and add to their queue
             //myScriptEngine.log.Info("[" + ScriptEngineName + "]: EventQueueManager Adding localID: " + localID + ", FunctionName: " + FunctionName);
@@ -331,10 +331,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             if (m_ScriptEngine.m_ScriptManager.Scripts.ContainsKey(localID) == false)
             {
                 //Console.WriteLine("Event \String.Empty + FunctionName + "\" for localID: " + localID + ". No scripts found on this localID.");
-                return;
+                return false;
             }
 
-            Dictionary<UUID, IScript>.KeyCollection scriptKeys =
+            List<UUID> scriptKeys =
                 m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID);
 
             foreach (UUID itemID in scriptKeys)
@@ -343,6 +343,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 // TODO: Some scripts may not subscribe to this event. Should we NOT add it? Does it matter?
                 AddToScriptQueue(localID, itemID, FunctionName, qParams, param);
             }
+            return true;
         }
 
         /// <summary>
@@ -352,12 +353,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="itemID">Region script ID</param>
         /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
         /// <param name="param">Array of parameters to match event mask</param>
-        public void AddToScriptQueue(uint localID, UUID itemID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
+        public bool AddToScriptQueue(uint localID, UUID itemID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
         {
             List<UUID> keylist = new List<UUID>(m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID));
 
             if (!keylist.Contains(itemID)) // We don't manage that script
-                return;
+                return false;
 
             lock (eventQueue)
             {
@@ -365,7 +366,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 {
                     m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: ERROR: Event execution queue item count is at " + eventQueue.Count + ". Config variable \"EventExecutionMaxQueueSize\" is set to " + EventExecutionMaxQueueSize + ", so ignoring new event.");
                     m_ScriptEngine.Log.Error("[" + m_ScriptEngine.ScriptEngineName + "]: Event ignored: localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
-                    return;
+                    return false;
                 }
 
                 // Create a structure and add data
@@ -379,6 +380,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 // Add it to queue
                 eventQueue.Enqueue(QIS);
             }
+            return true;
         }
         #endregion
 
