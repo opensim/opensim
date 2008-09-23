@@ -41,7 +41,7 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
-    public class BuiltIn_Commands_BaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface, OSSL_BuilIn_Commands_Interface, IScript
+    public class ScriptBaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface, OSSL_BuilIn_Commands_Interface, IScript
     {
         //
         // Included as base for any LSL-script that is compiled.
@@ -106,7 +106,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             set { m_StartParam = value; }
         }
 
-        public BuiltIn_Commands_BaseClass()
+        public ScriptBaseClass()
         {
         }
 
