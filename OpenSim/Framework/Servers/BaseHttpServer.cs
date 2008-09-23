@@ -390,6 +390,18 @@ namespace OpenSim.Framework.Servers
                     return;
                 }
 
+                if (request.AcceptTypes.Length > 0)
+                {
+                    foreach (string strAccept in request.AcceptTypes)
+                    {
+                        if (strAccept == "application/llsd+xml")
+                        {
+                            HandleLLSDRequests(request, response);
+                            return;
+                        }
+                    }
+                }
+
                 switch (request.ContentType)
                 {
                     case null:
