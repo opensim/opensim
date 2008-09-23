@@ -335,7 +335,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             }
 
             responseMap["connect"] = LLSD.FromBoolean(true);
-            responseMap["rez_avatar/request"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + requestpath);
+            LLSDMap capabilitiesMap = new LLSDMap();
+            capabilitiesMap["rez_avatar/request"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + requestpath);
+            responseMap["capabilities"] = capabilitiesMap;
             
             return responseMap;
         }

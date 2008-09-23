@@ -607,9 +607,14 @@ namespace OpenSim.Framework.Servers
 
             LLSD llsdRequest = null;
             LLSD llsdResponse = null;
-
+            
             bool LegacyLLSDLoginLibOMV = (requestBody.Contains("passwd") && requestBody.Contains("mac") && requestBody.Contains("viewer_digest"));
-
+            
+            if (requestBody.Length == 0)
+            // Get Request
+            {
+                requestBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><llsd><map><key>request</key><string>get</string></map></llsd>"; 
+            }
             try
             {
                 llsdRequest = LLSDParser.DeserializeXml(requestBody);
