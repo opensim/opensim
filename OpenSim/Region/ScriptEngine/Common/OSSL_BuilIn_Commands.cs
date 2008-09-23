@@ -580,6 +580,24 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
 
+        public void osSetParcelMediaURL(string url)
+        {
+            m_host.AddScriptLPS(1);
+            UUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+            if (landowner == UUID.Zero)
+            {
+                return;
+            }
+
+            if (landowner != m_host.ObjectOwner)
+            {
+                return;
+            }
+
+            World.SetLandMediaURL(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, url);
+        }
+
         public string osGetScriptEngineName()
         {
             m_host.AddScriptLPS(1);

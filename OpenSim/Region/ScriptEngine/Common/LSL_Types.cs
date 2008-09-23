@@ -123,7 +123,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 Vector3 vector = (Vector3)o;
 
-                return (x == vector.x && y == vector.y && z == vector.y);
+                return (x == vector.x && y == vector.y && z == vector.z);
             }
 
             public static Vector3 operator -(Vector3 vector)
@@ -419,6 +419,80 @@ namespace OpenSim.Region.ScriptEngine.Common
                         m_data=new Object[0];
                     return m_data;
                 }
+
+                set {m_data = value; }
+            }
+
+        // Member functions to obtain item as specific types.
+        // For cases where implicit conversions would apply if items
+        // were not in a list (e.g. integer to float, but not float
+        // to integer) functions check for alternate types so as to
+        // down-cast from Object to the correct type.
+        // Note: no checks for item index being valid are performed
+
+            public LSL_Types.LSLFloat GetLSLFloatItem( int itemIndex )
+            {
+                if (m_data[itemIndex] is LSL_Types.LSLInteger)
+                {
+                    return (LSL_Types.LSLInteger)m_data[itemIndex];
+                }
+                else if (m_data[itemIndex] is Int32)
+                {
+                    return new LSL_Types.LSLFloat((int)m_data[itemIndex]);
+                }
+                else if (m_data[itemIndex] is float)
+                {
+                    return new LSL_Types.LSLFloat((float)m_data[itemIndex]);
+                }
+                else if (m_data[itemIndex] is Double)
+                {
+                    return new LSL_Types.LSLFloat((Double)m_data[itemIndex]);
+                }
+                else
+                {
+                    return (LSL_Types.LSLFloat)m_data[itemIndex];
+                }
+            }
+
+            public LSL_Types.LSLString GetLSLStringItem(int itemIndex)
+            {
+              if (m_data[itemIndex] is LSL_Types.key)
+              {
+                return (LSL_Types.key)m_data[itemIndex];
+              }
+              else if (m_data[itemIndex] is String)
+              {
+                return new LSL_Types.LSLString((string)m_data[itemIndex]);
+              }
+              else
+              {
+                return (LSL_Types.LSLString)m_data[itemIndex];
+              }
+            }
+
+            public LSL_Types.LSLInteger GetLSLIntegerItem(int itemIndex)
+            {
+              if (m_data[itemIndex] is LSL_Types.LSLInteger)
+                  return (LSL_Types.LSLInteger)m_data[itemIndex];
+              else if (m_data[itemIndex] is Int32)
+                  return new LSLInteger((int)m_data[itemIndex]);
+              else
+                  throw new InvalidCastException();
+            }
+
+            public LSL_Types.Vector3 GetVector3Item(int itemIndex)
+            {
+              return (LSL_Types.Vector3)m_data[itemIndex];
+            }
+
+            public LSL_Types.Quaternion GetQuaternionItem(int itemIndex)
+            {
+              return (LSL_Types.Quaternion)m_data[itemIndex];
+            }
+
+            public LSL_Types.key GetKeyItem(int itemIndex)
+            {
+              return (LSL_Types.key)m_data[itemIndex];
             }
 
             public static list operator +(list a, list b)
@@ -436,19 +510,19 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_data.SetValue(o, Length - 1);
             }
 
-            public static list operator +(list a, string s)
+            public static list operator +(list a, LSLString s)
             {
                 a.ExtendAndAdd(s);
                 return a;
             }
 
-            public static list operator +(list a, int i)
+            public static list operator +(list a, LSLInteger i)
             {
                 a.ExtendAndAdd(i);
                 return a;
             }
 
-            public static list operator +(list a, double d)
+            public static list operator +(list a, LSLFloat d)
             {
                 a.ExtendAndAdd(d);
                 return a;
@@ -1167,6 +1241,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return k.value;
             }
 
+            static public implicit operator LSLString(key k)
+            {
+                return k.value;
+            }
+
             public static bool operator ==(key k1, key k2)
             {
                 return k1.value == k2.value;
@@ -1188,6 +1267,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             public override int GetHashCode()
             {
                 return value.GetHashCode();
+            }
+
+            public override string ToString()
+            {
+                return value;
             }
 
             #endregion
@@ -1476,25 +1560,25 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSLInteger(i1.value / i2);
             }
 
-            static public LSLFloat operator +(LSLInteger i1, double f)
-            {
-                return new LSLFloat((double)i1.value + f);
-            }
-
-            static public LSLFloat operator -(LSLInteger i1, double f)
-            {
-                return new LSLFloat((double)i1.value - f);
-            }
-
-            static public LSLFloat operator *(LSLInteger i1, double f)
-            {
-                return new LSLFloat((double)i1.value * f);
-            }
-
-            static public LSLFloat operator /(LSLInteger i1, double f)
-            {
-                return new LSLFloat((double)i1.value / f);
-            }
+//            static public LSLFloat operator +(LSLInteger i1, double f)
+//            {
+//                return new LSLFloat((double)i1.value + f);
+//            }
+//
+//            static public LSLFloat operator -(LSLInteger i1, double f)
+//            {
+//                return new LSLFloat((double)i1.value - f);
+//            }
+//
+//            static public LSLFloat operator *(LSLInteger i1, double f)
+//            {
+//                return new LSLFloat((double)i1.value * f);
+//            }
+//
+//            static public LSLFloat operator /(LSLInteger i1, double f)
+//            {
+//                return new LSLFloat((double)i1.value / f);
+//            }
 
             static public LSLInteger operator -(LSLInteger i)
             {
@@ -1585,6 +1669,11 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             #region Operators
 
+            static public explicit operator float(LSLFloat f)
+            {
+                return (float)f.value;
+            }
+
             static public explicit operator int(LSLFloat f)
             {
                 return (int)f.value;
@@ -1619,7 +1708,17 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             static public explicit operator LSLFloat(string s)
             {
-                return new LSLFloat(double.Parse(s));
+                Regex r = new Regex("^[ ]*-?[0-9]*\\.?[0-9]*[eE]?-?[0-9]*");
+                Match m = r.Match(s);
+                string v = m.Groups[0].Value;
+
+                while (v.Length > 0 && v.Substring(0, 1) == " ")
+                    v = v.Substring(1);
+
+                if (v == String.Empty)
+                    v = "0";
+
+                return new LSLFloat(double.Parse(v));
             }
 
             static public implicit operator LSLFloat(double d)

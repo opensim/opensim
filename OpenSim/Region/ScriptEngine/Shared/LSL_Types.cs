@@ -1238,12 +1238,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public implicit operator String(key k)
             {
-              return k.value;
+                return k.value;
             }
 
             static public implicit operator LSLString(key k)
             {
-              return k.value;
+                return k.value;
             }
 
             public static bool operator ==(key k1, key k2)
@@ -1449,11 +1449,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     try
                     {
                         if (v.Contains("x") || v.Contains("X"))
-                            value = int.Parse(v.Substring(2),
-                                   System.Globalization.NumberStyles.HexNumber);
+                        {
+                            value = int.Parse(v.Substring(2), System.Globalization.NumberStyles.HexNumber);
+                        }
                         else
-                            value = int.Parse(v,
-                                   System.Globalization.NumberStyles.Integer);
+                        {
+                            value = int.Parse(v, System.Globalization.NumberStyles.Integer);
+                        }
                     }
                     catch (OverflowException)
                     {
@@ -1669,12 +1671,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public explicit operator float(LSLFloat f)
             {
-              return (float)f.value;
+                return (float)f.value;
             }
 
             static public explicit operator int(LSLFloat f)
             {
-              return (int)f.value;
+                return (int)f.value;
             }
 
             static public explicit operator uint(LSLFloat f)

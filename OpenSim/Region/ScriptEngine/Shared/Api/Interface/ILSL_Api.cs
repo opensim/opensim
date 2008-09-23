@@ -26,624 +26,362 @@
  */
 
 using System;
-using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
-using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 
+using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
+using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
+using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
+using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
     public interface ILSL_Api
     {
         void state(string newState);
-        void llSay(int channelID, string text);
-        LSL_Types.LSLFloat llSin(double f);
-        LSL_Types.LSLFloat llCos(double f);
-        LSL_Types.LSLFloat llTan(double f);
-        LSL_Types.LSLFloat llAtan2(double x, double y);
-        LSL_Types.LSLFloat llSqrt(double f);
-        LSL_Types.LSLFloat llPow(double fbase, double fexponent);
-        LSL_Types.LSLInteger llAbs(int i);
-        LSL_Types.LSLFloat llFabs(double f);
-        LSL_Types.LSLFloat llFrand(double mag);
-        LSL_Types.LSLInteger llFloor(double f);
-        LSL_Types.LSLInteger llCeil(double f);
-        LSL_Types.LSLInteger llRound(double f);
-        LSL_Types.LSLFloat llVecMag(LSL_Types.Vector3 v);
-        LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v);
-        LSL_Types.LSLFloat llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b);
-        LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r);
-        LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v);
-        LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up);
-        LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r);
-        LSL_Types.Vector3 llRot2Left(LSL_Types.Quaternion r);
-        LSL_Types.Vector3 llRot2Up(LSL_Types.Quaternion r);
-        LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 start, LSL_Types.Vector3 end);
-        void llWhisper(int channelID, string text);
-        //void llSay(int channelID, string text);
-        void llShout(int channelID, string text);
-        void llRegionSay(int channelID, string text);
-        LSL_Types.LSLInteger llListen(int channelID, string name, string ID, string msg);
-        void llListenControl(int number, int active);
-        void llListenRemove(int number);
-        void llSensor(string name, string id, int type, double range, double arc);
-        void llSensorRepeat(string name, string id, int type, double range, double arc, double rate);
-        void llSensorRemove();
-        LSL_Types.LSLString llDetectedName(int number);
-        LSL_Types.LSLString llDetectedKey(int number);
-        LSL_Types.LSLString llDetectedOwner(int number);
-        LSL_Types.LSLInteger llDetectedType(int number);
-        LSL_Types.Vector3 llDetectedPos(int number);
-        LSL_Types.Vector3 llDetectedVel(int number);
-        LSL_Types.Vector3 llDetectedGrab(int number);
-        LSL_Types.Quaternion llDetectedRot(int number);
-        LSL_Types.LSLInteger llDetectedGroup(int number);
-        LSL_Types.LSLInteger llDetectedLinkNumber(int number);
-        void llDie();
-        LSL_Types.LSLFloat llGround(LSL_Types.Vector3 offset);
-        LSL_Types.LSLFloat llCloud(LSL_Types.Vector3 offset);
-        LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset);
-        void llSetStatus(int status, int value);
-        LSL_Types.LSLInteger llGetStatus(int status);
-        void llSetScale(LSL_Types.Vector3 scale);
-        LSL_Types.Vector3 llGetScale();
-        void llSetColor(LSL_Types.Vector3 color, int face);
-        LSL_Types.LSLFloat llGetAlpha(int face);
-        void llSetAlpha(double alpha, int face);
-        LSL_Types.Vector3 llGetColor(int face);
-        void llSetTexture(string texture, int face);
-        void llScaleTexture(double u, double v, int face);
-        void llOffsetTexture(double u, double v, int face);
-        void llRotateTexture(double rotation, int face);
-        LSL_Types.LSLString llGetTexture(int face);
-        void llSetPos(LSL_Types.Vector3 pos);
 
-        //wiki: vector llGetPos()
-        LSL_Types.Vector3 llGetPos();
-        //wiki: vector llGetLocalPos()
-        LSL_Types.Vector3 llGetLocalPos();
-        //wiki: llSetRot(rotation rot)
-        void llSetRot(LSL_Types.Quaternion rot);
-        //wiki: rotation llGetRot()
-        LSL_Types.Quaternion llGetRot();
-        //wiki: rotation llGetLocalRot()
-        LSL_Types.Quaternion llGetLocalRot();
-        //wiki: llSetForce(vector force, integer local)
-        void llSetForce(LSL_Types.Vector3 force, int local);
-        //wiki: vector llGetForce()
-        LSL_Types.Vector3 llGetForce();
-        //wiki: integer llTarget(vector position, double range)
-        LSL_Types.LSLInteger llTarget(LSL_Types.Vector3 position, double range);
-        //wiki: llTargetRemove(integer number)
-        void llTargetRemove(int number);
-        //wiki: integer llRotTarget(rotation rot, double error)
-        LSL_Types.LSLInteger llRotTarget(LSL_Types.Quaternion rot, double error);
-        //wiki: integer llRotTargetRemove(integer number)
-        void llRotTargetRemove(int number);
-        //wiki: llMoveToTarget(vector target, double tau)
-        void llMoveToTarget(LSL_Types.Vector3 target, double tau);
-        //wiki: llStopMoveToTarget()
-        void llStopMoveToTarget();
-        //wiki: llApplyImpulse(vector force, integer local)
-        void llApplyImpulse(LSL_Types.Vector3 force, int local);
-        //wiki: llapplyRotationalImpulse(vector force, integer local)
-        void llApplyRotationalImpulse(LSL_Types.Vector3 force, int local);
-        //wiki: llSetTorque(vector torque, integer local)
-        void llSetTorque(LSL_Types.Vector3 torque, int local);
-        //wiki: vector llGetTorque()
-        LSL_Types.Vector3 llGetTorque();
-        //wiki: llSeForceAndTorque(vector force, vector torque, integer local)
-        void llSetForceAndTorque(LSL_Types.Vector3 force, LSL_Types.Vector3 torque, int local);
-        //wiki: vector llGetVel()
-        LSL_Types.Vector3 llGetVel();
-        //wiki: vector llGetAccel()
-        LSL_Types.Vector3 llGetAccel();
-        //wiki: vector llGetOmega()
-        LSL_Types.Vector3 llGetOmega();
-        //wiki: LSL_Types.LSLFloat llGetTimeOfDay()
-        LSL_Types.LSLFloat llGetTimeOfDay();
-        //wiki: LSL_Types.LSLFloat llGetWallclock()
-        LSL_Types.LSLFloat llGetWallclock();
-        //wiki: LSL_Types.LSLFloat llGetTime()
-        LSL_Types.LSLFloat llGetTime();
-        //wiki: llResetTime()
-        void llResetTime();
-        //wiki: LSL_Types.LSLFloat llGetAndResetTime()
-        LSL_Types.LSLFloat llGetAndResetTime();
-        //wiki (deprecated) llSound(string sound, double volume, integer queue, integer loop)
-        void llSound();
-        //wiki: llPlaySound(string sound, double volume)
-        void llPlaySound(string sound, double volume);
-        //wiki: llLoopSound(string sound, double volume)
-        void llLoopSound(string sound, double volume);
-        //wiki: llLoopSoundMaster(string sound, double volume)
-        void llLoopSoundMaster(string sound, double volume);
-        //wiki: llLoopSoundSlave(string sound, double volume)
-        void llLoopSoundSlave(string sound, double volume);
-        //wiki llPlaySoundSlave(string sound, double volume)
-        void llPlaySoundSlave(string sound, double volume);
-        //wiki: llTriggerSound(string sound, double volume)
-        void llTriggerSound(string sound, double volume);
-        //wiki: llStopSound()
-        void llStopSound();
-        //wiki: llPreloadSound(string sound)
-        void llPreloadSound(string sound);
-        //wiki: LSL_Types.LSLString llGetSubString(string src, integer start, integer end)
-        LSL_Types.LSLString llGetSubString(string src, int start, int end);
-        //wiki: LSL_Types.LSLString llDeleteSubString(string src, integer start, integer end)
-        LSL_Types.LSLString llDeleteSubString(string src, int start, int end);
-        //wiki LSL_Types.LSLString llInsertString(string dst, integer position, string src)
-        LSL_Types.LSLString llInsertString(string dst, int position, string src);
-        //wiki: LSL_Types.LSLString llToUpper(string source)
-        LSL_Types.LSLString llToUpper(string source);
-        //wiki: LSL_Types.LSLString llToLower(string source)
-        LSL_Types.LSLString llToLower(string source);
-        //wiki: integer llGiveMoney(key destination, integer amount)
-        LSL_Types.LSLInteger llGiveMoney(string destination, int amount);
-        //wiki: (deprecated)
-        void llMakeExplosion();
-        //wiki: (deprecated)
-        void llMakeFountain();
-        //wiki: (deprecated)
-        void llMakeSmoke();
-        //wiki: (deprecated)
-        void llMakeFire();
-        //wiki: llRezObject(string inventory, vector pos, vector rel, rotation rot, integer param)
-        void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param);
-        //wiki: llLookAt(vector target, double strength, double damping)
-        void llLookAt(LSL_Types.Vector3 target, double strength, double damping);
-        //wiki: llStopLookAt()
-        void llStopLookAt();
-        //wiki: llSetTimerEvent(double sec)
-        void llSetTimerEvent(double sec);
-        //wiki: llSleep(double sec)
-        void llSleep(double sec);
-        //wiki: LSL_Types.LSLFloat llGetMass()
-        LSL_Types.LSLFloat llGetMass();
-        //wiki: llCollisionFilter(string name, key id, integer accept)
-        void llCollisionFilter(string name, string id, int accept);
-        //wiki: llTakeControls(integer controls, integer accept, integer pass_on)
-        void llTakeControls(int controls, int accept, int pass_on);
-        //wiki: llReleaseControls()
-        void llReleaseControls();
-        //wiki: llAttachToAvatar(integer attachment)
-        void llAttachToAvatar(int attachment);
-        //wiki: llDetachFromAvatar()
-        void llDetachFromAvatar();
-        //wiki: (deprecated) llTakeCamera(key avatar)
-        void llTakeCamera(string avatar);
-        //wiki: (deprecated) llReleaseCamera(key avatar)
-        void llReleaseCamera(string avatar);
-        //wiki: key llGetOwner()
-        LSL_Types.LSLString llGetOwner();
-        //wiki: llInstantMessage(key user, string message)
-        void llInstantMessage(string user, string message);
-        //wiki: llEmail(string address, string subject, string message)
-        void llEmail(string address, string subject, string message);
-        //wiki: llGetNextEmail(string address, string subject)
-        void llGetNextEmail(string address, string subject);
-        //wiki:    key llGetKey()
-        LSL_Types.LSLString llGetKey();
-        //wiki: llSetBuoyancy(double buoyancy)
-        void llSetBuoyancy(double buoyancy);
-        //wiki: llSetHoverHeight(double height, integer water, double tau)
-        void llSetHoverHeight(double height, int water, double tau);
-        //wiki: llStopHover
-        void llStopHover();
-        //wiki: llMinEventDelay(double delay)
-        void llMinEventDelay(double delay);
-        //wiki: (deprecated) llSoundPreload()
-        void llSoundPreload();
-        //wiki: llRotLookAt(rotation target, double strength, double damping)
-        void llRotLookAt(LSL_Types.Quaternion target, double strength, double damping);
-        //wiki: integer llStringLength(string str)
-        LSL_Types.LSLInteger llStringLength(string str);
-        //wiki: llStartAnimation(string anim)
-        void llStartAnimation(string anim);
-        //wiki: llStopAnimation(string anim)
-        void llStopAnimation(string anim);
-        //wiki: (deprecated) llPointAt
-        void llPointAt();
-        //wiki: (deprecated) llStopPointAt
-        void llStopPointAt();
-        //wiki: llTargetOmega(vector axis, double spinrate, double gain)
-        void llTargetOmega(LSL_Types.Vector3 axis, double spinrate, double gain);
-        //wiki: integer llGetStartParameter()
-        LSL_Types.LSLInteger llGetStartParameter();
-        //wiki: llGodLikeRezObject(key inventory, vector pos)
-        void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos);
-        //wiki: llRequestPermissions(key agent, integer perm)
-        void llRequestPermissions(string agent, int perm);
-        //wiki: key llGetPermissionsKey()
-        LSL_Types.LSLString llGetPermissionsKey();
-        //wiki: integer llGetPermissions()
-        LSL_Types.LSLInteger llGetPermissions();
-        //wiki integer llGetLinkNumber()
-        LSL_Types.LSLInteger llGetLinkNumber();
-        //wiki: llSetLinkColor(integer linknumber, vector color, integer face)
-        void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face);
-        //wiki: llCreateLink(key target, integer parent)
-        void llCreateLink(string target, int parent);
-        //wiki: llBreakLink(integer linknum)
-        void llBreakLink(int linknum);
-        //wiki: llBreakAllLinks()
-        void llBreakAllLinks();
-        //wiki: key llGetLinkKey(integer linknum)
-        LSL_Types.LSLString llGetLinkKey(int linknum);
-        //wiki: llGetLinkName(integer linknum)
-        LSL_Types.LSLString llGetLinkName(int linknum);
-        //wiki: integer llGetInventoryNumber(integer type)
-        LSL_Types.LSLInteger llGetInventoryNumber(int type);
-        //wiki: LSL_Types.LSLString llGetInventoryName(integer type, integer number)
-        LSL_Types.LSLString llGetInventoryName(int type, int number);
-        //wiki: llSetScriptState(string name, integer run)
-        void llSetScriptState(string name, int run);
-        //wiki: LSL_Types.LSLFloat llGetEnergy()
-        LSL_Types.LSLFloat llGetEnergy();
-        //wiki: llGiveInventory(key destination, string inventory)
-        void llGiveInventory(string destination, string inventory);
-        //wiki: llRemoveInventory(string item)
-        void llRemoveInventory(string item);
-        //wiki: llSetText(string text, vector color, double alpha)
-        void llSetText(string text, LSL_Types.Vector3 color, double alpha);
-        //wiki: LSL_Types.LSLFloat llWater(vector offset)
-        LSL_Types.LSLFloat llWater(LSL_Types.Vector3 offset);
-        //wiki: llPassTouches(integer pass)
-        void llPassTouches(int pass);
-        //wiki: key llRequestAgentData(key id, integer data)
-        LSL_Types.LSLString llRequestAgentData(string id, int data);
-        //wiki: key llRequestInventoryData(string name)
-        LSL_Types.LSLString llRequestInventoryData(string name);
-        //wiki: llSetDamage(double damage)
-        void llSetDamage(double damage);
-        //wiki: llTeleportAgentHome(key agent)
-        void llTeleportAgentHome(string agent);
-        //wiki: llModifyLand(integer action, integer brush)
-        void llModifyLand(int action, int brush);
-        //wiki: llCollisionSound(string impact_sound, double impact_volume)
-        void llCollisionSound(string impact_sound, double impact_volume);
-        //wiki: llCollisionSprite(string impact_sprite)
-        void llCollisionSprite(string impact_sprite);
-        //wiki: LSL_Types.LSLString llGetAnimation(key id)
-        LSL_Types.LSLString llGetAnimation(string id);
-        //wiki: llResetScript()
-        void llResetScript();
-        //wiki: llMessageLinked(integer linknum, integer num, string str, key id)
-        void llMessageLinked(int linknum, int num, string str, string id);
-        //wiki: llPushObject(key target, vector impulse, vector ang_impulse, integer local)
-        void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local);
-        //wiki: llPassCollisions(integer pass)
-        void llPassCollisions(int pass);
-        //wiki: LSL_Types.LSLString llGetScriptName()
-        LSL_Types.LSLString llGetScriptName();
-        //wiki: integer llGetNumberOfSides()
-        LSL_Types.LSLInteger llGetNumberOfSides();
-        //wiki: rotation llAxisAngle2Rot(vector axis, double angle)
-        LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle);
-        //wiki: vector llRot2Axis(rotation rot)
-        LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot);
-        //wiki: LSL_Types.LSLFloat llRot2Angle(rotation rot);
-        LSL_Types.LSLFloat llRot2Angle(LSL_Types.Quaternion rot);
-        //wiki: LSL_Types.LSLFloat llAcos(double val)
-        LSL_Types.LSLFloat llAcos(double val);
-        //wiki: LSL_Types.LSLFloat llAsin(double val)
-        LSL_Types.LSLFloat llAsin(double val);
-        //wiki: LSL_Types.LSLFloat llAngleBetween(rotation a, rotation b)
-        LSL_Types.LSLFloat llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b);
-        //wiki: LSL_Types.LSLString llGetInventoryKey(string name)
-        LSL_Types.LSLString llGetInventoryKey(string name);
-        //wiki: llAllowInventoryDrop(integer add)
-        void llAllowInventoryDrop(int add);
-        //wiki: vector llGetSunDirection()
-        LSL_Types.Vector3 llGetSunDirection();
-        //wiki: vector llGetTextureOffset(integer face)
-        LSL_Types.Vector3 llGetTextureOffset(int face);
-        //wiki: vector llGetTextureScale(integer side)
-        LSL_Types.Vector3 llGetTextureScale(int side);
-        //wiki: LSL_Types.LSLFloat llGetTextureRot(integer side)
-        LSL_Types.LSLFloat llGetTextureRot(int side);
-        //wiki: integer llSubStringIndex(string source, string pattern)
-        LSL_Types.LSLInteger llSubStringIndex(string source, string pattern);
-        //wiki: key llGetOwnerKey(key id)
-        LSL_Types.LSLString llGetOwnerKey(string id);
-        //wiki: vector llGetCenterOfMass()
-        LSL_Types.Vector3 llGetCenterOfMass();
-        //wiki: list llListSort(list src, integer stride, integer ascending)
-        LSL_Types.list llListSort(LSL_Types.list src, int stride, int ascending);
-        //integer llGetListLength(list src)
-        LSL_Types.LSLInteger llGetListLength(LSL_Types.list src);
-        //wiki: integer llList2Integer(list src, integer index)
-        LSL_Types.LSLInteger llList2Integer(LSL_Types.list src, int index);
-        //wiki: LSL_Types.LSLFloat llList2double(list src, integer index)
-        LSL_Types.LSLFloat llList2Float(LSL_Types.list src, int index);
-        //wiki: LSL_Types.LSLString llList2String(list src, integer index)
-        LSL_Types.LSLString llList2String(LSL_Types.list src, int index);
-        //wiki: key llList2Key(list src, integer index)
-        LSL_Types.LSLString llList2Key(LSL_Types.list src, int index);
-        //wiki: vector llList2Vector(list src, integer index)
-        LSL_Types.Vector3 llList2Vector(LSL_Types.list src, int index);
-        //wiki rotation llList2Rot(list src, integer index)
-        LSL_Types.Quaternion llList2Rot(LSL_Types.list src, int index);
-        //wiki: list llList2List(list src, integer start, integer end)
-        LSL_Types.list llList2List(LSL_Types.list src, int start, int end);
-        //wiki: llDeleteSubList(list src, integer start, integer end)
-        LSL_Types.list llDeleteSubList(LSL_Types.list src, int start, int end);
-        //wiki: integer llGetListEntryType(list src, integer index)
-        LSL_Types.LSLInteger llGetListEntryType(LSL_Types.list src, int index);
-        //wiki: LSL_Types.LSLString llList2CSV(list src)
-        LSL_Types.LSLString llList2CSV(LSL_Types.list src);
-        //wiki: list llCSV2List(string src)
-        LSL_Types.list llCSV2List(string src);
-        //wiki: list llListRandomize(list src, integer stride)
-        LSL_Types.list llListRandomize(LSL_Types.list src, int stride);
-        //wiki: list llList2ListStrided(list src, integer start, integer end, integer stride)
-        LSL_Types.list llList2ListStrided(LSL_Types.list src, int start, int end, int stride);
-        //wiki: vector llGetRegionCorner()
-        LSL_Types.Vector3 llGetRegionCorner();
-        //wiki: list llListInsertList(list dest, list src, integer start)
-        LSL_Types.list llListInsertList(LSL_Types.list dest, LSL_Types.list src, int start);
-        //wiki: integer llListFindList(list src, list test)
-        LSL_Types.LSLInteger llListFindList(LSL_Types.list src, LSL_Types.list test);
-        //wiki: LSL_Types.LSLString llGetObjectName()
-        LSL_Types.LSLString llGetObjectName();
-        //wiki: llSetObjectName(string name)
-        void llSetObjectName(string name);
-        //wiki: LSL_Types.LSLString llGetDate()
-        LSL_Types.LSLString llGetDate();
-        //wiki: integer llEdgeOfWorld(vector pos, vector dir)
-        LSL_Types.LSLInteger llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir);
-        //wiki: integer llGetAgentInfo(key id)
-        LSL_Types.LSLInteger llGetAgentInfo(string id);
-        //wiki: llAdjustSoundVolume(double volume)
-        void llAdjustSoundVolume(double volume);
-        //wiki: llSetSoundQueueing(integer queue)
-        void llSetSoundQueueing(int queue);
-        //wiki: llSetSoundRadius(double radius)
-        void llSetSoundRadius(double radius);
-        //wiki: LSL_Types.LSLString llKey2Name(key id)
-        LSL_Types.LSLString llKey2Name(string id);
-        //wiki: llSetTextureAnim(integer mode, integer face, integer sizex, integer sizey, double start, double length, double rate)
-        void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate);
-        //wiki: llTriggerSoundLimited(string sound, double volume, vector top_north_east, vector bottom_south_west)
-        void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east,
-                                   LSL_Types.Vector3 bottom_south_west);
-
-        //wiki: llEjectFromLand(key pest)
-        void llEjectFromLand(string pest);
-        LSL_Types.list llParseString2List(string str, LSL_Types.list separators, LSL_Types.list spacers);
-        //wiki: integer llOverMyLand(key id)
-        LSL_Types.LSLInteger llOverMyLand(string id);
-        //wiki: key llGetLandOwnerAt(vector pos)
-        LSL_Types.LSLString llGetLandOwnerAt(LSL_Types.Vector3 pos);
-        //wiki: key llGetNotecardLine(string name, integer line)
-        LSL_Types.LSLString llGetNotecardLine(string name, int line);
-        //wiki: vector llGetAgentSize(key id)
-        LSL_Types.Vector3 llGetAgentSize(string id);
-        //wiki: integer llSameGroup(key agent)
-        LSL_Types.LSLInteger llSameGroup(string agent);
-        //wiki: llUnSit(key id)
-        void llUnSit(string id);
-        //wiki: vector llGroundSlope(vector offset)
-        LSL_Types.Vector3 llGroundSlope(LSL_Types.Vector3 offset);
-        //wiki: vector llGroundNormal(vector offset)
-        LSL_Types.Vector3 llGroundNormal(LSL_Types.Vector3 offset);
-        //wiki: vector llGroundContour(vector offset)
-        LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset);
-        //wiki: integer llGetAttached()
-        LSL_Types.LSLInteger llGetAttached();
-        //wiki: integer llGetFreeMemory()
-        LSL_Types.LSLInteger llGetFreeMemory();
-        //wiki: LSL_Types.LSLString llGetRegionName()
-        LSL_Types.LSLString llGetRegionName();
-        //wiki: LSL_Types.LSLFloat llGetRegionTimeDilation()
-        LSL_Types.LSLFloat llGetRegionTimeDilation();
-        //wiki: LSL_Types.LSLFloat llGetRegionFPS()
-        LSL_Types.LSLFloat llGetRegionFPS();
-        //wiki: llParticleSystem(List<Object> rules
-        void llParticleSystem(LSL_Types.list rules);
-        //wiki: llGroundRepel(double height, integer water, double tau)
-        void llGroundRepel(double height, int water, double tau);
-        //wiki: llGiveInventoryList(string destination, string category, LSL_Types.list inventory)
-        void llGiveInventoryList(string destination, string category, LSL_Types.list inventory);
-        //wiki: llSetVehicleType(integer type)
-        void llSetVehicleType(int type);
-        //wiki: llSetVehicledoubleParam(integer param, double value)
-        void llSetVehicledoubleParam(int param, double value);
-        // wiki: llSetVehicleFloatParam(integer param, float value)
-        void llSetVehicleFloatParam(int param, float value);
-        //wiki: llSetVehicleVectorParam(integer param, vector vec)
-        void llSetVehicleVectorParam(int param, LSL_Types.Vector3 vec);
-        //wiki: llSetVehicleRotationParam(integer param, rotation rot)
-        void llSetVehicleRotationParam(int param, LSL_Types.Quaternion rot);
-        //wiki: llSetVehicleFlags(integer flags)
-        void llSetVehicleFlags(int flags);
-        //wiki: llRemoveVehicleFlags(integer flags)
-        void llRemoveVehicleFlags(int flags);
-        //wiki: llSitTarget(vector offset, rotation rot)
-        void llSitTarget(LSL_Types.Vector3 offset, LSL_Types.Quaternion rot);
-        //wiki key llAvatarOnSitTarget()
-        LSL_Types.LSLString llAvatarOnSitTarget();
-        //wiki: llAddToLandPassList(key avatar, double hours)
-        void llAddToLandPassList(string avatar, double hours);
-        //wiki: llSetTouchText(string text)
-        void llSetTouchText(string text);
-        //wiki: llSetSitText(string text)
-        void llSetSitText(string text);
-        //wiki: llSetCameraEyeOffset(vector offset)
-        void llSetCameraEyeOffset(LSL_Types.Vector3 offset);
-        //wiki: llSeteCameraAtOffset(vector offset)
-        void llSetCameraAtOffset(LSL_Types.Vector3 offset);
-        //
-        LSL_Types.LSLString llDumpList2String(LSL_Types.list src, string seperator);
-        //wiki: integer llScriptDanger(vector pos)
-        LSL_Types.LSLInteger llScriptDanger(LSL_Types.Vector3 pos);
-        //wiki: llDialog(key avatar, string message, list buttons, integer chat_channel)
-        void llDialog(string avatar, string message, LSL_Types.list buttons, int chat_channel);
-        //wiki: llVolumeDetect(integer detect)
-        void llVolumeDetect(int detect);
-        //wiki: llResetOtherScript(string name)
-        void llResetOtherScript(string name);
-        //wiki: integer llGetScriptState(string name)
-        LSL_Types.LSLInteger llGetScriptState(string name);
-        //wiki: (deprecated)
-        void llRemoteLoadScript();
-        //wiki: llSetRemoteScriptAccessPin(integer pin)
-        void llSetRemoteScriptAccessPin(int pin);
-        //wiki: llRemoteLoadScriptPin(key target, string name, integer pin, integer running, integer start_param)
-        void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param);
-        //wiki: llOpenRemoteDataChannel()
-        void llOpenRemoteDataChannel();
-        //wiki: key llSendRemoteData(key channel, string dest, integer idata, string sdata)
-        LSL_Types.LSLString llSendRemoteData(string channel, string dest, int idata, string sdata);
-        //wiki: llRemoteDataReply(key channel, key message_id, string sdata, integer idata)
-        void llRemoteDataReply(string channel, string message_id, string sdata, int idata);
-        //wiki: llCloseRemoteDataChannel(key channel)
-        void llCloseRemoteDataChannel(string channel);
-        //wiki: LSL_Types.LSLString llMD5String(string src, integer nonce)
-        LSL_Types.LSLString llMD5String(string src, int nonce);
-        //wiki: llSetPrimitiveParams(list rules)
-        void llSetPrimitiveParams(LSL_Types.list rules);
-        //wiki: llSetLinkPrimitiveParams(integer linknumber, list rules)
-        void llSetLinkPrimitiveParams(int linknumber, LSL_Types.list rules);
-        //wiki: LSL_Types.LSLString llStringToBase64(string str)
-        LSL_Types.LSLString llStringToBase64(string str);
-        //wiki: LSL_Types.LSLString llBase64ToString(string str)
-        LSL_Types.LSLString llBase64ToString(string str);
-        //wiki: (deprecated)
-        void llXorBase64Strings();
-        //wiki: llRemoteDataSetRegion()
-        void llRemoteDataSetRegion();
-        //wiki: LSL_Types.LSLFloat llLog10(double val)
-        LSL_Types.LSLFloat llLog10(double val);
-        //wiki: LSL_Types.LSLFloat llLog(double val)
-        LSL_Types.LSLFloat llLog(double val);
-        //wiki: list llGetAnimationList(key id)
-        LSL_Types.list llGetAnimationList(string id);
-        //wiki: llSetParcelMusicURL(string url)
-        void llSetParcelMusicURL(string url);
-        //wiki: vector llGetRootPosition()
-        LSL_Types.Vector3 llGetRootPosition();
-        //wiki: rotation llGetRootRotation()
-        LSL_Types.Quaternion llGetRootRotation();
-        //wiki: LSL_Types.LSLString llGetObjectDesc()
-        LSL_Types.LSLString llGetObjectDesc();
-        //wiki: llSetObjectDesc(string desc)
-        void llSetObjectDesc(string desc);
-        //wiki: key llGetCreator()
-        LSL_Types.LSLString llGetCreator();
-        //wiki: LSL_Types.LSLString llGetTimestamp()
-        LSL_Types.LSLString llGetTimestamp();
-        //wiki: llSetLinkAlpha(integer linknumber, double alpha, integer face)
-        void llSetLinkAlpha(int linknumber, double alpha, int face);
-        //wiki: integer llGetNumberOfPrims()
-        LSL_Types.LSLInteger llGetNumberOfPrims();
-        //wiki: key llGetNumberOfNotecardLines(string name)
-        LSL_Types.LSLString llGetNumberOfNotecardLines(string name);
-        //wiki: list llGetBoundingBox(key object)
-        LSL_Types.list llGetBoundingBox(string obj);
-        //wiki: vector llGetGeometricCenter()
-        LSL_Types.Vector3 llGetGeometricCenter();
-        //wiki: list llGetPrimitiveParams(list rules)
-        LSL_Types.list llGetPrimitiveParams(LSL_Types.list rules);
-        //wiki: LSL_Types.LSLString llIntegerToBase64(integer number)
-        LSL_Types.LSLString llIntegerToBase64(int number);
-        //wiki integer llBase64ToInteger(string str)
-        LSL_Types.LSLInteger llBase64ToInteger(string str);
-        //wiki: LSL_Types.LSLFloat llGetGMTclock()
-        LSL_Types.LSLFloat llGetGMTclock();
-        //wiki: LSL_Types.LSLString llGetSimulatorHostname()
-        LSL_Types.LSLString llGetSimulatorHostname();
-        //llSetLocalRot(rotation rot)
-        void llSetLocalRot(LSL_Types.Quaternion rot);
-        //wiki: list llParseStringKeepNulls(string src, list separators, list spacers)
-        LSL_Types.list llParseStringKeepNulls(string src, LSL_Types.list seperators, LSL_Types.list spacers);
-        //wiki: llRezAtRoot(string inventory, vector position, vector velocity, rotation rot, integer param)
-        void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity,
-                         LSL_Types.Quaternion rot, int param);
-
-        //wiki: integer llGetObjectPermMask(integer mask)
-        LSL_Types.LSLInteger llGetObjectPermMask(int mask);
-        //wiki: llSetObjectPermMask(integer mask, integer value)
-        void llSetObjectPermMask(int mask, int value);
-        //wiki integer llGetInventoryPermMask(string item, integer mask)
-        LSL_Types.LSLInteger llGetInventoryPermMask(string item, int mask);
-        //wiki: llSetInventoryPermMask(string item, integer mask, integer value)
-        void llSetInventoryPermMask(string item, int mask, int value);
-        //wiki: key llGetInventoryCreator(string item)
-        LSL_Types.LSLString llGetInventoryCreator(string item);
-        //wiki: llOwnerSay(string msg)
-        void llOwnerSay(string msg);
-        //wiki: key llRequestSimulatorData(string simulator, integer data)
-        LSL_Types.LSLString llRequestSimulatorData(string simulator, int data);
-        //wiki: llForceMouselook(integer mouselook)
-        void llForceMouselook(int mouselook);
-        //wiki: LSL_Types.LSLFloat llGetObjectMass(key id)
-        LSL_Types.LSLFloat llGetObjectMass(string id);
-        LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end);
-        //wiki: llLoadURL(key avatar_id, string message, string url)
-        void llLoadURL(string avatar_id, string message, string url);
-        //wiki: llParcelMediaCommandList(list commandList)
-        void llParcelMediaCommandList(LSL_Types.list commandList);
-        LSL_Types.list llParcelMediaQuery(LSL_Types.list aList);
-        //wiki integer llModPow(integer a, integer b, integer c)
-        LSL_Types.LSLInteger llModPow(int a, int b, int c);
-        //wiki: integer llGetInventoryType(string name)
-        LSL_Types.LSLInteger llGetInventoryType(string name);
-        //wiki: llSetPayPrice(integer price, list quick_pay_buttons)
-        void llSetPayPrice(int price, LSL_Types.list quick_pay_buttons);
-        //wiki: vector llGetCameraPos()
-        LSL_Types.Vector3 llGetCameraPos();
-        //wiki rotation llGetCameraRot()
-        LSL_Types.Quaternion llGetCameraRot();
-        //wiki: (deprecated)
-        void llSetPrimURL();
-        //wiki: (deprecated)
-        void llRefreshPrimURL();
-        //wiki: LSL_Types.LSLString llEscapeURL(string url)
-        LSL_Types.LSLString llEscapeURL(string url);
-        //wiki: LSL_Types.LSLString llUnescapeURL(string url)
-        LSL_Types.LSLString llUnescapeURL(string url);
-        //wiki: llMapDestination(string simname, vector pos, vector look_at)
-        void llMapDestination(string simname, LSL_Types.Vector3 pos, LSL_Types.Vector3 look_at);
-        //wiki: llAddToLandBanList(key avatar, double hours)
-        void llAddToLandBanList(string avatar, double hours);
-        //wiki: llRemoveFromLandPassList(key avatar)
-        void llRemoveFromLandPassList(string avatar);
-        //wiki: llRemoveFromLandBanList(key avatar)
-        void llRemoveFromLandBanList(string avatar);
-        //wiki: llSetCameraParams(list rules)
-        void llSetCameraParams(LSL_Types.list rules);
-        //wiki: llClearCameraParams()
-        void llClearCameraParams();
-        //wiki: LSL_Types.LSLFloat llListStatistics(integer operation, list src)
-        LSL_Types.LSLFloat llListStatistics(int operation, LSL_Types.list src);
-        //wiki: integer llGetUnixTime()
-        LSL_Types.LSLInteger llGetUnixTime();
-        //wiki: integer llGetParcelFlags(vector pos)
-        LSL_Types.LSLInteger llGetParcelFlags(LSL_Types.Vector3 pos);
-        //wiki: integer llGetRegionFlags()
-        LSL_Types.LSLInteger llGetRegionFlags();
-        //wiki: LSL_Types.LSLString llXorBase64StringsCorrect(string str1, string str2)
-        LSL_Types.LSLString llXorBase64StringsCorrect(string str1, string str2);
-        LSL_Types.LSLString llHTTPRequest(string url, LSL_Types.list parameters, string body);
-        //wiki: llResetLandBanList()
-        void llResetLandBanList();
-        //wiki: llResetLandPassList()
-        void llResetLandPassList();
-        //wiki: integer llGetParcelPrimCount(vector pos, integer category, integer sim_wide)
-        LSL_Types.LSLInteger llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide);
-        //wiki: list llGetParcelPrimOwners(vector pos)
-        LSL_Types.list llGetParcelPrimOwners(LSL_Types.Vector3 pos);
-        //wiki: integer llGetObjectPrimCount(key object_id)
-        LSL_Types.LSLInteger llGetObjectPrimCount(string object_id);
-        //wiki: integer llGetParcelMaxPrims(vector pos, integer sim_wide)
-        LSL_Types.LSLInteger llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide);
-        //wiki: llGetParcelDetails(vector pos, list params)
-        LSL_Types.list llGetParcelDetails(LSL_Types.Vector3 pos, LSL_Types.list param);
-        //wiki: llSetLinkTexture(integer linknumber, string texture, integer face)
-        void llSetLinkTexture(int linknumber, string texture, int face);
-        //wiki: LSL_Types.LSLString llStringTrim(string src, int type)
-        LSL_Types.LSLString llStringTrim(string src, int type);
-        //wiki: LSL_Types.list llGetObjectDetails(string id, LSL_Types.list args)
-        LSL_Types.list llGetObjectDetails(string id, LSL_Types.list args);
+       LSL_Integer llAbs(int i);
+         LSL_Float llAcos(double val);
+              void llAddToLandBanList(string avatar, double hours);
+              void llAddToLandPassList(string avatar, double hours);
+              void llAdjustSoundVolume(double volume);
+              void llAllowInventoryDrop(int add);
+         LSL_Float llAngleBetween(LSL_Rotation a, LSL_Rotation b);
+              void llApplyImpulse(LSL_Vector force, int local);
+              void llApplyRotationalImpulse(LSL_Vector force, int local);
+         LSL_Float llAsin(double val);
+         LSL_Float llAtan2(double x, double y);
+              void llAttachToAvatar(int attachment);
+           LSL_Key llAvatarOnSitTarget();
+      LSL_Rotation llAxes2Rot(LSL_Vector fwd, LSL_Vector left, LSL_Vector up);
+      LSL_Rotation llAxisAngle2Rot(LSL_Vector axis, double angle);
+       LSL_Integer llBase64ToInteger(string str);
+        LSL_String llBase64ToString(string str);
+              void llBreakAllLinks();
+              void llBreakLink(int linknum);
+       LSL_Integer llCeil(double f);
+              void llClearCameraParams();
+              void llCloseRemoteDataChannel(string channel);
+         LSL_Float llCloud(LSL_Vector offset);
+              void llCollisionFilter(string name, string id, int accept);
+              void llCollisionSound(string impact_sound, double impact_volume);
+              void llCollisionSprite(string impact_sprite);
+         LSL_Float llCos(double f);
+              void llCreateLink(string target, int parent);
+          LSL_List llCSV2List(string src);
+          LSL_List llDeleteSubList(LSL_List src, int start, int end);
+        LSL_String llDeleteSubString(string src, int start, int end);
+              void llDetachFromAvatar();
+        LSL_Vector llDetectedGrab(int number);
+       LSL_Integer llDetectedGroup(int number);
+           LSL_Key llDetectedKey(int number);
+       LSL_Integer llDetectedLinkNumber(int number);
+        LSL_String llDetectedName(int number);
+           LSL_Key llDetectedOwner(int number);
+        LSL_Vector llDetectedPos(int number);
+      LSL_Rotation llDetectedRot(int number);
+       LSL_Integer llDetectedType(int number);
+        LSL_Vector llDetectedTouchBinormal(int index);
+       LSL_Integer llDetectedTouchFace(int index);
+        LSL_Vector llDetectedTouchNormal(int index);
+        LSL_Vector llDetectedTouchPos(int index);
+        LSL_Vector llDetectedTouchST(int index);
+        LSL_Vector llDetectedTouchUV(int index);
+        LSL_Vector llDetectedVel(int number);
+              void llDialog(string avatar, string message, LSL_List buttons, int chat_channel);
+              void llDie();
+        LSL_String llDumpList2String(LSL_List src, string seperator);
+       LSL_Integer llEdgeOfWorld(LSL_Vector pos, LSL_Vector dir);
+              void llEjectFromLand(string pest);
+              void llEmail(string address, string subject, string message);
+        LSL_String llEscapeURL(string url);
+      LSL_Rotation llEuler2Rot(LSL_Vector v);
+         LSL_Float llFabs(double f);
+       LSL_Integer llFloor(double f);
+              void llForceMouselook(int mouselook);
+         LSL_Float llFrand(double mag);
+        LSL_Vector llGetAccel();
+       LSL_Integer llGetAgentInfo(string id);
+        LSL_Vector llGetAgentSize(string id);
+         LSL_Float llGetAlpha(int face);
+         LSL_Float llGetAndResetTime();
+        LSL_String llGetAnimation(string id);
+          LSL_List llGetAnimationList(string id);
+       LSL_Integer llGetAttached();
+          LSL_List llGetBoundingBox(string obj);
+        LSL_Vector llGetCameraPos();
+      LSL_Rotation llGetCameraRot();
+        LSL_Vector llGetCenterOfMass();
+        LSL_Vector llGetColor(int face);
+        LSL_String llGetCreator();
+        LSL_String llGetDate();
+         LSL_Float llGetEnergy();
+        LSL_Vector llGetForce();
+       LSL_Integer llGetFreeMemory();
+        LSL_Vector llGetGeometricCenter();
+         LSL_Float llGetGMTclock();
+           LSL_Key llGetInventoryCreator(string item);
+           LSL_Key llGetInventoryKey(string name);
+        LSL_String llGetInventoryName(int type, int number);
+       LSL_Integer llGetInventoryNumber(int type);
+       LSL_Integer llGetInventoryPermMask(string item, int mask);
+       LSL_Integer llGetInventoryType(string name);
+           LSL_Key llGetKey();
+           LSL_Key llGetLandOwnerAt(LSL_Vector pos);
+           LSL_Key llGetLinkKey(int linknum);
+        LSL_String llGetLinkName(int linknum);
+       LSL_Integer llGetLinkNumber();
+       LSL_Integer llGetListEntryType(LSL_List src, int index);
+       LSL_Integer llGetListLength(LSL_List src);
+        LSL_Vector llGetLocalPos();
+      LSL_Rotation llGetLocalRot();
+         LSL_Float llGetMass();
+              void llGetNextEmail(string address, string subject);
+        LSL_String llGetNotecardLine(string name, int line);
+           LSL_Key llGetNumberOfNotecardLines(string name);
+       LSL_Integer llGetNumberOfPrims();
+       LSL_Integer llGetNumberOfSides();
+        LSL_String llGetObjectDesc();
+          LSL_List llGetObjectDetails(string id, LSL_List args);
+         LSL_Float llGetObjectMass(string id);
+        LSL_String llGetObjectName();
+       LSL_Integer llGetObjectPermMask(int mask);
+       LSL_Integer llGetObjectPrimCount(string object_id);
+        LSL_Vector llGetOmega();
+           LSL_Key llGetOwner();
+           LSL_Key llGetOwnerKey(string id);
+          LSL_List llGetParcelDetails(LSL_Vector pos, LSL_List param);
+       LSL_Integer llGetParcelFlags(LSL_Vector pos);
+       LSL_Integer llGetParcelMaxPrims(LSL_Vector pos, int sim_wide);
+       LSL_Integer llGetParcelPrimCount(LSL_Vector pos, int category, int sim_wide);
+          LSL_List llGetParcelPrimOwners(LSL_Vector pos);
+       LSL_Integer llGetPermissions();
+           LSL_Key llGetPermissionsKey();
+        LSL_Vector llGetPos();
+          LSL_List llGetPrimitiveParams(LSL_List rules);
+       LSL_Integer llGetRegionAgentCount();
+        LSL_Vector llGetRegionCorner();
+       LSL_Integer llGetRegionFlags();
+         LSL_Float llGetRegionFPS();
+        LSL_String llGetRegionName();
+         LSL_Float llGetRegionTimeDilation();
+        LSL_Vector llGetRootPosition();
+      LSL_Rotation llGetRootRotation();
+      LSL_Rotation llGetRot();
+        LSL_Vector llGetScale();
+        LSL_String llGetScriptName();
+       LSL_Integer llGetScriptState(string name);
+        LSL_String llGetSimulatorHostname();
+       LSL_Integer llGetStartParameter();
+       LSL_Integer llGetStatus(int status);
+        LSL_String llGetSubString(string src, int start, int end);
+        LSL_Vector llGetSunDirection();
+        LSL_String llGetTexture(int face);
+        LSL_Vector llGetTextureOffset(int face);
+         LSL_Float llGetTextureRot(int side);
+        LSL_Vector llGetTextureScale(int side);
+         LSL_Float llGetTime();
+         LSL_Float llGetTimeOfDay();
+        LSL_String llGetTimestamp();
+        LSL_Vector llGetTorque();
+       LSL_Integer llGetUnixTime();
+        LSL_Vector llGetVel();
+         LSL_Float llGetWallclock();
+              void llGiveInventory(string destination, string inventory);
+              void llGiveInventoryList(string destination, string category, LSL_List inventory);
+       LSL_Integer llGiveMoney(string destination, int amount);
+              void llGodLikeRezObject(string inventory, LSL_Vector pos);
+         LSL_Float llGround(LSL_Vector offset);
+        LSL_Vector llGroundContour(LSL_Vector offset);
+        LSL_Vector llGroundNormal(LSL_Vector offset);
+              void llGroundRepel(double height, int water, double tau);
+        LSL_Vector llGroundSlope(LSL_Vector offset);
+        LSL_String llHTTPRequest(string url, LSL_List parameters, string body);
+        LSL_String llInsertString(string dst, int position, string src);
+              void llInstantMessage(string user, string message);
+        LSL_String llIntegerToBase64(int number);
+        LSL_String llKey2Name(string id);
+        LSL_String llList2CSV(LSL_List src);
+         LSL_Float llList2Float(LSL_List src, int index);
+       LSL_Integer llList2Integer(LSL_List src, int index);
+           LSL_Key llList2Key(LSL_List src, int index);
+          LSL_List llList2List(LSL_List src, int start, int end);
+          LSL_List llList2ListStrided(LSL_List src, int start, int end, int stride);
+      LSL_Rotation llList2Rot(LSL_List src, int index);
+        LSL_String llList2String(LSL_List src, int index);
+        LSL_Vector llList2Vector(LSL_List src, int index);
+       LSL_Integer llListen(int channelID, string name, string ID, string msg);
+              void llListenControl(int number, int active);
+              void llListenRemove(int number);
+       LSL_Integer llListFindList(LSL_List src, LSL_List test);
+          LSL_List llListInsertList(LSL_List dest, LSL_List src, int start);
+          LSL_List llListRandomize(LSL_List src, int stride);
+          LSL_List llListReplaceList(LSL_List dest, LSL_List src, int start, int end);
+          LSL_List llListSort(LSL_List src, int stride, int ascending);
+         LSL_Float llListStatistics(int operation, LSL_List src);
+              void llLoadURL(string avatar_id, string message, string url);
+         LSL_Float llLog(double val);
+         LSL_Float llLog10(double val);
+              void llLookAt(LSL_Vector target, double strength, double damping);
+              void llLoopSound(string sound, double volume);
+              void llLoopSoundMaster(string sound, double volume);
+              void llLoopSoundSlave(string sound, double volume);
+              void llMakeExplosion();
+              void llMakeFire();
+              void llMakeFountain();
+              void llMakeSmoke();
+              void llMapDestination(string simname, LSL_Vector pos, LSL_Vector look_at);
+        LSL_String llMD5String(string src, int nonce);
+              void llMessageLinked(int linknum, int num, string str, string id);
+              void llMinEventDelay(double delay);
+              void llModifyLand(int action, int brush);
+       LSL_Integer llModPow(int a, int b, int c);
+              void llMoveToTarget(LSL_Vector target, double tau);
+              void llOffsetTexture(double u, double v, int face);
+              void llOpenRemoteDataChannel();
+       LSL_Integer llOverMyLand(string id);
+              void llOwnerSay(string msg);
+              void llParcelMediaCommandList(LSL_List commandList);
+          LSL_List llParcelMediaQuery(LSL_List aList);
+          LSL_List llParseString2List(string str, LSL_List separators, LSL_List spacers);
+          LSL_List llParseStringKeepNulls(string src, LSL_List seperators, LSL_List spacers);
+              void llParticleSystem(LSL_List rules);
+              void llPassCollisions(int pass);
+              void llPassTouches(int pass);
+              void llPlaySound(string sound, double volume);
+              void llPlaySoundSlave(string sound, double volume);
+              void llPointAt();
+         LSL_Float llPow(double fbase, double fexponent);
+              void llPreloadSound(string sound);
+              void llPushObject(string target, LSL_Vector impulse, LSL_Vector ang_impulse, int local);
+              void llRefreshPrimURL();
+              void llRegionSay(int channelID, string text);
+              void llReleaseCamera(string avatar);
+              void llReleaseControls();
+              void llRemoteDataReply(string channel, string message_id, string sdata, int idata);
+              void llRemoteDataSetRegion();
+              void llRemoteLoadScript();
+              void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param);
+              void llRemoveFromLandBanList(string avatar);
+              void llRemoveFromLandPassList(string avatar);
+              void llRemoveInventory(string item);
+              void llRemoveVehicleFlags(int flags);
+           LSL_Key llRequestAgentData(string id, int data);
+           LSL_Key llRequestInventoryData(string name);
+              void llRequestPermissions(string agent, int perm);
+           LSL_Key llRequestSimulatorData(string simulator, int data);
+              void llResetLandBanList();
+              void llResetLandPassList();
+              void llResetOtherScript(string name);
+              void llResetScript();
+              void llResetTime();
+              void llRezAtRoot(string inventory, LSL_Vector position, LSL_Vector velocity, LSL_Rotation rot, int param);
+              void llRezObject(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param);
+         LSL_Float llRot2Angle(LSL_Rotation rot);
+        LSL_Vector llRot2Axis(LSL_Rotation rot);
+        LSL_Vector llRot2Euler(LSL_Rotation r);
+        LSL_Vector llRot2Fwd(LSL_Rotation r);
+        LSL_Vector llRot2Left(LSL_Rotation r);
+        LSL_Vector llRot2Up(LSL_Rotation r);
+              void llRotateTexture(double rotation, int face);
+      LSL_Rotation llRotBetween(LSL_Vector start, LSL_Vector end);
+              void llRotLookAt(LSL_Rotation target, double strength, double damping);
+       LSL_Integer llRotTarget(LSL_Rotation rot, double error);
+              void llRotTargetRemove(int number);
+       LSL_Integer llRound(double f);
+       LSL_Integer llSameGroup(string agent);
+              void llSay(int channelID, string text);
+              void llScaleTexture(double u, double v, int face);
+       LSL_Integer llScriptDanger(LSL_Vector pos);
+           LSL_Key llSendRemoteData(string channel, string dest, int idata, string sdata);
+              void llSensor(string name, string id, int type, double range, double arc);
+              void llSensorRemove();
+              void llSensorRepeat(string name, string id, int type, double range, double arc, double rate);
+              void llSetAlpha(double alpha, int face);
+              void llSetBuoyancy(double buoyancy);
+              void llSetCameraAtOffset(LSL_Vector offset);
+              void llSetCameraEyeOffset(LSL_Vector offset);
+              void llSetCameraParams(LSL_List rules);
+              void llSetClickAction(int action);
+              void llSetColor(LSL_Vector color, int face);
+              void llSetDamage(double damage);
+              void llSetForce(LSL_Vector force, int local);
+              void llSetForceAndTorque(LSL_Vector force, LSL_Vector torque, int local);
+              void llSetHoverHeight(double height, int water, double tau);
+              void llSetInventoryPermMask(string item, int mask, int value);
+              void llSetLinkAlpha(int linknumber, double alpha, int face);
+              void llSetLinkColor(int linknumber, LSL_Vector color, int face);
+              void llSetLinkPrimitiveParams(int linknumber, LSL_List rules);
+              void llSetLinkTexture(int linknumber, string texture, int face);
+              void llSetLocalRot(LSL_Rotation rot);
+              void llSetObjectDesc(string desc);
+              void llSetObjectName(string name);
+              void llSetObjectPermMask(int mask, int value);
+              void llSetParcelMusicURL(string url);
+              void llSetPayPrice(int price, LSL_List quick_pay_buttons);
+              void llSetPos(LSL_Vector pos);
+              void llSetPrimitiveParams(LSL_List rules);
+              void llSetPrimURL();
+              void llSetRemoteScriptAccessPin(int pin);
+              void llSetRot(LSL_Rotation rot);
+              void llSetScale(LSL_Vector scale);
+              void llSetScriptState(string name, int run);
+              void llSetSitText(string text);
+              void llSetSoundQueueing(int queue);
+              void llSetSoundRadius(double radius);
+              void llSetStatus(int status, int value);
+              void llSetText(string text, LSL_Vector color, double alpha);
+              void llSetTexture(string texture, int face);
+              void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate);
+              void llSetTimerEvent(double sec);
+              void llSetTorque(LSL_Vector torque, int local);
+              void llSetTouchText(string text);
+              void llSetVehicleFlags(int flags);
+              void llSetVehicleFloatParam(int param, float value);
+              void llSetVehicleRotationParam(int param, LSL_Rotation rot);
+              void llSetVehicleType(int type);
+              void llSetVehicleVectorParam(int param, LSL_Vector vec);
+              void llShout(int channelID, string text);
+         LSL_Float llSin(double f);
+              void llSitTarget(LSL_Vector offset, LSL_Rotation rot);
+              void llSleep(double sec);
+              void llSound();
+              void llSoundPreload();
+         LSL_Float llSqrt(double f);
+              void llStartAnimation(string anim);
+              void llStopAnimation(string anim);
+              void llStopHover();
+              void llStopLookAt();
+              void llStopMoveToTarget();
+              void llStopPointAt();
+              void llStopSound();
+       LSL_Integer llStringLength(string str);
+        LSL_String llStringToBase64(string str);
+        LSL_String llStringTrim(string src, int type);
+       LSL_Integer llSubStringIndex(string source, string pattern);
+              void llTakeCamera(string avatar);
+              void llTakeControls(int controls, int accept, int pass_on);
+         LSL_Float llTan(double f);
+       LSL_Integer llTarget(LSL_Vector position, double range);
+              void llTargetOmega(LSL_Vector axis, double spinrate, double gain);
+              void llTargetRemove(int number);
+              void llTeleportAgentHome(string agent);
+              void llTextBox(string avatar, string message, int chat_channel);
+        LSL_String llToLower(string source);
+        LSL_String llToUpper(string source);
+              void llTriggerSound(string sound, double volume);
+              void llTriggerSoundLimited(string sound, double volume, LSL_Vector top_north_east, LSL_Vector bottom_south_west);
+        LSL_String llUnescapeURL(string url);
+              void llUnSit(string id);
+         LSL_Float llVecDist(LSL_Vector a, LSL_Vector b);
+         LSL_Float llVecMag(LSL_Vector v);
+        LSL_Vector llVecNorm(LSL_Vector v);
+              void llVolumeDetect(int detect);
+         LSL_Float llWater(LSL_Vector offset);
+              void llWhisper(int channelID, string text);
+        LSL_Vector llWind(LSL_Vector offset);
+              void llXorBase64Strings();
+        LSL_String llXorBase64StringsCorrect(string str1, string str2);
     }
 }
