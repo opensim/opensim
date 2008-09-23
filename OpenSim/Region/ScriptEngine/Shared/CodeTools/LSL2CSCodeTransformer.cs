@@ -153,7 +153,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 return new Constant(p, constantType, "0.0");
             case "string":
             case "key":
-                return new Constant(p, constantType, "\"\"");
+                return new Constant(p, constantType, "");
             case "list":
                 ArgumentList al = new ArgumentList(p);
                 return new ListConstant(p, al);

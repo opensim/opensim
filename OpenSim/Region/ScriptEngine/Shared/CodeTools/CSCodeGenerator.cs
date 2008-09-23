@@ -726,19 +726,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if ("LSL_Types.LSLFloat" == c.Type)
             {
                 int dotIndex = c.Value.IndexOf('.') + 1;
-                // Skip first dot (in type name)
-                dotIndex = c.Value.IndexOf('.', dotIndex) + 1;
                 if (0 < dotIndex && (dotIndex == c.Value.Length || !Char.IsDigit(c.Value[dotIndex])))
                     c.Value = c.Value.Insert(dotIndex, "0");
+                c.Value = "new LSL_Types.LSLFloat("+c.Value+")";
+            }
+            else if("LSL_Types.LSLInteger" == c.Type)
+            {
+                c.Value = "new LSL_Types.LSLInteger("+c.Value+")";
+            }
+            else if("LSL_Types.LSLString" == c.Type)
+            {
+                c.Value = "new LSL_Types.LSLString(\""+c.Value+"\")";
             }
 
-            // commented because the parser does it now
-            // need to quote strings
-            // if ("LSL_Types.LSLString" == c.Type)
-            //     retstr += Generate("\"");
             retstr += Generate(c.Value, c);
-            // if ("LSL_Types.LSLString" == c.Type)
-            //     retstr += Generate("\"");
 
             return retstr;
         }
