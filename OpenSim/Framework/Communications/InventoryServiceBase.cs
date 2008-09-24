@@ -148,6 +148,15 @@ namespace OpenSim.Framework.Communications
         // See IInventoryServices
         public abstract void RequestInventoryForUser(UUID userID, InventoryReceiptCallback callback);
 
+        public List<InventoryItemBase> GetActiveGestures(UUID userId)
+        {
+            foreach (IInventoryDataPlugin plugin in m_plugins)
+            {
+                return plugin.fetchActiveGestures(userId);
+            }
+            return new List<InventoryItemBase>();
+        }
+
         #endregion
 
         #region Methods used by GridInventoryService

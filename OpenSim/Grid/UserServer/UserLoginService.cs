@@ -131,6 +131,9 @@ namespace OpenSim.Grid.UserServer
         /// <param name="startLocationRequest">The requested start location</param>
         public override bool CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
         {
+            // add active gestures to login-response
+            AddActiveGestures(response, theUser);
+
             // HomeLocation
             RegionProfileData homeInfo = null;
             // use the homeRegionID if it is stored already. If not, use the regionHandle as before
@@ -243,10 +246,37 @@ namespace OpenSim.Grid.UserServer
             //        theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
             theUser.CurrentAgent.Position = new Vector3(128,128,0);
             response.StartLocation = "safe";
-                
+
             return PrepareLoginToRegion(regionInfo, theUser, response);
         }
-        
+
+        /// <summary>
+        /// Add active gestures of the user to the login response.
+        /// </summary>
+        /// <param name="response">
+        /// A <see cref="LoginResponse"/>
+        /// </param>
+        /// <param name="theUser">
+        /// A <see cref="UserProfileData"/>
+        /// </param>
+        private void AddActiveGestures(LoginResponse response, UserProfileData theUser)
+        {
+            List<InventoryItemBase> gestures = m_inventoryService.GetActiveGestures(theUser.ID);
+            m_log.DebugFormat("[LOGIN]: AddActiveGestures, found {0}", gestures == null ? 0 : gestures.Count);
+            ArrayList list = new ArrayList();
+            if (gestures != null)
+            {
+                foreach (InventoryItemBase gesture in gestures)
+                {
+                    Hashtable item = new Hashtable();
+                    item["item_id"] = gesture.ID.ToString();
+                    item["asset_id"] = gesture.AssetID.ToString();
+                    list.Add(item);
+                }
+            }
+            response.ActiveGestures = list;
+        }
+
         /// <summary>
         /// Prepare a login to the given region.  This involves both telling the region to expect a connection
         /// and appropriately customising the response to the user.

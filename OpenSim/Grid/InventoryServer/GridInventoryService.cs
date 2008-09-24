@@ -233,5 +233,14 @@ namespace OpenSim.Grid.InventoryServer
 
             return CreateNewUserInventory(userID);
         }
+        
+        public List<InventoryItemBase> GetActiveGestures(Guid rawUserID)
+        {
+            UUID userID = new UUID(rawUserID);
+
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: fetching active gestures for user {0}", userID);
+
+            return GetActiveGestures(userID);
+        }
     }
 }

@@ -795,5 +795,41 @@ namespace OpenSim.Data.MySQL
             deleteOneFolder(folderID);
             deleteItemsInFolder(folderID);
         }
+        
+        public List<InventoryItemBase> fetchActiveGestures(UUID avatarID)
+        {
+            MySqlDataReader result = null;
+            MySqlCommand sqlCmd = null;
+            lock (database)
+            {
+                try
+                {
+                    database.CheckConnection();
+                    sqlCmd = new MySqlCommand(
+                        "SELECT * FROM inventoryitems WHERE avatarId = ?uuid AND assetType = ?type and flags = 1",
+                        database.Connection);
+                    sqlCmd.Parameters.AddWithValue("?uuid", avatarID.ToString());
+                    sqlCmd.Parameters.AddWithValue("?type", (int)AssetType.Gesture);
+                    result = sqlCmd.ExecuteReader();
+
+                    List<InventoryItemBase> list = new List<InventoryItemBase>();
+                    while (result.Read())
+                        list.Add(readInventoryItem(result));
+
+                    return list;
+                }
+                catch (Exception e)
+                {
+                    database.Reconnect();
+                    m_log.Error(e.ToString());
+                    return null;
+                }
+                finally
+                {
+                    if(result != null) result.Close();
+                    if(sqlCmd != null) sqlCmd.Dispose();
+                }
+            }
+        }
     }
 }

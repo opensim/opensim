@@ -798,6 +798,11 @@ namespace OpenSim.Data.MSSQL
                 m_log.Error("[INVENTORY DB] Error deleting folder :" + e.Message);
             }
         }
+
+        public List<InventoryItemBase> fetchActiveGestures (UUID avatarID)
+        {
+            return null;
+        }
         #endregion
     }
 }

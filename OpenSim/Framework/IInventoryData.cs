@@ -131,6 +131,17 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="folder">The id of the folder</param>
         void deleteInventoryFolder(UUID folder);
+        
+        /// <summary>
+        /// Returns all activated gesture-items in the inventory of the specified avatar.
+        /// </summary>
+        /// <param name="avatarID">
+        /// The <see cref="UUID"/> of the avatar
+        /// </param>
+        /// <returns>
+        /// The list of gestures (<see cref="InventoryItemBase"/>s)
+        /// </returns>
+        List<InventoryItemBase> fetchActiveGestures(UUID avatarID);
     }
 
     public class InventoryDataInitialiser : PluginInitialiserBase

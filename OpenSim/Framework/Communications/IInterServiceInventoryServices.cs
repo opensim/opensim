@@ -49,5 +49,16 @@ namespace OpenSim.Framework.Communications
         /// <returns>A flat list of the user's inventory folder tree,
         /// null if there is no inventory for this user</returns>
         List<InventoryFolderBase> GetInventorySkeleton(UUID userId);
+        
+        /// <summary>
+        /// Returns a list of all the active gestures in a user's inventory.
+        /// </summary>
+        /// <param name="userId">
+        /// The <see cref="UUID"/> of the user
+        /// </param>
+        /// <returns>
+        /// A flat list of the gesture items.
+        /// </returns>
+        List<InventoryItemBase> GetActiveGestures(UUID userId);
     }
 }

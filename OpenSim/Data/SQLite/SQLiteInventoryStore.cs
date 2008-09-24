@@ -847,5 +847,24 @@ namespace OpenSim.Data.SQLite
             row["UUID"] = Util.ToRawUuidString(folder.ID);
             row["parentID"] = Util.ToRawUuidString(folder.ParentID);
         }
+
+        public List<InventoryItemBase> fetchActiveGestures (UUID avatarID)
+        {
+            lock (ds)
+            {
+                List<InventoryItemBase> items = new List<InventoryItemBase>();
+
+                DataTable inventoryItemTable = ds.Tables["inventoryitems"];
+                string selectExp = "avatarID = '" + Util.ToRawUuidString(avatarID) + "' AND assetType = " +
+                    (int)AssetType.Gesture + " AND flags = 1";
+                m_log.DebugFormat("[SQL]: sql = " + selectExp);
+                DataRow[] rows = inventoryItemTable.Select(selectExp);
+                foreach (DataRow row in rows)
+                {
+                    items.Add(buildItem(row));
+                }
+                return items;
+            }
+        }
     }
 }

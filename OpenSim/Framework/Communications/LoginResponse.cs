@@ -60,6 +60,7 @@ namespace OpenSim.Framework.Communications
         private ArrayList inventoryLibraryOwner;
         private ArrayList inventoryLibRoot;
         private ArrayList inventoryLibrary;
+        private ArrayList activeGestures;
 
         private UserInfo userProfile;
 
@@ -124,6 +125,7 @@ namespace OpenSim.Framework.Communications
             agentInventory = new ArrayList();
             inventoryLibrary = new ArrayList();
             inventoryLibraryOwner = new ArrayList();
+            activeGestures = new ArrayList();
 
             xmlRpcResponse = new XmlRpcResponse();
             // defaultXmlRpcResponse = new XmlRpcResponse();
@@ -355,7 +357,7 @@ namespace OpenSim.Framework.Communications
                 responseData["inventory-skel-lib"] = inventoryLibrary;
                 responseData["inventory-root"] = inventoryRoot;
                 responseData["inventory-lib-root"] = inventoryLibRoot;
-                responseData["gestures"] = new ArrayList(); // todo
+                responseData["gestures"] = activeGestures;
                 responseData["inventory-lib-owner"] = inventoryLibraryOwner;
                 responseData["initial-outfit"] = initialOutfit;
                 responseData["start_location"] = startLocation;
@@ -452,7 +454,7 @@ namespace OpenSim.Framework.Communications
 
                 #endregion Inventory
 
-                map["gestures"] = new LLSDArray(); // todo
+                map["gestures"] = ArrayListToLLSDArray(activeGestures);
 
                 map["initial-outfit"] = ArrayListToLLSDArray(initialOutfit);
                 map["start_location"] = LLSD.FromString(startLocation);
@@ -699,6 +701,12 @@ namespace OpenSim.Framework.Communications
             set { inventoryLibRoot = value; }
         }
 
+        public ArrayList ActiveGestures
+        {
+            get { return activeGestures; }
+            set { activeGestures = value; }
+        }
+                
         public string Home
         {
             get { return home; }

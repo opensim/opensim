@@ -67,5 +67,21 @@ namespace OpenSim.Grid.Communications.OGS1
             return SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
                 "POST", m_inventoryServerUrl + "RootFolders/", userId.Guid);
         }
+        
+        /// <summary>
+        /// Returns a list of all the active gestures in a user's inventory.
+        /// </summary>
+        /// <param name="userId">
+        /// The <see cref="UUID"/> of the user
+        /// </param>
+        /// <returns>
+        /// A flat list of the gesture items.
+        /// </returns>
+        public List<InventoryItemBase> GetActiveGestures(UUID userId)
+        {
+            return SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryItemBase>>(
+                "POST", m_inventoryServerUrl + "ActiveGestures/", userId.Guid);
+        }
+
     }
 }

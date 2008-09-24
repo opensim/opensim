@@ -389,5 +389,10 @@ namespace OpenSim.Data.NHibernate
 
             return folders;
         }
+
+        public List<InventoryItemBase> fetchActiveGestures (UUID avatarID)
+        {
+            return null;
+        }
     }
 }

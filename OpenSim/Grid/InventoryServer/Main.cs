@@ -123,6 +123,11 @@ namespace OpenSim.Grid.InventoryServer
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseTrustedHandler<Guid, List<InventoryFolderBase>>
                     ("POST", "/RootFolders/", m_inventoryService.GetInventorySkeleton, m_inventoryService.CheckTrustSource));
+            
+            // for persistent active gestures
+            m_httpServer.AddStreamHandler(
+                new RestDeserialiseTrustedHandler<Guid, List<InventoryItemBase>>
+                    ("POST", "/ActiveGestures/", m_inventoryService.GetActiveGestures, m_inventoryService.CheckTrustSource));
         }
 
         private void Work()
