@@ -60,6 +60,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         private List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
         private int cachedTime = 0;
         private byte[] myMapImageJPEG;
+        private bool m_Enabled = false;
 
         //private int CacheRegionsDistance = 256;
 
@@ -67,6 +68,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            IConfig startupConfig = config.Configs["Startup"];
+            if (startupConfig.GetString("worldMapModule", "WorldMap") ==
+                    "WorldMap")
+                m_Enabled = true;
+
+            if (!m_Enabled)
+                return;
+
             myMapImageJPEG = new byte[0];
 
             m_scene = scene;
