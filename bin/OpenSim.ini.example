@@ -110,6 +110,12 @@ physical_prim = true
 DefaultScriptEngine = "DotNetEngine"
 ;DefaultScriptEngine = "XEngine"
 
+; ##
+; ## World Map
+; ##
+
+;WorldMapModule = "WorldMap"
+
 [StandAlone]
 accounts_authenticate = true
 welcome_message = "Welcome to OpenSim"
