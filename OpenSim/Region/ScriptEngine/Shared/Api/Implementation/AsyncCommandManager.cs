@@ -47,66 +47,86 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private static Thread cmdHandlerThread;
         private static int cmdHandlerThreadCycleSleepms;
 
-        private static List<AsyncCommandManager> m_Managers = new List<AsyncCommandManager>();
-        public IScriptEngine m_ScriptEngine;
+        private static List<IScene> m_Scenes = new List<IScene>();
+        private static List<IScriptEngine> m_ScriptEngines =
+                new List<IScriptEngine>();
 
-        private Dataserver m_Dataserver;
-        private Timer m_Timer;
-        private HttpRequest m_HttpRequest;
-        private Listener m_Listener;
-        private SensorRepeat m_SensorRepeat;
-        private XmlRequest m_XmlRequest;
+        public IScriptEngine m_ScriptEngine;
+        private IScene m_Scene;
+
+        private static Dictionary<IScene, Dataserver> m_Dataserver =
+                new Dictionary<IScene, Dataserver>();
+        private static Dictionary<IScene, Timer> m_Timer =
+                new Dictionary<IScene, Timer>();
+        private static Dictionary<IScene, Listener> m_Listener =
+                new Dictionary<IScene, Listener>();
+        private static Dictionary<IScene, HttpRequest> m_HttpRequest =
+                new Dictionary<IScene, HttpRequest>();
+        private static Dictionary<IScene, SensorRepeat> m_SensorRepeat =
+                new Dictionary<IScene, SensorRepeat>();
+        private static Dictionary<IScene, XmlRequest> m_XmlRequest =
+                new Dictionary<IScene, XmlRequest>();
 
         public Dataserver DataserverPlugin
         {
-            get { return m_Dataserver; }
+            get { return m_Dataserver[m_Scene]; }
         }
 
         public Timer TimerPlugin
         {
-            get { return m_Timer; }
+            get { return m_Timer[m_Scene]; }
         }
 
         public HttpRequest HttpRequestPlugin
         {
-            get { return m_HttpRequest; }
+            get { return m_HttpRequest[m_Scene]; }
         }
 
         public Listener ListenerPlugin
         {
-            get { return m_Listener; }
+            get { return m_Listener[m_Scene]; }
         }
 
         public SensorRepeat SensorRepeatPlugin
         {
-            get { return m_SensorRepeat; }
+            get { return m_SensorRepeat[m_Scene]; }
         }
 
         public XmlRequest XmlRequestPlugin
         {
-            get { return m_XmlRequest; }
+            get { return m_XmlRequest[m_Scene]; }
         }
 
-        public AsyncCommandManager[] Managers
+        public IScriptEngine[] ScriptEngines
         {
-            get { return m_Managers.ToArray(); }
+            get { return m_ScriptEngines.ToArray(); }
         }
 
         public AsyncCommandManager(IScriptEngine _ScriptEngine)
         {
             m_ScriptEngine = _ScriptEngine;
-            if (!m_Managers.Contains(this))
-                m_Managers.Add(this);
+            m_Scene = m_ScriptEngine.World;
+
+            if (!m_Scenes.Contains(m_Scene))
+                m_Scenes.Add(m_Scene);
+            if (!m_ScriptEngines.Contains(m_ScriptEngine))
+                m_ScriptEngines.Add(m_ScriptEngine);
 
             ReadConfig();
 
             // Create instances of all plugins
-            m_Dataserver = new Dataserver(this);
-            m_Timer = new Timer(this);
-            m_HttpRequest = new HttpRequest(this);
-            m_Listener = new Listener(this);
-            m_SensorRepeat = new SensorRepeat(this);
-            m_XmlRequest = new XmlRequest(this);
+            if (!m_Dataserver.ContainsKey(m_Scene))
+                m_Dataserver[m_Scene] = new Dataserver(this);
+            if (!m_Timer.ContainsKey(m_Scene))
+                m_Timer[m_Scene] = new Timer(this);
+            if (!m_HttpRequest.ContainsKey(m_Scene))
+                m_HttpRequest[m_Scene] = new HttpRequest(this);
+            if (!m_Listener.ContainsKey(m_Scene))
+                m_Listener[m_Scene] = new Listener(this);
+            if (!m_SensorRepeat.ContainsKey(m_Scene))
+                m_SensorRepeat[m_Scene] = new SensorRepeat(this);
+            if (!m_XmlRequest.ContainsKey(m_Scene))
+                m_XmlRequest[m_Scene] = new XmlRequest(this);
 
             StartThread();
         }
@@ -127,26 +147,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void ReadConfig()
         {
-            cmdHandlerThreadCycleSleepms = m_ScriptEngine.Config.GetInt("AsyncLLCommandLoopms", 100);
+//            cmdHandlerThreadCycleSleepms = m_ScriptEngine.Config.GetInt("AsyncLLCommandLoopms", 100);
+            // TODO: Make this sane again
+            cmdHandlerThreadCycleSleepms = 100;
         }
 
         ~AsyncCommandManager()
         {
             // Shut down thread
-            try
-            {
-                if (cmdHandlerThread != null)
-                {
-                    if (cmdHandlerThread.IsAlive == true)
-                    {
-                        cmdHandlerThread.Abort();
-                        //cmdHandlerThread.Join();
-                    }
-                }
-            }
-            catch
-            {
-            }
+//            try
+//            {
+//                if (cmdHandlerThread != null)
+//                {
+//                    if (cmdHandlerThread.IsAlive == true)
+//                    {
+//                        cmdHandlerThread.Abort();
+//                        //cmdHandlerThread.Join();
+//                    }
+//                }
+//            }
+//            catch
+//            {
+//            }
         }
 
         /// <summary>
@@ -162,10 +184,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         Thread.Sleep(cmdHandlerThreadCycleSleepms);
 
-                        foreach (AsyncCommandManager m in m_Managers)
-                        {
-                            m.DoOneCmdHandlerPass();
-                        }
+                        DoOneCmdHandlerPass();
                     }
                 }
                 catch
@@ -174,20 +193,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void DoOneCmdHandlerPass()
+        private static void DoOneCmdHandlerPass()
         {
-            // Check timers
-            m_Timer.CheckTimerEvents();
-            // Check HttpRequests
-            m_HttpRequest.CheckHttpRequests();
-            // Check XMLRPCRequests
-            m_XmlRequest.CheckXMLRPCRequests();
-            // Check Listeners
-            m_Listener.CheckListeners();
-            // Check Sensors
-            m_SensorRepeat.CheckSenseRepeaterEvents();
-            // Check dataserver
-            m_Dataserver.ExpireRequests();
+            foreach (IScene s in m_Scenes)
+            {
+                // Check timers
+                m_Timer[s].CheckTimerEvents();
+                // Check HttpRequests
+                m_HttpRequest[s].CheckHttpRequests();
+                // Check XMLRPCRequests
+                m_XmlRequest[s].CheckXMLRPCRequests();
+                // Check Listeners
+                m_Listener[s].CheckListeners();
+                // Check Sensors
+                m_SensorRepeat[s].CheckSenseRepeaterEvents();
+                // Check dataserver
+                m_Dataserver[s].ExpireRequests();
+            }
         }
 
         /// <summary>
@@ -195,38 +217,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="itemID"></param>
-        public void RemoveScript(uint localID, UUID itemID)
+        public static void RemoveScript(IScene scene, uint localID, UUID itemID)
         {
             // Remove a specific script
 
             // Remove dataserver events
-            m_Dataserver.RemoveEvents(localID, itemID);
+            m_Dataserver[scene].RemoveEvents(localID, itemID);
 
             // Remove from: Timers
-            m_Timer.UnSetTimerEvents(localID, itemID);
+            m_Timer[scene].UnSetTimerEvents(localID, itemID);
 
             // Remove from: HttpRequest
             IHttpRequests iHttpReq =
-                m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();
+                scene.RequestModuleInterface<IHttpRequests>();
             iHttpReq.StopHttpRequest(localID, itemID);
 
-            IWorldComm comms = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            IWorldComm comms = scene.RequestModuleInterface<IWorldComm>();
             comms.DeleteListener(itemID);
 
-            IXMLRPC xmlrpc = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
+            IXMLRPC xmlrpc = scene.RequestModuleInterface<IXMLRPC>();
             xmlrpc.DeleteChannels(itemID);
             xmlrpc.CancelSRDRequests(itemID);
 
             // Remove Sensors
-            m_SensorRepeat.UnSetSenseRepeaterEvents(localID, itemID);
+            m_SensorRepeat[scene].UnSetSenseRepeaterEvents(localID, itemID);
 
         }
 
-        public Object[] GetSerializationData(UUID itemID)
+        public static Object[] GetSerializationData(IScene scene, UUID itemID)
         {
             List<Object> data = new List<Object>();
 
-            Object[] listeners=m_Listener.GetSerializationData(itemID);
+            Object[] listeners=m_Listener[scene].GetSerializationData(itemID);
             if (listeners.Length > 0)
             {
                 data.Add("listener");
@@ -234,7 +256,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 data.AddRange(listeners);
             }
 
-            Object[] timers=m_Timer.GetSerializationData(itemID);
+            Object[] timers=m_Timer[scene].GetSerializationData(itemID);
             if (timers.Length > 0)
             {
                 data.Add("timer");
@@ -242,7 +264,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 data.AddRange(timers);
             }
 
-            Object[] sensors=m_SensorRepeat.GetSerializationData(itemID);
+            Object[] sensors=m_SensorRepeat[scene].GetSerializationData(itemID);
             if (sensors.Length > 0)
             {
                 data.Add("sensor");
@@ -253,8 +275,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return data.ToArray();
         }
 
-        public void CreateFromData(uint localID, UUID itemID, UUID hostID,
-                                   Object[] data)
+        public static void CreateFromData(IScene scene, uint localID,
+                UUID itemID, UUID hostID, Object[] data)
         {
             int idx = 0;
             int len;
@@ -275,15 +297,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     switch (type)
                     {
                     case "listener":
-                        m_Listener.CreateFromData(localID, itemID, hostID,
-                                                  item);
+                        m_Listener[scene].CreateFromData(localID, itemID,
+                                                    hostID, item);
                         break;
                     case "timer":
-                        m_Timer.CreateFromData(localID, itemID, hostID, item);
+                        m_Timer[scene].CreateFromData(localID, itemID,
+                                                    hostID, item);
                         break;
                     case "sensor":
-                        m_SensorRepeat.CreateFromData(localID, itemID, hostID,
-                                                      item);
+                        m_SensorRepeat[scene].CreateFromData(localID,
+                                                    itemID, hostID, item);
                         break;
                     }
                 }

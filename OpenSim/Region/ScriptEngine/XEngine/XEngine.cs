@@ -76,7 +76,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 #pragma warning restore 414
         private int m_EventLimit;
         private bool m_KillTimedOutScripts;
-        private AsyncCommandManager m_AsyncCommands;
         bool m_firstStart = true;
 
         private static List<XEngine> m_ScriptEngines =
@@ -140,11 +139,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public IConfig Config
         {
             get { return m_ScriptConfig; }
-        }
-
-        public Object AsyncCommands
-        {
-            get { return (Object)m_AsyncCommands; }
         }
 
         //
@@ -238,8 +232,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_Scene.EventManager.OnStartScript += OnStartScript;
             m_Scene.EventManager.OnStopScript += OnStopScript;
             m_Scene.EventManager.OnShutdown += OnShutdown;
-
-            m_AsyncCommands = new AsyncCommandManager(this);
 
             if (m_SleepTime > 0)
             {
@@ -573,8 +565,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 // Do we even have it?
                 if (!m_Scripts.ContainsKey(itemID))
                     return;
-
-                m_AsyncCommands.RemoveScript(localID, itemID);
 
                 IScriptInstance instance=m_Scripts[itemID];
                 m_Scripts.Remove(itemID);

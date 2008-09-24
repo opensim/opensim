@@ -77,9 +77,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     new LSL_Types.LSLString(httpInfo.response_body)
                 };
 
-                foreach (AsyncCommandManager m in m_CmdManager.Managers)
+                foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
                 {
-                    if (m.m_ScriptEngine.PostObjectEvent(httpInfo.localID,
+                    if (e.PostObjectEvent(httpInfo.localID,
                             new EventParams("http_response",
                             resobj, new DetectParams[0])))
                         break;

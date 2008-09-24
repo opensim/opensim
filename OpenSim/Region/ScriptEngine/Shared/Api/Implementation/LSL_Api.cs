@@ -92,7 +92,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_ScriptDistanceFactor = config.Configs["XEngine"].
                     GetFloat("ScriptDistanceLimitFactor", 1.0f);
 
-            AsyncCommands = (AsyncCommandManager)ScriptEngine.AsyncCommands;
+            AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
 
         private DateTime m_timer = DateTime.Now;

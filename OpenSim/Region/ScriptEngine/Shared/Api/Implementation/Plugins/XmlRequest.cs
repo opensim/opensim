@@ -71,9 +71,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         new LSL_Types.LSLString(rInfo.GetStrVal())
                     };
 
-                    foreach (AsyncCommandManager m in m_CmdManager.Managers)
+                    foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
                     {
-                        if (m.m_ScriptEngine.PostScriptEvent(
+                        if (e.PostScriptEvent(
                                 rInfo.GetItemID(), new EventParams(
                                     "remote_data", resobj,
                                     new DetectParams[0])))
@@ -100,9 +100,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         new LSL_Types.LSLString(srdInfo.sdata)
                     };
 
-                    foreach (AsyncCommandManager m in m_CmdManager.Managers)
+                    foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
                     {
-                        if (m.m_ScriptEngine.PostScriptEvent(
+                        if (e.PostScriptEvent(
                                 srdInfo.m_itemID, new EventParams(
                                     "remote_data", resobj,
                                     new DetectParams[0])))

@@ -44,7 +44,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     {
         Scene World { get; }
         IConfig Config { get; }
-        Object AsyncCommands { get; }
         ILog Log { get; }
         string ScriptEngineName { get; }
 

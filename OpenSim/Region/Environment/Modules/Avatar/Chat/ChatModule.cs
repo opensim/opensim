@@ -113,6 +113,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             if (c.Channel == DEBUG_CHANNEL)
                 c.Type = ChatTypeEnum.DebugChannel;
 
+            if (c.Message.Length > 1100)
+                c.Message = c.Message.Substring(0, 1000);
+
             // chat works by redistributing every incoming chat
             // message to each avatar in the scene
             Vector3 pos = new Vector3(128, 128, 30);
