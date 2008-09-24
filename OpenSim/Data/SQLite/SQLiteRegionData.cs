@@ -1150,48 +1150,20 @@ namespace OpenSim.Data.SQLite
                 Convert.ToSingle(row["RotationW"])
                 );
 
-            try
-            {
-                prim.SitTargetPositionLL = new Vector3(
-                                                         Convert.ToSingle(row["SitTargetOffsetX"]),
-                                                         Convert.ToSingle(row["SitTargetOffsetY"]),
-                                                         Convert.ToSingle(row["SitTargetOffsetZ"]));
-                prim.SitTargetOrientationLL = new Quaternion(
-                                                               Convert.ToSingle(
-                                                                                row["SitTargetOrientX"]),
-                                                               Convert.ToSingle(
-                                                                                row["SitTargetOrientY"]),
-                                                               Convert.ToSingle(
-                                                                                row["SitTargetOrientZ"]),
-                                                               Convert.ToSingle(
-                                                                                row["SitTargetOrientW"]));
-            }
-            catch (InvalidCastException)
-            {
-                // Database table was created before we got here and now has null values :P
-                m_conn.Open();
-                SqliteCommand cmd =
-                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetX float NOT NULL default 0;", m_conn);
-                cmd.ExecuteNonQuery();
-                cmd =
-                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetY float NOT NULL default 0;", m_conn);
-                cmd.ExecuteNonQuery();
-                cmd =
-                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOffsetZ float NOT NULL default 0;", m_conn);
-                cmd.ExecuteNonQuery();
-                cmd =
-                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientW float NOT NULL default 0;", m_conn);
-                cmd.ExecuteNonQuery();
-                cmd =
-                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientX float NOT NULL default 0;", m_conn);
-                cmd.ExecuteNonQuery();
-                cmd =
-                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientY float NOT NULL default 0;", m_conn);
-                cmd.ExecuteNonQuery();
-                cmd =
-                    new SqliteCommand("ALTER TABLE prims ADD COLUMN SitTargetOrientZ float NOT NULL default 0;", m_conn);
-                cmd.ExecuteNonQuery();
-            }
+            prim.SitTargetPositionLL = new Vector3(
+                                                   Convert.ToSingle(row["SitTargetOffsetX"]),
+                                                   Convert.ToSingle(row["SitTargetOffsetY"]),
+                                                   Convert.ToSingle(row["SitTargetOffsetZ"]));
+            prim.SitTargetOrientationLL = new Quaternion(
+                                                         Convert.ToSingle(
+                                                                          row["SitTargetOrientX"]),
+                                                         Convert.ToSingle(
+                                                                          row["SitTargetOrientY"]),
+                                                         Convert.ToSingle(
+                                                                          row["SitTargetOrientZ"]),
+                                                         Convert.ToSingle(
+                                                                          row["SitTargetOrientW"]));
+
             prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorR"]), Convert.ToInt32(row["ColorB"]), Convert.ToInt32(row["ColorG"]));
 
             prim.ClickAction = Convert.ToByte(row["ClickAction"]);
@@ -1337,37 +1309,7 @@ namespace OpenSim.Data.SQLite
             newData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
             UUID authBuyerID = UUID.Zero;
 
-            try
-            {
-                UUID.TryParse((string)row["AuthbuyerID"], out authBuyerID);
-            }
-            catch (InvalidCastException)
-            {
-                // Database table was created before we got here and now has null values :P
-                try
-                {
-                    m_conn.Open();
-                    SqliteCommand cmd =
-                        new SqliteCommand("ALTER TABLE land ADD COLUMN AuthbuyerID varchar(36) NOT NULL default  '00000000-0000-0000-0000-000000000000';", m_conn);
-                    cmd.ExecuteNonQuery();
-                    m_conn.Close();
-                    m_conn.Dispose();
-
-                    m_log.Error("[REGION DB]: The land table was recently updated.  You need to restart the simulator.  Exiting now.");
-
-                    Thread.Sleep(10000);
-
-                    // ICK!  but it's better then A thousand red SQLITE error messages!
-                    Environment.Exit(0);
-
-                }
-                catch (Exception)
-                {
-                    // ICK!  but it's better then A thousand red SQLITE error messages!
-                    m_log.Error("[REGION DB]: The land table was recently updated.  You need to restart the simulator");
-                    Environment.Exit(0);
-                }
-            }
+            UUID.TryParse((string)row["AuthbuyerID"], out authBuyerID);
 
             return newData;
         }
@@ -1749,17 +1691,8 @@ namespace OpenSim.Data.SQLite
             s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
             s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
-            try
-            {
-                s.State = Convert.ToByte(row["State"]);
-            }
-            catch (InvalidCastException)
-            {
-                m_conn.Open();
-                SqliteCommand cmd =
-                    new SqliteCommand("ALTER TABLE primshapes ADD COLUMN State Integer NOT NULL default 0;", m_conn);
-                cmd.ExecuteNonQuery();
-            }
+            s.State = Convert.ToByte(row["State"]);
+
             // text TODO: this isn't right] = but I'm not sure the right
             // way to specify this as a blob atm
 
