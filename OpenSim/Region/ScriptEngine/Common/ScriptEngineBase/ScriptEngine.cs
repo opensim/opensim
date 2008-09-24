@@ -48,7 +48,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static List<ScriptEngine> ScriptEngines = new List<ScriptEngine>();
-        public Scene World;
+        private Scene m_Scene;
+        public Scene World
+        {
+            get { return m_Scene; }
+        }
         public EventManager m_EventManager;                         // Handles and queues incoming events from OpenSim
         public EventQueueManager m_EventQueueManager;               // Executes events, handles script threads
         public ScriptManager m_ScriptManager;                       // Load, unload and execute scripts
@@ -94,7 +98,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void InitializeEngine(Scene Sceneworld, IConfigSource config, bool HookUpToServer, ScriptManager newScriptManager)
         {
-            World = Sceneworld;
+            m_Scene = Sceneworld;
             ConfigSource = config;
             m_hookUpToServer = HookUpToServer;
 

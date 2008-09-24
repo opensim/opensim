@@ -1629,7 +1629,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_Vector currentPos = llGetLocalPos();
             if (llVecDist(currentPos, targetPos) > 10.0f * m_ScriptDistanceFactor)
             {
-                targetPos = currentPos + m_ScriptDistanceFactor * 10 * llVecNorm(targetPos - currentPos);
+                targetPos = currentPos + m_ScriptDistanceFactor * 10.0f * llVecNorm(targetPos - currentPos);
             }
 
             if (part.ParentID != 0)
@@ -2230,28 +2230,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llMakeExplosion()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMakeExplosion");
+            Deprecated("llMakeExplosion");
             // ScriptSleep(100);
         }
 
         public void llMakeFountain()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMakeFountain");
+            Deprecated("llMakeFountain");
             // ScriptSleep(100);
         }
 
         public void llMakeSmoke()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMakeSmoke");
+            Deprecated("llMakeSmoke");
             // ScriptSleep(100);
         }
 
         public void llMakeFire()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMakeFire");
+            Deprecated("llMakeFire");
             // ScriptSleep(100);
         }
 
@@ -2261,7 +2261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
                 return;
-            float dist = (float)llVecMag(llGetPos() - pos);
+            float dist = (float)llVecDist(llGetPos(), pos);
 
             if (dist > m_ScriptDistanceFactor * 10.0f)
                 return;
@@ -2563,7 +2563,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSoundPreload()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSoundPreload");
+            Deprecated("llSoundPreload");
         }
 
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
@@ -5284,7 +5284,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetRemoteScriptAccessPin(int pin)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetRemoteScriptAccessPin");
+            m_host.ScriptAccessPin = pin;
         }
 
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param)

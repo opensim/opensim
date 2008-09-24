@@ -45,12 +45,42 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public ScriptEngine m_ScriptEngine;
 
-        public Timer m_Timer;
-        public HttpRequest m_HttpRequest;
-        public Listener m_Listener;
-        public SensorRepeat m_SensorRepeat;
-        public XmlRequest m_XmlRequest;
-        public Dataserver m_Dataserver;
+        private Timer m_Timer;
+        private HttpRequest m_HttpRequest;
+        private Listener m_Listener;
+        private SensorRepeat m_SensorRepeat;
+        private XmlRequest m_XmlRequest;
+        private Dataserver m_Dataserver;
+
+        public Dataserver DataserverPlugin
+        {
+            get { return m_Dataserver; }
+        }
+
+        public Timer TimerPlugin
+        {
+            get { return m_Timer; }
+        }
+
+        public HttpRequest HttpRequestPlugin
+        {
+            get { return m_HttpRequest; }
+        }
+
+        public Listener ListenerPlugin
+        {
+            get { return m_Listener; }
+        }
+
+        public SensorRepeat SensorRepeatPlugin
+        {
+            get { return m_SensorRepeat; }
+        }
+
+        public XmlRequest XmlRequestPlugin
+        {
+            get { return m_XmlRequest; }
+        }
 
         public AsyncCommandManager(ScriptEngine _ScriptEngine)
         {

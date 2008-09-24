@@ -33,6 +33,7 @@ using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using Amib.Threading;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.ScriptEngine.Interfaces
 {
@@ -42,6 +43,8 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     /// </summary>
     public interface IEventReceiver
     {
+        Scene World { get; }
+
         /// <summary>
         /// Post an event to a single script
         /// </summary>

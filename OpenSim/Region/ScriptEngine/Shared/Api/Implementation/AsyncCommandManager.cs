@@ -48,10 +48,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private static int cmdHandlerThreadCycleSleepms;
 
         private static List<IScene> m_Scenes = new List<IScene>();
-        private static List<IScriptEngine> m_ScriptEngines =
-                new List<IScriptEngine>();
+        private static List<IEventReceiver> m_ScriptEngines =
+                new List<IEventReceiver>();
 
-        public IScriptEngine m_ScriptEngine;
+        public IEventReceiver m_ScriptEngine;
         private IScene m_Scene;
 
         private static Dictionary<IScene, Dataserver> m_Dataserver =
@@ -97,12 +97,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             get { return m_XmlRequest[m_Scene]; }
         }
 
-        public IScriptEngine[] ScriptEngines
+        public IEventReceiver[] ScriptEngines
         {
             get { return m_ScriptEngines.ToArray(); }
         }
 
-        public AsyncCommandManager(IScriptEngine _ScriptEngine)
+        public AsyncCommandManager(IEventReceiver _ScriptEngine)
         {
             m_ScriptEngine = _ScriptEngine;
             m_Scene = m_ScriptEngine.World;

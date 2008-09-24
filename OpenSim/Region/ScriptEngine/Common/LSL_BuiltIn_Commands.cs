@@ -68,9 +68,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         internal uint m_localID;
         internal UUID m_itemID;
         internal bool throwErrorOnNotImplemented = true;
-        internal float m_delayFactor = 1.0f;
-        internal float m_distanceFactor = 1.0f;
-
+        internal float m_ScriptDelayFactor = 1.0f;
+        internal float m_ScriptDistanceFactor = 1.0f;
+        internal AsyncCommandManager AsyncCommands = null;
 
         public LSL_BuiltIn_Commands(ScriptEngineBase.ScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
@@ -79,6 +79,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_localID = localID;
             m_itemID = itemID;
 
+            AsyncCommands = m_ScriptEngine.m_ASYNCLSLCommandManager;
             //m_log.Info(ScriptEngineName, "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
 
 
@@ -86,8 +87,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (config.Configs["LL-Functions"] == null)
                 config.AddConfig("LL-Functions");
 
-            m_delayFactor = config.Configs["LL-Functions"].GetFloat("ScriptDelayFactor", 1.0f);
-            m_distanceFactor = config.Configs["LL-Functions"].GetFloat("ScriptDistanceLimitFactor", 1.0f);
+            m_ScriptDelayFactor = config.Configs["LL-Functions"].GetFloat("ScriptDelayFactor", 1.0f);
+            m_ScriptDistanceFactor = config.Configs["LL-Functions"].GetFloat("ScriptDistanceLimitFactor", 1.0f);
 
         }
 
@@ -97,7 +98,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         protected void ScriptSleep(int delay)
         {
-            delay = (int)((float)delay * m_delayFactor);
+            delay = (int)((float)delay * m_ScriptDelayFactor);
             if (delay == 0)
                 return;
             System.Threading.Thread.Sleep(delay);
@@ -281,7 +282,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
         //These are the implementations of the various ll-functions used by the LSL scripts.
-        //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
         public LSL_Float llSin(double f)
         {
             m_host.AddScriptLPS(1);
@@ -710,7 +710,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             UUID keyID = UUID.Zero;
             UUID.TryParse(id, out keyID);
 
-            m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SenseOnce(m_localID, m_itemID, name, keyID, type, range, arc, m_host);
+            AsyncCommands.SensorRepeatPlugin.SenseOnce(m_localID, m_itemID, name, keyID, type, range, arc, m_host);
        }
 
         public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate)
@@ -719,13 +719,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             UUID keyID = UUID.Zero;
             UUID.TryParse(id, out keyID);
 
-            m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
+            AsyncCommands.SensorRepeatPlugin.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
         }
 
         public void llSensorRemove()
         {
             m_host.AddScriptLPS(1);
-            m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.UnSetSenseRepeaterEvents(m_localID, m_itemID);
+            AsyncCommands.SensorRepeatPlugin.UnSetSenseRepeaterEvents(m_localID, m_itemID);
         }
 
         public string resolveName(UUID objecUUID)
@@ -759,7 +759,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_String llDetectedName(int number)
         {
             m_host.AddScriptLPS(1);
-            LSL_List SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
+            LSL_List SenseList = AsyncCommands.SensorRepeatPlugin.GetSensorList(m_localID, m_itemID);
             if (SenseList != null)
             {
                 if ((number >= 0) && (number < SenseList.Length))
@@ -799,7 +799,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public UUID uuidDetectedKey(int number)
         {
-            LSL_List SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
+            LSL_List SenseList = AsyncCommands.SensorRepeatPlugin.GetSensorList(m_localID, m_itemID);
             if (SenseList != null)
             {
                 if ((number >= 0) && (number < SenseList.Length))
@@ -836,7 +836,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public EntityBase entityDetectedKey(int number)
         {
-            LSL_List SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
+            LSL_List SenseList = AsyncCommands.SensorRepeatPlugin.GetSensorList(m_localID, m_itemID);
             if (SenseList != null)
             {
                 if ((number >= 0) && (number < SenseList.Length))
@@ -1809,9 +1809,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
             LSL_Vector currentPos = llGetLocalPos();
-            if (llVecDist(currentPos, targetPos) > 10.0f * m_distanceFactor)
+            if (llVecDist(currentPos, targetPos) > 10.0f * m_ScriptDistanceFactor)
             {
-                targetPos = currentPos + m_distanceFactor * 10.0f * llVecNorm(targetPos - currentPos);
+                targetPos = currentPos + m_ScriptDistanceFactor * 10.0f * llVecNorm(targetPos - currentPos);
             }
 
             if (part.ParentID != 0)
@@ -2440,17 +2440,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llRezAtRoot(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param)
         {
             m_host.AddScriptLPS(1);
+
             if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
                 return;
-            bool found = false;
-
             float dist = (float)llVecDist(llGetPos(), pos);
-            if (dist > m_distanceFactor * 10.0f)
-                return;
 
-            // Instead of using return;, I'm using continue; because in our TaskInventory implementation
-            // it's possible to have two items with the same task inventory name.
-            // this is an easter egg of sorts.
+            if (dist > m_ScriptDistanceFactor * 10.0f)
+                return;
 
             foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
@@ -2460,7 +2456,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     if (inv.Value.InvType != (int)InventoryType.Object)
                     {
                         llSay(0, "Unable to create requested object. Object is missing from database.");
-                        continue;
+                        return;
                     }
 
                     Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
@@ -2525,7 +2521,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             // Setting timer repeat
-            m_ScriptEngine.m_ASYNCLSLCommandManager.m_Timer.SetTimerEvent(m_localID, m_itemID, sec);
+            AsyncCommands.TimerPlugin.SetTimerEvent(m_localID, m_itemID, sec);
         }
 
         public void llSleep(double sec)
@@ -2686,7 +2682,26 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llGetNextEmail(string address, string subject)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetNextEmail");
+            IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
+            if (emailModule == null)
+                return;
+            Email email;
+
+            email = emailModule.GetNextEmail(m_host.UUID, address, subject);
+
+            if (email == null)
+                return;
+
+            m_ScriptEngine.PostObjectEvent(m_host.LocalId,
+                    new EventParams("email",
+                    new Object[] {
+                        new LSL_String(email.time),
+                        new LSL_String(email.sender),
+                        new LSL_String(email.subject),
+                        new LSL_String(email.message),
+                        new LSL_Integer(email.numLeft)},
+                    new DetectParams[0]));
+
         }
 
         public LSL_String llGetKey()
@@ -3015,96 +3030,10 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetLinkColor(int linknumber, LSL_Vector color, int face)
         {
-            m_host.AddScriptLPS(1);
-            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
-            if (linknumber > -1)
-            {
-                Primitive.TextureEntry tex = part.Shape.Textures;
-                Color4 texcolor;
-                if (face > -1)
-                {
-                    texcolor = tex.CreateFace((uint)face).RGBA;
-                    texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                    texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                    texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                    tex.FaceTextures[face].RGBA = texcolor;
-                    part.UpdateTexture(tex);
-                    return;
-                }
-                else if (face == -1)
-                {
-                    texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                    texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                    texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                    tex.DefaultTexture.RGBA = texcolor;
-                    for (uint i = 0; i < 32; i++)
-                    {
-                        if (tex.FaceTextures[i] != null)
-                        {
-                            texcolor = tex.FaceTextures[i].RGBA;
-                            texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                            texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                            texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                            tex.FaceTextures[i].RGBA = texcolor;
-                        }
-                    }
-                    texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                    texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                    texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                    tex.DefaultTexture.RGBA = texcolor;
-                    part.UpdateTexture(tex);
-                    return;
-                }
-                return;
-            }
-            else if (linknumber == -1)
-            {
-                int num = m_host.ParentGroup.PrimCount;
-                for (int w = 0; w < num; w++)
-                {
-                    linknumber = w;
-                    part = m_host.ParentGroup.GetLinkNumPart(linknumber);
-                    Primitive.TextureEntry tex = part.Shape.Textures;
-                    Color4 texcolor;
-                    if (face > -1)
-                    {
-                        texcolor = tex.CreateFace((uint)face).RGBA;
-                        texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                        texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                        texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                        tex.FaceTextures[face].RGBA = texcolor;
-                        part.UpdateTexture(tex);
-                    }
-                    else if (face == -1)
-                    {
-                        texcolor = tex.DefaultTexture.RGBA;
-                        texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                        texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                        texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                        tex.DefaultTexture.RGBA = texcolor;
-                        for (uint i = 0; i < 32; i++)
-                        {
-                            if (tex.FaceTextures[i] != null)
-                            {
-                                texcolor = tex.FaceTextures[i].RGBA;
-                                texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                                texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                                texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                                tex.FaceTextures[i].RGBA = texcolor;
-                            }
-                        }
-                        texcolor = tex.DefaultTexture.RGBA;
-                        texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                        texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                        texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                        tex.DefaultTexture.RGBA = texcolor;
-                        part.UpdateTexture(tex);
-                    }
-                }
-                return;
-            }
+            List<SceneObjectPart> parts = GetLinkParts(linknumber);
+
+            foreach (SceneObjectPart part in parts)
+                SetColor(part, color, face);
         }
 
         public void llCreateLink(string target, int parent)
@@ -3129,10 +3058,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                     parentPrim = targetPart.ParentGroup;
                     childPrim = m_host.ParentGroup;
                 }
-                byte uf = childPrim.RootPart.UpdateFlag;
+//                byte uf = childPrim.RootPart.UpdateFlag;
                 childPrim.RootPart.UpdateFlag = 0;
                 parentPrim.LinkToGroup(childPrim);
-                childPrim.RootPart.UpdateFlag = uf;
+//                if (uf != (Byte)0)
+//                    parent.RootPart.UpdateFlag = uf;
             }
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             parentPrim.RootPart.AddFlag(PrimFlags.CreateSelected);
@@ -3423,24 +3353,25 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             switch (data)
             {
-            case ScriptBaseClass.DATA_ONLINE: // DATA_ONLINE (0|1)
+            case 1: // DATA_ONLINE (0|1)
+                // TODO: implement fetching of this information
                 if (userProfile.CurrentAgent.AgentOnline)
                     reply = "1";
                 else
                     reply = "0";
                 break;
-            case ScriptBaseClass.DATA_NAME: // DATA_NAME (First Last)
+            case 2: // DATA_NAME (First Last)
                 reply = userProfile.FirstName + " " + userProfile.SurName;
                 break;
-            case ScriptBaseClass.DATA_BORN: // DATA_BORN (YYYY-MM-DD)
+            case 3: // DATA_BORN (YYYY-MM-DD)
                 DateTime born = new DateTime(1970, 1, 1, 0, 0, 0, 0);
                 born = born.AddSeconds(userProfile.Created);
                 reply = born.ToString("yyyy-MM-dd");
                 break;
-            case ScriptBaseClass.DATA_RATING: // DATA_RATING (0,0,0,0,0,0)
+            case 4: // DATA_RATING (0,0,0,0,0,0)
                 reply = "0,0,0,0,0,0";
                 break;
-            case ScriptBaseClass.DATA_PAYINFO: // DATA_PAYINFO (0|1|2|3)
+            case 8: // DATA_PAYINFO (0|1|2|3)
                 reply = "0";
                 break;
             default:
@@ -3449,11 +3380,12 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             UUID rq = UUID.Random();
 
-            UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
-                m_localID, m_itemID, rq.ToString());
+            UUID tid = AsyncCommands.
+                DataserverPlugin.RegisterRequest(m_localID,
+                                             m_itemID, rq.ToString());
 
-            m_ScriptEngine.m_ASYNCLSLCommandManager.
-                m_Dataserver.DataserverReply(rq.ToString(), reply);
+            AsyncCommands.
+            DataserverPlugin.DataserverReply(rq.ToString(), reply);
 
             // ScriptSleep(100);
             return tid.ToString();
@@ -3467,8 +3399,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 if (item.Type == 3 && item.Name == name)
                 {
-                    UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
-                        m_localID, m_itemID, item.AssetID.ToString());
+                    UUID tid = AsyncCommands.
+                        DataserverPlugin.RegisterRequest(m_localID,
+                                                     m_itemID, item.AssetID.ToString());
 
                     Vector3 region = new Vector3(
                         World.RegionInfo.RegionLocX * Constants.RegionSize,
@@ -3485,8 +3418,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                             region = lm.Position + new Vector3(rx, ry, 0) - region;
 
                             string reply = region.ToString();
-                            m_ScriptEngine.m_ASYNCLSLCommandManager.
-                                m_Dataserver.DataserverReply(i.ToString(),
+                            AsyncCommands.
+                                DataserverPlugin.DataserverReply(i.ToString(),
                                                              reply);
                         }, false);
 
@@ -3563,7 +3496,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             m_host.AddScriptLPS(1);
 
-            uint partLocalID;
+            // uint partLocalID;
             UUID partItemID;
 
             switch ((int)linknum)
@@ -3577,7 +3510,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     {
                         if (item.Type == 10)
                         {
-                            partLocalID = part.LocalId;
+                            // partLocalID = part.LocalId;
                             partItemID = item.ItemID;
 
                             object[] resobj = new object[]
@@ -4151,7 +4084,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
                 catch (KeyNotFoundException)
                 {
-                    return id; // The Object/Agent is not in the region so just return the key
+                    return id; // The Object/Agent not in the region so just return the key
                 }
             }
             else
@@ -4217,26 +4150,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return 0;
             }
-        }
-
-        public double osList2Double(LSL_List src, int index)
-        {
-            m_host.AddScriptLPS(1);
-            if (index < 0)
-            {
-                index = src.Length + index;
-            }
-            if (index >= src.Length)
-            {
-                return 0.0;
-            }
-            if (src.Data[index] is LSL_Integer)
-                return Convert.ToDouble(((LSL_Integer) src.Data[index]).value);
-            else if (src.Data[index] is LSL_Float)
-                return Convert.ToDouble(((LSL_Float) src.Data[index]).value);
-            else if (src.Data[index] is LSL_String)
-                return Convert.ToDouble(((LSL_String) src.Data[index]).m_string);
-            return Convert.ToDouble(src.Data[index]);
         }
 
         public LSL_Float llList2Float(LSL_List src, int index)
@@ -4810,10 +4723,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             Primitive.TextureAnimation pTexAnim = new Primitive.TextureAnimation();
-            pTexAnim.Flags =(Primitive.TextureAnimMode)mode;
+            pTexAnim.Flags = (Primitive.TextureAnimMode)mode;
 
             //ALL_SIDES
-            if (face == -1)
+            if (face == ScriptBaseClass.ALL_SIDES)
                     face = 255;
 
             pTexAnim.Face = (uint)face;
@@ -5176,98 +5089,92 @@ namespace OpenSim.Region.ScriptEngine.Common
                     switch ((int)rules.Data[i])
                     {
                         case (int)ScriptBaseClass.PSYS_PART_FLAGS:
-                            prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)((uint)Convert.ToInt32(rules.Data[i + 1].ToString()));
+                            prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)(uint)rules.GetLSLIntegerItem(i + 1);
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_START_COLOR:
-                            tempv = (LSL_Vector)rules.Data[i + 1];
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.PartStartColor.R = (float)tempv.x;
                             prules.PartStartColor.G = (float)tempv.y;
                             prules.PartStartColor.B = (float)tempv.z;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_START_ALPHA:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                            prules.PartStartColor.A = (float)tempf;
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.PartStartColor.A = tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_END_COLOR:
-                            tempv = (LSL_Vector)rules.Data[i + 1];
-                            //prules.PartEndColor = new Color4(tempv.x,tempv.y,tempv.z,1);
-
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.PartEndColor.R = (float)tempv.x;
                             prules.PartEndColor.G = (float)tempv.y;
                             prules.PartEndColor.B = (float)tempv.z;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_END_ALPHA:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                            prules.PartEndColor.A = (float)tempf;
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.PartEndColor.A = tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_START_SCALE:
-                            tempv = (LSL_Vector)rules.Data[i + 1];
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.PartStartScaleX = (float)tempv.x;
                             prules.PartStartScaleY = (float)tempv.y;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_END_SCALE:
-                            tempv = (LSL_Vector)rules.Data[i + 1];
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.PartEndScaleX = (float)tempv.x;
                             prules.PartEndScaleY = (float)tempv.y;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_PART_MAX_AGE:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
-                            prules.PartMaxAge = (float)tempf;
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.PartMaxAge = tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_ACCEL:
-                            tempv = (LSL_Vector)rules.Data[i + 1];
+                            tempv = rules.GetVector3Item(i + 1);
                             prules.PartAcceleration.X = (float)tempv.x;
                             prules.PartAcceleration.Y = (float)tempv.y;
                             prules.PartAcceleration.Z = (float)tempv.z;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_PATTERN:
-                            int tmpi = int.Parse(rules.Data[i + 1].ToString());
+                            int tmpi = (int)rules.GetLSLIntegerItem(i + 1);
                             prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                             break;
 
-                        // Xantor 20080503
-                        // Wiki:    PSYS_SRC_TEXTURE      string      inventory item name or key of the particle texture
-                        //          "" = default texture.
-                        // 20080530 Updated to remove code duplication
                         case (int)ScriptBaseClass.PSYS_SRC_TEXTURE:
-                            prules.Texture = KeyOrName(rules.Data[i + 1].ToString());
+                            prules.Texture = KeyOrName(rules.GetLSLStringItem(i + 1));
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_RATE:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.BurstRate = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_PART_COUNT:
-                            prules.BurstPartCount = (byte)Convert.ToByte(rules.Data[i + 1].ToString());
+                            prules.BurstPartCount = (byte)(int)rules.GetLSLIntegerItem(i + 1);
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_RADIUS:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.BurstRadius = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_SPEED_MIN:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.BurstSpeedMin = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_SPEED_MAX:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.BurstSpeedMax = (float)tempf;
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_MAX_AGE:
-                            tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.MaxAge = (float)tempf;
                             break;
 
@@ -6009,26 +5916,26 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetPrimitiveParams(LSL_List rules)
         {
-            llSetLinkPrimitiveParams(m_host.LinkNum, rules);
+            SetPrimParams(m_host, rules);
         }
 
         public void llSetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup == null)
-                return;
+            List<SceneObjectPart> parts = GetLinkParts(linknumber);
 
-            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
+            foreach (SceneObjectPart part in parts)
+                SetPrimParams(part, rules);
+        }
 
-            if (part == null)
-                return;
-
+        private void SetPrimParams(SceneObjectPart part, LSL_List rules)
+        {
             int idx = 0;
 
             while (idx < rules.Length)
             {
-                int code = Convert.ToInt32(rules.Data[idx++]);
+                int code = rules.GetLSLIntegerItem(idx++);
 
                 int remain = rules.Length - idx;
 
@@ -6041,7 +5948,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         if (remain < 1)
                             return;
 
-                        v=new LSL_Vector(rules.Data[idx++].ToString());
+                        v=rules.GetVector3Item(idx++);
                         SetPos(part, v);
 
                         break;
@@ -6049,7 +5956,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         if (remain < 1)
                             return;
 
-                        v=new LSL_Vector(rules.Data[idx++].ToString());
+                        v=rules.GetVector3Item(idx++);
                         SetScale(part, v);
 
                         break;
@@ -6057,7 +5964,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         if (remain < 1)
                             return;
 
-                        LSL_Rotation q = new LSL_Rotation(rules.Data[idx++].ToString());
+                        LSL_Rotation q = rules.GetQuaternionItem(idx++);
                         SetRot(part, q);
 
                         break;
@@ -6066,7 +5973,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         if (remain < 3)
                             return;
 
-                        code = Convert.ToInt32(rules.Data[idx++]);
+                        code = (int)rules.GetLSLIntegerItem(idx++);
 
                         remain = rules.Length - idx;
                         float hollow;
@@ -7317,10 +7224,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             IConfigSource config = new IniConfigSource(Application.iniFilePath);
-            if (config.Configs["LL-Functions"] == null)
-                config.AddConfig("LL-Functions");
+            if (config.Configs["XEngine"] == null)
+                config.AddConfig("XEngine");
 
-            if (config.Configs["LL-Functions"].GetBoolean("AllowGodFunctions", false))
+            if (config.Configs["XEngine"].GetBoolean("AllowGodFunctions", false))
             {
                 if (World.ExternalChecks.ExternalChecksCanRunConsoleCommand(m_host.OwnerID))
                 {
@@ -7458,11 +7365,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
                 UUID rq = UUID.Random();
 
-                UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
-                    m_Dataserver.RegisterRequest(m_localID, m_itemID, rq.ToString());
+                UUID tid = AsyncCommands.
+                    DataserverPlugin.RegisterRequest(m_localID, m_itemID, rq.ToString());
 
-                m_ScriptEngine.m_ASYNCLSLCommandManager.
-                m_Dataserver.DataserverReply(rq.ToString(), reply);
+                AsyncCommands.
+                    DataserverPlugin.DataserverReply(rq.ToString(), reply);
 
                 // ScriptSleep(1000);
                 return tid.ToString();
@@ -8424,122 +8331,261 @@ namespace OpenSim.Region.ScriptEngine.Common
             throw new Exception("LSL Runtime Error: " + msg);
         }
 
+        public delegate void AssetRequestCallback(UUID assetID, AssetBase asset);
+        private void WithNotecard(UUID assetID, AssetRequestCallback cb)
+        {
+            World.AssetCache.GetAsset(assetID, delegate(UUID i, AssetBase a) { cb(i, a); }, false);
+        }
+
         public LSL_String llGetNumberOfNotecardLines(string name)
         {
             m_host.AddScriptLPS(1);
 
-            String[] notecardLines = GetNotecardLines(name);
-            if (!String.IsNullOrEmpty(notecardLines[0]))
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
             {
-                UUID rq = UUID.Random();
-
-                UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
-                    m_localID, m_itemID, rq.ToString());
-
-                m_ScriptEngine.m_ASYNCLSLCommandManager.
-                    m_Dataserver.DataserverReply(rq.ToString(), notecardLines.Length.ToString());
+                if (item.Type == 7 && item.Name == name)
+                {
+                    UUID tid = AsyncCommands.
+                            DataserverPlugin.RegisterRequest(m_localID,
+                            m_itemID, item.AssetID.ToString());
+                    if (NotecardCache.IsCached(item.AssetID))
+                    {
+                        AsyncCommands.
+                        DataserverPlugin.DataserverReply(item.AssetID.ToString(),
+                                NotecardCache.GetLines(item.AssetID).ToString());
+                        // ScriptSleep(100);
                 return tid.ToString();
             }
-            else
+                    WithNotecard(item.AssetID, delegate (UUID id, AssetBase a)
             {
-                return UUID.Zero.ToString();
+                        System.Text.ASCIIEncoding enc =
+                            new System.Text.ASCIIEncoding();
+                        string data = enc.GetString(a.Data);
+                        //Console.WriteLine(data);
+                        NotecardCache.Cache(id, data);
+                        AsyncCommands.
+                                DataserverPlugin.DataserverReply(id.ToString(),
+                                NotecardCache.GetLines(id).ToString());
+                    });
+                    // ScriptSleep(100);
+                    return tid.ToString();
             }
+            }
+            // if we got to here, we didn't find the notecard the script was asking for
+            // => complain loudly, as specified by the LSL docs
+            ShoutError("Notecard '" + name + "' could not be found.");
+
             // ScriptSleep(100);
+            return UUID.Zero.ToString();
         }
 
         public LSL_String llGetNotecardLine(string name, int line)
         {
             m_host.AddScriptLPS(1);
 
-            String[] notecardLines = GetNotecardLines(name);
-
-            // line index starts at zero
-            if ((!String.IsNullOrEmpty(notecardLines[0])) &&
-                (line >= 0))
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
             {
-                if (line < notecardLines.Length)
+                if (item.Type == 7 && item.Name == name)
                 {
-                    // ScriptSleep(100);
-                    UUID rq = UUID.Random();
+                    UUID tid = AsyncCommands.
+                            DataserverPlugin.RegisterRequest(m_localID,
+                            m_itemID, item.AssetID.ToString());
 
-                    UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
-                        m_localID, m_itemID, rq.ToString());
-
-                    m_ScriptEngine.m_ASYNCLSLCommandManager.
-                        m_Dataserver.DataserverReply(rq.ToString(), notecardLines[line]);
-                    return tid.ToString();
-                }
-                else
+                    if (NotecardCache.IsCached(item.AssetID))
                 {
+                        AsyncCommands.
+                        DataserverPlugin.DataserverReply(item.AssetID.ToString(),
+                                NotecardCache.GetLine(item.AssetID, line));
                     // ScriptSleep(100);
-                    UUID rq = UUID.Random();
+                        return tid.ToString();
+                    }
 
-                    UUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.m_Dataserver.RegisterRequest(
-                        m_localID, m_itemID, rq.ToString());
+                    WithNotecard(item.AssetID, delegate (UUID id, AssetBase a)
+                    {
+                        System.Text.ASCIIEncoding enc =
+                            new System.Text.ASCIIEncoding();
+                        string data = enc.GetString(a.Data);
+                        //Console.WriteLine(data);
+                        NotecardCache.Cache(id, data);
+                        AsyncCommands.
+                                DataserverPlugin.DataserverReply(id.ToString(),
+                                NotecardCache.GetLine(id, line));
+                    });
 
-                    m_ScriptEngine.m_ASYNCLSLCommandManager.
-                        m_Dataserver.DataserverReply(rq.ToString(), ScriptBaseClass.EOF);
+                    // ScriptSleep(100);
                     return tid.ToString();
                 }
             }
-            else
-            {
+
+            // if we got to here, we didn't find the notecard the script was asking for
+            // => complain loudly, as specified by the LSL docs
+            ShoutError("Notecard '" + name + "' could not be found.");
+
                 // ScriptSleep(100);
                 return UUID.Zero.ToString();
             }
+
         }
 
-        private String[] GetNotecardLines(string name)
+    public class NotecardCache
+    {
+        private class Notecard
         {
-            // bool found = false;
-            int notecardIndex = 0;
-            String[] notecardLines = { "0" };
-            notecardLines[0] = String.Empty;
-
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if ((inv.Value.Name == name) && (inv.Value.InvType == (int)InventoryType.Notecard))
-                {
-                    // OK, it has the right name and it is a notecard
-                    // so get the asset that contains the notecard raw data
-                    // and convert it into a string
-                    AssetBase notecardAsset = World.AssetCache.GetAsset(inv.Value.AssetID, false);
-                    String dataString = System.Text.Encoding.ASCII.GetString(notecardAsset.Data);
-
-                    if (!String.IsNullOrEmpty(dataString))
-                    {
-                        // good, we have the notecard data as a string
-                        // now parse the text lines using the Linden Text delimiters
-                        notecardIndex = dataString.IndexOf("}\nText length ");
-                        if (notecardIndex > 0)
-                        {
-                            notecardIndex = notecardIndex + 2; //get past delimiter
-                            notecardIndex = dataString.IndexOf("\n", notecardIndex);
-                            if (notecardIndex > 0)
-                            {
-                                // Finally got to the first line of the notecard
-                                // now find the end of the notecard text delimited by }<LF>
-                                // parse the lines, delimited by <LF>
-                                notecardIndex = dataString.IndexOf("\n", notecardIndex);
-                                notecardIndex++; // get past delimiter
-
-                                int notecardLength = dataString.Length - notecardIndex - 3;
-
-                                // create new string to parse that only consists of the actual lines in the asset
-                                Char[] notecardCharArray = dataString.ToCharArray(notecardIndex, notecardLength);
-                                String notecardString = new String(notecardCharArray);
-
-                                // split the lines of the notecard into separate strings
-                                char[] delimChar = { '\n' };
-                                notecardLines = notecardString.Split(delimChar);
-                                return notecardLines;
-                            }
-                        }
-                    }
-                }
-            }
-            return notecardLines;
+            public string[] text;
+            public DateTime lastRef;
         }
 
+        private static Dictionary<UUID, Notecard> m_Notecards =
+                new Dictionary<UUID, Notecard>();
+
+        public static void Cache(UUID assetID, string text)
+        {
+            CacheCheck();
+
+            lock (m_Notecards)
+            {
+                if (m_Notecards.ContainsKey(assetID))
+                    return;
+
+                Notecard nc = new Notecard();
+                nc.lastRef = DateTime.Now;
+                nc.text = ParseText(text.Replace("\r", "").Split('\n'));
+                m_Notecards[assetID] = nc;
+            }
+        }
+
+        private static string[] ParseText(string[] input)
+            {
+            int idx = 0;
+            int level = 0;
+            List<string> output = new List<string>();
+            string[] words;
+
+            while (idx < input.Length)
+                {
+                if (input[idx] == "{")
+                {
+                    level++;
+                    idx++;
+                    continue;
+                }
+
+                if (input[idx]== "}")
+                    {
+                    level--;
+                    idx++;
+                    continue;
+                }
+
+                switch (level)
+                        {
+                case 0:
+                    words = input[idx].Split(' '); // Linden text ver
+                    // Notecards are created *really* empty. Treat that as "no text" (just like after saving an empty notecard)
+                    if (words.Length < 3)
+                        return new String[0];
+
+                    int version = int.Parse(words[3]);
+                    if (version != 2)
+                        return new String[0];
+                    break;
+                case 1:
+                    words = input[idx].Split(' ');
+                    if (words[0] == "LLEmbeddedItems")
+                        break;
+                    if (words[0] == "Text")
+                            {
+                        int len = int.Parse(words[2]);
+                        idx++;
+
+                        int count = -1;
+
+                        while (count < len)
+                        {
+                            // int l = input[idx].Length;
+                            string ln = input[idx];
+
+                            int need = len-count-1;
+                            if (ln.Length > need)
+                                ln = ln.Substring(0, need);
+
+                            output.Add(ln);
+                            count += ln.Length + 1;
+                            idx++;
+                            }
+
+                        return output.ToArray();
+                        }
+                    break;
+                case 2:
+                    words = input[idx].Split(' '); // count
+                    if (words[0] == "count")
+                    {
+                        int c = int.Parse(words[1]);
+                        if (c > 0)
+                            return new String[0];
+                        break;
+                    }
+                    break;
+                }
+                idx++;
+            }
+            return output.ToArray();
+        }
+
+        public static bool IsCached(UUID assetID)
+        {
+            lock (m_Notecards)
+            {
+                return m_Notecards.ContainsKey(assetID);
+            }
+        }
+
+        public static int GetLines(UUID assetID)
+        {
+            if (!IsCached(assetID))
+                return -1;
+
+            lock (m_Notecards)
+            {
+                m_Notecards[assetID].lastRef = DateTime.Now;
+                return m_Notecards[assetID].text.Length;
+            }
+        }
+
+        public static string GetLine(UUID assetID, int line)
+        {
+            if (line < 0)
+                return "";
+
+            string data;
+
+            if (!IsCached(assetID))
+                return "";
+
+            lock (m_Notecards)
+            {
+                m_Notecards[assetID].lastRef = DateTime.Now;
+
+                if (line >= m_Notecards[assetID].text.Length)
+                    return "\n\n\n";
+
+                data = m_Notecards[assetID].text[line];
+                if (data.Length > 255)
+                    data = data.Substring(0, 255);
+
+                return data;
+            }
+        }
+
+        public static void CacheCheck()
+        {
+            foreach (UUID key in new List<UUID>(m_Notecards.Keys))
+            {
+                Notecard nc = m_Notecards[key];
+                if (nc.lastRef.AddSeconds(30) < DateTime.Now)
+                    m_Notecards.Remove(key);
+            }
+        }
     }
 }

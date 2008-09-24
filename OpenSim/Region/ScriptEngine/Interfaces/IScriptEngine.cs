@@ -42,7 +42,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     /// </summary>
     public interface IScriptEngine : IEventReceiver
     {
-        Scene World { get; }
         IConfig Config { get; }
         ILog Log { get; }
         string ScriptEngineName { get; }
