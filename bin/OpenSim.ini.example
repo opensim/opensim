@@ -115,6 +115,7 @@ DefaultScriptEngine = "DotNetEngine"
 ; ##
 
 ;WorldMapModule = "WorldMap"
+;MapImageModule = "MapImageModule"
 
 [StandAlone]
 accounts_authenticate = true

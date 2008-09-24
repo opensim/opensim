@@ -134,6 +134,12 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         {
             m_scene = scene;
             m_config = source;
+
+            IConfig startupConfig = m_config.Configs["Startup"];
+            if (startupConfig.GetString("MapImageModule", "MapImageModule") !=
+                    "MapImageModule")
+                return;
+
             m_scene.RegisterModuleInterface<IMapImageGenerator>(this);
         }
 
