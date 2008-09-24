@@ -41,7 +41,7 @@ namespace OpenSim.Data.MySQL
     /// <summary>
     /// A database interface class to a user profile storage system
     /// </summary>
-    class MySQLUserData : UserDataBase
+    public class MySQLUserData : UserDataBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
