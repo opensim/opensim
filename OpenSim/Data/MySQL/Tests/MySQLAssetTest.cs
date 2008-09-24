@@ -35,12 +35,11 @@ using OpenSim.Data.Tests;
 using OpenSim.Data.MySQL;
 using OpenSim.Region.Environment.Scenes;
 using OpenMetaverse;
-using log4net;
 
 namespace OpenSim.Data.MySQL.Tests
 {
     [TestFixture]
-    public class MySQLInventoryTest : BasicInventoryTest
+    public class MySQLAssetTest : BasicAssetTest
     {
         public string file;
         public MySQLManager database;
@@ -57,7 +56,7 @@ namespace OpenSim.Data.MySQL.Tests
             try 
             {
                 database = new MySQLManager(connect);
-                db = new MySQLInventoryData();
+                db = new MySQLAssetData();
                 db.Initialise(connect);
             } 
             catch (Exception e)
@@ -77,8 +76,7 @@ namespace OpenSim.Data.MySQL.Tests
             if (database != null)
             {
                 database.ExecuteSql("drop table migrations");
-                database.ExecuteSql("drop table inventoryitems");
-                database.ExecuteSql("drop table inventoryfolders");
+                database.ExecuteSql("drop table assets");
             }
         }
     }
