@@ -5219,7 +5219,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         break;
                     case PacketType.UpdateTaskInventory:
-                        m_log.DebugFormat("[AMW] UpdateTaskInventory request");
                         UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
                         if (OnUpdateTaskInventory != null)
                         {
@@ -5286,7 +5285,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
 
                     case PacketType.RezScript:
-                        m_log.DebugFormat("[AMW] RezScript");
                         //Console.WriteLine(Pack.ToString());
                         RezScriptPacket rezScriptx = (RezScriptPacket)Pack;
 

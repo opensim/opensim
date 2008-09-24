@@ -42,9 +42,12 @@ using Nini.Config;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
+
     public class RestAppearanceServices : IRest
     {
+
         private static readonly int PARM_USERID = 0;
+
         // private static readonly int PARM_PATH   = 1;
 
         private bool       enabled = false;
@@ -139,6 +142,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void DoAppearance(RequestData hdata)
         {
+
             AppearanceRequestData rdata = (AppearanceRequestData) hdata;
 
             Rest.Log.DebugFormat("{0} DoAppearance ENTRY", MsgId);
@@ -206,7 +210,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // required to designate a GET for an entire
             // inventory.
             //
-
 
             // Do we have at least a user agent name?
 
@@ -306,7 +309,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (rdata.userAppearance == null)
             {
-                rdata.Fail(Rest.HttpStatusCodeNoContent,"appearance data not found");
+                rdata.Fail(Rest.HttpStatusCodeNoContent,
+                    String.Format("appearance data not found for user {0} {1}", 
+                      rdata.userProfile.FirstName, rdata.userProfile.SurName));
             }
 
             rdata.initXmlWriter();
@@ -331,26 +336,34 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void DoExtend(AppearanceRequestData rdata)
         {
+
             bool  created  = false;
             bool  modified = false;
             string newnode = String.Empty;
 
+            Rest.Log.DebugFormat("{0} POST ENTRY", MsgId);
+
             AvatarAppearance old = Rest.AvatarServices.GetUserAppearance(rdata.userProfile.ID);
+
             rdata.userAppearance = new AvatarAppearance();
 
-            rdata.userAppearance.Owner  = old.Owner;
-            rdata.userAppearance.Serial = old.Serial;
+            //  Although the following behavior is admitted by HTTP I am becoming 
+            //  increasingly doubtful that it is appropriate for REST. If I attempt to
+            //  add a new record, and it already exists, then it seems to me that the
+            //  attempt should fail, rather than update the existing record.
 
             if (GetUserAppearance(rdata))
             {
                 modified = rdata.userAppearance != null;
                 created  = !modified;
                 Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+            //    Rest.UserServices.UpdateUserProfile(rdata.userProfile);
             }
             else
             {
                 created  = true;
                 Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+             //   Rest.UserServices.UpdateUserProfile(rdata.userProfile);
             }
 
             if (created)
@@ -358,9 +371,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 newnode = String.Format("{0} {1}", rdata.userProfile.FirstName,
                                    rdata.userProfile.SurName);
                 // Must include a location header with a URI that identifies the new resource.
+
                 rdata.AddHeader(Rest.HttpHeaderLocation,String.Format("http://{0}{1}:{2}{3}{4}",
                          rdata.hostname,rdata.port,rdata.path,Rest.UrlPathSeparator, newnode));
                 rdata.Complete(Rest.HttpStatusCodeCreated);
+
             }
             else
             {
@@ -399,6 +414,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 modified = true;
                 Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+                Rest.UserServices.UpdateUserProfile(rdata.userProfile);
             }
 
             if (created)
@@ -703,121 +719,123 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         }
 
+        private void FormatPart(AppearanceRequestData rdata, string part, UUID item, UUID asset)
+        {
+            if(item != UUID.Zero || asset != UUID.Zero)
+            {
+				rdata.writer.WriteStartElement(part);
+                if(item  != UUID.Zero)
+                {
+					rdata.writer.WriteAttributeString("Item",item.ToString());
+                }
+                if(asset != UUID.Zero)
+                {
+					rdata.writer.WriteAttributeString("Item",asset.ToString());
+                }
+				rdata.writer.WriteEndElement();
+            }
+        }
+
         private void FormatUserAppearance(AppearanceRequestData rdata)
         {
 
-            rdata.writer.WriteStartElement("Appearance");
-            rdata.writer.WriteAttributeString("Height", rdata.userAppearance.AvatarHeight.ToString());
-            rdata.writer.WriteAttributeString("Owner", rdata.userAppearance.Owner.ToString());
-            rdata.writer.WriteAttributeString("Serial", rdata.userAppearance.Serial.ToString());
+            Rest.Log.DebugFormat("{0} FormatUserAppearance", MsgId);
 
-            rdata.writer.WriteStartElement("Body");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.BodyItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.BodyAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("Skin");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.SkinItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.SkinAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("Hair");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.HairItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.HairAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("Eyes");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.EyesItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.EyesAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("Shirt");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.ShirtItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.ShirtAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("Pants");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.PantsItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.PantsAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("Shoes");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.ShoesItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.ShoesAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("Socks");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.SocksItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.SocksAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("Jacket");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.JacketItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.JacketAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("Gloves");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.GlovesItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.GlovesAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("UnderShirt");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.UnderShirtItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.UnderShirtAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("UnderPants");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.UnderPantsItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.UnderPantsAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            rdata.writer.WriteStartElement("Skirt");
-            rdata.writer.WriteAttributeString("Item",rdata.userAppearance.SkirtItem.ToString());
-            rdata.writer.WriteAttributeString("Asset",rdata.userAppearance.SkirtAsset.ToString());
-            rdata.writer.WriteEndElement();
-
-            Hashtable attachments = rdata.userAppearance.GetAttachments();
-
-            rdata.writer.WriteStartElement("Attachments");
-
-            for (int i=0; i<attachments.Count;i++)
+            if(rdata.userAppearance != null)
             {
-                Hashtable attachment = attachments[i] as Hashtable;
-                rdata.writer.WriteStartElement("Attachment");
-                rdata.writer.WriteAttributeString("AtPoint", i.ToString());
-                rdata.writer.WriteAttributeString("Item", (string) attachment["item"]);
-                rdata.writer.WriteAttributeString("Asset", (string) attachment["asset"]);
-                rdata.writer.WriteEndElement();
+
+				Rest.Log.DebugFormat("{0} FormatUserAppearance: appearance object exists", MsgId);
+				rdata.writer.WriteStartElement("Appearance");
+
+				rdata.writer.WriteAttributeString("Height", rdata.userAppearance.AvatarHeight.ToString());
+                if(rdata.userAppearance.Owner != null)
+					rdata.writer.WriteAttributeString("Owner", rdata.userAppearance.Owner.ToString());
+				rdata.writer.WriteAttributeString("Serial", rdata.userAppearance.Serial.ToString());
+
+                FormatPart(rdata, "Body", rdata.userAppearance.BodyItem, rdata.userAppearance.BodyAsset);
+                FormatPart(rdata, "Skin", rdata.userAppearance.SkinItem, rdata.userAppearance.SkinAsset);
+                FormatPart(rdata, "Hair", rdata.userAppearance.HairItem, rdata.userAppearance.HairAsset);
+                FormatPart(rdata, "Eyes", rdata.userAppearance.EyesItem, rdata.userAppearance.EyesAsset);
+
+                FormatPart(rdata, "Shirt", rdata.userAppearance.ShirtItem, rdata.userAppearance.ShirtAsset);
+                FormatPart(rdata, "Pants", rdata.userAppearance.PantsItem, rdata.userAppearance.PantsAsset);
+                FormatPart(rdata, "Skirt", rdata.userAppearance.SkirtItem, rdata.userAppearance.SkirtAsset);
+                FormatPart(rdata, "Shoes", rdata.userAppearance.ShoesItem, rdata.userAppearance.ShoesAsset);
+                FormatPart(rdata, "Socks", rdata.userAppearance.SocksItem, rdata.userAppearance.SocksAsset);
+
+                FormatPart(rdata, "Jacket", rdata.userAppearance.JacketItem, rdata.userAppearance.JacketAsset);
+                FormatPart(rdata, "Gloves", rdata.userAppearance.GlovesItem, rdata.userAppearance.GlovesAsset);
+
+                FormatPart(rdata, "UnderShirt", rdata.userAppearance.UnderShirtItem, rdata.userAppearance.UnderShirtAsset);
+                FormatPart(rdata, "UnderPants", rdata.userAppearance.UnderPantsItem, rdata.userAppearance.UnderPantsAsset);
+
+				Hashtable attachments = rdata.userAppearance.GetAttachments();
+
+				if(attachments != null)
+				{
+
+				    Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting attachments", MsgId);
+
+					rdata.writer.WriteStartElement("Attachments");
+					for (int i=0; i<attachments.Count;i++)
+					{
+						Hashtable attachment = attachments[i] as Hashtable;
+						rdata.writer.WriteStartElement("Attachment");
+						rdata.writer.WriteAttributeString("AtPoint", i.ToString());
+						rdata.writer.WriteAttributeString("Item", (string) attachment["item"]);
+						rdata.writer.WriteAttributeString("Asset", (string) attachment["asset"]);
+						rdata.writer.WriteEndElement();
+					}
+					rdata.writer.WriteEndElement();
+				}
+
+				Primitive.TextureEntry texture = rdata.userAppearance.Texture;
+
+				if (texture != null && (texture.DefaultTexture != null || texture.FaceTextures != null))
+				{
+
+				    Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting textures", MsgId);
+
+					rdata.writer.WriteStartElement("Texture");
+
+                    if(texture.DefaultTexture != null)
+                    {
+						Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting default texture", MsgId);
+						rdata.writer.WriteAttributeString("Default",
+							texture.DefaultTexture.TextureID.ToString());
+                    }
+
+                    if(texture.FaceTextures != null)
+                    {
+
+						Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting face textures", MsgId);
+
+						for (int i=0; i<texture.FaceTextures.Length;i++)
+						{
+							if (texture.FaceTextures[i] != null)
+                            {
+								rdata.writer.WriteStartElement("Face");
+								rdata.writer.WriteAttributeString("Index", i.ToString());
+								rdata.writer.WriteAttributeString("Id",
+										texture.FaceTextures[i].TextureID.ToString());
+								rdata.writer.WriteEndElement();
+                            }
+						}
+                    }
+
+					rdata.writer.WriteEndElement();
+				}
+
+				Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting visual parameters", MsgId);
+
+				rdata.writer.WriteStartElement("VisualParameters");
+				rdata.writer.WriteBase64(rdata.userAppearance.VisualParams,0,
+							rdata.userAppearance.VisualParams.Length);
+				rdata.writer.WriteEndElement();
+				rdata.writer.WriteFullEndElement();
             }
 
-            rdata.writer.WriteEndElement();
-
-
-            Primitive.TextureEntry texture = rdata.userAppearance.Texture;
-
-            if (texture != null)
-            {
-                rdata.writer.WriteStartElement("Texture");
-                rdata.writer.WriteAttributeString("Default",
-                        rdata.userAppearance.Texture.DefaultTexture.TextureID.ToString());
-
-                for (int i=0; i<Primitive.TextureEntry.MAX_FACES;i++)
-                {
-                    rdata.writer.WriteStartElement("Face");
-                    rdata.writer.WriteAttributeString("Index", i.ToString());
-                    rdata.writer.WriteAttributeString("Id",
-                        rdata.userAppearance.Texture.FaceTextures[i].TextureID.ToString());
-                    rdata.writer.WriteEndElement();
-                }
-
-                rdata.writer.WriteEndElement();
-            }
-
-            rdata.writer.WriteStartElement("VisualParameters");
-            rdata.writer.WriteBase64(rdata.userAppearance.VisualParams,0,
-                        rdata.userAppearance.VisualParams.Length);
-            rdata.writer.WriteEndElement();
-            rdata.writer.WriteFullEndElement();
+			Rest.Log.DebugFormat("{0} FormatUserAppearance: completed", MsgId);
 
             return;
         }

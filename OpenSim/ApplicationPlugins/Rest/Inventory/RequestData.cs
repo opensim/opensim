@@ -1103,7 +1103,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             // Respond to the client's request, tag the response (for the
             // benefit of trace) to indicate the reason.
 
-            Respond(String.Format("Failure response: ({0}) : {1}",
+            Respond(String.Format("Failure response: ({0}) : {1} ",
                             code, Rest.HttpStatusDesc[code]));
 
             // Finally initialize and the throw a RestException. All of the
