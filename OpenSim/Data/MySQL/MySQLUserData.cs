@@ -58,9 +58,9 @@ namespace OpenSim.Data.MySQL
         public int m_maxConnections = 10;
         public int m_lastConnect;
 
-        private string m_agentsTableName;
-        private string m_usersTableName;
-        private string m_userFriendsTableName;
+        private string m_agentsTableName = "agents";
+        private string m_usersTableName = "users";
+        private string m_userFriendsTableName = "userfriends";
         private string m_appearanceTableName = "avatarappearance";
         private string m_attachmentsTableName = "avatarattachments";
         private string m_connectString;
@@ -123,24 +123,6 @@ namespace OpenSim.Data.MySQL
                 string settingPooling = iniFile.ParseFileReadValue("pooling");
                 string settingPort = iniFile.ParseFileReadValue("port");
 
-                m_usersTableName = iniFile.ParseFileReadValue("userstablename");
-                if (m_usersTableName == null)
-                {
-                    m_usersTableName = "users";
-                }
-
-                m_userFriendsTableName = iniFile.ParseFileReadValue("userfriendstablename");
-                if (m_userFriendsTableName == null)
-                {
-                    m_userFriendsTableName = "userfriends";
-                }
-
-                m_agentsTableName = iniFile.ParseFileReadValue("agentstablename");
-                if (m_agentsTableName == null)
-                {
-                    m_agentsTableName = "agents";
-                }
-
                 m_connectString = "Server=" + settingHostname + ";Port=" + settingPort + ";Database=" + settingDatabase +
                                   ";User ID=" +
                                   settingUsername + ";Password=" + settingPassword + ";Pooling=" + settingPooling + ";";
@@ -159,9 +141,6 @@ namespace OpenSim.Data.MySQL
             else
             {
                 m_connectString = connect;
-                m_agentsTableName = "agents";
-                m_usersTableName = "users";
-                m_userFriendsTableName = "userfriends";
                 database = new MySQLManager(m_connectString);
 
                 m_log.Info("Creating " + m_maxConnections + " DB connections...");
