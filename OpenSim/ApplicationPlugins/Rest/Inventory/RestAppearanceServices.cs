@@ -721,18 +721,19 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void FormatPart(AppearanceRequestData rdata, string part, UUID item, UUID asset)
         {
-            if(item != UUID.Zero || asset != UUID.Zero)
+            if (item != UUID.Zero || asset != UUID.Zero)
             {
-				rdata.writer.WriteStartElement(part);
-                if(item  != UUID.Zero)
+                rdata.writer.WriteStartElement(part);
+                if (item  != UUID.Zero)
                 {
-					rdata.writer.WriteAttributeString("Item",item.ToString());
+                    rdata.writer.WriteAttributeString("Item",item.ToString());
                 }
-                if(asset != UUID.Zero)
+
+                if (asset != UUID.Zero)
                 {
-					rdata.writer.WriteAttributeString("Item",asset.ToString());
+                    rdata.writer.WriteAttributeString("Item",asset.ToString());
                 }
-				rdata.writer.WriteEndElement();
+                rdata.writer.WriteEndElement();
             }
         }
 
@@ -741,16 +742,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             Rest.Log.DebugFormat("{0} FormatUserAppearance", MsgId);
 
-            if(rdata.userAppearance != null)
+            if (rdata.userAppearance != null)
             {
 
-				Rest.Log.DebugFormat("{0} FormatUserAppearance: appearance object exists", MsgId);
-				rdata.writer.WriteStartElement("Appearance");
+                Rest.Log.DebugFormat("{0} FormatUserAppearance: appearance object exists", MsgId);
+                rdata.writer.WriteStartElement("Appearance");
 
-				rdata.writer.WriteAttributeString("Height", rdata.userAppearance.AvatarHeight.ToString());
-                if(rdata.userAppearance.Owner != null)
-					rdata.writer.WriteAttributeString("Owner", rdata.userAppearance.Owner.ToString());
-				rdata.writer.WriteAttributeString("Serial", rdata.userAppearance.Serial.ToString());
+                rdata.writer.WriteAttributeString("Height", rdata.userAppearance.AvatarHeight.ToString());
+                if (rdata.userAppearance.Owner != null)
+                    rdata.writer.WriteAttributeString("Owner", rdata.userAppearance.Owner.ToString());
+                rdata.writer.WriteAttributeString("Serial", rdata.userAppearance.Serial.ToString());
 
                 FormatPart(rdata, "Body", rdata.userAppearance.BodyItem, rdata.userAppearance.BodyAsset);
                 FormatPart(rdata, "Skin", rdata.userAppearance.SkinItem, rdata.userAppearance.SkinAsset);
@@ -769,73 +770,72 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 FormatPart(rdata, "UnderShirt", rdata.userAppearance.UnderShirtItem, rdata.userAppearance.UnderShirtAsset);
                 FormatPart(rdata, "UnderPants", rdata.userAppearance.UnderPantsItem, rdata.userAppearance.UnderPantsAsset);
 
-				Hashtable attachments = rdata.userAppearance.GetAttachments();
+                Hashtable attachments = rdata.userAppearance.GetAttachments();
 
-				if(attachments != null)
-				{
+                if (attachments != null)
+                {
 
-				    Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting attachments", MsgId);
+                    Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting attachments", MsgId);
 
-					rdata.writer.WriteStartElement("Attachments");
-					for (int i=0; i<attachments.Count;i++)
-					{
-						Hashtable attachment = attachments[i] as Hashtable;
-						rdata.writer.WriteStartElement("Attachment");
-						rdata.writer.WriteAttributeString("AtPoint", i.ToString());
-						rdata.writer.WriteAttributeString("Item", (string) attachment["item"]);
-						rdata.writer.WriteAttributeString("Asset", (string) attachment["asset"]);
-						rdata.writer.WriteEndElement();
-					}
-					rdata.writer.WriteEndElement();
-				}
-
-				Primitive.TextureEntry texture = rdata.userAppearance.Texture;
-
-				if (texture != null && (texture.DefaultTexture != null || texture.FaceTextures != null))
-				{
-
-				    Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting textures", MsgId);
-
-					rdata.writer.WriteStartElement("Texture");
-
-                    if(texture.DefaultTexture != null)
+                    rdata.writer.WriteStartElement("Attachments");
+                    for (int i = 0; i < attachments.Count; i++)
                     {
-						Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting default texture", MsgId);
-						rdata.writer.WriteAttributeString("Default",
-							texture.DefaultTexture.TextureID.ToString());
+                        Hashtable attachment = attachments[i] as Hashtable;
+                        rdata.writer.WriteStartElement("Attachment");
+                        rdata.writer.WriteAttributeString("AtPoint", i.ToString());
+                        rdata.writer.WriteAttributeString("Item", (string) attachment["item"]);
+                        rdata.writer.WriteAttributeString("Asset", (string) attachment["asset"]);
+                        rdata.writer.WriteEndElement();
+                    }
+                    rdata.writer.WriteEndElement();
+                }
+
+                Primitive.TextureEntry texture = rdata.userAppearance.Texture;
+
+                if (texture != null && (texture.DefaultTexture != null || texture.FaceTextures != null))
+                {
+                    Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting textures", MsgId);
+
+                    rdata.writer.WriteStartElement("Texture");
+
+                    if (texture.DefaultTexture != null)
+                    {
+                        Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting default texture", MsgId);
+                        rdata.writer.WriteAttributeString("Default",
+                            texture.DefaultTexture.TextureID.ToString());
                     }
 
-                    if(texture.FaceTextures != null)
+                    if (texture.FaceTextures != null)
                     {
 
-						Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting face textures", MsgId);
+                        Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting face textures", MsgId);
 
-						for (int i=0; i<texture.FaceTextures.Length;i++)
-						{
-							if (texture.FaceTextures[i] != null)
+                        for (int i=0; i<texture.FaceTextures.Length;i++)
+                        {
+                            if (texture.FaceTextures[i] != null)
                             {
-								rdata.writer.WriteStartElement("Face");
-								rdata.writer.WriteAttributeString("Index", i.ToString());
-								rdata.writer.WriteAttributeString("Id",
-										texture.FaceTextures[i].TextureID.ToString());
-								rdata.writer.WriteEndElement();
+                                rdata.writer.WriteStartElement("Face");
+                                rdata.writer.WriteAttributeString("Index", i.ToString());
+                                rdata.writer.WriteAttributeString("Id",
+                                        texture.FaceTextures[i].TextureID.ToString());
+                                rdata.writer.WriteEndElement();
                             }
-						}
+                        }
                     }
 
-					rdata.writer.WriteEndElement();
-				}
+                    rdata.writer.WriteEndElement();
+                }
 
-				Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting visual parameters", MsgId);
+                Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting visual parameters", MsgId);
 
-				rdata.writer.WriteStartElement("VisualParameters");
-				rdata.writer.WriteBase64(rdata.userAppearance.VisualParams,0,
-							rdata.userAppearance.VisualParams.Length);
-				rdata.writer.WriteEndElement();
-				rdata.writer.WriteFullEndElement();
+                rdata.writer.WriteStartElement("VisualParameters");
+                rdata.writer.WriteBase64(rdata.userAppearance.VisualParams,0,
+                            rdata.userAppearance.VisualParams.Length);
+                rdata.writer.WriteEndElement();
+                rdata.writer.WriteFullEndElement();
             }
 
-			Rest.Log.DebugFormat("{0} FormatUserAppearance: completed", MsgId);
+            Rest.Log.DebugFormat("{0} FormatUserAppearance: completed", MsgId);
 
             return;
         }
