@@ -69,7 +69,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         public void Initialise(Scene scene, IConfigSource config)
         {
             IConfig startupConfig = config.Configs["Startup"];
-            if (startupConfig.GetString("worldMapModule", "WorldMap") ==
+            if (startupConfig.GetString("WorldMapModule", "WorldMap") ==
                     "WorldMap")
                 m_Enabled = true;
 
