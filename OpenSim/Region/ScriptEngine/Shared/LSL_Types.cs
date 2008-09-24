@@ -1473,7 +1473,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return i.value;
             }
 
-            static public implicit operator uint(LSLInteger i)
+            static public explicit operator uint(LSLInteger i)
             {
                 return (uint)i.value;
             }
