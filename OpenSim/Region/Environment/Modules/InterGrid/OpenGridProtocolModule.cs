@@ -132,7 +132,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             if (startupcfg != null)
             {
-                GridMode = enabled = cfg.GetBoolean("gridmode", false);
+                GridMode = enabled = startupcfg.GetBoolean("gridmode", false);
             }
 
             if (cfg != null)
