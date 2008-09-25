@@ -226,5 +226,26 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             return 0;
         }
         #endregion
+
+        public void SetState(UUID itemID, string state)
+        {
+        }
+
+        public bool GetScriptState(UUID itemID)
+        {
+            return true;
+        }
+
+        public void SetScriptState(UUID itemID, bool state)
+        {
+        }
+
+        public void ApiResetScript(UUID itemID)
+        {
+        }
+
+        public void ResetScript(UUID itemID)
+        {
+        }
     }
 }
