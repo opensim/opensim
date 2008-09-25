@@ -4271,8 +4271,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetRegionAgentCount()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetRegionAgentCount");
-            return new LSL_Integer(0);
+            return new LSL_Integer(World.GetAvatars().Count);
         }
 
         public LSL_Vector llGetRegionCorner()
