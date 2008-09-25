@@ -282,7 +282,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                 //                                              QIS.functionName);
 #endif
                                 // Only pipe event if land supports it.
-                                if (m_ScriptEngine.World.pipeEventsForScript(QIS.localID))
+                                if (m_ScriptEngine.World.PipeEventsForScript(QIS.localID))
                                 {
                                     LastExecutionStarted = DateTime.Now.Ticks;
                                     KillCurrentScript = false;

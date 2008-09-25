@@ -215,6 +215,12 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
         {
+            List<IScriptModule> engines = new List<IScriptModule>(myScriptEngine.World.RequestModuleInterfaces<IScriptModule>());
+
+            List<string> names = new List<string>();
+            foreach (IScriptModule m in engines)
+                names.Add(m.ScriptEngineName);
+
             int lineEnd = script.IndexOf('\n');
 
             if (lineEnd != 1)
@@ -224,8 +230,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 int colon = firstline.IndexOf(':');
                 if (firstline.Length > 2 && firstline.Substring(0, 2) == "//" && colon != -1)
                 {
-                    engine = firstline.Substring(2, colon-2);
-                    script = "//" + script.Substring(script.IndexOf(':')+1);
+                    string engineName = firstline.Substring(2, colon-2);
+
+                    if (names.Contains(engineName))
+                    {
+                        engine = engineName;
+                        script = "//" + script.Substring(script.IndexOf(':')+1);
+                    }
                 }
             }
 

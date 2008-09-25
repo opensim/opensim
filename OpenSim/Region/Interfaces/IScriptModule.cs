@@ -25,46 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using OpenSim.Framework;
 using OpenMetaverse;
 
-namespace OpenSim.Framework
+namespace OpenSim.Region.Interfaces
 {
-    public delegate void restart(RegionInfo thisRegion);
-
-    //public delegate void regionup (RegionInfo thisRegion);
-
-    public enum RegionStatus : int
+    public interface IScriptModule
     {
-        Down = 0,
-        Up = 1,
-        Crashed = 2,
-        Starting = 3,
-        SlaveScene = 4
-    } ;
-
-    public interface IScene
-    {
-        RegionInfo RegionInfo { get; }
-        uint NextLocalId { get; }
-        RegionStatus Region_Status { get; set; }
-
-        ClientManager ClientManager { get; }
-        event restart OnRestart;
-
-        void AddNewClient(IClientAPI client, bool child);
-        void RemoveClient(UUID agentID);
-        void CloseAllAgents(uint circuitcode);
-
-        void Restart(int seconds);
-        bool OtherRegionUp(RegionInfo thisRegion);
-
-        string GetSimulatorVersion();
-
-        bool PresenceChildStatus(UUID avatarID);
-
-        string GetCapsPath(UUID agentId);
-
-        T RequestModuleInterface<T>();
-        T[] RequestModuleInterfaces<T>();
+        string ScriptEngineName { get; }
     }
 }

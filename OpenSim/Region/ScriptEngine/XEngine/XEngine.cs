@@ -39,6 +39,7 @@ using log4net;
 using Nini.Config;
 using Amib.Threading;
 using OpenSim.Framework;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
@@ -50,7 +51,7 @@ using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
-    public class XEngine : IRegionModule, IScriptEngine
+    public class XEngine : IRegionModule, IScriptModule, IScriptEngine
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -213,6 +214,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             //
             SetupEngine(m_MinThreads, m_MaxThreads, m_IdleTimeout, m_Prio,
                         m_MaxScriptQueue, m_StackSize);
+
+            m_Scene.StackModuleInterface<IScriptModule>(this);
         }
 
         public void PostInitialise()
@@ -331,6 +334,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
         {
+            List<IScriptModule> engines = new List<IScriptModule>(m_Scene.RequestModuleInterfaces<IScriptModule>());
+
+            List<string> names = new List<string>();
+            foreach (IScriptModule m in engines)
+                names.Add(m.ScriptEngineName);
+
             int lineEnd = script.IndexOf('\n');
 
             if (lineEnd != 1)
@@ -340,8 +349,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 int colon = firstline.IndexOf(':');
                 if (firstline.Length > 2 && firstline.Substring(0, 2) == "//" && colon != -1)
                 {
-                    engine = firstline.Substring(2, colon-2);
-                    script = "//" + script.Substring(script.IndexOf(':')+1);
+                    string engineName = firstline.Substring(2, colon-2);
+
+                    if (names.Contains(engineName))
+                    {
+                        engine = engineName;
+                        script = "//" + script.Substring(script.IndexOf(':')+1);
+                    }
                 }
             }
 
@@ -454,14 +468,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 //            m_log.DebugFormat("[XEngine] Compiling script {0} ({1})",
 //                    item.Name, itemID.ToString());
 
+            ScenePresence presence = m_Scene.GetScenePresence(item.OwnerID);
+
             string assembly = "";
             try
             {
                 assembly = m_Compiler.PerformScriptCompile(script,
                                                            assetID.ToString());
+                if (presence != null)
+                    presence.ControllingClient.SendAgentAlertMessage("Compile successful", false);
             }
             catch (Exception e)
             {
+                if (presence != null)
+                    presence.ControllingClient.SendAgentAlertMessage("Script saved with errors, check debug window!", false);
                 try
                 {
                     // DISPLAY ERROR INWORLD

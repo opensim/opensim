@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_modules; }
         }
-        protected Dictionary<Type, object> ModuleInterfaces = new Dictionary<Type, object>();
+        protected Dictionary<Type, List<object> > ModuleInterfaces = new Dictionary<Type, List<object> >();
         protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
         protected Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
 
@@ -3025,8 +3025,25 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (!ModuleInterfaces.ContainsKey(typeof(M)))
             {
-                ModuleInterfaces.Add(typeof(M), mod);
+                List<Object> l = new List<Object>();
+                l.Add(mod);
+                ModuleInterfaces.Add(typeof(M), l);
             }
+        }
+
+        public void StackModuleInterface<M>(M mod)
+        {
+            List<Object> l;
+            if (ModuleInterfaces.ContainsKey(typeof(M)))
+                l = ModuleInterfaces[typeof(M)];
+            else
+                l = new List<Object>();
+
+            if (l.Contains(mod))
+                return;
+
+            l.Add(mod);
+            ModuleInterfaces[typeof(M)] = l;
         }
 
         /// <summary>
@@ -3037,11 +3054,27 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (ModuleInterfaces.ContainsKey(typeof(T)))
             {
-                return (T)ModuleInterfaces[typeof(T)];
+                return (T)ModuleInterfaces[typeof(T)][0];
             }
             else
             {
                 return default(T);
+            }
+        }
+
+        public override T[] RequestModuleInterfaces<T>()
+        {
+            if (ModuleInterfaces.ContainsKey(typeof(T)))
+            {
+                List<T> ret = new List<T>();
+
+                foreach(Object o in ModuleInterfaces[typeof(T)])
+                    ret.Add((T)o);
+                return ret.ToArray();
+            }
+            else
+            {
+                return new T[] { default(T) };
             }
         }
 
@@ -3628,7 +3661,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.TriggerNotAtTargetEvent(localID);
         }
 
-        private bool scriptDanger(SceneObjectPart part,Vector3 pos)
+        private bool ScriptDanger(SceneObjectPart part,Vector3 pos)
         {
             ILandObject parcel = LandChannel.GetLandObject(pos.X, pos.Y);
             if (part != null)
@@ -3684,12 +3717,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public bool scriptDanger(uint localID, Vector3 pos)
+        public bool ScriptDanger(uint localID, Vector3 pos)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
             if (part != null)
             {
-                return scriptDanger(part, pos);
+                return ScriptDanger(part, pos);
             }
             else
             {
@@ -3697,19 +3730,19 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public bool pipeEventsForScript(uint localID)
+        public bool PipeEventsForScript(uint localID)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
             if (part != null)
             {
-                // Changed so that child prims of attachments return scriptDanger for their parent, so that
+                // Changed so that child prims of attachments return ScriptDanger for their parent, so that
                 //  their scripts will actually run.
                 //      -- Leaf, Tue Aug 12 14:17:05 EDT 2008
                 SceneObjectPart parent = part.ParentGroup.RootPart;
                 if (parent != null && parent.IsAttachment)
-                    return scriptDanger(parent, parent.GetWorldPosition());
+                    return ScriptDanger(parent, parent.GetWorldPosition());
                 else
-                    return scriptDanger(part, part.GetWorldPosition());
+                    return ScriptDanger(part, part.GetWorldPosition());
             }
             else
             {

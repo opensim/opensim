@@ -567,85 +567,89 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 }
                 else
                 {
-                    SceneObjectPart part = m_Engine.World.GetSceneObjectPart(
-                        m_LocalID);
-    //                m_Engine.Log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
-    //                        m_PrimName, m_ScriptName, data.EventName, m_State);
-
-                    try
+                    if (m_Engine.World.PipeEventsForScript(m_LocalID) ||
+                        data.EventName == "control") // Don't freeze avies!
                     {
-                        m_CurrentEvent = data.EventName;
-                        m_EventStart = DateTime.Now;
-                        m_InEvent = true;
+                        SceneObjectPart part = m_Engine.World.GetSceneObjectPart(
+                            m_LocalID);
+        //                m_Engine.Log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
+        //                        m_PrimName, m_ScriptName, data.EventName, m_State);
 
-                        m_Script.ExecuteEvent(State, data.EventName, data.Params);
-
-                        m_InEvent = false;
-                        m_CurrentEvent = String.Empty;
-
-                        if (m_SaveState)
+                        try
                         {
-                            // This will be the very first event we deliver
-                            // (state_entry) in defualt state
-                            //
+                            m_CurrentEvent = data.EventName;
+                            m_EventStart = DateTime.Now;
+                            m_InEvent = true;
 
-                            SaveState(m_Assembly);
+                            m_Script.ExecuteEvent(State, data.EventName, data.Params);
 
-                            m_SaveState = false;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        m_InEvent = false;
-                        m_CurrentEvent = String.Empty;
+                            m_InEvent = false;
+                            m_CurrentEvent = String.Empty;
 
-                        if (!(e is TargetInvocationException) || (!(e.InnerException is EventAbortException) && (!(e.InnerException is SelfDeleteException))))
-                        {
-                            if (e is System.Threading.ThreadAbortException)
+                            if (m_SaveState)
                             {
-                                lock (m_EventQueue)
+                                // This will be the very first event we deliver
+                                // (state_entry) in defualt state
+                                //
+
+                                SaveState(m_Assembly);
+
+                                m_SaveState = false;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            m_InEvent = false;
+                            m_CurrentEvent = String.Empty;
+
+                            if (!(e is TargetInvocationException) || (!(e.InnerException is EventAbortException) && (!(e.InnerException is SelfDeleteException))))
+                            {
+                                if (e is System.Threading.ThreadAbortException)
                                 {
-                                    if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
+                                    lock (m_EventQueue)
                                     {
-                                        m_CurrentResult=m_Engine.QueueEventHandler(this);
+                                        if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
+                                        {
+                                            m_CurrentResult=m_Engine.QueueEventHandler(this);
+                                        }
+                                        else
+                                        {
+                                            m_CurrentResult = null;
+                                        }
                                     }
-                                    else
-                                    {
-                                        m_CurrentResult = null;
-                                    }
+
+                                    m_DetectParams = null;
+
+                                    return 0;
                                 }
 
-                                m_DetectParams = null;
-
-                                return 0;
+                                try
+                                {
+                                    // DISPLAY ERROR INWORLD
+                                    string text = "Runtime error:\n" + e.InnerException.ToString();
+                                    if (text.Length > 1000)
+                                        text = text.Substring(0, 1000);
+                                    m_Engine.World.SimChat(Utils.StringToBytes(text),
+                                                           ChatTypeEnum.DebugChannel, 2147483647,
+                                                           part.AbsolutePosition,
+                                                           part.Name, part.UUID, false);
+                                }
+                                catch (Exception e2) // LEGIT: User Scripting
+                                {
+                                    m_Engine.Log.Error("[Script]: "+
+                                                       "Error displaying error in-world: " +
+                                                       e2.ToString());
+                                    m_Engine.Log.Error("[Script]: " +
+                                                       "Errormessage: Error compiling script:\r\n" +
+                                                       e.ToString());
+                                }
                             }
-
-                            try
+                            else if ((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
                             {
-                                // DISPLAY ERROR INWORLD
-                                string text = "Runtime error:\n" + e.InnerException.ToString();
-                                if (text.Length > 1000)
-                                    text = text.Substring(0, 1000);
-                                m_Engine.World.SimChat(Utils.StringToBytes(text),
-                                                       ChatTypeEnum.DebugChannel, 2147483647,
-                                                       part.AbsolutePosition,
-                                                       part.Name, part.UUID, false);
+                                m_InSelfDelete = true;
+                                if (part != null && part.ParentGroup != null)
+                                    m_Engine.World.DeleteSceneObject(part.ParentGroup);
                             }
-                            catch (Exception e2) // LEGIT: User Scripting
-                            {
-                                m_Engine.Log.Error("[Script]: "+
-                                                   "Error displaying error in-world: " +
-                                                   e2.ToString());
-                                m_Engine.Log.Error("[Script]: " +
-                                                   "Errormessage: Error compiling script:\r\n" +
-                                                   e.ToString());
-                            }
-                        }
-                        else if ((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
-                        {
-                            m_InSelfDelete = true;
-                            if (part != null && part.ParentGroup != null)
-                                m_Engine.World.DeleteSceneObject(part.ParentGroup);
                         }
                     }
                 }

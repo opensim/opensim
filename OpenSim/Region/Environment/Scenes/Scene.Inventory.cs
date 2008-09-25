@@ -178,6 +178,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
                                 return UUID.Zero;
                             }
+                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
                         }
                         else if ((InventoryType) item.InvType == InventoryType.LSL)
                         {
@@ -186,6 +187,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
                                 return UUID.Zero;
                             }
+                            remoteClient.SendAgentAlertMessage("Script saved", false);
                         }
 
                         AssetBase asset =
@@ -286,6 +288,10 @@ namespace OpenSim.Region.Environment.Scenes
                 // Needs to determine which engine was running it and use that
                 //
                 part.CreateScriptInstance(item.ItemID, 0, false, DefaultScriptEngine);
+            }
+            else
+            {
+                remoteClient.SendAgentAlertMessage("Script saved", false);
             }
         }
 

@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Interfaces;
@@ -43,7 +44,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// </summary>
     ///
     [Serializable]
-    public abstract class ScriptEngine : IRegionModule, ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule, IEventReceiver
+    public abstract class ScriptEngine : IRegionModule, IScriptModule, ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule, IEventReceiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -126,8 +127,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             m_log.Info("[" + ScriptEngineName + "]: Reading configuration from config section \"" + ScriptEngineName + "\"");
             ReadConfig();
 
-            // Should we iterate the region for scripts that needs starting?
-            // Or can we assume we are loaded before anything else so we can use proper events?
+            m_Scene.StackModuleInterface<IScriptModule>(this);
         }
 
         public void PostInitialise()

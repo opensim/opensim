@@ -225,5 +225,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return default(T);
         }
+
+        public virtual T[] RequestModuleInterfaces<T>()
+        {
+            return new T[] { default(T) };
+        }
     }
 }
