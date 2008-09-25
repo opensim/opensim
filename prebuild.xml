@@ -467,7 +467,9 @@
       <Reference name="HttpServer.dll"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="OSHttpServer" pattern="OSHttp*.cs" />
+        </Match>
       </Files>
     </Project>
 
