@@ -332,10 +332,10 @@ namespace OpenSim.Framework.Servers
         /// </summary
         /// <param name="req">Incoming OSHttpRequest to which we are
         /// replying</param>
-        public OSHttpResponse(OSHttpRequest req)
-        {
-            _httpResponse = new HttpResponse(req.HttpClientContext, req.HttpRequest);
-        }
+        // public OSHttpResponse(OSHttpRequest req)
+        // {
+        //     _httpResponse = new HttpResponse(req.HttpClientContext, req.HttpRequest);
+        // }
 
         /// <summary>
         /// Add a header field and content to the response.

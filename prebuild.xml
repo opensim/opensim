@@ -468,7 +468,12 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
-          <Exclude name="OSHttpServer" pattern="OSHttp*.cs" />
+          <Exclude pattern="OSHttpHandler\.cs" />
+          <Exclude pattern="OSHttpHttpHandler\.cs" />
+          <Exclude pattern="OSHttpRequestPump\.cs" />
+          <Exclude pattern="OSHttpRequestQueue\.cs" />
+          <Exclude pattern="OSHttpServer.*\.cs" />
+          <Exclude pattern="OSHttpXmlRpcHandler.*\.cs" />
         </Match>
       </Files>
     </Project>

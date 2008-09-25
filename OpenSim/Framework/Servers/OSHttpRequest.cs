@@ -151,17 +151,17 @@ namespace OpenSim.Framework.Servers
         }
         private IPEndPoint _ipEndPoint;
 
-        internal HttpRequest HttpRequest
-        {
-            get { return _request; }
-        }
-        private HttpRequest _request;
+        // internal HttpRequest HttpRequest
+        // {
+        //     get { return _request; }
+        // }
+        // private HttpRequest _request;
 
-        internal HttpClientContext HttpClientContext
-        {
-            get { return _context; }
-        }
-        private HttpClientContext _context;
+        // internal HttpClientContext HttpClientContext
+        // {
+        //     get { return _context; }
+        // }
+        // private HttpClientContext _context;
 
         /// <summary>
         /// Internal whiteboard for handlers to store temporary stuff
@@ -199,40 +199,40 @@ namespace OpenSim.Framework.Servers
             // _isAuthenticated = req.IsAuthenticated;
         }
 
-        public OSHttpRequest(HttpClientContext context, HttpRequest req)
-        {
-            _context = context;
-            _request = req;
+        // public OSHttpRequest(HttpClientContext context, HttpRequest req)
+        // {
+        //     _context = context;
+        //     _request = req;
 
-            _acceptTypes = req.AcceptTypes;
-            if (null != req.Headers["content-encoding"])
-                _contentEncoding = Encoding.GetEncoding(_request.Headers["content-encoding"]);
-            _contentLength64 = req.ContentLength;
-            if (null != req.Headers["content-type"])
-                _contentType = _request.Headers["content-type"];
-            _headers = req.Headers;
-            _httpMethod = req.Method;
-            _hasbody = req.ContentLength != 0;
-            _inputStream = req.Body;
-            _keepAlive = ConnectionType.KeepAlive == req.Connection;
-            _rawUrl = req.Uri.AbsolutePath;
-            _url = req.Uri;
-            if (null != req.Headers["user-agent"])
-                _userAgent = req.Headers["user-agent"];
-            _queryString = new NameValueCollection();
-            _query = new Hashtable();
-            foreach (KeyValuePair<string, HttpInputItem> q in req.QueryString)
-            {
-                _queryString.Add(q.Key, q.Value.Value);
-                _query[q.Key] = q.Value.Value;
-            }
-            // TODO: requires change to HttpServer.HttpRequest
-            _ipEndPoint = null;
+        //     _acceptTypes = req.AcceptTypes;
+        //     if (null != req.Headers["content-encoding"])
+        //         _contentEncoding = Encoding.GetEncoding(_request.Headers["content-encoding"]);
+        //     _contentLength64 = req.ContentLength;
+        //     if (null != req.Headers["content-type"])
+        //         _contentType = _request.Headers["content-type"];
+        //     _headers = req.Headers;
+        //     _httpMethod = req.Method;
+        //     _hasbody = req.ContentLength != 0;
+        //     _inputStream = req.Body;
+        //     _keepAlive = ConnectionType.KeepAlive == req.Connection;
+        //     _rawUrl = req.Uri.AbsolutePath;
+        //     _url = req.Uri;
+        //     if (null != req.Headers["user-agent"])
+        //         _userAgent = req.Headers["user-agent"];
+        //     _queryString = new NameValueCollection();
+        //     _query = new Hashtable();
+        //     foreach (KeyValuePair<string, HttpInputItem> q in req.QueryString)
+        //     {
+        //         _queryString.Add(q.Key, q.Value.Value);
+        //         _query[q.Key] = q.Value.Value;
+        //     }
+        //     // TODO: requires change to HttpServer.HttpRequest
+        //     _ipEndPoint = null;
 
-            // _cookies = req.Cookies;
-            // _isSecureConnection = req.IsSecureConnection;
-            // _isAuthenticated = req.IsAuthenticated;
-        }
+        //     // _cookies = req.Cookies;
+        //     // _isSecureConnection = req.IsSecureConnection;
+        //     // _isAuthenticated = req.IsAuthenticated;
+        // }
 
         public override string ToString()
         {
