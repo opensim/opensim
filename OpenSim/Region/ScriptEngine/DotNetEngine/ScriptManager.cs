@@ -169,17 +169,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public override void _StopScript(uint localID, UUID itemID)
         {
-            // Stop script
-//#if DEBUG
-//            m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Stop script localID: " + localID + " LLUID: " + itemID.ToString());
-//#endif
-
-            // Stop long command on script
-            AsyncCommandManager.RemoveScript(m_scriptEngine, localID, itemID);
-
             IScript LSLBC = GetScript(localID, itemID);
             if (LSLBC == null)
                 return;
+
+            // Stop long command on script
+            AsyncCommandManager.RemoveScript(m_scriptEngine, localID, itemID);
 
             // TEMP: First serialize it
             //GetSerializedScript(localID, itemID);
