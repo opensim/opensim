@@ -240,7 +240,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 }
             }
 
-            if (engine != "DotNetEngine")
+            if (engine != myScriptEngine.ScriptEngineName)
                 return;
 
             myScriptEngine.Log.Debug("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +

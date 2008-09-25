@@ -359,7 +359,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
-            if (engine != "XEngine")
+            if (engine != ScriptEngineName)
                 return;
 
             Object[] parms = new Object[]{localID, itemID, script, startParam, postOnRez};
