@@ -617,6 +617,8 @@ namespace OpenSim.Framework.Servers
             reader.Close();
             requestStream.Close();
 
+            //m_log.DebugFormat("[OGP]: {0}:{1}", request.RawUrl, requestBody);
+
             LLSD llsdRequest = null;
             LLSD llsdResponse = null;
             

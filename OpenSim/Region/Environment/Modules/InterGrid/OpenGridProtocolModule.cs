@@ -268,6 +268,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     return RequestRezAvatarMethod(path, request);
                 case "rez_avatar/place":
                     return RequestRezAvatarMethod(path, request);
+                case "rez_avatar/derez":
+                    return DerezAvatarMethod(path, request);
                     //break;
                 default:
                     return GenerateNoHandlerMessage();
@@ -365,7 +367,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
         public LLSD RequestRezAvatarMethod(string path, LLSD request)
         {
-            m_log.WarnFormat("[REQUESTREZAVATAR]: {0}", request.ToString());
+            //System.Console.WriteLine("[REQUESTREZAVATAR]: " + request.ToString());
 
             LLSDMap requestMap = (LLSDMap)request;
 
@@ -564,6 +566,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             {
                 if (CapsLoginID.ContainsKey(rezAvatarPath))
                 {
+                    CapsLoginID[rezAvatarPath] = agentData;
+                    
                     // This is a joke, if you didn't notice...  It's so unlikely to happen, that I'll print this message if it does occur!
                     m_log.Error("[OGP]: Holy anomoly batman! Caps path already existed!  All the UUID Duplication worries were founded!");
                 }
@@ -572,7 +576,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     CapsLoginID.Add(rezAvatarPath, agentData);
                 }
             }
-
+            //System.Console.WriteLine("Response:" + responseMap.ToString());
             return responseMap;
         }
 
@@ -852,7 +856,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 }
                 else
                 {
-                    return GenerateNoHandlerMessage();
+                    return GenerateNoStateMessage(LocalID);
                 }
             }
             else
@@ -992,7 +996,15 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             map["connect"] = LLSD.FromString("false");
             return map;
         }
-
+        public LLSD GenerateNoStateMessage(UUID passedAvatar)
+        {
+            LLSDMap map = new LLSDMap();
+            map["reason"] = LLSD.FromString("derez failed");
+            map["message"] = LLSD.FromString("Unable to locate OGP state for avatar " + passedAvatar.ToString());
+            map["login"] = LLSD.FromString("false");
+            map["connect"] = LLSD.FromString("false");
+            return map;
+        }
         private bool TryGetAgentCircuitData(string path, out AgentCircuitData userdata)
         {
             userdata = null;
