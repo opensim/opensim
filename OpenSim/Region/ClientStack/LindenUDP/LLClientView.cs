@@ -502,7 +502,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // horribly tangly.  Hopefully it should be possible to greatly simplify it.
             if (shutdownCircuit)
             {
-                OnConnectionClosed(this);
+                if (OnConnectionClosed != null)
+                    OnConnectionClosed(this);
             }
             else
             {

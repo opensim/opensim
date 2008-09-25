@@ -50,7 +50,7 @@ using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
-    public class XEngine : IScriptModule, IScriptEngine
+    public class XEngine : IRegionModule, IScriptEngine
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -75,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 #pragma warning restore 414
         private int m_EventLimit;
         private bool m_KillTimedOutScripts;
-        bool m_firstStart = true;
+//        bool m_firstStart = true;
 
         private static List<XEngine> m_ScriptEngines =
                 new List<XEngine>();
@@ -205,8 +205,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_ScriptEngines.Add(this);
             }
 
-            scene.RegisterModuleInterface<IScriptModule>(this);
-
             // Needs to be here so we can queue the scripts that need starting
             //
             m_Scene.EventManager.OnRezScript += OnRezScript;
@@ -230,6 +228,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_Scene.EventManager.OnScriptReset += OnScriptReset;
             m_Scene.EventManager.OnStartScript += OnStartScript;
             m_Scene.EventManager.OnStopScript += OnStopScript;
+            m_Scene.EventManager.OnGetScriptRunning += OnGetScriptRunning;
             m_Scene.EventManager.OnShutdown += OnShutdown;
 
             if (m_SleepTime > 0)
@@ -357,14 +356,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 if (m_CurrentCompile == null)
                 {
-                    if (m_firstStart)
-                    {
-                        m_firstStart = false;
-                        m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                            new WorkItemCallback(this.DoScriptWait),
-                            new Object[0]);
-                        return;
-                    }
+//                    if (m_firstStart)
+//                    {
+//                        m_firstStart = false;
+//                        m_CurrentCompile = m_ThreadPool.QueueWorkItem(
+//                            new WorkItemCallback(this.DoScriptWait),
+//                            new Object[0]);
+//                        return;
+//                    }
 
                     m_CurrentCompile = m_ThreadPool.QueueWorkItem(
                             new WorkItemCallback(this.DoOnRezScriptQueue),
@@ -375,7 +374,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public Object DoScriptWait(Object dummy)
         {
-            Thread.Sleep(30000);
+            Thread.Sleep(10000);
 
             lock (m_CompileQueue)
             {
@@ -884,11 +883,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return instance.StartParam;
         }
 
-        public bool GetScriptRunning(UUID objectID, UUID itemID)
-        {
-            return GetScriptState(itemID);
-        }
-
         public void OnShutdown()
         {
             List<IScriptInstance> instances = new List<IScriptInstance>();
@@ -921,6 +915,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (instance == null)
                 return null;
             return instance.GetApi(name);
+        }
+
+        public void OnGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
+        {
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return;
+            controllingClient.SendScriptRunningReply(objectID, itemID,
+                    GetScriptState(itemID));
         }
     }
 }

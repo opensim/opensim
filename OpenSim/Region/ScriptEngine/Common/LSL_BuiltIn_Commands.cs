@@ -45,6 +45,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 using OpenSim.Region.ScriptEngine.Shared;
+using OpenSim.Region.ScriptEngine.Shared.Api;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -79,7 +80,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_localID = localID;
             m_itemID = itemID;
 
-            AsyncCommands = m_ScriptEngine.m_ASYNCLSLCommandManager;
+            AsyncCommands = new AsyncCommandManager(m_ScriptEngine);
+
             //m_log.Info(ScriptEngineName, "LSL_BaseClass.Start() called. Hosted by [" + m_host.Name + ":" + m_host.UUID + "@" + m_host.AbsolutePosition + "]");
 
 
@@ -759,256 +761,95 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_String llDetectedName(int number)
         {
             m_host.AddScriptLPS(1);
-            LSL_List SenseList = AsyncCommands.SensorRepeatPlugin.GetSensorList(m_localID, m_itemID);
-            if (SenseList != null)
-            {
-                if ((number >= 0) && (number < SenseList.Length))
-                {
-                    UUID SensedUUID = (UUID)SenseList.Data[number];
-                    return resolveName(SensedUUID);
-                }
-            }
-            else
-            {
-                ScriptManager sm;
-                IScript script = null;
-
-                if ((sm = m_ScriptEngine.m_ScriptManager) != null)
-                {
-                    if (sm.Scripts.ContainsKey(m_localID))
-                    {
-                        if ((script = sm.GetScript(m_localID, m_itemID)) != null)
-                        {
-                            //System.Console.WriteLine(number + " - " + script.llDetectParams._key.Length);
-                            if (script.llDetectParams._string != null)
-                            {
-                                if (script.llDetectParams._string.Length > number)
-                                {
-                                    if (script.llDetectParams._string[number] != null)
-                                    {
-                                        return script.llDetectParams._string[number];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
             return String.Empty;
-       }
-
-        public UUID uuidDetectedKey(int number)
-        {
-            LSL_List SenseList = AsyncCommands.SensorRepeatPlugin.GetSensorList(m_localID, m_itemID);
-            if (SenseList != null)
-            {
-                if ((number >= 0) && (number < SenseList.Length))
-                {
-                    UUID SensedUUID = (UUID)SenseList.Data[number];
-                    return SensedUUID;
-                }
-            }
-            else
-            {
-                ScriptManager sm;
-                IScript script = null;
-
-                if ((sm = m_ScriptEngine.m_ScriptManager) != null)
-                {
-                    if (sm.Scripts.ContainsKey(m_localID))
-                    {
-                        if ((script = sm.GetScript(m_localID, m_itemID)) != null)
-                        {
-                            //System.Console.WriteLine(number + " - " + script.llDetectParams._key.Length);
-                            if (script.llDetectParams._key.Length > number)
-                            {
-                                if (script.llDetectParams._key[number])
-                                {
-                                    return new UUID(script.llDetectParams._key[number]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return UUID.Zero;
-        }
-
-        public EntityBase entityDetectedKey(int number)
-        {
-            LSL_List SenseList = AsyncCommands.SensorRepeatPlugin.GetSensorList(m_localID, m_itemID);
-            if (SenseList != null)
-            {
-                if ((number >= 0) && (number < SenseList.Length))
-                {
-                    UUID SensedUUID = (UUID)SenseList.Data[number];
-                    EntityBase SensedObject = null;
-                    lock (World.Entities)
-                    {
-                        World.Entities.TryGetValue(SensedUUID, out SensedObject);
-                    }
-                    return SensedObject;
-                }
-            }
-            else
-            {
-                ScriptManager sm;
-                IScript script = null;
-
-                if ((sm = m_ScriptEngine.m_ScriptManager) != null)
-                {
-                    if (sm.Scripts.ContainsKey(m_localID))
-                    {
-                        if ((script = sm.GetScript(m_localID, m_itemID)) != null)
-                        {
-                            //System.Console.WriteLine(number + " - " + script.llDetectParams._key.Length);
-                            if (script.llDetectParams._key.Length > number)
-                            {
-                                if (script.llDetectParams._key[number])
-                                {
-                                    UUID SensedUUID = new UUID(script.llDetectParams._key[number]);
-                                    EntityBase SensedObject = null;
-                                    lock (World.Entities)
-                                    {
-                                        World.Entities.TryGetValue(SensedUUID, out SensedObject);
-                                    }
-                                    return SensedObject;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return null;
+            return d.Name;
         }
 
         public LSL_String llDetectedKey(int number)
         {
             m_host.AddScriptLPS(1);
-            UUID SensedUUID = uuidDetectedKey(number);
-            if (SensedUUID == UUID.Zero)
+            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
                 return String.Empty;
-            return SensedUUID.ToString();
+            return d.Key.ToString();
         }
 
         public LSL_String llDetectedOwner(int number)
         {
-            // returns UUID of owner of object detected
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject ==null)
+            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
                 return String.Empty;
-            UUID SensedUUID = uuidDetectedKey(number);
-            if (World.GetScenePresence(SensedUUID) == null)
-            {
-                // sensed object is not an avatar
-                // so get the owner of the sensed object
-                SceneObjectPart SOP = World.GetSceneObjectPart(SensedUUID);
-                if (SOP != null) { return SOP.ObjectOwner.ToString(); }
-            }
-            else
-            {
-                // sensed object is an avatar, and so must be its own owner
-                return SensedUUID.ToString();
-            }
-
-
-            return String.Empty;
-
+            return d.Owner.ToString();
        }
 
         public LSL_Integer llDetectedType(int number)
         {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
+            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
                 return 0;
-            int mask = 0;
-
-            UUID SensedUUID = uuidDetectedKey(number);
-            LSL_Vector ZeroVector = new LSL_Vector(0, 0, 0);
-
-            if (World.GetScenePresence(SensedUUID) != null) mask |= 0x01; // actor
-            if (SensedObject.Velocity.Equals(ZeroVector))
-                mask |= 0x04; // passive non-moving
-            else
-                mask |= 0x02; // active moving
-            if (SensedObject is IScript) mask |= 0x08; // Scripted. It COULD have one hidden ...
-            return mask;
+            return new LSL_Integer(d.Type);
         }
 
         public LSL_Vector llDetectedPos(int number)
         {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
-                return new LSL_Vector(0, 0, 0);
-            return new LSL_Vector(
-                SensedObject.AbsolutePosition.X,
-                SensedObject.AbsolutePosition.Y,
-                SensedObject.AbsolutePosition.Z);
+            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
+                return new LSL_Vector();
+            return d.Position;
         }
 
         public LSL_Vector llDetectedVel(int number)
         {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
-                return new LSL_Vector(0, 0, 0);
-            return new LSL_Vector(
-                SensedObject.Velocity.X,
-                SensedObject.Velocity.Y,
-                SensedObject.Velocity.Z);
+            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
+                return new LSL_Vector();
+            return d.Velocity;
         }
 
         public LSL_Vector llDetectedGrab(int number)
         {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
+            DetectParams parms = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (parms == null)
                 return new LSL_Vector(0, 0, 0);
 
-            return new LSL_Vector(
-                SensedObject.AbsolutePosition.X,
-                SensedObject.AbsolutePosition.Y,
-                SensedObject.AbsolutePosition.Z);
+            return parms.OffsetPos;
         }
 
         public LSL_Rotation llDetectedRot(int number)
         {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
+            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
                 return new LSL_Rotation();
-            return new LSL_Rotation(
-                SensedObject.Rotation.X,
-                SensedObject.Rotation.Y,
-                SensedObject.Rotation.Z,
-                SensedObject.Rotation.W);
+            return d.Rotation;
         }
 
         public LSL_Integer llDetectedGroup(int number)
         {
             m_host.AddScriptLPS(1);
-            UUID SensedUUID = uuidDetectedKey(number);
-            if (SensedUUID == UUID.Zero)
+            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
                 return new LSL_Integer(0);
-            ScenePresence presence = World.GetScenePresence(SensedUUID);
-            IClientAPI client = presence.ControllingClient;
-            if (m_host.GroupID == client.ActiveGroupId)
+            if (m_host.GroupID == d.Group)
                 return new LSL_Integer(1);
-            else
                 return new LSL_Integer(0);
         }
 
         public LSL_Integer llDetectedLinkNumber(int number)
         {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
-                return 0;
-            return m_host.LinkNum;
+            DetectParams parms = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (parms == null)
+                return new LSL_Integer(0);
+
+            return new LSL_Integer(parms.LinkNum);
         }
 
         public LSL_Vector llDetectedTouchBinormal(int index)

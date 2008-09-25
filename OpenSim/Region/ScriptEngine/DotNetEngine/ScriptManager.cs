@@ -33,6 +33,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Region.ScriptEngine.Shared;
+using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
@@ -139,10 +140,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // Fire the first start-event
                 int eventFlags = m_scriptEngine.m_ScriptManager.GetStateEventFlags(localID, itemID);
                 m_host.SetScriptEvents(itemID, eventFlags);
-                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", EventQueueManager.llDetectNull, new object[] { });
+                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new DetectParams[0], new object[] { });
                 if (postOnRez)
                 {
-                    m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "on_rez", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(startParam) });
+                    m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "on_rez", new DetectParams[0], new object[] { new LSL_Types.LSLInteger(startParam) });
                 }
             }
             catch (Exception e) // LEGIT: User Scripting
@@ -174,7 +175,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 //#endif
 
             // Stop long command on script
-            m_scriptEngine.m_ASYNCLSLCommandManager.RemoveScript(localID, itemID);
+            AsyncCommandManager.RemoveScript(m_scriptEngine, localID, itemID);
 
             IScript LSLBC = GetScript(localID, itemID);
             if (LSLBC == null)

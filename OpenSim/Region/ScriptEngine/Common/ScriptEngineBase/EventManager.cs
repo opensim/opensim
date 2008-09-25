@@ -114,83 +114,103 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void changed(uint localID, uint change)
         {
             // Add to queue for all scripts in localID, Object pass change.
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "changed", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(change) });
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "changed",new object[] { new LSL_Types.LSLInteger(change) },
+                    new DetectParams[0]));
         }
 
         public void state_entry(uint localID)
         {
             // Add to queue for all scripts in ObjectID object
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "state_entry", EventQueueManager.llDetectNull, new object[] { });
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "state_entry",new object[] { },
+                    new DetectParams[0]));
         }
 
-        public void touch_start(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient)
+        public void touch_start(uint localID, uint originalID, Vector3 offsetPos,
+                IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
-            EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
-            detstruct._key = new LSL_Types.key[1];
-            detstruct._key2 = new LSL_Types.key[1];
-            detstruct._string = new string[1];
-            detstruct._Vector3 = new LSL_Types.Vector3[1];
-            detstruct._Vector32 = new LSL_Types.Vector3[1];
-            detstruct._Quaternion = new LSL_Types.Quaternion[1];
-            detstruct._int = new int[1];
-            ScenePresence av = myScriptEngine.World.GetScenePresence(remoteClient.AgentId);
-            if (av != null)
+            DetectParams[] det = new DetectParams[1];
+            det[0] = new DetectParams();
+            det[0].Key = remoteClient.AgentId;
+            det[0].Populate(myScriptEngine.World);
+
+            if (originalID == 0)
             {
-                detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
-                detstruct._key2[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
-                detstruct._string[0] = remoteClient.Name;
-                detstruct._int[0] = 0;
-                detstruct._Quaternion[0] = new LSL_Types.Quaternion(av.Rotation.X,av.Rotation.Y,av.Rotation.Z,av.Rotation.W);
-                detstruct._Vector3[0] = new LSL_Types.Vector3(av.AbsolutePosition.X,av.AbsolutePosition.Y,av.AbsolutePosition.Z);
-                detstruct._Vector32[0] = new LSL_Types.Vector3(av.Velocity.X,av.Velocity.Y,av.Velocity.Z);
+                SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(localID);
+                if (part == null)
+                    return;
+
+                det[0].LinkNum = part.LinkNum;
             }
             else
             {
-                detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
-                detstruct._key2[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
-                detstruct._string[0] = remoteClient.Name;
-                detstruct._int[0] = 0;
-                detstruct._Quaternion[0] = new LSL_Types.Quaternion(0, 0, 0, 1);
-                detstruct._Vector3[0] = new LSL_Types.Vector3(0, 0, 0);
-                detstruct._Vector32[0] = new LSL_Types.Vector3(0, 0, 0);
+                SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
+                det[0].LinkNum = originalPart.LinkNum;
             }
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", detstruct, new object[] { new LSL_Types.LSLInteger(1) });
+
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "touch_start", new Object[] { new LSL_Types.LSLInteger(1) },
+                    det));
+        }
+
+        public void touch(uint localID, uint originalID, Vector3 offsetPos,
+                IClientAPI remoteClient)
+        {
+            // Add to queue for all scripts in ObjectID object
+            DetectParams[] det = new DetectParams[1];
+            det[0] = new DetectParams();
+            det[0].Key = remoteClient.AgentId;
+            det[0].Populate(myScriptEngine.World);
+            det[0].OffsetPos = new LSL_Types.Vector3(offsetPos.X,
+                                                     offsetPos.Y,
+                                                     offsetPos.Z);
+
+            if (originalID == 0)
+            {
+                SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(localID);
+                if (part == null)
+                    return;
+
+                det[0].LinkNum = part.LinkNum;
+            }
+            else
+            {
+                SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
+                det[0].LinkNum = originalPart.LinkNum;
+            }
+
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "touch", new Object[] { new LSL_Types.LSLInteger(1) },
+                    det));
         }
 
         public void touch_end(uint localID, uint originalID, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
-            EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
-            detstruct._key = new LSL_Types.key[1];
-            detstruct._key2 = new LSL_Types.key[1];
-            detstruct._string = new string[1];
-            detstruct._Vector3 = new LSL_Types.Vector3[1];
-            detstruct._Vector32 = new LSL_Types.Vector3[1];
-            detstruct._Quaternion = new LSL_Types.Quaternion[1];
-            detstruct._int = new int[1];
-            ScenePresence av = myScriptEngine.World.GetScenePresence(remoteClient.AgentId);
-            if (av != null)
+            DetectParams[] det = new DetectParams[1];
+            det[0] = new DetectParams();
+            det[0].Key = remoteClient.AgentId;
+            det[0].Populate(myScriptEngine.World);
+
+            if (originalID == 0)
             {
-                detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
-                detstruct._key2[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
-                detstruct._string[0] = remoteClient.Name;
-                detstruct._int[0] = 0;
-                detstruct._Quaternion[0] = new LSL_Types.Quaternion(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W);
-                detstruct._Vector3[0] = new LSL_Types.Vector3(av.AbsolutePosition.X, av.AbsolutePosition.Y, av.AbsolutePosition.Z);
-                detstruct._Vector32[0] = new LSL_Types.Vector3(av.Velocity.X, av.Velocity.Y, av.Velocity.Z);
+                SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(localID);
+                if (part == null)
+                    return;
+
+                det[0].LinkNum = part.LinkNum;
             }
             else
             {
-                detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
-                detstruct._key2[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
-                detstruct._string[0] = remoteClient.Name;
-                detstruct._int[0] = 0;
-                detstruct._Quaternion[0] = new LSL_Types.Quaternion(0, 0, 0, 1);
-                detstruct._Vector3[0] = new LSL_Types.Vector3(0, 0, 0);
-                detstruct._Vector32[0] = new LSL_Types.Vector3(0, 0, 0);
+                SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
+                det[0].LinkNum = originalPart.LinkNum;
             }
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_end", detstruct, new object[] { new LSL_Types.LSLInteger(1) });
+
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "touch_end", new Object[] { new LSL_Types.LSLInteger(1) },
+                    det));
         }
 
         public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
@@ -228,7 +248,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void money(uint localID, UUID agentID, int amount)
         {
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "money", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLString(agentID.ToString()), new LSL_Types.LSLInteger(amount) });
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "money", new object[] {
+                    new LSL_Types.LSLString(agentID.ToString()),
+                    new LSL_Types.LSLInteger(amount) },
+                    new DetectParams[0]));
         }
 
         // TODO: Replace placeholders below
@@ -239,225 +263,196 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void state_exit(uint localID)
         {
-            // Add to queue for all scripts in ObjectID object
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "state_exit", EventQueueManager.llDetectNull, new object[] { });
-        }
-
-        public void touch(uint localID, uint originalID, UUID itemID)
-        {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch", EventQueueManager.llDetectNull);
-        }
-
-        public void touch_end(uint localID, uint originalID, UUID itemID)
-        {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "state_exit", new object[] { },
+                    new DetectParams[0]));
         }
 
         public void collision_start(uint localID, ColliderArgs col)
         {
-            EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
-            detstruct._string = new string[col.Colliders.Count];
-            detstruct._Quaternion = new LSL_Types.Quaternion[col.Colliders.Count];
-            detstruct._int = new int[col.Colliders.Count];
-            detstruct._key = new LSL_Types.key[col.Colliders.Count];
-            detstruct._key2 = new LSL_Types.key[col.Colliders.Count];
-            detstruct._Vector3 = new LSL_Types.Vector3[col.Colliders.Count];
-            detstruct._Vector32 = new LSL_Types.Vector3[col.Colliders.Count];
-            detstruct._bool = new bool[col.Colliders.Count];
+            // Add to queue for all scripts in ObjectID object
+            List<DetectParams> det = new List<DetectParams>();
 
-            int i = 0;
             foreach (DetectedObject detobj in col.Colliders)
             {
-                detstruct._key[i] = new LSL_Types.key(detobj.keyUUID.ToString());
-                detstruct._key2[i] = new LSL_Types.key(detobj.ownerUUID.ToString());
-                detstruct._Quaternion[i] = new LSL_Types.Quaternion(detobj.rotQuat.X, detobj.rotQuat.Y, detobj.rotQuat.Z, detobj.rotQuat.W);
-                detstruct._string[i] = detobj.nameStr;
-                detstruct._int[i] = detobj.colliderType;
-                detstruct._Vector3[i] = new LSL_Types.Vector3(detobj.posVector.X, detobj.posVector.Y, detobj.posVector.Z);
-                detstruct._Vector32[i] = new LSL_Types.Vector3(detobj.velVector.X, detobj.velVector.Y, detobj.velVector.Z);
-                detstruct._bool[i] = true; // Apparently the script engine uses this to see if this is a valid entry...
-                i++;
+                DetectParams d = new DetectParams();
+                d.Key =detobj.keyUUID;
+                d.Populate(myScriptEngine.World);
+                det.Add(d);
             }
 
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "collision_start", detstruct, new object[] { new LSL_Types.LSLInteger(col.Colliders.Count) });
+            if (det.Count > 0)
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                        "collision_start",
+                        new Object[] { new LSL_Types.LSLInteger(det.Count) },
+                        det.ToArray()));
         }
 
         public void collision(uint localID, ColliderArgs col)
         {
-            EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
-            detstruct._string = new string[col.Colliders.Count];
-            detstruct._Quaternion = new LSL_Types.Quaternion[col.Colliders.Count];
-            detstruct._int = new int[col.Colliders.Count];
-            detstruct._key = new LSL_Types.key[col.Colliders.Count];
-            detstruct._key2 = new LSL_Types.key[col.Colliders.Count];
-            detstruct._Vector3 = new LSL_Types.Vector3[col.Colliders.Count];
-            detstruct._Vector32 = new LSL_Types.Vector3[col.Colliders.Count];
-            detstruct._bool = new bool[col.Colliders.Count];
+            // Add to queue for all scripts in ObjectID object
+            List<DetectParams> det = new List<DetectParams>();
 
-            int i = 0;
             foreach (DetectedObject detobj in col.Colliders)
             {
-                detstruct._key[i] = new LSL_Types.key(detobj.keyUUID.ToString());
-                detstruct._key2[i] = new LSL_Types.key(detobj.ownerUUID.ToString());
-                detstruct._Quaternion[i] = new LSL_Types.Quaternion(detobj.rotQuat.X, detobj.rotQuat.Y, detobj.rotQuat.Z, detobj.rotQuat.W);
-                detstruct._string[i] = detobj.nameStr;
-                detstruct._int[i] = detobj.colliderType;
-                detstruct._Vector3[i] = new LSL_Types.Vector3(detobj.posVector.X, detobj.posVector.Y, detobj.posVector.Z);
-                detstruct._Vector32[i] = new LSL_Types.Vector3(detobj.velVector.X, detobj.velVector.Y, detobj.velVector.Z);
-                detstruct._bool[i] = true; // Apparently the script engine uses this to see if this is a valid entry...                    i++;
+                DetectParams d = new DetectParams();
+                d.Key =detobj.keyUUID;
+                d.Populate(myScriptEngine.World);
+                det.Add(d);
             }
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "collision", detstruct, new object[] { new LSL_Types.LSLInteger(col.Colliders.Count) });
+
+            if (det.Count > 0)
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                        "collision", new Object[] { new LSL_Types.LSLInteger(det.Count) },
+                        det.ToArray()));
         }
 
         public void collision_end(uint localID, ColliderArgs col)
         {
-            EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
-            detstruct._string = new string[col.Colliders.Count];
-            detstruct._Quaternion = new LSL_Types.Quaternion[col.Colliders.Count];
-            detstruct._int = new int[col.Colliders.Count];
-            detstruct._key = new LSL_Types.key[col.Colliders.Count];
-            detstruct._key2 = new LSL_Types.key[col.Colliders.Count];
-            detstruct._Vector3 = new LSL_Types.Vector3[col.Colliders.Count];
-            detstruct._Vector32 = new LSL_Types.Vector3[col.Colliders.Count];
-            detstruct._bool = new bool[col.Colliders.Count];
+            // Add to queue for all scripts in ObjectID object
+            List<DetectParams> det = new List<DetectParams>();
 
-            int i = 0;
             foreach (DetectedObject detobj in col.Colliders)
             {
-                detstruct._key[i] = new LSL_Types.key(detobj.keyUUID.ToString());
-                detstruct._key2[i] = new LSL_Types.key(detobj.ownerUUID.ToString());
-                detstruct._Quaternion[i] = new LSL_Types.Quaternion(detobj.rotQuat.X, detobj.rotQuat.Y, detobj.rotQuat.Z, detobj.rotQuat.W);
-                detstruct._string[i] = detobj.nameStr;
-                detstruct._int[i] = detobj.colliderType;
-                detstruct._Vector3[i] = new LSL_Types.Vector3(detobj.posVector.X, detobj.posVector.Y, detobj.posVector.Z);
-                detstruct._Vector32[i] = new LSL_Types.Vector3(detobj.velVector.X, detobj.velVector.Y, detobj.velVector.Z);
-                detstruct._bool[i] = true; // Apparently the script engine uses this to see if this is a valid entry...
-                i++;
+                DetectParams d = new DetectParams();
+                d.Key =detobj.keyUUID;
+                d.Populate(myScriptEngine.World);
+                det.Add(d);
             }
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "collision_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(col.Colliders.Count) });
+
+            if (det.Count > 0)
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                        "collision_end",
+                        new Object[] { new LSL_Types.LSLInteger(det.Count) },
+                        det.ToArray()));
         }
 
         public void land_collision_start(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "land_collision_start", EventQueueManager.llDetectNull);
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "land_collision_start",
+                    new object[0],
+                    new DetectParams[0]));
         }
 
-        public void land_collision(uint localID, ColliderArgs col)
+        public void land_collision(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "land_collision", EventQueueManager.llDetectNull);
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "land_collision",
+                    new object[0],
+                    new DetectParams[0]));
         }
 
         public void land_collision_end(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "land_collision_end", EventQueueManager.llDetectNull);
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "land_collision_end",
+                    new object[0],
+                    new DetectParams[0]));
         }
 
         // Handled by long commands
         public void timer(uint localID, UUID itemID)
         {
-            //myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, String.Empty);
         }
 
         public void listen(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "listen", EventQueueManager.llDetectNull);
-        }
-
-        public void on_rez(uint localID, UUID itemID)
-        {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "on_rez", EventQueueManager.llDetectNull);
-        }
-
-        public void sensor(uint localID, UUID itemID)
-        {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "sensor", EventQueueManager.llDetectNull);
-        }
-
-        public void no_sensor(uint localID, UUID itemID)
-        {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "no_sensor", EventQueueManager.llDetectNull);
         }
 
         public void control(uint localID, UUID itemID, UUID agentID, uint held, uint change)
         {
             if ((change == 0) && (myScriptEngine.m_EventQueueManager.CheckEeventQueueForEvent(localID,"control"))) return;
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "control", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLString(agentID.ToString()), new LSL_Types.LSLInteger(held), new LSL_Types.LSLInteger(change)});
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "control",new object[] {
+                    new LSL_Types.LSLString(agentID.ToString()),
+                    new LSL_Types.LSLInteger(held),
+                    new LSL_Types.LSLInteger(change)},
+                    new DetectParams[0]));
         }
 
-        public void email(uint localID, UUID itemID)
+        public void email(uint localID, UUID itemID, string timeSent,
+                string address, string subject, string message, int numLeft)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "email", EventQueueManager.llDetectNull);
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "email",new object[] {
+                    new LSL_Types.LSLString(timeSent),
+                    new LSL_Types.LSLString(address),
+                    new LSL_Types.LSLString(subject),
+                    new LSL_Types.LSLString(message),
+                    new LSL_Types.LSLInteger(numLeft)},
+                    new DetectParams[0]));
         }
 
-        public void at_target(uint localID, uint handle, Vector3 targetpos, Vector3 atpos)
+        public void at_target(uint localID, uint handle, Vector3 targetpos,
+                Vector3 atpos)
         {
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "at_target", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(handle), new LSL_Types.Vector3(targetpos.X,targetpos.Y,targetpos.Z), new LSL_Types.Vector3(atpos.X,atpos.Y,atpos.Z) });
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "at_target", new object[] {
+                    new LSL_Types.LSLInteger(handle),
+                    new LSL_Types.Vector3(targetpos.X,targetpos.Y,targetpos.Z),
+                    new LSL_Types.Vector3(atpos.X,atpos.Y,atpos.Z) },
+                    new DetectParams[0]));
         }
 
         public void not_at_target(uint localID)
         {
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "not_at_target", EventQueueManager.llDetectNull);
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "not_at_target",new object[0],
+                    new DetectParams[0]));
         }
 
         public void at_rot_target(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "at_rot_target", EventQueueManager.llDetectNull);
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "at_rot_target",new object[0],
+                    new DetectParams[0]));
         }
 
         public void not_at_rot_target(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "not_at_rot_target", EventQueueManager.llDetectNull);
-        }
-
-        public void run_time_permissions(uint localID, UUID itemID)
-        {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "run_time_permissions", EventQueueManager.llDetectNull);
-        }
-
-        public void changed(uint localID, UUID itemID)
-        {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "changed", EventQueueManager.llDetectNull);
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "not_at_rot_target",new object[0],
+                    new DetectParams[0]));
         }
 
         public void attach(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "attach", EventQueueManager.llDetectNull);
         }
 
         public void dataserver(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "dataserver", EventQueueManager.llDetectNull);
         }
 
         public void link_message(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "link_message", EventQueueManager.llDetectNull);
         }
 
         public void moving_start(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "moving_start", EventQueueManager.llDetectNull);
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "moving_start",new object[0],
+                    new DetectParams[0]));
         }
 
         public void moving_end(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "moving_end", EventQueueManager.llDetectNull);
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "moving_end",new object[0],
+                    new DetectParams[0]));
         }
 
         public void object_rez(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "object_rez", EventQueueManager.llDetectNull);
         }
 
         public void remote_data(uint localID, UUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "remote_data", EventQueueManager.llDetectNull);
         }
 
         // Handled by long commands
         public void http_response(uint localID, UUID itemID)
         {
-            //    myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "http_response", EventQueueManager.llDetectNull);
         }
 
         /// <summary>

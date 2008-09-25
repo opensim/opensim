@@ -57,7 +57,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public EventQueueManager m_EventQueueManager;               // Executes events, handles script threads
         public ScriptManager m_ScriptManager;                       // Load, unload and execute scripts
         public AppDomainManager m_AppDomainManager;                 // Handles loading/unloading of scripts into AppDomains
-        public AsyncCommandManager m_ASYNCLSLCommandManager;     // Asyncronous LSL commands (commands that returns with an event)
         public static MaintenanceThread m_MaintenanceThread;        // Thread that does different kinds of maintenance, for example refreshing config and killing scripts that has been running too long
 
         public IConfigSource ConfigSource;
@@ -121,7 +120,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             // We need to start it
             m_ScriptManager = newScriptManager;
             m_AppDomainManager = new AppDomainManager(this);
-            m_ASYNCLSLCommandManager = new AsyncCommandManager(this);
             if (m_MaintenanceThread == null)
                 m_MaintenanceThread = new MaintenanceThread();
 
@@ -172,7 +170,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             if (m_EventManager != null) m_EventManager.ReadConfig();
             if (m_ScriptManager != null) m_ScriptManager.ReadConfig();
             if (m_AppDomainManager != null) m_AppDomainManager.ReadConfig();
-            if (m_ASYNCLSLCommandManager != null) m_ASYNCLSLCommandManager.ReadConfig();
             if (m_MaintenanceThread != null) m_MaintenanceThread.ReadConfig();
         }
 
@@ -196,15 +193,33 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public bool PostObjectEvent(uint localID, EventParams p)
         {
-            return m_EventQueueManager.AddToObjectQueue(localID, p.EventName, EventQueueManager.llDetectNull, p.Params);
+            return m_EventQueueManager.AddToObjectQueue(localID, p.EventName, p.DetectParams, p.Params);
         }
 
         public bool PostScriptEvent(UUID itemID, EventParams p)
         {
             uint localID = m_ScriptManager.GetLocalID(itemID);
-            return m_EventQueueManager.AddToScriptQueue(localID, itemID, p.EventName, EventQueueManager.llDetectNull, p.Params);
+            return m_EventQueueManager.AddToScriptQueue(localID, itemID, p.EventName, p.DetectParams, p.Params);
         }
 
+        public DetectParams GetDetectParams(UUID itemID, int number)
+        {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return null;
+
+            IScript Script = m_ScriptManager.GetScript(localID, itemID);
+
+            if (Script == null)
+                return null;
+
+            DetectParams[] det = m_ScriptManager.GetDetectParams(Script);
+
+            if (number < 0 || number >= det.Length)
+                return null;
+
+            return det[number];
+        }
         #endregion
     }
 }

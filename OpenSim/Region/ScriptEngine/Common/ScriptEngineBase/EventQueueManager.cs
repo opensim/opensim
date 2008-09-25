@@ -137,32 +137,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             public uint localID;
             public UUID itemID;
             public string functionName;
-            public Queue_llDetectParams_Struct llDetectParams;
+            public DetectParams[] llDetectParams;
             public object[] param;
         }
 
-        /// <summary>
-        /// Shared empty llDetectNull
-        /// </summary>
-        public readonly static Queue_llDetectParams_Struct llDetectNull = new Queue_llDetectParams_Struct();
-
-        /// <summary>
-        /// Structure to hold data for llDetect* commands
-        /// </summary>
-        [Serializable]
-        public struct Queue_llDetectParams_Struct
-        {
-            // More or less just a placeholder for the actual moving of additional data
-            // should be fixed to something better :)
-            public LSL_Types.key[] _key; // detected key
-            public LSL_Types.key[] _key2;  // ownerkey
-            public LSL_Types.Quaternion[] _Quaternion;
-            public LSL_Types.Vector3[] _Vector3; // Pos
-            public LSL_Types.Vector3[] _Vector32; // Vel
-            public bool[] _bool;
-            public int[] _int;
-            public string[] _string;
-        }
         #endregion
 
         #region " Initialization / Startup "
@@ -322,7 +300,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="localID">Region object ID</param>
         /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
         /// <param name="param">Array of parameters to match event mask</param>
-        public bool AddToObjectQueue(uint localID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
+        public bool AddToObjectQueue(uint localID, string FunctionName, DetectParams[] qParams, params object[] param)
         {
             // Determine all scripts in Object and add to their queue
             //myScriptEngine.log.Info("[" + ScriptEngineName + "]: EventQueueManager Adding localID: " + localID + ", FunctionName: " + FunctionName);
@@ -353,7 +331,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="itemID">Region script ID</param>
         /// <param name="FunctionName">Name of the function, will be state + "_event_" + FunctionName</param>
         /// <param name="param">Array of parameters to match event mask</param>
-        public bool AddToScriptQueue(uint localID, UUID itemID, string FunctionName, Queue_llDetectParams_Struct qParams, params object[] param)
+        public bool AddToScriptQueue(uint localID, UUID itemID, string FunctionName, DetectParams[] qParams, params object[] param)
         {
             List<UUID> keylist = m_ScriptEngine.m_ScriptManager.GetScriptKeys(localID);
 

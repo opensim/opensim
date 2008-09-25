@@ -445,7 +445,6 @@ namespace OpenSim.Region.Environment.Scenes
                             }
                             else
                             {
-                            Console.WriteLine("Non-Prim item ==>");
                                 itemCopy.BasePermissions = item.BasePermissions & item.NextPermissions;
                             }
 
@@ -896,6 +895,9 @@ namespace OpenSim.Region.Environment.Scenes
             if (group != null)
             {
                 TaskInventoryItem item = group.GetInventoryItem(localID, itemID);
+                if (item == null)
+                    return;
+
                 if (item.Type == 10)
                 {
                     EventManager.TriggerRemoveScript(localID, itemID);
@@ -2311,16 +2313,6 @@ System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.T
 
         }
 
-        public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
-        {
-            IScriptModule scriptModule = RequestModuleInterface<IScriptModule>();
-            if (scriptModule == null)
-                return;
-
-            controllingClient.SendScriptRunningReply(objectID, itemID,
-                    scriptModule.GetScriptRunning(objectID, itemID));
-        }
-
         public void SetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID, bool running)
         {
             SceneObjectPart part = GetSceneObjectPart(objectID);
@@ -2387,6 +2379,11 @@ System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.T
 
             }
             m_innerScene.DetachSingleAttachmentToInv(itemID, remoteClient);
+        }
+
+        public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
+        {
+            EventManager.TriggerGetScriptRunning(controllingClient, objectID, itemID);
         }
     }
 }

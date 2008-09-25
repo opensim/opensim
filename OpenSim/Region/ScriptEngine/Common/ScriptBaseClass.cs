@@ -30,6 +30,7 @@ using System.Runtime.Remoting.Lifetime;
 using System.Threading;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
+using OpenSim.Region.ScriptEngine.Shared;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -66,13 +67,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 //lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
             }
             return lease;
-        }
-
-        public EventQueueManager.Queue_llDetectParams_Struct _llDetectParams;
-        EventQueueManager.Queue_llDetectParams_Struct IScript.llDetectParams
-        {
-            get { return _llDetectParams; }
-            set { _llDetectParams = value; }
         }
 
         private Executor m_Exec;

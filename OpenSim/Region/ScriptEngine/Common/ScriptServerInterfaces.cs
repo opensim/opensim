@@ -30,6 +30,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
+using OpenSim.Region.ScriptEngine.Shared;
 
 
 namespace OpenSim.Region.ScriptEngine.Common
@@ -42,28 +43,29 @@ namespace OpenSim.Region.ScriptEngine.Common
             void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine);
             void OnRemoveScript(uint localID, UUID itemID);
             void state_exit(uint localID);
-            void touch(uint localID, uint originalID, UUID itemID);
-            void touch_end(uint localID, uint originalID, UUID itemID);
+            void touch(uint localID, uint originalID, Vector3 offsetPos,
+                            IClientAPI remoteClient);
+            void touch_end(uint localID, uint originalID, IClientAPI remoteClient);
             void collision_start(uint localID, ColliderArgs col);
             void collision(uint localID, ColliderArgs col);
             void collision_end(uint localID, ColliderArgs col);
-            void land_collision_start(uint localID, UUID itemID);
-            void land_collision(uint localID, ColliderArgs col);
-            void land_collision_end(uint localID, UUID itemID);
+//            void land_collision_start(uint localID, UUID itemID);
+//            void land_collision(uint localID, ColliderArgs col);
+//            void land_collision_end(uint localID, UUID itemID);
             void timer(uint localID, UUID itemID);
             void listen(uint localID, UUID itemID);
-            void on_rez(uint localID, UUID itemID);
-            void sensor(uint localID, UUID itemID);
-            void no_sensor(uint localID, UUID itemID);
+//            void on_rez(uint localID, UUID itemID);
+//            void sensor(uint localID, UUID itemID);
+//            void no_sensor(uint localID, UUID itemID);
             void control(uint localID, UUID itemID, UUID agentID, uint held, uint change);
             void money(uint LocalID, UUID agentID, int amount);
-            void email(uint localID, UUID itemID);
+//            void email(uint localID, UUID itemID);
             void at_target(uint localID, uint handle, Vector3 targetpos, Vector3 atpos);
             void not_at_target(uint localID);
             void at_rot_target(uint localID, UUID itemID);
             void not_at_rot_target(uint localID, UUID itemID);
-            void run_time_permissions(uint localID, UUID itemID);
-            void changed(uint localID, UUID itemID);
+//            void run_time_permissions(uint localID, UUID itemID);
+//            void changed(uint localID, UUID itemID);
             void attach(uint localID, UUID itemID);
             void dataserver(uint localID, UUID itemID);
             void link_message(uint localID, UUID itemID);

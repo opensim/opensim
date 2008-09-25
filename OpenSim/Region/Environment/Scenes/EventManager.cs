@@ -192,6 +192,8 @@ namespace OpenSim.Region.Environment.Scenes
         public event ScriptTimerEvent OnScriptTimerEvent;
 
         public delegate void EstateToolsTimeUpdate(ulong regionHandle, bool FixedTime, bool EstateSun, float LindenHour);
+        public delegate void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID);
+
         public event EstateToolsTimeUpdate OnEstateToolsTimeUpdate;
 
         public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
@@ -211,6 +213,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public delegate void ParcelPrimCountTainted();
         public event ParcelPrimCountTainted OnParcelPrimCountTainted;
+        public event GetScriptRunning OnGetScriptRunning;
 
         /// <summary>
         /// RegisterCapsEvent is called by Scene after the Caps object
@@ -368,8 +371,16 @@ namespace OpenSim.Region.Environment.Scenes
         private ScriptColliding handlerCollidingStart = null;
         private ScriptColliding handlerColliding = null;
         private ScriptColliding handlerCollidingEnd = null;
+        private GetScriptRunning handlerGetScriptRunning = null;
 
         private SunLindenHour handlerSunGetLindenHour = null;
+
+        public void TriggerGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
+        {
+            handlerGetScriptRunning = OnGetScriptRunning;
+            if (handlerGetScriptRunning != null)
+                handlerGetScriptRunning(controllingClient, objectID, itemID);
+        }
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {

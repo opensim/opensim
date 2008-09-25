@@ -29,6 +29,7 @@ using System;
 using OpenMetaverse;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Scripting.WorldComm;
+using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
 
@@ -66,10 +67,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         new LSL_Types.LSLString(lInfo.GetMessage())
                     };
 
-                    m_CmdManager.m_ScriptEngine.PostScriptEvent(
-                            lInfo.GetItemID(), new EventParams(
-                            "listen", resobj,
-                            new DetectParams[0]));
+                    foreach (IEventReceiver e in m_CmdManager.ScriptEngines)
+                    {
+                        e.PostScriptEvent(
+                                lInfo.GetItemID(), new EventParams(
+                                "listen", resobj,
+                                new DetectParams[0]));
+                    }
                 }
             }
         }

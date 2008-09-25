@@ -26,6 +26,7 @@
  */
 
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
+using OpenSim.Region.ScriptEngine.Shared;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
@@ -36,6 +37,5 @@ namespace OpenSim.Region.ScriptEngine.Common
         ExecutorBase Exec { get; }
         string Source { get; set; }
         void Start(BuilIn_Commands BuiltIn_Commands);
-        EventQueueManager.Queue_llDetectParams_Struct llDetectParams { get; set; }
     }
 }

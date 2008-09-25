@@ -108,7 +108,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     // Time has passed?
                     if (ts.next < DateTime.Now.Ticks)
                     {
-                        //                        Console.WriteLine("Time has passed: Now: " + DateTime.Now.Ticks + ", Passed: " + ts.next);
+                        //Console.WriteLine("Time has passed: Now: " + DateTime.Now.Ticks + ", Passed: " + ts.next);
                         // Add it to queue
                         m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
                                 new EventParams("timer", new Object[0],

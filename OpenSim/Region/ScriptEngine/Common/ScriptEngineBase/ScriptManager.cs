@@ -33,6 +33,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using OpenMetaverse;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.ScriptEngine.Shared;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
@@ -65,6 +66,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private int LoadUnloadMaxQueueSize;
         private Object scriptLock = new Object();
         private bool m_started = false;
+        private Dictionary<IScript, DetectParams[]> detparms = new Dictionary<IScript, DetectParams[]>();
 
         // Load/Unload structure
         private struct LUStruct
@@ -228,6 +230,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     if (item.Action == LUType.Unload)
                     {
                         _StopScript(item.localID, item.itemID);
+                        RemoveScript(item.localID, item.itemID);
                     }
                     else if (item.Action == LUType.Load)
                     {
@@ -318,7 +321,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="itemID">Script ID</param>
         /// <param name="FunctionName">Name of function</param>
         /// <param name="args">Arguments to pass to function</param>
-        internal void ExecuteEvent(uint localID, UUID itemID, string FunctionName, EventQueueManager.Queue_llDetectParams_Struct qParams, object[] args)
+        internal void ExecuteEvent(uint localID, UUID itemID, string FunctionName, DetectParams[] qParams, object[] args)
         {
             //cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
             ///#if DEBUG
@@ -337,8 +340,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             ///            Console.WriteLine("ScriptEngine: Executing event: " + FunctionName);
             ///#endif
             // Must be done in correct AppDomain, so leaving it up to the script itself
-            Script.llDetectParams = qParams;
+            detparms[Script] = qParams;
             Script.Exec.ExecuteEvent(FunctionName, args);
+            detparms.Remove(Script);
         }
 
         public uint GetLocalID(UUID itemID)
@@ -430,6 +434,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void RemoveScript(uint localID, UUID itemID)
         {
+            if (localID == 0)
+                localID = GetLocalID(itemID);
+
             // Don't have that object?
             if (Scripts.ContainsKey(localID) == false)
                 return;
@@ -486,5 +493,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         //    set { _PleaseShutdown = value; }
         //}
         //private bool _PleaseShutdown = false;
+        
+        public DetectParams[] GetDetectParams(IScript script)
+        {
+            if (detparms.ContainsKey(script))
+                return detparms[script];
+
+            return null;
+        }
     }
 }

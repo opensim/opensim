@@ -156,28 +156,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             SensorSweep(ts);
         }
 
-        public LSL_Types.list GetSensorList(uint m_localID, UUID m_itemID)
-        {
-            lock (SenseLock)
-            {
-                Dictionary<UUID, LSL_Types.list> Obj = null;
-                if (!SenseEvents.TryGetValue(m_localID, out Obj))
-                {
-                    return null;
-                }
-                lock (Obj)
-                {
-                    // Get script
-                    LSL_Types.list SenseList = null;
-                    if (!Obj.TryGetValue(m_itemID, out SenseList))
-                    {
-                        return null;
-                    }
-                    return SenseList;
-                }
-            }
-        }
-
         private void SensorSweep(SenseRepeatClass ts)
         {
             SceneObjectPart SensePoint = ts.host;
