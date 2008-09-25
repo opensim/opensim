@@ -546,9 +546,14 @@ namespace OpenSim.Framework.Communications
         /// <param name="user"></param>
         public UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
         {
+            return AddUserProfile(firstName, lastName, pass, regX, regY, UUID.Random());
+        }
+
+        public UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY, UUID SetUUID)
+        {
             UserProfileData user = new UserProfileData();
             user.HomeLocation = new Vector3(128, 128, 100);
-            user.ID = UUID.Random();
+            user.ID = SetUUID;
             user.FirstName = firstName;
             user.SurName = lastName;
             user.PasswordHash = pass;
@@ -572,7 +577,7 @@ namespace OpenSim.Framework.Communications
 
             return user.ID;
         }
-        
+
         /// <summary>
         /// Reset a user password
         /// </summary>

@@ -37,6 +37,7 @@ using System.Web;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OpenMetaverse.Packets;
 
 using log4net;
 using Nini.Config;
@@ -94,6 +95,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         private string httpsCN = "";
         private bool httpSSL = false;
         private uint httpsslport = 0;
+        private bool GridMode = false;
 
         #region IRegionModule Members
 
@@ -102,6 +104,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             bool enabled = false;
             IConfig cfg = null;
             IConfig httpcfg = null;
+            IConfig startupcfg = null;
             try
             {
                 cfg = config.Configs["OpenGridProtocol"];
@@ -117,6 +120,19 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             catch (NullReferenceException)
             {
                
+            }
+            try
+            {
+                startupcfg = config.Configs["Startup"];
+            }
+            catch (NullReferenceException)
+            {
+
+            }
+
+            if (startupcfg != null)
+            {
+                GridMode = enabled = cfg.GetBoolean("gridmode", false);
             }
 
             if (cfg != null)
@@ -182,17 +198,18 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             // Of interest to this module potentially
             //scene.EventManager.OnNewClient += OnNewClient;
             //scene.EventManager.OnGridInstantMessageToFriendsModule += OnGridInstantMessage;
-            //scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+            // scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
             //scene.EventManager.OnMakeChildAgent += MakeChildAgent;
             //scene.EventManager.OnClientClosed += ClientLoggedOut;
         }
-
+        
         public void PostInitialise()
         {
         }
 
         public void Close()
         {
+            //scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
         }
 
         public string Name
@@ -516,8 +533,21 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             userProfile.WebLoginKey = UUID.Random();
 
             // Do caps registration
-            // get seed cap
+            // get seed capagentData.firstname = FirstName;agentData.lastname = LastName;
+            if (homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID) == null && !GridMode)
+            {
+                homeScene.CommsManager.AddUser(agentData.firstname, agentData.lastname, CreateRandomStr(7), homeScene.RegionInfo.RegionLocX, homeScene.RegionInfo.RegionLocY, agentData.AgentID);
+                UserProfileData userProfile2 = homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID);
+                if (userProfile2 != null)
+                {
+                    userProfile = userProfile2;
+                    userProfile.AboutText = "OGP USER";
+                    userProfile.FirstLifeAboutText = "OGP USER";
+                    homeScene.CommsManager.UserService.UpdateUserProfile(userProfile);
+                }
 
+            }
+            
             // Stick our data in the cache so the region will know something about us
             homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(agentData.AgentID, userProfile);
 
@@ -576,6 +606,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     CapsLoginID.Add(rezAvatarPath, agentData);
                 }
             }
+            
             //System.Console.WriteLine("Response:" + responseMap.ToString());
             return responseMap;
         }
@@ -732,6 +763,8 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     responseMap["sim_access"] = LLSD.FromString("Mature");
 
                     responseMap["connect"] = LLSD.FromBoolean(true);
+
+                   
 
                     m_log.InfoFormat("[OGP]: host: {0}, IP {1}", responseMap["sim_host"].ToString(), responseMap["sim_ip"].ToString());
                 }
@@ -1162,6 +1195,18 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             }
         }
 
+        private string CreateRandomStr(int len)
+        {
+            Random rnd = new Random(System.Environment.TickCount);
+            string returnstring = "";
+            string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+            for (int i = 0; i < len; i++)
+            {
+                returnstring += chars.Substring(rnd.Next(chars.Length), 1);
+            }
+            return returnstring;
+        }
         // Temporary hack to allow teleporting to and from Vaak
         private static bool customXertificateValidation(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
         {
@@ -1206,8 +1251,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 }
             }
         }
+        
     }
-
+    
     public class MonoCert : ICertificatePolicy
     {
         #region ICertificatePolicy Members

@@ -35,8 +35,11 @@ namespace OpenSim.Framework.Communications
         /// Add a new user profile
         /// </summary>
         /// <param name="user"></param>
-        UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);  
-        
+        UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);
+
+        // Adds one for allowing setting of the UUID from modules..   SHOULD ONLY BE USED in very special circumstances!
+        UUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY, UUID setUUID);
+
         /// <summary>
         /// Reset a user password
         /// </summary>

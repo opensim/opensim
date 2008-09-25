@@ -261,6 +261,24 @@ namespace OpenSim.Framework.Communications
                 return userProf.ID;
             }
         }
+
+        public UUID AddUser(string firstName, string lastName, string password, uint regX, uint regY, UUID SetUUID)
+        {
+            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
+
+            m_userServiceAdmin.AddUserProfile(firstName, lastName, md5PasswdHash, regX, regY, SetUUID);
+            UserProfileData userProf = UserService.GetUserProfile(firstName, lastName);
+            if (userProf == null)
+            {
+                return UUID.Zero;
+            }
+            else
+            {
+                InterServiceInventoryService.CreateNewUserInventory(userProf.ID);
+                m_log.Info("[USERS]: Created new inventory set for " + firstName + " " + lastName);
+                return userProf.ID;
+            }
+        }
         
         /// <summary>
         /// Reset a user password
