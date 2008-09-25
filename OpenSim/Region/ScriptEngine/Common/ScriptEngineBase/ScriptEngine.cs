@@ -220,6 +220,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             return det[number];
         }
+
+        public int GetStartParameter(UUID itemID)
+        {
+            return 0;
+        }
         #endregion
     }
 }

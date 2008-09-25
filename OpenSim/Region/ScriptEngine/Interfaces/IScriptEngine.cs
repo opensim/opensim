@@ -51,7 +51,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         void SetScriptState(UUID itemID, bool state);
         bool GetScriptState(UUID itemID);
         void SetState(UUID itemID, string newState);
-        int GetStartParameter(UUID itemID);
            
         /// <summary>
         /// Queue an event for execution
@@ -59,7 +58,5 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         IScriptWorkItem QueueEventHandler(object parms);
         
         IScriptApi GetApi(UUID itemID, string name);
-
-        DetectParams GetDetectParams(UUID item, int number);
     }
 }

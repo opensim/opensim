@@ -40,10 +40,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 {
     public class OSSL_BuilIn_Commands : LSL_BuiltIn_Commands, OSSL_BuilIn_Commands_Interface
     {
+        internal ScriptEngineBase.ScriptEngine m_ScriptEngineDirect;
+
         public OSSL_BuilIn_Commands(ScriptEngineBase.ScriptEngine scriptEngine, SceneObjectPart host, uint localID,
                                     UUID itemID)
             : base(scriptEngine, host, localID, itemID)
         {
+            m_ScriptEngineDirect = scriptEngine;
             Prim = new OSSLPrim(this);
         }
 
@@ -577,7 +580,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID, new UUID(channel));
                 object[] resobj = new object[] { new LSL_Types.LSLInteger(1), new LSL_Types.LSLString(channelID.ToString()), new LSL_Types.LSLString(UUID.Zero.ToString()), new LSL_Types.LSLString(String.Empty), new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(String.Empty) };
-                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", new DetectParams[0], resobj);
+                m_ScriptEngineDirect.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", new DetectParams[0], resobj);
             }
         }
 
@@ -605,16 +608,16 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             int scriptEngineNameIndex = 0;
 
-            if (!String.IsNullOrEmpty(m_ScriptEngine.ScriptEngineName))
+            if (!String.IsNullOrEmpty(m_ScriptEngineDirect.ScriptEngineName))
             {
                 // parse off the "ScriptEngine."
-                scriptEngineNameIndex = m_ScriptEngine.ScriptEngineName.IndexOf(".", scriptEngineNameIndex);
+                scriptEngineNameIndex = m_ScriptEngineDirect.ScriptEngineName.IndexOf(".", scriptEngineNameIndex);
                 scriptEngineNameIndex++; // get past delimiter
 
-                int scriptEngineNameLength = m_ScriptEngine.ScriptEngineName.Length - scriptEngineNameIndex;
+                int scriptEngineNameLength = m_ScriptEngineDirect.ScriptEngineName.Length - scriptEngineNameIndex;
 
                 // create char array then a string that is only the script engine name
-                Char[] scriptEngineNameCharArray = m_ScriptEngine.ScriptEngineName.ToCharArray(scriptEngineNameIndex, scriptEngineNameLength);
+                Char[] scriptEngineNameCharArray = m_ScriptEngineDirect.ScriptEngineName.ToCharArray(scriptEngineNameIndex, scriptEngineNameLength);
                 String scriptEngineName = new String(scriptEngineNameCharArray);
 
                 return scriptEngineName;
@@ -805,5 +808,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             
             return jsondata;                        
         }     
+
+        internal void LSLError(string msg)
+        {
+            throw new Exception("LSL Runtime Error: " + msg);
+        }
     }
 }

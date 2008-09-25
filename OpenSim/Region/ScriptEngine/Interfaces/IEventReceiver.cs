@@ -54,5 +54,8 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// Post event to an entire prim
         /// </summary>
         bool PostObjectEvent(uint localID, EventParams parms);
+
+        DetectParams GetDetectParams(UUID item, int number);
+        int GetStartParameter(UUID itemID);
     }
 }
