@@ -481,5 +481,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PARCEL_DETAILS_OWNER = 2;
         public const int PARCEL_DETAILS_GROUP = 3;
         public const int PARCEL_DETAILS_AREA = 4;
+
+        // constants for llSetClickAction
+        public const int CLICK_ACTION_NONE = 0;
+        public const int CLICK_ACTION_TOUCH = 0;
+        public const int CLICK_ACTION_SIT = 1;
+        public const int CLICK_ACTION_BUY = 2;
+        public const int CLICK_ACTION_PAY = 3;
+        public const int CLICK_ACTION_OPEN = 4;
+        public const int CLICK_ACTION_PLAY = 5;
+        public const int CLICK_ACTION_OPEN_MEDIA = 6;
     }
 }
