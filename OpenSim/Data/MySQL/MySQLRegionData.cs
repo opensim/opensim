@@ -1711,25 +1711,7 @@ namespace OpenSim.Data.MySQL
 
             s.ExtraParams = (byte[]) row["ExtraParams"];
 
-            try
-            {
-                s.State = Convert.ToByte(row["State"]);
-            }
-            catch (InvalidCastException)
-            {
-                // Database table was created before we got here and needs to be created! :P
-                lock (m_dataSet)
-                {
-                    using (
-                        MySqlCommand cmd =
-                            new MySqlCommand(
-                                "ALTER TABLE `primshapes` ADD COLUMN `State` int NOT NULL default 0;",
-                                m_connection))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-            }
+            s.State = Convert.ToByte(row["State"]);
 
             return s;
         }
@@ -1772,26 +1754,7 @@ namespace OpenSim.Data.MySQL
             row["ProfileHollow"] = s.ProfileHollow;
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
-
-            try
-            {
-                row["State"] = s.State;
-            }
-            catch (MySqlException)
-            {
-                lock (m_dataSet)
-                {
-                    // Database table was created before we got here and needs to be created! :P
-                    using (
-                        MySqlCommand cmd =
-                            new MySqlCommand(
-                                "ALTER TABLE `primshapes` ADD COLUMN `State` int NOT NULL default 0;",
-                                m_connection))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-            }
+            row["State"] = s.State;
         }
 
         /// <summary>
