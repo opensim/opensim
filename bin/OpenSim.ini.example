@@ -107,7 +107,7 @@ physical_prim = true
 ; ## ScriptEngine
 ; ##
 
-DefaultScriptEngine = "DotNetEngine"
+DefaultScriptEngine = "ScriptEngine.DotNetEngine"
 ;DefaultScriptEngine = "XEngine"
 
 ; ##
