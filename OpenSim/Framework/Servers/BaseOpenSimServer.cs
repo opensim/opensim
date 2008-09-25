@@ -206,7 +206,7 @@ namespace OpenSim.Framework.Servers
 
             EnhanceVersionInformation();
 
-            m_log.Info("[STARTUP]: Version " + m_version + "\n");
+            m_log.Info("[STARTUP]: Version: " + m_version + "\n");
         }
 
         /// <summary>
@@ -395,14 +395,7 @@ namespace OpenSim.Framework.Servers
                 EntriesFile.Close();
             }
 
-            if (!string.IsNullOrEmpty(buildVersion))
-            {
-                m_version += ", SVN build r" + buildVersion;
-            }
-            else
-            {
-                m_version += ", SVN build revision not available";
-            }
+            m_version += string.IsNullOrEmpty(buildVersion)? ".00000" : ("." + buildVersion + "     ").Substring(0, 6);
 
             // Add operating system information if available
             string OSString = "";
@@ -421,7 +414,7 @@ namespace OpenSim.Framework.Servers
                 OSString = OSString.Substring(0, 45);
             }
 
-            m_version += ", OS " + OSString;
+            m_version += " (OS " + OSString + ")";
         }
     }
 }

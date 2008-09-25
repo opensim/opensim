@@ -98,7 +98,7 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_incrementsof15seconds = 0;
         private volatile bool m_backingup = false;
 
-        protected string m_simulatorVersion = "unknown";
+        protected string m_simulatorVersion = "OpenSimulator Server";
 
         protected ModuleLoader m_moduleLoader;
         protected StorageManager m_storageManager;

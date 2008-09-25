@@ -7028,7 +7028,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         else
                             reply = "UNKNOWN";
                         break;
-                    case 128: // SIM_RELEASE
+                    case 128: // SIM_RELEASE (not LSL conform, valid for OpenSim only)
                         reply = m_ScriptEngine.World.GetSimulatorVersion();
                         break;
                     default:

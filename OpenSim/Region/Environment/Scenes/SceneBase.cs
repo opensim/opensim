@@ -183,7 +183,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual string GetSimulatorVersion()
         {
-            return "OpenSimulator v0.5 SVN";
+            return "OpenSimulator Server";
         }
 
         #endregion
