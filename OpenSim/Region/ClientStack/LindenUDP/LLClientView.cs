@@ -1219,14 +1219,105 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(map, patches);
                 layerpack.Header.Zerocoded = true;
-
+               
                 OutPacket(layerpack, ThrottleOutPacketType.Land);
+
             }
             catch (Exception e)
             {
                 m_log.Warn("[client]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
+
+        /// <summary>
+        ///  Send the region heightmap to the client
+        /// </summary>
+        /// <param name="map">heightmap</param>
+        public virtual void SendWindData(float[] map)
+        {
+            ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendWindData), (object)map);
+        }
+
+        /// <summary>
+        /// Send terrain layer information to the client.
+        /// </summary>
+        /// <param name="o"></param>
+        private void DoSendWindData(object o)
+        {
+            float[] map = (float[])o;
+
+            try
+            {
+                for (int y = 0; y < 16; y++)
+                {
+                    // For some terrains, sending more than one terrain patch at once results in a libsecondlife exception
+                    // see http://opensimulator.org/mantis/view.php?id=1662
+                    //for (int x = 0; x < 16; x += 4)
+                    //{
+                    //    SendLayerPacket(map, y, x);
+                    //    Thread.Sleep(150);
+                    //}
+                    for (int x = 0; x < 16; x++)
+                    {
+                        SendWindData(x, y, map);
+                        Thread.Sleep(35);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[CLIENT]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Sends a set of four patches (x, x+1, ..., x+3) to the client
+        /// </summary>
+        /// <param name="map">heightmap</param>
+        /// <param name="px">X coordinate for patches 0..12</param>
+        /// <param name="py">Y coordinate for patches 0..15</param>
+        // private void SendLayerPacket(float[] map, int y, int x)
+        // {
+        //     int[] patches = new int[4];
+        //     patches[0] = x + 0 + y * 16;
+        //     patches[1] = x + 1 + y * 16;
+        //     patches[2] = x + 2 + y * 16;
+        //     patches[3] = x + 3 + y * 16;
+
+        //     Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
+        //     OutPacket(layerpack, ThrottleOutPacketType.Land);
+        // }
+
+        /// <summary>
+        /// Sends a specified patch to a client
+        /// </summary>
+        /// <param name="px">Patch coordinate (x) 0..15</param>
+        /// <param name="py">Patch coordinate (y) 0..15</param>
+        /// <param name="map">heightmap</param>
+        public void SendWindData(int px, int py, float[] map)
+        {
+            try
+            {
+                int[] patches = new int[1];
+                int patchx, patchy;
+                patchx = px;
+                patchy = py;
+
+                patches[0] = patchx + 0 + patchy * 16;
+
+                LayerDataPacket layerpack = TerrainCompressor.CreateWindPacket(map, patches);
+                layerpack.Header.Zerocoded = true;
+
+                OutPacket(layerpack, ThrottleOutPacketType.Wind);
+
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[client]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
+            }
+        }
+
+
 
         /// <summary>
         /// Tell the client that the given neighbour region is ready to receive a child agent.

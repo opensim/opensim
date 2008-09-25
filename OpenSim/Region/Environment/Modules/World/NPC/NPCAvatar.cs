@@ -482,6 +482,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public virtual void SendWindData(float[] map) { }
+        public virtual void SendWindData(int px, int py, float[] map) { }
+
         public virtual void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
         }
