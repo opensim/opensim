@@ -7167,9 +7167,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key = new UUID();
-            if (UUID.TryParse(id,out key))
+            if (UUID.TryParse(id, out key))
             {
-                return (double)World.GetSceneObjectPart(World.Entities[key].LocalId).GetMass();
+                try
+                {
+                    SceneObjectPart obj = World.GetSceneObjectPart(World.Entities[key].LocalId);
+                    if (obj != null)
+                        return (double)obj.GetMass();
+                    // the object is null so the key is for an avatar
+                    ScenePresence avatar = World.GetScenePresence(key);
+                    if (avatar != null)
+                        if (avatar.IsChildAgent)
+                            // reference http://www.lslwiki.net/lslwiki/wakka.php?wakka=llGetObjectMass
+                            // child agents have a mass of 1.0
+                            return 1;
+                        else
+                            return (double)avatar.PhysicsActor.Mass;
+                }
+                catch (KeyNotFoundException)
+                {
+                    return 0; // The Object/Agent not in the region so just return zero
+                }
             }
             return 0;
         }
