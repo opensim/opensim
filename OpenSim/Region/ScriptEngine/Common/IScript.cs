@@ -27,6 +27,7 @@
 
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 using OpenSim.Region.ScriptEngine.Shared;
+using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
@@ -36,6 +37,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         int StartParam { get; set; }
         ExecutorBase Exec { get; }
         string Source { get; set; }
-        void Start(BuilIn_Commands BuiltIn_Commands);
+        void InitApi(string api, IScriptApi LSL_Functions);
     }
 }

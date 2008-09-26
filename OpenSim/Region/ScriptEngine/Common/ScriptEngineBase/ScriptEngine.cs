@@ -66,6 +66,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private bool m_enabled = false;
         private bool m_hookUpToServer = false;
 
+        public IConfig Config
+        {
+            get { return ScriptConfigSource; }
+        }
+
         /// <summary>
         /// How many seconds between re-reading config-file. 0 = never. ScriptEngine will try to adjust to new config changes.
         /// </summary>
@@ -120,6 +125,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             m_EventManager = new EventManager(this, HookUpToServer);
             // We need to start it
             m_ScriptManager = newScriptManager;
+            m_ScriptManager.Setup();
             m_AppDomainManager = new AppDomainManager(this);
             if (m_MaintenanceThread == null)
                 m_MaintenanceThread = new MaintenanceThread();
@@ -229,23 +235,88 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void SetState(UUID itemID, string state)
         {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return;
+
+            IScript Script = m_ScriptManager.GetScript(localID, itemID);
+
+            if (Script == null)
+                return;
+
+            string currentState = Script.State;
+
+            if (currentState != state)
+            {
+                try
+                {
+                    m_EventManager.state_exit(localID);
+
+                }
+                catch (AppDomainUnloadedException)
+                {
+                    Console.WriteLine("[SCRIPT]: state change called when script was unloaded.  Nothing to worry about, but noting the occurance");
+                }
+
+                Script.State = state;
+
+                try
+                {
+                    int eventFlags = m_ScriptManager.GetStateEventFlags(localID, itemID);
+                    SceneObjectPart part = m_Scene.GetSceneObjectPart(itemID);
+                    if (part != null)
+                        part.SetScriptEvents(itemID, eventFlags);
+                    m_EventManager.state_entry(localID);
+                }
+                catch (AppDomainUnloadedException)
+                {
+                    Console.WriteLine("[SCRIPT]: state change called when script was unloaded.  Nothing to worry about, but noting the occurance");
+                }
+            }
         }
 
         public bool GetScriptState(UUID itemID)
         {
-            return true;
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return false;
+
+            IScript script = m_ScriptManager.GetScript(localID, itemID);
+            if (script == null)
+                return false;
+
+            return script.Exec.Running?true:false;
         }
 
         public void SetScriptState(UUID itemID, bool state)
         {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return;
+
+            IScript script = m_ScriptManager.GetScript(localID, itemID);
+            if (script == null)
+                return;
+
+            script.Exec.Running = state;
         }
 
         public void ApiResetScript(UUID itemID)
         {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return;
+
+            m_ScriptManager.ResetScript(localID, itemID);
         }
 
         public void ResetScript(UUID itemID)
         {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return;
+
+            m_ScriptManager.ResetScript(localID, itemID);
         }
     }
 }

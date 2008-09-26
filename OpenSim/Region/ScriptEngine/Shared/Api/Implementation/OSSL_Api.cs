@@ -100,7 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     [Serializable]
     public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
     {
-        internal IScriptEngine m_ScriptEngine;
+        internal IEventReceiver m_ScriptEngine;
         internal SceneObjectPart m_host;
         internal uint m_localID;
         internal UUID m_itemID;
@@ -110,7 +110,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal float m_ScriptDistanceFactor = 1.0f;
         internal Dictionary<string, List<UUID> > m_FunctionPerms = new Dictionary<string, List<UUID> >();
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
+        public void Initialize(IEventReceiver ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;

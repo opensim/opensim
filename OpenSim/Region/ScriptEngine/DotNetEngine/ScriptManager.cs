@@ -132,10 +132,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 //  this private copy will contain Read-Only FullitemID so that it can bring that on to the server whenever needed.
 
 
-                BuilIn_Commands LSLB = new BuilIn_Commands(m_scriptEngine, m_host, localID, itemID);
+//                OSSL_BuilIn_Commands LSLB = new OSSL_BuilIn_Commands(m_scriptEngine, m_host, localID, itemID);
+                LSL_Api LSL = new LSL_Api();
+                OSSL_Api OSSL = new OSSL_Api();
+
+                LSL.Initialize(m_scriptEngine, m_host, localID, itemID);
+                OSSL.Initialize(m_scriptEngine, m_host, localID, itemID);
 
                 // Start the script - giving it BuiltIns
-                CompiledScript.Start(LSLB);
+                CompiledScript.InitApi("LSL", LSL);
+                CompiledScript.InitApi("OSSL", OSSL);
 
                 // Fire the first start-event
                 int eventFlags = m_scriptEngine.m_ScriptManager.GetStateEventFlags(localID, itemID);

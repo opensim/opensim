@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System.Collections;
+using OpenSim.Region.ScriptEngine.Interfaces;
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
     public interface IOSSL_Api

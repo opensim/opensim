@@ -1960,6 +1960,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime"/>
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="OpenSim.Framework.Console"/>

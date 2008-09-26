@@ -443,6 +443,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                        new DetectParams[0]));
             PostEvent(new EventParams("state_entry", new Object[0],
                                        new DetectParams[0]));
+
+            throw new EventAbortException();
         }
 
         public void PostEvent(EventParams data)
@@ -733,6 +735,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 m_SaveState = true;
                 PostEvent(new EventParams("state_entry",
                         new Object[0], new DetectParams[0]));
+                throw new EventAbortException();
             }
         }
 

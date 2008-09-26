@@ -120,12 +120,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             m_scriptEngine = scriptEngine;
         }
         public abstract void Initialize();
+        public void Setup()
+        {
+            ReadConfig();
+            Initialize();
+        }
         public void Start()
         {
             m_started = true;
 
-            ReadConfig();
-            Initialize();
 
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
 
@@ -225,6 +228,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             {
                 if (LUQueue.Count > 0)
                 {
+m_scriptEngine.Log.InfoFormat("[{0}]: Loading script", m_scriptEngine.ScriptEngineName);
                     LUStruct item = LUQueue.Dequeue();
 
                     if (item.Action == LUType.Unload)
@@ -281,6 +285,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 ls.startParam = startParam;
                 ls.postOnRez = postOnRez;
                 LUQueue.Enqueue(ls);
+m_scriptEngine.Log.InfoFormat("[{0}]: Queued script for load", m_scriptEngine.ScriptEngineName);
             }
         }
 

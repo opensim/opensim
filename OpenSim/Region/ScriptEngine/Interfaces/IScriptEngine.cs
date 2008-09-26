@@ -42,10 +42,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     /// </summary>
     public interface IScriptEngine : IEventReceiver
     {
-        IConfig Config { get; }
-        ILog Log { get; }
-        string ScriptEngineName { get; }
-
         /// <summary>
         /// Queue an event for execution
         /// </summary>

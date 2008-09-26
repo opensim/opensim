@@ -31,6 +31,8 @@ using System.Threading;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 using OpenSim.Region.ScriptEngine.Shared;
+using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
+using OpenSim.Region.ScriptEngine.Interfaces;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -42,7 +44,7 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
-    public class ScriptBaseClass : MarshalByRefObject, LSL_BuiltIn_Commands_Interface, OSSL_BuilIn_Commands_Interface, IScript
+    public class ScriptBaseClass : MarshalByRefObject, IScript
     {
         //
         // Included as base for any LSL-script that is compiled.
@@ -71,6 +73,19 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private Executor m_Exec;
 
+        private string m_state = "default";
+
+        public String State
+        {
+            get { return m_state; }
+            set { m_state = value; }
+        }
+
+        public void state(string newState)
+        {
+            m_LSL_Functions.state(newState);
+        }
+
         ExecutorBase IScript.Exec
         {
             get
@@ -82,7 +97,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
 
-        public BuilIn_Commands m_LSL_Functions;
+        public ILSL_Api m_LSL_Functions;
+        public IOSSL_Api m_OSSL_Functions;
         private string _Source = String.Empty;
         public string Source
         {
@@ -104,20 +120,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
         }
 
-        public string State
+        public void InitApi(string api, IScriptApi LSL_Functions)
         {
-            get { return m_LSL_Functions.State; }
-            set { m_LSL_Functions.State = value;  }
-        }
-        public void state(string state)
-        {
-            State = state;
-
-        }
-
-        public void Start(BuilIn_Commands LSL_Functions)
-        {
-            m_LSL_Functions = LSL_Functions;
+            if (api == "LSL")
+                m_LSL_Functions = (ILSL_Api)LSL_Functions;
+            if (api == "OSSL")
+                m_OSSL_Functions = (IOSSL_Api)LSL_Functions;
 
             //m_log.Info(ScriptEngineName, "LSL_BaseClass.Start() called.");
 
@@ -142,9 +150,9 @@ namespace OpenSim.Region.ScriptEngine.Common
 
 
 
-        public OSSL_BuilIn_Commands.OSSLPrim Prim {
-            get { return m_LSL_Functions.Prim; }
-        }
+//        public OSSL_BuilIn_Commands.OSSLPrim Prim {
+//            get { return m_LSL_Functions.Prim; }
+//        }
 
 
         //
@@ -153,10 +161,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         // They are only forwarders to LSL_BuiltIn_Commands.cs
         //
 
-        public ICommander GetCommander(string name)
-        {
-            return m_LSL_Functions.GetCommander(name);
-        }
+//        public ICommander GetCommander(string name)
+//        {
+//            return m_LSL_Functions.GetCommander(name);
+//        }
 
         public LSL_Integer llAbs(int i)
         {
@@ -1874,84 +1882,84 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
                                              int timer)
         {
-            return m_LSL_Functions.osSetDynamicTextureURL(dynamicID, contentType, url, extraParams, timer);
+            return m_OSSL_Functions.osSetDynamicTextureURL(dynamicID, contentType, url, extraParams, timer);
         }
 
         public string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams,
                                              int timer)
         {
-            return m_LSL_Functions.osSetDynamicTextureData(dynamicID, contentType, data, extraParams, timer);
+            return m_OSSL_Functions.osSetDynamicTextureData(dynamicID, contentType, data, extraParams, timer);
         }
 
         public string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
                                            int timer, int alpha)
         {
-            return m_LSL_Functions.osSetDynamicTextureURLBlend(dynamicID, contentType, url, extraParams, timer, alpha);
+            return m_OSSL_Functions.osSetDynamicTextureURLBlend(dynamicID, contentType, url, extraParams, timer, alpha);
         }
 
         public string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
                                              int timer, int alpha)
         {
-            return m_LSL_Functions.osSetDynamicTextureDataBlend(dynamicID, contentType, data, extraParams, timer, alpha);
+            return m_OSSL_Functions.osSetDynamicTextureDataBlend(dynamicID, contentType, data, extraParams, timer, alpha);
         }
 
         public double osTerrainGetHeight(int x, int y)
         {
-            return m_LSL_Functions.osTerrainGetHeight(x, y);
+            return m_OSSL_Functions.osTerrainGetHeight(x, y);
         }
 
         public int osTerrainSetHeight(int x, int y, double val)
         {
-            return m_LSL_Functions.osTerrainSetHeight(x, y, val);
+            return m_OSSL_Functions.osTerrainSetHeight(x, y, val);
         }
 
         public int osRegionRestart(double seconds)
         {
-            return m_LSL_Functions.osRegionRestart(seconds);
+            return m_OSSL_Functions.osRegionRestart(seconds);
         }
 
         public void osRegionNotice(string msg)
         {
-            m_LSL_Functions.osRegionNotice(msg);
+            m_OSSL_Functions.osRegionNotice(msg);
         }
 
         public bool osConsoleCommand(string Command)
         {
-            return m_LSL_Functions.osConsoleCommand(Command);
+            return m_OSSL_Functions.osConsoleCommand(Command);
         }
 
         public void osSetParcelMediaURL(string url)
         {
-            m_LSL_Functions.osSetParcelMediaURL(url);
+            m_OSSL_Functions.osSetParcelMediaURL(url);
         }
 
         public void osSetPrimFloatOnWater(int floatYN)
         {
-            m_LSL_Functions.osSetPrimFloatOnWater(floatYN);
+            m_OSSL_Functions.osSetPrimFloatOnWater(floatYN);
         }
 
         // Teleport Functions
 
         public void osTeleportAgent(string agent, string regionName, LSL_Vector position, LSL_Vector lookat)
         {
-            m_LSL_Functions.osTeleportAgent(agent, regionName, position, lookat);
+            m_OSSL_Functions.osTeleportAgent(agent, regionName, position, lookat);
         }
 
         public void osTeleportAgent(string agent, LSL_Vector position, LSL_Vector lookat)
         {
-            m_LSL_Functions.osTeleportAgent(agent, position, lookat);
+            m_OSSL_Functions.osTeleportAgent(agent, position, lookat);
         }
 
         // Animation Functions
 
         public void osAvatarPlayAnimation(string avatar, string animation)
         {
-            m_LSL_Functions.osAvatarPlayAnimation(avatar, animation);
+            m_OSSL_Functions.osAvatarPlayAnimation(avatar, animation);
         }
 
         public void osAvatarStopAnimation(string avatar, string animation)
         {
-            m_LSL_Functions.osAvatarStopAnimation(avatar, animation);
+            m_OSSL_Functions.osAvatarStopAnimation(avatar, animation);
         }
 
 
@@ -1959,83 +1967,83 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string osMovePen(string drawList, int x, int y)
         {
-            return m_LSL_Functions.osMovePen(drawList, x, y);
+            return m_OSSL_Functions.osMovePen(drawList, x, y);
         }
 
         public string osDrawLine(string drawList, int startX, int startY, int endX, int endY)
         {
-            return m_LSL_Functions.osDrawLine(drawList, startX, startY, endX, endY);
+            return m_OSSL_Functions.osDrawLine(drawList, startX, startY, endX, endY);
         }
 
         public string osDrawLine(string drawList, int endX, int endY)
         {
-            return m_LSL_Functions.osDrawLine(drawList, endX, endY);
+            return m_OSSL_Functions.osDrawLine(drawList, endX, endY);
         }
 
         public string osDrawText(string drawList, string text)
         {
-            return m_LSL_Functions.osDrawText(drawList, text);
+            return m_OSSL_Functions.osDrawText(drawList, text);
         }
 
         public string osDrawEllipse(string drawList, int width, int height)
         {
-            return m_LSL_Functions.osDrawEllipse(drawList, width, height);
+            return m_OSSL_Functions.osDrawEllipse(drawList, width, height);
         }
 
         public string osDrawRectangle(string drawList, int width, int height)
         {
-            return m_LSL_Functions.osDrawRectangle(drawList, width, height);
+            return m_OSSL_Functions.osDrawRectangle(drawList, width, height);
         }
 
         public string osDrawFilledRectangle(string drawList, int width, int height)
         {
-            return m_LSL_Functions.osDrawFilledRectangle(drawList, width, height);
+            return m_OSSL_Functions.osDrawFilledRectangle(drawList, width, height);
         }
 
         public string osSetFontSize(string drawList, int fontSize)
         {
-            return m_LSL_Functions.osSetFontSize(drawList, fontSize);
+            return m_OSSL_Functions.osSetFontSize(drawList, fontSize);
         }
 
         public string osSetPenSize(string drawList, int penSize)
         {
-            return m_LSL_Functions.osSetPenSize(drawList, penSize);
+            return m_OSSL_Functions.osSetPenSize(drawList, penSize);
         }
 
         public string osSetPenColour(string drawList, string colour)
         {
-            return m_LSL_Functions.osSetPenColour(drawList, colour);
+            return m_OSSL_Functions.osSetPenColour(drawList, colour);
         }
 
         public string osDrawImage(string drawList, int width, int height, string imageUrl)
         {
-            return m_LSL_Functions.osDrawImage(drawList, width, height, imageUrl);
+            return m_OSSL_Functions.osDrawImage(drawList, width, height, imageUrl);
         }
 
         public void osSetStateEvents(int events)
         {
-            m_LSL_Functions.osSetStateEvents(events);
+            m_OSSL_Functions.osSetStateEvents(events);
         }
 
-        public void osOpenRemoteDataChannel(string channel)
-        {
-            m_LSL_Functions.osOpenRemoteDataChannel(channel);
-        }
+//        public void osOpenRemoteDataChannel(string channel)
+//        {
+//            m_OSSL_Functions.osOpenRemoteDataChannel(channel);
+//        }
 
         public string osGetScriptEngineName()
         {
-            return m_LSL_Functions.osGetScriptEngineName();
+            return m_OSSL_Functions.osGetScriptEngineName();
         }
 
         public System.Collections.Hashtable osParseJSON(string JSON)
         { 
-            return m_LSL_Functions.osParseJSON(JSON);
+            return m_OSSL_Functions.osParseJSON(JSON);
         }
 
         //for testing purposes only
         public void osSetParcelMediaTime(double time)
         {
-            m_LSL_Functions.osSetParcelMediaTime(time);
+            m_OSSL_Functions.osSetParcelMediaTime(time);
         }
 
         // LSL CONSTANTS
