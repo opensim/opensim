@@ -148,8 +148,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             AppDomain AD = AppDomain.CreateDomain("ScriptAppDomain_" + AppDomainNameCount, null, ads);
             m_scriptEngine.Log.Info("[" + m_scriptEngine.ScriptEngineName + "]: AppDomain Loading: " +
-                                       AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll").ToString());
-            AD.Load(AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Common.dll"));
+                                       AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Shared.dll").ToString());
+            AD.Load(AssemblyName.GetAssemblyName("OpenSim.Region.ScriptEngine.Shared.dll"));
 
             // Return the new AppDomain
             return AD;
