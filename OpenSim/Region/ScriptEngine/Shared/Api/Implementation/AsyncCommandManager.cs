@@ -196,9 +196,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private static void DoOneCmdHandlerPass()
         {
-            // Check Listeners
-            m_Listener[m_ScriptEngines[0]].CheckListeners();
-
             // Check HttpRequests
             m_HttpRequest[m_ScriptEngines[0]].CheckHttpRequests();
 
@@ -207,6 +204,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             foreach (IEventReceiver s in m_ScriptEngines)
             {
+                // Check Listeners
+                m_Listener[s].CheckListeners();
+
                 // Check timers
                 m_Timer[s].CheckTimerEvents();
 
