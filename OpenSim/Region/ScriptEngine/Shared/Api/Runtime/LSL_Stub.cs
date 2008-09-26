@@ -374,6 +374,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetAgentInfo(id);
         }
 
+        public LSL_String llGetAgentLanguage(string id)
+        {
+            return m_LSL_Functions.llGetAgentLanguage(id);
+        }
+
         public LSL_Vector llGetAgentSize(string id)
         {
             return m_LSL_Functions.llGetAgentSize(id);

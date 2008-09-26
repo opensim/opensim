@@ -4508,6 +4508,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 0;
         }
 
+        public LSL_String llGetAgentLanguage(string id)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGetAgentLanguage");
+            return "";
+        }
+
         public void llAdjustSoundVolume(double volume)
         {
             m_host.AddScriptLPS(1);

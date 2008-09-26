@@ -103,6 +103,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_Float llFrand(double mag);
         LSL_Vector llGetAccel();
        LSL_Integer llGetAgentInfo(string id);
+        LSL_String llGetAgentLanguage(string id);
         LSL_Vector llGetAgentSize(string id);
          LSL_Float llGetAlpha(int face);
          LSL_Float llGetAndResetTime();
