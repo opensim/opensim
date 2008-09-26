@@ -51,7 +51,7 @@ namespace OpenSim.Data.Tests
             {
                 log4net.Config.XmlConfigurator.Configure();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // I don't care, just leave log4net off
             }

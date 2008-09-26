@@ -343,7 +343,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             Rest.Log.DebugFormat("{0} POST ENTRY", MsgId);
 
-            AvatarAppearance old = Rest.AvatarServices.GetUserAppearance(rdata.userProfile.ID);
+            //AvatarAppearance old = Rest.AvatarServices.GetUserAppearance(rdata.userProfile.ID);
 
             rdata.userAppearance = new AvatarAppearance();
 
@@ -749,7 +749,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 rdata.writer.WriteStartElement("Appearance");
 
                 rdata.writer.WriteAttributeString("Height", rdata.userAppearance.AvatarHeight.ToString());
-                if (rdata.userAppearance.Owner != null)
+                if (!rdata.userAppearance.Owner.Equals(null))
                     rdata.writer.WriteAttributeString("Owner", rdata.userAppearance.Owner.ToString());
                 rdata.writer.WriteAttributeString("Serial", rdata.userAppearance.Serial.ToString());
 

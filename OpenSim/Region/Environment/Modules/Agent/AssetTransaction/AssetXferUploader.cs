@@ -55,7 +55,6 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         private IClientAPI ourClient;
         private UUID TransactionID = UUID.Zero;
         private sbyte type = 0;
-        private bool UploadComplete;
         private byte wearableType = 0;
         public ulong XferID;
 
@@ -140,15 +139,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
         protected void RequestStartXfer()
         {
-            UploadComplete = false;
             XferID = Util.GetNextXferID();
             ourClient.SendXferRequest(XferID, m_asset.Type, m_asset.FullID, 0, new byte[0]);
         }
 
         protected void SendCompleteMessage()
         {
-            UploadComplete = true;
-
             ourClient.SendAssetUploadCompleteMessage(m_asset.Type, true, m_asset.FullID);
 
             m_finished = true;

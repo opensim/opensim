@@ -140,10 +140,10 @@ namespace OpenSim.Region.Environment.Modules
             //m_log.Debug("[WIND]:Regenerating...");
             GenWindPos();        // Generate shared values once
 
-            int spotxp = 0;
-            int spotyp = 0;
-            int spotxm = 0;
-            int spotym = 0;
+            //int spotxp = 0;
+            //int spotyp = 0;
+            //int spotxm = 0;
+            //int spotym = 0;
             List<ScenePresence> avatars = m_scene.GetAvatars();
             foreach (ScenePresence avatar in avatars)
             {

@@ -72,7 +72,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private Executor m_Exec;
 
-        private string m_state = "default";
+        //private string m_state = "default";
 
         public void state(string newState)
         {

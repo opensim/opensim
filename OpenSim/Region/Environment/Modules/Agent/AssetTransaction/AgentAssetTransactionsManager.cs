@@ -26,8 +26,8 @@
  */
 
 using System.Collections.Generic;
-using System.Reflection;
-using log4net;
+//using System.Reflection;
+//using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
@@ -37,8 +37,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 {
     public class AgentAssetTransactionsManager
     {
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log
+        //    = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Each agent has its own singleton collection of transactions

@@ -1242,8 +1242,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Send terrain layer information to the client.
         /// </summary>
         /// <param name="o"></param>
-        private void DoSendWindData(object o)
-        {
+        //private void DoSendWindData(object o)
+        //{
             //float[] map = (float[])o;
 
             //try
@@ -1268,7 +1268,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //{
            //     m_log.Warn("[CLIENT]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
            // }
-        }
+        //}
 
         /// <summary>
         /// Sends a set of four patches (x, x+1, ..., x+3) to the client
