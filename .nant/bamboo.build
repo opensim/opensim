@@ -29,8 +29,6 @@
     <!-- Copy the OdePlugin dll to bin/ for testing. -->
     <copy file="../bin/Physics/OpenSim.Region.Physics.OdePlugin.dll" tofile="../bin/OpenSim.Region.Physics.OdePlugin.dll" />
 
-    <!-- Copy the 64 bit libode.so to bin/ for testing. -->
-    <copy file="/home/teravus/olibs/libode.so" tofile="../bin/libode.so" />
 
     <!-- Run the tests. -->
     <nunit2 failonerror="false">
