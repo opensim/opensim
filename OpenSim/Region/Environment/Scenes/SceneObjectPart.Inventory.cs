@@ -394,6 +394,22 @@ namespace OpenSim.Region.Environment.Scenes
                     item.ParentID = UUID;
                     item.ParentPartID = UUID;
                     item.Flags=m_taskInventory[item.ItemID].Flags;
+                    if (item.AssetID == UUID.Zero)
+                    {
+                        item.AssetID = m_taskInventory[item.ItemID].AssetID;
+                    }
+                    else if ((InventoryType)item.Type == InventoryType.Notecard)
+                    {
+                        ScenePresence presence =
+                                m_parentGroup.Scene.GetScenePresence(
+                                item.OwnerID);
+
+                        if (presence != null)
+                        {
+                            presence.ControllingClient.SendAgentAlertMessage(
+                                    "Notecard saved", false);
+                        }
+                    }
 
                     m_taskInventory[item.ItemID] = item;
                     m_inventorySerial++;
