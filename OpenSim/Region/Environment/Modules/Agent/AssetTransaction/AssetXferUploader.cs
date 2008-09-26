@@ -37,13 +37,12 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 {
-   public class AssetXferUploader
+    public class AssetXferUploader
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        public bool AddToInventory;
-        public AssetBase Asset;
-        public UUID InventFolder = UUID.Zero;
+
+        private AssetBase m_asset;
+        private UUID InventFolder = UUID.Zero;
         private sbyte invType = 0;
         private bool m_createItem = false;
         private string m_description = String.Empty;
@@ -54,9 +53,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         private AgentAssetTransactions m_userTransactions;
         private uint nextPerm = 0;
         private IClientAPI ourClient;
-        public UUID TransactionID = UUID.Zero;
+        private UUID TransactionID = UUID.Zero;
         private sbyte type = 0;
-        public bool UploadComplete;
+        private bool UploadComplete;
         private byte wearableType = 0;
         public ulong XferID;
 
@@ -77,18 +76,18 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         {
             if (XferID == xferID)
             {
-                if (Asset.Data.Length > 1)
+                if (m_asset.Data.Length > 1)
                 {
-                    byte[] destinationArray = new byte[Asset.Data.Length + data.Length];
-                    Array.Copy(Asset.Data, 0, destinationArray, 0, Asset.Data.Length);
-                    Array.Copy(data, 0, destinationArray, Asset.Data.Length, data.Length);
-                    Asset.Data = destinationArray;
+                    byte[] destinationArray = new byte[m_asset.Data.Length + data.Length];
+                    Array.Copy(m_asset.Data, 0, destinationArray, 0, m_asset.Data.Length);
+                    Array.Copy(data, 0, destinationArray, m_asset.Data.Length, data.Length);
+                    m_asset.Data = destinationArray;
                 }
                 else
                 {
                     byte[] buffer2 = new byte[data.Length - 4];
                     Array.Copy(data, 4, buffer2, 0, data.Length - 4);
-                    Asset.Data = buffer2;
+                    m_asset.Data = buffer2;
                 }
 
                 ourClient.SendConfirmXfer(xferID, packetID);
@@ -114,19 +113,19 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                                bool storeLocal, bool tempFile)
         {
             ourClient = remoteClient;
-            Asset = new AssetBase();
-            Asset.FullID = assetID;
-            Asset.Type = type;
-            Asset.Data = data;
-            Asset.Name = "blank";
-            Asset.Description = "empty";
-            Asset.Local = storeLocal;
-            Asset.Temporary = tempFile;
+            m_asset = new AssetBase();
+            m_asset.FullID = assetID;
+            m_asset.Type = type;
+            m_asset.Data = data;
+            m_asset.Name = "blank";
+            m_asset.Description = "empty";
+            m_asset.Local = storeLocal;
+            m_asset.Temporary = tempFile;
 
             TransactionID = transaction;
             m_storeLocal = storeLocal;
             
-            if (Asset.Data.Length > 2)
+            if (m_asset.Data.Length > 2)
             {
                 SendCompleteMessage();
                 return true;
@@ -143,14 +142,14 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         {
             UploadComplete = false;
             XferID = Util.GetNextXferID();
-            ourClient.SendXferRequest(XferID, Asset.Type, Asset.FullID, 0, new byte[0]);
+            ourClient.SendXferRequest(XferID, m_asset.Type, m_asset.FullID, 0, new byte[0]);
         }
 
         protected void SendCompleteMessage()
         {
             UploadComplete = true;
 
-            ourClient.SendAssetUploadCompleteMessage(Asset.Type, true, Asset.FullID);
+            ourClient.SendAssetUploadCompleteMessage(m_asset.Type, true, m_asset.FullID);
 
             m_finished = true;
             if (m_createItem)
@@ -159,7 +158,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             }
             else if (m_storeLocal)
             {
-                m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(Asset);
+                m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
             }
 
             m_log.DebugFormat("[ASSET TRANSACTIONS]: Uploaded asset data for transaction {0}", TransactionID);
@@ -169,8 +168,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 DateTime now = DateTime.Now;
                 string filename =
                     String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}.dat", now.Year, now.Month, now.Day,
-                                  now.Hour, now.Minute, now.Second, Asset.Name, Asset.Type);
-                SaveAssetToFile(filename, Asset.Data);
+                                  now.Hour, now.Minute, now.Second, m_asset.Name, m_asset.Type);
+                SaveAssetToFile(filename, m_asset.Data);
             }
         }
 
@@ -201,9 +200,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 this.invType = invType;
                 this.wearableType = wearableType;
                 nextPerm = nextOwnerMask;
-                Asset.Name = name;
-                Asset.Description = description;
-                Asset.Type = type;
+                m_asset.Name = name;
+                m_asset.Description = description;
+                m_asset.Type = type;
                 m_createItem = true;
                 
                 if (m_finished)
@@ -244,7 +243,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                         asset.Type = (sbyte) item.AssetType;
                         item.AssetID = asset.FullID;
 
-                        m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(Asset);
+                        m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
                     }
 
                     userInfo.UpdateItem(item);
@@ -259,12 +258,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 "[ASSET TRANSACTIONS]: Updating task item {0} in {1} with asset in transaction {2}", 
                 item.Name, part.Name, transactionID);
             
-            Asset.Name = item.Name;
-            Asset.Description = item.Description;
-            Asset.Type = (sbyte) item.Type;
-            item.AssetID = Asset.FullID;
+            m_asset.Name = item.Name;
+            m_asset.Description = item.Description;
+            m_asset.Type = (sbyte) item.Type;
+            item.AssetID = m_asset.FullID;
             
-            m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(Asset);
+            m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
             
             if (part.UpdateInventoryItem(item))
                 part.GetProperties(remoteClient);                 
@@ -273,16 +272,18 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         private void DoCreateItem()
         {
             //really need to fix this call, if lbsa71 saw this he would die.
-            m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(Asset);
+            m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(m_asset);
             CachedUserInfo userInfo =
-                m_userTransactions.Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(ourClient.AgentId);
+                m_userTransactions.Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(
+                    ourClient.AgentId);
+            
             if (userInfo != null)
             {
                 InventoryItemBase item = new InventoryItemBase();
                 item.Owner = ourClient.AgentId;
                 item.Creator = ourClient.AgentId;
                 item.ID = UUID.Random();
-                item.AssetID = Asset.FullID;
+                item.AssetID = m_asset.FullID;
                 item.Description = m_description;
                 item.Name = m_name;
                 item.AssetType = type;
@@ -299,12 +300,17 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             }
         }
 
+        /// <summary>
+        /// Get the asset data uploaded in this transfer.
+        /// </summary>
+        /// <returns>null if the asset has not finished uploading</returns>
         public AssetBase GetAssetData()
         {
             if (m_finished)
             {
-                return Asset;
+                return m_asset;
             }
+            
             return null;
         }
     }
