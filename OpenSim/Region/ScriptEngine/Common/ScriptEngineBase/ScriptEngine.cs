@@ -44,7 +44,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// </summary>
     ///
     [Serializable]
-    public abstract class ScriptEngine : IRegionModule, IScriptModule, ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule, IEventReceiver
+    public abstract class ScriptEngine : IRegionModule, IScriptModule, iScriptEngineFunctionModule, IEventReceiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -154,11 +154,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             {
                 ScriptEngines.Remove(this);
             }
-        }
-
-        ScriptServerInterfaces.RemoteEvents ScriptServerInterfaces.ScriptEngine.EventManager()
-        {
-            return this.m_EventManager;
         }
 
         public void ReadConfig()
