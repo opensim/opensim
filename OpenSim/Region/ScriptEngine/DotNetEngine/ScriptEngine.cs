@@ -198,12 +198,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (localID == 0)
                 return null;
 
-            IScript Script = m_ScriptManager.GetScript(localID, itemID);
+            InstanceData id = m_ScriptManager.GetScript(localID, itemID);
 
-            if (Script == null)
+            if (id == null)
                 return null;
 
-            DetectParams[] det = m_ScriptManager.GetDetectParams(Script);
+            DetectParams[] det = m_ScriptManager.GetDetectParams(id);
 
             if (number < 0 || number >= det.Length)
                 return null;
@@ -223,12 +223,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (localID == 0)
                 return;
 
-            IScript Script = m_ScriptManager.GetScript(localID, itemID);
+            InstanceData id = m_ScriptManager.GetScript(localID, itemID);
 
-            if (Script == null)
+            if (id == null)
                 return;
 
-            string currentState = Script.State;
+            string currentState = id.State;
 
             if (currentState != state)
             {
@@ -239,22 +239,29 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 }
                 catch (AppDomainUnloadedException)
                 {
-                    Console.WriteLine("[SCRIPT]: state change called when script was unloaded.  Nothing to worry about, but noting the occurance");
+                    Console.WriteLine("[SCRIPT]: state change called when "+
+                            "script was unloaded.  Nothing to worry about, "+
+                            "but noting the occurance");
                 }
 
-                Script.State = state;
+                id.State = state;
 
                 try
                 {
-                    int eventFlags = m_ScriptManager.GetStateEventFlags(localID, itemID);
+                    int eventFlags = m_ScriptManager.GetStateEventFlags(localID,
+                            itemID);
+
                     SceneObjectPart part = m_Scene.GetSceneObjectPart(itemID);
                     if (part != null)
                         part.SetScriptEvents(itemID, eventFlags);
+
                     m_EventManager.state_entry(localID);
                 }
                 catch (AppDomainUnloadedException)
                 {
-                    Console.WriteLine("[SCRIPT]: state change called when script was unloaded.  Nothing to worry about, but noting the occurance");
+                    Console.WriteLine("[SCRIPT]: state change called when "+
+                    "script was unloaded.  Nothing to worry about, but "+
+                    "noting the occurance");
                 }
             }
         }
@@ -265,11 +272,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (localID == 0)
                 return false;
 
-            IScript script = m_ScriptManager.GetScript(localID, itemID);
-            if (script == null)
+            InstanceData id = m_ScriptManager.GetScript(localID, itemID);
+            if (id == null)
                 return false;
 
-            return script.Exec.Running?true:false;
+            return id.Running;
         }
 
         public void SetScriptState(UUID itemID, bool state)
@@ -278,11 +285,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (localID == 0)
                 return;
 
-            IScript script = m_ScriptManager.GetScript(localID, itemID);
-            if (script == null)
+            InstanceData id = m_ScriptManager.GetScript(localID, itemID);
+            if (id == null)
                 return;
 
-            script.Exec.Running = state;
+            if (!id.Disabled)
+                id.Running = state;
         }
 
         public void ApiResetScript(UUID itemID)

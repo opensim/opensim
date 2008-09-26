@@ -188,7 +188,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
         }
 
-        public IScript LoadScript(string FileName)
+        public IScript LoadScript(string FileName, out AppDomain ad)
         {
             // Find next available AppDomain to put it in
             AppDomainStructure FreeAppDomain = GetFreeAppDomain();
@@ -201,6 +201,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 FreeAppDomain.CurrentAppDomain.CreateInstanceFromAndUnwrap(FileName, "SecondLife.Script");
             //Console.WriteLine("ScriptEngine AppDomainManager: is proxy={0}", RemotingServices.IsTransparentProxy(mbrt));
             FreeAppDomain.ScriptsLoaded++;
+            ad = FreeAppDomain.CurrentAppDomain;
 
             return mbrt;
         }

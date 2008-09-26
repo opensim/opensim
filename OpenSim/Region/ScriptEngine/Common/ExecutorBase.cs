@@ -140,28 +140,23 @@ namespace OpenSim.Region.ScriptEngine.Common
         /// </summary>
         /// <param name="FunctionName">Name of function to execute</param>
         /// <param name="args">Arguments to pass to function</param>
-        public void ExecuteEvent(string FunctionName, object[] args)
+        public void ExecuteEvent(string state, string FunctionName, object[] args)
         {
-            if (m_Running == false)
-            {
-                // Script is inactive, do not execute!
-                return;
-            }
-            DoExecuteEvent(FunctionName, args);
+            DoExecuteEvent(state, FunctionName, args);
         }
 
-        protected abstract void DoExecuteEvent(string FunctionName, object[] args);
+        protected abstract void DoExecuteEvent(string state, string FunctionName, object[] args);
 
         /// <summary>
         ///  Compute the events handled by the current state of the script
         /// </summary>
         /// <returns>state mask</returns>
-        public scriptEvents GetStateEventFlags()
+        public scriptEvents GetStateEventFlags(string state)
         {
-            return DoGetStateEventFlags();
+            return DoGetStateEventFlags(state);
         }
 
-        protected abstract scriptEvents DoGetStateEventFlags();
+        protected abstract scriptEvents DoGetStateEventFlags(string state);
 
         /// <summary>
         /// Stop script from running. Event execution will be ignored.

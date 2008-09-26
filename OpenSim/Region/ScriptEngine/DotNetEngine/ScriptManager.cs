@@ -41,6 +41,17 @@ using System.Threading;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
+    public class InstanceData
+    {
+        public IScript Script;
+        public string State;
+        public bool Running;
+        public bool Disabled;
+        public string Source;
+        public int StartParam;
+        public AppDomain AppDomain;
+    }
+
     public class ScriptManager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -49,13 +60,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         private Thread scriptLoadUnloadThread;
         private static Thread staticScriptLoadUnloadThread;
-        // private int scriptLoadUnloadThread_IdleSleepms;
         private Queue<LUStruct> LUQueue = new Queue<LUStruct>();
         private static bool PrivateThread;
         private int LoadUnloadMaxQueueSize;
         private Object scriptLock = new Object();
         private bool m_started = false;
-        private Dictionary<IScript, DetectParams[]> detparms = new Dictionary<IScript, DetectParams[]>();
+        private Dictionary<InstanceData, DetectParams[]> detparms =
+                new Dictionary<InstanceData, DetectParams[]>();
 
         // Load/Unload structure
         private struct LUStruct
@@ -75,15 +86,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             Unload = 2
         }
 
-        // Xantor 20080525: Keep a list of compiled scripts this session for reuse
-        public Dictionary<UUID, String> scriptList = new Dictionary<UUID, string>();
+        public Dictionary<UUID, String> scriptList =
+                new Dictionary<UUID, string>();
 
-        // Object<string, Script<string, script>>
-        // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
-        // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
-        public Dictionary<uint, Dictionary<UUID, IScript>> Scripts =
-            new Dictionary<uint, Dictionary<UUID, IScript>>();
+        public Dictionary<uint, Dictionary<UUID, InstanceData>> Scripts =
+            new Dictionary<uint, Dictionary<UUID, InstanceData>>();
 
+        private Compiler.LSL.Compiler LSLCompiler;
 
         public Scene World
         {
@@ -91,7 +100,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         }
 
         #endregion
-        private Compiler.LSL.Compiler LSLCompiler;
 
         public void Initialize()
         {
@@ -99,20 +107,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             LSLCompiler = new Compiler.LSL.Compiler(m_scriptEngine);
         }
 
-        // KEEP TRACK OF SCRIPTS <int id, whatever script>
-        //internal Dictionary<uint, Dictionary<UUID, LSL_BaseClass>> Scripts = new Dictionary<uint, Dictionary<UUID, LSL_BaseClass>>();
-        // LOAD SCRIPT
-        // UNLOAD SCRIPT
-        // PROVIDE SCRIPT WITH ITS INTERFACE TO OpenSim
-
-
-        public void _StartScript(uint localID, UUID itemID, string Script, int startParam, bool postOnRez)
+        public void _StartScript(uint localID, UUID itemID, string Script,
+                int startParam, bool postOnRez)
         {
             m_log.DebugFormat(
                 "[{0}]: ScriptManager StartScript: localID: {1}, itemID: {2}",
                 m_scriptEngine.ScriptEngineName, localID, itemID);
-
-            //IScriptHost root = host.GetRoot();
 
             // We will initialize and start the script.
             // It will be up to the script itself to hook up the correct events.
@@ -123,13 +123,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (null == m_host)
             {
                 m_log.ErrorFormat(
-                    "[{0}]: Could not find scene object part corresponding to localID {1} to start script",
+                    "[{0}]: Could not find scene object part corresponding "+
+                    "to localID {1} to start script",
                     m_scriptEngine.ScriptEngineName, localID);
 
                 return;
             }
 
-            // Xantor 20080525: I need assetID here to see if we already compiled this one previously
             UUID assetID = UUID.Zero;
             TaskInventoryItem taskInventoryItem = new TaskInventoryItem();
             if (m_host.TaskInventory.TryGetValue(itemID, out taskInventoryItem))
@@ -137,122 +137,135 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             try
             {
-                // Xantor 20080525 see if we already compiled this script this session, stop incessant recompiling on
-                // scriptreset, spawning of objects with embedded scripts etc.
-
                 if (scriptList.TryGetValue(assetID, out CompiledScriptFile))
                 {
-                    m_log.InfoFormat("[SCRIPT]: Found existing compile of assetID {0}: {1}", assetID, CompiledScriptFile);
+                    m_log.InfoFormat("[SCRIPT]: Found existing compile of "+
+                            "assetID {0}: {1}", assetID, CompiledScriptFile);
                 }
                 else
                 {
                     // Compile (We assume LSL)
-                    CompiledScriptFile = LSLCompiler.PerformScriptCompile(Script);
+                    CompiledScriptFile =
+                            LSLCompiler.PerformScriptCompile(Script);
 
-                    // Xantor 20080525 Save compiled scriptfile for later use
-                    m_log.InfoFormat("[SCRIPT]: Compiled assetID {0}: {1}", assetID, CompiledScriptFile);
+                    m_log.InfoFormat("[SCRIPT]: Compiled assetID {0}: {1}",
+                            assetID, CompiledScriptFile);
                     scriptList.Add(assetID, CompiledScriptFile);
                 }
 
-//#if DEBUG
-                //long before;
-                //before = GC.GetTotalMemory(true); // This force a garbage collect that freezes some windows plateforms
-//#endif
+                InstanceData id = new InstanceData();
 
                 IScript CompiledScript;
-                CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(CompiledScriptFile);
+                CompiledScript =
+                        m_scriptEngine.m_AppDomainManager.LoadScript(
+                        CompiledScriptFile, out id.AppDomain);
 
-//#if DEBUG
-                //m_scriptEngine.Log.DebugFormat("[" + m_scriptEngine.ScriptEngineName + "]: Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);
-//#endif
-
-                CompiledScript.Source = Script;
-                CompiledScript.StartParam = startParam;
+                id.Script = CompiledScript;
+                id.Source = Script;
+                id.StartParam = startParam;
+                id.State = "default";
+                id.Running = true;
+                id.Disabled = false;
 
                 // Add it to our script memstruct
-                m_scriptEngine.m_ScriptManager.SetScript(localID, itemID, CompiledScript);
+                m_scriptEngine.m_ScriptManager.SetScript(localID, itemID, id);
 
-                // We need to give (untrusted) assembly a private instance of BuiltIns
-                //  this private copy will contain Read-Only FullitemID so that it can bring that on to the server whenever needed.
-
-
-//                OSSL_BuilIn_Commands LSLB = new OSSL_BuilIn_Commands(m_scriptEngine, m_host, localID, itemID);
                 LSL_Api LSL = new LSL_Api();
                 OSSL_Api OSSL = new OSSL_Api();
 
                 LSL.Initialize(m_scriptEngine, m_host, localID, itemID);
                 OSSL.Initialize(m_scriptEngine, m_host, localID, itemID);
 
-                // Start the script - giving it BuiltIns
+                // Start the script - giving it the APIs
                 CompiledScript.InitApi("LSL", LSL);
                 CompiledScript.InitApi("OSSL", OSSL);
 
                 // Fire the first start-event
-                int eventFlags = m_scriptEngine.m_ScriptManager.GetStateEventFlags(localID, itemID);
+                int eventFlags =
+                        m_scriptEngine.m_ScriptManager.GetStateEventFlags(
+                        localID, itemID);
+
                 m_host.SetScriptEvents(itemID, eventFlags);
-                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", new DetectParams[0], new object[] { });
+
+                m_scriptEngine.m_EventQueueManager.AddToScriptQueue(
+                        localID, itemID, "state_entry", new DetectParams[0],
+                        new object[] { });
+
                 if (postOnRez)
                 {
-                    m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "on_rez", new DetectParams[0], new object[] { new LSL_Types.LSLInteger(startParam) });
+                    m_scriptEngine.m_EventQueueManager.AddToScriptQueue(
+                        localID, itemID, "on_rez", new DetectParams[0],
+                        new object[] { new LSL_Types.LSLInteger(startParam) });
                 }
             }
             catch (Exception e) // LEGIT: User Scripting
             {
-                //m_scriptEngine.Log.Error("[ScriptEngine]: Error compiling script: " + e.ToString());
                 try
                 {
                     // DISPLAY ERROR INWORLD
-                    string text = "Error compiling script:\r\n" + e.Message.ToString();
-                    if (text.Length > 1500)
-                        text = text.Substring(0, 1499); // 0-1499 is 1500 characters
-                    World.SimChat(Utils.StringToBytes(text), ChatTypeEnum.DebugChannel, 2147483647,
-                                  m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
+                    string text = "Error compiling script:\r\n" +
+                            e.Message.ToString();
+                    if (text.Length > 1100)
+                        text = text.Substring(0, 1099);
+
+                    World.SimChat(Utils.StringToBytes(text),
+                            ChatTypeEnum.DebugChannel, 2147483647,
+                            m_host.AbsolutePosition, m_host.Name, m_host.UUID,
+                            false);
                 }
                 catch (Exception e2) // LEGIT: User Scripting
                 {
-                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Error displaying error in-world: " + e2.ToString());
-                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: " +
-                                                "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
+                    m_scriptEngine.Log.Error("[" +
+                            m_scriptEngine.ScriptEngineName +
+                            "]: Error displaying error in-world: " +
+                            e2.ToString());
+                    m_scriptEngine.Log.Error("[" +
+                            m_scriptEngine.ScriptEngineName + "]: " +
+                            "Errormessage: Error compiling script:\r\n" + 
+                            e2.Message.ToString());
                 }
             }
         }
 
         public void _StopScript(uint localID, UUID itemID)
         {
-            IScript LSLBC = GetScript(localID, itemID);
-            if (LSLBC == null)
+            InstanceData id = GetScript(localID, itemID);
+            if (id == null)
                 return;
 
             // Stop long command on script
             AsyncCommandManager.RemoveScript(m_scriptEngine, localID, itemID);
 
-            // TEMP: First serialize it
-            //GetSerializedScript(localID, itemID);
-
             try
             {
                 // Get AppDomain
-                AppDomain ad = LSLBC.Exec.GetAppDomain();
                 // Tell script not to accept new requests
-                m_scriptEngine.m_ScriptManager.GetScript(localID, itemID).Exec.StopScript();
+                id.Running = false;
+                id.Disabled = true;
+                AppDomain ad = id.AppDomain;
+
                 // Remove from internal structure
-                m_scriptEngine.m_ScriptManager.RemoveScript(localID, itemID);
+                RemoveScript(localID, itemID);
+
                 // Tell AppDomain that we have stopped script
                 m_scriptEngine.m_AppDomainManager.StopScript(ad);
             }
             catch (Exception e) // LEGIT: User Scripting
             {
-                m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: Exception stopping script localID: " + localID + " LLUID: " + itemID.ToString() +
-                                            ": " + e.ToString());
+                m_scriptEngine.Log.Error("[" +
+                        m_scriptEngine.ScriptEngineName +
+                        "]: Exception stopping script localID: " +
+                        localID + " LLUID: " + itemID.ToString() +
+                        ": " + e.ToString());
             }
         }
 
         public void ReadConfig()
         {
-            // scriptLoadUnloadThread_IdleSleepms = m_scriptEngine.ScriptConfigSource.GetInt("ScriptLoadUnloadLoopms", 30);
             // TODO: Requires sharing of all ScriptManagers to single thread
-            PrivateThread = true; // m_scriptEngine.ScriptConfigSource.GetBoolean("PrivateScriptLoadUnloadThread", false);
-            LoadUnloadMaxQueueSize = m_scriptEngine.ScriptConfigSource.GetInt("LoadUnloadMaxQueueSize", 100);
+            PrivateThread = true;
+            LoadUnloadMaxQueueSize = m_scriptEngine.ScriptConfigSource.GetInt(
+                    "LoadUnloadMaxQueueSize", 100);
         }
 
         #region Object init/shutdown
@@ -263,17 +276,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             m_scriptEngine = scriptEngine;
         }
+
         public void Setup()
         {
             ReadConfig();
             Initialize();
         }
+
         public void Start()
         {
             m_started = true;
 
 
-            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
+            AppDomain.CurrentDomain.AssemblyResolve +=
+                    new ResolveEventHandler(CurrentDomain_AssemblyResolve);
 
             //
             // CREATE THREAD
@@ -289,43 +305,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // Shared thread - make sure one exist, then assign it to the private
                 if (staticScriptLoadUnloadThread == null)
                 {
-                    //staticScriptLoadUnloadThread = StartScriptLoadUnloadThread();
+                    //staticScriptLoadUnloadThread =
+                    //        StartScriptLoadUnloadThread();
                 }
                 scriptLoadUnloadThread = staticScriptLoadUnloadThread;
             }
         }
-
-// TODO: unused
-//        private static int privateThreadCount = 0;
-//         private Thread StartScriptLoadUnloadThread()
-//         {
-//             Thread t = new Thread(ScriptLoadUnloadThreadLoop);
-//             string name = "ScriptLoadUnloadThread:";
-//             if (PrivateThread)
-//             {
-//                 name += "Private:" + privateThreadCount;
-//                 privateThreadCount++;
-//             }
-//             else
-//             {
-//                 name += "Shared";
-//             }
-//             t.Name = name;
-//             t.IsBackground = true;
-//             t.Priority = ThreadPriority.Normal;
-//             t.Start();
-//             OpenSim.Framework.ThreadTracker.Add(t);
-//             return t;
-//         }
 
         ~ScriptManager()
         {
             // Abort load/unload thread
             try
             {
-                //PleaseShutdown = true;
-                //Thread.Sleep(100);
-                if (scriptLoadUnloadThread != null && scriptLoadUnloadThread.IsAlive == true)
+                if (scriptLoadUnloadThread != null &&
+                        scriptLoadUnloadThread.IsAlive == true)
                 {
                     scriptLoadUnloadThread.Abort();
                     //scriptLoadUnloadThread.Join();
@@ -340,28 +333,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         #region Load / Unload scripts (Thread loop)
 
-// TODO: unused
-//         private void ScriptLoadUnloadThreadLoop()
-//         {
-//             try
-//             {
-//                 while (true)
-//                 {
-//                     if (LUQueue.Count == 0)
-//                         Thread.Sleep(scriptLoadUnloadThread_IdleSleepms);
-//                     //if (PleaseShutdown)
-//                     //    return;
-//                     DoScriptLoadUnload();
-//                 }
-//             }
-//             catch (ThreadAbortException tae)
-//             {
-//                 string a = tae.ToString();
-//                 a = String.Empty;
-//                 // Expected
-//             }
-//         }
-
         public void DoScriptLoadUnload()
         {
             if (!m_started)
@@ -371,7 +342,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             {
                 if (LUQueue.Count > 0)
                 {
-m_scriptEngine.Log.InfoFormat("[{0}]: Loading script", m_scriptEngine.ScriptEngineName);
+                    m_scriptEngine.Log.InfoFormat("[{0}]: Loading script",
+                            m_scriptEngine.ScriptEngineName);
                     LUStruct item = LUQueue.Dequeue();
 
                     if (item.Action == LUType.Unload)
@@ -381,7 +353,8 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Loading script", m_scriptEngine.ScriptEngi
                     }
                     else if (item.Action == LUType.Load)
                     {
-                        _StartScript(item.localID, item.itemID, item.script, item.startParam, item.postOnRez);
+                        _StartScript(item.localID, item.itemID, item.script,
+                                item.startParam, item.postOnRez);
                     }
                 }
             }
@@ -391,19 +364,16 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Loading script", m_scriptEngine.ScriptEngi
 
         #region Helper functions
 
-        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private static Assembly CurrentDomain_AssemblyResolve(
+                object sender, ResolveEventArgs args)
         {
-            //Console.WriteLine("ScriptManager.CurrentDomain_AssemblyResolve: " + args.Name);
-            return Assembly.GetExecutingAssembly().FullName == args.Name ? Assembly.GetExecutingAssembly() : null;
+            return Assembly.GetExecutingAssembly().FullName == args.Name ?
+                    Assembly.GetExecutingAssembly() : null;
         }
 
         #endregion
 
-
-
         #region Start/Stop/Reset script
-
-        // private readonly Object startStopLock = new Object();
 
         /// <summary>
         /// Fetches, loads and hooks up a script to an objects events
@@ -416,7 +386,13 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Loading script", m_scriptEngine.ScriptEngi
             {
                 if ((LUQueue.Count >= LoadUnloadMaxQueueSize) && m_started)
                 {
-                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: ERROR: Load/unload queue item count is at " + LUQueue.Count + ". Config variable \"LoadUnloadMaxQueueSize\" is set to " + LoadUnloadMaxQueueSize + ", so ignoring new script.");
+                    m_scriptEngine.Log.Error("[" +
+                            m_scriptEngine.ScriptEngineName +
+                            "]: ERROR: Load/unload queue item count is at " +
+                            LUQueue.Count +
+                            ". Config variable \"LoadUnloadMaxQueueSize\" "+
+                            "is set to " + LoadUnloadMaxQueueSize +
+                            ", so ignoring new script.");
                     return;
                 }
 
@@ -428,7 +404,6 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Loading script", m_scriptEngine.ScriptEngi
                 ls.startParam = startParam;
                 ls.postOnRez = postOnRez;
                 LUQueue.Enqueue(ls);
-m_scriptEngine.Log.InfoFormat("[{0}]: Queued script for load", m_scriptEngine.ScriptEngineName);
             }
         }
 
@@ -451,10 +426,6 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Queued script for load", m_scriptEngine.Sc
             }
         }
 
-        // Create a new instance of the compiler (reuse)
-        //private Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
-
-
         #endregion
 
         #region Perform event execution in script
@@ -466,33 +437,23 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Queued script for load", m_scriptEngine.Sc
         /// <param name="itemID">Script ID</param>
         /// <param name="FunctionName">Name of function</param>
         /// <param name="args">Arguments to pass to function</param>
-        internal void ExecuteEvent(uint localID, UUID itemID, string FunctionName, DetectParams[] qParams, object[] args)
+        internal void ExecuteEvent(uint localID, UUID itemID,
+                string FunctionName, DetectParams[] qParams, object[] args)
         {
-            //cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
-            ///#if DEBUG
-            ///            Console.WriteLine("ScriptEngine: Inside ExecuteEvent for event " + FunctionName);
-            ///#endif
-            // Execute a function in the script
-            //m_scriptEngine.Log.Info("[" + ScriptEngineName + "]: Executing Function localID: " + localID + ", itemID: " + itemID + ", FunctionName: " + FunctionName);
-            //ScriptBaseInterface Script = (ScriptBaseInterface)GetScript(localID, itemID);
-            IScript Script = GetScript(localID, itemID);
-            if (Script == null)
-            {
+            InstanceData id = GetScript(localID, itemID);
+            if (id == null)
                 return;
-            }
-            //cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
-            ///#if DEBUG
-            ///            Console.WriteLine("ScriptEngine: Executing event: " + FunctionName);
-            ///#endif
-            // Must be done in correct AppDomain, so leaving it up to the script itself
-            detparms[Script] = qParams;
-            Script.Exec.ExecuteEvent(FunctionName, args);
-            detparms.Remove(Script);
+
+            detparms[id] = qParams;
+            if (id.Running)
+                id.Script.Exec.ExecuteEvent(id.State, FunctionName, args);
+            detparms.Remove(id);
         }
 
         public uint GetLocalID(UUID itemID)
         {
-            foreach (KeyValuePair<uint, Dictionary<UUID, IScript> > k in Scripts)
+            foreach (KeyValuePair<uint, Dictionary<UUID, InstanceData> > k
+                    in Scripts)
             {
                 if (k.Value.ContainsKey(itemID))
                     return k.Key;
@@ -502,15 +463,15 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Queued script for load", m_scriptEngine.Sc
 
         public int GetStateEventFlags(uint localID, UUID itemID)
         {
-            // Console.WriteLine("GetStateEventFlags for <" + localID + "," + itemID + ">");
             try
             {
-                IScript Script = GetScript(localID, itemID);
-                if (Script == null)
+                InstanceData id = GetScript(localID, itemID);
+                if (id == null)
                 {
                     return 0;
                 }
-                ExecutorBase.scriptEvents evflags = Script.Exec.GetStateEventFlags();
+                ExecutorBase.scriptEvents evflags =
+                        id.Script.Exec.GetStateEventFlags(id.State);
                 return (int)evflags;
             }
             catch (Exception)
@@ -530,50 +491,50 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Queued script for load", m_scriptEngine.Sc
             if (Scripts.ContainsKey(localID) == false)
                 return new List<UUID>();
 
-            Dictionary<UUID, IScript> Obj;
+            Dictionary<UUID, InstanceData> Obj;
             Scripts.TryGetValue(localID, out Obj);
 
             return new List<UUID>(Obj.Keys);
         }
 
-        public IScript GetScript(uint localID, UUID itemID)
+        public InstanceData GetScript(uint localID, UUID itemID)
         {
             lock (scriptLock)
             {
-                IScript Script = null;
+                InstanceData id = null;
 
                 if (Scripts.ContainsKey(localID) == false)
                     return null;
 
-                Dictionary<UUID, IScript> Obj;
+                Dictionary<UUID, InstanceData> Obj;
                 Scripts.TryGetValue(localID, out Obj);
                 if (Obj.ContainsKey(itemID) == false)
                     return null;
 
                 // Get script
-                Obj.TryGetValue(itemID, out Script);
-                return Script;
+                Obj.TryGetValue(itemID, out id);
+                return id;
             }
         }
 
-        public void SetScript(uint localID, UUID itemID, IScript Script)
+        public void SetScript(uint localID, UUID itemID, InstanceData id)
         {
             lock (scriptLock)
             {
                 // Create object if it doesn't exist
                 if (Scripts.ContainsKey(localID) == false)
                 {
-                    Scripts.Add(localID, new Dictionary<UUID, IScript>());
+                    Scripts.Add(localID, new Dictionary<UUID, InstanceData>());
                 }
 
                 // Delete script if it exists
-                Dictionary<UUID, IScript> Obj;
+                Dictionary<UUID, InstanceData> Obj;
                 Scripts.TryGetValue(localID, out Obj);
                 if (Obj.ContainsKey(itemID) == true)
                     Obj.Remove(itemID);
 
                 // Add to object
-                Obj.Add(itemID, Script);
+                Obj.Add(itemID, id);
             }
         }
 
@@ -587,7 +548,7 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Queued script for load", m_scriptEngine.Sc
                 return;
 
             // Delete script if it exists
-            Dictionary<UUID, IScript> Obj;
+            Dictionary<UUID, InstanceData> Obj;
             Scripts.TryGetValue(localID, out Obj);
             if (Obj.ContainsKey(itemID) == true)
                 Obj.Remove(itemID);
@@ -598,13 +559,13 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Queued script for load", m_scriptEngine.Sc
 
         public void ResetScript(uint localID, UUID itemID)
         {
-            IScript s = GetScript(localID, itemID);
-            string script = s.Source;
+            InstanceData id = GetScript(localID, itemID);
+            string script = id.Source;
             StopScript(localID, itemID);
             SceneObjectPart part = World.GetSceneObjectPart(localID);
             part.GetInventoryItem(itemID).PermsMask = 0;
             part.GetInventoryItem(itemID).PermsGranter = UUID.Zero;
-            StartScript(localID, itemID, script, s.StartParam, false);
+            StartScript(localID, itemID, script, id.StartParam, false);
         }
 
 
@@ -629,20 +590,10 @@ m_scriptEngine.Log.InfoFormat("[{0}]: Queued script for load", m_scriptEngine.Sc
 
         #endregion
 
-        ///// <summary>
-        ///// If set to true then threads and stuff should try to make a graceful exit
-        ///// </summary>
-        //public bool PleaseShutdown
-        //{
-        //    get { return _PleaseShutdown; }
-        //    set { _PleaseShutdown = value; }
-        //}
-        //private bool _PleaseShutdown = false;
-        
-        public DetectParams[] GetDetectParams(IScript script)
+        public DetectParams[] GetDetectParams(InstanceData id)
         {
-            if (detparms.ContainsKey(script))
-                return detparms[script];
+            if (detparms.ContainsKey(id))
+                return detparms[id];
 
             return null;
         }

@@ -43,22 +43,22 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
 
-        protected override scriptEvents DoGetStateEventFlags()
+        protected override scriptEvents DoGetStateEventFlags(string state)
         {
-            // Console.WriteLine("Get event flags for " + m_Script.State);
+            // Console.WriteLine("Get event flags for " + state);
 
             // Check to see if we've already computed the flags for this state
             scriptEvents eventFlags = scriptEvents.None;
-            if (m_stateEvents.ContainsKey(m_Script.State))
+            if (m_stateEvents.ContainsKey(state))
             {
-                m_stateEvents.TryGetValue(m_Script.State, out eventFlags);
+                m_stateEvents.TryGetValue(state, out eventFlags);
                 return eventFlags;
             }
 
             // Fill in the events for this state, cache the results in the map
             foreach (KeyValuePair<string, scriptEvents> kvp in m_eventFlagsMap)
             {
-                string evname = m_Script.State + "_event_" + kvp.Key;
+                string evname = state + "_event_" + kvp.Key;
                 Type type = m_Script.GetType();
                 try
                 {
@@ -75,16 +75,16 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
             // Save the flags we just computed and return the result
-            m_stateEvents.Add(m_Script.State, eventFlags);
+            m_stateEvents.Add(state, eventFlags);
             return (eventFlags);
         }
 
-        protected override void DoExecuteEvent(string FunctionName, object[] args)
+        protected override void DoExecuteEvent(string state, string FunctionName, object[] args)
         {
             // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
             // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
 
-            string EventName = m_Script.State + "_event_" + FunctionName;
+            string EventName = state + "_event_" + FunctionName;
 
 //#if DEBUG
 //            Console.WriteLine("ScriptEngine: Script event function name: " + EventName);

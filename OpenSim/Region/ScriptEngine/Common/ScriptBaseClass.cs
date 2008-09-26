@@ -74,12 +74,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private string m_state = "default";
 
-        public String State
-        {
-            get { return m_state; }
-            set { m_state = value; }
-        }
-
         public void state(string newState)
         {
             m_LSL_Functions.state(newState);
@@ -98,22 +92,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public ILSL_Api m_LSL_Functions;
         public IOSSL_Api m_OSSL_Functions;
-        private string _Source = String.Empty;
-        public string Source
-        {
-            get
-            {
-                return _Source;
-            }
-            set { _Source = value; }
-        }
-
-        private int m_StartParam = 0;
-        public int StartParam
-        {
-            get { return m_StartParam; }
-            set { m_StartParam = value; }
-        }
 
         public ScriptBaseClass()
         {
