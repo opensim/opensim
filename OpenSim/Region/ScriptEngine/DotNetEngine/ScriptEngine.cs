@@ -36,7 +36,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenMetaverse;
 using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Region.ScriptEngine.Common;
+using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {

@@ -1931,49 +1931,6 @@
     </Project>
 
 
-    <Project name="OpenSim.Region.ScriptEngine.Common" path="OpenSim/Region/ScriptEngine/Common" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <ReferencePath>../../../../bin/ScriptEngines/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="OpenSim" />
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
-      <Reference name="OpenSim.Region.Interfaces" />
-      <Reference name="OpenSim.Region.Physics.Manager" />
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
-      <Reference name="OpenSim.Region.ScriptEngine.Shared.Api"/>
-      <Reference name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime"/>
-      <Reference name="Nini.dll" />
-      <Reference name="RAIL.dll"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="Nini.dll" />
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true" >
-          <Exclude name="Tests" pattern="Tests" />
-        </Match>
-      </Files>
-    </Project>
-
     <Project name="OpenSim.Region.ScriptEngine.DotNetEngine" path="OpenSim/Region/ScriptEngine/DotNetEngine" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1998,7 +1955,6 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Region.Interfaces" />
-      <Reference name="OpenSim.Region.ScriptEngine.Common"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api"/>
       <Reference name="Microsoft.JScript"/>

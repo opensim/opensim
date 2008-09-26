@@ -217,23 +217,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         }
 
-        ////private ICodeCompiler icc = codeProvider.CreateCompiler();
-        //public string CompileFromFile(string LSOFileName)
-        //{
-        //    switch (Path.GetExtension(LSOFileName).ToLower())
-        //    {
-        //        case ".txt":
-        //        case ".lsl":
-        //            Common.ScriptEngineBase.Common.SendToDebug("Source code is LSL, converting to CS");
-        //            return CompileFromLSLText(File.ReadAllText(LSOFileName));
-        //        case ".cs":
-        //            Common.ScriptEngineBase.Common.SendToDebug("Source code is CS");
-        //            return CompileFromCSText(File.ReadAllText(LSOFileName));
-        //        default:
-        //            throw new Exception("Unknown script type.");
-        //    }
-        //}
-
         /// <summary>
         /// Converts script from LSL to CS and calls CompileFromCSText
         /// </summary>
@@ -332,9 +315,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private static string CreateJSCompilerScript(string compileScript)
         {
             compileScript = String.Empty +
-                "import OpenSim.Region.ScriptEngine.Common; import OpenSim.Region.ScriptEngine.Shared; import System.Collections.Generic;\r\n" +
+                "import OpenSim.Region.ScriptEngine.Shared; import System.Collections.Generic;\r\n" +
                 "package SecondLife {\r\n" +
-                "class Script extends OpenSim.Region.ScriptEngine.Common.ScriptBaseClass { \r\n" +
+                "class Script extends OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass { \r\n" +
                 compileScript +
                 "} }\r\n";
             return compileScript;
@@ -343,9 +326,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private static string CreateCSCompilerScript(string compileScript)
         {
             compileScript = String.Empty +
-                "using OpenSim.Region.ScriptEngine.Common; using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\r\n" +
+                "using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\r\n" +
                 String.Empty + "namespace SecondLife { " +
-                String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.ScriptBaseClass { \r\n" +
+                String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass { \r\n" +
                 @"public Script() { } " +
                 compileScript +
                 "} }\r\n";
@@ -356,9 +339,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         {
             compileScript = String.Empty +
                        "using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog; " +
-                        "using OpenSim.Region.ScriptEngine.Common; using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\r\n" +
+                        "using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\r\n" +
                         String.Empty + "namespace SecondLife { " +
-                        String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.ScriptBaseClass { \r\n" +
+                        String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass { \r\n" +
                         //@"public Script() { } " +
                         @"static OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP YP=null; " +
                         @"public Script() {  YP= new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP(); } "+
@@ -371,9 +354,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private static string CreateVBCompilerScript(string compileScript)
         {
             compileScript = String.Empty +
-                        "Imports OpenSim.Region.ScriptEngine.Common: Imports OpenSim.Region.ScriptEngine.Shared: Imports System.Collections.Generic: " +
+                        "Imports OpenSim.Region.ScriptEngine.Shared: Imports System.Collections.Generic: " +
                         String.Empty + "NameSpace SecondLife:" +
-                        String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Common.ScriptBaseClass: " +
+                        String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass: " +
                         "\r\nPublic Sub New()\r\nEnd Sub: " +
                         compileScript +
                         ":End Class :End Namespace\r\n";
@@ -439,9 +422,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             string rootPath = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
             string rootPathSE = Path.GetDirectoryName(GetType().Assembly.Location);
             //Console.WriteLine("Assembly location: " + rootPath);
-            parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Common.dll"));
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.dll"));
-            parameters.ReferencedAssemblies.Add(Path.Combine(rootPathSE, "OpenSim.Region.ScriptEngine.DotNetEngine.dll"));
+            parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll"));
+
+            if (lang == enumCompileType.yp)
+            {
+                parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.YieldProlog.dll"));
+            }
 
             //parameters.ReferencedAssemblies.Add("OpenSim.Region.Environment");
             parameters.GenerateExecutable = false;

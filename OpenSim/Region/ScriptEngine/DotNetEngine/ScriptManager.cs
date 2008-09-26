@@ -31,13 +31,14 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ScriptEngine.Common;
+using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -446,7 +447,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             detparms[id] = qParams;
             if (id.Running)
-                id.Script.Exec.ExecuteEvent(id.State, FunctionName, args);
+                id.Script.ExecuteEvent(id.State, FunctionName, args);
             detparms.Remove(id);
         }
 
@@ -470,8 +471,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 {
                     return 0;
                 }
-                ExecutorBase.scriptEvents evflags =
-                        id.Script.Exec.GetStateEventFlags(id.State);
+                int evflags = id.Script.GetStateEventFlags(id.State);
+
                 return (int)evflags;
             }
             catch (Exception)
