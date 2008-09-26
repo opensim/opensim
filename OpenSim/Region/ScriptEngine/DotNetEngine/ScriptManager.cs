@@ -39,6 +39,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
+using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -87,13 +88,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             Unload = 2
         }
 
-        public Dictionary<UUID, String> scriptList =
-                new Dictionary<UUID, string>();
-
         public Dictionary<uint, Dictionary<UUID, InstanceData>> Scripts =
             new Dictionary<uint, Dictionary<UUID, InstanceData>>();
 
-        private Compiler.LSL.Compiler LSLCompiler;
+        private Compiler LSLCompiler;
 
         public Scene World
         {
@@ -105,7 +103,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public void Initialize()
         {
             // Create our compiler
-            LSLCompiler = new Compiler.LSL.Compiler(m_scriptEngine);
+            LSLCompiler = new Compiler(m_scriptEngine);
         }
 
         public void _StartScript(uint localID, UUID itemID, string Script,
@@ -136,23 +134,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (m_host.TaskInventory.TryGetValue(itemID, out taskInventoryItem))
                 assetID = taskInventoryItem.AssetID;
 
+            ScenePresence presence =
+                    World.GetScenePresence(taskInventoryItem.OwnerID);
+
             try
             {
-                if (scriptList.TryGetValue(assetID, out CompiledScriptFile))
-                {
-                    m_log.InfoFormat("[SCRIPT]: Found existing compile of "+
-                            "assetID {0}: {1}", assetID, CompiledScriptFile);
-                }
-                else
-                {
-                    // Compile (We assume LSL)
-                    CompiledScriptFile =
-                            LSLCompiler.PerformScriptCompile(Script);
+                // Compile (We assume LSL)
+                CompiledScriptFile =
+                        LSLCompiler.PerformScriptCompile(Script,
+                        assetID.ToString());
 
-                    m_log.InfoFormat("[SCRIPT]: Compiled assetID {0}: {1}",
-                            assetID, CompiledScriptFile);
-                    scriptList.Add(assetID, CompiledScriptFile);
-                }
+                if (presence != null)
+                    presence.ControllingClient.SendAgentAlertMessage(
+                            "Compile successful", false);
+
+                m_log.InfoFormat("[SCRIPT]: Compiled assetID {0}: {1}",
+                        assetID, CompiledScriptFile);
 
                 InstanceData id = new InstanceData();
 
@@ -201,6 +198,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             catch (Exception e) // LEGIT: User Scripting
             {
+                if (presence != null)
+                    presence.ControllingClient.SendAgentAlertMessage(
+                            "Script saved with errors, check debug window!",
+                            false);
                 try
                 {
                     // DISPLAY ERROR INWORLD

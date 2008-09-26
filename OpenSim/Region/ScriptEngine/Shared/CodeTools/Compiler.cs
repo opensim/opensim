@@ -83,8 +83,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         // private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
 
-        public IScriptEngine m_scriptEngine;
-        public Compiler(IScriptEngine scriptEngine)
+        public IEventReceiver m_scriptEngine;
+        public Compiler(IEventReceiver scriptEngine)
         {
             m_scriptEngine = scriptEngine;
             ReadConfig();
