@@ -4709,8 +4709,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetAttached()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetAttached");
-            return 0;
+            return m_host.ParentGroup.RootPart.AttachmentPoint;
         }
 
         public LSL_Integer llGetFreeMemory()
