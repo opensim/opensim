@@ -439,13 +439,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         #region Perform event execution in script
 
-        /// <summary>
-        /// Execute a LL-event-function in Script
-        /// </summary>
-        /// <param name="localID">Object the script is located in</param>
-        /// <param name="itemID">Script ID</param>
-        /// <param name="FunctionName">Name of function</param>
-        /// <param name="args">Arguments to pass to function</param>
+        // Execute a LL-event-function in Script
         internal void ExecuteEvent(uint localID, UUID itemID,
                 string FunctionName, DetectParams[] qParams, object[] args)
         {
@@ -454,8 +448,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 return;
 
             detparms[id] = qParams;
+
             if (id.Running)
                 id.Script.ExecuteEvent(id.State, FunctionName, args);
+
             detparms.Remove(id);
         }
 

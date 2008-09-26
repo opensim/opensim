@@ -356,6 +356,31 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         engine = engineName;
                         script = "//" + script.Substring(script.IndexOf(':')+1);
                     }
+                    else
+                    {
+                        if (engine == ScriptEngineName)
+                        {
+                            SceneObjectPart part =
+                                    m_Scene.GetSceneObjectPart(
+                                    localID);
+                         
+                            TaskInventoryItem item =
+                                    part.GetInventoryItem(itemID);
+
+                            ScenePresence presence = 
+                                    m_Scene.GetScenePresence(
+                                    item.OwnerID);
+
+                            if (presence != null)
+                            {
+                               presence.ControllingClient.SendAgentAlertMessage(
+                                        "Selected engine unavailable. "+
+                                        "Running script on "+
+                                        ScriptEngineName,
+                                        false);
+                            }
+                        }
+                    }
                 }
             }
 

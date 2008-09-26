@@ -46,21 +46,26 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     public class EventManager : iScriptEngineFunctionModule
     {
         //
-        // Class is instanced in "ScriptEngine" and Uses "EventQueueManager" that is also instanced in "ScriptEngine".
+        // Class is instanced in "ScriptEngine" and Uses "EventQueueManager"
+        // that is also instanced in "ScriptEngine".
         // This class needs a bit of explaining:
         //
-        // This class it the link between an event inside OpenSim and the corresponding event in a user script being executed.
+        // This class it the link between an event inside OpenSim and
+        // the corresponding event in a user script being executed.
         //
-        // For example when an user touches an object then the "myScriptEngine.World.EventManager.OnObjectGrab" event is fired inside OpenSim.
-        // We hook up to this event and queue a touch_start in EventQueueManager with the proper LSL parameters.
+        // For example when an user touches an object then the
+        // "myScriptEngine.World.EventManager.OnObjectGrab" event is fired
+        // inside OpenSim.
+        // We hook up to this event and queue a touch_start in
+        // EventQueueManager with the proper LSL parameters.
         // It will then be delivered to the script by EventQueueManager.
         //
-        // You can check debug C# dump of an LSL script if you need to verify what exact parameters are needed.
+        // You can check debug C# dump of an LSL script if you need to
+        // verify what exact parameters are needed.
         //
 
-
         private ScriptEngine myScriptEngine;
-        //public IScriptHost TEMP_OBJECT_ID;
+
         public EventManager(ScriptEngine _ScriptEngine, bool performHookUp)
         {
             myScriptEngine = _ScriptEngine;
@@ -74,28 +79,34 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         
         public void HookUpEvents()
         {
-            // Hook up to events from OpenSim
-            // We may not want to do it because someone is controlling us and will deliver events to us
+            myScriptEngine.Log.Info("[" + myScriptEngine.ScriptEngineName +
+                    "]: Hooking up to server events");
 
-            myScriptEngine.Log.Info("[" + myScriptEngine.ScriptEngineName + "]: Hooking up to server events");
-            myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
-            myScriptEngine.World.EventManager.OnObjectDeGrab += touch_end;
-            myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
-            myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
-            myScriptEngine.World.EventManager.OnScriptAtTargetEvent += at_target;
-            myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
-            myScriptEngine.World.EventManager.OnScriptControlEvent += control;
-            myScriptEngine.World.EventManager.OnScriptColliderStart += collision_start;
-            myScriptEngine.World.EventManager.OnScriptColliding += collision;
-            myScriptEngine.World.EventManager.OnScriptCollidingEnd += collision_end;
+            myScriptEngine.World.EventManager.OnObjectGrab +=
+                    touch_start;
+            myScriptEngine.World.EventManager.OnObjectDeGrab +=
+                    touch_end;
+            myScriptEngine.World.EventManager.OnRemoveScript +=
+                    OnRemoveScript;
+            myScriptEngine.World.EventManager.OnScriptChangedEvent +=
+                    changed;
+            myScriptEngine.World.EventManager.OnScriptAtTargetEvent +=
+                    at_target;
+            myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent +=
+                    not_at_target;
+            myScriptEngine.World.EventManager.OnScriptControlEvent +=
+                    control;
+            myScriptEngine.World.EventManager.OnScriptColliderStart +=
+                    collision_start;
+            myScriptEngine.World.EventManager.OnScriptColliding +=
+                    collision;
+            myScriptEngine.World.EventManager.OnScriptCollidingEnd +=
+                    collision_end;
 
-            // TODO: HOOK ALL EVENTS UP TO SERVER!
-            IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
+            IMoneyModule money =
+                    myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
             if (money != null)
-            {
                 money.OnObjectPaid+=HandleObjectPaid;
-            }
-
         }
 
         public void ReadConfig()
@@ -104,7 +115,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         private void HandleObjectPaid(UUID objectID, UUID agentID, int amount)
         {
-            SceneObjectPart part=myScriptEngine.World.GetSceneObjectPart(objectID);
+            SceneObjectPart part =
+                    myScriptEngine.World.GetSceneObjectPart(objectID);
+
             if (part != null)
             {
                 money(part.LocalId, agentID, amount);
@@ -127,8 +140,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     new DetectParams[0]));
         }
 
-        public void touch_start(uint localID, uint originalID, Vector3 offsetPos,
-                IClientAPI remoteClient)
+        public void touch_start(uint localID, uint originalID,
+                Vector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
             DetectParams[] det = new DetectParams[1];
@@ -138,7 +151,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             if (originalID == 0)
             {
-                SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(localID);
+                SceneObjectPart part =
+                        myScriptEngine.World.GetSceneObjectPart(localID);
+
                 if (part == null)
                     return;
 
@@ -146,7 +161,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             else
             {
-                SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
+                SceneObjectPart originalPart =
+                        myScriptEngine.World.GetSceneObjectPart(originalID);
                 det[0].LinkNum = originalPart.LinkNum;
             }
 
@@ -196,7 +212,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             if (originalID == 0)
             {
-                SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(localID);
+                SceneObjectPart part =
+                        myScriptEngine.World.GetSceneObjectPart(localID);
                 if (part == null)
                     return;
 
@@ -204,7 +221,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             else
             {
-                SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
+                SceneObjectPart originalPart =
+                        myScriptEngine.World.GetSceneObjectPart(originalID);
                 det[0].LinkNum = originalPart.LinkNum;
             }
 
@@ -213,9 +231,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     det));
         }
 
-        public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
+        public void OnRezScript(uint localID, UUID itemID, string script,
+                int startParam, bool postOnRez, string engine)
         {
-            List<IScriptModule> engines = new List<IScriptModule>(myScriptEngine.World.RequestModuleInterfaces<IScriptModule>());
+            List<IScriptModule> engines =
+                new List<IScriptModule>(
+                myScriptEngine.World.RequestModuleInterfaces<IScriptModule>());
 
             List<string> names = new List<string>();
             foreach (IScriptModule m in engines)
@@ -228,7 +249,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 string firstline = script.Substring(0, lineEnd).Trim();
 
                 int colon = firstline.IndexOf(':');
-                if (firstline.Length > 2 && firstline.Substring(0, 2) == "//" && colon != -1)
+                if (firstline.Length > 2 &&
+                    firstline.Substring(0, 2) == "//" && colon != -1)
                 {
                     string engineName = firstline.Substring(2, colon-2);
 
@@ -237,15 +259,43 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         engine = engineName;
                         script = "//" + script.Substring(script.IndexOf(':')+1);
                     }
+                    else
+                    {
+                        if (engine == myScriptEngine.ScriptEngineName)
+                        {
+                            SceneObjectPart part =
+                                    myScriptEngine.World.GetSceneObjectPart(
+                                    localID);
+
+                            TaskInventoryItem item =
+                                    part.GetInventoryItem(itemID);
+
+                            ScenePresence presence =
+                                    myScriptEngine.World.GetScenePresence(
+                                    item.OwnerID);
+
+                            if (presence != null)
+                            {
+                               presence.ControllingClient.SendAgentAlertMessage(
+                                        "Selected engine unavailable. "+
+                                        "Running script on "+
+                                        myScriptEngine.ScriptEngineName,
+                                        false);
+                            }
+                        }
+                    }
                 }
             }
 
             if (engine != myScriptEngine.ScriptEngineName)
                 return;
 
-            myScriptEngine.Log.Debug("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +
-                              script.Length);
-            myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script, startParam, postOnRez);
+            myScriptEngine.Log.Debug("OnRezScript localID: " + localID +
+                    " LLUID: " + itemID.ToString() + " Size: " +
+                    script.Length);
+
+            myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script,
+                    startParam, postOnRez);
         }
 
         public void OnRemoveScript(uint localID, UUID itemID)
