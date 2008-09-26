@@ -28,10 +28,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 {
@@ -74,9 +77,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         }
 
         public void HandleXfer(ulong xferID, uint packetID, byte[] data)
-        {
-            // AssetXferUploader uploaderFound = null;
-
+        {         
             lock (XferUploaders)
             {
                 foreach (AssetXferUploader uploader in XferUploaders.Values)
@@ -110,6 +111,15 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 XferUploaders[transactionID].RequestUpdateInventoryItem(remoteClient, transactionID, item);
             }
         }
+        
+        public void RequestUpdateTaskInventoryItem(
+            IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
+        {      
+            if (XferUploaders.ContainsKey(transactionID))
+            {
+                XferUploaders[transactionID].RequestUpdateTaskInventoryItem(remoteClient, part, transactionID, item);
+            } 
+        }
 
         /// <summary>
         /// Get an uploaded asset.  If the data is successfully retrieved, the transaction will be removed.
@@ -140,6 +150,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
         public class AssetXferUploader
         {
+            private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+            
             // Fields
             public bool AddToInventory;
             public AssetBase Asset;
@@ -225,6 +237,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
                 TransactionID = transaction;
                 m_storeLocal = storeLocal;
+                
                 if (Asset.Data.Length > 2)
                 {
                     SendCompleteMessage();
@@ -251,7 +264,6 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
                 ourClient.SendAssetUploadCompleteMessage(Asset.Type, true, Asset.FullID);
 
-
                 m_finished = true;
                 if (m_createItem)
                 {
@@ -262,7 +274,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(Asset);
                 }
 
-                // Console.WriteLine("upload complete "+ this.TransactionID);
+                m_log.DebugFormat("[ASSET TRANSACTIONS]: Uploaded asset data for transaction {0}", TransactionID);
 
                 if (m_dumpAssetToFile)
                 {
@@ -274,15 +286,6 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 }
             }
 
-            ///Left this in and commented in case there are unforseen issues
-            //private void SaveAssetToFile(string filename, byte[] data)
-            //{
-            //    FileStream fs = File.Create(filename);
-            //    BinaryWriter bw = new BinaryWriter(fs);
-            //    bw.Write(data);
-            //    bw.Close();
-            //    fs.Close();
-            //}
             private void SaveAssetToFile(string filename, byte[] data)
             {
                 string assetPath = "UserAssets";
@@ -314,6 +317,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     Asset.Description = description;
                     Asset.Type = type;
                     m_createItem = true;
+                    
                     if (m_finished)
                     {
                         DoCreateItem();
@@ -359,7 +363,25 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     }
                 }
             }
-
+            
+            public void RequestUpdateTaskInventoryItem(
+                IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
+            {
+                m_log.DebugFormat(
+                    "[ASSET TRANSACTIONS]: Updating task item {0} in {1} with asset in transaction {2}", 
+                    item.Name, part.Name, transactionID);
+                
+                Asset.Name = item.Name;
+                Asset.Description = item.Description;
+                Asset.Type = (sbyte) item.Type;
+                item.AssetID = Asset.FullID;
+                
+                m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(Asset);
+                
+                if (part.UpdateInventoryItem(item))
+                    part.GetProperties(remoteClient);                 
+            }              
+                        
             private void DoCreateItem()
             {
                 //really need to fix this call, if lbsa71 saw this he would die.

@@ -27,6 +27,7 @@
 
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
@@ -38,6 +39,9 @@ namespace OpenSim.Region.Environment.Interfaces
         void HandleItemCreationFromTransaction(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                                uint callbackID, string description, string name, sbyte invType,
                                                sbyte type, byte wearableType, uint nextOwnerMask);
+        
+        void HandleTaskItemUpdateFromTransaction(
+            IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item);      
 
         void RemoveAgentAssetTransactions(UUID userID);
     }

@@ -1256,12 +1256,13 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
                 else // Updating existing item with new perms etc
-                {
-                    TaskInventoryItem prevItem = part.GetInventoryItem(itemID);
-System.Console.WriteLine("Item asset {0}, request asset {1}", prevItem.AssetID.ToString(), itemInfo.AssetID.ToString());
-                    itemInfo.AssetID = prevItem.AssetID;
-                    if (part.UpdateInventoryItem(itemInfo))
-                        part.GetProperties(remoteClient);
+                {                    
+                    IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
+                    if (agentTransactions != null)
+                    {
+                        agentTransactions.HandleTaskItemUpdateFromTransaction(
+                            remoteClient, part, transactionID, currentItem);
+                    }                    
                 }
             }
             else
