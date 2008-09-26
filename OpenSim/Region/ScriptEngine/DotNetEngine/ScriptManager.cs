@@ -52,6 +52,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public string Source;
         public int StartParam;
         public AppDomain AppDomain;
+        public Dictionary<string, IScriptApi> Apis;
     }
 
     public class ScriptManager
@@ -168,15 +169,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // Add it to our script memstruct
                 m_scriptEngine.m_ScriptManager.SetScript(localID, itemID, id);
 
-                LSL_Api LSL = new LSL_Api();
-                OSSL_Api OSSL = new OSSL_Api();
+                id.Apis = new Dictionary<string, IScriptApi>();
 
-                LSL.Initialize(m_scriptEngine, m_host, localID, itemID);
-                OSSL.Initialize(m_scriptEngine, m_host, localID, itemID);
+                ApiManager am = new ApiManager();
 
-                // Start the script - giving it the APIs
-                CompiledScript.InitApi("LSL", LSL);
-                CompiledScript.InitApi("OSSL", OSSL);
+                foreach (string api in am.GetApis())
+                {
+                    id.Apis[api] = am.CreateApi(api);
+                    id.Apis[api].Initialize(m_scriptEngine, m_host,
+                            localID, itemID);
+                }
+
+                foreach (KeyValuePair<string,IScriptApi> kv in id.Apis)
+                {
+                    CompiledScript.InitApi(kv.Key, kv.Value);
+                }
 
                 // Fire the first start-event
                 int eventFlags =
