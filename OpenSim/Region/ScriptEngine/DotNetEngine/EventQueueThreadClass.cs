@@ -43,7 +43,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     // Because every thread needs some data set for it
     // (time started to execute current function), it will do its work
     // within a class
-    public class EventQueueThreadClass : iScriptEngineFunctionModule
+    public class EventQueueThreadClass
     {
         // How many ms to sleep if queue is empty
         private static int nothingToDoSleepms;// = 50;

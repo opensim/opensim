@@ -38,7 +38,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// Events are queued and executed in separate thread
     /// </summary>
     [Serializable]
-    public class EventQueueManager : iScriptEngineFunctionModule
+    public class EventQueueManager
     {
         //
         // Class is instanced in "ScriptEngine" and used by "EventManager" which is also instanced in "ScriptEngine".

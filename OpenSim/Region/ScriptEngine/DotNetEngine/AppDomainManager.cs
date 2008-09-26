@@ -34,7 +34,7 @@ using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
-    public class AppDomainManager : iScriptEngineFunctionModule
+    public class AppDomainManager
     {
         //
         // This class does AppDomain handling and loading/unloading of

@@ -37,7 +37,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     /// <summary>
     /// This class does maintenance on script engine.
     /// </summary>
-    public class MaintenanceThread : iScriptEngineFunctionModule
+    public class MaintenanceThread
     {
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
