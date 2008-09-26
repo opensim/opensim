@@ -1391,8 +1391,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private bool ItemHasChanged(InventoryItemBase newf, InventoryItemBase oldf)
         {
-            return (newf.Name            != oldf.Name
-                    || newf.Folder      != oldf.Description
+            return (newf.Name           != oldf.Name
+                    || newf.Folder      != oldf.Folder
                     || newf.Description != oldf.Description
                     || newf.Owner       != oldf.Owner
                     || newf.Creator     != oldf.Creator
