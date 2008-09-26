@@ -51,6 +51,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 return;
 
             m_OSSL_Functions = (IOSSL_Api)api;
+
+            Prim = new OSSLPrim(this);
         }
 
         public void osSetRegionWaterHeight(double height)
@@ -223,6 +225,191 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public Hashtable osParseJSON(string JSON)
         {
             return m_OSSL_Functions.osParseJSON(JSON);
+        }
+
+        public OSSLPrim Prim;
+
+        [Serializable]
+        public class OSSLPrim
+        {
+            internal ScriptBaseClass OSSL;
+            public OSSLPrim(ScriptBaseClass bc)
+            {
+                OSSL = bc;
+                Position = new OSSLPrim_Position(this);
+                Rotation = new OSSLPrim_Rotation(this);
+            }
+
+            public OSSLPrim_Position Position;
+            public OSSLPrim_Rotation Rotation;
+            private TextStruct _text;
+            public TextStruct Text
+            {
+                get { return _text; }
+                set
+                {
+                    _text = value;
+                    OSSL.llSetText(_text.Text, _text.color, _text.alpha);
+                }
+            }
+
+            [Serializable]
+            public struct TextStruct
+            {
+                public string Text;
+                public LSL_Types.Vector3 color;
+                public double alpha;
+            }
+        }
+
+        [Serializable]
+        public class OSSLPrim_Position
+        {
+            private OSSLPrim prim;
+            private LSL_Types.Vector3 Position;
+            public OSSLPrim_Position(OSSLPrim _prim)
+            {
+                prim = _prim;
+            }
+            private void Load()
+            {
+                Position = prim.OSSL.llGetPos();
+            }
+            private void Save()
+            {
+                if (Position.x > 255)
+                    Position.x = 255;
+                if (Position.x < 0)
+                    Position.x = 0;
+                if (Position.y > 255)
+                    Position.y = 255;
+                if (Position.y < 0)
+                    Position.y = 0;
+                if (Position.z > 768)
+                    Position.z = 768;
+                if (Position.z < 0)
+                    Position.z = 0;
+                prim.OSSL.llSetPos(Position);
+            }
+
+            public double x
+            {
+                get
+                {
+                    Load();
+                    return Position.x;
+                }
+                set
+                {
+                    Load();
+                    Position.x = value;
+                    Save();
+                }
+            }
+            public double y
+            {
+                get
+                {
+                    Load();
+                    return Position.y;
+                }
+                set
+                {
+                    Load();
+                    Position.y = value;
+                    Save();
+                }
+            }
+            public double z
+            {
+                get
+                {
+                    Load();
+                    return Position.z;
+                }
+                set
+                {
+                    Load();
+                    Position.z = value;
+                    Save();
+                }
+            }
+        }
+
+        [Serializable]
+        public class OSSLPrim_Rotation
+        {
+            private OSSLPrim prim;
+            private LSL_Types.Quaternion Rotation;
+            public OSSLPrim_Rotation(OSSLPrim _prim)
+            {
+                prim = _prim;
+            }
+            private void Load()
+            {
+                Rotation = prim.OSSL.llGetRot();
+            }
+            private void Save()
+            {
+                prim.OSSL.llSetRot(Rotation);
+            }
+
+            public double x
+            {
+                get
+                {
+                    Load();
+                    return Rotation.x;
+                }
+                set
+                {
+                    Load();
+                    Rotation.x = value;
+                    Save();
+                }
+            }
+            public double y
+            {
+                get
+                {
+                    Load();
+                    return Rotation.y;
+                }
+                set
+                {
+                    Load();
+                    Rotation.y = value;
+                    Save();
+                }
+            }
+            public double z
+            {
+                get
+                {
+                    Load();
+                    return Rotation.z;
+                }
+                set
+                {
+                    Load();
+                    Rotation.z = value;
+                    Save();
+                }
+            }
+            public double s
+            {
+                get
+                {
+                    Load();
+                    return Rotation.s;
+                }
+                set
+                {
+                    Load();
+                    Rotation.s = value;
+                    Save();
+                }
+            }
         }
     }
 }

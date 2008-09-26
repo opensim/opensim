@@ -910,6 +910,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             return jsondata;                        
         }     
-        
     }
 }
