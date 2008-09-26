@@ -523,7 +523,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="transferRequest"></param>
         public void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest)
         {
-            UUID requestID = null;
+            UUID requestID = UUID.Zero;
             byte source = 2;
             if (transferRequest.TransferInfo.SourceType == 2)
             {

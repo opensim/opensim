@@ -162,16 +162,16 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client)
         {
             IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
-            uint regionFlags = 336723974 & ~((uint)(Simulator.RegionFlags.AllowLandmark | Simulator.RegionFlags.AllowSetHome));
+            uint regionFlags = 336723974 & ~((uint)(RegionFlags.AllowLandmark | RegionFlags.AllowSetHome));
             if (estateModule != null)
                 regionFlags = estateModule.GetRegionFlags();
 
             // In a perfect world, this would have worked.
             //
 //            if ((landData.Flags & (uint)Parcel.ParcelFlags.AllowLandmark) != 0)
-//                regionFlags |=  (uint)Simulator.RegionFlags.AllowLandmark;
+//                regionFlags |=  (uint)RegionFlags.AllowLandmark;
 //            if (landData.OwnerID == remote_client.AgentId)
-//                regionFlags |=  (uint)Simulator.RegionFlags.AllowSetHome;
+//                regionFlags |=  (uint)RegionFlags.AllowSetHome;
             remote_client.SendLandProperties(remote_client, sequence_id,
                     snap_selection, request_result, landData,
                     (float)m_scene.RegionInfo.RegionSettings.ObjectBonus,
@@ -252,7 +252,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 entry.AgentID = avatar;
-                entry.Flags = ParcelManager.AccessList.Ban;
+                entry.Flags = AccessList.Ban;
                 entry.Time = new DateTime();
                 if (landData.ParcelAccessList.Contains(entry))
                 {
@@ -269,7 +269,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 entry.AgentID = avatar;
-                entry.Flags = ParcelManager.AccessList.Access;
+                entry.Flags = AccessList.Access;
                 entry.Time = new DateTime();
                 if (!landData.ParcelAccessList.Contains(entry))
                 {
@@ -322,7 +322,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         #region AccessList Functions
 
-        public List<UUID>  createAccessListArrayByFlag(ParcelManager.AccessList flag)
+        public List<UUID>  createAccessListArrayByFlag(AccessList flag)
         {
             List<UUID> list = new List<UUID>();
             foreach (ParcelManager.ParcelAccessEntry entry in landData.ParcelAccessList)
@@ -344,16 +344,16 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                                    IClientAPI remote_client)
         {
 
-            if (flags == (uint) ParcelManager.AccessList.Access || flags == (uint) ParcelManager.AccessList.Both)
+            if (flags == (uint) AccessList.Access || flags == (uint) AccessList.Both)
             {
-                List<UUID> avatars = createAccessListArrayByFlag(ParcelManager.AccessList.Access);
-                remote_client.SendLandAccessListData(avatars,(uint) ParcelManager.AccessList.Access,landData.LocalID);
+                List<UUID> avatars = createAccessListArrayByFlag(AccessList.Access);
+                remote_client.SendLandAccessListData(avatars,(uint) AccessList.Access,landData.LocalID);
             }
 
-            if (flags == (uint) ParcelManager.AccessList.Ban || flags == (uint) ParcelManager.AccessList.Both)
+            if (flags == (uint) AccessList.Ban || flags == (uint) AccessList.Both)
             {
-                List<UUID> avatars = createAccessListArrayByFlag(ParcelManager.AccessList.Ban);
-                remote_client.SendLandAccessListData(avatars, (uint)ParcelManager.AccessList.Ban, landData.LocalID);
+                List<UUID> avatars = createAccessListArrayByFlag(AccessList.Ban);
+                remote_client.SendLandAccessListData(avatars, (uint)AccessList.Ban, landData.LocalID);
             }
         }
 
@@ -369,7 +369,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             List<ParcelManager.ParcelAccessEntry> toRemove = new List<ParcelManager.ParcelAccessEntry>();
             foreach (ParcelManager.ParcelAccessEntry entry in newData.ParcelAccessList)
             {
-                if (entry.Flags == (ParcelManager.AccessList) flags)
+                if (entry.Flags == (AccessList) flags)
                 {
                     toRemove.Add(entry);
                 }
@@ -384,7 +384,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 ParcelManager.ParcelAccessEntry temp = new ParcelManager.ParcelAccessEntry();
                 temp.AgentID = entry.AgentID;
                 temp.Time = new DateTime(); //Pointless? Yes.
-                temp.Flags = (ParcelManager.AccessList) flags;
+                temp.Flags = (AccessList) flags;
 
                 if (!newData.ParcelAccessList.Contains(temp))
                 {

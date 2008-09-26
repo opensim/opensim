@@ -1494,7 +1494,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal void MakeObjectSearchable(IClientAPI remoteClient, bool IncludeInSearch, uint localID)
         {
             UUID user = remoteClient.AgentId;
-            UUID objid = null;
+            UUID objid = UUID.Zero;
             SceneObjectPart obj = null;
 
             List<EntityBase> EntityList = GetEntities();

@@ -1052,7 +1052,7 @@ ELSE
                 retval.LogoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
 
                 // Current position
-                retval.Region = (string)reader["currentRegion"];
+                retval.Region = (UUID)(string)reader["currentRegion"];
                 retval.Handle = Convert.ToUInt64(reader["currentHandle"].ToString());
                 Vector3 tmp_v;
                 Vector3.TryParse((string)reader["currentPos"], out tmp_v);

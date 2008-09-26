@@ -36,6 +36,7 @@ using OpenSim.Framework.Statistics;
 using OpenSim.Framework.Statistics.Interfaces;
 using Timer=System.Timers.Timer;
 
+
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public class LLPacketQueue : IPullStatsProvider
@@ -45,7 +46,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool m_enabled = true;
 
-        private BlockingQueue<LLQueItem> SendQueue;
+        private OpenSim.Framework.BlockingQueue<LLQueItem> SendQueue;
 
         private Queue<LLQueItem> IncomingPacketQueue;
         private Queue<LLQueItem> OutgoingPacketQueue;
@@ -91,7 +92,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // in it to process.  it's an on-purpose threadlock though because
             // without it, the clientloop will suck up all sim resources.
 
-            SendQueue = new BlockingQueue<LLQueItem>();
+            SendQueue = new OpenSim.Framework.BlockingQueue<LLQueItem>();
 
             IncomingPacketQueue = new Queue<LLQueItem>();
             OutgoingPacketQueue = new Queue<LLQueItem>();

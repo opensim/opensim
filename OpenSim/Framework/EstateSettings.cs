@@ -434,28 +434,28 @@ namespace OpenSim.Framework
             switch (configuration_key)
             {
                 case "region_flags":
-                    Simulator.RegionFlags flags = (Simulator.RegionFlags)(uint)configuration_result;
-                    if ((flags & (Simulator.RegionFlags)(1<<29)) != 0)
+                    RegionFlags flags = (RegionFlags)(uint)configuration_result;
+                    if ((flags & (RegionFlags)(1<<29)) != 0)
                         m_AllowVoice = true;
-                    if ((flags & Simulator.RegionFlags.AllowDirectTeleport) != 0)
+                    if ((flags & RegionFlags.AllowDirectTeleport) != 0)
                         m_AllowDirectTeleport = true;
-                    if ((flags & Simulator.RegionFlags.DenyAnonymous) != 0)
+                    if ((flags & RegionFlags.DenyAnonymous) != 0)
                          m_DenyAnonymous = true;
-                    if ((flags & Simulator.RegionFlags.DenyIdentified) != 0)
+                    if ((flags & RegionFlags.DenyIdentified) != 0)
                         m_DenyIdentified = true;
-                    if ((flags & Simulator.RegionFlags.DenyTransacted) != 0)
+                    if ((flags & RegionFlags.DenyTransacted) != 0)
                         m_DenyTransacted = true;
-                    if ((flags & Simulator.RegionFlags.AbuseEmailToEstateOwner) != 0)
+                    if ((flags & RegionFlags.AbuseEmailToEstateOwner) != 0)
                         m_AbuseEmailToEstateOwner = true;
-                    if ((flags & Simulator.RegionFlags.BlockDwell) != 0)
+                    if ((flags & RegionFlags.BlockDwell) != 0)
                         m_BlockDwell = true;
-                    if ((flags & Simulator.RegionFlags.EstateSkipScripts) != 0)
+                    if ((flags & RegionFlags.EstateSkipScripts) != 0)
                         m_EstateSkipScripts = true;
-                    if ((flags & Simulator.RegionFlags.ResetHomeOnTeleport) != 0)
+                    if ((flags & RegionFlags.ResetHomeOnTeleport) != 0)
                         m_ResetHomeOnTeleport = true;
-                    if ((flags & Simulator.RegionFlags.TaxFree) != 0)
+                    if ((flags & RegionFlags.TaxFree) != 0)
                         m_TaxFree = true;
-                    if ((flags & Simulator.RegionFlags.PublicAllowed) != 0)
+                    if ((flags & RegionFlags.PublicAllowed) != 0)
                         m_PublicAccess = true;
                     break;
                 case "billable_factor":

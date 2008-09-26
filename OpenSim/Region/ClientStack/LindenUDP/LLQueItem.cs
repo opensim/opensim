@@ -40,6 +40,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public Packet Packet;
         public bool Incoming;
         public ThrottleOutPacketType throttleType;
+        public int TickCount;
         public Object Identifier;
     }
 }

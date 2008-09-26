@@ -109,6 +109,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             public Packet Packet;
             public Object Identifier;
+            public int TickCount;
         }
         
         private Dictionary<uint, AckData> m_NeedAck =
@@ -293,12 +294,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Packet packet, ThrottleOutPacketType throttlePacketType,
                 Object id)
         {
-            packet.TickCount = System.Environment.TickCount;
-
             LLQueItem item = new LLQueItem();
             item.Packet = packet;
             item.Incoming = false;
             item.throttleType = throttlePacketType;
+            item.TickCount = System.Environment.TickCount;
             item.Identifier = id;
 
             m_PacketQueue.Enqueue(item);
@@ -341,7 +341,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // Packets this old get resent
                     //
-                    if ((now - packet.TickCount) > m_ResendTimeout)
+                    if ((now - data.TickCount) > m_ResendTimeout)
                     {
                         // Resend the packet. Set the packet's tick count to
                         // now, and keep it marked as resent.
@@ -357,7 +357,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // pipes. Most likely, the client is gone
                     // Drop the packets
                     //
-                    if ((now - packet.TickCount) > m_DiscardTimeout)
+                    if ((now - data.TickCount) > m_DiscardTimeout)
                     {
                         if (!m_ImportantPackets.Contains(packet.Type))
                             m_NeedAck.Remove(packet.Header.Sequence);
@@ -729,7 +729,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Packet packet = item.Packet;
 
             // Keep track of when this packet was sent out
-            packet.TickCount = System.Environment.TickCount;
+            item.TickCount = System.Environment.TickCount;
 
             // Assign sequence number here to prevent out of order packets
             if (packet.Header.Sequence == 0)

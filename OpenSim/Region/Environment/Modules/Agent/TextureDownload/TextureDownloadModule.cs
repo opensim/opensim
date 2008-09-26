@@ -33,6 +33,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using BlockingQueue = OpenSim.Framework.BlockingQueue<OpenSim.Region.Environment.Interfaces.ITextureSender>;
 
 namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 {
@@ -44,8 +45,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// <summary>
         /// There is one queue for all textures waiting to be sent, regardless of the requesting user.
         /// </summary>
-        private readonly BlockingQueue<ITextureSender> m_queueSenders
-            = new BlockingQueue<ITextureSender>();
+        private readonly OpenSim.Framework.BlockingQueue<ITextureSender> m_queueSenders
+            = new OpenSim.Framework.BlockingQueue<ITextureSender>();
 
         /// <summary>
         /// Each user has their own texture download service.

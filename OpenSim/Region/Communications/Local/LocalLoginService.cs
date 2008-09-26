@@ -311,11 +311,11 @@ namespace OpenSim.Region.Communications.Local
             user.CurrentAgent.Handle = regionInfo.RegionHandle;
             // Prepare notification
             Login loginParams = new Login();
-            loginParams.Session = user.CurrentAgent.SessionID.ToString();
-            loginParams.SecureSession = user.CurrentAgent.SecureSessionID.ToString();
+            loginParams.Session = user.CurrentAgent.SessionID;
+            loginParams.SecureSession = user.CurrentAgent.SecureSessionID;
             loginParams.First = user.FirstName;
             loginParams.Last = user.SurName;
-            loginParams.Agent = user.ID.ToString();
+            loginParams.Agent = user.ID;
             loginParams.CircuitCode = Convert.ToUInt32(response.CircuitCode);
             loginParams.StartPos = user.CurrentAgent.Position;
             loginParams.CapsPath = capsPath;

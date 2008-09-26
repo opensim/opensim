@@ -40,7 +40,7 @@ namespace OpenSim.Framework
         public UUID GroupID;
         public List<UUID> GroupMembers;
         public string groupName;
-        public uint groupPowers = (uint)(GroupPowers.LandAllowLandmark | GroupPowers.LandAllowSetHome);
+        public uint groupPowers = (uint)(GroupPowers.AllowLandmark | GroupPowers.AllowSetHome);
         public List<string> GroupTitles;
         public bool AcceptNotices = true;
         public bool AllowPublish = true;

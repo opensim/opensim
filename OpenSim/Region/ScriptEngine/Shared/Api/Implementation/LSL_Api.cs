@@ -269,7 +269,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (inv.Value.Type != type)
                         return UUID.Zero;
 
-                    return inv.Value.AssetID.ToString();
+                    return inv.Value.AssetID;
                 }
             }
             return UUID.Zero;
@@ -282,7 +282,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (inv.Value.Name == name)
                 {
-                    return inv.Value.AssetID.ToString();
+                    return inv.Value.AssetID;
                 }
             }
             return UUID.Zero;
@@ -2766,7 +2766,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.RootPart.IsAttachment && agent == m_host.ParentGroup.RootPart.AttachedAvatar)
+            if (m_host.ParentGroup.RootPart.IsAttachment && (UUID)agent == m_host.ParentGroup.RootPart.AttachedAvatar)
             {
                 // When attached, certain permissions are implicit if requested from owner
                 int implicitPerms = ScriptBaseClass.PERMISSION_TAKE_CONTROLS |
@@ -2919,7 +2919,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
               return;
             }
             IClientAPI client = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter).ControllingClient;
-            SceneObjectPart targetPart = World.GetSceneObjectPart(target);
+            SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)target);
             SceneObjectGroup parentPrim = null, childPrim = null;
             if (targetPart != null)
             {
@@ -3131,7 +3131,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.GetScenePresence(destId) != null)
             {
                 // destination is an avatar
-                World.MoveTaskInventoryItem(destId, null, m_host, objId);
+                World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId);
             }
             else
             {
@@ -3180,11 +3180,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
+            UUID uuid = (UUID)id;
+
             UserProfileData userProfile =
-                    World.CommsManager.UserService.GetUserProfile(id);
+                    World.CommsManager.UserService.GetUserProfile(uuid);
 
             UserAgentData userAgent =
-                    World.CommsManager.UserService.GetAgentByUUID(id);
+                    World.CommsManager.UserService.GetAgentByUUID(uuid);
 
             if (userProfile == null || userAgent == null)
                 return UUID.Zero.ToString();
@@ -3503,7 +3505,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPushObject(string target, LSL_Vector impulse, LSL_Vector ang_impulse, int local)
         {
             m_host.AddScriptLPS(1);
-            SceneObjectPart targ = World.GetSceneObjectPart(target);
+            SceneObjectPart targ = World.GetSceneObjectPart((UUID)target);
             if (targ == null)
                 return;
             targ.ApplyImpulse(new Vector3((float)impulse.x, (float)impulse.y, (float)impulse.z), local != 0);
@@ -4683,7 +4685,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetAgentSize(string id)
         {
             m_host.AddScriptLPS(1);
-            ScenePresence avatar = World.GetScenePresence(id);
+            ScenePresence avatar = World.GetScenePresence((UUID)id);
             LSL_Vector agentSize;
             if (avatar == null)
             {
@@ -5164,7 +5166,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (UUID.TryParse(avatar, out key))
                 {
                     entry.AgentID = key;
-                    entry.Flags = ParcelManager.AccessList.Access;
+                    entry.Flags = AccessList.Access;
                     entry.Time = DateTime.Now.AddHours(hours);
                     land.ParcelAccessList.Add(entry);
                 }
@@ -5365,7 +5367,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            xmlrpcMod.CloseXMLRPCChannel(channel);
+            xmlrpcMod.CloseXMLRPCChannel((UUID)channel);
             // ScriptSleep(1000);
         }
 
@@ -6081,7 +6083,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             LSL_List l = new LSL_List();
-            ScenePresence av = World.GetScenePresence(id);
+            ScenePresence av = World.GetScenePresence((UUID)id);
             if (av == null)
                 return l;
             UUID[] anims;
@@ -7544,7 +7546,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (UUID.TryParse(avatar, out key))
                 {
                     entry.AgentID = key;
-                    entry.Flags = ParcelManager.AccessList.Ban;
+                    entry.Flags = AccessList.Ban;
                     entry.Time = DateTime.Now.AddHours(hours);
                     land.ParcelAccessList.Add(entry);
                 }
@@ -7563,7 +7565,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
                     {
-                        if (entry.AgentID == key && entry.Flags == ParcelManager.AccessList.Access)
+                        if (entry.AgentID == key && entry.Flags == AccessList.Access)
                         {
                             land.ParcelAccessList.Remove(entry);
                             break;
@@ -7585,7 +7587,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
                     {
-                        if (entry.AgentID == key && entry.Flags == ParcelManager.AccessList.Ban)
+                        if (entry.AgentID == key && entry.Flags == AccessList.Ban)
                         {
                             land.ParcelAccessList.Remove(entry);
                             break;
@@ -7795,7 +7797,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
                 {
-                    if (entry.Flags == ParcelManager.AccessList.Ban)
+                    if (entry.Flags == AccessList.Ban)
                     {
                         land.ParcelAccessList.Remove(entry);
                     }
@@ -7812,7 +7814,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
                 {
-                    if (entry.Flags == ParcelManager.AccessList.Access)
+                    if (entry.Flags == AccessList.Access)
                     {
                         land.ParcelAccessList.Remove(entry);
                     }

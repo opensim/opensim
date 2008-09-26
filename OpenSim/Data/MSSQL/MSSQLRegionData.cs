@@ -850,7 +850,7 @@ VALUES
 
             newData.Name = (String)row["Name"];
             newData.Description = (String)row["Description"];
-            newData.OwnerID = (String)row["OwnerUUID"];
+            newData.OwnerID = (UUID)(String)row["OwnerUUID"];
             newData.IsGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
             newData.Area = Convert.ToInt32(row["Area"]);
             newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
@@ -910,7 +910,7 @@ VALUES
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
             entry.AgentID = new UUID((string)row["AccessUUID"]);
-            entry.Flags = (ParcelManager.AccessList)Convert.ToInt32(row["Flags"]);
+            entry.Flags = (AccessList)Convert.ToInt32(row["Flags"]);
             entry.Time = new DateTime();
             return entry;
         }

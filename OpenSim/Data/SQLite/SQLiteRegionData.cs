@@ -258,7 +258,7 @@ namespace OpenSim.Data.SQLite
             {
                 DataTable regionsettings = ds.Tables["regionsettings"];
 
-                DataRow settingsRow = regionsettings.Rows.Find(rs.RegionUUID.ToString());
+                DataRow settingsRow = regionsettings.Rows.Find(Util.ToRawUuidString(rs.RegionUUID));
                 if (settingsRow == null)
                 {
                     settingsRow = regionsettings.NewRow();
@@ -439,7 +439,7 @@ namespace OpenSim.Data.SQLite
                             group.AddPart(prim);
                             group.RootPart = prim;
 
-                            createdObjects.Add(Util.ToRawUuidString(group.UUID), group);
+                            createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                         }
                         else
@@ -1268,7 +1268,7 @@ namespace OpenSim.Data.SQLite
 
             newData.Name = (String) row["Name"];
             newData.Description = (String) row["Desc"];
-            newData.OwnerID = (String) row["OwnerUUID"];
+            newData.OwnerID = (UUID)(String) row["OwnerUUID"];
             newData.IsGroupOwned = (Boolean) row["IsGroupOwned"];
             newData.Area = Convert.ToInt32(row["Area"]);
             newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
@@ -1288,7 +1288,7 @@ namespace OpenSim.Data.SQLite
             newData.MusicURL = (String) row["MusicURL"];
             newData.PassHours = Convert.ToSingle(row["PassHours"]);
             newData.PassPrice = Convert.ToInt32(row["PassPrice"]);
-            newData.SnapshotID = (String) row["SnapshotUUID"];
+            newData.SnapshotID = (UUID)(String) row["SnapshotUUID"];
             try
             {
 
@@ -1365,7 +1365,7 @@ namespace OpenSim.Data.SQLite
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
             entry.AgentID = new UUID((string) row["AccessUUID"]);
-            entry.Flags = (ParcelManager.AccessList) row["Flags"];
+            entry.Flags = (AccessList) row["Flags"];
             entry.Time = new DateTime();
             return entry;
         }

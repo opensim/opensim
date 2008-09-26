@@ -138,32 +138,32 @@ namespace OpenSim.Framework
             switch (key)
             {
             case "region_flags":
-                Simulator.RegionFlags flags = (Simulator.RegionFlags)(uint)value;
+                RegionFlags flags = (RegionFlags)(uint)value;
 
                 m_BlockTerraform =
-                        (flags & Simulator.RegionFlags.BlockTerraform) != 0;
+                        (flags & RegionFlags.BlockTerraform) != 0;
                 m_BlockFly =
-                        (flags & Simulator.RegionFlags.NoFly) != 0;
+                        (flags & RegionFlags.NoFly) != 0;
                 m_AllowDamage =
-                        (flags & Simulator.RegionFlags.AllowDamage) != 0;
+                        (flags & RegionFlags.AllowDamage) != 0;
                 m_RestrictPushing =
-                        (flags & Simulator.RegionFlags.RestrictPushObject) != 0;
+                        (flags & RegionFlags.RestrictPushObject) != 0;
                 m_AllowLandResell =
-                        (flags & Simulator.RegionFlags.BlockLandResell) == 0;
+                        (flags & RegionFlags.BlockLandResell) == 0;
                 m_AllowLandJoinDivide =
-                        (flags & Simulator.RegionFlags.AllowParcelChanges) != 0;
+                        (flags & RegionFlags.AllowParcelChanges) != 0;
                 m_BlockShowInSearch =
                         ((uint)flags & (1 << 29)) != 0;
                 m_DisableScripts =
-                        (flags & Simulator.RegionFlags.SkipScripts) != 0;
+                        (flags & RegionFlags.SkipScripts) != 0;
                 m_DisableCollisions =
-                        (flags & Simulator.RegionFlags.SkipCollisions) != 0;
+                        (flags & RegionFlags.SkipCollisions) != 0;
                 m_DisablePhysics =
-                        (flags & Simulator.RegionFlags.SkipPhysics) != 0;
+                        (flags & RegionFlags.SkipPhysics) != 0;
                 m_FixedSun =
-                        (flags & Simulator.RegionFlags.SunFixed) != 0;
+                        (flags & RegionFlags.SunFixed) != 0;
                 m_Sandbox =
-                        (flags & Simulator.RegionFlags.Sandbox) != 0;
+                        (flags & RegionFlags.Sandbox) != 0;
                 break;
             case "max_agents":
                 m_AgentLimit = (int)value;

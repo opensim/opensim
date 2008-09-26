@@ -63,7 +63,7 @@ namespace OpenSim.Grid.MessagingServer
 
                 if (p.Length > 0)
                 {
-                    UUID assetID = null;
+                    UUID assetID = UUID.Zero;
 
                     if (!UUID.TryParse(p[0], out assetID))
                     {

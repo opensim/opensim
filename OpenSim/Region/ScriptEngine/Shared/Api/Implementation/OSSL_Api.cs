@@ -496,10 +496,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osAvatarPlayAnimation");
 
+            UUID avatarID = (UUID)avatar;
+
             m_host.AddScriptLPS(1);
-            if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
+            if (World.Entities.ContainsKey((UUID)avatar) && World.Entities[avatarID] is ScenePresence)
             {
-                ScenePresence target = (ScenePresence)World.Entities[avatar];
+                ScenePresence target = (ScenePresence)World.Entities[avatarID];
                 target.AddAnimation(animation);
             }
         }
@@ -508,10 +510,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osAvatarStopAnimation");
 
+            UUID avatarID = (UUID)avatar;
+
             m_host.AddScriptLPS(1);
-            if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
+            if (World.Entities.ContainsKey(avatarID) && World.Entities[avatarID] is ScenePresence)
             {
-                ScenePresence target = (ScenePresence)World.Entities[avatar];
+                ScenePresence target = (ScenePresence)World.Entities[avatarID];
                 target.RemoveAnimation(animation);
             }
         }

@@ -1232,43 +1232,40 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         ///  Send the region heightmap to the client
         /// </summary>
-        /// <param name="map">heightmap</param>
-        public virtual void SendWindData(float[] map)
+        /// <param name="windSpeeds">16x16 array of wind speeds</param>
+        public virtual void SendWindData(Vector2[] windSpeeds)
         {
-            //ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendWindData), (object)map);
+            ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendWindData), (object)windSpeeds);
         }
 
         /// <summary>
         /// Send terrain layer information to the client.
         /// </summary>
         /// <param name="o"></param>
-        //private void DoSendWindData(object o)
-        //{
-            //float[] map = (float[])o;
+        private void DoSendWindData(object o)
+        {
+            Vector2[] windSpeeds = (Vector2[])o;
 
-            //try
-            //{
-                //for (int y = 0; y < 16; y++)
-                //{
-                    // For some terrains, sending more than one terrain patch at once results in a libsecondlife exception
-                    // see http://opensimulator.org/mantis/view.php?id=1662
-                    //for (int x = 0; x < 16; x += 4)
-                    //{
-                    //    SendLayerPacket(map, y, x);
-                    //    Thread.Sleep(150);
-                    //}
-                   // for (int x = 0; x < 16; x++)
-                    //{
-                        //SendWindData(x, y, map);
-                        //Thread.Sleep(35);
-                    //}
-                //}
-            //}
-            //catch (Exception e)
-            //{
-           //     m_log.Warn("[CLIENT]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
-           // }
-        //}
+            TerrainPatch[] patches = new TerrainPatch[2];
+            patches[0] = new TerrainPatch();
+            patches[0].Data = new float[16 * 16];
+            patches[1] = new TerrainPatch();
+            patches[1].Data = new float[16 * 16];
+
+            for (int y = 0; y < 16; y++)
+            {
+                for (int x = 0; x < 16; x++)
+                {
+                    patches[0].Data[y * 16 + x] = windSpeeds[y * 16 + x].X;
+                    patches[1].Data[y * 16 + x] = windSpeeds[y * 16 + x].Y;
+                }
+            }
+
+            LayerDataPacket layerpack = TerrainCompressor.CreateLayerDataPacket(patches, TerrainPatch.LayerType.Wind);
+            layerpack.Header.Zerocoded = true;
+
+            OutPacket(layerpack, ThrottleOutPacketType.Wind);
+        }
 
         /// <summary>
         /// Sends a set of four patches (x, x+1, ..., x+3) to the client
@@ -1287,41 +1284,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //     Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
         //     OutPacket(layerpack, ThrottleOutPacketType.Land);
         // }
-
-        /// <summary>
-        /// Sends a specified patch to a client
-        /// </summary>
-        /// <param name="px">Patch coordinate (x) 0..15</param>
-        /// <param name="py">Patch coordinate (y) 0..15</param>
-        /// <param name="map">heightmap</param>
-        public void SendWindData(int p1x, int p1y, int p2x, int p2y, float[] map)
-        {
-            try
-            {
-                int[] patches = new int[2];
-                int patch1x, patch1y, patch2x, patch2y;
-                patch1x = p1x;
-                patch1y = p1y;
-                patch2x = p2x;
-                patch2y = p2y;
-
-
-                patches[0] = patch1x + 0 + patch1y * 16;
-                patches[1] = patch2x + 0 + patch2y * 16;
-
-                LayerDataPacket layerpack = TerrainCompressor.CreateWindPacket(map, patches);
-                layerpack.Header.Zerocoded = true;
-
-                OutPacket(layerpack, ThrottleOutPacketType.Wind);
-
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[client]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
-            }
-        }
-
-
 
         /// <summary>
         /// Tell the client that the given neighbour region is ready to receive a child agent.
@@ -2940,13 +2902,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.PassPrice = landData.PassPrice;
             updatePacket.ParcelData.PublicCount = 0; //unemplemented
 
-            updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint)Simulator.RegionFlags.DenyAnonymous) >
+            updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint)RegionFlags.DenyAnonymous) >
                                                            0);
-            updatePacket.ParcelData.RegionDenyIdentified = ((regionFlags & (uint)Simulator.RegionFlags.DenyIdentified) >
+            updatePacket.ParcelData.RegionDenyIdentified = ((regionFlags & (uint)RegionFlags.DenyIdentified) >
                                                             0);
-            updatePacket.ParcelData.RegionDenyTransacted = ((regionFlags & (uint)Simulator.RegionFlags.DenyTransacted) >
+            updatePacket.ParcelData.RegionDenyTransacted = ((regionFlags & (uint)RegionFlags.DenyTransacted) >
                                                             0);
-            updatePacket.ParcelData.RegionPushOverride = ((regionFlags & (uint)Simulator.RegionFlags.RestrictPushObject) >
+            updatePacket.ParcelData.RegionPushOverride = ((regionFlags & (uint)RegionFlags.RestrictPushObject) >
                                                           0);
 
             updatePacket.ParcelData.RentPrice = 0;
@@ -3586,7 +3548,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         string name = (string)nod.Attributes["name"].Value.ToLower();
                         string id = (string)nod.InnerText;
-                        m_defaultAnimations.Add(name, id);
+                        m_defaultAnimations.Add(name, (UUID)id);
                     }
                 }
             }
@@ -4936,9 +4898,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         //
                         if (transfer.TransferInfo.SourceType == 3)
                         {
-                            UUID taskID = null;
-                            UUID itemID = null;
-                            UUID requestID = null;
+                            UUID taskID = UUID.Zero;
+                            UUID itemID = UUID.Zero;
+                            UUID requestID = UUID.Zero;
                             taskID = new UUID(transfer.TransferInfo.Params, 48);
                             itemID = new UUID(transfer.TransferInfo.Params, 64);
                             requestID = new UUID(transfer.TransferInfo.Params, 80);
@@ -5569,7 +5531,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                             entry.AgentID = block.ID;
-                            entry.Flags = (ParcelManager.AccessList)block.Flags;
+                            entry.Flags = (AccessList)block.Flags;
                             entry.Time = new DateTime();
                             entries.Add(entry);
                         }

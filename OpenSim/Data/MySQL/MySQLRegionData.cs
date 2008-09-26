@@ -1329,10 +1329,10 @@ namespace OpenSim.Data.MySQL
 
             newData.Name = (String) row["Name"];
             newData.Description = (String) row["Description"];
-            newData.OwnerID = (String) row["OwnerUUID"];
+            newData.OwnerID = (UUID)(String)row["OwnerUUID"];
             newData.IsGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
             newData.Area = Convert.ToInt32(row["Area"]);
-            newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
+            newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unimplemented
             newData.Category = (Parcel.ParcelCategory) Convert.ToInt32(row["Category"]);
                 //Enum libsecondlife.Parcel.ParcelCategory
             newData.ClaimDate = Convert.ToInt32(row["ClaimDate"]);
@@ -1387,7 +1387,7 @@ namespace OpenSim.Data.MySQL
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
             entry.AgentID = new UUID((string) row["AccessUUID"]);
-            entry.Flags = (ParcelManager.AccessList) Convert.ToInt32(row["Flags"]);
+            entry.Flags = (AccessList) Convert.ToInt32(row["Flags"]);
             entry.Time = new DateTime();
             return entry;
         }

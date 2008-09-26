@@ -732,40 +732,40 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         public uint GetRegionFlags()
         {
-            Simulator.RegionFlags flags = Simulator.RegionFlags.None;
+            RegionFlags flags = RegionFlags.None;
 
             // Fully implemented
             //
             if (m_scene.RegionInfo.RegionSettings.AllowDamage)
-                flags |= Simulator.RegionFlags.AllowDamage;
+                flags |= RegionFlags.AllowDamage;
             if (m_scene.RegionInfo.RegionSettings.BlockTerraform)
-                flags |= Simulator.RegionFlags.BlockTerraform;
+                flags |= RegionFlags.BlockTerraform;
             if (!m_scene.RegionInfo.RegionSettings.AllowLandResell)
-                flags |= Simulator.RegionFlags.BlockLandResell;
+                flags |= RegionFlags.BlockLandResell;
             if (m_scene.RegionInfo.RegionSettings.DisableCollisions)
-                flags |= Simulator.RegionFlags.SkipCollisions;
+                flags |= RegionFlags.SkipCollisions;
             if (m_scene.RegionInfo.RegionSettings.DisableScripts)
-                flags |= Simulator.RegionFlags.SkipScripts;
+                flags |= RegionFlags.SkipScripts;
             if (m_scene.RegionInfo.RegionSettings.DisablePhysics)
-                flags |= Simulator.RegionFlags.SkipPhysics;
+                flags |= RegionFlags.SkipPhysics;
             if (m_scene.RegionInfo.RegionSettings.BlockFly)
-                flags |= Simulator.RegionFlags.NoFly;
+                flags |= RegionFlags.NoFly;
             if (m_scene.RegionInfo.RegionSettings.RestrictPushing)
-                flags |= Simulator.RegionFlags.RestrictPushObject;
+                flags |= RegionFlags.RestrictPushObject;
             if (m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
-                flags |= Simulator.RegionFlags.AllowParcelChanges;
+                flags |= RegionFlags.AllowParcelChanges;
             if (m_scene.RegionInfo.RegionSettings.BlockShowInSearch)
-                flags |= (Simulator.RegionFlags)(1 << 29);
+                flags |= (RegionFlags)(1 << 29);
 
             if (m_scene.RegionInfo.RegionSettings.FixedSun)
-                flags |= Simulator.RegionFlags.SunFixed;
+                flags |= RegionFlags.SunFixed;
             if (m_scene.RegionInfo.RegionSettings.Sandbox)
-                flags |= Simulator.RegionFlags.Sandbox;
+                flags |= RegionFlags.Sandbox;
 
             // Fudge these to always on, so the menu options activate
             //
-            flags |= Simulator.RegionFlags.AllowLandmark;
-            flags |= Simulator.RegionFlags.AllowSetHome;
+            flags |= RegionFlags.AllowLandmark;
+            flags |= RegionFlags.AllowSetHome;
 
             // TODO: SkipUpdateInterestList
 
@@ -779,35 +779,35 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         public uint GetEstateFlags()
         {
-            Simulator.RegionFlags flags = Simulator.RegionFlags.None;
+            RegionFlags flags = RegionFlags.None;
 
             if (m_scene.RegionInfo.EstateSettings.FixedSun)
-                flags |= Simulator.RegionFlags.SunFixed;
+                flags |= RegionFlags.SunFixed;
             if (m_scene.RegionInfo.EstateSettings.PublicAccess)
-                flags |= (Simulator.RegionFlags.PublicAllowed |
-                          Simulator.RegionFlags.ExternallyVisible);
+                flags |= (RegionFlags.PublicAllowed |
+                          RegionFlags.ExternallyVisible);
             if (m_scene.RegionInfo.EstateSettings.AllowVoice)
-                flags |= Simulator.RegionFlags.AllowVoice;
+                flags |= RegionFlags.AllowVoice;
             if (m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
-                flags |= Simulator.RegionFlags.AllowDirectTeleport;
+                flags |= RegionFlags.AllowDirectTeleport;
             if (m_scene.RegionInfo.EstateSettings.DenyAnonymous)
-                flags |= Simulator.RegionFlags.DenyAnonymous;
+                flags |= RegionFlags.DenyAnonymous;
             if (m_scene.RegionInfo.EstateSettings.DenyIdentified)
-                flags |= Simulator.RegionFlags.DenyIdentified;
+                flags |= RegionFlags.DenyIdentified;
             if (m_scene.RegionInfo.EstateSettings.DenyTransacted)
-                flags |= Simulator.RegionFlags.DenyTransacted;
+                flags |= RegionFlags.DenyTransacted;
             if (m_scene.RegionInfo.EstateSettings.AbuseEmailToEstateOwner)
-                flags |= Simulator.RegionFlags.AbuseEmailToEstateOwner;
+                flags |= RegionFlags.AbuseEmailToEstateOwner;
             if (m_scene.RegionInfo.EstateSettings.BlockDwell)
-                flags |= Simulator.RegionFlags.BlockDwell;
+                flags |= RegionFlags.BlockDwell;
             if (m_scene.RegionInfo.EstateSettings.EstateSkipScripts)
-                flags |= Simulator.RegionFlags.EstateSkipScripts;
+                flags |= RegionFlags.EstateSkipScripts;
             if (m_scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
-                flags |= Simulator.RegionFlags.ResetHomeOnTeleport;
+                flags |= RegionFlags.ResetHomeOnTeleport;
             if (m_scene.RegionInfo.EstateSettings.TaxFree)
-                flags |= Simulator.RegionFlags.TaxFree;
+                flags |= RegionFlags.TaxFree;
             if (m_scene.RegionInfo.EstateSettings.DenyMinors)
-                flags |= (Simulator.RegionFlags)(1 << 30);
+                flags |= (RegionFlags)(1 << 30);
 
             return (uint)flags;
         }

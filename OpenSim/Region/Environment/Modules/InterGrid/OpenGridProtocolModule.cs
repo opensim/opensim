@@ -787,7 +787,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             UUID userUUID = UUID.Zero;
             if (UUID.TryParse(uuidString, out userUUID))
             {
-                UUID RemoteID = uuidString;
+                UUID RemoteID = (UUID)uuidString;
                 UUID LocalID = RemoteID;
                 // FIXME: TODO: Routine to map RemoteUUIDs to LocalUUIds
                 //         would be done already..  but the client connects with the Aditi UUID

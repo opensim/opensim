@@ -614,7 +614,7 @@ namespace OpenSim.Grid.GridServer
             //
             // this particular section of the mod attempts to receive a value from the region's xml file by way of
             // OSG1GridServices for the region's owner
-            sim.owner_uuid = (string)requestData["master_avatar_uuid"];
+            sim.owner_uuid = (UUID)(string)requestData["master_avatar_uuid"];
 
             try
             {

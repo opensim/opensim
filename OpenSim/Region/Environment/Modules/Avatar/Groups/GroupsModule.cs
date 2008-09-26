@@ -67,7 +67,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                 OpenSimulatorGroup.ActiveGroupTitle = "OpenSimulator Tester";
                 OpenSimulatorGroup.GroupID = opensimulatorGroupID;
                 OpenSimulatorGroup.groupName = "OpenSimulator Testing";
-                OpenSimulatorGroup.ActiveGroupPowers = GroupPowers.LandAllowSetHome;
+                OpenSimulatorGroup.ActiveGroupPowers = GroupPowers.AllowSetHome;
                 OpenSimulatorGroup.GroupTitles.Add("OpenSimulator Tester");
                 if (!m_groupUUIDGroup.ContainsKey(opensimulatorGroupID))
                     m_groupUUIDGroup.Add(opensimulatorGroupID, OpenSimulatorGroup);

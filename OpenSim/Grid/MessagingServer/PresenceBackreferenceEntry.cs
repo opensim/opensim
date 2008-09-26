@@ -52,7 +52,7 @@ namespace OpenSim.Grid.MessagingServer
 
         public UUID getitem(int index)
         {
-            UUID result = null;
+            UUID result = UUID.Zero;
             lock (AgentList)
             {
                 if (index > 0 && index < AgentList.Count)

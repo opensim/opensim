@@ -1371,7 +1371,7 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.Flags = itemBase.Flags;
                 taskItem.PermsGranter = UUID.Zero;
                 taskItem.PermsMask = 0;
-                taskItem.AssetID = asset.ID;
+                taskItem.AssetID = asset.FullID;
 
                 part.AddInventoryItem(taskItem);
                 part.GetProperties(remoteClient);
@@ -1616,7 +1616,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // FIXME: This needs to be fixed.
                 m_log.ErrorFormat(
                     "[AGENT INVENTORY]: Queued deletion of scene object to agent {0} {1} failed: {2}",
-                    (x != null ? x.remoteClient.Name : "unavailable"), (x != null ? x.remoteClient.AgentId : "unavailable"), e.ToString());
+                    (x != null ? x.remoteClient.Name : "unavailable"), (x != null ? x.remoteClient.AgentId.ToString() : "unavailable"), e.ToString());
             }
 
             m_log.Info("No objects left in inventory delete queue.");

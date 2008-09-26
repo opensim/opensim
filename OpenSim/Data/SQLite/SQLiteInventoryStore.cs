@@ -422,7 +422,7 @@ namespace OpenSim.Data.SQLite
         public List<InventoryFolderBase> getInventoryFolders(UUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
-            getInventoryFolders(ref folders, Util.ToRawUuidString(parentID));
+            getInventoryFolders(ref folders, parentID);
             return folders;
         }
 
@@ -623,10 +623,10 @@ namespace OpenSim.Data.SQLite
         /// <todo>this is horribly inefficient, but I don't want to ruin the overall structure of this implementation</todo>
         private void deleteItemsInFolder(UUID folderId)
         {
-            List<InventoryItemBase> items = getInventoryInFolder(Util.ToRawUuidString(folderId));
+            List<InventoryItemBase> items = getInventoryInFolder(folderId);
 
             foreach (InventoryItemBase i in items)
-                deleteInventoryItem(Util.ToRawUuidString(i.ID));
+                deleteInventoryItem(i.ID);
         }
 
         /// <summary>
@@ -667,7 +667,7 @@ namespace OpenSim.Data.SQLite
         {
             lock (ds)
             {
-                List<InventoryFolderBase> subFolders = getFolderHierarchy(Util.ToRawUuidString(folderID));
+                List<InventoryFolderBase> subFolders = getFolderHierarchy(folderID);
 
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
                 DataRow inventoryRow;
@@ -678,7 +678,7 @@ namespace OpenSim.Data.SQLite
                     inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(f.ID));
                     if (inventoryRow != null)
                     {
-                        deleteItemsInFolder(Util.ToRawUuidString(f.ID));
+                        deleteItemsInFolder(f.ID);
                         inventoryRow.Delete();
                     }
                 }
@@ -687,7 +687,7 @@ namespace OpenSim.Data.SQLite
                 inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(folderID));
                 if (inventoryRow != null)
                 {
-                    deleteItemsInFolder(Util.ToRawUuidString(folderID));
+                    deleteItemsInFolder(folderID);
                     inventoryRow.Delete();
                 }
 

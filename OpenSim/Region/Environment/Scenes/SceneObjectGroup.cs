@@ -915,7 +915,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 return part.UUID;
             }
-            return null;
+            return UUID.Zero;
         }
 
         public void ObjectGrabHandler(uint localId, Vector3 offsetPos, IClientAPI remoteClient)

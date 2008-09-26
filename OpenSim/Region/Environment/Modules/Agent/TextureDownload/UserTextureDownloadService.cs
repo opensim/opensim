@@ -35,6 +35,7 @@ using OpenSim.Framework.Statistics;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
+
 namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 {
     /// <summary>
@@ -75,7 +76,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// Texture Senders are placed in this queue once they have received their texture from the asset
         /// cache.  Another module actually invokes the send.
         /// </summary>
-        private readonly BlockingQueue<ITextureSender> m_sharedSendersQueue;
+        private readonly OpenSim.Framework.BlockingQueue<ITextureSender> m_sharedSendersQueue;
 
         /// <summary>
         /// Holds texture senders before they have received the appropriate texture from the asset cache.
@@ -91,7 +92,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
             = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
 
         public UserTextureDownloadService(
-            IClientAPI client, Scene scene, BlockingQueue<ITextureSender> sharedQueue)
+            IClientAPI client, Scene scene, OpenSim.Framework.BlockingQueue<ITextureSender> sharedQueue)
         {
             m_client = client;
             m_scene = scene;

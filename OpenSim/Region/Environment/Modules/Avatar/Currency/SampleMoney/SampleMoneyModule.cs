@@ -298,7 +298,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                         int funds = 0;
 
                         Hashtable hbinfo =
-                            GetBalanceForUserFromMoneyServer(client.AgentId, client.SecureSessionId, s.RegionInfo.originRegionID.ToString(),
+                            GetBalanceForUserFromMoneyServer(client.AgentId, client.SecureSessionId, s.RegionInfo.originRegionID,
                                                              s.RegionInfo.regionSecret);
                         if ((bool) hbinfo["success"] == true)
                         {
@@ -722,7 +722,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                     if (m_MoneyAddress.Length > 0)
                     {
                         Hashtable hbinfo =
-                            GetBalanceForUserFromMoneyServer(aClient.AgentId, aClient.SecureSessionId, s.RegionInfo.originRegionID.ToString(),
+                            GetBalanceForUserFromMoneyServer(aClient.AgentId, aClient.SecureSessionId, s.RegionInfo.originRegionID,
                                                              s.RegionInfo.regionSecret);
                         if ((bool) hbinfo["success"] == true)
                         {

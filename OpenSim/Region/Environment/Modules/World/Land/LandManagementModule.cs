@@ -263,12 +263,12 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     {
                         if (checkBan.isBannedFromLand(avatar.AgentId))
                         {
-                            checkBan.sendLandProperties(-30000, false, (int)ParcelManager.ParcelResult.Single, avatar);
+                            checkBan.sendLandProperties(-30000, false, (int)ParcelResult.Single, avatar);
                             return; //Only send one
                         }
                         if (checkBan.isRestrictedFromLand(avatar.AgentId))
                         {
-                            checkBan.sendLandProperties(-40000, false, (int)ParcelManager.ParcelResult.Single, avatar);
+                            checkBan.sendLandProperties(-40000, false, (int)ParcelResult.Single, avatar);
                             return; //Only send one
                         }
                     }

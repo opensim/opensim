@@ -165,7 +165,7 @@ namespace OpenSim.Framework.Communications
                     }
                     else if (requestData.Contains("web_login_key"))
                     {
-                        UUID webloginkey = null;
+                        UUID webloginkey = UUID.Zero;
                         try
                         {
                             webloginkey = new UUID((string)requestData["web_login_key"]);
@@ -268,9 +268,9 @@ namespace OpenSim.Framework.Communications
                         logResponse.CircuitCode = Util.RandomClass.Next();
                         logResponse.Lastname = userProfile.SurName;
                         logResponse.Firstname = userProfile.FirstName;
-                        logResponse.AgentID = agentID.ToString();
-                        logResponse.SessionID = userProfile.CurrentAgent.SessionID.ToString();
-                        logResponse.SecureSessionID = userProfile.CurrentAgent.SecureSessionID.ToString();
+                        logResponse.AgentID = agentID;
+                        logResponse.SessionID = userProfile.CurrentAgent.SessionID;
+                        logResponse.SecureSessionID = userProfile.CurrentAgent.SecureSessionID;
                         logResponse.Message = GetMessage();
                         logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
                         logResponse.StartLocation = startLocationRequest;
@@ -436,9 +436,9 @@ namespace OpenSim.Framework.Communications
                         logResponse.CircuitCode = (Int32)Util.RandomClass.Next();
                         logResponse.Lastname = userProfile.SurName;
                         logResponse.Firstname = userProfile.FirstName;
-                        logResponse.AgentID = agentID.ToString();
-                        logResponse.SessionID = userProfile.CurrentAgent.SessionID.ToString();
-                        logResponse.SecureSessionID = userProfile.CurrentAgent.SecureSessionID.ToString();
+                        logResponse.AgentID = agentID;
+                        logResponse.SessionID = userProfile.CurrentAgent.SessionID;
+                        logResponse.SecureSessionID = userProfile.CurrentAgent.SecureSessionID;
                         logResponse.Message = GetMessage();
                         logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
                         logResponse.StartLocation = startLocationRequest;

@@ -494,7 +494,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                 }
                                 if (xml.MoveToAttribute("Owner"))
                                 {
-                                    rdata.userAppearance.Owner = xml.Value;
+                                    rdata.userAppearance.Owner = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Serial"))
@@ -506,156 +506,156 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                             case "Body" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.BodyItem = xml.Value;
+                                    rdata.userAppearance.BodyItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.BodyAsset = xml.Value;
+                                    rdata.userAppearance.BodyAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "Skin" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.SkinItem = xml.Value;
+                                    rdata.userAppearance.SkinItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.SkinAsset = xml.Value;
+                                    rdata.userAppearance.SkinAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "Hair" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.HairItem = xml.Value;
+                                    rdata.userAppearance.HairItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.HairAsset = xml.Value;
+                                    rdata.userAppearance.HairAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "Eyes" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.EyesItem = xml.Value;
+                                    rdata.userAppearance.EyesItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.EyesAsset = xml.Value;
+                                    rdata.userAppearance.EyesAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "Shirt" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.ShirtItem = xml.Value;
+                                    rdata.userAppearance.ShirtItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.ShirtAsset = xml.Value;
+                                    rdata.userAppearance.ShirtAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "Pants" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.PantsItem = xml.Value;
+                                    rdata.userAppearance.PantsItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.PantsAsset = xml.Value;
+                                    rdata.userAppearance.PantsAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "Shoes" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.ShoesItem = xml.Value;
+                                    rdata.userAppearance.ShoesItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.ShoesAsset = xml.Value;
+                                    rdata.userAppearance.ShoesAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "Socks" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.SocksItem = xml.Value;
+                                    rdata.userAppearance.SocksItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.SocksAsset = xml.Value;
+                                    rdata.userAppearance.SocksAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "Jacket" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.JacketItem = xml.Value;
+                                    rdata.userAppearance.JacketItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.JacketAsset = xml.Value;
+                                    rdata.userAppearance.JacketAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "Gloves" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.GlovesItem = xml.Value;
+                                    rdata.userAppearance.GlovesItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.GlovesAsset = xml.Value;
+                                    rdata.userAppearance.GlovesAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "UnderShirt" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.UnderShirtItem = xml.Value;
+                                    rdata.userAppearance.UnderShirtItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.UnderShirtAsset = xml.Value;
+                                    rdata.userAppearance.UnderShirtAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "UnderPants" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.UnderPantsItem = xml.Value;
+                                    rdata.userAppearance.UnderPantsItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.UnderPantsAsset = xml.Value;
+                                    rdata.userAppearance.UnderPantsAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;
                             case "Skirt" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
-                                    rdata.userAppearance.SkirtItem = xml.Value;
+                                    rdata.userAppearance.SkirtItem = (UUID)xml.Value;
                                     indata = true;
                                 }
                                 if (xml.MoveToAttribute("Asset"))
                                 {
-                                    rdata.userAppearance.SkirtAsset = xml.Value;
+                                    rdata.userAppearance.SkirtAsset = (UUID)xml.Value;
                                     indata = true;
                                 }
                             break;

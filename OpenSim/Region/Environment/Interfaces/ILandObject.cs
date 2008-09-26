@@ -54,7 +54,7 @@ namespace OpenSim.Region.Environment.Interfaces
         bool isBannedFromLand(UUID avatar);
         bool isRestrictedFromLand(UUID avatar);
         void sendLandUpdateToClient(IClientAPI remote_client);
-        List<UUID> createAccessListArrayByFlag(ParcelManager.AccessList flag);
+        List<UUID> createAccessListArrayByFlag(AccessList flag);
         void sendAccessList(UUID agentID, UUID sessionID, uint flags, int sequenceID, IClientAPI remote_client);
         void updateAccessList(uint flags, List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client);
         void updateLandBitmapByteArray();

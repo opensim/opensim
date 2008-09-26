@@ -45,7 +45,7 @@ namespace OpenSim.Region.Environment.Modules
         private Random rndnums = new Random(System.Environment.TickCount);
         private Scene m_scene = null;
         private bool ready = false;
-        private float[] windarr = new float[256*256];
+        private Vector2[] windSpeeds = new Vector2[16 * 16];
 
         private Dictionary<UUID, ulong> m_rootAgents = new Dictionary<UUID, ulong>();
 
@@ -54,7 +54,6 @@ namespace OpenSim.Region.Environment.Modules
       
         public void Initialise(Scene scene, IConfigSource config)
         {
-
             m_log.Debug("[WIND] Initializing");
 
             m_scene = scene;
@@ -120,15 +119,13 @@ namespace OpenSim.Region.Environment.Modules
 
         public void WindToClient(IClientAPI client)
         {
-            
                 if (ready)
                 {
                     //if (!sunFixed)
                         //GenWindPos();    // Generate shared values once
-                    client.SendWindData(windarr);
+                    client.SendWindData(windSpeeds);
                     m_log.Debug("[WIND] Initial update for new client");
                 }
-            
         }
 
         public void WindUpdate()
@@ -149,11 +146,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 if (!avatar.IsChildAgent)
                 {
-                    
-                    avatar.ControllingClient.SendWindData(
-                                    0, 
-                                    0,0,1, 
-                                    windarr);
+                    avatar.ControllingClient.SendWindData(windSpeeds);
                 }
             }
 
@@ -169,7 +162,7 @@ namespace OpenSim.Region.Environment.Modules
             foreach (ScenePresence avatar in avatars)
             {
                 if (!avatar.IsChildAgent)
-                    avatar.ControllingClient.SendWindData(windarr);
+                    avatar.ControllingClient.SendWindData(windSpeeds);
             }
 
             // set estate settings for region access to sun position
@@ -182,35 +175,14 @@ namespace OpenSim.Region.Environment.Modules
 
         private void GenWindPos()
         {
-            //windarr = new float[256*256];
-            
-            Array.Clear(windarr, 0, 256 * 256);
-            //float i = 0f;
-            //float i2 = 2f;
-
-            for (int x = 0; x < 16; x++)
+            for (int y = 0; y < 16; y++)
             {
-                for (int y = 0; y < 16; y++)
+                for (int x = 0; x < 16; x++)
                 {
-                    
-                    windarr[x * 256 + y] =  (float)(rndnums.NextDouble() * 2d - 1d);
-
+                    windSpeeds[y * 16 + x].X = (float)(rndnums.NextDouble() * 2d - 1d);
+                    windSpeeds[y * 16 + x].Y = (float)(rndnums.NextDouble() * 2d - 1d);
                 }
-
             }
-            for (int x = 16; x < 32; x++)
-            {
-                for (int y = 0; y < 16; y++)
-                {
-                    
-                    windarr[x * 256 + y] =  (float)(rndnums.NextDouble() * 2d - 1d);
-
-                }
-
-            }
-            
-
-            // m_log.Debug("[SUN] Velocity("+Velocity.X+","+Velocity.Y+","+Velocity.Z+")");
         }
 
         private void ClientLoggedOut(UUID AgentId)
