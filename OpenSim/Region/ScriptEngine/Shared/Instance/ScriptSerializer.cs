@@ -421,7 +421,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (itemType == "list")
                 return ReadList(tag);
 
-            if (itemType == "libsecondlife.UUID")
+            if (itemType == "OpenMetaverse.UUID")
             {
                 UUID val = new UUID();
                 UUID.TryParse(tag.InnerText, out val);
