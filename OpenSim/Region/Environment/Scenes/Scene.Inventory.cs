@@ -1311,9 +1311,9 @@ namespace OpenSim.Region.Environment.Scenes
                             }
 
                             part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
-                            // Posting on_rez to the prim. Not much point, but
-                            // needed to kill gratuitious compiler messages
-                            part.CreateScriptInstance(copyID, 0, true, DefaultScriptEngine);
+                            // TODO: switch to posting on_rez here when scripts
+                            // have state in inventory
+                            part.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine);
 
                             //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
                             //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
@@ -2060,8 +2060,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 //group.ApplyPhysics(m_physicalPrim);
                             }
 
-                            // TODO: make this true to fire on_rez when scripts have state while in inventory
-                            group.CreateScriptInstances(0, false, DefaultScriptEngine);
+                            // Fire on_rez
+                            group.CreateScriptInstances(0, true, DefaultScriptEngine);
 
                             if (!attachment)
                                 rootPart.ScheduleFullUpdate();
