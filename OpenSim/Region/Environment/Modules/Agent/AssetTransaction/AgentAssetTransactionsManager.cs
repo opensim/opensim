@@ -202,7 +202,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             //Console.WriteLine("asset upload of " + assetID);
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
 
-            AgentAssetTransactions.AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
+            AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
             if (uploader != null)
             {
                 uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal, tempFile);
