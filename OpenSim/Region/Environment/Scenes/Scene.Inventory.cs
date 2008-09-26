@@ -1311,8 +1311,9 @@ namespace OpenSim.Region.Environment.Scenes
                             }
 
                             part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
-                            // TODO: set this to "true" when scripts in inventory have persistent state to fire on_rez
-                            part.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine);
+                            // Posting on_rez to the prim. Not much point, but
+                            // needed to kill gratuitious compiler messages
+                            part.CreateScriptInstance(copyID, 0, true, DefaultScriptEngine);
 
                             //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
                             //                                         "Rezzed script {0} into prim local ID {1} for user {2}",

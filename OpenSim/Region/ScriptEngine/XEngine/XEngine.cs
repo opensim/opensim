@@ -500,12 +500,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 assembly = m_Compiler.PerformScriptCompile(script,
                                                            assetID.ToString());
-                if (presence != null)
+                if (presence != null && (!postOnRez))
                     presence.ControllingClient.SendAgentAlertMessage("Compile successful", false);
             }
             catch (Exception e)
             {
-                if (presence != null)
+                if (presence != null && (!postOnRez))
                     presence.ControllingClient.SendAgentAlertMessage("Script saved with errors, check debug window!", false);
                 try
                 {

@@ -145,7 +145,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         LSLCompiler.PerformScriptCompile(Script,
                         assetID.ToString());
 
-                if (presence != null)
+                if (presence != null && (!postOnRez))
                     presence.ControllingClient.SendAgentAlertMessage(
                             "Compile successful", false);
 
@@ -205,7 +205,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             }
             catch (Exception e) // LEGIT: User Scripting
             {
-                if (presence != null)
+                if (presence != null && (!postOnRez))
                     presence.ControllingClient.SendAgentAlertMessage(
                             "Script saved with errors, check debug window!",
                             false);
