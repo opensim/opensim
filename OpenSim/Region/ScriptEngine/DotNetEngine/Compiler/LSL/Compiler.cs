@@ -83,8 +83,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
 
-        public Common.ScriptEngineBase.ScriptEngine m_scriptEngine;
-        public Compiler(Common.ScriptEngineBase.ScriptEngine scriptEngine)
+        public ScriptEngine m_scriptEngine;
+        public Compiler(ScriptEngine scriptEngine)
         {
             m_scriptEngine = scriptEngine;
             ReadConfig();

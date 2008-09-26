@@ -36,7 +36,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes.Scripting;
 
-namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
+namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     /// <summary>
     /// Because every thread needs some data set for it (time started to execute current function), it will do its work within a class
@@ -103,7 +103,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                             break;
                         default:
                             MyThreadPriority = ThreadPriority.BelowNormal; // Default
-                            m_ScriptEngine.Log.Error("[ScriptEngineBase]: Unknown priority type \"" + pri +
+                            m_ScriptEngine.Log.Error("[ScriptEngine.DotNetEngine]: Unknown priority type \"" + pri +
                                                      "\" in config file. Defaulting to \"BelowNormal\".");
                             break;
                     }

@@ -29,7 +29,6 @@ using System;
 using System.Runtime.Remoting.Lifetime;
 using System.Threading;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;

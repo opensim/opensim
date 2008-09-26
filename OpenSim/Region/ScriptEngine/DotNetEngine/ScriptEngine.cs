@@ -26,29 +26,281 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using Nini.Config;
+using OpenSim.Region.Interfaces;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.ScriptEngine.Interfaces;
+using OpenMetaverse;
+using OpenSim.Region.ScriptEngine.Shared;
+using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     [Serializable]
-    public class ScriptEngine : Common.ScriptEngineBase.ScriptEngine
+    public class ScriptEngine : IRegionModule, IEventReceiver, IScriptModule
     {
-        // We need to override a few things for our DotNetEngine
-        public override void Initialise(Scene scene, IConfigSource config)
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static List<ScriptEngine> ScriptEngines = new List<ScriptEngine>();
+        private Scene m_Scene;
+        public Scene World
         {
-            ConfigSource = config;
-            InitializeEngine(scene, config, true, GetScriptManager());
+            get { return m_Scene; }
+        }
+        public EventManager m_EventManager;                         // Handles and queues incoming events from OpenSim
+        public EventQueueManager m_EventQueueManager;               // Executes events, handles script threads
+        public ScriptManager m_ScriptManager;                       // Load, unload and execute scripts
+        public AppDomainManager m_AppDomainManager;                 // Handles loading/unloading of scripts into AppDomains
+        public static MaintenanceThread m_MaintenanceThread;        // Thread that does different kinds of maintenance, for example refreshing config and killing scripts that has been running too long
+
+        public IConfigSource ConfigSource;
+        public IConfig ScriptConfigSource;
+        private bool m_enabled = false;
+
+        public IConfig Config
+        {
+            get { return ScriptConfigSource; }
         }
 
-        public override Common.ScriptEngineBase.ScriptManager _GetScriptManager()
-        {
-            return new ScriptManager(this);
+        /// <summary>
+        /// How many seconds between re-reading config-file. 0 = never. ScriptEngine will try to adjust to new config changes.
+        /// </summary>
+        public int RefreshConfigFileSeconds {
+            get { return (int)(RefreshConfigFilens / 10000000); }
+            set { RefreshConfigFilens = value * 10000000; }
         }
+        public long RefreshConfigFilens;
 
-        public override string ScriptEngineName
+        public string ScriptEngineName
         {
             get { return "ScriptEngine.DotNetEngine"; }
+        }
+        
+        public ILog Log
+        {
+            get { return m_log; }
+        }
+
+        public ScriptEngine()
+        {
+            Common.mySE = this;                 // For logging, just need any instance, doesn't matter
+            lock (ScriptEngines)
+            {
+                ScriptEngines.Add(this); // Keep a list of ScriptEngines for shared threads to process all instances
+            }
+        }
+
+        public void Initialise(Scene Sceneworld, IConfigSource config)
+        {
+            m_log.Info("[" + ScriptEngineName + "]: ScriptEngine initializing");
+
+            ConfigSource = config;
+            m_Scene = Sceneworld;
+
+            // Make sure we have config
+            if (ConfigSource.Configs[ScriptEngineName] == null)
+                ConfigSource.AddConfig(ScriptEngineName);
+            ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
+
+            m_enabled = ScriptConfigSource.GetBoolean("Enabled", true);
+            if (!m_enabled)
+                return;
+
+            //m_log.Info("[" + ScriptEngineName + "]: InitializeEngine");
+
+            // Create all objects we'll be using
+            m_EventQueueManager = new EventQueueManager(this);
+            m_EventManager = new EventManager(this, true);
+            // We need to start it
+            m_ScriptManager = new ScriptManager(this);
+            m_ScriptManager.Setup();
+            m_AppDomainManager = new AppDomainManager(this);
+            if (m_MaintenanceThread == null)
+                m_MaintenanceThread = new MaintenanceThread();
+
+            m_log.Info("[" + ScriptEngineName + "]: Reading configuration from config section \"" + ScriptEngineName + "\"");
+            ReadConfig();
+
+            m_Scene.StackModuleInterface<IScriptModule>(this);
+        }
+
+        public void PostInitialise()
+        {
+            if (!m_enabled)
+                return;
+
+            m_EventManager.HookUpEvents();
+
+            m_ScriptManager.Start();
+        }
+
+        public void Shutdown()
+        {
+            // We are shutting down
+            lock (ScriptEngines)
+            {
+                ScriptEngines.Remove(this);
+            }
+        }
+
+        public void ReadConfig()
+        {
+#if DEBUG
+            //m_log.Debug("[" + ScriptEngineName + "]: Refreshing configuration for all modules");
+#endif
+            RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 30);
+
+
+        // Create a new object (probably not necessary?)
+//            ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
+
+            if (m_EventQueueManager != null) m_EventQueueManager.ReadConfig();
+            if (m_EventManager != null) m_EventManager.ReadConfig();
+            if (m_ScriptManager != null) m_ScriptManager.ReadConfig();
+            if (m_AppDomainManager != null) m_AppDomainManager.ReadConfig();
+            if (m_MaintenanceThread != null) m_MaintenanceThread.ReadConfig();
+        }
+
+        #region IRegionModule
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "Common." + ScriptEngineName; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return false; }
+        }
+
+        public bool PostObjectEvent(uint localID, EventParams p)
+        {
+            return m_EventQueueManager.AddToObjectQueue(localID, p.EventName, p.DetectParams, p.Params);
+        }
+
+        public bool PostScriptEvent(UUID itemID, EventParams p)
+        {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            return m_EventQueueManager.AddToScriptQueue(localID, itemID, p.EventName, p.DetectParams, p.Params);
+        }
+
+        public DetectParams GetDetectParams(UUID itemID, int number)
+        {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return null;
+
+            IScript Script = m_ScriptManager.GetScript(localID, itemID);
+
+            if (Script == null)
+                return null;
+
+            DetectParams[] det = m_ScriptManager.GetDetectParams(Script);
+
+            if (number < 0 || number >= det.Length)
+                return null;
+
+            return det[number];
+        }
+
+        public int GetStartParameter(UUID itemID)
+        {
+            return 0;
+        }
+        #endregion
+
+        public void SetState(UUID itemID, string state)
+        {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return;
+
+            IScript Script = m_ScriptManager.GetScript(localID, itemID);
+
+            if (Script == null)
+                return;
+
+            string currentState = Script.State;
+
+            if (currentState != state)
+            {
+                try
+                {
+                    m_EventManager.state_exit(localID);
+
+                }
+                catch (AppDomainUnloadedException)
+                {
+                    Console.WriteLine("[SCRIPT]: state change called when script was unloaded.  Nothing to worry about, but noting the occurance");
+                }
+
+                Script.State = state;
+
+                try
+                {
+                    int eventFlags = m_ScriptManager.GetStateEventFlags(localID, itemID);
+                    SceneObjectPart part = m_Scene.GetSceneObjectPart(itemID);
+                    if (part != null)
+                        part.SetScriptEvents(itemID, eventFlags);
+                    m_EventManager.state_entry(localID);
+                }
+                catch (AppDomainUnloadedException)
+                {
+                    Console.WriteLine("[SCRIPT]: state change called when script was unloaded.  Nothing to worry about, but noting the occurance");
+                }
+            }
+        }
+
+        public bool GetScriptState(UUID itemID)
+        {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return false;
+
+            IScript script = m_ScriptManager.GetScript(localID, itemID);
+            if (script == null)
+                return false;
+
+            return script.Exec.Running?true:false;
+        }
+
+        public void SetScriptState(UUID itemID, bool state)
+        {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return;
+
+            IScript script = m_ScriptManager.GetScript(localID, itemID);
+            if (script == null)
+                return;
+
+            script.Exec.Running = state;
+        }
+
+        public void ApiResetScript(UUID itemID)
+        {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return;
+
+            m_ScriptManager.ResetScript(localID, itemID);
+        }
+
+        public void ResetScript(UUID itemID)
+        {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return;
+
+            m_ScriptManager.ResetScript(localID, itemID);
         }
     }
 }

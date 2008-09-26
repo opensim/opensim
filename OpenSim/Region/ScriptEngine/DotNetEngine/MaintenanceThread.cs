@@ -32,7 +32,7 @@ using System.Threading;
 using log4net;
 using OpenSim.Framework;
 
-namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
+namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     /// <summary>
     /// This class does maintenance on script engine.

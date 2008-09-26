@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Region.ScriptEngine.Shared;
 
-namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
+namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     /// <summary>
     /// EventQueueManager handles event queues

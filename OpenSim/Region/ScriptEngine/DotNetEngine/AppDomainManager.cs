@@ -29,8 +29,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using OpenSim.Region.ScriptEngine.Common;
 
-namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
+namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     public class AppDomainManager : iScriptEngineFunctionModule
     {
