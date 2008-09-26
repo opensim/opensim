@@ -31,6 +31,7 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenSim.Region.Interfaces;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Interfaces;
@@ -134,6 +135,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 return;
 
             m_EventManager.HookUpEvents();
+
+            m_Scene.EventManager.OnScriptReset += OnScriptReset;
+            m_Scene.EventManager.OnGetScriptRunning += OnGetScriptRunning;
+            m_Scene.EventManager.OnStartScript += OnStartScript;
+            m_Scene.EventManager.OnStopScript += OnStopScript;
 
             m_ScriptManager.Start();
         }
@@ -309,6 +315,44 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 return;
 
             m_ScriptManager.ResetScript(localID, itemID);
+        }
+
+        public void OnScriptReset(uint localID, UUID itemID)
+        {
+            ResetScript(itemID);
+        }
+
+        public void OnStartScript(uint localID, UUID itemID)
+        {
+            InstanceData id = m_ScriptManager.GetScript(localID, itemID);
+            if (id == null)
+                return;        
+
+            if (!id.Disabled)
+                id.Running = true;
+        }
+
+        public void OnStopScript(uint localID, UUID itemID)
+        {
+            InstanceData id = m_ScriptManager.GetScript(localID, itemID);
+            if (id == null)
+                return;        
+            
+            id.Running = false;
+        }
+
+        public void OnGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
+        {
+            uint localID = m_ScriptManager.GetLocalID(itemID);
+            if (localID == 0)
+                return;
+
+            InstanceData id = m_ScriptManager.GetScript(localID, itemID);
+            if (id == null)
+                return;        
+
+            controllingClient.SendScriptRunningReply(objectID, itemID,
+                    id.Running);
         }
     }
 }
