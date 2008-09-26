@@ -29,28 +29,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     public static class Common
     {
-        public static bool debug = true;
         public static ScriptEngine mySE;
 
         // This class just contains some static log stuff used for debugging.
 
-        //public delegate void SendToDebugEventDelegate(string message);
-        //public delegate void SendToLogEventDelegate(string message);
-        //static public event SendToDebugEventDelegate SendToDebugEvent;
-        //static public event SendToLogEventDelegate SendToLogEvent;
-
         public static void SendToDebug(string message)
         {
-            //if (Debug == true)
             mySE.Log.Info("[" + mySE.ScriptEngineName + "]: Debug: " + message);
-            //SendToDebugEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + message);
         }
 
         public static void SendToLog(string message)
         {
-            //if (Debug == true)
             mySE.Log.Info("[" + mySE.ScriptEngineName + "]: LOG: " + message);
-            //SendToLogEvent("\r\n" + DateTime.Now.ToString("[HH:mm:ss] ") + message);
         }
     }
 }

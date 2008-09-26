@@ -44,19 +44,35 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
     [Serializable]
     public class ScriptEngine : IRegionModule, IEventReceiver, IScriptModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static List<ScriptEngine> ScriptEngines = new List<ScriptEngine>();
+        public static List<ScriptEngine> ScriptEngines =
+                new List<ScriptEngine>();
+
         private Scene m_Scene;
         public Scene World
         {
             get { return m_Scene; }
         }
-        public EventManager m_EventManager;                         // Handles and queues incoming events from OpenSim
-        public EventQueueManager m_EventQueueManager;               // Executes events, handles script threads
-        public ScriptManager m_ScriptManager;                       // Load, unload and execute scripts
-        public AppDomainManager m_AppDomainManager;                 // Handles loading/unloading of scripts into AppDomains
-        public static MaintenanceThread m_MaintenanceThread;        // Thread that does different kinds of maintenance, for example refreshing config and killing scripts that has been running too long
+
+        // Handles and queues incoming events from OpenSim
+        public EventManager m_EventManager;
+
+        // Executes events, handles script threads
+        public EventQueueManager m_EventQueueManager;
+
+        // Load, unload and execute scripts
+        public ScriptManager m_ScriptManager;
+
+        // Handles loading/unloading of scripts into AppDomains
+        public AppDomainManager m_AppDomainManager;
+
+        // Thread that does different kinds of maintenance,
+        // for example refreshing config and killing scripts
+        // that has been running too long
+        public static MaintenanceThread m_MaintenanceThread;
 
         public IConfigSource ConfigSource;
         public IConfig ScriptConfigSource;
@@ -67,13 +83,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             get { return ScriptConfigSource; }
         }
 
-        /// <summary>
-        /// How many seconds between re-reading config-file. 0 = never. ScriptEngine will try to adjust to new config changes.
-        /// </summary>
+        // How many seconds between re-reading config-file.
+        // 0 = never. ScriptEngine will try to adjust to new config changes.
         public int RefreshConfigFileSeconds {
             get { return (int)(RefreshConfigFilens / 10000000); }
             set { RefreshConfigFilens = value * 10000000; }
         }
+
         public long RefreshConfigFilens;
 
         public string ScriptEngineName
@@ -88,10 +104,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public ScriptEngine()
         {
-            Common.mySE = this;                 // For logging, just need any instance, doesn't matter
+            // For logging, just need any instance, doesn't matter
+            Common.mySE = this;
+
             lock (ScriptEngines)
             {
-                ScriptEngines.Add(this); // Keep a list of ScriptEngines for shared threads to process all instances
+                // Keep a list of ScriptEngines for shared threads
+                // to process all instances
+                ScriptEngines.Add(this);
             }
         }
 
@@ -105,17 +125,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Make sure we have config
             if (ConfigSource.Configs[ScriptEngineName] == null)
                 ConfigSource.AddConfig(ScriptEngineName);
+
             ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
 
             m_enabled = ScriptConfigSource.GetBoolean("Enabled", true);
             if (!m_enabled)
                 return;
 
-            //m_log.Info("[" + ScriptEngineName + "]: InitializeEngine");
-
             // Create all objects we'll be using
             m_EventQueueManager = new EventQueueManager(this);
             m_EventManager = new EventManager(this, true);
+
             // We need to start it
             m_ScriptManager = new ScriptManager(this);
             m_ScriptManager.Setup();
@@ -123,7 +143,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (m_MaintenanceThread == null)
                 m_MaintenanceThread = new MaintenanceThread();
 
-            m_log.Info("[" + ScriptEngineName + "]: Reading configuration from config section \"" + ScriptEngineName + "\"");
+            m_log.Info("[" + ScriptEngineName + "]: Reading configuration "+
+                    "from config section \"" + ScriptEngineName + "\"");
+
             ReadConfig();
 
             m_Scene.StackModuleInterface<IScriptModule>(this);
@@ -155,14 +177,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void ReadConfig()
         {
-#if DEBUG
-            //m_log.Debug("[" + ScriptEngineName + "]: Refreshing configuration for all modules");
-#endif
             RefreshConfigFileSeconds = ScriptConfigSource.GetInt("RefreshConfig", 30);
-
-
-        // Create a new object (probably not necessary?)
-//            ScriptConfigSource = ConfigSource.Configs[ScriptEngineName];
 
             if (m_EventQueueManager != null) m_EventQueueManager.ReadConfig();
             if (m_EventManager != null) m_EventManager.ReadConfig();
@@ -189,13 +204,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public bool PostObjectEvent(uint localID, EventParams p)
         {
-            return m_EventQueueManager.AddToObjectQueue(localID, p.EventName, p.DetectParams, p.Params);
+            return m_EventQueueManager.AddToObjectQueue(localID, p.EventName,
+                    p.DetectParams, p.Params);
         }
 
         public bool PostScriptEvent(UUID itemID, EventParams p)
         {
             uint localID = m_ScriptManager.GetLocalID(itemID);
-            return m_EventQueueManager.AddToScriptQueue(localID, itemID, p.EventName, p.DetectParams, p.Params);
+            return m_EventQueueManager.AddToScriptQueue(localID, itemID,
+                    p.EventName, p.DetectParams, p.Params);
         }
 
         public DetectParams GetDetectParams(UUID itemID, int number)
@@ -341,7 +358,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             id.Running = false;
         }
 
-        public void OnGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
+        public void OnGetScriptRunning(IClientAPI controllingClient,
+                UUID objectID, UUID itemID)
         {
             uint localID = m_ScriptManager.GetLocalID(itemID);
             if (localID == 0)
