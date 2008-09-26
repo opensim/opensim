@@ -559,7 +559,7 @@ namespace OpenSim.Framework
         void SendLayerData(int px, int py, float[] map);
 
         void SendWindData(float[] map);
-        void SendWindData(int px, int py, float[] map);
+        void SendWindData(int p1x, int p1y, int p2x, int p2y, float[] map);
 
         void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look);
         void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint);

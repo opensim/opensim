@@ -1235,7 +1235,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         public virtual void SendWindData(float[] map)
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendWindData), (object)map);
+            //ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendWindData), (object)map);
         }
 
         /// <summary>
@@ -1244,12 +1244,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="o"></param>
         private void DoSendWindData(object o)
         {
-            float[] map = (float[])o;
+            //float[] map = (float[])o;
 
-            try
-            {
-                for (int y = 0; y < 16; y++)
-                {
+            //try
+            //{
+                //for (int y = 0; y < 16; y++)
+                //{
                     // For some terrains, sending more than one terrain patch at once results in a libsecondlife exception
                     // see http://opensimulator.org/mantis/view.php?id=1662
                     //for (int x = 0; x < 16; x += 4)
@@ -1257,17 +1257,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //    SendLayerPacket(map, y, x);
                     //    Thread.Sleep(150);
                     //}
-                    for (int x = 0; x < 16; x++)
-                    {
-                        SendWindData(x, y, map);
-                        Thread.Sleep(35);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[CLIENT]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
-            }
+                   // for (int x = 0; x < 16; x++)
+                    //{
+                        //SendWindData(x, y, map);
+                        //Thread.Sleep(35);
+                    //}
+                //}
+            //}
+            //catch (Exception e)
+            //{
+           //     m_log.Warn("[CLIENT]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
+           // }
         }
 
         /// <summary>
@@ -1294,16 +1294,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="px">Patch coordinate (x) 0..15</param>
         /// <param name="py">Patch coordinate (y) 0..15</param>
         /// <param name="map">heightmap</param>
-        public void SendWindData(int px, int py, float[] map)
+        public void SendWindData(int p1x, int p1y, int p2x, int p2y, float[] map)
         {
             try
             {
-                int[] patches = new int[1];
-                int patchx, patchy;
-                patchx = px;
-                patchy = py;
+                int[] patches = new int[2];
+                int patch1x, patch1y, patch2x, patch2y;
+                patch1x = p1x;
+                patch1y = p1y;
+                patch2x = p2x;
+                patch2y = p2y;
 
-                patches[0] = patchx + 0 + patchy * 16;
+
+                patches[0] = patch1x + 0 + patch1y * 16;
+                patches[1] = patch2x + 0 + patch2y * 16;
 
                 LayerDataPacket layerpack = TerrainCompressor.CreateWindPacket(map, patches);
                 layerpack.Header.Zerocoded = true;

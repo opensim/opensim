@@ -149,28 +149,11 @@ namespace OpenSim.Region.Environment.Modules
             {
                 if (!avatar.IsChildAgent)
                 {
-                    spotxp = (int)avatar.CameraPosition.X + 3;
-                    spotxm = (int)avatar.CameraPosition.X - 3;
-                    spotyp = (int)avatar.CameraPosition.Y + 3;
-                    spotym = (int)avatar.CameraPosition.Y - 3;
-                    if (spotxm < 0)
-                        spotxm = 0;
-                    if (spotym < 0)
-                        spotym = 0;
-                    if (spotxp > 255)
-                        spotxp = 255;
-                    if (spotyp > 255)
-                        spotyp = 255;
-                    for (int x = spotxm; x<spotxp; x++)
-                    {
-                        for (int y = spotym; y<spotyp; y++)
-                        {
-                            avatar.ControllingClient.SendWindData(
-                                            x / Constants.TerrainPatchSize, 
-                                            y / Constants.TerrainPatchSize, 
-                                            windarr);
-                        }
-                    }
+                    
+                    avatar.ControllingClient.SendWindData(
+                                    0, 
+                                    0,0,1, 
+                                    windarr);
                 }
             }
 
@@ -199,14 +182,33 @@ namespace OpenSim.Region.Environment.Modules
 
         private void GenWindPos()
         {
-            windarr = new float[256*256];
-            for (int x = 0; x < 256; x++)
+            //windarr = new float[256*256];
+            
+            Array.Clear(windarr, 0, 256 * 256);
+            //float i = 0f;
+            //float i2 = 2f;
+
+            for (int x = 0; x < 16; x++)
             {
-                for (int y = 0; y < 256; y++)
+                for (int y = 0; y < 16; y++)
                 {
-                    windarr[y*256 + x]= (float)(rndnums.NextDouble()* 2d - 1d);
+                    
+                    windarr[x * 256 + y] =  (float)(rndnums.NextDouble() * 2d - 1d);
+
                 }
+
             }
+            for (int x = 16; x < 32; x++)
+            {
+                for (int y = 0; y < 16; y++)
+                {
+                    
+                    windarr[x * 256 + y] =  (float)(rndnums.NextDouble() * 2d - 1d);
+
+                }
+
+            }
+            
 
             // m_log.Debug("[SUN] Velocity("+Velocity.X+","+Velocity.Y+","+Velocity.Z+")");
         }
