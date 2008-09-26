@@ -1143,7 +1143,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetClickAction(int action)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetClickAction");
+            m_host.ClickAction = (byte)action;
+            if (m_host.ParentGroup != null) m_host.ParentGroup.HasGroupChanged = true;
+            m_host.ScheduleFullUpdate();
             return;
         }
 
