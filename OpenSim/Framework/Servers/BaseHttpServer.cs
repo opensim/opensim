@@ -991,6 +991,7 @@ namespace OpenSim.Framework.Servers
             string responseString = (string)responsedata["str_response_string"];
             string contentType = (string)responsedata["content_type"];
 
+            
             if (responsedata.ContainsKey("keepalive"))
                 response.KeepAlive = true;
 
@@ -1003,7 +1004,7 @@ namespace OpenSim.Framework.Servers
             }
 
             // The client ignores anything but 200 here for web login, so ensure that this is 200 for that
-            
+
             response.StatusCode = responsecode;
 
             if (responsecode == (int)OSHttpStatusCode.RedirectMovedPermanently)
@@ -1028,7 +1029,7 @@ namespace OpenSim.Framework.Servers
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
-            
+
 
             try
             {
@@ -1042,6 +1043,7 @@ namespace OpenSim.Framework.Servers
             {
                 response.OutputStream.Close();
             }
+            
         }
 
         public void SendHTML404(OSHttpResponse response, string host)

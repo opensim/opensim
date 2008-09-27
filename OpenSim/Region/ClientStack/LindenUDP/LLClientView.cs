@@ -783,7 +783,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     ClientLoop();
                 }
             }
-            catch (System.Exception e)
+                //Todo set as Generic Exception again.
+            catch (System.BadImageFormatException e)
             {
                 if (e is ThreadAbortException)
                     throw e;

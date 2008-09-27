@@ -52,11 +52,19 @@ using BlockingLLSDQueue = OpenSim.Framework.BlockingQueue<OpenMetaverse.Structur
 
 namespace OpenSim.Region.Environment.Modules.Framework
 {
+    public struct QueueItem
+    {
+        public int id;
+        public LLSDMap body;
+    }
+
     public class EventQueueGetModule : IEventQueue, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene = null;
         private IConfigSource m_gConfig;
+        
+        private Dictionary<UUID, int> m_ids = new Dictionary<UUID, int>();
 
         private Dictionary<UUID, BlockingLLSDQueue> queues = new Dictionary<UUID, BlockingLLSDQueue>();
             
@@ -83,6 +91,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         private void ReadConfigAndPopulate(Scene scene, IConfig startupConfig, string p)
         {
+           
         }
 
         public void PostInitialise()
@@ -147,6 +156,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
         {
             m_log.DebugFormat("[EVENTQUEUE]: Avatar {0} entering parcel {1} in region {2}.",
                               avatar.UUID, localLandID, regionID);
+            
         }
 
         private void MakeChildAgent(ScenePresence avatar)
@@ -164,29 +174,64 @@ namespace OpenSim.Region.Environment.Modules.Framework
                                                        {
                                                            return ProcessQueue(m_dhttpMethod,agentID, caps);
                                                        }));
+            Random rnd = new Random(System.Environment.TickCount);
+            lock (m_ids)
+            {
+                if (!m_ids.ContainsKey(agentID))
+                    m_ids.Add(agentID, rnd.Next(30000000));
+            }
+
+            
+            
         }
 
         public Hashtable ProcessQueue(Hashtable request,UUID agentID, Caps caps)
         {
             // TODO: this has to be redone to not busy-wait (and block the thread),
             // TODO: as soon as we have a non-blocking way to handle HTTP-requests.
+
             BlockingLLSDQueue queue = GetQueue(agentID);
             LLSD element = queue.Dequeue(15000); // 15s timeout
+
 
             String debug = "[EVENTQUEUE]: Got request for agent {0}: [  ";
             foreach(object key in request.Keys)
             {
                 debug += key.ToString() + "=" + request[key].ToString() + "  ";
             }
-            m_log.DebugFormat(debug, agentID);
-                    
+            //m_log.DebugFormat(debug, agentID);
+            
             if (element == null) // didn't have an event in 15s
             {
+                // Send it a fake event to keep the client polling!   It doesn't like 502s like the proxys say!
+                element = EventQueueHelper.KeepAliveEvent();
+
+                ScenePresence avatar;
+                m_scene.TryGetAvatar(agentID, out avatar);
+
+                LLSDArray array = new LLSDArray();
+                array.Add(element);
+                int thisID = m_ids[agentID];
+                while (queue.Count() > 0)
+                {
+                    array.Add(queue.Dequeue(1));
+                    thisID++;
+                }
+                LLSDMap events = new LLSDMap();
+                events.Add("events", array);
+
+                events.Add("id", new LLSDInteger(thisID));
+                lock (m_ids)
+                {
+                    m_ids[agentID] = thisID + 1;
+                }
                 Hashtable responsedata = new Hashtable();
-                responsedata["int_response_code"] = 502;
-                responsedata["str_response_string"] = "Upstream error:";
-                responsedata["content_type"] = "text/plain";
+                responsedata["int_response_code"] = 200;
+                responsedata["content_type"] = "application/llsd+xml";
                 responsedata["keepalive"] = true;
+                responsedata["str_response_string"] = LLSDParser.SerializeXmlString(events);
+                //m_log.DebugFormat("[EVENTQUEUE]: sending fake response for {0}: {1}", agentID, responsedata["str_response_string"]);
+
                 return responsedata;
             }
             else
@@ -196,14 +241,20 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 
                 LLSDArray array = new LLSDArray();
                 array.Add(element);
+                int thisID = m_ids[agentID];
                 while (queue.Count() > 0)
                 {
                     array.Add(queue.Dequeue(1));
+                    thisID++;
                 }
                 LLSDMap events = new LLSDMap();
                 events.Add("events", array);
-                events.Add("id", new LLSDInteger(1)); // TODO: this seems to be a event sequence-numeber to be ack'd by the client?
-
+                
+                events.Add("id", new LLSDInteger(thisID)); 
+                lock (m_ids)
+                {
+                    m_ids[agentID] = thisID + 1;
+                }
                 Hashtable responsedata = new Hashtable();
                 responsedata["int_response_code"] = 200;
                 responsedata["content_type"] = "application/llsd+xml";

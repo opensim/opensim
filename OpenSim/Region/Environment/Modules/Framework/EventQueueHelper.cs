@@ -55,5 +55,14 @@ namespace OpenSim.Region.Environment
             
             return llsdMessage;
         }
+        public static LLSD KeepAliveEvent()
+        {
+            LLSDMap llsdSimInfo = new LLSDMap();
+            LLSDMap llsdMessage = new LLSDMap(2);
+            llsdMessage.Add("message", new LLSDString("FAKEEVENT"));
+            llsdMessage.Add("body", llsdSimInfo);
+
+            return llsdMessage;
+        }
     }
 }
