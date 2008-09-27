@@ -361,9 +361,57 @@ namespace OpenSim.Framework.Servers
 
                         buffer = streamedRequestHandler.Handle(path, request.InputStream, request, response);
                     }
+                    else if (requestHandler is IGenericHTTPHandler)
+                    {
+                        IGenericHTTPHandler HTTPRequestHandler = requestHandler as IGenericHTTPHandler;
+                        Stream requestStream = request.InputStream;
+
+                        Encoding encoding = Encoding.UTF8;
+                        StreamReader reader = new StreamReader(requestStream, encoding);
+
+                        string requestBody = reader.ReadToEnd();
+                        
+                        
+                        reader.Close();
+                        requestStream.Close();
+
+                        Hashtable keysvals = new Hashtable();
+                        Hashtable headervals = new Hashtable();
+                        string host = String.Empty;
+
+                        string[] querystringkeys = request.QueryString.AllKeys;
+                        string[] rHeaders = request.Headers.AllKeys;
+
+
+                        foreach (string queryname in querystringkeys)
+                        {
+                            keysvals.Add(queryname, request.QueryString[queryname]);
+                        }
+
+                        foreach (string headername in rHeaders)
+                        {
+                            //m_log.Warn("[HEADER]: " + headername + "=" + request.Headers[headername]);
+                            headervals[headername] = request.Headers[headername];
+                        }
+
+                        if (headervals.Contains("Host"))
+                        {
+                            host = (string)headervals["Host"];
+                        }
+                        keysvals.Add("requestbody",requestBody);
+                        if (keysvals.Contains("method"))
+                        {
+                            //m_log.Warn("[HTTP]: Contains Method");
+                            string method = (string)keysvals["method"];
+                            //m_log.Warn("[HTTP]: " + requestBody);
+                   
+                        } 
+                        DoHTTPGruntWork(HTTPRequestHandler.Handle(path,keysvals), response);
+                        return;                        
+                    }
                     else
                     {
-                        IStreamHandler streamHandler = (IStreamHandler) requestHandler;
+                        IStreamHandler streamHandler = (IStreamHandler)requestHandler;
 
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
@@ -943,6 +991,9 @@ namespace OpenSim.Framework.Servers
             string responseString = (string)responsedata["str_response_string"];
             string contentType = (string)responsedata["content_type"];
 
+            if (responsedata.ContainsKey("keepalive"))
+                response.KeepAlive = true;
+
             //Even though only one other part of the entire code uses HTTPHandlers, we shouldn't expect this
             //and should check for NullReferenceExceptions
 
@@ -951,10 +1002,9 @@ namespace OpenSim.Framework.Servers
                 contentType = "text/html";
             }
 
-            // We're forgoing the usual error status codes here because the client
-            // ignores anything but 200 and 301
-
-            response.StatusCode = (int)OSHttpStatusCode.SuccessOk;
+            // The client ignores anything but 200 here for web login, so ensure that this is 200 for that
+            
+            response.StatusCode = responsecode;
 
             if (responsecode == (int)OSHttpStatusCode.RedirectMovedPermanently)
             {
@@ -978,6 +1028,7 @@ namespace OpenSim.Framework.Servers
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
+            
 
             try
             {
