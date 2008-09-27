@@ -354,17 +354,19 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             {
                 if (LUQueue.Count > 0)
                 {
-                    m_scriptEngine.Log.InfoFormat("[{0}]: Loading script",
-                            m_scriptEngine.ScriptEngineName);
                     LUStruct item = LUQueue.Dequeue();
 
                     if (item.Action == LUType.Unload)
                     {
+                        m_scriptEngine.Log.DebugFormat("[{0}]: Unloading script",
+                                m_scriptEngine.ScriptEngineName);
                         _StopScript(item.localID, item.itemID);
                         RemoveScript(item.localID, item.itemID);
                     }
                     else if (item.Action == LUType.Load)
                     {
+                        m_scriptEngine.Log.DebugFormat("[{0}]: Loading script",
+                                m_scriptEngine.ScriptEngineName);
                         _StartScript(item.localID, item.itemID, item.script,
                                 item.startParam, item.postOnRez);
                     }
