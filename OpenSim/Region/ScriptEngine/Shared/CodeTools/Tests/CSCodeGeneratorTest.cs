@@ -1544,7 +1544,7 @@ default
         }
 
         [Test]
-        [ExpectedException(typeof(Tools.CSToolsException))]
+        [ExpectedException(typeof(System.Exception))]
         public void TestSyntaxError()
         {
             string input = @"default
@@ -1560,21 +1560,17 @@ default
                 CSCodeGenerator cg = new CSCodeGenerator();
                 cg.Convert(input);
             }
-            catch (Tools.CSToolsException e)
+            catch (System.Exception e)
             {
                 // The syntax error is on line 6, char 5 (expected ';', found
                 // '}').
-                Regex r = new Regex("Line ([0-9]+), char ([0-9]+)");
-                Match m = r.Match(e.Message);
-                Assert.AreEqual("6", m.Groups[1].Value);
-                Assert.AreEqual("5", m.Groups[2].Value);
-
+                Assert.AreEqual("Line (5,4) Line 6, char 5: syntax error", e.Message);
                 throw;
             }
         }
 
         [Test]
-        [ExpectedException(typeof(Tools.CSToolsException))]
+        [ExpectedException(typeof(System.Exception))]
         public void TestSyntaxErrorDeclaringVariableInForLoop()
         {
             string input = @"default
@@ -1590,13 +1586,10 @@ default
                 CSCodeGenerator cg = new CSCodeGenerator();
                 cg.Convert(input);
             }
-            catch (Tools.CSToolsException e)
+            catch (System.Exception e)
             {
                 // The syntax error is on line 5, char 14 (Syntax error)
-                Regex r = new Regex("Line ([0-9]+), char ([0-9]+)");
-                Match m = r.Match(e.Message);
-                Assert.AreEqual("5", m.Groups[1].Value);
-                Assert.AreEqual("14", m.Groups[2].Value);
+                Assert.AreEqual("Line (4,13) Line 5, char 14: syntax error", e.Message);
 
                 throw;
             }
