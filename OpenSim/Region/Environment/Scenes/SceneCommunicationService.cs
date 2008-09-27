@@ -31,9 +31,12 @@ using System.Net;
 using System.Reflection;
 using System.Threading;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Region.Interfaces;
+using LLSD = OpenMetaverse.StructuredData.LLSD;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -283,7 +286,18 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (regionAccepted)
             {
-                avatar.ControllingClient.InformClientOfNeighbour(regionHandle, endPoint);
+                IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
+                if (eq != null)
+                {
+                    LLSD Item = EventQueueHelper.EnableSimulator(regionHandle, endPoint);
+                    eq.Enqueue(Item, avatar.UUID);
+                }
+                else
+                {
+                    avatar.ControllingClient.InformClientOfNeighbour(regionHandle, endPoint);
+                    // TODO: make Event Queue disablable!
+                }
+                
                 avatar.AddNeighbourRegion(regionHandle);
                 m_log.Info("[INTERGRID]: Completed inform client about neighbours");
             }

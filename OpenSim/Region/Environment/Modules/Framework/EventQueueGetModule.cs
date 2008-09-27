@@ -63,6 +63,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene = null;
         private IConfigSource m_gConfig;
+        bool enabledYN = false;
         
         private Dictionary<UUID, int> m_ids = new Dictionary<UUID, int>();
 
@@ -72,26 +73,34 @@ namespace OpenSim.Region.Environment.Modules.Framework
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_gConfig = config;
-            m_scene = scene;
+
 
 
             IConfig startupConfig = m_gConfig.Configs["Startup"];
 
             ReadConfigAndPopulate(scene, startupConfig, "Startup");
-           
-            scene.RegisterModuleInterface<IEventQueue>(this);
 
-            scene.EventManager.OnNewClient += OnNewClient;
-            scene.EventManager.OnClientClosed += ClientClosed;
-            scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
-            scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-            scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+            if (enabledYN)
+            {
+                m_scene = scene;
+                scene.RegisterModuleInterface<IEventQueue>(this);
+
+                scene.EventManager.OnNewClient += OnNewClient;
+                scene.EventManager.OnClientClosed += ClientClosed;
+                scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+                scene.EventManager.OnMakeChildAgent += MakeChildAgent;
+                scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+            }
+            else
+            {
+                m_gConfig = null;
+            }
         
         }
 
         private void ReadConfigAndPopulate(Scene scene, IConfig startupConfig, string p)
         {
-           
+            enabledYN = startupConfig.GetBoolean("EventQueue", false);
         }
 
         public void PostInitialise()
