@@ -26,16 +26,34 @@
  */
 
 using System;
-using OpenSim.Framework;
-using OpenMetaverse;
-using OpenMetaverse.StructuredData;
-using System.Collections.Generic;
-using System.Text;
+using System.Net;
 
-namespace OpenSim.Region.Interfaces
+using OpenMetaverse.StructuredData;
+
+namespace OpenSim.Region.Environment
 {
-    public interface IEventQueue
+    public class EventQueueHelper
     {
-        bool Enqueue(LLSD o, UUID avatarID);
+        private EventQueueHelper() {} // no construction possible, it's an utility class
+        
+        public static LLSD EnableSimulator(ulong regionHandle, IPEndPoint endPoint)
+        {
+            LLSDMap llsdSimInfo = new LLSDMap(3);
+            llsdSimInfo.Add("Handle", new LLSDBinary(regionHandle));
+            llsdSimInfo.Add("IP", new LLSDBinary(endPoint.Address.GetAddressBytes()));
+            llsdSimInfo.Add("Port", new LLSDInteger(endPoint.Port));
+            
+            LLSDArray arr = new LLSDArray(1);
+            arr.Add(llsdSimInfo);
+            
+            LLSDMap llsdBody = new LLSDMap(1);
+            llsdBody.Add("SimulatorInfo", arr);
+
+            LLSDMap llsdMessage = new LLSDMap(2);
+            llsdMessage.Add("message", new LLSDString("EnableSimulator"));
+            llsdMessage.Add("body", llsdBody);
+            
+            return llsdMessage;
+        }
     }
 }

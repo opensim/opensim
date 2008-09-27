@@ -676,6 +676,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Runtime.Remoting"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
 
       <Files>

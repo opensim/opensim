@@ -1,3 +1,29 @@
+/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSim Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,15 +48,18 @@ using LLSD = OpenMetaverse.StructuredData.LLSD;
 using LLSDMap = OpenMetaverse.StructuredData.LLSDMap;
 using LLSDArray = OpenMetaverse.StructuredData.LLSDArray;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
+using BlockingLLSDQueue = OpenSim.Framework.BlockingQueue<OpenMetaverse.StructuredData.LLSD>;
 
 namespace OpenSim.Region.Environment.Modules.Framework
 {
     public class EventQueueGetModule : IEventQueue, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        Scene m_scene = null;
-        IConfigSource m_gConfig;
+        private Scene m_scene = null;
+        private IConfigSource m_gConfig;
 
+        private Dictionary<UUID, BlockingLLSDQueue> queues = new Dictionary<UUID, BlockingLLSDQueue>();
+            
         #region IRegionModule methods
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -48,19 +77,13 @@ namespace OpenSim.Region.Environment.Modules.Framework
             scene.EventManager.OnClientClosed += ClientClosed;
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
             scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-            scene.EventManager.OnClientClosed += ClientLoggedOut;
             scene.EventManager.OnRegisterCaps += OnRegisterCaps;
         
         }
 
         private void ReadConfigAndPopulate(Scene scene, IConfig startupConfig, string p)
         {
-            
         }
-
-
-
-       
 
         public void PostInitialise()
         {
@@ -81,43 +104,56 @@ namespace OpenSim.Region.Environment.Modules.Framework
         }
         #endregion
 
-        #region IEventQueue Members
-        public bool Enqueue(object o, UUID avatarID)
+        private BlockingLLSDQueue GetQueue(UUID agentId)
         {
+            if (!queues.ContainsKey(agentId))
+            {
+                m_log.DebugFormat("[EVENTQUEUE]: Adding new queue for agent {0}", agentId);
+                queues[agentId] = new BlockingLLSDQueue();
+            }
+            return queues[agentId];
+        }
 
-            return false;
+        
+        #region IEventQueue Members
+        public bool Enqueue(LLSD ev, UUID avatarID)
+        {
+            m_log.DebugFormat("[EVENTQUEUE]: Enqueuing event for {0}", avatarID);
+            BlockingLLSDQueue queue = GetQueue(avatarID);
+            queue.Enqueue(ev);
+            return true;
         }
         #endregion
 
         private void OnNewClient(IClientAPI client)
         {
-            
+            m_log.DebugFormat("[EVENTQUEUE]: New client {0} detected.", client.AgentId);
             client.OnLogout += ClientClosed;
         }
 
 
-        public void ClientClosed(IClientAPI client)
+        private void ClientClosed(IClientAPI client)
         {
             ClientClosed(client.AgentId);
         }
 
-        private void ClientLoggedOut(UUID AgentId)
+        private void ClientClosed(UUID AgentID)
         {
-            
+            queues.Remove(AgentID);
+            m_log.DebugFormat("[EVENTQUEUE]: Client {0} deregistered.", AgentID);
         }
-
+        
         private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
         {
-
+            m_log.DebugFormat("[EVENTQUEUE]: Avatar {0} entering parcel {1} in region {2}.",
+                              avatar.UUID, localLandID, regionID);
         }
 
-        public void ClientClosed(UUID AgentID)
-        {
-           
-        }
         private void MakeChildAgent(ScenePresence avatar)
         {
+            m_log.DebugFormat("[EVENTQUEUE]: Make Child agent {0}.", avatar.UUID);
         }
+
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             m_log.DebugFormat("[EVENTQUEUE] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
@@ -129,14 +165,54 @@ namespace OpenSim.Region.Environment.Modules.Framework
                                                            return ProcessQueue(m_dhttpMethod,agentID, caps);
                                                        }));
         }
+
         public Hashtable ProcessQueue(Hashtable request,UUID agentID, Caps caps)
         {
-            
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 502;
-            responsedata["str_response_string"] = "Upstream error:";
-            responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = true;
+            // TODO: this has to be redone to not busy-wait (and block the thread),
+            // TODO: as soon as we have a non-blocking way to handle HTTP-requests.
+            BlockingLLSDQueue queue = GetQueue(agentID);
+            LLSD element = queue.Dequeue(15000); // 15s timeout
+
+            String debug = "[EVENTQUEUE]: Got request for agent {0}: [  ";
+            foreach(object key in request.Keys)
+            {
+                debug += key.ToString() + "=" + request[key].ToString() + "  ";
+            }
+            m_log.DebugFormat(debug, agentID);
+                    
+            if (element == null) // didn't have an event in 15s
+            {
+                Hashtable responsedata = new Hashtable();
+                responsedata["int_response_code"] = 502;
+                responsedata["str_response_string"] = "Upstream error:";
+                responsedata["content_type"] = "text/plain";
+                responsedata["keepalive"] = true;
+                return responsedata;
+            }
+            else
+            {
+                ScenePresence avatar;
+                m_scene.TryGetAvatar(agentID, out avatar);
+                
+                LLSDArray array = new LLSDArray();
+                array.Add(element);
+                while (queue.Count() > 0)
+                {
+                    array.Add(queue.Dequeue(1));
+                }
+                LLSDMap events = new LLSDMap();
+                events.Add("events", array);
+                events.Add("id", new LLSDInteger(1)); // TODO: this seems to be a event sequence-numeber to be ack'd by the client?
+
+                Hashtable responsedata = new Hashtable();
+                responsedata["int_response_code"] = 200;
+                responsedata["content_type"] = "application/llsd+xml";
+                responsedata["keepalive"] = true;
+                responsedata["str_response_string"] = LLSDParser.SerializeXmlString(events);
+                m_log.DebugFormat("[EVENTQUEUE]: sending response for {0}: {1}", agentID, responsedata["str_response_string"]);
+                                  
+                return responsedata;
+            }
 
             /*
             responsedata["int_response_code"] = 200;
@@ -157,7 +233,6 @@ namespace OpenSim.Region.Environment.Modules.Framework
             //string requestbody = (string)request["requestbody"];
             //LLSD llsdRequest = LLSDParser.DeserializeXml(request);
             //System.Console.WriteLine(requestbody);
-            return responsedata;
             
         }
     }
