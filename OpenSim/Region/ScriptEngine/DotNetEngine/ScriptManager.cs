@@ -53,6 +53,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public int StartParam;
         public AppDomain AppDomain;
         public Dictionary<string, IScriptApi> Apis;
+        public Dictionary<KeyValuePair<int,int>, KeyValuePair<int,int>>
+                LineMap;
     }
 
     public class ScriptManager
@@ -159,6 +161,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         m_scriptEngine.m_AppDomainManager.LoadScript(
                         CompiledScriptFile, out id.AppDomain);
 
+                id.LineMap = LSLCompiler.LineMap();
                 id.Script = CompiledScript;
                 id.Source = Script;
                 id.StartParam = startParam;
@@ -212,7 +215,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 try
                 {
                     // DISPLAY ERROR INWORLD
-                    string text = "Error compiling script:\r\n" +
+                    string text = "Error compiling script:\n" +
                             e.Message.ToString();
                     if (text.Length > 1100)
                         text = text.Substring(0, 1099);

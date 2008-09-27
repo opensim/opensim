@@ -96,5 +96,8 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         void DestroyScriptInstance();
 
         IScriptApi GetApi(string name);
+
+        Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> LineMap
+                { get; set; }
     }
 }

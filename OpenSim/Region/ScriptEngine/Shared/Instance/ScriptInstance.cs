@@ -80,6 +80,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private int m_ControlEventsInQueue = 0;
         private int m_LastControlLevel = 0;
         private bool m_CollisionInQueue = false;
+        private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
+                m_LineMap;
+
+        public Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
+                LineMap
+        {
+            get { return m_LineMap; }
+            set { m_LineMap = value; }
+        }
 
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
 
@@ -628,7 +637,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                 try
                                 {
                                     // DISPLAY ERROR INWORLD
-                                    string text = "Runtime error:\n" + e.InnerException.ToString();
+                                    string text = FormatException(e);
+
                                     if (text.Length > 1000)
                                         text = text.Substring(0, 1000);
                                     m_Engine.World.SimChat(Utils.StringToBytes(text),
@@ -811,6 +821,45 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public override string ToString()
         {
             return String.Format("{0} {1} on {2}", m_ScriptName, m_ItemID, m_PrimName);   
+        }
+
+        string FormatException(Exception e)
+        {
+            string message = "Runtime error:\n" + e.InnerException.StackTrace;
+            string[] lines = message.Split(new char[] {'\n'});
+
+            foreach (string line in lines)
+            {
+                if (line.Contains("SecondLife.Script"))
+                {
+                    int idx = line.IndexOf(':');
+                    if (idx != -1)
+                    {
+                        string val = line.Substring(idx+1);
+                        int lineNum = 0;
+                        if (int.TryParse(val, out lineNum))
+                        {
+                            KeyValuePair<int, int> pos =
+                                    Compiler.FindErrorPosition(
+                                    lineNum, 0, LineMap);
+
+                            int scriptLine = pos.Key;
+                            int col = pos.Value;
+                            if (scriptLine == 0)
+                                scriptLine++;
+                            if (col == 0)
+                                col++;
+                            message = string.Format("Runtime error:\n" +
+                                    "Line ({0}): {1}", scriptLine - 1,
+                                    e.InnerException.Message);
+
+                            return message;
+                        }
+                    }
+                }
+            }
+
+            return message;
         }
     }
 }

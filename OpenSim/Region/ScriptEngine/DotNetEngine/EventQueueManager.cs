@@ -139,6 +139,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             public string functionName;
             public DetectParams[] llDetectParams;
             public object[] param;
+            public Dictionary<KeyValuePair<int,int>,KeyValuePair<int,int>>
+                    LineMap;
         }
 
         #endregion
@@ -349,6 +351,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     return false;
                 }
 
+                InstanceData id = m_ScriptEngine.m_ScriptManager.GetScript(
+                        localID, itemID);
+
                 // Create a structure and add data
                 QueueItemStruct QIS = new QueueItemStruct();
                 QIS.localID = localID;
@@ -356,6 +361,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 QIS.functionName = FunctionName;
                 QIS.llDetectParams = qParams;
                 QIS.param = param;
+                if (id != null)
+                    QIS.LineMap = id.LineMap;
 
                 // Add it to queue
                 eventQueue.Enqueue(QIS);

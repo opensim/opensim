@@ -33,7 +33,8 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 {
     public interface ICompiler
     {
-        void Configure(IConfig configSource);
-        void Compile(string text, string outFile, List<IScriptApi> apiList);
+        string PerformScriptCompile(string source, string asset);
+        Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
+                LineMap();
     }
 }

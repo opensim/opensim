@@ -59,7 +59,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private int m_MaxScriptQueue;
         private Scene m_Scene;
         private IConfig m_ScriptConfig;
-        private Compiler m_Compiler;
+        private ICompiler m_Compiler;
         private int m_MinThreads;
         private int m_MaxThreads ;
         private int m_IdleTimeout;
@@ -510,7 +510,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 try
                 {
                     // DISPLAY ERROR INWORLD
-                    string text = "Error compiling script:\r\n" + e.Message.ToString();
+                    string text = "Error compiling script:\n" + e.ToString();
                     if (text.Length > 1000)
                         text = text.Substring(0, 1000);
                     World.SimChat(Utils.StringToBytes(text),
@@ -585,6 +585,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             part.ParentGroup.RootPart.Name, item.Name);
 
                     instance.AppDomain = appDomain;
+                    instance.LineMap = m_Compiler.LineMap();
 
                     m_Scripts[itemID] = instance;
                 }

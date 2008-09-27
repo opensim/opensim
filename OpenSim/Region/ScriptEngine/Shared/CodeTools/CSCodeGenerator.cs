@@ -89,7 +89,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             ResetCounters();
             Parser p = new LSLSyntax(new yyLSLSyntax(), new ErrorHandler(true));
             // Obviously this needs to be in a try/except block.
-            LSL2CSCodeTransformer codeTransformer = new LSL2CSCodeTransformer(p.Parse(script));
+            LSL2CSCodeTransformer codeTransformer;
+            try
+            {
+                codeTransformer = new LSL2CSCodeTransformer(p.Parse(script));
+            }
+            catch (CSToolsException e)
+            {
+                string message;
+
+                // LL start numbering lines at 0 - geeks!
+                //
+                message = String.Format("Line ({0},{1}) {2}",
+                        e.slInfo.lineNumber - 1,
+                        e.slInfo.charPosition - 1, e.Message);
+
+                throw new Exception(message);
+            }
+
             m_astRoot = codeTransformer.Transform();
 
             string retstr = String.Empty;

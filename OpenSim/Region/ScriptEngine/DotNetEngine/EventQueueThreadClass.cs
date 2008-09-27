@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -37,6 +38,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.ScriptEngine.Shared;
+using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
@@ -198,10 +200,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     }
                     catch (Exception e)
                     {
-                        if (lastScriptEngine != null)
-                            lastScriptEngine.Log.Error("[" + ScriptEngineName +
-                                    "]: Exception in EventQueueThreadLoop: " +
-                                    e.ToString());
                     }
                 }
             }
@@ -290,32 +288,32 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         catch (Exception e)
                         {
                             InExecution = false;
-                            // DISPLAY ERROR INWORLD
-                            string text = "Error executing script function \"" +
-                                    QIS.functionName + "\":\r\n";
+                            string text = FormatException(e, QIS.LineMap);
 
-                            if (e.InnerException != null)
-                            {
-                                // Send inner exception
-                                string line = " (unknown line)";
-                                Regex rx = new Regex(@"SecondLife\.Script\..+[\s:](?<line>\d+)\.?\r?$", RegexOptions.Compiled);
-                                if (rx.Match(e.InnerException.ToString()).Success)
-                                    line = " (line " + rx.Match(e.InnerException.ToString()).Result("${line}") + ")";
-                                text += e.InnerException.Message.ToString() + line;
-                            }
-                            else
-                            {
-                                text += "\r\n";
-                                // Send normal
-                                text += e.Message.ToString();
-                            }
-                            if (KillCurrentScript)
-                                text += "\r\nScript will be deactivated!";
+                            // DISPLAY ERROR INWORLD
+
+//                            if (e.InnerException != null)
+//                            {
+//                                // Send inner exception
+//                                string line = " (unknown line)";
+//                                Regex rx = new Regex(@"SecondLife\.Script\..+[\s:](?<line>\d+)\.?\r?$", RegexOptions.Compiled);
+//                                if (rx.Match(e.InnerException.ToString()).Success)
+//                                    line = " (line " + rx.Match(e.InnerException.ToString()).Result("${line}") + ")";
+//                                text += e.InnerException.Message.ToString() + line;
+//                            }
+//                            else
+//                            {
+//                                text += "\r\n";
+//                                // Send normal
+//                                text += e.Message.ToString();
+//                            }
+//                            if (KillCurrentScript)
+//                                text += "\r\nScript will be deactivated!";
 
                             try
                             {
-                                if (text.Length > 1500)
-                                    text = text.Substring(0, 1500);
+                                if (text.Length >= 1100)
+                                    text = text.Substring(0, 1099);
                                 IScriptHost m_host =
                                     m_ScriptEngine.World.GetSceneObjectPart(QIS.localID);
                                 m_ScriptEngine.World.SimChat(
@@ -343,10 +341,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                         QIS.localID, QIS.itemID);
                                 }
                             }
-
-                            // Pass it on so it's displayed on the console
-                            // and in the logs (mikem 2008.06.02).
-                            throw e.InnerException;
                         }
                         finally
                         {
@@ -357,6 +351,46 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     }
                 }
             }
+        }
+
+        string FormatException(Exception e, Dictionary<KeyValuePair<int,int>,
+                KeyValuePair<int,int>> LineMap)
+        {
+            string message = "Runtime error:\n" + e.InnerException.StackTrace;
+            string[] lines = message.Split(new char[] {'\n'});
+
+            foreach (string line in lines)
+            {
+                if (line.Contains("SecondLife.Script"))
+                {
+                    int idx = line.IndexOf(':');
+                    if (idx != -1)
+                    {
+                        string val = line.Substring(idx+1);
+                        int lineNum = 0;
+                        if (int.TryParse(val, out lineNum))
+                        {
+                            KeyValuePair<int, int> pos =
+                                    Compiler.FindErrorPosition(
+                                    lineNum, 0, LineMap);
+
+                            int scriptLine = pos.Key;
+                            int col = pos.Value;
+                            if (scriptLine == 0)
+                                scriptLine++;
+                            if (col == 0)
+                                col++;
+                            message = string.Format("Runtime error:\n" +
+                                    "Line ({0}): {1}", scriptLine - 1,
+                                    e.InnerException.Message);
+
+                            return message;
+                        }
+                    }
+                }
+            }
+
+            return message;
         }
     }
 }
