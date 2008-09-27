@@ -69,6 +69,23 @@ namespace OpenSim.Framework
             }
         }
 
+        public T Dequeue(int msTimeout)
+        {
+            lock (m_queueSync)
+            {
+                if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                {
+                    Monitor.Wait(m_queueSync, msTimeout);
+                }
+
+                if (m_pqueue.Count > 0)
+                    return m_pqueue.Dequeue();
+                if (m_queue.Count > 0)
+                    return m_queue.Dequeue();
+                return default(T);
+            }
+        }
+
         public bool Contains(T item)
         {
             lock (m_queueSync)
