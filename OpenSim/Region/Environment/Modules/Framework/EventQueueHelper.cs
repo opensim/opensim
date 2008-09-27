@@ -27,7 +27,7 @@
 
 using System;
 using System.Net;
-
+using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.Environment
@@ -36,10 +36,23 @@ namespace OpenSim.Region.Environment
     {
         private EventQueueHelper() {} // no construction possible, it's an utility class
         
-        public static LLSD EnableSimulator(ulong regionHandle, IPEndPoint endPoint)
+        public static LLSD EnableSimulator(ulong Handle, IPEndPoint endPoint)
         {
             LLSDMap llsdSimInfo = new LLSDMap(3);
-            llsdSimInfo.Add("Handle", new LLSDBinary(regionHandle));
+            byte[] regionhandle = new byte[8];
+            int i = 0;
+            
+            // Reverse endianness of RegionHandle
+            regionhandle[i++] = (byte)((Handle >> 56) % 256);
+            regionhandle[i++] = (byte)((Handle >> 48) % 256);
+            regionhandle[i++] = (byte)((Handle >> 40) % 256);
+            regionhandle[i++] = (byte)((Handle >> 32) % 256);
+            regionhandle[i++] = (byte)((Handle >> 24) % 256);
+            regionhandle[i++] = (byte)((Handle >> 16) % 256);
+            regionhandle[i++] = (byte)((Handle >> 8) % 256);
+            regionhandle[i++] = (byte)(Handle % 256);
+
+            llsdSimInfo.Add("Handle", new LLSDBinary(regionhandle));
             llsdSimInfo.Add("IP", new LLSDBinary(endPoint.Address.GetAddressBytes()));
             llsdSimInfo.Add("Port", new LLSDInteger(endPoint.Port));
             

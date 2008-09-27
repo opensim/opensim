@@ -126,7 +126,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
         {
             if (!queues.ContainsKey(agentId))
             {
-                m_log.DebugFormat("[EVENTQUEUE]: Adding new queue for agent {0}", agentId);
+                m_log.DebugFormat("[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", agentId, m_scene.RegionInfo.RegionName);
                 queues[agentId] = new BlockingLLSDQueue();
             }
             return queues[agentId];
@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
         #region IEventQueue Members
         public bool Enqueue(LLSD ev, UUID avatarID)
         {
-            m_log.DebugFormat("[EVENTQUEUE]: Enqueuing event for {0}", avatarID);
+            m_log.DebugFormat("[EVENTQUEUE]: Enqueuing event for {0} in region {1}", avatarID, m_scene.RegionInfo.RegionName);
             BlockingLLSDQueue queue = GetQueue(avatarID);
             queue.Enqueue(ev);
             return true;
@@ -145,7 +145,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         private void OnNewClient(IClientAPI client)
         {
-            m_log.DebugFormat("[EVENTQUEUE]: New client {0} detected.", client.AgentId);
+            m_log.DebugFormat("[EVENTQUEUE]: New client {0} detected in region {1}", client.AgentId, m_scene.RegionInfo.RegionName);
             client.OnLogout += ClientClosed;
         }
 
@@ -158,13 +158,13 @@ namespace OpenSim.Region.Environment.Modules.Framework
         private void ClientClosed(UUID AgentID)
         {
             queues.Remove(AgentID);
-            m_log.DebugFormat("[EVENTQUEUE]: Client {0} deregistered.", AgentID);
+            m_log.DebugFormat("[EVENTQUEUE]: Client {0} deregistered in region {1}.", AgentID, m_scene.RegionInfo.RegionName);
         }
         
         private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
         {
             m_log.DebugFormat("[EVENTQUEUE]: Avatar {0} entering parcel {1} in region {2}.",
-                              avatar.UUID, localLandID, regionID);
+                              avatar.UUID, localLandID, m_scene.RegionInfo.RegionName);
             
         }
 
@@ -175,7 +175,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            m_log.DebugFormat("[EVENTQUEUE] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
+            m_log.DebugFormat("[EVENTQUEUE] OnRegisterCaps: agentID {0} caps {1} region", agentID, caps, m_scene.RegionInfo.RegionName);
             string capsBase = "/CAPS/";
             caps.RegisterHandler("EventQueueGet",
                                  new RestHTTPHandler("POST", capsBase + UUID.Random().ToString(),
@@ -203,12 +203,12 @@ namespace OpenSim.Region.Environment.Modules.Framework
             LLSD element = queue.Dequeue(15000); // 15s timeout
 
 
-            String debug = "[EVENTQUEUE]: Got request for agent {0}: [  ";
+            String debug = "[EVENTQUEUE]: Got request for agent {0} in region {1}: [  ";
             foreach(object key in request.Keys)
             {
                 debug += key.ToString() + "=" + request[key].ToString() + "  ";
             }
-            //m_log.DebugFormat(debug, agentID);
+            m_log.DebugFormat(debug, agentID, m_scene.RegionInfo.RegionName);
             
             if (element == null) // didn't have an event in 15s
             {
@@ -239,7 +239,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 responsedata["content_type"] = "application/llsd+xml";
                 responsedata["keepalive"] = true;
                 responsedata["str_response_string"] = LLSDParser.SerializeXmlString(events);
-                //m_log.DebugFormat("[EVENTQUEUE]: sending fake response for {0}: {1}", agentID, responsedata["str_response_string"]);
+                m_log.DebugFormat("[EVENTQUEUE]: sending fake response for {0} in region{1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
 
                 return responsedata;
             }
@@ -269,7 +269,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 responsedata["content_type"] = "application/llsd+xml";
                 responsedata["keepalive"] = true;
                 responsedata["str_response_string"] = LLSDParser.SerializeXmlString(events);
-                m_log.DebugFormat("[EVENTQUEUE]: sending response for {0}: {1}", agentID, responsedata["str_response_string"]);
+                m_log.DebugFormat("[EVENTQUEUE]: sending fake response for {0} in region{1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
                                   
                 return responsedata;
             }
