@@ -174,6 +174,9 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PhysicsVector Position { get; set; }
         public abstract float Mass { get; }
         public abstract PhysicsVector Force { get; set; }
+
+        public abstract float VehicleFloatParam { get; set; }
+
         public abstract PhysicsVector GeometricCenter { get; }
         public abstract PhysicsVector CenterOfMass { get; }
         public abstract PhysicsVector Velocity { get; set; }
@@ -195,8 +198,6 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PhysicsVector PIDTarget { set;}
         public abstract bool PIDActive { set;}
         public abstract float PIDTau { set; }
-
-
         public abstract void AddForce(PhysicsVector force, bool pushforce);
         public abstract void SetMomentum(PhysicsVector momentum);
         public abstract void SubscribeEvents(int ms);
@@ -275,6 +276,12 @@ namespace OpenSim.Region.Physics.Manager
         public override PhysicsVector Force
         {
             get { return PhysicsVector.Zero; }
+            set { return; }
+        }
+
+        public override float VehicleFloatParam
+        {
+            get { return 0f; }
             set { return; }
         }
 

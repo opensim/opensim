@@ -2337,6 +2337,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void SetVehicleFloatParam(float value)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.VehicleFloatParam = value;
+            }
+        }
+
         public void SetGroup(UUID groupID, IClientAPI client)
         {
             _groupID = groupID;

@@ -5171,7 +5171,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetVehicleFloatParam(int param, float value)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetVehicleFloatParam");
+
+            if (m_host.ParentGroup != null)
+            {
+                if (m_host.ParentGroup.RootPart != null)
+                {
+                    m_host.ParentGroup.RootPart.SetVehicleFloatParam(value);
+                }
+            }
         }
 
         public void llSetVehicleVectorParam(int param, LSL_Vector vec)

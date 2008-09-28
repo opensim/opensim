@@ -343,6 +343,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             set { return; }
         }
 
+        public override float VehicleFloatParam
+        {
+            get { return 0f; }
+            set { return; }
+        }
+
         public override PhysicsVector CenterOfMass
         {
             get { return PhysicsVector.Zero; }
@@ -670,6 +676,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override PhysicsVector Force
         {
             get { return PhysicsVector.Zero; }
+            set { return; }
+        }
+
+        public override float VehicleFloatParam
+        {
+            get { return 0f; }
             set { return; }
         }
 
