@@ -91,6 +91,8 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                 scene.EventManager.OnMakeChildAgent += MakeChildAgent;
                 scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+                
+                m_log.DebugFormat("[EVENTQUEUE]: Enabled EventQueueGetModule for region {0}", scene.RegionInfo.RegionName);
             }
             else
             {
@@ -171,7 +173,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         private void MakeChildAgent(ScenePresence avatar)
         {
-            m_log.DebugFormat("[EVENTQUEUE]: Make Child agent {0}.", avatar.UUID);
+            m_log.DebugFormat("[EVENTQUEUE]: Make Child agent {0} in region {1}.", avatar.UUID, m_scene.RegionInfo.RegionName);
             lock (m_ids)
             {
                 if (m_ids.ContainsKey(avatar.UUID))
@@ -184,7 +186,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            m_log.DebugFormat("[EVENTQUEUE] OnRegisterCaps: agentID {0} caps {1} region", agentID, caps, m_scene.RegionInfo.RegionName);
+            m_log.DebugFormat("[EVENTQUEUE] OnRegisterCaps: agentID {0} caps {1} region {2}", agentID, caps, m_scene.RegionInfo.RegionName);
             string capsBase = "/CAPS/";
             caps.RegisterHandler("EventQueueGet",
                                  new RestHTTPHandler("POST", capsBase + UUID.Random().ToString(),
@@ -208,97 +210,66 @@ namespace OpenSim.Region.Environment.Modules.Framework
             // TODO: this has to be redone to not busy-wait (and block the thread),
             // TODO: as soon as we have a non-blocking way to handle HTTP-requests.
 
+            if(m_log.IsDebugEnabled) { 
+                String debug = "[EVENTQUEUE]: Got request for agent {0} in region {1} from thread {2}: [  ";
+                foreach (object key in request.Keys)
+                {
+                    debug += key.ToString() + "=" + request[key].ToString() + "  ";
+                }
+                m_log.DebugFormat(debug + "  ]", agentID, m_scene.RegionInfo.RegionName, System.Threading.Thread.CurrentThread.Name);
+            }
+
             BlockingLLSDQueue queue = GetQueue(agentID);
             LLSD element = queue.Dequeue(15000); // 15s timeout
 
-
-            String debug = "[EVENTQUEUE]: Got request for agent {0} in region {1}: [  ";
-            foreach (object key in request.Keys)
-            {
-                debug += key.ToString() + "=" + request[key].ToString() + "  ";
-            }
-            m_log.DebugFormat(debug, agentID, m_scene.RegionInfo.RegionName);
-
             Hashtable responsedata = new Hashtable();
             
+            int thisID = 0;
+            lock (m_ids) 
+                thisID = m_ids[agentID];
+
+            if (thisID == -1) // close-request
+            {
+                responsedata["int_response_code"] = 502;
+                responsedata["content_type"] = "text/plain";
+                responsedata["keepalive"] = false;
+                responsedata["str_response_string"] = "";
+                return responsedata;
+            }
+
+            LLSDArray array = new LLSDArray();
             if (element == null) // didn't have an event in 15s
             {
                 // Send it a fake event to keep the client polling!   It doesn't like 502s like the proxys say!
-                element = EventQueueHelper.KeepAliveEvent();
-
-                //ScenePresence avatar;
-                //m_scene.TryGetAvatar(agentID, out avatar);
-
-                LLSDArray array = new LLSDArray();
-                array.Add(element);
-                int thisID = 0;
-                lock (m_ids) 
-                    thisID = m_ids[agentID];
-
-                
-
-                if (thisID == -1)
-                {
-                    responsedata = new Hashtable();
-                    responsedata["int_response_code"] = 502;
-                    responsedata["content_type"] = "text/plain";
-                    responsedata["keepalive"] = false;
-                    responsedata["str_response_string"] = "";
-                    return responsedata;
-                }
-
-                while (queue.Count() > 0)
-                {
-                    array.Add(queue.Dequeue(1));
-                    thisID++;
-                }
-                LLSDMap events = new LLSDMap();
-                events.Add("events", array);
-
-                events.Add("id", new LLSDInteger(thisID));
-                lock (m_ids)
-                {
-                    m_ids[agentID] = thisID + 1;
-                }
-                responsedata = new Hashtable();
-                responsedata["int_response_code"] = 200;
-                responsedata["content_type"] = "application/llsd+xml";
-                responsedata["keepalive"] = true;
-                responsedata["str_response_string"] = LLSDParser.SerializeXmlString(events);
-                m_log.DebugFormat("[EVENTQUEUE]: sending fake response for {0} in region{1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
-
-                return responsedata;
+                array.Add(EventQueueHelper.KeepAliveEvent());
+                m_log.DebugFormat("[EVENTQUEUE]: adding fake event for {0} in region {1}", agentID, m_scene.RegionInfo.RegionName);
             }
             else
             {
-                ScenePresence avatar;
-                m_scene.TryGetAvatar(agentID, out avatar);
-                
-                LLSDArray array = new LLSDArray();
                 array.Add(element);
-                int thisID = m_ids[agentID];
                 while (queue.Count() > 0)
                 {
                     array.Add(queue.Dequeue(1));
                     thisID++;
                 }
-                LLSDMap events = new LLSDMap();
-                events.Add("events", array);
-                
-                events.Add("id", new LLSDInteger(thisID)); 
-                lock (m_ids)
-                {
-                    m_ids[agentID] = thisID + 1;
-                }
-                responsedata = new Hashtable();
-                responsedata["int_response_code"] = 200;
-                responsedata["content_type"] = "application/llsd+xml";
-                responsedata["keepalive"] = true;
-                responsedata["str_response_string"] = LLSDParser.SerializeXmlString(events);
-                m_log.DebugFormat("[EVENTQUEUE]: sending fake response for {0} in region{1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
-                                  
-                return responsedata;
             }
+
+            LLSDMap events = new LLSDMap();
+            events.Add("events", array);
+
+            events.Add("id", new LLSDInteger(thisID));
+            lock (m_ids)
+            {
+                m_ids[agentID] = thisID + 1;
+            }
+
+            responsedata["int_response_code"] = 200;
+            responsedata["content_type"] = "application/xml";
+            responsedata["keepalive"] = true;
+            responsedata["str_response_string"] = LLSDParser.SerializeXmlString(events);
+            m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
+
+            return responsedata;
         }
     }
 }

@@ -36,23 +36,27 @@ namespace OpenSim.Region.Environment
     {
         private EventQueueHelper() {} // no construction possible, it's an utility class
         
+        private static byte[] regionHandleToByteArray(ulong regionHandle)
+        {
+            // Reverse endianness of RegionHandle
+            return new byte[]
+            {
+                (byte)((regionHandle >> 56) % 256),
+                (byte)((regionHandle >> 48) % 256),
+                (byte)((regionHandle >> 40) % 256),
+                (byte)((regionHandle >> 32) % 256),
+                (byte)((regionHandle >> 24) % 256),
+                (byte)((regionHandle >> 16) % 256),
+                (byte)((regionHandle >> 8) % 256),
+                (byte)(regionHandle % 256)
+            };
+        }
+                
         public static LLSD EnableSimulator(ulong Handle, IPEndPoint endPoint)
         {
             LLSDMap llsdSimInfo = new LLSDMap(3);
-            byte[] regionhandle = new byte[8];
-            int i = 0;
             
-            // Reverse endianness of RegionHandle
-            regionhandle[i++] = (byte)((Handle >> 56) % 256);
-            regionhandle[i++] = (byte)((Handle >> 48) % 256);
-            regionhandle[i++] = (byte)((Handle >> 40) % 256);
-            regionhandle[i++] = (byte)((Handle >> 32) % 256);
-            regionhandle[i++] = (byte)((Handle >> 24) % 256);
-            regionhandle[i++] = (byte)((Handle >> 16) % 256);
-            regionhandle[i++] = (byte)((Handle >> 8) % 256);
-            regionhandle[i++] = (byte)(Handle % 256);
-
-            llsdSimInfo.Add("Handle", new LLSDBinary(regionhandle));
+            llsdSimInfo.Add("Handle", new LLSDBinary(regionHandleToByteArray(Handle)));
             llsdSimInfo.Add("IP", new LLSDBinary(endPoint.Address.GetAddressBytes()));
             llsdSimInfo.Add("Port", new LLSDInteger(endPoint.Port));
             
@@ -68,6 +72,7 @@ namespace OpenSim.Region.Environment
             
             return llsdMessage;
         }
+
         public static LLSD CrossRegion(ulong Handle, Vector3 pos, Vector3 lookAt, 
                          IPEndPoint newRegionExternalEndPoint,
                          string capsURL, UUID AgentID, UUID SessionID)
@@ -97,21 +102,7 @@ namespace OpenSim.Region.Environment
             AgentDataArr.Add(AgentDataMap);
 
             LLSDMap RegionDataMap = new LLSDMap(4);
-            byte[] regionhandle = new byte[8];
-            
-            {
-                int i = 0;
-                regionhandle[i++] = (byte)((Handle >> 56) % 256);
-                regionhandle[i++] = (byte)((Handle >> 48) % 256);
-                regionhandle[i++] = (byte)((Handle >> 40) % 256);
-                regionhandle[i++] = (byte)((Handle >> 32) % 256);
-                regionhandle[i++] = (byte)((Handle >> 24) % 256);
-                regionhandle[i++] = (byte)((Handle >> 16) % 256);
-                regionhandle[i++] = (byte)((Handle >> 8) % 256);
-                regionhandle[i++] = (byte)(Handle % 256);
-            }
-
-            RegionDataMap.Add("RegionHandle", LLSD.FromBinary(regionhandle));
+            RegionDataMap.Add("RegionHandle", LLSD.FromBinary(regionHandleToByteArray(Handle)));
             RegionDataMap.Add("SeedCapability", LLSD.FromString(capsURL));
             RegionDataMap.Add("SimIP", LLSD.FromBinary(newRegionExternalEndPoint.Address.GetAddressBytes()));
             RegionDataMap.Add("SimPort", LLSD.FromInteger(newRegionExternalEndPoint.Port));
