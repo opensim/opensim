@@ -63,6 +63,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public EventQueueThreadClass()//EventQueueManager eqm
         {
+            CultureInfo USCulture = new CultureInfo("en-US");
+            Thread.CurrentThread.CurrentCulture = USCulture;
+
             //eventQueueManager = eqm;
             ReadConfig();
             Start();

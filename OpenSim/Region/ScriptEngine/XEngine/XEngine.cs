@@ -496,6 +496,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             ScenePresence presence = m_Scene.GetScenePresence(item.OwnerID);
 
             string assembly = "";
+
+            CultureInfo USCulture = new CultureInfo("en-US");
+            Thread.CurrentThread.CurrentCulture = USCulture;
+
             try
             {
                 assembly = m_Compiler.PerformScriptCompile(script,

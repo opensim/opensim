@@ -27,6 +27,7 @@
 
 using System;
 using System.Reflection;
+using System.Globalization;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -139,6 +140,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             ScenePresence presence =
                     World.GetScenePresence(taskInventoryItem.OwnerID);
+
+            CultureInfo USCulture = new CultureInfo("en-US");
+            Thread.CurrentThread.CurrentCulture = USCulture;
 
             try
             {
