@@ -873,6 +873,15 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public void SetClientOption(string option, string value)
+        {
+        }
+
+        public string GetClientOption(string option)
+        {
+            return string.Empty;
+        }
+
         public void KillEndDone()
         {
         }

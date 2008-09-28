@@ -57,6 +57,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         uint SilenceLimit { get; set; }
         uint DiscardTimeout { get; set; }
         uint ResendTimeout { get; set; }
+        bool ReliableIsImportant { get; set; }
 
         void InPacket(Packet packet);
         void ProcessInPacket(LLQueItem item);

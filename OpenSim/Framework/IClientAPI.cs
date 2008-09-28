@@ -749,6 +749,8 @@ namespace OpenSim.Framework
         void SendLogoutPacket();
         ClientInfo GetClientInfo();
         void SetClientInfo(ClientInfo info);
+        void SetClientOption(string option, string value);
+        string GetClientOption(string option);
         void Terminate();
 
         void SendSetFollowCamProperties(UUID objectID, SortedDictionary<int, float> parameters);

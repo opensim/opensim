@@ -6622,6 +6622,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(reply, ThrottleOutPacketType.Land);
         }
 
+        public void SetClientOption(string option, string value)
+        {
+            switch (option)
+            {
+            case "ReliableIsImportant":
+                bool val = false;
+
+                if (bool.TryParse(value, out val))
+                    m_PacketHandler.ReliableIsImportant = val;
+                break;
+            default:
+                break;
+            }
+        }
+
+        public string GetClientOption(string option)
+        {
+            switch (option)
+            {
+            case "ReliableIsImportant":
+                return m_PacketHandler.ReliableIsImportant.ToString();
+                break;
+            default:
+                break;
+            }
+            return string.Empty;
+        }
+
         public void KillEndDone()
         {
             KillPacket kp = new KillPacket();

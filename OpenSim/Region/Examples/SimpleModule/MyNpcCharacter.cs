@@ -870,6 +870,15 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void SetClientOption(string option, string value)
+        {
+        }
+
+        public string GetClientOption(string option)
+        {
+            return string.Empty;
+        }
+
         public void KillEndDone()
         {
         }
