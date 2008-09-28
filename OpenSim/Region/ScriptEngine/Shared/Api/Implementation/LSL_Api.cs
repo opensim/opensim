@@ -5162,12 +5162,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             NotImplemented("llSetVehicleType");
         }
 
-        public void llSetVehicledoubleParam(int param, double value)
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llSetVehicledoubleParam");
-        }
-
         public void llSetVehicleFloatParam(int param, float value)
         {
             m_host.AddScriptLPS(1);
