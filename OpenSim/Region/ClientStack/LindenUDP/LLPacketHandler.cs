@@ -191,7 +191,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private object m_SequenceLock = new object();
         private const int MAX_SEQUENCE = 0xFFFFFF;
 
+        // Packet dropping
+        //
         List<PacketType> m_ImportantPackets = new List<PacketType>();
+        private bool m_ReliableIsImportant = false;
+
+        public bool ReliableIsImportant
+        {
+            get { return m_ReliableIsImportant; }
+            set { m_ReliableIsImportant = value; }
+        }
 
         LLPacketServer m_PacketServer;
         private byte[] m_ZeroOutBuffer = new byte[4096];
@@ -359,12 +368,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //
                     if ((now - data.TickCount) > m_DiscardTimeout)
                     {
-                        if (!m_ImportantPackets.Contains(packet.Type))
-                            m_NeedAck.Remove(packet.Header.Sequence);
+                        if (!m_ReliableIsImportant || !packet.Header.Reliable)
+                        {
+                            if (!m_ImportantPackets.Contains(packet.Type))
+                                m_NeedAck.Remove(packet.Header.Sequence);
 
-                        TriggerOnPacketDrop(packet, data.Identifier);
+                            TriggerOnPacketDrop(packet, data.Identifier);
 
-                        continue;
+                            continue;
+                        }
                     }
                 }
             }
