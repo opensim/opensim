@@ -1436,7 +1436,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLInteger(string s)
             {
-                Regex r = new Regex("^[ ]*-?[0-9][0-9xX]?[0-9a-fA-F]*");
+                Regex r = new Regex("(^[ ]*0[xX][0-9A-Fa-f][0-9A-Fa-f]*)|(^[ ]*-?[0-9][0-9]*)");
                 Match m = r.Match(s);
                 string v = m.Groups[0].Value;
 

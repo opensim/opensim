@@ -64,6 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_stringIntSet.Add("-99999999", -99999999);
             m_stringIntSet.Add("", 0);
             m_stringIntSet.Add("aa", 0);
+            m_stringIntSet.Add("56foo", 56);
             m_stringIntSet.Add("42", 42);
             m_stringIntSet.Add("42 is the answer", 42);
             m_stringIntSet.Add(" 42", 42);
