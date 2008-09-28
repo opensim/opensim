@@ -175,7 +175,8 @@ namespace OpenSim.Region.Physics.Manager
         public abstract float Mass { get; }
         public abstract PhysicsVector Force { get; set; }
 
-        public abstract float VehicleFloatParam { get; set; }
+        public abstract void VehicleFloatParam(int param, float value);
+        public abstract void VehicleVectorParam(int param, PhysicsVector value);
 
         public abstract PhysicsVector GeometricCenter { get; }
         public abstract PhysicsVector CenterOfMass { get; }
@@ -279,10 +280,14 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
-        public override float VehicleFloatParam
+        public override void VehicleFloatParam(int param, float value)
         {
-            get { return 0f; }
-            set { return; }
+
+        }
+
+        public override void VehicleVectorParam(int param, PhysicsVector value)
+        {
+
         }
 
         public override PhysicsVector CenterOfMass

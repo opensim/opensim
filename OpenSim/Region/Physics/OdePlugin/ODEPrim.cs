@@ -1876,10 +1876,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { m_force = value; }
         }
 
-        public override float VehicleFloatParam
+        public override void VehicleFloatParam(int param, float value)
         {
-            get { return 0f; }
-            set { return; }
+
+        }
+
+        public override void VehicleVectorParam(int param, PhysicsVector value)
+        {
+
         }
 
         public override PhysicsVector CenterOfMass

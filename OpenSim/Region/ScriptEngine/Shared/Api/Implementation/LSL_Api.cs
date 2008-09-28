@@ -5170,7 +5170,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (m_host.ParentGroup.RootPart != null)
                 {
-                    m_host.ParentGroup.RootPart.SetVehicleFloatParam(value);
+                    m_host.ParentGroup.RootPart.SetVehicleFloatParam(param, value);
                 }
             }
         }
