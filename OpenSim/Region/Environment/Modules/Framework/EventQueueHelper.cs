@@ -61,7 +61,7 @@ namespace OpenSim.Region.Environment
             
             LLSDMap llsdBody = new LLSDMap(1);
             llsdBody.Add("SimulatorInfo", arr);
-
+             
             LLSDMap llsdMessage = new LLSDMap(2);
             llsdMessage.Add("message", new LLSDString("EnableSimulator"));
             llsdMessage.Add("body", llsdBody);
