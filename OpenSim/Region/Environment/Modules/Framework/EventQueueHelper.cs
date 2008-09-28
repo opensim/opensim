@@ -68,6 +68,71 @@ namespace OpenSim.Region.Environment
             
             return llsdMessage;
         }
+        public static LLSD CrossRegion(ulong Handle, Vector3 pos, Vector3 lookAt, 
+                         IPEndPoint newRegionExternalEndPoint,
+                         string capsURL, UUID AgentID, UUID SessionID)
+        {
+            LLSDArray LookAtArr = new LLSDArray(3);
+            LookAtArr.Add(LLSD.FromReal(lookAt.X));
+            LookAtArr.Add(LLSD.FromReal(lookAt.Y));
+            LookAtArr.Add(LLSD.FromReal(lookAt.Z));
+
+            LLSDArray PositionArr = new LLSDArray(3);
+            PositionArr.Add(LLSD.FromReal(pos.X));
+            PositionArr.Add(LLSD.FromReal(pos.Y));
+            PositionArr.Add(LLSD.FromReal(pos.Z));
+
+            LLSDMap InfoMap = new LLSDMap(2);
+            InfoMap.Add("LookAt", LookAtArr);
+            InfoMap.Add("Position", PositionArr);
+
+            LLSDArray InfoArr = new LLSDArray(1);
+            InfoArr.Add(InfoMap);
+
+            LLSDMap AgentDataMap = new LLSDMap(2);
+            AgentDataMap.Add("AgentID", LLSD.FromUUID(AgentID));
+            AgentDataMap.Add("SessionID",  LLSD.FromUUID(SessionID));
+
+            LLSDArray AgentDataArr = new LLSDArray(1);
+            AgentDataArr.Add(AgentDataMap);
+
+            LLSDMap RegionDataMap = new LLSDMap(4);
+            byte[] regionhandle = new byte[8];
+            
+            {
+                int i = 0;
+                regionhandle[i++] = (byte)((Handle >> 56) % 256);
+                regionhandle[i++] = (byte)((Handle >> 48) % 256);
+                regionhandle[i++] = (byte)((Handle >> 40) % 256);
+                regionhandle[i++] = (byte)((Handle >> 32) % 256);
+                regionhandle[i++] = (byte)((Handle >> 24) % 256);
+                regionhandle[i++] = (byte)((Handle >> 16) % 256);
+                regionhandle[i++] = (byte)((Handle >> 8) % 256);
+                regionhandle[i++] = (byte)(Handle % 256);
+            }
+
+            RegionDataMap.Add("RegionHandle", LLSD.FromBinary(regionhandle));
+            RegionDataMap.Add("SeedCapability", LLSD.FromString(capsURL));
+            RegionDataMap.Add("SimIP", LLSD.FromBinary(newRegionExternalEndPoint.Address.GetAddressBytes()));
+            RegionDataMap.Add("SimPort", LLSD.FromInteger(newRegionExternalEndPoint.Port));
+
+            LLSDArray RegionDataArr = new LLSDArray(1);
+            RegionDataArr.Add(RegionDataMap);
+
+
+
+
+            LLSDMap llsdBody = new LLSDMap(3);
+            llsdBody.Add("Info", InfoArr);
+            llsdBody.Add("AgentData", AgentDataArr);
+            llsdBody.Add("RegionData", RegionDataArr);
+
+            LLSDMap llsdMessage = new LLSDMap(2);
+            llsdMessage.Add("message", new LLSDString("CrossedRegion"));
+            llsdMessage.Add("body", llsdBody);
+
+            return llsdMessage;
+        }
         public static LLSD KeepAliveEvent()
         {
             LLSDMap llsdSimInfo = new LLSDMap();

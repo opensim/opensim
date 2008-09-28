@@ -68,6 +68,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
         private Dictionary<UUID, int> m_ids = new Dictionary<UUID, int>();
 
         private Dictionary<UUID, BlockingLLSDQueue> queues = new Dictionary<UUID, BlockingLLSDQueue>();
+
             
         #region IRegionModule methods
         public void Initialise(Scene scene, IConfigSource config)
@@ -171,6 +172,14 @@ namespace OpenSim.Region.Environment.Modules.Framework
         private void MakeChildAgent(ScenePresence avatar)
         {
             m_log.DebugFormat("[EVENTQUEUE]: Make Child agent {0}.", avatar.UUID);
+            lock (m_ids)
+            {
+                if (m_ids.ContainsKey(avatar.UUID))
+                {
+                    // close the event queue.
+                    m_ids[avatar.UUID] = -1;
+                }
+            }
         }
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
@@ -209,18 +218,35 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 debug += key.ToString() + "=" + request[key].ToString() + "  ";
             }
             m_log.DebugFormat(debug, agentID, m_scene.RegionInfo.RegionName);
+
+            Hashtable responsedata = new Hashtable();
             
             if (element == null) // didn't have an event in 15s
             {
                 // Send it a fake event to keep the client polling!   It doesn't like 502s like the proxys say!
                 element = EventQueueHelper.KeepAliveEvent();
 
-                ScenePresence avatar;
-                m_scene.TryGetAvatar(agentID, out avatar);
+                //ScenePresence avatar;
+                //m_scene.TryGetAvatar(agentID, out avatar);
 
                 LLSDArray array = new LLSDArray();
                 array.Add(element);
-                int thisID = m_ids[agentID];
+                int thisID = 0;
+                lock (m_ids) 
+                    thisID = m_ids[agentID];
+
+                
+
+                if (thisID == -1)
+                {
+                    responsedata = new Hashtable();
+                    responsedata["int_response_code"] = 502;
+                    responsedata["content_type"] = "text/plain";
+                    responsedata["keepalive"] = false;
+                    responsedata["str_response_string"] = "";
+                    return responsedata;
+                }
+
                 while (queue.Count() > 0)
                 {
                     array.Add(queue.Dequeue(1));
@@ -234,7 +260,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 {
                     m_ids[agentID] = thisID + 1;
                 }
-                Hashtable responsedata = new Hashtable();
+                responsedata = new Hashtable();
                 responsedata["int_response_code"] = 200;
                 responsedata["content_type"] = "application/llsd+xml";
                 responsedata["keepalive"] = true;
@@ -264,7 +290,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 {
                     m_ids[agentID] = thisID + 1;
                 }
-                Hashtable responsedata = new Hashtable();
+                responsedata = new Hashtable();
                 responsedata["int_response_code"] = 200;
                 responsedata["content_type"] = "application/llsd+xml";
                 responsedata["keepalive"] = true;
@@ -273,27 +299,6 @@ namespace OpenSim.Region.Environment.Modules.Framework
                                   
                 return responsedata;
             }
-
-            /*
-            responsedata["int_response_code"] = 200;
-            responsedata["content_type"] = "application/xml";
-            responsedata["keepalive"] = true;
-
-            responsedata["str_response_string"] = @"<llsd><map><key>events</key><array><map><key>body</key><map><key>AgentData</key><map><key>AgentID</key>
- <uuid>0fd0e798-a54f-40b1-0000-000000000000</uuid><key>SessionID</key><uuid>cc91f1fe-9d52-435d-0000-000000000000
- </uuid></map><key>Info</key><map><key>LookAt</key><array><real>0.9869639873504638671875</real><real>
- -0.1609439998865127563476562</real><real>0</real></array><key>Position</key><array><real>1.43747997283935546875
- </real><real>95.30560302734375</real><real>57.3480987548828125</real></array></map><key>RegionData</key><map>
- <key>RegionHandle</key><binary encoding=" + "\"base64\"" + @">AAPnAAAD8AA=</binary><key>SeedCapability</key><string>
- https://sim7.aditi.lindenlab.com:12043/cap/64015fb3-6fee-9205-0000-000000000000</string><key>SimIP</key><binary
- encoding=" + "\"base64\"" + @">yA8FSA==</binary><key>SimPort</key><integer>13005</integer></map></map><key>message</key>
- <string>CrossedRegion</string></map></array><key>id</key><integer>1</integer></map></llsd>";
-
-             */
-            //string requestbody = (string)request["requestbody"];
-            //LLSD llsdRequest = LLSDParser.DeserializeXml(request);
-            //System.Console.WriteLine(requestbody);
-            
         }
     }
 }

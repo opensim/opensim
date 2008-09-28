@@ -37,7 +37,9 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Types;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Physics.Manager;
+using LLSD = OpenMetaverse.StructuredData.LLSD;
 
 
 namespace OpenSim.Region.Environment.Scenes
@@ -2018,8 +2020,22 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.DebugFormat(
                         "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, m_uuid);
 
-                    m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
+                    IEventQueue eq = m_scene.RequestModuleInterface<IEventQueue>();
+                    if (eq != null)
+                    {
+                        
+                        LLSD Item = EventQueueHelper.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
+                                                    capsPath, UUID, ControllingClient.SessionId);
+                        eq.Enqueue(Item, UUID);
+                    }
+                    else
+                    {
+                        m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath);
+                    }
+                    
+
+                   
                     MakeChildAgent();
                     // now we have a child agent in this region. Request all interesting data about other (root) agents
                     SendInitialFullUpdateToAllClients();
