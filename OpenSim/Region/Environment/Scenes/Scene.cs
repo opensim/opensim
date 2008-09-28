@@ -3068,7 +3068,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 List<T> ret = new List<T>();
 
-                foreach(Object o in ModuleInterfaces[typeof(T)])
+                foreach (Object o in ModuleInterfaces[typeof(T)])
                     ret.Add((T)o);
                 return ret.ToArray();
             }

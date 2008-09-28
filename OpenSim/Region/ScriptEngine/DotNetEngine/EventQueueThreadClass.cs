@@ -198,7 +198,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                             lastScriptEngine.World.DeleteSceneObject(
                                     part.ParentGroup);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                     }
                 }

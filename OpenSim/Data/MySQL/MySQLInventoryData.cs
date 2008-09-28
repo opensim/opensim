@@ -826,8 +826,8 @@ namespace OpenSim.Data.MySQL
                 }
                 finally
                 {
-                    if(result != null) result.Close();
-                    if(sqlCmd != null) sqlCmd.Dispose();
+                    if (result != null) result.Close();
+                    if (sqlCmd != null) sqlCmd.Dispose();
                 }
             }
         }

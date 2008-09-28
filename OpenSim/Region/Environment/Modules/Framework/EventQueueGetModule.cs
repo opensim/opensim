@@ -213,7 +213,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
 
             String debug = "[EVENTQUEUE]: Got request for agent {0} in region {1}: [  ";
-            foreach(object key in request.Keys)
+            foreach (object key in request.Keys)
             {
                 debug += key.ToString() + "=" + request[key].ToString() + "  ";
             }

@@ -749,7 +749,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 rdata.writer.WriteStartElement("Appearance");
 
                 rdata.writer.WriteAttributeString("Height", rdata.userAppearance.AvatarHeight.ToString());
-                if (!rdata.userAppearance.Owner.Equals(null))
+                if (rdata.userAppearance.Owner != UUID.Zero)
                     rdata.writer.WriteAttributeString("Owner", rdata.userAppearance.Owner.ToString());
                 rdata.writer.WriteAttributeString("Serial", rdata.userAppearance.Serial.ToString());
 
