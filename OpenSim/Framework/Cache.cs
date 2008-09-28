@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 
-namespace Opensim.Framework
+namespace OpenSim.Framework
 {
     // The delegate we will use for performing fetch from backing store
     //
@@ -356,7 +356,7 @@ namespace Opensim.Framework
 
         // Find an object in cache by delegate.
         //
-        public Object Find(Predicate<Opensim.Framework.CacheItemBase> d)
+        public Object Find(Predicate<OpenSim.Framework.CacheItemBase> d)
         {
             CacheItemBase item = m_Index.Find(d);
 
