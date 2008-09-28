@@ -687,8 +687,19 @@ namespace OpenSim.Region.Environment.Scenes
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
 
-                        avatar.ControllingClient.SendRegionTeleport(reg.RegionHandle, 13, reg.ExternalEndPoint, 4, teleportFlags,
-                                                                    capsPath);
+                        IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
+                        if (eq != null)
+                        {
+                            LLSD Item = EventQueueHelper.TeleportFinishEvent(reg.RegionHandle, 13, reg.ExternalEndPoint,
+                                                                             4, teleportFlags, capsPath, avatar.UUID);
+                            eq.Enqueue(Item, avatar.UUID);
+                        }
+                        else
+                        {
+                            avatar.ControllingClient.SendRegionTeleport(reg.RegionHandle, 13, reg.ExternalEndPoint, 4,
+                                                                        teleportFlags, capsPath);
+                        }
+
                         avatar.MakeChildAgent();
                         Thread.Sleep(5000);
                         avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle);

@@ -35,7 +35,7 @@ namespace OpenSim.Region.Environment
     public class EventQueueHelper
     {
         private EventQueueHelper() {} // no construction possible, it's an utility class
-        
+
         private static byte[] regionHandleToByteArray(ulong regionHandle)
         {
             // Reverse endianness of RegionHandle
@@ -51,31 +51,36 @@ namespace OpenSim.Region.Environment
                 (byte)(regionHandle % 256)
             };
         }
-                
+
+        private static LLSD buildEvent(string eventName, LLSD eventBody)
+        {
+            LLSDMap llsdEvent = new LLSDMap(2);
+            llsdEvent.Add("message", new LLSDString(eventName));
+            llsdEvent.Add("body", eventBody);
+
+            return llsdEvent;
+        }
+
         public static LLSD EnableSimulator(ulong Handle, IPEndPoint endPoint)
         {
             LLSDMap llsdSimInfo = new LLSDMap(3);
-            
+
             llsdSimInfo.Add("Handle", new LLSDBinary(regionHandleToByteArray(Handle)));
             llsdSimInfo.Add("IP", new LLSDBinary(endPoint.Address.GetAddressBytes()));
             llsdSimInfo.Add("Port", new LLSDInteger(endPoint.Port));
-            
+
             LLSDArray arr = new LLSDArray(1);
             arr.Add(llsdSimInfo);
-            
+
             LLSDMap llsdBody = new LLSDMap(1);
             llsdBody.Add("SimulatorInfo", arr);
-             
-            LLSDMap llsdMessage = new LLSDMap(2);
-            llsdMessage.Add("message", new LLSDString("EnableSimulator"));
-            llsdMessage.Add("body", llsdBody);
-            
-            return llsdMessage;
+
+            return buildEvent("EnableSimulator", llsdBody);
         }
 
-        public static LLSD CrossRegion(ulong Handle, Vector3 pos, Vector3 lookAt, 
-                         IPEndPoint newRegionExternalEndPoint,
-                         string capsURL, UUID AgentID, UUID SessionID)
+        public static LLSD CrossRegion(ulong Handle, Vector3 pos, Vector3 lookAt,
+                                       IPEndPoint newRegionExternalEndPoint,
+                                       string capsURL, UUID AgentID, UUID SessionID)
         {
             LLSDArray LookAtArr = new LLSDArray(3);
             LookAtArr.Add(LLSD.FromReal(lookAt.X));
@@ -110,28 +115,40 @@ namespace OpenSim.Region.Environment
             LLSDArray RegionDataArr = new LLSDArray(1);
             RegionDataArr.Add(RegionDataMap);
 
-
-
-
             LLSDMap llsdBody = new LLSDMap(3);
             llsdBody.Add("Info", InfoArr);
             llsdBody.Add("AgentData", AgentDataArr);
             llsdBody.Add("RegionData", RegionDataArr);
 
-            LLSDMap llsdMessage = new LLSDMap(2);
-            llsdMessage.Add("message", new LLSDString("CrossedRegion"));
-            llsdMessage.Add("body", llsdBody);
-
-            return llsdMessage;
+            return buildEvent("CrossedRegion", llsdBody);
         }
+
+        public static LLSD TeleportFinishEvent(
+            ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
+            uint locationID, uint flags, string capsURL, UUID AgentID)
+        {
+            LLSDMap info = new LLSDMap();
+            info.Add("AgentID", LLSD.FromUUID(AgentID));
+            info.Add("LocationID", LLSD.FromInteger(4)); // TODO what is this?
+            info.Add("RegionHandle", LLSD.FromBinary(regionHandleToByteArray(regionHandle)));
+            info.Add("SeedCapability", LLSD.FromString(capsURL));
+            info.Add("SimAccess", LLSD.FromInteger(simAccess));
+            info.Add("SimIP", LLSD.FromBinary(regionExternalEndPoint.Address.GetAddressBytes()));
+            info.Add("SimPort", LLSD.FromInteger(regionExternalEndPoint.Port));
+            info.Add("TeleportFlags", LLSD.FromBinary(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
+
+            LLSDArray infoArr = new LLSDArray();
+            infoArr.Add(info);
+
+            LLSDMap body = new LLSDMap();
+            body.Add("Info", infoArr);
+
+            return buildEvent("TeleportFinish", body);
+        }
+
         public static LLSD KeepAliveEvent()
         {
-            LLSDMap llsdSimInfo = new LLSDMap();
-            LLSDMap llsdMessage = new LLSDMap(2);
-            llsdMessage.Add("message", new LLSDString("FAKEEVENT"));
-            llsdMessage.Add("body", llsdSimInfo);
-
-            return llsdMessage;
+            return buildEvent("FAKEEVENT", new LLSDMap());
         }
     }
 }
