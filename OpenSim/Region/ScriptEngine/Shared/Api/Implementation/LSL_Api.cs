@@ -5162,6 +5162,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             NotImplemented("llSetVehicleType");
         }
 
+        //CFK 9/28: Most, but not all of the underlying plumbing between here and the physics modules is in
+        //CFK 9/28: so these are not complete yet.
         public void llSetVehicleFloatParam(int param, float value)
         {
             m_host.AddScriptLPS(1);
@@ -5175,6 +5177,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        //CFK 9/28: Most, but not all of the underlying plumbing between here and the physics modules is in
+        //CFK 9/28: so these are not complete yet.
         public void llSetVehicleVectorParam(int param, LSL_Vector vec)
         {
             m_host.AddScriptLPS(1);
@@ -5188,10 +5192,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        //CFK 9/28: Most, but not all of the underlying plumbing between here and the physics modules is in
+        //CFK 9/28: so these are not complete yet.
         public void llSetVehicleRotationParam(int param, LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetVehicleRotationParam");
+            if (m_host.ParentGroup != null)
+            {
+                if (m_host.ParentGroup.RootPart != null)
+                {
+                    m_host.ParentGroup.RootPart.SetVehicleRotationParam(param,
+                        new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s));
+                }
+            }
         }
 
         public void llSetVehicleFlags(int flags)

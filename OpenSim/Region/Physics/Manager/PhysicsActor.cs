@@ -177,6 +177,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void VehicleFloatParam(int param, float value);
         public abstract void VehicleVectorParam(int param, PhysicsVector value);
+        public abstract void VehicleRotationParam(int param, Quaternion rotation);
 
         public abstract PhysicsVector GeometricCenter { get; }
         public abstract PhysicsVector CenterOfMass { get; }
@@ -286,6 +287,11 @@ namespace OpenSim.Region.Physics.Manager
         }
 
         public override void VehicleVectorParam(int param, PhysicsVector value)
+        {
+
+        }
+
+        public override void VehicleRotationParam(int param, Quaternion rotation)
         {
 
         }

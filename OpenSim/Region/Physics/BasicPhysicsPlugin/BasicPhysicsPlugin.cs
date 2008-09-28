@@ -345,6 +345,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         }
 
+        public override void VehicleRotationParam(int param, Quaternion rotation)
+        {
+
+        }
+
         public override PhysicsVector CenterOfMass
         {
             get { return PhysicsVector.Zero; }

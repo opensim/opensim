@@ -959,6 +959,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
 
         }
+        
+        public override void VehicleRotationParam(int param, OpenMetaverse.Quaternion rotation)
+        {
+
+        }
 
         public override PhysicsVector CenterOfMass
         {

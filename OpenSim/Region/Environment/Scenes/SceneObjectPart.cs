@@ -2353,6 +2353,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void SetVehicleRotationParam(int param, Quaternion rotation)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.VehicleRotationParam(param, rotation);
+            }
+        }
+
         public void SetGroup(UUID groupID, IClientAPI client)
         {
             _groupID = groupID;
