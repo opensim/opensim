@@ -965,6 +965,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        public event EstateTeleportAllUsersHomeRequest OnEstateTeleportAllUsersHomeRequest;
         public event RegionHandleRequest OnRegionHandleRequest;
         public event ParcelInfoRequest OnParcelInfoRequest;
         public event ScriptReset OnScriptReset;
@@ -5875,6 +5876,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     UUID.TryParse(Utils.BytesToString(messagePacket.ParamList[1].Parameter), out Prey);
 
                                     OnEstateTeleportOneUserHomeRequest(this, invoice, SenderID, Prey);
+                                }
+                                break;
+                            case "teleporthomeallusers":
+                                if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(this.AgentId, false))
+                                {
+                                    UUID invoice = messagePacket.MethodData.Invoice;
+                                    UUID SenderID = messagePacket.AgentData.AgentID;
+                                    OnEstateTeleportAllUsersHomeRequest(this, invoice, SenderID);
                                 }
                                 break;
                             case "colliders":

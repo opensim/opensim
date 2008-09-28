@@ -298,6 +298,7 @@ namespace OpenSim.Framework
     public delegate void EstateBlueBoxMessageRequest(IClientAPI remoteClient, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message);
     public delegate void EstateDebugRegionRequest(IClientAPI remoteClient, UUID invoice, UUID senderID, bool scripted, bool collisionEvents, bool physics);
     public delegate void EstateTeleportOneUserHomeRequest(IClientAPI remoteClient, UUID invoice, UUID senderID, UUID prey);
+    public delegate void EstateTeleportAllUsersHomeRequest(IClientAPI remoteClient, UUID invoice, UUID senderID);
     public delegate void RegionHandleRequest(IClientAPI remoteClient, UUID regionID);
     public delegate void ParcelInfoRequest(IClientAPI remoteClient, UUID parcelID);
 
@@ -518,6 +519,7 @@ namespace OpenSim.Framework
         event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
         event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        event EstateTeleportAllUsersHomeRequest OnEstateTeleportAllUsersHomeRequest;
         event UUIDNameRequest OnUUIDGroupNameRequest;
 
         event RegionHandleRequest OnRegionHandleRequest;

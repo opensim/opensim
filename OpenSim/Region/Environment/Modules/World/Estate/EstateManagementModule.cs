@@ -383,6 +383,28 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             }
         }
 
+        private void handleEstateTeleportAllUsersHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID)
+        {
+            // Get a fresh list that will not change as people get teleported away
+            List<ScenePresence> prescences = m_scene.GetScenePresences(); 
+            foreach (ScenePresence p in prescences)
+            {
+                if (p.UUID != senderID)
+                {
+                    // make sure they are still there, we could be working down a long list
+                    ScenePresence s = m_scene.GetScenePresence(p.UUID);
+                    if (s != null)
+                    {
+                        // Also make sure they are actually in the region
+                        if (!s.IsChildAgent)
+                        {
+                            m_scene.TeleportClientHome(s.UUID, s.ControllingClient);
+                        }
+                    }
+                }
+            }
+        }
+
         private void HandleRegionInfoRequest(IClientAPI remote_client)
         {
 
@@ -723,6 +745,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             client.OnEstateBlueBoxMessageRequest += SendEstateBlueBoxMessage;
             client.OnEstateDebugRegionRequest += handleEstateDebugRegionRequest;
             client.OnEstateTeleportOneUserHomeRequest += handleEstateTeleportOneUserHomeRequest;
+            client.OnEstateTeleportAllUsersHomeRequest += handleEstateTeleportAllUsersHomeRequest;
 
             client.OnRegionInfoRequest += HandleRegionInfoRequest;
             client.OnEstateCovenantRequest += HandleEstateCovenantRequest;

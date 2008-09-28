@@ -305,6 +305,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        public event EstateTeleportAllUsersHomeRequest OnEstateTeleportAllUsersHomeRequest;
         public event EstateChangeInfo OnEstateChangeInfo;
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
