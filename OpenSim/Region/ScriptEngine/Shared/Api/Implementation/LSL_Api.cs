@@ -5178,7 +5178,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetVehicleVectorParam(int param, LSL_Vector vec)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetVehicleVectorParam");
+            if (m_host.ParentGroup != null)
+            {
+                if (m_host.ParentGroup.RootPart != null)
+                {
+                    m_host.ParentGroup.RootPart.SetVehicleVectorParam(param, 
+                        new PhysicsVector((float)vec.x, (float)vec.y, (float)vec.z) );
+                }
+            }
         }
 
         public void llSetVehicleRotationParam(int param, LSL_Rotation rot)
