@@ -3039,18 +3039,71 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        /// <summary>
+        /// The rules governing the returned name are not simple. The only
+        /// time a blank name is returned is if the target prim has a blank
+        /// name. If no prim with the given link number can be found then
+        /// usually NULL_KEY is returned but there are exceptions.
+        /// 
+        /// In a single unlinked prim, A call with 0 returns the name, all 
+        /// other values for link number return NULL_KEY
+        ///
+        /// In link sets it is more complicated.
+        /// 
+        /// If the script is in the root prim:-
+        ///     A zero link number returns NULL_KEY.
+        ///     Positive link numbers return the name of the prim, or NULL_KEY 
+        ///     if a prim does not exist at that position.
+        ///     Negative link numbers return the name of the first child prim.
+        /// 
+        /// If the script is in a child prim:-
+        ///     Link numbers 0 or 1 return the name of the root prim.
+        ///     Positive link numbers return the name of the prim or NULL_KEY
+        ///     if a prim does not exist at that position.
+        ///     Negative numbers return the name of the root prim.
+        /// 
+        /// References
+        /// http://lslwiki.net/lslwiki/wakka.php?wakka=llGetLinkName
+        /// Mentions NULL_KEY being returned
+        /// http://wiki.secondlife.com/wiki/LlGetLinkName
+        /// Mentions using the LINK_* constants, some of which are negative 
+        /// </summary>
         public LSL_String llGetLinkName(int linknum)
         {
             m_host.AddScriptLPS(1);
-            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
+
+            // simplest case, this prims link number
+            if (m_host.LinkNum == linknum)
+                return m_host.Name;
+            
+            // Single prim
+            if (m_host.LinkNum == 0)
+            {
+                if (linknum == 0)
+                    return m_host.Name;
+                else
+                    return UUID.Zero.ToString();
+            }
+            // Link set
+            SceneObjectPart part = null;
+            if (m_host.LinkNum == 1) // this is the Root prim
+            {
+                if (linknum < 0)
+                    part = m_host.ParentGroup.GetLinkNumPart(2);
+                else
+                    part = m_host.ParentGroup.GetLinkNumPart(linknum);
+            }
+            else // this is a child prim
+            {
+                if (linknum < 2)
+                    part = m_host.ParentGroup.GetLinkNumPart(1);
+                else
+                    part = m_host.ParentGroup.GetLinkNumPart(linknum);
+            }
             if (part != null)
-            {
                 return part.Name;
-            }
             else
-            {
-                return "";
-            }
+                return UUID.Zero.ToString();
         }
 
         public LSL_Integer llGetInventoryNumber(int type)
