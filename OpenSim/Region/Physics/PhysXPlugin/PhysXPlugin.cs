@@ -343,6 +343,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             set { return; }
         }
 
+        public override int VehicleType
+        {
+            get { return 0; }
+            set { return; }
+        }
+
         public override void VehicleFloatParam(int param, float value)
         {
 
@@ -685,6 +691,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override PhysicsVector Force
         {
             get { return PhysicsVector.Zero; }
+            set { return; }
+        }
+
+        public override int VehicleType
+        {
+            get { return 0; }
             set { return; }
         }
 

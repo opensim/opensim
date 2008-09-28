@@ -950,6 +950,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             set { return; }
         }
 
+        public override int VehicleType
+        {
+            get { return 0; }
+            set { return; }
+        }
+
         public override void VehicleFloatParam(int param, float value)
         {
 

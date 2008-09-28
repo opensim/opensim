@@ -2337,6 +2337,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void SetVehicleType(int type)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.VehicleType = type;
+            }
+        }
+
         public void SetVehicleFloatParam(int param, float value)
         {
             if (PhysActor != null)

@@ -5159,7 +5159,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetVehicleType(int type)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetVehicleType");
+            if (m_host.ParentGroup != null)
+            {
+                if (m_host.ParentGroup.RootPart != null)
+                {
+                    m_host.ParentGroup.RootPart.SetVehicleType(type);
+                }
+            }
         }
 
         //CFK 9/28: Most, but not all of the underlying plumbing between here and the physics modules is in
