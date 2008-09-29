@@ -6650,11 +6650,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             switch (option)
             {
-            case "ReliableIsImportant":
-                return m_PacketHandler.ReliableIsImportant.ToString();
-                break;
-            default:
-                break;
+                case "ReliableIsImportant":
+                    return m_PacketHandler.ReliableIsImportant.ToString();
+                
+                default:
+                    break;
             }
             return string.Empty;
         }
