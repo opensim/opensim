@@ -40,23 +40,15 @@ using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    class DeleteToInventoryHolder
-    {
-        public DeRezObjectPacket DeRezPacket;
-        public EntityBase selectedEnt;
-        public IClientAPI remoteClient;
-        public SceneObjectGroup objectGroup;
-        public UUID folderID;
-        public bool permissionToDelete;
-    }
-
     public partial class Scene
     {
-        private Timer m_inventoryTicker;
-        private readonly Queue<DeleteToInventoryHolder> m_inventoryDeletes = new Queue<DeleteToInventoryHolder>();
-
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        /// <summary>
+        /// Allows asynchronous derezzing of objects from the scene into a client's inventory.
+        /// </summary>
+        private AsyncSceneObjectGroupDeleter m_asyncSceneObjectDeleter;    
 
         /// <summary>
         /// Start all the scripts in the scene which should be started.
@@ -1546,35 +1538,8 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (permissionToTake)
                     {
-                        if (m_inventoryTicker != null)
-                        {
-                            m_inventoryTicker.Stop();
-                        }
-                        else
-                        {
-                            m_inventoryTicker = new Timer(2000);
-                            m_inventoryTicker.AutoReset = false;
-                            m_inventoryTicker.Elapsed += InventoryRunDeleteTimer;
-                        }
-
-                        lock (m_inventoryDeletes)
-                        {
-                            DeleteToInventoryHolder dtis = new DeleteToInventoryHolder();
-                            dtis.DeRezPacket = DeRezPacket;
-                            dtis.folderID = folderID;
-                            dtis.objectGroup = objectGroup;
-                            dtis.remoteClient = remoteClient;
-                            dtis.selectedEnt = selectedEnt;
-                            dtis.permissionToDelete = permissionToDelete;
-
-                            m_inventoryDeletes.Enqueue(dtis);
-                        }
-
-                        m_inventoryTicker.Start();
-
-                        // Visually remove it, even if it isnt really gone yet.
-                        if (permissionToDelete)
-                            objectGroup.FakeDeleteGroup();
+                        m_asyncSceneObjectDeleter.DeleteToInventory(
+                            DeRezPacket, folderID, objectGroup, remoteClient, selectedEnt, permissionToDelete);
                     }
                     else if (permissionToDelete)
                     {
@@ -1584,47 +1549,17 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        void InventoryRunDeleteTimer(object sender, ElapsedEventArgs e)
-        {
-            m_log.Info("Starting inventory send loop");
-            while (InventoryDeQueueAndDelete() == true)
-            {
-                m_log.Info("Returned item successfully, continuing...");
-            }
-        }
-
-        private bool InventoryDeQueueAndDelete()
-        {
-            DeleteToInventoryHolder x = null;
-
-            try
-            {
-                lock (m_inventoryDeletes)
-                {
-                    int left = m_inventoryDeletes.Count;
-                    if (left > 0)
-                    {
-                        m_log.InfoFormat("Sending deleted object to user's inventory, {0} item(s) remaining.", left);
-                        x = m_inventoryDeletes.Dequeue();
-                        DeleteToInventory(x.DeRezPacket, x.selectedEnt, x.remoteClient, x.objectGroup, x.folderID, x.permissionToDelete);
-                        return true;
-                    }
-                }
-            }
-            catch(Exception e)
-            {
-                // We can't put the object group details in here since the root part may have disappeared (which is where these sit).
-                // FIXME: This needs to be fixed.
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Queued deletion of scene object to agent {0} {1} failed: {2}",
-                    (x != null ? x.remoteClient.Name : "unavailable"), (x != null ? x.remoteClient.AgentId.ToString() : "unavailable"), e.ToString());
-            }
-
-            m_log.Info("No objects left in inventory delete queue.");
-            return false;
-        }
-
-        private void DeleteToInventory(DeRezObjectPacket DeRezPacket, EntityBase selectedEnt, IClientAPI remoteClient, SceneObjectGroup objectGroup, UUID folderID, bool permissionToDelete)
+        /// <summary>
+        /// Delete a scene object from a scene and place in the given avatar's inventory.
+        /// </summary>
+        /// <param name="DeRezPacket"></param>
+        /// <param name="selectedEnt"></param>
+        /// <param name="remoteClient"> </param>
+        /// <param name="objectGroup"></param>
+        /// <param name="folderID"></param>
+        /// <param name="permissionToDelete"></param>
+        public void DeleteToInventory(DeRezObjectPacket DeRezPacket, EntityBase selectedEnt, IClientAPI remoteClient, 
+            SceneObjectGroup objectGroup, UUID folderID, bool permissionToDelete)
         {
             string sceneObjectXml = objectGroup.ToXmlString();
 
