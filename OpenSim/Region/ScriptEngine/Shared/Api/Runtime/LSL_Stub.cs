@@ -1169,9 +1169,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llRemoteDataSetRegion();
         }
 
-        public void llRemoteLoadScript()
+        public void llRemoteLoadScript(string target, string name, int running, int start_param)
         {
-            m_LSL_Functions.llRemoteLoadScript();
+            m_LSL_Functions.llRemoteLoadScript(target, name, running, start_param);
         }
 
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param)
@@ -1599,9 +1599,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSound();
         }
 
-        public void llSoundPreload()
+        public void llSoundPreload(string sound)
         {
-            m_LSL_Functions.llSoundPreload();
+            m_LSL_Functions.llSoundPreload(sound);
         }
 
         public LSL_Float llSqrt(double f)

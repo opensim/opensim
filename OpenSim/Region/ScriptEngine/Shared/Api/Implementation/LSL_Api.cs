@@ -134,6 +134,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_ScriptEngine.SetState(m_itemID, newState);
         }
 
+        /// <summary>
+        /// Reset the named script. The script must be present
+        /// in the same prim.
+        /// </summary>
         public void llResetScript()
         {
             m_host.AddScriptLPS(1);
@@ -2616,10 +2620,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             NotImplemented("llMinEventDelay");
         }
 
-        public void llSoundPreload()
+        /// <summary>
+        /// llSoundPreload is deprecated. In SL this appears to do absolutely nothing
+        /// and is documented to have no delay.
+        /// </summary>
+        public void llSoundPreload(string sound)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llSoundPreload");
         }
 
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
@@ -5356,14 +5363,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Reset the named script. The script must be present
-        /// in the same prim.
+        /// This is a depecated function so this just replicates the result of
+        /// invoking it in SL
         /// </summary>
 
-        public void llRemoteLoadScript()
+        public void llRemoteLoadScript(string target, string name, int running, int start_param)
         {
             m_host.AddScriptLPS(1);
-            Deprecated("llRemoteLoadScript");
+            // Report an error as it does in SL
+            ShoutError("Deprecated. Please use llRemoteLoadScriptPin instead.");
             // ScriptSleep(3000);
         }
 

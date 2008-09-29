@@ -262,7 +262,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llReleaseControls();
               void llRemoteDataReply(string channel, string message_id, string sdata, int idata);
               void llRemoteDataSetRegion();
-              void llRemoteLoadScript();
+              void llRemoteLoadScript(string target, string name, int running, int start_param);
               void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param);
               void llRemoveFromLandBanList(string avatar);
               void llRemoveFromLandPassList(string avatar);
@@ -348,7 +348,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSitTarget(LSL_Vector offset, LSL_Rotation rot);
               void llSleep(double sec);
               void llSound();
-              void llSoundPreload();
+              void llSoundPreload(string sound);
          LSL_Float llSqrt(double f);
               void llStartAnimation(string anim);
               void llStopAnimation(string anim);
