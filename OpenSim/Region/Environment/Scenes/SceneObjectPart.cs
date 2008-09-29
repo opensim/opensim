@@ -1156,13 +1156,10 @@ namespace OpenSim.Region.Environment.Scenes
                 Vector3 newimpulse = AXimpulsei * AXgrot;
                 impulse = new PhysicsVector(newimpulse.X, newimpulse.Y, newimpulse.Z);
             }
-            else
-            {
 
-                if (m_parentGroup != null)
-                {
-                    m_parentGroup.applyImpulse(impulse);
-                }
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.applyImpulse(impulse);
             }
         }
 
