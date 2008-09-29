@@ -41,7 +41,7 @@ using log4net;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
 
 
-namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
+namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
 {
     public class InventoryArchiveReadRequest
     {

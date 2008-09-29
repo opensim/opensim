@@ -40,7 +40,7 @@ using OpenSim.Framework.Communications.Cache;
 using log4net;
 
 
-namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
+namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
 {
     public class InventoryArchiveWriteRequest
     {

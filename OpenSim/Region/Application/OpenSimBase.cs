@@ -48,8 +48,7 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
-
-using OpenSim.Region.Environment.Modules.Avatar.Inventory;
+using OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver;
 
 namespace OpenSim
 {
