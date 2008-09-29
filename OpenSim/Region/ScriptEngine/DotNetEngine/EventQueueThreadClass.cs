@@ -359,6 +359,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         string FormatException(Exception e, Dictionary<KeyValuePair<int,int>,
                 KeyValuePair<int,int>> LineMap)
         {
+            if (e.InnerException == null)
+                return e.ToString();
+
             string message = "Runtime error:\n" + e.InnerException.StackTrace;
             string[] lines = message.Split(new char[] {'\n'});
 
