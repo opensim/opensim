@@ -825,6 +825,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         string FormatException(Exception e)
         {
+            if (e.InnerException == null) // Not a normal runtime error
+                return e.ToString();
+
             string message = "Runtime error:\n" + e.InnerException.StackTrace;
             string[] lines = message.Split(new char[] {'\n'});
 
