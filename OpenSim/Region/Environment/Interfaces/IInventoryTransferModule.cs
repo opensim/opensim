@@ -35,7 +35,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// An interface for accessing and managing agent inventory
     /// </summary>
-    public interface IInventoryModule
+    public interface IInventoryTransferModule
     {
         void SetRootAgentScene(UUID agentID, Scene scene);
         bool NeedSceneCacheClear(UUID agentID, Scene scene);

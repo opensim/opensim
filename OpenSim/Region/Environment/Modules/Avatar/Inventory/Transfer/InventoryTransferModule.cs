@@ -36,7 +36,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
 {
-    public class InventoryModule : IInventoryModule, IRegionModule
+    public class InventoryTransferModule : IInventoryTransferModule, IRegionModule
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -59,7 +59,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
             {
                 m_Scenelist.Add(scene);
 
-                scene.RegisterModuleInterface<IInventoryModule>(this);
+                scene.RegisterModuleInterface<IInventoryTransferModule>(this);
 
                 scene.EventManager.OnNewClient += OnNewClient;
                 scene.EventManager.OnClientClosed += ClientLoggedOut;

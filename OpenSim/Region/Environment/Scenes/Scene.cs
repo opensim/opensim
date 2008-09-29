@@ -4022,7 +4022,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetRootAgentScene(UUID agentID)
         {
-            IInventoryModule inv = RequestModuleInterface<IInventoryModule>();
+            IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
             if (inv == null)
                 return;
 
@@ -4031,7 +4031,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool NeedSceneCacheClear(UUID agentID)
         {
-            IInventoryModule inv = RequestModuleInterface<IInventoryModule>();
+            IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
             if (inv == null)
                 return true;
 
