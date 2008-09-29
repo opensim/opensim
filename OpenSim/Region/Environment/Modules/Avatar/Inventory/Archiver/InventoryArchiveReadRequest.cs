@@ -56,7 +56,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
 
         public InventoryArchiveReadRequest(Scene currentScene, CommunicationsManager commsManager)
         {
-            List<string> serialisedObjects = new List<string>();
+            //List<string> serialisedObjects = new List<string>();
             scene = currentScene;
             this.commsManager = commsManager;
         }
@@ -150,7 +150,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
 
             string firstName = cmdparams[0];
             string lastName = cmdparams[1];
-            string invPath = cmdparams[2];
+            //string invPath = cmdparams[2];
             loadPath = (cmdparams.Length > 3 ? cmdparams[3] : "inventory.tar.gz");
 
             archive
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
         /// <returns>true if asset was successfully loaded, false otherwise</returns>
         private bool LoadAsset(string assetPath, byte[] data)
         {
-            IRegionSerialiser serialiser = scene.RequestModuleInterface<IRegionSerialiser>();
+            //IRegionSerialiser serialiser = scene.RequestModuleInterface<IRegionSerialiser>();
             // Right now we're nastily obtaining the UUID from the filename
             string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
             int i = filename.LastIndexOf(ArchiveConstants.ASSET_EXTENSION_SEPARATOR);

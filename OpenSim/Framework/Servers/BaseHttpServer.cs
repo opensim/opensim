@@ -377,7 +377,7 @@ namespace OpenSim.Framework.Servers
 
                         Hashtable keysvals = new Hashtable();
                         Hashtable headervals = new Hashtable();
-                        string host = String.Empty;
+                        //string host = String.Empty;
 
                         string[] querystringkeys = request.QueryString.AllKeys;
                         string[] rHeaders = request.Headers.AllKeys;
@@ -394,15 +394,16 @@ namespace OpenSim.Framework.Servers
                             headervals[headername] = request.Headers[headername];
                         }
 
-                        if (headervals.Contains("Host"))
-                        {
-                            host = (string)headervals["Host"];
-                        }
+//                        if (headervals.Contains("Host"))
+//                        {
+//                            host = (string)headervals["Host"];
+//                        }
+                        
                         keysvals.Add("requestbody",requestBody);
                         if (keysvals.Contains("method"))
                         {
                             //m_log.Warn("[HTTP]: Contains Method");
-                            string method = (string)keysvals["method"];
+                            //string method = (string)keysvals["method"];
                             //m_log.Warn("[HTTP]: " + requestBody);
                    
                         } 
