@@ -316,6 +316,21 @@ namespace OpenSim.Framework.Communications.Cache
             return folderList;
         }
 
+        public List<InventoryFolderImpl> RequestListOfFolderImpls()
+        {
+            List<InventoryFolderImpl> folderList = new List<InventoryFolderImpl>();
+
+            lock (SubFolders)
+            {
+                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                {
+                    folderList.Add(folder);
+                }
+            }
+
+            return folderList;
+        }
+
         public int TotalCount
         {
             get

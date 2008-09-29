@@ -49,6 +49,8 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 
+using OpenSim.Region.Environment.Modules.Avatar.Inventory;
+
 namespace OpenSim
 {
     /// <summary>
@@ -707,90 +709,27 @@ namespace OpenSim
         protected void SaveInv(string[] cmdparams)
         {
             m_log.Error("[CONSOLE]: This command has not yet been implemented!");
-
             if (cmdparams.Length < 3)
             {
                 m_log.Error("[CONSOLE]: usage is save-inv <first name> <last name> <inventory path> [<save file path>]");
                 return;
             }
+            new InventoryArchiveWriteRequest(m_sceneManager.CurrentOrFirstScene,m_commsManager).execute(cmdparams);
+        }
 
-            string firstName = cmdparams[0];
-            string lastName = cmdparams[1];
-            string invPath = cmdparams[2];
-            //string savePath = (cmdparams.Length > 3 ? cmdparams[3] : DEFAULT_INV_BACKUP_FILENAME);
-
-            UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(firstName, lastName);
-            if (null == userProfile)
+        /// <summary>
+        /// Load inventory from a tar.gz file.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        protected void LoadInv(string[] cmdparams)
+        {
+            m_log.Error("[CONSOLE]: This command has not yet been implemented!");
+            if (cmdparams.Length < 3)
             {
-                m_log.ErrorFormat("[CONSOLE]: Failed to find user {0} {1}", firstName, lastName);
+                m_log.Error("[CONSOLE]: usage is load-inv <first name> <last name> <inventory path> [<load file path>]");
                 return;
             }
-
-            CachedUserInfo userInfo = m_commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
-            if (null == userInfo)
-            {
-                m_log.ErrorFormat("[CONSOLE]: Failed to find user info for {0} {1} {2}", firstName, lastName, userProfile.ID);
-                return;
-            }
-
-            InventoryFolderImpl inventoryFolder = null;
-            InventoryItemBase inventoryItem = null;
-
-            if (userInfo.HasReceivedInventory)
-            {
-                // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
-                // itself (possibly at a small loss in efficiency).
-                string[] components
-                    = invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
-                invPath = String.Empty;
-                foreach (string c in components)
-                {
-                    invPath += c + InventoryFolderImpl.PATH_DELIMITER;
-                }
-
-                invPath = invPath.Remove(invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
-
-                // Annoyingly Split actually returns the original string if the input string consists only of delimiters
-                // Therefore if we still start with a / after the split, then we need the root folder
-                if (invPath.StartsWith(InventoryFolderImpl.PATH_DELIMITER))
-                {
-                    inventoryFolder = userInfo.RootFolder;
-                }
-                else
-                {
-                    inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);
-                }
-
-                // The path may point to an item instead
-                if (inventoryFolder == null)
-                {
-                    inventoryItem = userInfo.RootFolder.FindItemByPath(invPath);
-                }
-            }
-            else
-            {
-                m_log.ErrorFormat("[CONSOLE]: Have not yet received inventory info for user {0} {1} {2}", firstName, lastName, userProfile.ID);
-                return;
-            }
-
-            if (null == inventoryFolder)
-            {
-                if (null == inventoryItem)
-                {
-                    m_log.ErrorFormat("[CONSOLE]: Could not find inventory entry at path {0}", invPath);
-                    return;
-                }
-                else
-                {
-                    m_log.InfoFormat("[CONSOLE]: Found item {0} {1} at {2}", inventoryItem.Name, inventoryItem.ID,
-                                     invPath);
-                }
-            }
-            else
-            {
-                m_log.InfoFormat("[CONSOLE]: Found folder {0} {1} at {2}", inventoryFolder.Name, inventoryFolder.ID,
-                                 invPath);
-            }
+            new InventoryArchiveReadRequest(m_sceneManager.CurrentOrFirstScene, m_commsManager).execute(cmdparams);
         }
 
         /// <summary>

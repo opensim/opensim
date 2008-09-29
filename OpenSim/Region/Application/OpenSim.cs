@@ -282,6 +282,10 @@ namespace OpenSim
                     SaveInv(cmdparams);
                     break;
 
+                case "load-inv":
+                    LoadInv(cmdparams);
+                    break;
+
                 case "plugin":
                     m_sceneManager.SendCommandToPluginModules(cmdparams);
                     break;
