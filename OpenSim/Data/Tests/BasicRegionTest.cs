@@ -143,6 +143,26 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
+        public void T101_UpdateRegionInfo()
+        {
+            bool blockfly = true;
+            double sunpos = 0.5;
+            UUID cov = UUID.Random();
+
+            RegionSettings r1 = db.LoadRegionSettings(region1);
+            r1.BlockFly = blockfly;
+            r1.SunPosition = sunpos;
+            r1.Covenant = cov;
+            db.StoreRegionSettings(r1);
+            
+            RegionSettings r2 = db.LoadRegionSettings(region1);
+            Assert.That(r2.RegionUUID, Is.EqualTo(region1));
+            Assert.That(r2.SunPosition, Is.EqualTo(sunpos));
+            Assert.That(r2.BlockFly, Is.EqualTo(blockfly));
+            Assert.That(r2.Covenant, Is.EqualTo(cov));
+        }
+
+        [Test]
         public void T300_NoTerrain()
         {
             db.LoadTerrain(region1);

@@ -258,7 +258,7 @@ namespace OpenSim.Data.SQLite
             {
                 DataTable regionsettings = ds.Tables["regionsettings"];
 
-                DataRow settingsRow = regionsettings.Rows.Find(Util.ToRawUuidString(rs.RegionUUID));
+                DataRow settingsRow = regionsettings.Rows.Find(rs.RegionUUID.ToString());
                 if (settingsRow == null)
                 {
                     settingsRow = regionsettings.NewRow();
