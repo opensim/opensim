@@ -749,13 +749,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string currentKey=null;
             Stack objectStack = new Stack(); // objects in JSON can be nested so we need to keep a track of this
             Hashtable jsondata = new Hashtable(); // the hashtable to be returned
-            
+            int i=0;
             try
             {
                 
                 // iterate through the serialised stream of tokens and store at the right depth in the hashtable
                 // the top level hashtable may contain more nested hashtables within it each containing an objects representation
-                for (int i=0;i<JSON.Length; i++)
+                for (i=0;i<JSON.Length; i++)
                 {
                     
                     // Console.WriteLine(""+JSON[i]); 
@@ -795,10 +795,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             string tokenValue="";
                             i++; // move to next char
                             
-                            // just loop through until the next quote mark storing the string
+                            // just loop through until the next quote mark storing the string, ignore quotes with pre-ceding \
                             while (JSON[i]!='"')
                             {
-                                tokenValue+=JSON[i++];
+                                tokenValue+=JSON[i];
+                                
+                                // handle escaped double quotes \"
+                                if(JSON[i]=='\\' && JSON[i+1]=='"')
+                                {    
+                                    tokenValue+=JSON[i+1];
+                                    i++;   
+                                }    
+                                i++;
+                                    
                             }
                             
                             // ok we've got a string, if we've got an array on the top of the stack then we store it
@@ -857,6 +866,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             else
                             { 
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,true);
+                                currentKey=null;
                             }
                             
                             //advance the counter to the letter 'e'
@@ -871,11 +881,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             else
                             {
                                 ((Hashtable)objectStack.Peek()).Add(currentKey,false);
+                                currentKey=null;
                             }
                             //advance the counter to the letter 'e'
                             i = i+4;
                         break;
-                        
+                        case '\n':// carriage return
+                            // just ignore
+                        break;
+                        case '\r':// carriage return
+                            // just ignore
+                        break;
                         default:
                             // ok here we're catching all numeric types int,double,long we might want to spit these up mr accurately
                             // but for now we'll just do them as strings
@@ -909,7 +925,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             catch(Exception)
             {
-                OSSLError("osParseJSON: The JSON string is not valid " + JSON);
+                OSSLError("osParseJSON: The JSON string is not valid " + JSON) ;
             }
             
             return jsondata;                        
