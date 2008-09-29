@@ -747,7 +747,14 @@ namespace OpenSim
             // TODO: implement this
             m_log.Info("[SHUTDOWN]: Closing console and terminating");
 
-            m_sceneManager.Close();
+            try
+            {   
+                m_sceneManager.Close();
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[SHUTDOWN]: Ignoring failure during shutdown - {0}", e);
+            }
 
             base.Shutdown();
         }
