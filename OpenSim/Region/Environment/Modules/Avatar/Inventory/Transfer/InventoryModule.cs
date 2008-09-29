@@ -34,7 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
+namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
 {
     public class InventoryModule : IInventoryModule, IRegionModule
     {
