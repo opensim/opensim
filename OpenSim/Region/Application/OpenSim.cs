@@ -611,7 +611,7 @@ namespace OpenSim
             m_console.Notice("force-update - force an update of prims in the scene");
             m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
             m_console.Notice("remove-region [name] - remove a region");
-            m_console.Notice("delete-region [name] - delete a region");
+            m_console.Notice("delete-region [name] - delete a region and its associated region file");
             m_console.Notice("load-xml [filename] - load prims from XML (DEPRECATED)");
             m_console.Notice("save-xml [filename] - save prims to XML (DEPRECATED)");
             m_console.Notice("save-xml2 [filename] - save prims to XML using version 2 format");
