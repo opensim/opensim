@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Timers;
-using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
@@ -56,7 +55,7 @@ namespace OpenSim.Region.Environment.Scenes
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        private System.Timers.Timer m_inventoryTicker = new System.Timers.Timer(2000);       
+        private Timer m_inventoryTicker = new Timer(2000);       
         private readonly Queue<DeleteToInventoryHolder> m_inventoryDeletes = new Queue<DeleteToInventoryHolder>();        
         private Scene m_scene;
         
