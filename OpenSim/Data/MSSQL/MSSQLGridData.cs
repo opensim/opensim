@@ -163,7 +163,7 @@ namespace OpenSim.Data.MSSQL
         /// <returns>A string containing the storage system name</returns>
         override public string Name
         {
-            get { return "Sql OpenGridData"; }
+            get { return "MSSQL OpenGridData"; }
         }
 
         /// <summary>

@@ -51,9 +51,9 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         public MSSQLManager database;
 
-        private string m_agentsTableName;
-        private string m_usersTableName;
-        private string m_userFriendsTableName;
+        private const string m_agentsTableName = "agents";
+        private const string m_usersTableName = "users";
+        private const string m_userFriendsTableName = "userfriends";
 
         override public void Initialise()
         {
@@ -68,7 +68,6 @@ namespace OpenSim.Data.MSSQL
         /// <remarks>use mssql_connection.ini</remarks>
         override public void Initialise(string connect)
         {
-            IniFile iniFile = new IniFile("mssql_connection.ini");
 
             if (string.IsNullOrEmpty(connect))
             {
@@ -76,6 +75,8 @@ namespace OpenSim.Data.MSSQL
             }
             else
             {
+                IniFile iniFile = new IniFile("mssql_connection.ini");
+
                 string settingDataSource = iniFile.ParseFileReadValue("data_source");
                 string settingInitialCatalog = iniFile.ParseFileReadValue("initial_catalog");
                 string settingPersistSecurityInfo = iniFile.ParseFileReadValue("persist_security_info");
@@ -85,23 +86,23 @@ namespace OpenSim.Data.MSSQL
                 database = new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId, settingPassword);
             }
 
-            m_usersTableName = iniFile.ParseFileReadValue("userstablename");
-            if (m_usersTableName == null)
-            {
-                m_usersTableName = "users";
-            }
-
-            m_userFriendsTableName = iniFile.ParseFileReadValue("userfriendstablename");
-            if (m_userFriendsTableName == null)
-            {
-                m_userFriendsTableName = "userfriends";
-            }
-
-            m_agentsTableName = iniFile.ParseFileReadValue("agentstablename");
-            if (m_agentsTableName == null)
-            {
-                m_agentsTableName = "agents";
-            }
+//            m_usersTableName = iniFile.ParseFileReadValue("userstablename");
+//            if (m_usersTableName == null)
+//            {
+//                m_usersTableName = "users";
+//            }
+//
+//            m_userFriendsTableName = iniFile.ParseFileReadValue("userfriendstablename");
+//            if (m_userFriendsTableName == null)
+//            {
+//                m_userFriendsTableName = "userfriends";
+//            }
+//
+//            m_agentsTableName = iniFile.ParseFileReadValue("agentstablename");
+//            if (m_agentsTableName == null)
+//            {
+//                m_agentsTableName = "agents";
+//            }
 
             //TODO this can be removed at one time!!!!!
             TestTables();
@@ -110,6 +111,9 @@ namespace OpenSim.Data.MSSQL
             database.CheckMigration(_migrationStore);
         }
 
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources
+        /// </summary>
         override public void Dispose() { }
 
         /// <summary>

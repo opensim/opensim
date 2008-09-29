@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
 using OpenMetaverse;
@@ -932,6 +933,10 @@ VALUES
             prim.Name = (String)row["Name"];
             // various text fields
             prim.Text = (String)row["Text"];
+            prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorA"]),
+                                        Convert.ToInt32(row["ColorR"]),
+                                        Convert.ToInt32(row["ColorG"]),
+                                        Convert.ToInt32(row["ColorB"]));
             prim.Description = (String)row["Description"];
             prim.SitName = (String)row["SitName"];
             prim.TouchName = (String)row["TouchName"];
@@ -948,48 +953,47 @@ VALUES
             prim.BaseMask = Convert.ToUInt32(row["BaseMask"]);
             // vectors
             prim.OffsetPosition = new Vector3(
-                Convert.ToSingle(row["PositionX"]),
-                Convert.ToSingle(row["PositionY"]),
-                Convert.ToSingle(row["PositionZ"])
-                );
+                                    Convert.ToSingle(row["PositionX"]),
+                                    Convert.ToSingle(row["PositionY"]),
+                                    Convert.ToSingle(row["PositionZ"]));
+
             prim.GroupPosition = new Vector3(
-                Convert.ToSingle(row["GroupPositionX"]),
-                Convert.ToSingle(row["GroupPositionY"]),
-                Convert.ToSingle(row["GroupPositionZ"])
-                );
+                                    Convert.ToSingle(row["GroupPositionX"]),
+                                    Convert.ToSingle(row["GroupPositionY"]),
+                                    Convert.ToSingle(row["GroupPositionZ"]));
+
             prim.Velocity = new Vector3(
-                Convert.ToSingle(row["VelocityX"]),
-                Convert.ToSingle(row["VelocityY"]),
-                Convert.ToSingle(row["VelocityZ"])
-                );
+                                Convert.ToSingle(row["VelocityX"]),
+                                Convert.ToSingle(row["VelocityY"]),
+                                Convert.ToSingle(row["VelocityZ"]));
+
             prim.AngularVelocity = new Vector3(
-                Convert.ToSingle(row["AngularVelocityX"]),
-                Convert.ToSingle(row["AngularVelocityY"]),
-                Convert.ToSingle(row["AngularVelocityZ"])
-                );
+                                    Convert.ToSingle(row["AngularVelocityX"]),
+                                    Convert.ToSingle(row["AngularVelocityY"]),
+                                    Convert.ToSingle(row["AngularVelocityZ"]));
+
             prim.Acceleration = new Vector3(
-                Convert.ToSingle(row["AccelerationX"]),
-                Convert.ToSingle(row["AccelerationY"]),
-                Convert.ToSingle(row["AccelerationZ"])
-                );
+                                Convert.ToSingle(row["AccelerationX"]),
+                                Convert.ToSingle(row["AccelerationY"]),
+                                Convert.ToSingle(row["AccelerationZ"]));
+
             // quaternions
             prim.RotationOffset = new Quaternion(
-                Convert.ToSingle(row["RotationX"]),
-                Convert.ToSingle(row["RotationY"]),
-                Convert.ToSingle(row["RotationZ"]),
-                Convert.ToSingle(row["RotationW"])
-                );
+                                Convert.ToSingle(row["RotationX"]),
+                                Convert.ToSingle(row["RotationY"]),
+                                Convert.ToSingle(row["RotationZ"]),
+                                Convert.ToSingle(row["RotationW"]));
+
             prim.SitTargetPositionLL = new Vector3(
-                Convert.ToSingle(row["SitTargetOffsetX"]),
-                Convert.ToSingle(row["SitTargetOffsetY"]),
-                Convert.ToSingle(row["SitTargetOffsetZ"])
-                );
+                                Convert.ToSingle(row["SitTargetOffsetX"]),
+                                Convert.ToSingle(row["SitTargetOffsetY"]),
+                                Convert.ToSingle(row["SitTargetOffsetZ"]));
+
             prim.SitTargetOrientationLL = new Quaternion(
-                Convert.ToSingle(row["SitTargetOrientX"]),
-                Convert.ToSingle(row["SitTargetOrientY"]),
-                Convert.ToSingle(row["SitTargetOrientZ"]),
-                Convert.ToSingle(row["SitTargetOrientW"])
-                );
+                                Convert.ToSingle(row["SitTargetOrientX"]),
+                                Convert.ToSingle(row["SitTargetOrientY"]),
+                                Convert.ToSingle(row["SitTargetOrientZ"]),
+                                Convert.ToSingle(row["SitTargetOrientW"]));
 
             prim.PayPrice[0] = Convert.ToInt32(row["PayPrice"]);
             prim.PayPrice[1] = Convert.ToInt32(row["PayButton1"]);
@@ -1001,17 +1005,15 @@ VALUES
             prim.SoundGain = Convert.ToSingle(row["LoopedSoundGain"]);
             prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
-            if (row["TextureAnimation"] != null && row["TextureAnimation"] != DBNull.Value)
+            if (!row.IsNull("TextureAnimation") && row["TextureAnimation"] != DBNull.Value)
                 prim.TextureAnimation = (Byte[])row["TextureAnimation"];
+            if (!row.IsNull("ParticleSystem"))
+                prim.ParticleSystem = (Byte[])row["ParticleSystem"];
 
             prim.RotationalVelocity = new Vector3(
-                Convert.ToSingle(row["OmegaX"]),
-                Convert.ToSingle(row["OmegaY"]),
-                Convert.ToSingle(row["OmegaZ"])
-                );
-
-            // TODO: Rotation
-            // OmegaX, OmegaY, OmegaZ
+                                        Convert.ToSingle(row["OmegaX"]),
+                                        Convert.ToSingle(row["OmegaY"]),
+                                        Convert.ToSingle(row["OmegaZ"]));
 
             prim.SetCameraEyeOffset(new Vector3(
                                         Convert.ToSingle(row["CameraEyeOffsetX"]),
@@ -1039,6 +1041,9 @@ VALUES
             prim.SalePrice = Convert.ToInt32(row["SalePrice"]);
             prim.ObjectSaleType = Convert.ToByte(row["SaleType"]);
 
+            if (!row.IsNull("ClickAction"))
+                prim.ClickAction = Convert.ToByte(row["ClickAction"]);
+
             return prim;
         }
 
@@ -1051,10 +1056,10 @@ VALUES
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
             s.Scale = new Vector3(
-                Convert.ToSingle(row["ScaleX"]),
-                Convert.ToSingle(row["ScaleY"]),
-                Convert.ToSingle(row["ScaleZ"])
-                );
+                        Convert.ToSingle(row["ScaleX"]),
+                        Convert.ToSingle(row["ScaleY"]),
+                        Convert.ToSingle(row["ScaleZ"]));
+
             // paths
             s.PCode = Convert.ToByte(row["PCode"]);
             s.PathBegin = Convert.ToUInt16(row["PathBegin"]);

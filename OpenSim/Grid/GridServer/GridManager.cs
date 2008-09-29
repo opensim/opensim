@@ -802,7 +802,7 @@ namespace OpenSim.Grid.GridServer
             response.Value = responseData;
             IList simProfileList = new ArrayList();
 
-            bool fastMode = (Config.DatabaseProvider == "OpenSim.Data.MySQL.dll");
+            bool fastMode = (Config.DatabaseProvider == "OpenSim.Data.MySQL.dll" || Config.DatabaseProvider == "OpenSim.Data.MSSQL.dll");
 
             if (fastMode)
             {

@@ -611,6 +611,32 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Returns all activated gesture-items in the inventory of the specified avatar.
+        /// </summary>
+        /// <param name="avatarID">The <see cref="UUID"/> of the avatar</param>
+        /// <returns>
+        /// The list of gestures (<see cref="InventoryItemBase"/>s)
+        /// </returns>
+        public List<InventoryItemBase> fetchActiveGestures(UUID avatarID)
+        {
+            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM inventoryitems WHERE avatarId = @uuid AND assetType = @assetType and flags = 1"))
+            {
+                command.Parameters.Add(database.CreateParameter("uuid", avatarID));
+                command.Parameters.Add(database.CreateParameter("assetType", (int)AssetType.Gesture));
+
+                using (IDataReader reader = command.ExecuteReader())
+                {
+                    List<InventoryItemBase> gestureList = new List<InventoryItemBase>();
+                    while (reader.Read())
+                    {
+                        gestureList.Add(readInventoryItem(reader));
+                    }
+                    return gestureList;
+                }
+            }
+        }
+
         #endregion
 
         #region Private methods
@@ -799,10 +825,6 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-        public List<InventoryItemBase> fetchActiveGestures (UUID avatarID)
-        {
-            return null;
-        }
         #endregion
     }
 }
