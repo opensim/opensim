@@ -1608,6 +1608,10 @@ namespace OpenSim.Region.Environment.Scenes
                     if (ei.HitTF)
                     {
                         pos = new Vector3(ei.ipoint.X, ei.ipoint.Y, ei.ipoint.Z);
+                    } else
+                    {
+                        // fall back to our stupid functionality
+                        pos = RayEnd;
                     }
 
                     return pos;

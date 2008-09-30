@@ -342,8 +342,6 @@ namespace OpenSim.Framework
         /// <summary>
         /// Returns the full name of the agent/avatar represented by this client
         /// </summary>
-        /// <param name="newPack"></param>
-        /// <param name="packType"></param>
         string Name { get; }
 
         bool IsActive
@@ -750,6 +748,7 @@ namespace OpenSim.Framework
 
         void SendLogoutPacket();
         ClientInfo GetClientInfo();
+
         void SetClientInfo(ClientInfo info);
         void SetClientOption(string option, string value);
         string GetClientOption(string option);
