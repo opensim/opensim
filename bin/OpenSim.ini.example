@@ -750,3 +750,8 @@ ogp_enabled=false
 ;Name Prefix/suffix when using OGP
 ogp_firstname_prefix=""
 ogp_lastname_suffix="_EXTERNAL"
+
+[Concierge]
+; enable = true
+enabled = false
+whoami = "the go-fer"
