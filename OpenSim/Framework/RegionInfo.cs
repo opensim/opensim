@@ -217,6 +217,11 @@ namespace OpenSim.Framework
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
+        // MT: Yes. Estates can't span trust boundaries. Therefore, it can be
+        // assumed that all instances belonging to one estate are able to
+        // access the same database server. Since estate settings are lodaed
+        // from there, that should be sufficient for full remote administration
+
         public RegionInfo(string description, string filename, bool skipConsoleConfig)
         {
             configMember =
