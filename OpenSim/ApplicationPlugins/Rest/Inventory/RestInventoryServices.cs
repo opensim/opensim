@@ -1285,33 +1285,33 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         private void formatItem(InventoryRequestData rdata, InventoryItemBase i, string indent)
         {
             Rest.Log.DebugFormat("{0}   Item : {1} {2} {3} Type = {4}, AssetType = {5}",
-                    MsgId, i.ID, indent, i.Name, i.InvType, i.AssetType);
+                                 MsgId, i.ID, indent, i.Name, i.InvType, i.AssetType);
 
-            rdata.writer.WriteStartElement(String.Empty,"Item",String.Empty);
+            rdata.writer.WriteStartElement(String.Empty, "Item", String.Empty);
 
-            rdata.writer.WriteAttributeString("name",String.Empty,i.Name);
-            rdata.writer.WriteAttributeString("desc",String.Empty,i.Description);
-            rdata.writer.WriteAttributeString("uuid",String.Empty,i.ID.ToString());
-            rdata.writer.WriteAttributeString("folder",String.Empty,i.Folder.ToString());
-            rdata.writer.WriteAttributeString("owner",String.Empty,i.Owner.ToString());
-            rdata.writer.WriteAttributeString("creator",String.Empty,i.Creator.ToString());
-            rdata.writer.WriteAttributeString("creationdate",String.Empty,i.CreationDate.ToString());
-            rdata.writer.WriteAttributeString("type",String.Empty,i.InvType.ToString());
-            rdata.writer.WriteAttributeString("assettype",String.Empty,i.AssetType.ToString());
-            rdata.writer.WriteAttributeString("groupowned",String.Empty,i.GroupOwned.ToString());
-            rdata.writer.WriteAttributeString("groupid",String.Empty,i.GroupID.ToString());
-            rdata.writer.WriteAttributeString("saletype",String.Empty,i.SaleType.ToString());
-            rdata.writer.WriteAttributeString("saleprice",String.Empty,i.SalePrice.ToString());
-            rdata.writer.WriteAttributeString("flags",String.Empty,i.Flags.ToString("X"));
+            rdata.writer.WriteAttributeString("name", String.Empty, i.Name);
+            rdata.writer.WriteAttributeString("desc", String.Empty, i.Description);
+            rdata.writer.WriteAttributeString("uuid", String.Empty, i.ID.ToString());
+            rdata.writer.WriteAttributeString("folder", String.Empty, i.Folder.ToString());
+            rdata.writer.WriteAttributeString("owner", String.Empty, i.Owner.ToString());
+            rdata.writer.WriteAttributeString("creator", String.Empty, i.Creator.ToString());
+            rdata.writer.WriteAttributeString("creationdate", String.Empty, i.CreationDate.ToString());
+            rdata.writer.WriteAttributeString("type", String.Empty, i.InvType.ToString());
+            rdata.writer.WriteAttributeString("assettype", String.Empty, i.AssetType.ToString());
+            rdata.writer.WriteAttributeString("groupowned", String.Empty, i.GroupOwned.ToString());
+            rdata.writer.WriteAttributeString("groupid", String.Empty, i.GroupID.ToString());
+            rdata.writer.WriteAttributeString("saletype", String.Empty, i.SaleType.ToString());
+            rdata.writer.WriteAttributeString("saleprice", String.Empty, i.SalePrice.ToString());
+            rdata.writer.WriteAttributeString("flags", String.Empty, i.Flags.ToString());
 
-            rdata.writer.WriteStartElement(String.Empty,"Permissions",String.Empty);
-            rdata.writer.WriteAttributeString("current",String.Empty,i.CurrentPermissions.ToString("X"));
-            rdata.writer.WriteAttributeString("next",String.Empty,i.NextPermissions.ToString("X"));
-            rdata.writer.WriteAttributeString("everyone",String.Empty,i.EveryOnePermissions.ToString("X"));
-            rdata.writer.WriteAttributeString("base",String.Empty,i.BasePermissions.ToString("X"));
+            rdata.writer.WriteStartElement(String.Empty, "Permissions", String.Empty);
+            rdata.writer.WriteAttributeString("current", String.Empty, i.CurrentPermissions.ToString("X"));
+            rdata.writer.WriteAttributeString("next", String.Empty, i.NextPermissions.ToString("X"));
+            rdata.writer.WriteAttributeString("everyone", String.Empty, i.EveryOnePermissions.ToString("X"));
+            rdata.writer.WriteAttributeString("base", String.Empty, i.BasePermissions.ToString("X"));
             rdata.writer.WriteEndElement();
 
-            rdata.writer.WriteElementString("Asset",i.AssetID.ToString());
+            rdata.writer.WriteElementString("Asset", i.AssetID.ToString());
 
             rdata.writer.WriteEndElement();
         }

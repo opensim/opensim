@@ -92,8 +92,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 if (!m_scenes.Contains(scene))
                 {
                     m_scenes.Add(scene);
-                    scene.EventManager.OnNewClient += NewClient;
-                    scene.EventManager.OnChatFromWorld += SimChat;
+                    scene.EventManager.OnNewClient += OnNewClient;
+                    scene.EventManager.OnChatFromWorld += OnSimChat;
                     scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
                     scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
                 }
@@ -171,7 +171,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         #region ISimChat Members
 
-        public void SimChat(Object sender, OSChatMessage e)
+        public void OnSimChat(Object sender, OSChatMessage e)
         {
             // We only want to relay stuff on channel 0
             if (e.Channel != 0) return;
@@ -233,15 +233,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         #endregion
 
-        public void NewClient(IClientAPI client)
+        public void OnNewClient(IClientAPI client)
         {
             try
             {
                 string clientName = String.Format("{0} {1}", client.FirstName, client.LastName);
 
-                client.OnChatFromViewer += SimChat;
-                client.OnLogout += ClientLoggedOut;
-                client.OnConnectionClosed += ClientLoggedOut;
+                client.OnChatFromViewer += OnSimChat;
+                client.OnLogout += OnClientLoggedOut;
+                client.OnConnectionClosed += OnClientLoggedOut;
 
                 if (clientName != m_last_new_user)
                 {
@@ -295,7 +295,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         }
 
 
-        public void ClientLoggedOut(IClientAPI client)
+        public void OnClientLoggedOut(IClientAPI client)
         {
             lock (m_syncLogout)
             {
@@ -614,10 +614,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             }
         }
 
+        static private Vector3 pos = new Vector3(128, 128, 20);
         public void ListenerRun()
         {
             string inputLine;
-            Vector3 pos = new Vector3(128, 128, 20);
+
             while (m_enabled)
             {
                 try

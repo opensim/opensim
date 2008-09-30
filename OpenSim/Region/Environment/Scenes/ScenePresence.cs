@@ -415,6 +415,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
             m_lastname = m_controllingClient.LastName;
+            m_name = String.Format("{0} {1}", m_firstname, m_lastname);
 
             m_scene = world;
             m_uuid = client.AgentId;

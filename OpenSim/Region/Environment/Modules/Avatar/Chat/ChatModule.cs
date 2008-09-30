@@ -63,9 +63,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 if (!m_scenes.Contains(scene))
                 {
                     m_scenes.Add(scene);
-                    scene.EventManager.OnNewClient += NewClient;
-                    scene.EventManager.OnChatFromWorld += SimChat;
-                    scene.EventManager.OnChatBroadcast += SimBroadcast;
+                    scene.EventManager.OnNewClient += OnNewClient;
+                    scene.EventManager.OnChatFromWorld += OnSimChat;
+                    scene.EventManager.OnChatBroadcast += OnSimBroadcast;
                 }
 
                 // wrap this in a try block so that defaults will work if
@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         #endregion
 
         #region ISimChat Members
-        public void SimBroadcast(Object sender, OSChatMessage c)
+        public void OnSimBroadcast(Object sender, OSChatMessage c)
         {
             // We only want to relay stuff on channel 0 and on the debug channel
             if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL) return;
@@ -116,34 +116,44 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             if (c.Message.Length > 1100)
                 c.Message = c.Message.Substring(0, 1000);
 
-            // chat works by redistributing every incoming chat
-            // message to each avatar in the scene
+            // broadcast chat works by redistributing every incoming chat
+            // message to each avatar in the scene.
             Vector3 pos = new Vector3(128, 128, 30);
-            ((Scene)c.Scene).ForEachScenePresence(delegate(ScenePresence presence)
-                                                  {
-                                                      if (presence.IsChildAgent) return;
-
-                                                      IClientAPI client = presence.ControllingClient;
-
-                                                      if ((c.Type == ChatTypeEnum.Owner) &&
-                                                          (null != c.SenderObject) &&
-                                                          (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
-                                                          return;
-
-                                                      if (null == c.SenderObject)
-                                                          client.SendChatMessage(c.Message, (byte)c.Type,
-                                                                                 pos, c.From, UUID.Zero,
-                                                                                 (byte)ChatSourceType.Agent,
-                                                                                 (byte)ChatAudibleLevel.Fully);
-                                                      else
-                                                          client.SendChatMessage(c.Message, (byte)c.Type,
-                                                                                 pos, c.From, UUID.Zero,
-                                                                                 (byte)ChatSourceType.Object,
-                                                                                 (byte)ChatAudibleLevel.Fully);
-                                                  });
+            ((Scene)c.Scene).ForEachScenePresence(
+                delegate(ScenePresence presence)
+                {
+                    // ignore chat from child agents
+                    if (presence.IsChildAgent) return;
+                    
+                    IClientAPI client = presence.ControllingClient;
+                    
+                    // don't forward SayOwner chat from objects to
+                    // non-owner agents
+                    if ((c.Type == ChatTypeEnum.Owner) &&
+                        (null != c.SenderObject) &&
+                        (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
+                        return;
+                    
+                    if (null == c.SenderObject)
+                    {
+                        // chat from agent (avatar)
+                        client.SendChatMessage(c.Message, (byte)c.Type,
+                                               pos, c.From, UUID.Zero,
+                                               (byte)ChatSourceType.Agent,
+                                               (byte)ChatAudibleLevel.Fully);
+                    }
+                    else
+                    {
+                        // chat from object
+                        client.SendChatMessage(c.Message, (byte)c.Type,
+                                               pos, c.From, UUID.Zero,
+                                               (byte)ChatSourceType.Object,
+                                               (byte)ChatAudibleLevel.Fully);
+                    }
+                });
         }
 
-        public void SimChat(Object sender, OSChatMessage e)
+        public void OnSimChat(Object sender, OSChatMessage e)
         {
             // early return if not on public or debug channel
             if (e.Channel != 0 && e.Channel != DEBUG_CHANNEL) return;
@@ -176,7 +186,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             {
                 fromPos = avatar.AbsolutePosition;
                 regionPos = new Vector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
-                                          scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+                                        scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
                 fromName = avatar.Firstname + " " + avatar.Lastname;
                 fromID = e.Sender.AgentId;
             }
@@ -188,31 +198,32 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             // message to each avatar in the scene
             foreach (Scene s in m_scenes)
             {
-                s.ForEachScenePresence(delegate(ScenePresence presence)
-                                       {
-                                           if (e.Channel == DEBUG_CHANNEL)
-                                           {
-                                               TrySendChatMessage(presence, fromPos, regionPos,
-                                                                  fromID, fromName, e.Type,
-                                                                  message, ChatSourceType.Object);
-                                           }
-                                           else
-                                           {
-                                               TrySendChatMessage(presence, fromPos, regionPos,
-                                                                  fromID, fromName, e.Type,
-                                                                  message, ChatSourceType.Agent);
-                                           }
-                                       });
+                s.ForEachScenePresence(
+                    delegate(ScenePresence presence)
+                    {
+                        if (e.Channel == DEBUG_CHANNEL)
+                        {
+                            TrySendChatMessage(presence, fromPos, regionPos,
+                                               fromID, fromName, e.Type,
+                                               message, ChatSourceType.Object);
+                        }
+                        else
+                        {
+                            TrySendChatMessage(presence, fromPos, regionPos,
+                                               fromID, fromName, e.Type,
+                                               message, ChatSourceType.Agent);
+                        }
+                    });
             }
         }
 
         #endregion
 
-        public void NewClient(IClientAPI client)
+        public void OnNewClient(IClientAPI client)
         {
             try
             {
-                client.OnChatFromViewer += SimChat;
+                client.OnChatFromViewer += OnSimChat;
             }
             catch (Exception ex)
             {
@@ -229,8 +240,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             Vector3 fromRegionPos = fromPos + regionPos;
             Vector3 toRegionPos = presence.AbsolutePosition +
-                    new Vector3(presence.Scene.RegionInfo.RegionLocX * Constants.RegionSize,
-                                  presence.Scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+                new Vector3(presence.Scene.RegionInfo.RegionLocX * Constants.RegionSize,
+                            presence.Scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
 
             int dis = Math.Abs((int) Util.GetDistanceTo(toRegionPos, fromRegionPos));
 
