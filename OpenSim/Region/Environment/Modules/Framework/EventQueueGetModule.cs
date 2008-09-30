@@ -224,15 +224,16 @@ namespace OpenSim.Region.Environment.Modules.Framework
             lock (m_ids) 
                 thisID = m_ids[agentID];
 
-            //if (element == null)
-            //{
-            //    responsedata["int_response_code"] = 502;
-            //    responsedata["content_type"] = "text/plain";
-            //    responsedata["keepalive"] = false;
-            //    responsedata["str_response_string"] = "Upstream error: ";
-            //    responsedata["error_status_text"] = "Upstream error:";
-            //    return responsedata;
-            //}
+            if (element == null)
+            {
+                responsedata["int_response_code"] = 502;
+                responsedata["content_type"] = "text/plain";
+                responsedata["keepalive"] = false;
+                responsedata["str_response_string"] = "Upstream error: ";
+                responsedata["error_status_text"] = "Upstream error:";
+                responsedata["http_protocol_version"] = "HTTP/1.0";
+                return responsedata;
+            }
 
             if (thisID == -1) // close-request
             {

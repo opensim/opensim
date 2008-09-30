@@ -200,19 +200,21 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        public Version ProtocolVersion
+        public string ProtocolVersion
         {
             get
             {
-                if (!HttpServer)
-                    return _httpListenerResponse.ProtocolVersion;
-             
-                return new Version("1.0");
+                if (HttpServer)
+                    return _httpResponse.ProtocolVersion;
+                else
+                    return _httpListenerResponse.ProtocolVersion.ToString();
             }
             set
             {
-                if (!HttpServer)
-                    _httpListenerResponse.ProtocolVersion = value;
+                if (HttpServer)
+                    _httpResponse.ProtocolVersion = value;
+                else
+                    _httpListenerResponse.ProtocolVersion = new Version(value); ;
                 
             }
         }
@@ -321,10 +323,10 @@ namespace OpenSim.Framework.Servers
         private HttpResponse _httpResponse;
         private HttpListenerResponse _httpListenerResponse;
 
-        // internal HttpResponse HttpResponse
-        // {
-        //     get { return _httpResponse; }
-        // }
+        internal HttpResponse HttpResponse
+        {
+             get { return _httpResponse; }
+        }
 
         public OSHttpResponse()
         {
@@ -342,7 +344,10 @@ namespace OpenSim.Framework.Servers
         {
             _httpListenerResponse = resp;
         }
-
+        public OSHttpResponse(HttpServer.HttpResponse resp)
+        {
+            _httpResponse = resp;
+        }
         /// <summary>
         /// Instantiate an OSHttpResponse object from an OSHttpRequest
         /// object.
@@ -378,6 +383,7 @@ namespace OpenSim.Framework.Servers
             {
                 _httpResponse.Body.Flush();
                 _httpResponse.Send();
+                
             }
             else
             {

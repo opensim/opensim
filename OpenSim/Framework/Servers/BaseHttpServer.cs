@@ -40,7 +40,9 @@ using System.Xml;
 using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
-
+using CoolHTTPListener = HttpServer.HttpListener;
+using IHttpClientContext = HttpServer.IHttpClientContext;
+using IHttpRequest = HttpServer.IHttpRequest;
 
 namespace OpenSim.Framework.Servers
 {
@@ -50,6 +52,7 @@ namespace OpenSim.Framework.Servers
 
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
+        protected CoolHTTPListener m_httpListener2;
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers        = new Dictionary<string, XmlRpcMethod>();
         protected DefaultLLSDMethod m_defaultLlsdHandler = null; // <--   Moving away from the monolithic..  and going to /registered/
         protected Dictionary<string, LLSDMethod> m_llsdHandlers         = new Dictionary<string, LLSDMethod>();
@@ -102,13 +105,14 @@ namespace OpenSim.Framework.Servers
             m_port = port;
             if (m_ssl)
             {
-                SetupSsl((int)sslport, CN);
+                //SetupSsl((int)sslport, CN);
                 m_sslport = sslport;
             }
         }
 
         
-        
+        /*
+         * 
         public bool SetupSsl(int port, string CN)
         {
             string searchCN = Environment.MachineName.ToUpper();
@@ -211,7 +215,7 @@ namespace OpenSim.Framework.Servers
             }
             
         }
-
+        */
 
         /// <summary>
         /// Add a stream handler to the http server.  If the handler already exists, then nothing happens.
@@ -308,23 +312,135 @@ namespace OpenSim.Framework.Servers
         }
 
         /// <summary>
-        /// Handle an individual http request.  This method is given to a worker in the thread pool.
+        /// HttpListener Handle an individual http request.  This method is given to a worker in the thread pool.
         /// </summary>
         /// <param name="stateinfo"></param>
         public virtual void HandleRequest(Object stateinfo)
         {
             // force the culture to en-US
-            Culture.SetCurrentCulture();
+            
 
             // If we don't catch the exception here it will just disappear into the thread pool and we'll be none the wiser
             try
             {
-                HttpListenerContext context = (HttpListenerContext) stateinfo;
+                HttpListenerContext context = (HttpListenerContext)stateinfo;
 
-                OSHttpRequest  request  = new OSHttpRequest(context.Request);
+                OSHttpRequest request = new OSHttpRequest(context.Request);
                 OSHttpResponse response = new OSHttpResponse(context.Response);
-                context.Response.ProtocolVersion = new Version("1.0");
-                context.Response.KeepAlive = false;
+                
+                HandleRequest(request, response);
+            
+            }
+            catch (SocketException e)
+            {
+                // At least on linux, it appears that if the client makes a request without requiring the response,
+                // an unconnected socket exception is thrown when we close the response output stream.  There's no
+                // obvious way to tell if the client didn't require the response, so instead we'll catch and ignore
+                // the exception instead.
+                //
+                // An alternative may be to turn off all response write exceptions on the HttpListener, but let's go
+                // with the minimum first
+                m_log.WarnFormat("[BASE HTTP SERVER]: HandleRequest threw {0}.\nNOTE: this may be spurious on Linux", e);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
+            }
+        }
+
+        /*
+        /// <summary>
+        /// HttpListener Handle an individual http request.  This method is given to a worker in the thread pool.
+        /// </summary>
+        /// <param name="stateinfo"></param>
+        public virtual void HandleRequestHttpServer(Object stateinfo)
+        {
+            // force the culture to en-US
+
+
+            // If we don't catch the exception here it will just disappear into the thread pool and we'll be none the wiser
+            try
+            {
+                HttpServerContextObj context = (HttpServerContextObj)stateinfo;
+
+                OSHttpRequest request = new OSHttpRequest(context.Request);
+                OSHttpResponse response = new OSHttpResponse(context.Response);
+
+                HandleRequest(request, response);
+
+            }
+            catch (SocketException e)
+            {
+                // At least on linux, it appears that if the client makes a request without requiring the response,
+                // an unconnected socket exception is thrown when we close the response output stream.  There's no
+                // obvious way to tell if the client didn't require the response, so instead we'll catch and ignore
+                // the exception instead.
+                //
+                // An alternative may be to turn off all response write exceptions on the HttpListener, but let's go
+                // with the minimum first
+                m_log.WarnFormat("[BASE HTTP SERVER]: HandleRequest threw {0}.\nNOTE: this may be spurious on Linux", e);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
+            }
+        }
+      */ 
+        public void OnHandleRequestIOThread(IHttpClientContext context, IHttpRequest request)
+        {
+            OSHttpRequest req = new OSHttpRequest(context, request);
+            OSHttpResponse resp = new OSHttpResponse(new HttpServer.HttpResponse(context, request));
+
+            //HttpServerContextObj objstate= new HttpServerContextObj(req,resp);
+            //ThreadPool.QueueUserWorkItem(new WaitCallback(ConvertIHttpClientContextToOSHttp), (object)objstate);
+            HandleRequest(req, resp);
+        }
+
+        public void ConvertIHttpClientContextToOSHttp(object stateinfo)
+        {
+            HttpServerContextObj objstate = (HttpServerContextObj)stateinfo;
+            //OSHttpRequest request = new OSHttpRequest(objstate.context,objstate.req);
+            //OSHttpResponse resp = new OSHttpResponse(new HttpServer.HttpResponse(objstate.context, objstate.req));
+
+            OSHttpRequest request = objstate.oreq;
+            OSHttpResponse resp = objstate.oresp;
+            //OSHttpResponse resp = new OSHttpResponse(new HttpServer.HttpResponse(objstate.context, objstate.req));
+
+            /*
+            request.AcceptTypes = objstate.req.AcceptTypes;
+            request.ContentLength = (long)objstate.req.ContentLength;
+            request.Headers = objstate.req.Headers;
+            request.HttpMethod = objstate.req.Method;
+            request.InputStream = objstate.req.Body;
+            foreach (string str in request.Headers)
+            {
+                if (str.ToLower().Contains("content-type: "))
+                {
+                    request.ContentType = str.Substring(13, str.Length - 13);
+                    break;
+                }
+            }
+            //request.KeepAlive = objstate.req.
+            foreach (HttpServer.HttpInput httpinput in objstate.req.QueryString)
+            {
+                request.QueryString.Add(httpinput.Name, httpinput[httpinput.Name]);
+            }
+            
+            //request.Query = objstate.req.//objstate.req.QueryString;
+            //foreach (
+            //request.QueryString = objstate.req.QueryString;
+
+             */
+            HandleRequest(request,resp);
+            
+
+        }
+
+        public virtual void HandleRequest(OSHttpRequest request, OSHttpResponse response)
+        {
+            try 
+            {
+                Culture.SetCurrentCulture();
                 //  This is the REST agent interface. We require an agent to properly identify
                 //  itself. If the REST handler recognizes the prefix it will attempt to
                 //  satisfy the request. If it is not recognizable, and no damage has occurred
@@ -431,11 +547,21 @@ namespace OpenSim.Framework.Servers
                     try
                     {
                         response.OutputStream.Write(buffer, 0, buffer.Length);
-                        response.OutputStream.Close();
+                        //response.OutputStream.Close();
                     }
                     catch (HttpListenerException)
                     {
                         m_log.WarnFormat("[BASE HTTP SERVER]: HTTP request abnormally terminated.");
+                    }
+                    //response.OutputStream.Close();
+                    try
+                    {
+                        response.Send();
+                    }
+                    catch (SocketException e)
+                    {
+                        // This has to be here to prevent a Linux/Mono crash
+                        m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
                     }
                     return;
                 }
@@ -489,7 +615,7 @@ namespace OpenSim.Framework.Servers
                 // with the minimum first
                 m_log.WarnFormat("[BASE HTTP SERVER]: HandleRequest threw {0}.\nNOTE: this may be spurious on Linux", e);
             }
-            catch (Exception e)
+            catch (EndOfStreamException e)
             {
                 m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
             }
@@ -739,7 +865,16 @@ namespace OpenSim.Framework.Servers
             }
             finally
             {
-                response.OutputStream.Close();
+                //response.OutputStream.Close();
+                try
+                {
+                    response.Send();
+                }
+                catch (SocketException e)
+                {
+                    // This has to be here to prevent a Linux/Mono crash
+                    m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                }
             }
         }
 
@@ -883,7 +1018,16 @@ namespace OpenSim.Framework.Servers
                     response.SendChunked   = false;
                     response.KeepAlive     = false;
                     response.StatusCode    = (int)OSHttpStatusCode.ServerErrorInternalError;
-                    response.OutputStream.Close();
+                    //response.OutputStream.Close();
+                    try
+                    {
+                        response.Send();
+                    }
+                    catch (SocketException f)
+                    {
+                        // This has to be here to prevent a Linux/Mono crash
+                        m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", f);
+                    }
                 }
                 catch(Exception)
                 {
@@ -996,6 +1140,10 @@ namespace OpenSim.Framework.Servers
             {
                 response.StatusDescription = (string)responsedata["error_status_text"];
             }
+            if (responsedata.ContainsKey("http_protocol_version"))
+            {
+                response.ProtocolVersion = (string)responsedata["http_protocol_version"];
+            }
 
             if (responsedata.ContainsKey("keepalive"))
             {
@@ -1049,7 +1197,16 @@ namespace OpenSim.Framework.Servers
             }
             finally
             {
-                response.OutputStream.Close();
+                //response.OutputStream.Close();
+                try
+                {
+                    response.Send();
+                }
+                catch (SocketException e)
+                {
+                    // This has to be here to prevent a Linux/Mono crash
+                    m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                }
             }
             
         }
@@ -1077,7 +1234,16 @@ namespace OpenSim.Framework.Servers
             }
             finally
             {
-                response.OutputStream.Close();
+                //response.OutputStream.Close();
+                try
+                {
+                    response.Send();
+                }
+                catch (SocketException e)
+                {
+                    // This has to be here to prevent a Linux/Mono crash
+                    m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                }
             }
         }
 
@@ -1103,7 +1269,16 @@ namespace OpenSim.Framework.Servers
             }
             finally
             {
-                response.OutputStream.Close();
+                //response.OutputStream.Close();
+                try
+                {
+                    response.Send();
+                }
+                catch (SocketException e)
+                {
+                    // This has to be here to prevent a Linux/Mono crash
+                    m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                }
             }
         }
 
@@ -1111,11 +1286,12 @@ namespace OpenSim.Framework.Servers
         {
             m_log.Info("[HTTPD]: Starting up HTTP Server");
 
-            m_workerThread = new Thread(new ThreadStart(StartHTTP));
-            m_workerThread.Name = "HttpThread";
-            m_workerThread.IsBackground = true;
-            m_workerThread.Start();
-            ThreadTracker.Add(m_workerThread);
+            //m_workerThread = new Thread(new ThreadStart(StartHTTP));
+            //m_workerThread.Name = "HttpThread";
+            //m_workerThread.IsBackground = true;
+            //m_workerThread.Start();
+            //ThreadTracker.Add(m_workerThread);
+            StartHTTP();
         }
 
         private void StartHTTP()
@@ -1123,31 +1299,30 @@ namespace OpenSim.Framework.Servers
             try
             {
                 m_log.Info("[HTTPD]: Spawned main thread OK");
-                m_httpListener = new HttpListener();
-
+                //m_httpListener = new HttpListener();
+                
                 if (!m_ssl)
                 {
-                    m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
+                    //m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
                     //m_httpListener.Prefixes.Add("http://10.1.1.5:" + m_port + "/");
+                    m_httpListener2 = new HttpServer.HttpListener(IPAddress.Any, (int)m_port);
                 }
                 else
                 {
-                    m_httpListener.Prefixes.Add("https://+:" + (m_sslport) + "/");
-                    m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
+                    //m_httpListener.Prefixes.Add("https://+:" + (m_sslport) + "/");
+                    //m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
                 }
-                HttpListenerPrefixCollection prefixs = m_httpListener.Prefixes;
 
-                foreach (string prefix in prefixs)
-                    System.Console.WriteLine("Listening on: " + prefix);
-                
-                m_httpListener.Start();
+                m_httpListener2.RequestHandler += OnHandleRequestIOThread;
+                //m_httpListener.Start();
+                m_httpListener2.Start(5);
 
-                HttpListenerContext context;
-                while (true)
-                {
-                    context = m_httpListener.GetContext();
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(HandleRequest), context);
-                }
+                //HttpListenerContext context;
+                //while (true)
+                //{
+                //    context = m_httpListener.GetContext();
+                //    ThreadPool.QueueUserWorkItem(new WaitCallback(HandleRequest), context);
+               // }
             }
             catch (Exception e)
             {
@@ -1243,5 +1418,26 @@ namespace OpenSim.Framework.Servers
         {
             return "<HTML><HEAD><TITLE>500 Internal Server Error</TITLE><BODY><BR /><H1>Ooops!</H1><P>The server you requested is overun by knomes! Find hippos quick!</P></BODY></HTML>";
         }
+    }
+
+    public class HttpServerContextObj
+    {
+        public IHttpClientContext context = null;
+        public IHttpRequest req = null;
+        public OSHttpRequest oreq = null;
+        public OSHttpResponse oresp = null;
+
+        public HttpServerContextObj(IHttpClientContext contxt, IHttpRequest reqs)
+        {
+            context = contxt;
+            req = reqs;
+        }
+
+        public HttpServerContextObj(OSHttpRequest osreq, OSHttpResponse osresp)
+        {
+            oreq = osreq;
+            oresp = osresp;
+        }
+
     }
 }

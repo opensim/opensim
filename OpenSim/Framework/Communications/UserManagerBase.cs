@@ -368,9 +368,12 @@ namespace OpenSim.Framework.Communications
 
             if (request.Params.Count > 1)
             {
-                IPEndPoint RemoteIPEndPoint = (IPEndPoint)request.Params[1];
-                agent.AgentIP = RemoteIPEndPoint.Address.ToString();
-                agent.AgentPort = (uint)RemoteIPEndPoint.Port;
+                if (request.Params[1] != null)
+                {
+                    IPEndPoint RemoteIPEndPoint = (IPEndPoint)request.Params[1];
+                    agent.AgentIP = RemoteIPEndPoint.Address.ToString();
+                    agent.AgentPort = (uint)RemoteIPEndPoint.Port;
+                }
             }
 
             // Generate sessions
