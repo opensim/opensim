@@ -200,6 +200,23 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+        public Version ProtocolVersion
+        {
+            get
+            {
+                if (!HttpServer)
+                    return _httpListenerResponse.ProtocolVersion;
+             
+                return new Version("1.0");
+            }
+            set
+            {
+                if (!HttpServer)
+                    _httpListenerResponse.ProtocolVersion = value;
+                
+            }
+        }
+
         /// <summary>
         /// Return the output stream feeding the body.
         /// </summary>

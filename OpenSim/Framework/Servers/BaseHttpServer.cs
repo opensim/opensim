@@ -323,7 +323,8 @@ namespace OpenSim.Framework.Servers
 
                 OSHttpRequest  request  = new OSHttpRequest(context.Request);
                 OSHttpResponse response = new OSHttpResponse(context.Response);
-
+                context.Response.ProtocolVersion = new Version("1.0");
+                context.Response.KeepAlive = false;
                 //  This is the REST agent interface. We require an agent to properly identify
                 //  itself. If the REST handler recognizes the prefix it will attempt to
                 //  satisfy the request. If it is not recognizable, and no damage has occurred
@@ -991,11 +992,17 @@ namespace OpenSim.Framework.Servers
             int responsecode = (int)responsedata["int_response_code"];
             string responseString = (string)responsedata["str_response_string"];
             string contentType = (string)responsedata["content_type"];
+            if (responsedata.ContainsKey("error_status_text"))
+            {
+                response.StatusDescription = (string)responsedata["error_status_text"];
+            }
 
-            
             if (responsedata.ContainsKey("keepalive"))
-                response.KeepAlive = true;
+            {
+                bool keepalive = (bool)responsedata["keepalive"];
+                response.KeepAlive = keepalive;
 
+            }
             //Even though only one other part of the entire code uses HTTPHandlers, we shouldn't expect this
             //and should check for NullReferenceExceptions
 
@@ -1014,7 +1021,7 @@ namespace OpenSim.Framework.Servers
                 response.StatusCode = responsecode;
             }
 
-            response.AddHeader("Content-type", contentType);
+            response.AddHeader("Content-Type", contentType);
 
             byte[] buffer;
 
@@ -1121,12 +1128,18 @@ namespace OpenSim.Framework.Servers
                 if (!m_ssl)
                 {
                     m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
+                    //m_httpListener.Prefixes.Add("http://10.1.1.5:" + m_port + "/");
                 }
                 else
                 {
                     m_httpListener.Prefixes.Add("https://+:" + (m_sslport) + "/");
                     m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
                 }
+                HttpListenerPrefixCollection prefixs = m_httpListener.Prefixes;
+
+                foreach (string prefix in prefixs)
+                    System.Console.WriteLine("Listening on: " + prefix);
+                
                 m_httpListener.Start();
 
                 HttpListenerContext context;

@@ -177,7 +177,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 if (m_ids.ContainsKey(avatar.UUID))
                 {
                     // close the event queue.
-                    m_ids[avatar.UUID] = -1;
+                    //m_ids[avatar.UUID] = -1;
                 }
             }
         }
@@ -223,6 +223,16 @@ namespace OpenSim.Region.Environment.Modules.Framework
             int thisID = 0;
             lock (m_ids) 
                 thisID = m_ids[agentID];
+
+            //if (element == null)
+            //{
+            //    responsedata["int_response_code"] = 502;
+            //    responsedata["content_type"] = "text/plain";
+            //    responsedata["keepalive"] = false;
+            //    responsedata["str_response_string"] = "Upstream error: ";
+            //    responsedata["error_status_text"] = "Upstream error:";
+            //    return responsedata;
+            //}
 
             if (thisID == -1) // close-request
             {
