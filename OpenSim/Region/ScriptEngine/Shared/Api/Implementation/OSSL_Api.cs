@@ -801,7 +801,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 tokenValue+=JSON[i];
                                 
                                 // handle escaped double quotes \"
-                                if(JSON[i]=='\\' && JSON[i+1]=='"')
+                                if (JSON[i]=='\\' && JSON[i+1]=='"')
                                 {    
                                     tokenValue+=JSON[i+1];
                                     i++;   

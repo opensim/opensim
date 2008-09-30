@@ -228,8 +228,6 @@
       </Files>
     </Project>
 
-
-
     <Project name="OpenSim.Data.MySQLMapper" path="OpenSim/Data/MySQLMapper" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -818,7 +816,6 @@
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
-	
 
       <Files>
         <Match pattern="*.cs" recurse="true">
@@ -1007,7 +1004,6 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-
 
     <Project name="OpenSim.Region.Modules.Python" path="OpenSim/Region/Modules/Python" type="Library">
       <Configuration name="Debug">
@@ -1392,8 +1388,6 @@
       </Files>
     </Project>
 
-
-
     <Project name="OpenSim.Data.MySQL" path="OpenSim/Data/MySQL" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1470,7 +1464,6 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-
 
     <Project name="OpenSim.Data.MSSQL" path="OpenSim/Data/MSSQL" type="Library">
       <Configuration name="Debug">
@@ -1577,7 +1570,6 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-
 
     <Project name="OpenSim.Data.NHibernate" path="OpenSim/Data/NHibernate" type="Library">
       <Configuration name="Debug">
@@ -2061,7 +2053,6 @@
       </Files>
     </Project>
 
-
     <Project name="OpenSim.Grid.UserServer" path="OpenSim/Grid/UserServer" type="Exe">
       <Configuration name="Debug">
         <Options>
@@ -2197,7 +2188,6 @@
         </Match>
       </Files>
     </Project>
-
 
     <Project name="OpenSim.ScriptEngine.Components.DotNetEngine.Commands_LSL" path="OpenSim/ScriptEngine/Components/DotNetEngine/Commands_LSL" type="Library">
       <Configuration name="Debug">
@@ -2444,8 +2434,6 @@
         </Match>
       </Files>
     </Project>
-
-
 
     <!-- Tools -->
     <Project name="OpenSimExport" path="OpenSim/Tools/Export" type="Exe">

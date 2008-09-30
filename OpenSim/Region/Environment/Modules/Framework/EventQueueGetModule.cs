@@ -152,7 +152,6 @@ namespace OpenSim.Region.Environment.Modules.Framework
             client.OnLogout += ClientClosed;
         }
 
-
         private void ClientClosed(IClientAPI client)
         {
             ClientClosed(client.AgentId);
@@ -168,7 +167,6 @@ namespace OpenSim.Region.Environment.Modules.Framework
         {
             m_log.DebugFormat("[EVENTQUEUE]: Avatar {0} entering parcel {1} in region {2}.",
                               avatar.UUID, localLandID, m_scene.RegionInfo.RegionName);
-            
         }
 
         private void MakeChildAgent(ScenePresence avatar)
@@ -200,9 +198,6 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 if (!m_ids.ContainsKey(agentID))
                     m_ids.Add(agentID, rnd.Next(30000000));
             }
-
-            
-            
         }
 
         public Hashtable ProcessQueue(Hashtable request,UUID agentID, Caps caps)
@@ -210,7 +205,8 @@ namespace OpenSim.Region.Environment.Modules.Framework
             // TODO: this has to be redone to not busy-wait (and block the thread),
             // TODO: as soon as we have a non-blocking way to handle HTTP-requests.
 
-            if(m_log.IsDebugEnabled) { 
+            if (m_log.IsDebugEnabled)
+            { 
                 String debug = "[EVENTQUEUE]: Got request for agent {0} in region {1} from thread {2}: [  ";
                 foreach (object key in request.Keys)
                 {
