@@ -583,7 +583,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             if (ent is SceneObjectGroup)
                             {
-                                ((SceneObjectGroup)ent).CreateScriptInstances(0, false, "");
+                                ((SceneObjectGroup)ent).CreateScriptInstances(0, false, DefaultScriptEngine);
                             }
                         }
                     }
