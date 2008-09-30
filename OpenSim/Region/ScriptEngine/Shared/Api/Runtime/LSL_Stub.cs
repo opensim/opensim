@@ -999,24 +999,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llLoopSoundSlave(sound, volume);
         }
 
-        public void llMakeExplosion()
+        public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
-            m_LSL_Functions.llMakeExplosion();
+            m_LSL_Functions.llMakeExplosion(particles, scale, vel, lifetime, arc, texture, offset);
         }
 
-        public void llMakeFire()
+        public void llMakeFire(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
-            m_LSL_Functions.llMakeFire();
+            m_LSL_Functions.llMakeFire(particles, scale, vel, lifetime, arc, texture, offset);
         }
 
-        public void llMakeFountain()
+        public void llMakeFountain(int particles, float scale, float vel, float lifetime, float arc, int bounce, string texture, LSL_Vector offset, float bounce_offset)
         {
-            m_LSL_Functions.llMakeFountain();
+            m_LSL_Functions.llMakeFountain(particles, scale, vel, lifetime, arc, bounce, texture, offset, bounce_offset);
         }
 
-        public void llMakeSmoke()
+        public void llMakeSmoke(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
-            m_LSL_Functions.llMakeSmoke();
+            m_LSL_Functions.llMakeSmoke(particles, scale, vel, lifetime, arc, texture, offset);
         }
 
         public void llMapDestination(string simname, LSL_Vector pos, LSL_Vector look_at)
@@ -1119,9 +1119,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llPlaySoundSlave(sound, volume);
         }
 
-        public void llPointAt()
+        public void llPointAt(LSL_Vector pos)
         {
-            m_LSL_Functions.llPointAt();
+            m_LSL_Functions.llPointAt(pos);
         }
 
         public LSL_Float llPow(double fbase, double fexponent)
@@ -1474,9 +1474,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetPrimitiveParams(rules);
         }
 
-        public void llSetPrimURL()
+        public void llSetPrimURL(string url)
         {
-            m_LSL_Functions.llSetPrimURL();
+            m_LSL_Functions.llSetPrimURL(url);
         }
 
         public void llSetRemoteScriptAccessPin(int pin)
@@ -1594,9 +1594,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSleep(sec);
         }
 
-        public void llSound()
+        public void llSound(string sound, double volume, int queue, int loop)
         {
-            m_LSL_Functions.llSound();
+            m_LSL_Functions.llSound(sound, volume, queue, loop);
         }
 
         public void llSoundPreload(string sound)
@@ -1769,9 +1769,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llWind(offset);
         }
 
-        public void llXorBase64Strings()
+        public LSL_String llXorBase64Strings(string str1, string str2)
         {
-            m_LSL_Functions.llXorBase64Strings();
+            return m_LSL_Functions.llXorBase64Strings(str1, str2);
         }
 
         public LSL_String llXorBase64StringsCorrect(string str1, string str2)

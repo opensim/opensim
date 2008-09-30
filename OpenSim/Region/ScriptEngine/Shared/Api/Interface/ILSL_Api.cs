@@ -228,10 +228,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llLoopSound(string sound, double volume);
               void llLoopSoundMaster(string sound, double volume);
               void llLoopSoundSlave(string sound, double volume);
-              void llMakeExplosion();
-              void llMakeFire();
-              void llMakeFountain();
-              void llMakeSmoke();
+              void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset);
+              void llMakeFire(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset);
+              void llMakeFountain(int particles, float scale, float vel, float lifetime, float arc, int bounce, string texture, LSL_Vector offset, float bounce_offset);
+              void llMakeSmoke(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset);
               void llMapDestination(string simname, LSL_Vector pos, LSL_Vector look_at);
         LSL_String llMD5String(string src, int nonce);
               void llMessageLinked(int linknum, int num, string str, string id);
@@ -252,7 +252,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llPassTouches(int pass);
               void llPlaySound(string sound, double volume);
               void llPlaySoundSlave(string sound, double volume);
-              void llPointAt();
+              void llPointAt(LSL_Vector pos);
          LSL_Float llPow(double fbase, double fexponent);
               void llPreloadSound(string sound);
               void llPushObject(string target, LSL_Vector impulse, LSL_Vector ang_impulse, int local);
@@ -323,7 +323,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetPayPrice(int price, LSL_List quick_pay_buttons);
               void llSetPos(LSL_Vector pos);
               void llSetPrimitiveParams(LSL_List rules);
-              void llSetPrimURL();
+              void llSetPrimURL(string url);
               void llSetRemoteScriptAccessPin(int pin);
               void llSetRot(LSL_Rotation rot);
               void llSetScale(LSL_Vector scale);
@@ -347,7 +347,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_Float llSin(double f);
               void llSitTarget(LSL_Vector offset, LSL_Rotation rot);
               void llSleep(double sec);
-              void llSound();
+              void llSound(string sound, double volume, int queue, int loop);
               void llSoundPreload(string sound);
          LSL_Float llSqrt(double f);
               void llStartAnimation(string anim);
@@ -382,7 +382,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_Float llWater(LSL_Vector offset);
               void llWhisper(int channelID, string text);
         LSL_Vector llWind(LSL_Vector offset);
-              void llXorBase64Strings();
+        LSL_String llXorBase64Strings(string str1, string str2);
         LSL_String llXorBase64StringsCorrect(string str1, string str2);
     }
 }

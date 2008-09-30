@@ -1920,7 +1920,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (double)((ScriptTime.TotalMilliseconds / 1000)*World.TimeDilation);
         }
 
-        public void llSound()
+        public void llSound(string sound, double volume, int queue, int loop)
         {
             m_host.AddScriptLPS(1);
             // This function has been deprecated
@@ -2287,28 +2287,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 0;
         }
 
-        public void llMakeExplosion()
+        public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
             Deprecated("llMakeExplosion");
             // ScriptSleep(100);
         }
 
-        public void llMakeFountain()
+        public void llMakeFountain(int particles, float scale, float vel, float lifetime, float arc, int bounce, string texture, LSL_Vector offset, float bounce_offset)
         {
             m_host.AddScriptLPS(1);
             Deprecated("llMakeFountain");
             // ScriptSleep(100);
         }
 
-        public void llMakeSmoke()
+        public void llMakeSmoke(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
             Deprecated("llMakeSmoke");
             // ScriptSleep(100);
         }
 
-        public void llMakeFire()
+        public void llMakeFire(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
             Deprecated("llMakeFire");
@@ -2707,7 +2707,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void llPointAt()
+        public void llPointAt(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llPointAt");
@@ -6148,11 +6148,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void llXorBase64Strings()
+        public LSL_String llXorBase64Strings(string str1, string str2)
         {
             m_host.AddScriptLPS(1);
             Deprecated("llXorBase64Strings");
             // ScriptSleep(300);
+            return String.Empty;
         }
 
         public void llRemoteDataSetRegion()
@@ -7583,7 +7584,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Rotation();
         }
 
-        public void llSetPrimURL()
+        public void llSetPrimURL(string url)
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llSetPrimURL");
