@@ -754,4 +754,10 @@ ogp_lastname_suffix="_EXTERNAL"
 [Concierge]
 ; enable = true
 enabled = false
+
+; name of the concierge
 whoami = "the go-fer"
+
+; regex specifying for which regions concierge service is desired; if
+; empty, then for all
+regions = "^MeetingSpace-"
