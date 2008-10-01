@@ -42,7 +42,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// <summary>
     /// This class handles the initial UDP circuit setup with a client and passes on subsequent packets to the LLPacketServer
     /// </summary>
-    public class LLUDPServer : LLClientStackNetworkHandler, IClientNetworkServer
+    public class LLUDPServer : ILLClientStackNetworkHandler, IClientNetworkServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

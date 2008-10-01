@@ -29,7 +29,7 @@ using System.Net.Sockets;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public interface LLClientStackNetworkHandler
+    public interface ILLClientStackNetworkHandler
     {
         void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode); // EndPoint packetSender);
         void RemoveClientCircuit(uint circuitcode);

@@ -39,7 +39,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //private static readonly log4net.ILog m_log
         //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected readonly LLClientStackNetworkHandler m_networkHandler;
+        protected readonly ILLClientStackNetworkHandler m_networkHandler;
         protected IScene m_scene;
 
         //private readonly ClientManager m_clientManager = new ClientManager();
@@ -48,7 +48,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //    get { return m_clientManager; }
         //}
 
-        public LLPacketServer(LLClientStackNetworkHandler networkHandler)
+        public LLPacketServer(ILLClientStackNetworkHandler networkHandler)
         {
             m_networkHandler = networkHandler;
             m_networkHandler.RegisterPacketServer(this);
