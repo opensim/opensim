@@ -81,7 +81,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static readonly ILog m_log 
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private int m_resentCount;
+        //private int m_resentCount;
 
         // Packet queues
         //
