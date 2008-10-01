@@ -137,7 +137,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        ///
+        /// Send a packet to the given circuit
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="size"></param>

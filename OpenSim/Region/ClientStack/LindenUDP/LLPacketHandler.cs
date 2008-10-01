@@ -78,8 +78,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
     public class LLPacketHandler : IPacketHandler
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log =
+        //    LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Packet queues
         //
@@ -102,10 +102,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //
         private class AckData
         {
-            public AckData(Packet packet, Object identifier)
+            public AckData(Packet packet, Object identifier, int tickCount)
             {
                 Packet = packet;
                 Identifier = identifier;
+                TickCount = tickCount;
             }
 
             public Packet Packet;
@@ -355,7 +356,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // Resend the packet. Set the packet's tick count to
                         // now, and keep it marked as resent.
-                        //
+                        //m_log.DebugFormat(
+                        //    "[CLIENT]: Resending unacked packet number {0} after {1}ms", 
+                        //    packet.Header.Sequence, now - data.TickCount);
+                        
                         packet.Header.Resent = true;
                         QueuePacket(packet, ThrottleOutPacketType.Resend,
                                 data.Identifier);
@@ -372,7 +376,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (!m_ReliableIsImportant || !packet.Header.Reliable)
                         {
                             if (!m_ImportantPackets.Contains(packet.Type))
+                            {
                                 m_NeedAck.Remove(packet.Header.Sequence);
+                                
+                                //m_log.DebugFormat(
+                                //    "[CLIENT]: Discarding ack requirement for packet number {0}", 
+                                //    packet.Header.Sequence);
+                            }
 
                             TriggerOnPacketDrop(packet, data.Identifier);
 
@@ -611,6 +621,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_NeedAck)
             {
+                //m_log.DebugFormat("[CLIENT]: Received ack for packet sequence number {0}", id);
+
                 if (!m_NeedAck.TryGetValue(id, out data))
                     return;
 
@@ -691,7 +703,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                 }
 
-                m_NeedAck.Add(key, new AckData(packet, null));
+                m_NeedAck.Add(key, new AckData(packet, null, System.Environment.TickCount));
             }
 
             m_Sequence = info.sequence;
@@ -741,8 +753,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             Packet packet = item.Packet;
 
-            // Keep track of when this packet was sent out
-            item.TickCount = System.Environment.TickCount;
 
             // Assign sequence number here to prevent out of order packets
             if (packet.Header.Sequence == 0)
@@ -755,8 +765,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (packet.Header.Reliable)
                     {
                         m_UnackedBytes += packet.ToBytes().Length;
+
+                        // Keep track of when this packet was sent out
                         m_NeedAck[packet.Header.Sequence] = new AckData(packet,
-                                item.Identifier);
+                                item.Identifier, System.Environment.TickCount);
                     }
                 }
             }
