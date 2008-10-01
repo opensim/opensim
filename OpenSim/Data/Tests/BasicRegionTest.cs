@@ -33,6 +33,7 @@ using OpenSim.Framework;
 using OpenSim.Data;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Modules.World.Land;
 using OpenMetaverse;
 
 namespace OpenSim.Data.Tests
@@ -304,8 +305,13 @@ namespace OpenSim.Data.Tests
             Assert.That(db.LoadLandObjects(region2).Count, Is.EqualTo(0));
             Assert.That(db.LoadLandObjects(UUID.Random()).Count, Is.EqualTo(0));
         }
-        
 
+        // TODO: we should have real land tests, but Land is so
+        // intermingled with scene that you can't test it without a
+        // valid scene.  That requires some disagregation.
+
+
+        //************************************************************************************//
         // Extra private methods
 
         private double[,] GenTerrain(double value)
