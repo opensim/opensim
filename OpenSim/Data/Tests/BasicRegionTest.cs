@@ -45,6 +45,12 @@ namespace OpenSim.Data.Tests
         public UUID prim1;
         public UUID prim2;
         public UUID prim3;
+        public UUID item1;
+        public UUID item2;
+        public UUID item3;
+
+        public string itemname1 = "item1";
+
         public double height1;
         public double height2;
 
@@ -63,6 +69,9 @@ namespace OpenSim.Data.Tests
             prim1 = UUID.Random();
             prim2 = UUID.Random();
             prim3 = UUID.Random();
+            item1 = UUID.Random();
+            item2 = UUID.Random();
+            item3 = UUID.Random();
             height1 = 20;
             height2 = 100;
         }
@@ -148,13 +157,37 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
-        public void T013_PrimInventory()
+        public void T021_PrimInventoryStore()
         {
+            SceneObjectGroup sog = FindSOG("object1", region1);
+            InventoryItemBase i = NewItem(item1, UUID.Zero, UUID.Zero, itemname1, UUID.Zero);
+
+            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, UUID.Zero), Is.True);
+            TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
+            Assert.That(t.Name, Is.EqualTo(itemname1));
             
+            // TODO: seriously??? this is the way we need to loop to get this?
+
+            List<TaskInventoryItem> list = new List<TaskInventoryItem>();
+            foreach (UUID uuid in sog.RootPart.GetInventoryList())
+            {
+                list.Add(sog.GetInventoryItem(sog.RootPart.LocalId, uuid));
+            }
+            
+            db.StorePrimInventory(prim1, list);
         }
 
         [Test]
-        public void T021_RemoveObjectWrongRegion()
+        public void T022_PrimInventoryRetrieve()
+        {
+            SceneObjectGroup sog = FindSOG("object1", region1);
+            TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
+
+            Assert.That(t.Name, Is.EqualTo(itemname1));
+        }
+
+        [Test]
+        public void T051_RemoveObjectWrongRegion()
         {
             db.RemoveObject(prim1, UUID.Random());
             SceneObjectGroup sog = FindSOG("object1", region1);
@@ -162,7 +195,7 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
-        public void T022_RemoveObject()
+        public void T052_RemoveObject()
         {
             db.RemoveObject(prim1, region1);
             SceneObjectGroup sog = FindSOG("object1", region1);
@@ -303,5 +336,29 @@ namespace OpenSim.Data.Tests
             return sog;
         }
 
+        // These are copied from the Inventory Item tests 
+
+        private InventoryItemBase NewItem(UUID id, UUID parent, UUID owner, string name, UUID asset)
+        {
+            InventoryItemBase i = new InventoryItemBase();
+            i.ID = id;
+            i.Folder = parent;
+            i.Owner = owner;
+            i.Creator = owner;
+            i.Name = name;
+            i.Description = name;
+            i.AssetID = asset;
+            return i;
+        }
+
+        private InventoryFolderBase NewFolder(UUID id, UUID parent, UUID owner, string name)
+        {
+            InventoryFolderBase f = new InventoryFolderBase();
+            f.ID = id;
+            f.ParentID = parent;
+            f.Owner = owner;
+            f.Name = name;
+            return f;
+        }
     }
 }
