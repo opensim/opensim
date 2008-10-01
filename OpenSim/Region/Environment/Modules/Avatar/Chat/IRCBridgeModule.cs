@@ -61,7 +61,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         internal object m_syncLogout = new object();
 
         private IConfig m_config;
-
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -174,6 +173,47 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         public void OnSimChat(Object sender, OSChatMessage e)
         {
             // We only want to relay stuff on channel 0
+            if (e.Channel == m_irc.m_commandChannel)
+            {
+                string[] messages = e.Message.Split(' ');
+                string command = messages[0].ToLower();
+
+                m_log.Debug("IRC: Got command on channel: " + e.Channel.ToString() + " message: " + e.Message);
+
+                try
+                {
+                    switch (command)
+                    {
+                        case "channel":
+                            m_irc.m_channel = messages[1];
+                            break;
+                        case "close":
+                            m_irc.Close();
+                            break;
+                        case "connect":
+                            m_irc.Connect(m_scenes);
+                            break;
+                        case "nick":
+                            m_irc.m_nick = messages[1];
+                            break;
+                        case "port":
+                            m_irc.m_port = Convert.ToUInt32(messages[1]);
+                            break;
+                        case "reconnect":
+                            m_irc.Reconnect();
+                            break;
+                        case "server":
+                            m_irc.m_server = messages[1];
+                            break;
+
+                        default:
+                            m_irc.Send(e.Message);
+                            break;
+                    }
+                }
+                catch
+                { }
+            }
             if (e.Channel != 0) return;
             if (e.Message.Length == 0) return;
 
@@ -369,19 +409,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         private Thread listener;
 
         private string m_basenick = null;
-        private string m_channel = null;
+        public string m_channel = null;
         private bool m_nrnick = false;
         private bool m_connected = false;
         private bool m_enabled = false;
-        private List<Scene> m_last_scenes = null;
-        private string m_nick = null;
-        private uint m_port = 6668;
+        public int m_commandChannel = -1;
+        public List<Scene> m_last_scenes = null;
+        public string m_nick = null;
+        public uint m_port = 6668;
         private string m_privmsgformat = "PRIVMSG {0} :<{1} in {2}>: {3}";
         private StreamReader m_reader;
         private List<Scene> m_scenes = null;
-        private string m_server = null;
+        public string m_server = null;
 
-        private NetworkStream m_stream;
+        private NetworkStream m_stream = null;
         internal object m_syncConnect = new object();
         private TcpClient m_tcp;
         private string m_user = "USER OpenSimBot 8 * :I'm an OpenSim to IRC bot";
@@ -429,6 +470,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 m_port = (uint)config.Configs["IRC"].GetInt("port", (int)m_port);
                 m_user = config.Configs["IRC"].GetString("username", m_user);
                 m_privmsgformat = config.Configs["IRC"].GetString("msgformat", m_privmsgformat);
+                m_commandChannel = config.Configs["IRC"].GetInt("commandchannel", m_commandChannel);
                 if (m_server != null && m_nick != null && m_channel != null)
                 {
                     if (m_nrnick == true)
@@ -552,6 +594,27 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             }
         }
 
+        public void Send(string msg)
+        {
+            try
+            {
+                m_writer.WriteLine(msg);
+                m_writer.Flush();
+                m_log.Info("IRC: Sent command string: " + msg);
+            }
+            catch (IOException)
+            {
+                m_log.Error("[IRC]: Disconnected from IRC server.(PrivMsg)");
+                Reconnect();
+            }
+            catch (Exception ex)
+            {
+                m_log.ErrorFormat("[IRC]: PrivMsg exception trap: {0}", ex.ToString());
+            }
+
+        }
+
+
         private Dictionary<string, string> ExtractMsg(string input)
         {
             //examines IRC commands and extracts any private messages
@@ -625,7 +688,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 {
                     while ((m_connected == true) && ((inputLine = m_reader.ReadLine()) != null))
                     {
-                        // Console.WriteLine(inputLine);
+                        //Console.WriteLine("IRC: " + inputLine);
                         if (inputLine.Contains(m_channel))
                         {
                             Dictionary<string, string> data = ExtractMsg(inputLine);
@@ -874,12 +937,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             m_connected = false;
             m_enabled = false;
 
-            // listener.Abort();
-            // pingSender.Abort();
+            listener.Abort();
+            pingSender.Abort();
 
             m_writer.Close();
             m_reader.Close();
-
+            m_stream.Close();
             m_tcp.Close();
         }
     }
