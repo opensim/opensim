@@ -221,10 +221,25 @@ namespace OpenSim.Framework.Servers
                  _userAgent = req.Headers["user-agent"];
              _queryString = new NameValueCollection();
              _query = new Hashtable();
-             foreach (KeyValuePair<string, HttpInputItem> q in req.QueryString)
+             try
              {
-                 _queryString.Add(q.Key, q.Value.Value);
-                 _query[q.Key] = q.Value.Value;
+                 foreach (KeyValuePair<string, HttpInputItem> q in req.QueryString)
+                 {
+                     try
+                     {
+                         _queryString.Add(q.Key, q.Value.Value);
+                         _query[q.Key] = q.Value.Value;
+                     }
+                     catch (InvalidCastException)
+                     {
+                         System.Console.WriteLine("[OSHttpRequest]: Errror parsing querystring..  but it was recoverable..  skipping on to the next one");
+                         continue;
+                     }
+                 }
+             }
+             catch (Exception)
+             {
+                 System.Console.WriteLine("[OSHttpRequest]: Errror parsing querystring");
              }
              // TODO: requires change to HttpServer.HttpRequest
              _ipEndPoint = null;
