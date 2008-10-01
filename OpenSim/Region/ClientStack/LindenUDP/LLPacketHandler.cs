@@ -78,8 +78,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
     public class LLPacketHandler : IPacketHandler
     {
-        //private static readonly ILog m_log =
-        //    LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private int m_resentCount;
 
         // Packet queues
         //
@@ -117,7 +119,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Dictionary<uint, AckData> m_NeedAck =
                 new Dictionary<uint, AckData>();
 
-        private uint m_ResendTimeout = 1000;
+        /// <summary>
+        /// The number of milliseconds that can pass before a packet that needs an ack is resent.
+        /// </param>
+        private uint m_ResendTimeout = 2000;
 
         public uint ResendTimeout
         {
@@ -125,7 +130,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set { m_ResendTimeout = value; }
         }
 
-        private uint m_DiscardTimeout = 8000;
+        /// <summary>
+        /// The number of milliseconds that can pass before a packet that needs an ack is discarded instead.
+        /// </summary>
+        private uint m_DiscardTimeout = 16000;
 
         public uint DiscardTimeout
         {
@@ -357,8 +365,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // Resend the packet. Set the packet's tick count to
                         // now, and keep it marked as resent.
                         //m_log.DebugFormat(
-                        //    "[CLIENT]: Resending unacked packet number {0} after {1}ms", 
-                        //    packet.Header.Sequence, now - data.TickCount);
+                        //    "[CLIENT]: In {0} resending unacked packet {1} after {2}ms", 
+                        //    m_Client.Scene.RegionInfo.ExternalEndPoint.Port, packet.Header.Sequence, now - data.TickCount);
+                        //m_log.DebugFormat("[CLIENT]: Resent {0} packets in total", ++m_resentCount);
                         
                         packet.Header.Resent = true;
                         QueuePacket(packet, ThrottleOutPacketType.Resend,
@@ -380,8 +389,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 m_NeedAck.Remove(packet.Header.Sequence);
                                 
                                 //m_log.DebugFormat(
-                                //    "[CLIENT]: Discarding ack requirement for packet number {0}", 
-                                //    packet.Header.Sequence);
+                                //    "[CLIENT]: In {0} discarding ack requirement for packet {1}", 
+                                //    m_Client.Scene.RegionInfo.ExternalEndPoint.Port, packet.Header.Sequence);
                             }
 
                             TriggerOnPacketDrop(packet, data.Identifier);
@@ -621,7 +630,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_NeedAck)
             {
-                //m_log.DebugFormat("[CLIENT]: Received ack for packet sequence number {0}", id);
+                //m_log.DebugFormat("[CLIENT]: In {0} received ack for packet {1}", m_Client.Scene.RegionInfo.ExternalEndPoint.Port, id);
 
                 if (!m_NeedAck.TryGetValue(id, out data))
                     return;
@@ -779,6 +788,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Actually make the byte array and send it
             byte[] sendbuffer = packet.ToBytes();
+
+            //m_log.DebugFormat(
+            //    "[CLIENT]: In {0} sending packet {1}",
+            //    m_Client.Scene.RegionInfo.ExternalEndPoint.Port, packet.Header.Sequence);
 
             if (packet.Header.Zerocoded)
             {
