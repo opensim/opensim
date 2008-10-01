@@ -275,6 +275,22 @@ namespace OpenSim.Framework.Communications
                 "false");
         }
 
+        public XmlRpcResponse CreateLoginBlockedResponse()
+        {
+            return
+                (GenerateFailureResponse("presence",
+                "Logins are currently restricted. Please try again later",
+                                         "false"));
+        }
+
+        public LLSD CreateLoginBlockedResponseLLSD()
+        {
+            return GenerateFailureResponseLLSD(
+                "presence",
+                "Logins are currently restricted. Please try again later",
+                "false");
+        }
+
         public XmlRpcResponse CreateDeadRegionResponse()
         {
             return

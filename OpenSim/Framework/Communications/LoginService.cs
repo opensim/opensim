@@ -47,6 +47,7 @@ namespace OpenSim.Framework.Communications
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string m_welcomeMessage = "Welcome to OpenSim";
+        protected int m_minLoginLevel = 0;
         protected UserManagerBase m_userManager = null;
         protected Mutex m_loginMutex = new Mutex(false);
 
@@ -195,6 +196,10 @@ namespace OpenSim.Framework.Communications
                     m_log.InfoFormat("[LOGIN END]: XMLRPC  User {0} {1} failed authentication", firstname, lastname);
 
                     return logResponse.CreateLoginFailedResponse();
+                }
+                else if (userProfile.GodLevel < m_minLoginLevel)
+                {
+                    return logResponse.CreateLoginBlockedResponse();
                 }
                 else
                 {
@@ -362,6 +367,10 @@ namespace OpenSim.Framework.Communications
                 if (!GoodLogin)
                 {
                     return logResponse.CreateLoginFailedResponseLLSD();
+                }
+                else if (userProfile.GodLevel < m_minLoginLevel)
+                {
+                    return logResponse.CreateLoginBlockedResponseLLSD();
                 }
                 else
                 {

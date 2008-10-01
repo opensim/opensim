@@ -437,5 +437,48 @@ namespace OpenSim.Grid.UserServer
                     "A root inventory folder for user {0} could not be retrieved from the inventory service",
                     userID));
         }
+
+        public XmlRpcResponse XmlRPCSetLoginParams(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable) request.Params[0];
+            UserProfileData userProfile;
+            Hashtable responseData = new Hashtable();
+
+            UUID uid;
+            string pass = requestData["password"].ToString();
+
+            if(!UUID.TryParse((string) requestData["avatar_uuid"], out uid))
+            {
+                responseData["error"] = "No authorization";
+                response.Value = responseData;
+                return response;
+            }
+
+            userProfile = m_userManager.GetUserProfile(uid);
+
+            if (userProfile == null ||
+                (!AuthenticateUser(userProfile, pass)) ||
+                userProfile.GodLevel < 200)
+            {
+                responseData["error"] = "No authorization";
+                response.Value = responseData;
+                return response;
+            }
+
+            if (requestData.ContainsKey("login_level"))
+            {
+                m_minLoginLevel = Convert.ToInt32(requestData["login_level"]);
+            }
+
+            if (requestData.ContainsKey("login_motd"))
+            {
+                m_welcomeMessage = requestData["login_motd"].ToString();
+            }
+
+            response.Value = responseData;
+            return response;
+        }
+
     }
 }
