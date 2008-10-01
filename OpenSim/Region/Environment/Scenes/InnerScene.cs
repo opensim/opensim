@@ -821,6 +821,32 @@ namespace OpenSim.Region.Environment.Scenes
             else
                 return null;
         }
+		
+        /// <summary>
+        /// Get a named prim contained in this scene (will return the first 
+        /// found, if there are more than one prim with the same name)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>null if the part was not found</returns>
+        protected internal SceneObjectPart GetSceneObjectPart(string name)
+        {
+            List<EntityBase> EntityList = GetEntities();
+
+            foreach (EntityBase ent in EntityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+					foreach(SceneObjectPart p in ((SceneObjectGroup) ent).GetParts())
+					{
+						if (p.Name==name)
+						{
+							return p;
+						}
+					}
+                }
+            }
+            return null;
+        }
 
         /// <summary>
         /// Get a part contained in this scene.

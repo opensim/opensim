@@ -3882,6 +3882,17 @@ namespace OpenSim.Region.Environment.Scenes
         //            }
         //        }
 
+		/// <summary>
+        /// Get a named prim contained in this scene (will return the first 
+        /// found, if there are more than one prim with the same name)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public SceneObjectPart GetSceneObjectPart(string name)
+        {
+            return m_innerScene.GetSceneObjectPart(name);
+        }
+
         /// <summary>
         ///
         /// </summary>
