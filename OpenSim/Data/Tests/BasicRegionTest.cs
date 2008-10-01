@@ -42,6 +42,9 @@ namespace OpenSim.Data.Tests
         public IRegionDataStore db;
         public UUID region1;
         public UUID region2;
+        public UUID prim1;
+        public UUID prim2;
+        public UUID prim3;
         public double height1;
         public double height2;
 
@@ -57,9 +60,21 @@ namespace OpenSim.Data.Tests
             }
 
             region1 = UUID.Random();
+            prim1 = UUID.Random();
+            prim2 = UUID.Random();
+            prim3 = UUID.Random();
             height1 = 20;
             height2 = 100;
         }
+
+        // Test Plan
+        // Prims
+        //  - empty test - 001
+        //  - store / retrieve basic prims (most minimal we can make) - 010, 011
+        //  - update existing prims, make sure it sticks - 012
+        //  - add inventory items to prims make - 013
+        //  - remove inventory items make sure it sticks - 014
+        //  - remove prim, make sure it sticks - 020
 
         [Test]
         public void T001_LoadEmpty()
@@ -78,8 +93,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_StoreSimpleObject()
         {
-            SceneObjectGroup sog = NewSOG("object1");
-            SceneObjectGroup sog2 = NewSOG("object2");
+            SceneObjectGroup sog = NewSOG("object1", prim1);
+            SceneObjectGroup sog2 = NewSOG("object2", prim2);
 
             // in case the objects don't store
             try 
@@ -131,6 +146,29 @@ namespace OpenSim.Data.Tests
             sog = FindSOG("object1", region1);
             Assert.That(text, Is.EqualTo(sog.RootPart.Text));
         }
+
+        [Test]
+        public void T013_PrimInventory()
+        {
+            
+        }
+
+        [Test]
+        public void T021_RemoveObjectWrongRegion()
+        {
+            db.RemoveObject(prim1, UUID.Random());
+            SceneObjectGroup sog = FindSOG("object1", region1);
+            Assert.That(sog, Is.Not.Null);
+        }
+
+        [Test]
+        public void T022_RemoveObject()
+        {
+            db.RemoveObject(prim1, region1);
+            SceneObjectGroup sog = FindSOG("object1", region1);
+            Assert.That(sog, Is.Null);
+        }
+
 
         [Test]
         public void T100_DefaultRegionInfo()
@@ -246,9 +284,8 @@ namespace OpenSim.Data.Tests
         //                   causes the application to crash at the database layer because of null values 
         //                   in NOT NULL fields
         //
-        private SceneObjectGroup NewSOG(string name)
+        private SceneObjectGroup NewSOG(string name, UUID uuid)
         {
-            SceneObjectGroup sog = new SceneObjectGroup();
             SceneObjectPart sop = new SceneObjectPart();
             sop.LocalId = 1;
             sop.Name = name;
@@ -256,8 +293,10 @@ namespace OpenSim.Data.Tests
             sop.Text = "";
             sop.SitName = "";
             sop.TouchName = "";
-            sop.UUID = UUID.Random();
+            sop.UUID = uuid;
             sop.Shape = PrimitiveBaseShape.Default;
+
+            SceneObjectGroup sog = new SceneObjectGroup();
             sog.AddPart(sop);
             sog.RootPart = sop; 
             

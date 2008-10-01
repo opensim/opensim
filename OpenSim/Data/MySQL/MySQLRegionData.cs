@@ -333,7 +333,7 @@ namespace OpenSim.Data.MySQL
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
 
-            string selectExp = "SceneGroupID = '" + Util.ToRawUuidString(obj) + "'";
+            string selectExp = "SceneGroupID = '" + Util.ToRawUuidString(obj) + "' and RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
             lock (m_dataSet)
             {
                 DataRow[] primRows = prims.Select(selectExp);
@@ -347,7 +347,7 @@ namespace OpenSim.Data.MySQL
                         shapeRow.Delete();
                     }
 
-                        RemoveItems(uuid);
+                    RemoveItems(uuid);
 
                     // Remove prim row
                     row.Delete();

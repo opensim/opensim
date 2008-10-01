@@ -348,7 +348,7 @@ namespace OpenSim.Data.SQLite
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
 
-            string selectExp = "SceneGroupID = '" + Util.ToRawUuidString(obj) + "'";
+            string selectExp = "SceneGroupID = '" + Util.ToRawUuidString(obj) + "' and RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
             lock (ds)
             {
                 DataRow[] primRows = prims.Select(selectExp);
