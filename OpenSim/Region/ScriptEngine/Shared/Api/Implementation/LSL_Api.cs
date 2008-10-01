@@ -7624,10 +7624,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void llMapDestination(string simname, LSL_Vector pos, LSL_Vector look_at)
+        public void llMapDestination(string simname, LSL_Vector pos, LSL_Vector lookAt)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMapDestination");
+            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, 0);
+            if (d == null) return; // only works on the first detected avatar
+
+            ScenePresence avatar = World.GetScenePresence(d.Key);
+            if (avatar != null)
+            {
+                avatar.ControllingClient.SendScriptTeleportRequest(m_host.Name, simname,
+                                                                   new Vector3((float)pos.x, (float)pos.y, (float)pos.z),
+                                                                   new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z));
+            }
             // ScriptSleep(1000);
         }
 

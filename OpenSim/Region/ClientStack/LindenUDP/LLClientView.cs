@@ -6631,6 +6631,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(reply, ThrottleOutPacketType.Land);
         }
 
+        public void SendScriptTeleportRequest(string objName, string simName, Vector3 pos, Vector3 lookAt)
+        {
+            ScriptTeleportRequestPacket packet = (ScriptTeleportRequestPacket)PacketPool.Instance.GetPacket(PacketType.ScriptTeleportRequest);
+
+            packet.Data.ObjectName = Utils.StringToBytes(objName);
+            packet.Data.SimName = Utils.StringToBytes(simName);
+            packet.Data.SimPosition = pos;
+            packet.Data.LookAt = lookAt;
+
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
         public void SetClientOption(string option, string value)
         {
             switch (option)
