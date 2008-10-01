@@ -357,7 +357,7 @@ region_file_template = "{0}x{1}-{2}.xml"
 ; Change this to true to enable REST Plugins. This must be true if you wish to use 
 ; REST Region or REST Asset and Inventory Plugins
 enabled = false
-password = unknown
+god_key = SECRET
 prefix = /admin
 
 
