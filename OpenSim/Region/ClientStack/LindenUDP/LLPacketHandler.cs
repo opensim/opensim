@@ -78,8 +78,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
     public class LLPacketHandler : IPacketHandler
     {
-        private static readonly ILog m_log 
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log 
+        //    = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         //private int m_resentCount;
 
