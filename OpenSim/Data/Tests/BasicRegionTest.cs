@@ -40,6 +40,7 @@ namespace OpenSim.Data.Tests
     public class BasicRegionTest
     {
         public IRegionDataStore db;
+        public UUID zero = UUID.Zero;
         public UUID region1;
         public UUID region2;
         public UUID prim1;
@@ -168,9 +169,9 @@ namespace OpenSim.Data.Tests
         public void T021_PrimInventoryStore()
         {
             SceneObjectGroup sog = FindSOG("object1", region1);
-            InventoryItemBase i = NewItem(item1, UUID.Zero, UUID.Zero, itemname1, UUID.Zero);
+            InventoryItemBase i = NewItem(item1, zero, zero, itemname1, zero);
 
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, UUID.Zero), Is.True);
+            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, zero), Is.True);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t.Name, Is.EqualTo(itemname1));
             
@@ -255,7 +256,10 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T300_NoTerrain()
         {
-            db.LoadTerrain(region1);
+            Assert.That(db.LoadTerrain(zero), Is.Null);
+            Assert.That(db.LoadTerrain(region1), Is.Null);
+            Assert.That(db.LoadTerrain(region2), Is.Null);
+            Assert.That(db.LoadTerrain(UUID.Random()), Is.Null);
         }
 
         [Test]
@@ -263,6 +267,11 @@ namespace OpenSim.Data.Tests
         {
             double[,] t1 = GenTerrain(height1);
             db.StoreTerrain(t1, region1);
+            
+            Assert.That(db.LoadTerrain(zero), Is.Null);
+            Assert.That(db.LoadTerrain(region1), Is.Not.Null);
+            Assert.That(db.LoadTerrain(region2), Is.Null);
+            Assert.That(db.LoadTerrain(UUID.Random()), Is.Null);
         }
 
         [Test]
@@ -286,6 +295,16 @@ namespace OpenSim.Data.Tests
             Assert.That(CompareTerrain(t1, baseterrain1), Is.False);
             Assert.That(CompareTerrain(t1, baseterrain2), Is.True);
         }
+
+        [Test]
+        public void T400_EmptyLand()
+        {
+            Assert.That(db.LoadLandObjects(zero).Count, Is.EqualTo(0));
+            Assert.That(db.LoadLandObjects(region1).Count, Is.EqualTo(0));
+            Assert.That(db.LoadLandObjects(region2).Count, Is.EqualTo(0));
+            Assert.That(db.LoadLandObjects(UUID.Random()).Count, Is.EqualTo(0));
+        }
+        
 
         // Extra private methods
 
