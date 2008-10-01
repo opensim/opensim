@@ -68,6 +68,8 @@ namespace OpenSim.Region.Environment.Modules.Framework
         private Dictionary<UUID, int> m_ids = new Dictionary<UUID, int>();
 
         private Dictionary<UUID, BlockingLLSDQueue> queues = new Dictionary<UUID, BlockingLLSDQueue>();
+        private Dictionary<UUID, UUID> m_QueueUUIDAvatarMapping = new Dictionary<UUID, UUID>();
+        private Dictionary<UUID, UUID> m_AvatarQueueUUIDMapping = new Dictionary<UUID, UUID>();
 
             
         #region IRegionModule methods
@@ -85,6 +87,10 @@ namespace OpenSim.Region.Environment.Modules.Framework
             {
                 m_scene = scene;
                 scene.RegisterModuleInterface<IEventQueue>(this);
+                
+                // Register fallback handler
+                // Why does EQG Fail on region crossings!
+                scene.AddLLSDHandler("/CAPS/EQG/", EventQueueFallBack);
 
                 scene.EventManager.OnNewClient += OnNewClient;
                 scene.EventManager.OnClientClosed += ClientClosed;
@@ -185,9 +191,39 @@ namespace OpenSim.Region.Environment.Modules.Framework
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             m_log.DebugFormat("[EVENTQUEUE] OnRegisterCaps: agentID {0} caps {1} region {2}", agentID, caps, m_scene.RegionInfo.RegionName);
-            string capsBase = "/CAPS/";
+            string capsBase = "/CAPS/EQG/";
+            UUID EventQueueGetUUID = UUID.Zero;
+
+            lock (m_AvatarQueueUUIDMapping)
+            {
+                // Reuse open queues.  The client does!
+                if (m_AvatarQueueUUIDMapping.ContainsKey(agentID))
+                {
+                    m_log.DebugFormat("[EVENTQUEUE]: Found Existing UUID!");
+                    EventQueueGetUUID = m_AvatarQueueUUIDMapping[agentID];
+                }
+                else
+                {
+                    EventQueueGetUUID = UUID.Random();
+                    m_log.DebugFormat("[EVENTQUEUE]: Using random UUID!");
+                }
+            }
+
+            lock (m_QueueUUIDAvatarMapping)
+            {
+                if (!m_QueueUUIDAvatarMapping.ContainsKey(EventQueueGetUUID))
+                    m_QueueUUIDAvatarMapping.Add(EventQueueGetUUID, agentID);
+            }
+
+            lock (m_AvatarQueueUUIDMapping)
+            {
+                if (!m_AvatarQueueUUIDMapping.ContainsKey(agentID))
+                    m_AvatarQueueUUIDMapping.Add(agentID, EventQueueGetUUID);
+            }
+
+            m_log.DebugFormat("[EVENTQUEUE]: CAPS URL: {0}", capsBase + EventQueueGetUUID.ToString() + "/");
             caps.RegisterHandler("EventQueueGet",
-                                 new RestHTTPHandler("POST", capsBase + UUID.Random().ToString(),
+                                 new RestHTTPHandler("POST", capsBase + EventQueueGetUUID.ToString(),
                                                        delegate(Hashtable m_dhttpMethod)
                                                        {
                                                            return ProcessQueue(m_dhttpMethod,agentID, caps);
@@ -235,15 +271,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 return responsedata;
             }
 
-            if (thisID == -1) // close-request
-            {
-                responsedata["int_response_code"] = 502;
-                responsedata["content_type"] = "text/plain";
-                responsedata["keepalive"] = false;
-                responsedata["str_response_string"] = "";
-                return responsedata;
-            }
-
+            
             LLSDArray array = new LLSDArray();
             if (element == null) // didn't have an event in 15s
             {
@@ -272,11 +300,76 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
             responsedata["int_response_code"] = 200;
             responsedata["content_type"] = "application/xml";
-            responsedata["keepalive"] = true;
+            responsedata["keepalive"] = false;
             responsedata["str_response_string"] = LLSDParser.SerializeXmlString(events);
             m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
 
             return responsedata;
+        }
+        public LLSD EventQueueFallBack(string path, LLSD request, string endpoint)
+        {
+            // This is a fallback element to keep the client from loosing EventQueueGet
+            // Why does CAPS fail sometimes!?
+            m_log.Warn("[EVENTQUEUE]: In the Fallback handler!   We lost the Queue in the rest handler!");
+            string capuuid = path.Replace("/CAPS/EQG/","");
+            capuuid = capuuid.Substring(0, capuuid.Length - 1);
+
+            UUID AvatarID = UUID.Zero;
+            UUID capUUID = UUID.Zero;
+            if (UUID.TryParse(capuuid, out capUUID))
+            {
+
+                lock (m_QueueUUIDAvatarMapping)
+                {
+                    if (m_QueueUUIDAvatarMapping.ContainsKey(capUUID))
+                    {
+                        AvatarID = m_QueueUUIDAvatarMapping[capUUID];
+                    }
+                }
+                if (AvatarID != UUID.Zero)
+                {
+                    int thisID = 0;
+                    lock (m_ids)
+                        thisID = m_ids[AvatarID];
+
+                    BlockingLLSDQueue queue = GetQueue(AvatarID);
+                    LLSDArray array = new LLSDArray();
+                    LLSD element = queue.Dequeue(15000); // 15s timeout
+                    if (element == null)
+                    {
+                        
+                        array.Add(EventQueueHelper.KeepAliveEvent());
+                    }
+                    else
+                    {
+                        array.Add(element);
+                        while (queue.Count() > 0)
+                        {
+                            array.Add(queue.Dequeue(1));
+                            thisID++;
+                        }
+                    }
+                    LLSDMap events = new LLSDMap();
+                    events.Add("events", array);
+
+                    events.Add("id", new LLSDInteger(thisID));
+                    
+                    lock (m_ids)
+                    {
+                        m_ids[AvatarID] = thisID + 1;
+                    }
+                    
+                    return events;
+                }
+                else
+                {
+                    return new LLSD();
+                }
+            }
+            else
+            {
+                return new LLSD();
+            }
         }
     }
 }

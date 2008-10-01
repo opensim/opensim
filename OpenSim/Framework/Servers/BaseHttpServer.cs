@@ -594,8 +594,8 @@ namespace OpenSim.Framework.Servers
                     case "application/xml":
                     default:
                         if (DoWeHaveALLSDHandler(request.RawUrl))
-                        {
-                            m_log.ErrorFormat("[BASE HTTP SERVER]: Potentially incorrect content type on Registered LLSD CAP: Content Type:{0}", request.ContentType);
+                        { 
+                            // Check if we have a LLSD handler here for the EXACT path.
                             HandleLLSDRequests(request, response);
 
                             return;
@@ -822,7 +822,7 @@ namespace OpenSim.Framework.Servers
                 if (TryGetLLSDHandler(request.RawUrl, out llsdhandler) && !LegacyLLSDLoginLibOMV)
                 {
                     // we found a registered llsd handler to service this request
-                    llsdResponse = llsdhandler(request.RawUrl, llsdRequest, request.RemoteIPEndPoint.ToString());
+                    llsdResponse = llsdhandler(request.RawUrl, llsdRequest, (request.RemoteIPEndPoint == null)? "" : request.RemoteIPEndPoint.ToString());
                 }
                 else
                 {
