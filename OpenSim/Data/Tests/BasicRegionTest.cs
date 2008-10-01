@@ -157,6 +157,14 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
+        public void T020_PrimInventoryEmpty()
+        {
+            SceneObjectGroup sog = FindSOG("object1", region1);
+            TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
+            Assert.That(t, Is.Null);
+        }
+
+        [Test]
         public void T021_PrimInventoryStore()
         {
             SceneObjectGroup sog = FindSOG("object1", region1);
@@ -184,6 +192,17 @@ namespace OpenSim.Data.Tests
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
 
             Assert.That(t.Name, Is.EqualTo(itemname1));
+        }
+
+        [Test]
+        public void T022_PrimInvetoryRemove()
+        {
+            List<TaskInventoryItem> list = new List<TaskInventoryItem>();
+            db.StorePrimInventory(prim1, list);
+
+            SceneObjectGroup sog = FindSOG("object1", region1);
+            TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
+            Assert.That(t, Is.Null);
         }
 
         [Test]
