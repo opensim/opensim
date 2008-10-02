@@ -223,12 +223,12 @@ namespace OpenSim.Framework.Servers
              _query = new Hashtable();
              try
              {
-                 foreach (KeyValuePair<string, HttpInputItem> q in req.QueryString)
+                 foreach (HttpInputItem item in req.QueryString)
                  {
                      try
                      {
-                         _queryString.Add(q.Key, q.Value.Value);
-                         _query[q.Key] = q.Value.Value;
+                         _queryString.Add(item.Name, item.Value);
+                         _query[item.Name] = item.Value;
                      }
                      catch (InvalidCastException)
                      {
