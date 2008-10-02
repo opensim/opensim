@@ -1399,7 +1399,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int i = 0; i < mapBlocks2.Length; i++)
             {
                 sendingBlocks.Add(mapBlocks2[i]);
-                if (((i + 1) == mapBlocks2.Length) || ((i % maxsend) == 0))
+                if (((i + 1) == mapBlocks2.Length) || (((i + 1) % maxsend) == 0))
                 {
                     SendMapBlockSplit(sendingBlocks, flag);
                     sendingBlocks = new List<MapBlockData>();
