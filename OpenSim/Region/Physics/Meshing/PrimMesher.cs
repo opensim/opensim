@@ -789,6 +789,8 @@ angles24 = [
                 if (this.hollowSides != 4)
                     hollow *= 0.707f;
             }
+            else if (this.sides == 24 && this.hollowSides == 4)
+                hollow *= 1.414f;
 
             Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, true);
 
