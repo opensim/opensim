@@ -274,7 +274,6 @@ namespace OpenSim.Grid.UserServer
         public override void RunCmd(string cmd, string[] cmdparams)
         {
             base.RunCmd(cmd, cmdparams);
-
             switch (cmd)
             {
                 case "create":
@@ -283,6 +282,30 @@ namespace OpenSim.Grid.UserServer
                 
                 case "reset":
                     Reset(cmdparams);
+                    break;
+
+
+                case "login-level":
+                       // Set the minimal level to allow login 
+                       // Usefull to allow grid update without worrying about users.
+                       // or fixing critical issue
+                    if (cmdparams.Length == 1)
+                    {
+                        int level = Convert.ToInt32(cmdparams[0]);
+                        m_loginService.setloginlevel(level);
+                    }
+                    break;
+                case "login-reset":
+                    if (cmdparams.Length == 1)
+                    {
+                        m_loginService.setloginlevel(0);
+                    }
+                    break;
+                case "login-text":
+                    if (cmdparams.Length == 1)
+                    {
+                        m_loginService.setwelcometext(cmdparams[0]);
+                    }
                     break;
 
                 case "test-inventory":
@@ -316,7 +339,7 @@ namespace OpenSim.Grid.UserServer
                         if (theUser != null)
                         {
                             if (theUser.CurrentAgent != null)
-                            {
+                             {
                                 if (theUser.CurrentAgent.AgentOnline)
                                 {
                                     m_log.Info("[LOGOFF]: Logging off requested user!");
@@ -365,12 +388,16 @@ namespace OpenSim.Grid.UserServer
             m_console.Notice("create user - create a new user");
             m_console.Notice("logoff-user <firstname> <lastname> <message> - logs off the specified user from the grid");
             m_console.Notice("reset user password - reset a user's password.");
+            m_console.Notice("login-level <value> - Set the miminim userlevel allowed To login.");
+            m_console.Notice("login-reset - reset the login level to its default value.");
+            m_console.Notice("login-text <text to print during the login>");
+            
         }
 
         public override void Shutdown()
         {
             m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
-
+          
             base.Shutdown();
         }
 
