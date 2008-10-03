@@ -392,11 +392,9 @@ namespace OpenSim.Grid.UserServer
             
         }
 
-        public override void Shutdown()
+        protected override void ShutdownSpecific()
         {
             m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
-          
-            base.Shutdown();
         }
 
         public void TestResponse(List<InventoryFolderBase> resp)

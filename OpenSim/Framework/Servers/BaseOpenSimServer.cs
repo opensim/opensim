@@ -99,6 +99,11 @@ namespace OpenSim.Framework.Servers
         /// Must be overriden by child classes for their own server specific startup behaviour.
         /// </summary>
         protected abstract void StartupSpecific();
+        
+        /// <summary>
+        /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
+        /// </summary>      
+        protected virtual void ShutdownSpecific() {}
 
         /// <summary>
         /// Print statistics to the logfile, if they are active
@@ -222,11 +227,13 @@ namespace OpenSim.Framework.Servers
 
         /// <summary>
         /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
-        /// </summary>
+        /// </summary>      
         public virtual void Shutdown()
         {
+            ShutdownSpecific();
+            
             m_log.Info("[SHUTDOWN]: Shutdown processing on main thread complete.  Exiting...");
-
+            
             Environment.Exit(0);
         }
 

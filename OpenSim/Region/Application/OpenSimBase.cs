@@ -734,7 +734,7 @@ namespace OpenSim
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server
         /// </summary>
-        public override void Shutdown()
+        protected override void ShutdownSpecific()
         {
             if (proxyUrl.Length > 0)
             {
@@ -755,8 +755,6 @@ namespace OpenSim
             {
                 m_log.ErrorFormat("[SHUTDOWN]: Ignoring failure during shutdown - {0}", e);
             }
-
-            base.Shutdown();
         }
 
         /// <summary>

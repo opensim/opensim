@@ -160,11 +160,9 @@ namespace OpenSim.Grid.MessagingServer
             m_console.Notice("clear-cache - Clears region cache.  Should be done when regions change position.  The region cache gets stale after a while.");
         }
 
-        public override void Shutdown()
+        protected override void ShutdownSpecific()
         {
             msgsvc.deregisterWithUserServer();
-
-            base.Shutdown();
         }
     }
 }
