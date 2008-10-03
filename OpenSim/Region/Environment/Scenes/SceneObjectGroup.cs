@@ -1139,7 +1139,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (HasGroupChanged)
                 {
                     // don't backup while it's selected or you're asking for changes mid stream.
-                    if ((!IsSelected) && (RootPart != null))
+                    if ((!IsSelected) && (RootPart != null) && (!m_rootPart.IsAttachment))
                     {
                         m_log.DebugFormat(
                             "[SCENE]: Storing {0}, {1} in {2}",
