@@ -859,6 +859,8 @@ namespace OpenSim.Data.SQLite
             // click action
             createCol(prims, "ClickAction", typeof (Byte));
 
+            createCol(prims, "Material", typeof(Int32));
+
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] {prims.Columns["UUID"]};
 
@@ -1213,6 +1215,8 @@ namespace OpenSim.Data.SQLite
 
             prim.SalePrice = Convert.ToInt32(row["SalePrice"]);
             prim.ObjectSaleType = Convert.ToByte(row["SaleType"]);
+
+            prim.Material = Convert.ToByte(row["Material"]);
             return prim;
         }
 
@@ -1529,6 +1533,8 @@ namespace OpenSim.Data.SQLite
 
             // click action
             row["ClickAction"] = prim.ClickAction;
+
+            row["SalePrice"] = prim.SalePrice;
         }
 
         /// <summary>
