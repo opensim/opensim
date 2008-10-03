@@ -390,7 +390,7 @@ namespace OpenSim.Framework.Servers
         {
             OSHttpRequest req = new OSHttpRequest(context, request);
             OSHttpResponse resp = new OSHttpResponse(new HttpServer.HttpResponse(context, request));
-
+            //m_log.Info("[Debug BASE HTTP SERVER]: Got Request");
             //HttpServerContextObj objstate= new HttpServerContextObj(req,resp);
             //ThreadPool.QueueUserWorkItem(new WaitCallback(ConvertIHttpClientContextToOSHttp), (object)objstate);
             HandleRequest(req, resp);
@@ -447,7 +447,7 @@ namespace OpenSim.Framework.Servers
                 //  the request can be passed through to the other handlers. This is a low
                 //  probability event; if a request is matched it is normally expected to be
                 //  handled
-
+                //m_log.Info("[Debug BASE HTTP SERVER]: Handling Request" + request.RawUrl);
                 IHttpAgentHandler agentHandler;
 
                 if (TryGetAgentHandler(request, response, out agentHandler))
@@ -469,7 +469,7 @@ namespace OpenSim.Framework.Servers
 
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
-
+                    //m_log.Info("[Debug BASE HTTP SERVER]: Found Stream Handler");
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
                     byte[] buffer;
                     if (requestHandler is IStreamedRequestHandler)
@@ -480,6 +480,7 @@ namespace OpenSim.Framework.Servers
                     }
                     else if (requestHandler is IGenericHTTPHandler)
                     {
+                        //m_log.Info("[Debug BASE HTTP SERVER]: Found Caps based HTTP Handler");
                         IGenericHTTPHandler HTTPRequestHandler = requestHandler as IGenericHTTPHandler;
                         Stream requestStream = request.InputStream;
 
@@ -572,6 +573,7 @@ namespace OpenSim.Framework.Servers
                     {
                         if (strAccept.Contains("application/llsd+xml"))
                         {
+                            //m_log.Info("[Debug BASE HTTP SERVER]: Found an application/llsd+xml accept header");
                             HandleLLSDRequests(request, response);
                             return;
                         }
@@ -582,34 +584,41 @@ namespace OpenSim.Framework.Servers
                 {
                     case null:
                     case "text/html":
+                        //m_log.Info("[Debug BASE HTTP SERVER]: found a text/html content type");
                         HandleHTTPRequest(request, response);
                         return;
 
                     case "application/llsd+xml":
                     case "application/xml+llsd":
+                        //m_log.Info("[Debug BASE HTTP SERVER]: found a application/llsd+xml content type");
                         HandleLLSDRequests(request, response);
                         return;
 
                     case "text/xml":
                     case "application/xml":
                     default:
+                        //m_log.Info("[Debug BASE HTTP SERVER]: in default handler");
                         // Point of note..  the DoWeHaveA methods check for an EXACT path
 //                        if (request.RawUrl.Contains("/CAPS/EQG"))
 //                        {
 //                            int i = 1;
 //                        }
+                        //m_log.Info("[Debug BASE HTTP SERVER]: Checking for LLSD Handler");
                         if (DoWeHaveALLSDHandler(request.RawUrl))
-                        { 
+                        {
+                            //m_log.Info("[Debug BASE HTTP SERVER]: Found LLSD Handler");
                             HandleLLSDRequests(request, response);
                             return;
                         }
-
+                        //m_log.Info("[Debug BASE HTTP SERVER]: Checking for HTTP Handler");
                         if (DoWeHaveAHTTPHandler(request.RawUrl))
                         {
+                            //m_log.Info("[Debug BASE HTTP SERVER]: found HTTP Handler");
                             HandleHTTPRequest(request, response);
                             return;
                         }
 
+                        //m_log.Info("[Debug BASE HTTP SERVER]: Generic XMLRPC");
                         // generic login request.
                         HandleXmlRpcRequests(request, response);
                         
@@ -796,6 +805,7 @@ namespace OpenSim.Framework.Servers
 
         private void HandleLLSDRequests(OSHttpRequest request, OSHttpResponse response)
         {
+            //m_log.Warn("[BASE HTTP SERVER]: We've figured out it's a LLSD Request");
             Stream requestStream = request.InputStream;
 
             Encoding encoding = Encoding.UTF8;
@@ -806,6 +816,7 @@ namespace OpenSim.Framework.Servers
             requestStream.Close();
 
             //m_log.DebugFormat("[OGP]: {0}:{1}", request.RawUrl, requestBody);
+            response.KeepAlive = false;
 
             LLSD llsdRequest = null;
             LLSD llsdResponse = null;
@@ -870,12 +881,13 @@ namespace OpenSim.Framework.Servers
             else
             {
                 response.ContentType = "application/llsd+xml";
-
+                //m_log.Info("[Debug BASE HTTP SERVER]: Response: " + llsdResponse.ToString());
                 buffer = LLSDParser.SerializeXmlBytes(llsdResponse);
             }
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
+            response.KeepAlive = false;
 
             try
             {
@@ -891,6 +903,8 @@ namespace OpenSim.Framework.Servers
                 try
                 {
                     response.Send();
+                    response.OutputStream.Flush();
+                    response.OutputStream.Close();
                 }
                 catch (SocketException e)
                 {
@@ -1292,6 +1306,7 @@ namespace OpenSim.Framework.Servers
 
         private static void DoHTTPGruntWork(Hashtable responsedata, OSHttpResponse response)
         {
+            //m_log.Info("[BASE HTTP SERVER]: Doing HTTP Grunt work with response");
             int responsecode = (int)responsedata["int_response_code"];
             string responseString = (string)responsedata["str_response_string"];
             string contentType = (string)responsedata["content_type"];
