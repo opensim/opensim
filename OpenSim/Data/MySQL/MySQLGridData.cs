@@ -283,6 +283,52 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
+        /// Returns up to maxNum profiles of regions that have a name starting with namePrefix
+        /// </summary>
+        /// <param name="name">The name to match against</param>
+        /// <param name="maxNum">Maximum number of profiles to return</param>
+        /// <returns>A list of sim profiles</returns>
+        override public List<RegionProfileData> GetRegionsByName(string namePrefix, uint maxNum)
+        {
+            MySQLSuperManager dbm = GetLockedConnection();
+
+            try
+            {
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param["?name"] = namePrefix + "%";
+
+                IDbCommand result =
+                    dbm.Manager.Query(
+                        "SELECT * FROM regions WHERE regionName LIKE ?name",
+                        param);
+                IDataReader reader = result.ExecuteReader();
+
+                RegionProfileData row;
+
+                List<RegionProfileData> rows = new List<RegionProfileData>();
+
+                while (rows.Count < maxNum && (row = dbm.Manager.readSimRow(reader)) != null)
+                {
+                    rows.Add(row);
+                }
+                reader.Close();
+                result.Dispose();
+
+                return rows;
+            }
+            catch (Exception e)
+            {
+                dbm.Manager.Reconnect();
+                m_log.Error(e.ToString());
+                return null;
+            }
+            finally
+            {
+                dbm.Release();
+            }
+        }
+
+        /// <summary>
         /// Returns a sim profile from it's location
         /// </summary>
         /// <param name="handle">Region location handle</param>

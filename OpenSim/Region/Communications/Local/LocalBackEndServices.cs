@@ -514,5 +514,20 @@ namespace OpenSim.Region.Communications.Local
             m_log.Debug("[INTERREGION STANDALONE] didn't find land data locally.");
             return null;
         }
+
+        public List<RegionInfo> RequestNamedRegions (string name, int maxNumber)
+        {
+            List<RegionInfo> regions = new List<RegionInfo>();
+            foreach (RegionInfo info in m_regions.Values)
+            {
+                if (info.RegionName.StartsWith(name))
+                {
+                    regions.Add(info);
+                    if (regions.Count >= maxNumber) break; 
+                }
+            }
+            
+            return regions;
+        }
     }
 }

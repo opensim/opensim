@@ -70,5 +70,20 @@ namespace OpenSim.Framework.Communications
         List<MapBlockData> RequestNeighbourMapBlocks(int minX, int minY, int maxX, int maxY);
         // not complete yet, only contains the fields needed for ParcelInfoReqeust
         LandData RequestLandData(ulong regionHandle, uint x, uint y);
+
+        /// <summary>
+        /// Get information about regions starting with the provided name. 
+        /// </summary>
+        /// <param name="name">
+        /// The name to match against.
+        /// </param>
+        /// <param name="maxNumber">
+        /// The maximum number of results to return.
+        /// </param>
+        /// <returns>
+        /// A list of <see cref="RegionInfo"/>s of regions with matching name. If the
+        /// grid-server couldn't be contacted or returned an error, return null. 
+        /// </returns>
+        List<RegionInfo> RequestNamedRegions(string name, int maxNumber);
     }
 }

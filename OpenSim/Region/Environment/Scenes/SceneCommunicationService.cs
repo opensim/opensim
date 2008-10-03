@@ -806,6 +806,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return m_commsProvider.GenerateAgentPickerRequestResponse(queryID, query);
         }
-
+        
+        public List<RegionInfo> RequestNamedRegions(string name, int maxNumber)
+        {
+            return m_commsProvider.GridService.RequestNamedRegions(name, maxNumber);
+        }
     }
 }

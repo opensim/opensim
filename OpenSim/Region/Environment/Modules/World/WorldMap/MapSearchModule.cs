@@ -78,35 +78,44 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         private void OnMapNameRequest(IClientAPI remoteClient, string mapName)
         {
-            m_log.DebugFormat("[MAPSEARCH]: looking for region {0}", mapName);
-
-            // TODO currently, this only returns one region per name. LL servers will return all starting with the provided name.
-            RegionInfo info = m_scene.SceneGridService.RequestClosestRegion(mapName);
-            // fetch the mapblock of the named sim. We need this anyway (we have the map open, and just jumped to the sim),
-            // so there shouldn't be any penalty for that.
-            if (info == null)
+            if (mapName.Length < 3)
             {
-                m_log.Warn("[MAPSEARCHMODULE]: Got Null Region Question!");
+                remoteClient.SendAlertMessage("Use a search string with at least 3 characters");
                 return;
             }
-            List<MapBlockData> mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks((int)info.RegionLocX,
-                                                                                              (int)info.RegionLocY,
-                                                                                              (int)info.RegionLocX,
-                                                                                              (int)info.RegionLocY);
+            
+            // try to fetch from GridServer
+            List<RegionInfo> regionInfos = m_scene.SceneGridService.RequestNamedRegions(mapName, 20);
+            if (regionInfos == null)
+            {
+                m_log.Warn("[MAPSEARCHMODULE]: RequestNamedRegions returned null. Old gridserver?");
+                // service wasn't available; maybe still an old GridServer. Try the old API, though it will return only one region
+                regionInfos = new List<RegionInfo>();
+                RegionInfo info = m_scene.SceneGridService.RequestClosestRegion(mapName);
+                if (info != null) regionInfos.Add(info);
+            }
 
             List<MapBlockData> blocks = new List<MapBlockData>();
 
-            MapBlockData data = new MapBlockData();
-            data.Agents = 3; // TODO set to number of agents in region
-            data.Access = 21; // TODO what's this?
-            data.MapImageId = mapBlocks.Count == 0 ? UUID.Zero : mapBlocks[0].MapImageId;
-            data.Name = info.RegionName;
-            data.RegionFlags = 0; // TODO fix this
-            data.WaterHeight = 0; // not used
-            data.X = (ushort)info.RegionLocX;
-            data.Y = (ushort)info.RegionLocY;
-            blocks.Add(data);
+            MapBlockData data;
+            if (regionInfos.Count > 0)
+            {
+                foreach (RegionInfo info in regionInfos)
+                {
+                    data = new MapBlockData();
+                    data.Agents = 0;
+                    data.Access = 21; // TODO what's this?
+                    data.MapImageId = info.RegionSettings.TerrainImageID; 
+                    data.Name = info.RegionName;
+                    data.RegionFlags = 0; // TODO not used?
+                    data.WaterHeight = 0; // not used
+                    data.X = (ushort)info.RegionLocX;
+                    data.Y = (ushort)info.RegionLocY;
+                    blocks.Add(data);
+                }
+            }
 
+            // final block, closing the search result
             data = new MapBlockData();
             data.Agents = 0;
             data.Access = 255;

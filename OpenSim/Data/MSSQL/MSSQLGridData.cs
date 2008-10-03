@@ -216,6 +216,33 @@ namespace OpenSim.Data.MSSQL
             return null;
         }
 
+        
+        /// <summary>
+        /// Returns up to maxNum profiles of regions that have a name starting with namePrefix
+        /// </summary>
+        /// <param name="name">The name to match against</param>
+        /// <param name="maxNum">Maximum number of profiles to return</param>
+        /// <returns>A list of sim profiles</returns>
+        override public List<RegionProfileData> GetRegionsByName (string namePrefix, uint maxNum)
+        {
+            using (AutoClosingSqlCommand command = database.Query("SELECT * FROM regions WHERE regionName LIKE @name"))
+            {
+                command.Parameters.Add(database.CreateParameter("name", namePrefix + "%"));
+
+                List<RegionProfileData> rows = new List<RegionProfileData>();
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (rows.Count < maxNum && reader.Read())
+                    {
+                        rows.Add(ReadSimRow(reader));
+                    }
+                }
+
+                return rows;
+            }
+        }
+
         /// <summary>
         /// Returns a sim profile from its location
         /// </summary>

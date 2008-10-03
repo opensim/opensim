@@ -188,6 +188,26 @@ namespace OpenSim.Grid.GridServer
             return regions;
         }
 
+        public List<RegionProfileData> GetRegions(string name, int maxNum)
+        {
+            List<RegionProfileData> regions = new List<RegionProfileData>();
+            foreach (IGridDataPlugin plugin in _plugins)
+            {
+                try
+                {
+                    int num = maxNum - regions.Count;
+                    List <RegionProfileData> profiles = plugin.GetRegionsByName(name, (uint)num);
+                    if (profiles != null) regions.AddRange(profiles);
+                }
+                catch
+                {
+                    m_log.Warn("[storage]: Unable to query regionblock via " + plugin.Name);
+                }
+            }
+
+            return regions;
+        }
+
         /// <summary>
         /// Returns a XML String containing a list of the neighbouring regions
         /// </summary>
@@ -873,6 +893,56 @@ namespace OpenSim.Grid.GridServer
 
             responseData["sim-profiles"] = simProfileList;
 
+            return response;
+        }
+
+        /// <summary>
+        /// Returns up to <code>maxNumber</code> profiles of regions that have a name starting with <code>name</code>
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public XmlRpcResponse XmlRpcSearchForRegionMethod(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+    
+            if (!requestData.ContainsKey("name") || !requestData.Contains("maxNumber"))
+            {
+                m_log.Warn("[DATA] Invalid region-search request; missing name or maxNumber");
+                return new XmlRpcResponse(500, "Missing name or maxNumber in region search request");
+            }
+            
+            Hashtable responseData = new Hashtable();
+            
+            string name = (string)requestData["name"];
+            int maxNumber = Convert.ToInt32((string)requestData["maxNumber"]);
+            if (maxNumber == 0 || name.Length < 3)
+            {
+                // either we didn't want any, or we were too unspecific
+                responseData["numFound"] = 0;
+            }
+            else
+            {
+                List<RegionProfileData> sims = GetRegions(name, maxNumber);
+
+                responseData["numFound"] = sims.Count;
+                for (int i = 0; i < sims.Count; ++i)
+                {
+                    RegionProfileData sim = sims[i];
+                    string prefix = "region" + i + ".";
+                    responseData[prefix + "region_name"] = sim.regionName;
+                    responseData[prefix + "region_UUID"] = sim.UUID.ToString();
+                    responseData[prefix + "region_locx"] = sim.regionLocX.ToString();
+                    responseData[prefix + "region_locy"] = sim.regionLocY.ToString();
+                    responseData[prefix + "sim_ip"] = sim.serverIP.ToString();
+                    responseData[prefix + "sim_port"] = sim.serverPort.ToString();
+                    responseData[prefix + "remoting_port"] = sim.remotingPort.ToString();
+                    responseData[prefix + "http_port"] = sim.httpPort.ToString();
+                    responseData[prefix + "map_UUID"] = sim.regionMapTextureID.ToString();
+                }
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = responseData;
             return response;
         }
 

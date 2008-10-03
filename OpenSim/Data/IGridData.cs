@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -79,6 +80,14 @@ namespace OpenSim.Data
         /// <returns>An array containing all the sim profiles in the specified range</returns>
         RegionProfileData[] GetProfilesInRange(uint Xmin, uint Ymin, uint Xmax, uint Ymax);
 
+        /// <summary>
+        /// Returns up to maxNum profiles of regions that have a name starting with namePrefix
+        /// </summary>
+        /// <param name="name">The name to match against</param>
+        /// <param name="maxNum">Maximum number of profiles to return</param>
+        /// <returns>A list of sim profiles</returns>
+        List<RegionProfileData> GetRegionsByName(string namePrefix, uint maxNum);
+        
         /// <summary>
         /// Authenticates a sim by use of its recv key.
         /// WARNING: Insecure

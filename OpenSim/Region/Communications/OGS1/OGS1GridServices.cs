@@ -352,27 +352,7 @@ namespace OpenSim.Region.Communications.OGS1
                 return null;
             }
 
-            uint regX = Convert.ToUInt32((string) responseData["region_locx"]);
-            uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
-            string internalIpStr = (string) responseData["sim_ip"];
-            uint port = Convert.ToUInt32(responseData["sim_port"]);
-            // string externalUri = (string) responseData["sim_uri"];
-
-            IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-            // string neighbourExternalUri = externalUri;
-            regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
-
-            regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
-            regionInfo.RemotingAddress = internalIpStr;
-
-            if (responseData.ContainsKey("http_port"))
-            {
-                regionInfo.HttpPort = Convert.ToUInt32((string) responseData["http_port"]);
-            }
-
-            regionInfo.RegionID = new UUID((string) responseData["region_UUID"]);
-            regionInfo.RegionName = (string) responseData["region_name"];
-
+            regionInfo = buildRegionInfo(responseData, String.Empty);
             if (requestData.ContainsKey("regionHandle"))
             {
                 m_remoteRegionInfoCache.Add(Convert.ToUInt64((string) requestData["regionHandle"]), regionInfo);
@@ -479,30 +459,11 @@ namespace OpenSim.Region.Communications.OGS1
 
                 if (responseData.ContainsKey("error"))
                 {
-                    m_log.Error("[OGS1 GRID SERVICES]: Error received from grid server" + responseData["error"]);
+                    m_log.ErrorFormat("[OGS1 GRID SERVICES]: Error received from grid server: ", responseData["error"]);
                     return null;
                 }
 
-                uint regX = Convert.ToUInt32((string) responseData["region_locx"]);
-                uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
-                string internalIpStr = (string) responseData["sim_ip"];
-                uint port = Convert.ToUInt32(responseData["sim_port"]);
-                // string externalUri = (string) responseData["sim_uri"];
-
-                IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-                // string neighbourExternalUri = externalUri;
-                regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
-
-                regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
-                regionInfo.RemotingAddress = internalIpStr;
-
-                if (responseData.ContainsKey("http_port"))
-                {
-                    regionInfo.HttpPort = Convert.ToUInt32((string) responseData["http_port"]);
-                }
-
-                regionInfo.RegionID = new UUID((string) responseData["region_UUID"]);
-                regionInfo.RegionName = (string) responseData["region_name"];
+                regionInfo = buildRegionInfo(responseData, "");
 
                 if (!m_remoteRegionInfoCache.ContainsKey(regionInfo.RegionHandle))
                     m_remoteRegionInfoCache.Add(regionInfo.RegionHandle, regionInfo);
@@ -1676,7 +1637,8 @@ namespace OpenSim.Region.Communications.OGS1
                         else
                         {
                             hash = (Hashtable)response.Value;
-                            try {
+                            try
+                            {
                                 landData = new LandData();
                                 landData.AABBMax = Vector3.Parse((string)hash["AABBMax"]);
                                 landData.AABBMin = Vector3.Parse((string)hash["AABBMin"]);
@@ -1744,6 +1706,77 @@ namespace OpenSim.Region.Communications.OGS1
             XmlRpcResponse response = new XmlRpcResponse();
             response.Value = hash;
             return response;
+        }
+
+        public List<RegionInfo> RequestNamedRegions (string name, int maxNumber)
+        {
+            // no asking of the local backend first, here, as we have to ask the gridserver anyway.
+            Hashtable hash = new Hashtable();
+            hash["name"] = name;
+            hash["maxNumber"] = maxNumber.ToString();
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            Hashtable result = XmlRpcSearchForRegionByName(paramList);
+            if (result == null) return null;
+
+            uint numberFound = Convert.ToUInt32(result["numFound"]);
+            List<RegionInfo> infos = new List<RegionInfo>();
+            for (int i = 0; i < numberFound; ++i)
+            {
+                string prefix = "region" + i + ".";
+                RegionInfo info = buildRegionInfo(result, prefix);
+                infos.Add(info);
+            }
+            return infos;
+        }
+
+        private RegionInfo buildRegionInfo(Hashtable responseData, string prefix)
+        {
+            uint regX = Convert.ToUInt32((string) responseData[prefix + "region_locx"]);
+            uint regY = Convert.ToUInt32((string) responseData[prefix + "region_locy"]);
+            string internalIpStr = (string) responseData[prefix + "sim_ip"];
+            uint port = Convert.ToUInt32(responseData[prefix + "sim_port"]);
+
+            IPEndPoint neighbourInternalEndPoint = new IPEndPoint(Util.GetHostFromDNS(internalIpStr), (int) port);
+
+            RegionInfo regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
+            regionInfo.RemotingPort = Convert.ToUInt32((string) responseData[prefix + "remoting_port"]);
+            regionInfo.RemotingAddress = internalIpStr;
+
+            if (responseData.ContainsKey(prefix + "http_port"))
+            {
+                regionInfo.HttpPort = Convert.ToUInt32((string) responseData[prefix + "http_port"]);
+            }
+
+            regionInfo.RegionID = new UUID((string) responseData[prefix + "region_UUID"]);
+            regionInfo.RegionName = (string) responseData[prefix + "region_name"];
+
+            regionInfo.RegionSettings.TerrainImageID = new UUID((string) responseData[prefix + "map_UUID"]);
+            return regionInfo;
+        }
+
+        private Hashtable XmlRpcSearchForRegionByName(IList parameters)
+        {
+            try
+            {
+                XmlRpcRequest request = new XmlRpcRequest("search_for_region_by_name", parameters);
+                XmlRpcResponse resp = request.Send(serversInfo.GridURL, 10000);
+                Hashtable respData = (Hashtable) resp.Value;
+                if (respData != null && respData.Contains("faultCode"))
+                {
+                    m_log.WarnFormat("[OGS1 GRID SERVICES]: Got an error while contacting GridServer: {0}", respData["faultString"]);
+                    return null;
+                }
+
+                return respData;
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[OGS1 GRID SERVICES]: MapBlockQuery XMLRPC failure: ", e);
+                return null;
+            }
         }
     }
 }

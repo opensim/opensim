@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 
 namespace OpenSim.Data
@@ -35,6 +36,7 @@ namespace OpenSim.Data
         public abstract RegionProfileData GetProfileByUUID(UUID UUID);
         public abstract RegionProfileData GetProfileByString(string regionName);
         public abstract RegionProfileData[] GetProfilesInRange(uint Xmin, uint Ymin, uint Xmax, uint Ymax);
+        public abstract List<RegionProfileData> GetRegionsByName(string namePrefix, uint maxNum);
         public abstract bool AuthenticateSim(UUID UUID, ulong regionHandle, string simrecvkey);
         public abstract DataResponse AddProfile(RegionProfileData profile);
         public abstract ReservationData GetReservationAtPoint(uint x, uint y);
@@ -44,6 +46,7 @@ namespace OpenSim.Data
         public abstract void Initialise();
         public abstract void Initialise(string connect);
         public abstract void Dispose();
+
         public abstract string Name { get; }
         public abstract string Version { get; }
     }
