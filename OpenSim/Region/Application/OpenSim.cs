@@ -84,7 +84,7 @@ namespace OpenSim
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
-        public override void Startup()
+        protected override void StartupSpecific()
         {
             m_log.Info("====================================================================");
             m_log.Info("========================= STARTING OPENSIM =========================");
@@ -94,7 +94,7 @@ namespace OpenSim
             m_console = new ConsoleBase("Region", this);
             MainConsole.Instance = m_console;
 
-            base.Startup();
+            base.StartupSpecific();
 
             //Run Startup Commands
             if (String.IsNullOrEmpty( m_startupCommandsFile ))
