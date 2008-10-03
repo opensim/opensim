@@ -71,10 +71,8 @@ namespace OpenSim.Region.ClientStack
             get { return m_sceneManager; }
         }
 
-        public override void Startup()
+        protected override void StartupSpecific()
         {
-            base.Startup();
-
             m_storageManager = CreateStorageManager(m_storageConnectionString, m_estateConnectionString);
 
             m_clientStackManager = CreateClientStackManager();

@@ -62,10 +62,8 @@ namespace OpenSim.Grid.InventoryServer
             MainConsole.Instance = m_console;
         }
 
-        public override void Startup()
+        protected override void StartupSpecific()
         {
-            base.Startup();
-
             InventoryConfig config = new InventoryConfig(LogName, (Path.Combine(Util.configDir(), "InventoryServer_Config.xml")));
 
             m_inventoryService = new GridInventoryService(config.UserServerURL);

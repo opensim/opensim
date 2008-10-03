@@ -363,10 +363,10 @@ namespace OpenSim
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
-        public override void Startup()
+        protected override void StartupSpecific()
         {
-            base.Startup();
-
+            base.StartupSpecific();
+            
             m_stats = StatsManager.StartCollectingSimExtraStats();
             
             LibraryRootFolder libraryRootFolder = new LibraryRootFolder();

@@ -80,10 +80,8 @@ namespace OpenSim.Grid.AssetServer
             MainConsole.Instance = m_console;
         }
 
-        public override void Startup()
+        protected override void StartupSpecific()
         {
-            base.Startup();
-
             AssetConfig config = new AssetConfig("ASSET SERVER", (Path.Combine(Util.configDir(), "AssetServer_Config.xml")));
 
             m_log.Info("[ASSET]: Setting up asset DB");

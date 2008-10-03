@@ -94,6 +94,11 @@ namespace OpenSim.Framework.Servers
             Thread.CurrentThread.Name = "ConsoleThread";
             ThreadTracker.Add(Thread.CurrentThread);
         }
+        
+        /// <summary>
+        /// Must be overriden by child classes for their own server specific startup behaviour.
+        /// </summary>
+        protected abstract void StartupSpecific();
 
         /// <summary>
         /// Print statistics to the logfile, if they are active
@@ -202,11 +207,13 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public virtual void Startup()
         {
-            m_log.Info("[STARTUP]: Beginning startup processing");
+            m_log.Info("[STARTUP]: Beginning startup processing");                        
 
             EnhanceVersionInformation();
-
+            
             m_log.Info("[STARTUP]: Version: " + m_version + "\n");
+            
+            StartupSpecific();
         }
 
         /// <summary>

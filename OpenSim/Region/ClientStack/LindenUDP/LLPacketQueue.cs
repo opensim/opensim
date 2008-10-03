@@ -44,6 +44,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static readonly log4net.ILog m_log
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Is throttling enabled at all?
+        /// </summary>
         private bool m_enabled = true;
 
         private OpenSim.Framework.BlockingQueue<LLQueItem> SendQueue;

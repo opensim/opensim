@@ -88,10 +88,8 @@ namespace OpenSim.Grid.UserServer
             }
         }
 
-        public override void Startup()
+        protected override void StartupSpecific()
         {
-            base.Startup();
-
             Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
 
             m_stats = StatsManager.StartCollectingUserStats();

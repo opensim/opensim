@@ -73,10 +73,8 @@ namespace OpenSim.Grid.GridServer
             }
         }
 
-        public override void Startup()
+        protected override void StartupSpecific()
         {
-            base.Startup();
-
             m_config = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), "GridServer_Config.xml")));
 
             SetupGridManager();
