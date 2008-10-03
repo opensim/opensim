@@ -935,8 +935,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             m_connected = false;
             m_enabled = false;
 
-            listener.Abort();
-            pingSender.Abort();
+            //listener.Abort();
+            //pingSender.Abort();
 
             m_writer.Close();
             m_reader.Close();
