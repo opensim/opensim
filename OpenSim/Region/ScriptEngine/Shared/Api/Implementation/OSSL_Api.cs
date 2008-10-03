@@ -87,18 +87,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     //            modification of user data, or allows the compromise of
     //            sensitive data by design.
 
-    public enum ThreatLevel
-    {
-        None = 0,
-        Nuisance = 1,
-        VeryLow = 2,
-        Low = 3,
-        Moderate = 4,
-        High = 5,
-        VeryHigh = 6,
-        Severe = 7
-    };
-        
     [Serializable]
     public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
     {
@@ -180,7 +168,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             throw new Exception("OSSL Runtime Error: " + msg);
         }
 
-        protected void CheckThreatLevel(ThreatLevel level, string function)
+        public void CheckThreatLevel(ThreatLevel level, string function)
         {
             if (!m_OSFunctionsEnabled)
                 OSSLError(function+": permission denied"); // throws

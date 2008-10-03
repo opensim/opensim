@@ -66,5 +66,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         IConfig Config { get; }
         string ScriptEngineName { get; }
         ILog Log { get; }
+        IScriptApi GetApi(UUID itemID, string name);
     }
 }

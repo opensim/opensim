@@ -46,7 +46,5 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// Queue an event for execution
         /// </summary>
         IScriptWorkItem QueueEventHandler(object parms);
-        
-        IScriptApi GetApi(UUID itemID, string name);
     }
 }

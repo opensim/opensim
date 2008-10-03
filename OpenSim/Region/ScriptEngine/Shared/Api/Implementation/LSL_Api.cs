@@ -7182,6 +7182,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llRequestSimulatorData(string simulator, int data)
         {
+            IOSSL_Api ossl = (IOSSL_Api)m_ScriptEngine.GetApi(m_itemID, "OSSL");
+
             try
             {
                 m_host.AddScriptLPS(1);
@@ -7222,6 +7224,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             reply = "MATURE";
                         else
                             reply = "UNKNOWN";
+                        break;
+                    case 128:
+                        if (ossl != null)
+                            ossl.CheckThreatLevel(ThreatLevel.High, "llRequestSimulatorData");
+                        reply = "OpenSim";
                         break;
                     default:
                         // ScriptSleep(1000);

@@ -28,8 +28,22 @@ using System.Collections;
 using OpenSim.Region.ScriptEngine.Interfaces;
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
+    public enum ThreatLevel
+    {
+        None = 0,
+        Nuisance = 1,
+        VeryLow = 2,
+        Low = 3,
+        Moderate = 4,
+        High = 5,
+        VeryHigh = 6,
+        Severe = 7
+    };
+
     public interface IOSSL_Api
     {
+        void CheckThreatLevel(ThreatLevel level, string function);
+
         //OpenSim functions
         string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer);
         string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,

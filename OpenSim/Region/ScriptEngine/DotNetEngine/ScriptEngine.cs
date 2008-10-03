@@ -372,5 +372,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             controllingClient.SendScriptRunningReply(objectID, itemID,
                     id.Running);
         }
+
+        public IScriptApi GetApi(UUID itemID, string name)
+        {
+            return m_ScriptManager.GetApi(itemID, name);
+        }
     }
 }

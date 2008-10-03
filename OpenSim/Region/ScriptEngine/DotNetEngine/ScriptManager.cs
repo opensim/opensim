@@ -619,7 +619,24 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             InstanceData id = GetScript(localID, itemID);
 
+            if (id == null)
+                return 0;
+
             return id.StartParam;
+        }
+
+        public IScriptApi GetApi(UUID itemID, string name)
+        {
+            uint localID = GetLocalID(itemID);
+
+            InstanceData id = GetScript(localID, itemID);
+            if (id == null)
+                return null;
+
+            if (id.Apis.ContainsKey(name))
+                return id.Apis[name];
+
+            return null;
         }
     }
 }
