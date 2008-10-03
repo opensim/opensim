@@ -197,17 +197,20 @@ namespace OpenSim
             ReadConfigSettings();
         }
 
+        /// <summary>
+        /// Setup a default config values in case they aren't present in the ini file
+        /// </summary>
+        /// <returns></returns>
         public static IConfigSource DefaultConfig()
         {
             IConfigSource DefaultConfig = new IniConfigSource();
-            if (DefaultConfig.Configs["Startup"] == null)
+            
             {
-                DefaultConfig.AddConfig("Startup");
-            }
+                IConfig config = DefaultConfig.Configs["Startup"];
+                
+                if (null == config)
+                    config = DefaultConfig.AddConfig("Startup");
 
-            IConfig config = DefaultConfig.Configs["Startup"];
-            if (config != null)
-            {
                 config.Set("gridmode", false);
                 config.Set("physics", "basicphysics");
                 config.Set("physical_prim", true);
@@ -224,15 +227,13 @@ namespace OpenSim
                 config.Set("asset_database", "sqlite");
                 config.Set("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
-
-            if (DefaultConfig.Configs["StandAlone"] == null)
+        
             {
-                DefaultConfig.AddConfig("StandAlone");
-            }
+                IConfig config = DefaultConfig.Configs["StandAlone"];
+                
+                if (null == config)
+                    config = DefaultConfig.AddConfig("StandAlone");
 
-            config = DefaultConfig.Configs["StandAlone"];
-            if (config != null)
-            {
                 config.Set("accounts_authenticate", false);
                 config.Set("welcome_message", "Welcome to OpenSimulator");
                 config.Set("inventory_plugin", "OpenSim.Data.SQLite.dll");
@@ -243,15 +244,13 @@ namespace OpenSim
                 config.Set("asset_source", "");
                 config.Set("dump_assets_to_file", false);
             }
-
-            if (DefaultConfig.Configs["Network"] == null)
+        
             {
-                DefaultConfig.AddConfig("Network");
-            }
+                IConfig config = DefaultConfig.Configs["Network"];
+                
+                if (null == config)
+                    config = DefaultConfig.AddConfig("Network");
 
-            config = DefaultConfig.Configs["Network"];
-            if (config != null)
-            {
                 config.Set("default_location_x", 1000);
                 config.Set("default_location_y", 1000);
                 config.Set("http_listener_port", NetworkServersInfo.DefaultHttpListenerPort);
@@ -266,26 +265,22 @@ namespace OpenSim
                 config.Set("inventory_server_url", "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString());
                 config.Set("secure_inventory_server", "true");
             }
-
-            if (DefaultConfig.Configs["RemoteAdmin"] == null)
+        
             {
-                DefaultConfig.AddConfig("RemoteAdmin");
-            }
+                IConfig config = DefaultConfig.Configs["RemoteAdmin"];
+                
+                if (null == config)
+                    config = DefaultConfig.AddConfig("RemoteAdmin");
 
-            config = DefaultConfig.Configs["RemoteAdmin"];
-            if (config != null)
-            {
                 config.Set("enabled", "false");
             }
-
-            if (DefaultConfig.Configs["Voice"] == null)
+        
             {
-                DefaultConfig.AddConfig("Voice");
-            }
+                IConfig config = DefaultConfig.Configs["Voice"];
+                
+                if (null == config)
+                    config = DefaultConfig.AddConfig("Voice");
 
-            config = DefaultConfig.Configs["Voice"];
-            if (config != null)
-            {
                 config.Set("enabled", "false");
             }
 
