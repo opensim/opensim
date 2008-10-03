@@ -90,7 +90,8 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 
                 // Register fallback handler
                 // Why does EQG Fail on region crossings!
-                scene.AddLLSDHandler("/CAPS/EQG/", EventQueueFallBack);
+                
+                //scene.AddLLSDHandler("/CAPS/EQG/", EventQueueFallBack);
 
                 scene.EventManager.OnNewClient += OnNewClient;
                 scene.EventManager.OnClientClosed += ClientClosed;
@@ -109,7 +110,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         private void ReadConfigAndPopulate(Scene scene, IConfig startupConfig, string p)
         {
-            enabledYN = startupConfig.GetBoolean("EventQueue", false);
+            enabledYN = startupConfig.GetBoolean("EventQueue", true);
         }
 
         public void PostInitialise()
@@ -166,6 +167,44 @@ namespace OpenSim.Region.Environment.Modules.Framework
         private void ClientClosed(UUID AgentID)
         {
             queues.Remove(AgentID);
+            List<UUID> removeitems = new List<UUID>();
+            lock (m_AvatarQueueUUIDMapping)
+            {
+                foreach (UUID ky in m_AvatarQueueUUIDMapping.Keys)
+                {
+                    if (ky == AgentID)
+                    {
+                        removeitems.Add(ky);
+                    }
+                }
+
+                foreach (UUID ky in removeitems)
+                {
+                    m_AvatarQueueUUIDMapping.Remove(ky);
+                    m_scene.RemoveHTTPHandler("","/CAPS/EQG/" + ky.ToString() + "/");
+                }
+
+            }
+            UUID searchval = UUID.Zero;
+
+            removeitems.Clear();
+            
+            lock (m_QueueUUIDAvatarMapping)
+            {
+                foreach (UUID ky in m_QueueUUIDAvatarMapping.Keys)
+                {
+                    searchval = m_QueueUUIDAvatarMapping[ky];
+
+                    if (searchval == AgentID)
+                    {
+                        removeitems.Add(ky);
+                    }
+                }
+
+                foreach (UUID ky in removeitems)
+                    m_QueueUUIDAvatarMapping.Remove(ky);
+
+            }
             m_log.DebugFormat("[EVENTQUEUE]: Client {0} deregistered in region {1}.", AgentID, m_scene.RegionInfo.RegionName);
         }
         
@@ -177,15 +216,15 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         private void MakeChildAgent(ScenePresence avatar)
         {
-            m_log.DebugFormat("[EVENTQUEUE]: Make Child agent {0} in region {1}.", avatar.UUID, m_scene.RegionInfo.RegionName);
-            lock (m_ids)
-            {
-                if (m_ids.ContainsKey(avatar.UUID))
-                {
+            //m_log.DebugFormat("[EVENTQUEUE]: Make Child agent {0} in region {1}.", avatar.UUID, m_scene.RegionInfo.RegionName);
+            //lock (m_ids)
+           // {
+                //if (m_ids.ContainsKey(avatar.UUID))
+                //{
                     // close the event queue.
                     //m_ids[avatar.UUID] = -1;
-                }
-            }
+                //}
+            //}
         }
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
@@ -222,12 +261,18 @@ namespace OpenSim.Region.Environment.Modules.Framework
             }
 
             m_log.DebugFormat("[EVENTQUEUE]: CAPS URL: {0}", capsBase + EventQueueGetUUID.ToString() + "/");
+            // Register this as a caps handler
             caps.RegisterHandler("EventQueueGet",
-                                 new RestHTTPHandler("POST", capsBase + EventQueueGetUUID.ToString(),
+                                 new RestHTTPHandler("POST", capsBase + EventQueueGetUUID.ToString() + "/",
                                                        delegate(Hashtable m_dhttpMethod)
                                                        {
                                                            return ProcessQueue(m_dhttpMethod,agentID, caps);
                                                        }));
+
+            bool boolval = false;
+            // This will persist this beyond the expiry of the caps handlers
+            boolval = m_scene.AddHTTPHandler(capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePath2);
+
             Random rnd = new Random(System.Environment.TickCount);
             lock (m_ids)
             {
@@ -262,6 +307,14 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
             if (element == null)
             {
+                if (thisID == -1) // close-request
+                {
+                    responsedata["int_response_code"] = 404;
+                    responsedata["content_type"] = "text/plain";
+                    responsedata["keepalive"] = false;
+                    responsedata["str_response_string"] = "";
+                    return responsedata;
+                }
                 responsedata["int_response_code"] = 502;
                 responsedata["content_type"] = "text/plain";
                 responsedata["keepalive"] = false;
@@ -272,6 +325,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
             }
 
             
+
             LLSDArray array = new LLSDArray();
             if (element == null) // didn't have an event in 15s
             {
@@ -306,6 +360,59 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
             return responsedata;
         }
+
+        public Hashtable EventQueuePath2(Hashtable request)
+        {
+            string capuuid = (string)request["uri"]; //path.Replace("/CAPS/EQG/","");
+            // pull off the last "/" in the path.
+            Hashtable responsedata = new Hashtable();
+            capuuid = capuuid.Substring(0, capuuid.Length - 1);
+            capuuid = capuuid.Replace("/CAPS/EQG/", "");
+            UUID AvatarID = UUID.Zero;
+            UUID capUUID = UUID.Zero;
+            
+            // parse the path and search for the avatar with it registered
+            if (UUID.TryParse(capuuid, out capUUID))
+            {
+                lock (m_QueueUUIDAvatarMapping)
+                {
+                    if (m_QueueUUIDAvatarMapping.ContainsKey(capUUID))
+                    {
+                        AvatarID = m_QueueUUIDAvatarMapping[capUUID];
+                    }
+                }
+                if (AvatarID != UUID.Zero)
+                {
+                    // m_scene.GetCapsHandlerForUser will return null if the agent doesn't have a caps handler
+                    // registered
+                    return ProcessQueue(request, AvatarID, m_scene.GetCapsHandlerForUser(AvatarID));
+                }
+                else
+                {
+                    responsedata["int_response_code"] = 404;
+                    responsedata["content_type"] = "text/plain";
+                    responsedata["keepalive"] = false;
+                    responsedata["str_response_string"] = "Not Found";
+                    responsedata["error_status_text"] = "Not Found";
+                    responsedata["http_protocol_version"] = "HTTP/1.0";
+                    return responsedata;
+                    // return 404
+                }
+            }
+            else
+            {
+                responsedata["int_response_code"] = 404;
+                responsedata["content_type"] = "text/plain";
+                responsedata["keepalive"] = false;
+                responsedata["str_response_string"] = "Not Found";
+                responsedata["error_status_text"] = "Not Found";
+                responsedata["http_protocol_version"] = "HTTP/1.0";
+                return responsedata;
+                // return 404
+            }
+
+        }
+
         public LLSD EventQueueFallBack(string path, LLSD request, string endpoint)
         {
             // This is a fallback element to keep the client from loosing EventQueueGet
@@ -318,7 +425,9 @@ namespace OpenSim.Region.Environment.Modules.Framework
             UUID capUUID = UUID.Zero;
             if (UUID.TryParse(capuuid, out capUUID))
             {
-
+/* Don't remove this yet code cleaners!
+ * Still testing this!
+ * 
                 lock (m_QueueUUIDAvatarMapping)
                 {
                     if (m_QueueUUIDAvatarMapping.ContainsKey(capUUID))
@@ -326,8 +435,28 @@ namespace OpenSim.Region.Environment.Modules.Framework
                         AvatarID = m_QueueUUIDAvatarMapping[capUUID];
                     }
                 }
+                
+                 
                 if (AvatarID != UUID.Zero)
                 {
+                    // Repair the CAP!
+                    //OpenSim.Framework.Communications.Capabilities.Caps caps = m_scene.GetCapsHandlerForUser(AvatarID);
+                    //string capsBase = "/CAPS/EQG/";
+                    //caps.RegisterHandler("EventQueueGet",
+                                //new RestHTTPHandler("POST", capsBase + capUUID.ToString() + "/",
+                                                      //delegate(Hashtable m_dhttpMethod)
+                                                      //{
+                                                      //    return ProcessQueue(m_dhttpMethod, AvatarID, caps);
+                                                      //}));
+                    // start new ID sequence.
+                    Random rnd = new Random(System.Environment.TickCount);
+                    lock (m_ids)
+                    {
+                        if (!m_ids.ContainsKey(AvatarID))
+                            m_ids.Add(AvatarID, rnd.Next(30000000));
+                    }
+
+
                     int thisID = 0;
                     lock (m_ids)
                         thisID = m_ids[AvatarID];
@@ -365,11 +494,14 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 {
                     return new LLSD();
                 }
+* 
+*/
             }
             else
             {
-                return new LLSD();
+                //return new LLSD();
             }
+            return new LLSDString("shutdown404!");
         }
     }
 }

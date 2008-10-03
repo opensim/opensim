@@ -84,6 +84,11 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             RegionInfo info = m_scene.SceneGridService.RequestClosestRegion(mapName);
             // fetch the mapblock of the named sim. We need this anyway (we have the map open, and just jumped to the sim),
             // so there shouldn't be any penalty for that.
+            if (info == null)
+            {
+                m_log.Warn("[MAPSEARCHMODULE]: Got Null Region Question!");
+                return;
+            }
             List<MapBlockData> mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks((int)info.RegionLocX,
                                                                                               (int)info.RegionLocY,
                                                                                               (int)info.RegionLocX,

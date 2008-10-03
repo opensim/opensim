@@ -593,14 +593,26 @@ namespace OpenSim.Framework.Servers
                     case "text/xml":
                     case "application/xml":
                     default:
+                        // Point of note..  the DoWeHaveA methods check for an EXACT path
+                        if (request.RawUrl.Contains("/CAPS/EQG"))
+                        {
+                            int i = 1;
+                        }
                         if (DoWeHaveALLSDHandler(request.RawUrl))
                         { 
-                            // Check if we have a LLSD handler here for the EXACT path.
                             HandleLLSDRequests(request, response);
-
                             return;
                         }
+
+                        if (DoWeHaveAHTTPHandler(request.RawUrl))
+                        {
+                            HandleHTTPRequest(request, response);
+                            return;
+                        }
+
+                        // generic login request.
                         HandleXmlRpcRequests(request, response);
+                        
                         return;
                 }
             }
@@ -846,11 +858,21 @@ namespace OpenSim.Framework.Servers
             {
                 llsdResponse = GenerateNoLLSDHandlerResponse();
             }
+            byte[] buffer = new byte[0];
+            if (llsdResponse.ToString() == "shutdown404!")
+            {
+                response.ContentType = "text/plain";
+                response.StatusCode = 404;
+                response.StatusDescription = "Not Found";
+                response.ProtocolVersion = "HTTP/1.0";
+                buffer = Encoding.UTF8.GetBytes("Not found");
+            }
+            else
+            {
+                response.ContentType = "application/llsd+xml";
 
-            response.ContentType = "application/llsd+xml";
-
-            byte[] buffer = LLSDParser.SerializeXmlBytes(llsdResponse);
-
+                buffer = LLSDParser.SerializeXmlBytes(llsdResponse);
+            }
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
@@ -878,6 +900,11 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+        /// <summary>
+        /// Checks if we have an Exact path in the LLSD handlers for the path provided
+        /// </summary>
+        /// <param name="path">URI of the request</param>
+        /// <returns>true if we have one, false if not</returns>
         private bool DoWeHaveALLSDHandler(string path)
         {
 
@@ -903,6 +930,59 @@ namespace OpenSim.Framework.Servers
                 {
 
                         bestMatch = pattern;
+
+                }
+            }
+
+            // extra kicker to remove the default XMLRPC login case..  just in case..
+            if (path != "/" && bestMatch == "/" && searchquery != "/")
+                return false;
+
+            if (path == "/")
+                return false;
+
+            if (String.IsNullOrEmpty(bestMatch))
+            {
+
+                return false;
+            }
+            else
+            {
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Checks if we have an Exact path in the HTTP handlers for the path provided
+        /// </summary>
+        /// <param name="path">URI of the request</param>
+        /// <returns>true if we have one, false if not</returns>
+        private bool DoWeHaveAHTTPHandler(string path)
+        {
+
+            string[] pathbase = path.Split('/');
+            string searchquery = "/";
+
+            if (pathbase.Length < 1)
+                return false;
+
+            for (int i = 1; i < pathbase.Length; i++)
+            {
+                searchquery += pathbase[i];
+                if (pathbase.Length - 1 != i)
+                    searchquery += "/";
+            }
+
+            string bestMatch = null;
+
+            foreach (string pattern in m_HTTPHandlers.Keys)
+            {
+
+                if (searchquery.StartsWith(pattern) && searchquery.Length >= pattern.Length)
+                {
+
+                    bestMatch = pattern;
 
                 }
             }
@@ -1074,7 +1154,7 @@ namespace OpenSim.Framework.Servers
             Encoding encoding = Encoding.UTF8;
             StreamReader reader = new StreamReader(requestStream, encoding);
 
-            //string requestBody = reader.ReadToEnd();
+            string requestBody = reader.ReadToEnd();
             // avoid warning for now
             reader.ReadToEnd();
             reader.Close();
@@ -1086,6 +1166,10 @@ namespace OpenSim.Framework.Servers
 
             string[] querystringkeys = request.QueryString.AllKeys;
             string[] rHeaders = request.Headers.AllKeys;
+
+            keysvals.Add("body", requestBody);
+            keysvals.Add("uri", request.RawUrl);
+            keysvals.Add("content-type", request.ContentType);
 
 
             foreach (string queryname in querystringkeys)
@@ -1113,8 +1197,8 @@ namespace OpenSim.Framework.Servers
                 bool foundHandler = TryGetHTTPHandler(method, out requestprocessor);
                 if (foundHandler)
                 {
-                    Hashtable responsedata = requestprocessor(keysvals);
-                    DoHTTPGruntWork(responsedata,response);
+                    Hashtable responsedata1 = requestprocessor(keysvals);
+                    DoHTTPGruntWork(responsedata1,response);
 
                     //SendHTML500(response);
                 }
@@ -1126,8 +1210,83 @@ namespace OpenSim.Framework.Servers
             }
             else
             {
-                //m_log.Warn("[HTTP]: No Method specified");
-                SendHTML404(response, host);
+
+                GenericHTTPMethod requestprocessor;
+                bool foundHandler = TryGetHTTPHandlerPathBased(request.RawUrl, out requestprocessor);
+                if (foundHandler)
+                {
+                    Hashtable responsedata2 = requestprocessor(keysvals);
+                    DoHTTPGruntWork(responsedata2, response);
+
+                    //SendHTML500(response);
+                }
+                else
+                {
+                    //m_log.Warn("[HTTP]: Handler Not Found");
+                    SendHTML404(response, host);
+                }
+            }
+        }
+
+        private bool TryGetHTTPHandlerPathBased(string path, out GenericHTTPMethod httpHandler)
+        {
+            httpHandler = null;
+            // Pull out the first part of the path
+            // splitting the path by '/' means we'll get the following return..
+            // {0}/{1}/{2}
+            // where {0} isn't something we really control 100%
+
+            string[] pathbase = path.Split('/');
+            string searchquery = "/";
+
+            if (pathbase.Length < 1)
+                return false;
+
+            for (int i = 1; i < pathbase.Length; i++)
+            {
+                searchquery += pathbase[i];
+                if (pathbase.Length - 1 != i)
+                    searchquery += "/";
+            }
+
+            // while the matching algorithm below doesn't require it, we're expecting a query in the form
+            //
+            //   [] = optional
+            //   /resource/UUID/action[/action]
+            //
+            // now try to get the closest match to the reigstered path
+            // at least for OGP, registered path would probably only consist of the /resource/
+
+            string bestMatch = null;
+
+            foreach (string pattern in m_HTTPHandlers.Keys)
+            {
+                if (searchquery.ToLower().StartsWith(pattern.ToLower()))
+                {
+                    if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
+                    {
+                        // You have to specifically register for '/' and to get it, you must specificaly request it
+                        //
+                        if (pattern == "/" && searchquery == "/" || pattern != "/")
+                            bestMatch = pattern;
+                    }
+                }
+            }
+
+           
+
+            if (String.IsNullOrEmpty(bestMatch))
+            {
+                httpHandler = null;
+                return false;
+            }
+            else
+            {
+                if (bestMatch == "/" && searchquery != "/")
+                    return false;
+
+                httpHandler =  m_HTTPHandlers[bestMatch];
+                return true;
             }
         }
 
@@ -1342,6 +1501,11 @@ namespace OpenSim.Framework.Servers
 
         public void RemoveHTTPHandler(string httpMethod, string path)
         {
+            if (httpMethod != null && httpMethod.Length == 0)
+            {
+                m_HTTPHandlers.Remove(path);
+                return;
+            }
             m_HTTPHandlers.Remove(GetHandlerKey(httpMethod, path));
         }
 

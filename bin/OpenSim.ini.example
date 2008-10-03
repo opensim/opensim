@@ -4,8 +4,8 @@
 ; Set this to false if you are running OpenSimulator in standalone mode
 gridmode = false
 
-; Experimental!  Enables EventQueueGet which is highly broken right now.
-EventQueue = false
+; Enables EventQueueGet Service. 
+EventQueue = true
 
 ; ##
 ; ## REGIONS

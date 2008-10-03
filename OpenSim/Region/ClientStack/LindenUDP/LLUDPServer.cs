@@ -449,7 +449,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                 {
                     //MainLog.Instance.Verbose("UDPSERVER", "SendPacketTo : client " + sendto.ToString());
-                    m_socket.SendTo(buffer, size, flags, sendto);
+                    try
+                    {
+                        m_socket.SendTo(buffer, size, flags, sendto);
+                    }
+                    catch (SocketException SockE)
+                    {
+                        m_log.ErrorFormat("[UDPSERVER]: Caught Socket Error in the send buffer!. {0}",SockE.ToString());
+                    }
                 }
             }
         }

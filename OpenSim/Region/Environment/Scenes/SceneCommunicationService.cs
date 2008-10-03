@@ -608,6 +608,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             bool destRegionUp = false;
 
+            IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
+
             if (regionHandle == m_regionInfo.RegionHandle)
             {
                 // Teleport within the same region
@@ -628,7 +630,12 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     position.Z = newPosZ;
                 }
-                avatar.ControllingClient.SendTeleportLocationStart();
+
+                // Only send this if the event queue is null
+                if (eq == null)
+                    avatar.ControllingClient.SendTeleportLocationStart();
+
+                
                 avatar.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
                 avatar.Teleport(position);
             }
@@ -637,7 +644,9 @@ namespace OpenSim.Region.Environment.Scenes
                 RegionInfo reg = RequestNeighbouringRegionInfo(regionHandle);
                 if (reg != null)
                 {
-                    avatar.ControllingClient.SendTeleportLocationStart();
+                    if (eq == null)
+                        avatar.ControllingClient.SendTeleportLocationStart();
+
                     AgentCircuitData agent = avatar.ControllingClient.RequestClientInfo();
                     agent.BaseFolder = UUID.Zero;
                     agent.InventoryFolder = UUID.Zero;
@@ -687,7 +696,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
 
-                        IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
+                        
                         if (eq != null)
                         {
                             LLSD Item = EventQueueHelper.TeleportFinishEvent(reg.RegionHandle, 13, reg.ExternalEndPoint,
