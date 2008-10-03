@@ -214,6 +214,10 @@ namespace OpenSim.Framework.Servers
             m_log.Info("[STARTUP]: Version: " + m_version + "\n");
             
             StartupSpecific();
+            
+            TimeSpan timeTaken = DateTime.Now - m_startuptime;
+            
+            m_log.InfoFormat("[STARTUP]: Server startup took {0}m {1}s", timeTaken.Minutes, timeTaken.Seconds);
         }
 
         /// <summary>
