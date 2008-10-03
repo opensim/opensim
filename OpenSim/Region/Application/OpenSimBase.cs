@@ -150,8 +150,7 @@ namespace OpenSim
             set { m_moduleLoader = value; }
         }
 
-        public OpenSimBase(IConfigSource configSource)
-            : base()
+        public OpenSimBase(IConfigSource configSource) : base()
         {
             IConfig startupConfig = configSource.Configs["Startup"];
 
@@ -179,7 +178,7 @@ namespace OpenSim
                 {
                     if (File.Exists("OpenSim.xml"))
                     {
-                        //check for a xml config file
+                        // check for a xml config file
                         Application.iniFilePath = "OpenSim.xml";
                         m_config.Source = new XmlConfigSource();
                         m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
@@ -187,9 +186,7 @@ namespace OpenSim
                     }
                     else
                     {
-                        //Application.iniFilePath = "OpenSim.xml";
-                       // m_config.ConfigSource = new XmlConfigSource();
-                        // no default config files, so set default values, and save it
+                        // using OpenSim.ini instead
                         m_config.Source.Merge(DefaultConfig());
                         m_config.Source.Merge(configSource);
                         m_config.Save(Application.iniFilePath);
@@ -293,7 +290,6 @@ namespace OpenSim
             }
 
             return DefaultConfig;
-
         }
 
         protected virtual void ReadConfigSettings()
@@ -354,14 +350,15 @@ namespace OpenSim
         protected void LoadPlugins()
         {
             PluginLoader<IApplicationPlugin> loader =
-                new PluginLoader<IApplicationPlugin> (new ApplicationPluginInitialiser (this));
+                new PluginLoader<IApplicationPlugin>(new ApplicationPluginInitialiser(this));
 
-            loader.Load ("/OpenSim/Startup");
+            loader.Load("/OpenSim/Startup");
             m_plugins = loader.Plugins;
         }
 
         /// <summary>
-        /// Performs initialisation of the scene, such as loading configuration from disk.
+        /// Performs startup specific to this region server, including initialization of the scene 
+        /// such as loading configuration from disk.
         /// </summary>
         protected override void StartupSpecific()
         {
@@ -501,9 +498,7 @@ namespace OpenSim
             regionInfo.originRegionID = regionInfo.RegionID;
 
             // set initial ServerURI
-            regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName
-                + ":" + regionInfo.InternalEndPoint.Port.ToString();
-
+            regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.InternalEndPoint.Port;
             regionInfo.HttpPort = m_httpServerPort;
 
             if ((proxyUrl.Length > 0) && (portadd_flag))
@@ -514,11 +509,12 @@ namespace OpenSim
             }
 
             IClientNetworkServer clientServer;
-            Scene scene = SetupScene(regionInfo, proxyOffset, out clientServer);
+            Scene scene = SetupScene(regionInfo, proxyOffset, null, out clientServer);
 
             m_log.Info("[MODULES]: Loading Region's modules");
 
             List<IRegionModule> modules = m_moduleLoader.PickupModules(scene, ".");
+            
             // This needs to be ahead of the script engine load, so the
             // script module can pick up events exposed by a module
             m_moduleLoader.InitialiseSharedModules(scene);
@@ -530,7 +526,7 @@ namespace OpenSim
             
             scene.StartTimer();
 
-            //moved these here as the terrain texture has to be created after the modules are initialized
+            // moved these here as the terrain texture has to be created after the modules are initialized
             // and has to happen before the region is registered with the grid.
             scene.CreateTerrainTexture(false);
 

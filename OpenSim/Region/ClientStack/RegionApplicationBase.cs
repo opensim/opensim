@@ -70,6 +70,13 @@ namespace OpenSim.Region.ClientStack
         {
             get { return m_sceneManager; }
         }
+        
+        protected abstract void Initialize();
+        protected abstract PhysicsScene GetPhysicsScene();
+        protected abstract StorageManager CreateStorageManager(string connectionstring, string estateconnectionstring);
+        protected abstract ClientStackManager CreateClientStackManager();
+        protected abstract Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
+                                             AgentCircuitManager circuitManager);        
 
         protected override void StartupSpecific()
         {
@@ -79,7 +86,11 @@ namespace OpenSim.Region.ClientStack
 
             Initialize();
 
-            m_httpServer = new BaseHttpServer(m_httpServerPort,m_networkServersInfo.HttpUsesSSL,m_networkServersInfo.httpSSLPort, m_networkServersInfo.HttpSSLCN);
+            m_httpServer 
+                = new BaseHttpServer(
+                    m_httpServerPort, m_networkServersInfo.HttpUsesSSL, m_networkServersInfo.httpSSLPort, 
+                    m_networkServersInfo.HttpSSLCN);
+            
             if (m_networkServersInfo.HttpUsesSSL && (m_networkServersInfo.HttpListenerPort == m_networkServersInfo.httpSSLPort))
             {
                 m_log.Error("[HTTP]: HTTP Server config failed.   HTTP Server and HTTPS server must be on different ports");
@@ -89,19 +100,6 @@ namespace OpenSim.Region.ClientStack
             m_httpServer.Start();
         }
 
-        protected abstract void Initialize();
-
-        // protected void StartConsole()
-        // {
-        //     m_console = CreateConsole();
-        //     MainConsole.Instance = m_console;
-        // }
-
-        // protected abstract ConsoleBase CreateConsole();
-        protected abstract PhysicsScene GetPhysicsScene();
-        protected abstract StorageManager CreateStorageManager(string connectionstring, string estateconnectionstring);
-        protected abstract ClientStackManager CreateClientStackManager();
-
         protected PhysicsScene GetPhysicsScene(string engine, string meshEngine, IConfigSource config)
         {
             PhysicsPluginManager physicsPluginManager;
@@ -110,12 +108,28 @@ namespace OpenSim.Region.ClientStack
             return physicsPluginManager.GetPhysicsScene(engine, meshEngine, config);
         }
 
+        /// <summary>
+        /// Create a scene and its initial base structures.
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <param name="clientServer"> </param>
+        /// <returns></returns>        
         protected Scene SetupScene(RegionInfo regionInfo, out IClientNetworkServer clientServer)
         {
-            return SetupScene(regionInfo, 0, out clientServer);
+            return SetupScene(regionInfo, 0, null, out clientServer);
         }
 
-        protected Scene SetupScene(RegionInfo regionInfo, int proxyOffset, out IClientNetworkServer clientServer)
+        /// <summary>
+        /// Create a scene and its initial base structures.
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <param name="proxyOffset"></param>
+        /// <param name="clientStackUserSettings"></param>
+        /// <param name="clientServer"> </param>
+        /// <returns></returns>
+        protected Scene SetupScene(
+            RegionInfo regionInfo, int proxyOffset, ClientStackUserSettings clientStackUserSettings, 
+            out IClientNetworkServer clientServer)
         {
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             IPAddress listenIP = regionInfo.InternalEndPoint.Address;
@@ -126,7 +140,7 @@ namespace OpenSim.Region.ClientStack
             
             clientServer 
                 = m_clientStackManager.CreateServer(
-                    listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, new ClientStackUserSettings(),
+                    listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, clientStackUserSettings,
                     m_assetCache, circuitManager);
             
             regionInfo.InternalEndPoint.Port = (int)port;
@@ -172,8 +186,5 @@ namespace OpenSim.Region.ClientStack
             
             return scene;
         }
-
-        protected abstract Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
-                                             AgentCircuitManager circuitManager);
     }
 }

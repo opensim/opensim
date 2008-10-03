@@ -392,8 +392,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="sessionId"></param>
         /// <param name="circuitCode"></param>
         /// <param name="proxyEP"></param>
-        public LLClientView(EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
-                            AgentCircuitManager authenSessions, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
+        public LLClientView(
+            EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
+            AgentCircuitManager authenSessions, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP,
+            ClientStackUserSettings userSettings)
         {
             m_moneyBalance = 1000;
 
@@ -422,7 +424,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // in it to process.  It's an on-purpose threadlock though because
             // without it, the clientloop will suck up all sim resources.
 
-            m_PacketHandler = new LLPacketHandler(this, m_networkServer);
+            m_PacketHandler = new LLPacketHandler(this, m_networkServer, userSettings);
             m_PacketHandler.SynchronizeClient = SynchronizeClient;
 
             RegisterLocalPacketHandlers();

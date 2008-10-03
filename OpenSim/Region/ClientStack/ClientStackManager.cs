@@ -65,11 +65,45 @@ namespace OpenSim.Region.Environment
                 }
             }
         }
+        
+        /// <summary>
+        /// Create a server that can set up sessions for virtual world client <-> server communications
+        /// </summary>
+        /// <param name="_listenIP"></param>
+        /// <param name="port"></param>
+        /// <param name="proxyPortOffset"></param>
+        /// <param name="allow_alternate_port"></param>
+        /// <param name="assetCache"></param>
+        /// <param name="authenticateClass"></param>
+        /// <returns></returns>
+        public IClientNetworkServer CreateServer(
+            IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port,
+            AssetCache assetCache, AgentCircuitManager authenticateClass)
+        {    
+            return CreateServer(
+                _listenIP, ref port, proxyPortOffset, allow_alternate_port, null, assetCache, authenticateClass);                                               
+        }
 
+        /// <summary>
+        /// Create a server that can set up sessions for virtual world client <-> server communications
+        /// </summary>
+        /// <param name="_listenIP"></param>
+        /// <param name="port"></param>
+        /// <param name="proxyPortOffset"></param>
+        /// <param name="allow_alternate_port"></param>
+        /// <param name="settings">
+        /// Can be null, in which case default values are used
+        /// </param>
+        /// <param name="assetCache"></param>
+        /// <param name="authenticateClass"></param>
+        /// <returns></returns>        
         public IClientNetworkServer CreateServer(
             IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, ClientStackUserSettings settings,
             AssetCache assetCache, AgentCircuitManager authenticateClass)
         {
+            if (null == settings)
+                settings = new ClientStackUserSettings();
+            
             if (plugin != null)
             {
                 IClientNetworkServer server =
