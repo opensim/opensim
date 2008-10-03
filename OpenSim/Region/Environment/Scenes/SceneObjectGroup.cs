@@ -1809,7 +1809,7 @@ namespace OpenSim.Region.Environment.Scenes
             linkPart.LinkNum = m_parts.Count;
 
             linkPart.SetParent(this);
-           linkPart.AddFlag(PrimFlags.CreateSelected);
+            linkPart.AddFlag(PrimFlags.CreateSelected);
 
             //if (linkPart.PhysActor != null)
             //{
@@ -2081,6 +2081,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectPart selectionPart = GetChildPart(localID);
 
+            if (data[47] != 0) // Temporary
+                DetachFromBackup();
+
             if (selectionPart != null)
             {
                 lock (m_parts)
@@ -2089,7 +2092,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         if (part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
                         {
-                            data[47] = 0; // Reset physics
+                            data[46] = 0; // Reset physics
                             break;
                         }
                     }

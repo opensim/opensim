@@ -361,6 +361,7 @@ namespace OpenSim.Region.Environment.Scenes
         private uint _everyoneMask = (uint)PermissionMask.None;
         private uint _nextOwnerMask = (uint)PermissionMask.All;
         private PrimFlags _flags = 0;
+        private DateTime m_expires;
 
         public UUID CreatorID {
             get
@@ -449,6 +450,13 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_particleSystem; }
             set { m_particleSystem = value; }
+        }
+
+        [XmlIgnore]
+        public DateTime Expires
+        {
+            get { return m_expires; }
+            set { m_expires = value; }
         }
 
         /// <summary>
@@ -1050,15 +1058,15 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddFlag(PrimFlags flag)
         {
             // PrimFlags prevflag = Flags;
-            //uint objflags = Flags;
             if ((ObjectFlags & (uint) flag) == 0)
             {
                 //Console.WriteLine("Adding flag: " + ((PrimFlags) flag).ToString());
                 _flags |= flag;
+
+                if (flag == PrimFlags.TemporaryOnRez)
+                    Expires = DateTime.Now + new TimeSpan(600000000);
             }
-            //uint currflag = (uint)Flags;
-            //System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + Flags.ToString());
-            //ScheduleFullUpdate();
+            // System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + Flags.ToString());
         }
 
         /// <summary>

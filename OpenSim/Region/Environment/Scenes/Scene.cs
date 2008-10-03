@@ -760,6 +760,10 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_frame % m_update_presences == 0)
                     m_innerScene.UpdatePresences();
 
+                // Delete temp-on-rez stuff
+                if (m_frame % m_update_backup == 0)
+                    CleanTempObjects();
+
                 if (Region_Status != RegionStatus.SlaveScene)
                 {
                     if (m_frame % m_update_events == 0)
@@ -2069,6 +2073,12 @@ namespace OpenSim.Region.Environment.Scenes
                                 }
                                 else
                                 {
+                                    // Remove, then add, to ensure the expire
+                                    // time is refreshed. Wouldn't do to
+                                    // have it poof before the avatar gets
+                                    // there.
+                                    //
+                                    RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                                     RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
                                 }
                             }
@@ -4181,6 +4191,28 @@ namespace OpenSim.Region.Environment.Scenes
                     MoveTaskInventoryItems(remoteClient.AgentId, part.Name,
                             part, invList);
                 break;
+            }
+        }
+
+        public void CleanTempObjects()
+        {
+            List<EntityBase> objs = GetEntities();
+
+            foreach (EntityBase obj in objs)
+            {
+                if (obj is SceneObjectGroup)
+                {
+                    SceneObjectGroup grp = (SceneObjectGroup)obj;
+
+                    if (grp.RootPart != null)
+                    {
+                        if ((grp.RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
+                        {
+                            if (grp.RootPart.Expires <= DateTime.Now)
+                                DeleteSceneObject(grp);
+                        }
+                    }
+                }
             }
         }
     }
