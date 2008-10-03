@@ -130,9 +130,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
         }
 
-        public LLUDPServer(IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager authenticateClass)
+        public LLUDPServer(
+            IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, ClientStackUserSettings userSettings, 
+            AssetCache assetCache, AgentCircuitManager authenticateClass)
         {
-            Initialise(_listenIP, ref port, proxyPortOffset, allow_alternate_port, assetCache, authenticateClass);
+            Initialise(_listenIP, ref port, proxyPortOffset, allow_alternate_port, userSettings, assetCache, authenticateClass);
         }
 
         /// <summary>
@@ -142,10 +144,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="port"></param>
         /// <param name="proxyPortOffsetParm"></param>
         /// <param name="allow_alternate_port"></param>
+        /// <param name="settings"></param>
         /// <param name="assetCache"></param>
         /// <param name="circuitManager"></param>
         public void Initialise(
-            IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager circuitManager)
+            IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, ClientStackUserSettings userSettings,
+            AssetCache assetCache, AgentCircuitManager circuitManager)
         {
             proxyPortOffset = proxyPortOffsetParm;
             listenPort = (uint) (port + proxyPortOffsetParm);
@@ -153,7 +157,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Allow_Alternate_Port = allow_alternate_port;
             m_assetCache = assetCache;
             m_circuitManager = circuitManager;
-            CreatePacketServer();
+            CreatePacketServer(userSettings);
 
             // Return new port
             // This because in Grid mode it is not really important what port the region listens to as long as it is correctly registered.
@@ -161,9 +165,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             port = (uint)(listenPort - proxyPortOffsetParm);
         }
 
-        protected virtual void CreatePacketServer()
+        protected virtual void CreatePacketServer(ClientStackUserSettings userSettings)
         {
-            new LLPacketServer(this);
+            new LLPacketServer(this, userSettings);
         }
 
         /// <summary>

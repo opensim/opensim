@@ -25,25 +25,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Net;
-using System.Net.Sockets;
-using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Communications.Cache;
-
 namespace OpenSim.Region.ClientStack
 {
-    public interface IClientNetworkServer
+    /// <summary>
+    /// Allow users to tweak parameters for the client stack.
+    /// 
+    /// At the moment this is very incomplete - other tweakable settings could be added.  This is also somewhat LL client
+    /// oriented right now.
+    /// </summary>    
+    public class ClientStackUserSettings
     {
-        void Initialise(
-            IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, ClientStackUserSettings settings, 
-            AssetCache assetCache, AgentCircuitManager authenticateClass);
-
-        Socket Server { get; }
-        bool HandlesRegion(Location x);
-        void AddScene(Scene x);
-
-        void Start();
-        void Stop();
+        /// <summary>
+        /// The settings for the throttle that governs how many packets in total are sent to the client.
+        /// </summary>
+        public ThrottleSettings TotalThrottleSettings;
     }
 }

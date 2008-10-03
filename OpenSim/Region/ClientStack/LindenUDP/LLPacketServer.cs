@@ -47,10 +47,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //{
         //    get { return m_clientManager; }
         //}
+        
+        /// <summary>
+        /// Tweakable user settings
+        /// </summary>
+        private ClientStackUserSettings m_userSettings;        
 
-        public LLPacketServer(ILLClientStackNetworkHandler networkHandler)
+        public LLPacketServer(ILLClientStackNetworkHandler networkHandler, ClientStackUserSettings userSettings)
         {
+            m_userSettings = userSettings;            
             m_networkHandler = networkHandler;
+            
             m_networkHandler.RegisterPacketServer(this);
         }
 
@@ -90,7 +97,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                       UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
             return
-                new LLClientView(remoteEP, scene, assetCache, packServer, authenSessions, agentId, sessionId, circuitCode, proxyEP);
+                new LLClientView(
+                     remoteEP, scene, assetCache, packServer, authenSessions, agentId, sessionId, circuitCode, proxyEP,
+                     m_userSettings);
         }
 
         /// <summary>

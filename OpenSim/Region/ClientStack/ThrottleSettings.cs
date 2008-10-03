@@ -25,25 +25,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Net;
-using System.Net.Sockets;
-using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Communications.Cache;
-
 namespace OpenSim.Region.ClientStack
-{
-    public interface IClientNetworkServer
-    {
-        void Initialise(
-            IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, ClientStackUserSettings settings, 
-            AssetCache assetCache, AgentCircuitManager authenticateClass);
-
-        Socket Server { get; }
-        bool HandlesRegion(Location x);
-        void AddScene(Scene x);
-
-        void Start();
-        void Stop();
+{    
+    /// <summary>
+    /// Represent throttle settings for a client stack.  These settings are in bytes per second
+    /// </summary> 
+    public class ThrottleSettings
+    {        
+        /// <summary>
+        /// Minimum bytes per second that the throttle can be set to.
+        /// </summary>
+        public int Min;
+        
+        /// <summary>
+        /// Maximum bytes per second that the throttle can be set to.
+        /// </summary>        
+        public int Max;  
+        
+        /// <summary>
+        /// Current bytes per second that the throttle should be set to.
+        /// </summary>        
+        public int Current;    
+              
+        public ThrottleSettings(int min, int max, int current)
+        {
+            Min = min;
+            Max = max;
+            Current = current;
+        }
     }
 }

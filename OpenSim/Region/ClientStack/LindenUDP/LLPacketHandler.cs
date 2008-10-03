@@ -219,12 +219,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         // Constructors
         //
-        public LLPacketHandler(IClientAPI client, LLPacketServer server)
+        public LLPacketHandler(IClientAPI client, LLPacketServer server, ClientStackUserSettings userSettings)
         {
             m_Client = client;
             m_PacketServer = server;
 
-            m_PacketQueue = new LLPacketQueue(client.AgentId);
+            m_PacketQueue = new LLPacketQueue(client.AgentId, userSettings);
 
             m_AckTimer.Elapsed += AckTimerElapsed;
             m_AckTimer.Start();

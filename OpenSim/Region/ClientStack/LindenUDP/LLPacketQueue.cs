@@ -34,6 +34,7 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Statistics;
 using OpenSim.Framework.Statistics.Interfaces;
+using OpenSim.Region.ClientStack;
 using Timer=System.Timers.Timer;
 
 
@@ -45,7 +46,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Is throttling enabled at all?
+        /// Is queueing enabled at all?
         /// </summary>
         private bool m_enabled = true;
 
@@ -88,7 +89,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private UUID m_agentId;
 
-        public LLPacketQueue(UUID agentId)
+        public LLPacketQueue(UUID agentId, ClientStackUserSettings userSettings)
         {
             // While working on this, the BlockingQueue had me fooled for a bit.
             // The Blocking queue causes the thread to stop until there's something
@@ -108,7 +109,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TextureOutgoingPacketQueue = new Queue<LLQueItem>();
             AssetOutgoingPacketQueue = new Queue<LLQueItem>();
 
-
             // Set up the throttle classes (min, max, current) in bytes
             ResendThrottle = new LLPacketThrottle(5000, 100000, 16000);
             LandThrottle = new LLPacketThrottle(1000, 100000, 2000);
@@ -117,9 +117,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TaskThrottle = new LLPacketThrottle(1000, 800000, 3000);
             AssetThrottle = new LLPacketThrottle(1000, 800000, 1000);
             TextureThrottle = new LLPacketThrottle(1000, 800000, 4000);
+            
             // Total Throttle trumps all
-            // Number of bytes allowed to go out per second. (256kbps per client)
-            TotalThrottle = new LLPacketThrottle(0, 1500000, 28000);
+            // Number of bytes allowed to go out per second.            
+            ThrottleSettings totalThrottleSettings = userSettings.TotalThrottleSettings;
+            if (null == totalThrottleSettings)
+            {                
+                totalThrottleSettings = new ThrottleSettings(0, 1500000, 28000);
+            }
+            
+            TotalThrottle 
+                = new LLPacketThrottle(
+                    totalThrottleSettings.Min, totalThrottleSettings.Max, totalThrottleSettings.Current);
 
             throttleTimer = new Timer((int) (throttletimems/throttleTimeDivisor));
             throttleTimer.Elapsed += new ElapsedEventHandler(ThrottleTimerElapsed);

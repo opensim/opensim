@@ -123,7 +123,12 @@ namespace OpenSim.Region.ClientStack
             //    listenIP = IPAddress.Parse("0.0.0.0");
 
             uint port = (uint) regionInfo.InternalEndPoint.Port;
-            clientServer = m_clientStackManager.CreateServer(listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, m_assetCache, circuitManager);
+            
+            clientServer 
+                = m_clientStackManager.CreateServer(
+                    listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, new ClientStackUserSettings(),
+                    m_assetCache, circuitManager);
+            
             regionInfo.InternalEndPoint.Port = (int)port;
 
             Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);

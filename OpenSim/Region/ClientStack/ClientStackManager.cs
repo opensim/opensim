@@ -43,10 +43,11 @@ namespace OpenSim.Region.Environment
         private Type plugin;
         private Assembly pluginAssembly;
 
-        public ClientStackManager(string dllName) {
+        public ClientStackManager(string dllName) 
+        {
             m_log.Info("[CLIENTSTACK]: Attempting to load " + dllName);
 
-            plugin=null;
+            plugin = null;
             pluginAssembly = Assembly.LoadFrom(dllName);
 
             foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -65,16 +66,22 @@ namespace OpenSim.Region.Environment
             }
         }
 
-        public IClientNetworkServer CreateServer(IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager authenticateClass)
+        public IClientNetworkServer CreateServer(
+            IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, ClientStackUserSettings settings,
+            AssetCache assetCache, AgentCircuitManager authenticateClass)
         {
             if (plugin != null)
             {
                 IClientNetworkServer server =
                     (IClientNetworkServer) Activator.CreateInstance(pluginAssembly.GetType(plugin.ToString()));
-                server.Initialise(_listenIP, ref port, proxyPortOffset, allow_alternate_port, assetCache, authenticateClass);
+                
+                server.Initialise(
+                    _listenIP, ref port, proxyPortOffset, allow_alternate_port, settings, assetCache, authenticateClass);
+                
                 return server;
             }
-            m_log.Error("[CLIENTSTACK] Couldn't initialize a new server");
+            
+            m_log.Error("[CLIENTSTACK]: Couldn't initialize a new server");
             return null;
         }
     }
