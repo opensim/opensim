@@ -177,7 +177,12 @@ namespace OpenSim.Framework.Servers
             set
             {
                 if (HttpServer)
-                    _httpResponse.Connection = ConnectionType.KeepAlive;
+                {
+                    if (value == true)
+                        _httpResponse.Connection = ConnectionType.KeepAlive;
+                    else
+                        _httpResponse.Connection = ConnectionType.Close;
+                }
                 else
                     _httpListenerResponse.KeepAlive = value;
             }
