@@ -4696,19 +4696,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (cindex > 0)
                     {
                         ret.Add(str.Substring(0, cindex));
-                        // Cannot use spacers.Contains() because spacers may be either type String or LSLString
-                        for (int j = 0; j < spacers.Length; j++)
-                        {
-                            if (spacers.Data[j].ToString() == cdeli)
-                            {
-                                ret.Add(cdeli);
-                                break;
-                            }
-                        }
-                    }
-                    if (cindex == 0 && spacers.Contains(cdeli))
+					}
+                    // Cannot use spacers.Contains() because spacers may be either type String or LSLString
+                    for (int j = 0; j < spacers.Length; j++)
                     {
-                        ret.Add(cdeli);
+                        if (spacers.Data[j].ToString() == cdeli)
+                        {
+                            ret.Add(cdeli);
+                            break;
+                        }
                     }
                     str = str.Substring(cindex + cdeli.Length);
                 }
