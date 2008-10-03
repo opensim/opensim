@@ -217,7 +217,7 @@ namespace OpenSim.Framework.Servers
             
             TimeSpan timeTaken = DateTime.Now - m_startuptime;
             
-            m_log.InfoFormat("[STARTUP]: STARTUP COMPLETE - took {0}m {1}s", timeTaken.Minutes, timeTaken.Seconds);
+            m_log.InfoFormat("[STARTUP]: Startup took {0}m {1}s", timeTaken.Minutes, timeTaken.Seconds);
         }
 
         /// <summary>
