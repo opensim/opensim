@@ -236,7 +236,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public int GetStartParameter(UUID itemID)
         {
-            return 0;
+            return m_ScriptManager.GetStartParameter(itemID);
         }
         #endregion
 

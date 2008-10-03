@@ -611,5 +611,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             return null;
         }
+
+        public int GetStartParameter(UUID itemID)
+        {
+
+            uint localID = GetLocalID(itemID);
+
+            InstanceData id = GetScript(localID, itemID);
+
+            return id.StartParam;
+        }
     }
 }
