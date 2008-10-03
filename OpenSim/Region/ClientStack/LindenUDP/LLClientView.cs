@@ -783,8 +783,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     ClientLoop();
                 }
-            }
-                //Todo set as Generic Exception again.
+            }                
             catch (System.Exception e)
             {
                 if (e is ThreadAbortException)
@@ -794,7 +793,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
 
                 // Don't let a failure in an individual client thread crash the whole sim.
-                m_log.ErrorFormat("[CLIENT]: Client thread for {0} {1} crashed.  Logging them out.  Exception {2}", Name, AgentId, e);
+                m_log.ErrorFormat(
+                    "[CLIENT]: Client thread for {0} {1} crashed.  Logging them out.  Exception {2}", Name, AgentId, e);
 
                 try
                 {

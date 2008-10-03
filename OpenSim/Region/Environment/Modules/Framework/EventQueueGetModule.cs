@@ -268,10 +268,9 @@ namespace OpenSim.Region.Environment.Modules.Framework
                                                        {
                                                            return ProcessQueue(m_dhttpMethod,agentID, caps);
                                                        }));
-
-            bool boolval = false;
+            
             // This will persist this beyond the expiry of the caps handlers
-            boolval = m_scene.AddHTTPHandler(capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePath2);
+            m_scene.AddHTTPHandler(capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePath2);
 
             Random rnd = new Random(System.Environment.TickCount);
             lock (m_ids)
@@ -421,7 +420,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
             string capuuid = path.Replace("/CAPS/EQG/","");
             capuuid = capuuid.Substring(0, capuuid.Length - 1);
 
-            UUID AvatarID = UUID.Zero;
+//            UUID AvatarID = UUID.Zero;
             UUID capUUID = UUID.Zero;
             if (UUID.TryParse(capuuid, out capUUID))
             {

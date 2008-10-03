@@ -594,10 +594,10 @@ namespace OpenSim.Framework.Servers
                     case "application/xml":
                     default:
                         // Point of note..  the DoWeHaveA methods check for an EXACT path
-                        if (request.RawUrl.Contains("/CAPS/EQG"))
-                        {
-                            int i = 1;
-                        }
+//                        if (request.RawUrl.Contains("/CAPS/EQG"))
+//                        {
+//                            int i = 1;
+//                        }
                         if (DoWeHaveALLSDHandler(request.RawUrl))
                         { 
                             HandleLLSDRequests(request, response);

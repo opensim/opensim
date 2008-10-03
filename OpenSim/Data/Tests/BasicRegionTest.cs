@@ -395,14 +395,14 @@ namespace OpenSim.Data.Tests
             return i;
         }
 
-        private InventoryFolderBase NewFolder(UUID id, UUID parent, UUID owner, string name)
-        {
-            InventoryFolderBase f = new InventoryFolderBase();
-            f.ID = id;
-            f.ParentID = parent;
-            f.Owner = owner;
-            f.Name = name;
-            return f;
-        }
+//        private InventoryFolderBase NewFolder(UUID id, UUID parent, UUID owner, string name)
+//        {
+//            InventoryFolderBase f = new InventoryFolderBase();
+//            f.ID = id;
+//            f.ParentID = parent;
+//            f.Owner = owner;
+//            f.Name = name;
+//            return f;
+//        }
     }
 }

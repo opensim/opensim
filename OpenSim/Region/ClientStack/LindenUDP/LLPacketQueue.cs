@@ -413,10 +413,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-
         private static int ScaleThrottle(int value, int curmax, int newmax)
         {
-            return (value / curmax) * newmax;
+            return (int)((value / (float)curmax) * newmax);
         }
 
         public byte[] GetThrottlesPacked(float multiplier)

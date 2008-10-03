@@ -762,7 +762,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             Packet packet = item.Packet;
 
-
             // Assign sequence number here to prevent out of order packets
             if (packet.Header.Sequence == 0)
             {
