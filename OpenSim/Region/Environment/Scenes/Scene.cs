@@ -4215,5 +4215,10 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
+        public void DeleteFromStorage(UUID uuid)
+        {
+            m_storageManager.DataStore.RemoveObject(uuid, m_regInfo.RegionID);
+        }
     }
 }

@@ -714,8 +714,13 @@ namespace OpenSim.Region.Environment.Scenes
                 if (avatar.IsChildAgent) return;
 
                 DetachFromBackup();
-                m_rootPart.AttachedAvatar = agentID;
 
+                // Remove from database and parcel prim count
+                //
+                m_scene.DeleteFromStorage(UUID);
+                m_scene.EventManager.TriggerParcelPrimCountTainted();
+
+                m_rootPart.AttachedAvatar = agentID;
 
                 if (m_rootPart.PhysActor != null)
                 {
@@ -2082,7 +2087,13 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart selectionPart = GetChildPart(localID);
 
             if (data[47] != 0) // Temporary
+            {
                 DetachFromBackup();
+                // Remove from database and parcel prim count
+                //
+                m_scene.DeleteFromStorage(UUID);
+                m_scene.EventManager.TriggerParcelPrimCountTainted();
+            }
 
             if (selectionPart != null)
             {
