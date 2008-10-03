@@ -1258,7 +1258,19 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-
+        protected internal void PrimMaterial(IClientAPI remoteClient, uint primLocalID, string material)
+        {
+            SceneObjectGroup group = GetGroupByPrim(primLocalID);
+            if (group != null)
+            {
+                if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
+                {
+                    SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
+                    part.Material = Convert.ToByte(material);
+                    group.HasGroupChanged = true;
+                }
+            }
+        }
 
         protected internal void UpdateExtraParam(UUID agentID, uint primLocalID, ushort type, bool inUse, byte[] data)
         {

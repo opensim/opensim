@@ -107,6 +107,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;
         public event GenericCall7 OnObjectClickAction;
+        public event GenericCall7 OnObjectMaterial;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
         public event UpdateVector OnUpdatePrimGroupPosition;
@@ -473,7 +474,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                                                   Vector3 acc, Quaternion rotation, Vector3 rvel, uint flags,
                                                   UUID objectID, UUID ownerID, string text, byte[] color,
                                                   uint parentID,
-                                                  byte[] particleSystem, byte clickAction)
+                                                  byte[] particleSystem, byte clickAction, byte material)
         {
         }
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
@@ -481,7 +482,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                                                   Vector3 acc, Quaternion rotation, Vector3 rvel, uint flags,
                                                   UUID objectID, UUID ownerID, string text, byte[] color,
                                                   uint parentID,
-                                                  byte[] particleSystem, byte clickAction, byte[] textureanimation,
+                                                  byte[] particleSystem, byte clickAction, byte material, byte[] textureanimation,
                                                   bool attachment, uint AttachmentPoint, UUID AssetId, UUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius)
         {
         }

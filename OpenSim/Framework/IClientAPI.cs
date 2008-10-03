@@ -422,6 +422,7 @@ namespace OpenSim.Framework
         event GenericCall7 OnObjectDescription;
         event GenericCall7 OnObjectName;
         event GenericCall7 OnObjectClickAction;
+        event GenericCall7 OnObjectMaterial;
         event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         event UpdatePrimFlags OnUpdatePrimFlags;
         event UpdatePrimTexture OnUpdatePrimTexture;
@@ -593,13 +594,13 @@ namespace OpenSim.Framework
                                    Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel,
                                    uint flags,
                                    UUID objectID, UUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-                                   byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, UUID AssetId, UUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius);
+                                   byte clickAction, byte material, byte[] textureanim, bool attachment, uint AttachPoint, UUID AssetId, UUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius);
 
 
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                           Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel,
                                           uint flags, UUID objectID, UUID ownerID, string text, byte[] color,
-                                   uint parentID, byte[] particleSystem, byte clickAction);
+                                   uint parentID, byte[] particleSystem, byte clickAction, byte material);
 
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,

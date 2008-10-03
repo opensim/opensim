@@ -181,7 +181,7 @@ namespace OpenSim.Region.Environment.Scenes
         //unkown if this will be kept, added as a way of removing the group position from the group class
         protected Vector3 m_groupPosition;
         protected uint m_localId;
-        protected Material m_material = 0;
+        protected Material m_material = (Material)3; // Wood
         protected string m_name;
         protected Vector3 m_offsetPosition;
 
@@ -2106,7 +2106,7 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
             remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
                                                lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, _ownerID,
-                                               m_text, color, _parentID, m_particleSystem, m_clickAction, m_TextureAnimation, IsAttachment,
+                                               m_text, color, _parentID, m_particleSystem, m_clickAction, (byte)m_material, m_TextureAnimation, IsAttachment,
                                                AttachmentPoint,FromAssetID, Sound, SoundGain, SoundFlags, SoundRadius);
         }
 

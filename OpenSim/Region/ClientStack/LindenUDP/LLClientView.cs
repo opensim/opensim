@@ -172,6 +172,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private GenericCall7 handlerObjectDescription = null;
         private GenericCall7 handlerObjectName = null;
         private GenericCall7 handlerObjectClickAction = null;
+        private GenericCall7 handlerObjectMaterial = null;
         private ObjectPermissions handlerObjectPermissions = null;
         private RequestObjectPropertiesFamily handlerRequestObjectPropertiesFamily = null; //OnRequestObjectPropertiesFamily;
         private TextureRequest handlerTextureRequest = null;
@@ -870,6 +871,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;
         public event GenericCall7 OnObjectClickAction;
+        public event GenericCall7 OnObjectMaterial;
         public event ObjectIncludeInSearch OnObjectIncludeInSearch;
         public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         public event UpdatePrimFlags OnUpdatePrimFlags;
@@ -2395,14 +2397,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                           ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                           Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel,
                                           uint flags, UUID objectID, UUID ownerID, string text, byte[] color,
-                                          uint parentID, byte[] particleSystem, byte clickAction)
+                                          uint parentID, byte[] particleSystem, byte clickAction, byte material)
         {
             byte[] textureanim = new byte[0];
 
             SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, vel,
                                   acc, rotation, rvel, flags,
                                   objectID, ownerID, text, color, parentID, particleSystem,
-                                  clickAction, textureanim, false, (uint)0, UUID.Zero, UUID.Zero, 0, 0, 0);
+                                  clickAction, material, textureanim, false, (uint)0, UUID.Zero, UUID.Zero, 0, 0, 0);
         }
 
         public void SendPrimitiveToClient(
@@ -2410,7 +2412,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Vector3 pos, Vector3 velocity, Vector3 acceleration, Quaternion rotation, Vector3 rotational_velocity,
             uint flags,
             UUID objectID, UUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-            byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, UUID AssetId, UUID SoundId, double SoundGain, byte SoundFlags, double SoundRadius)
+            byte clickAction, byte material, byte[] textureanim, bool attachment, uint AttachPoint, UUID AssetId, UUID SoundId, double SoundGain, byte SoundFlags, double SoundRadius)
         {
 
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
@@ -2447,6 +2449,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             outPacket.ObjectData[0].ParentID = parentID;
             outPacket.ObjectData[0].PSBlock = particleSystem;
             outPacket.ObjectData[0].ClickAction = clickAction;
+            outPacket.ObjectData[0].Material = material;
             outPacket.ObjectData[0].Flags = 0;
 
             if (attachment)
@@ -4861,6 +4864,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                  byte action = odata.ClickAction;
                                  uint localID = odata.ObjectLocalID;
                                  handlerObjectClickAction(this, localID, action.ToString());
+                             }
+                         }
+                         break;
+
+                     case PacketType.ObjectMaterial:
+                         ObjectMaterialPacket ompacket = (ObjectMaterialPacket)Pack;
+
+                         handlerObjectMaterial = OnObjectMaterial;
+                         if (handlerObjectMaterial != null)
+                         {
+                             foreach (ObjectMaterialPacket.ObjectDataBlock odata in ompacket.ObjectData)
+                             {
+                                 byte material = odata.Material;
+                                 uint localID = odata.ObjectLocalID;
+                                 handlerObjectMaterial(this, localID, material.ToString());
                              }
                          }
                          break;

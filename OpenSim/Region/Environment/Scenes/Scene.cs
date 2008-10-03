@@ -2158,6 +2158,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectDescription += m_innerScene.PrimDescription;
             client.OnObjectName += m_innerScene.PrimName;
             client.OnObjectClickAction += m_innerScene.PrimClickAction;
+            client.OnObjectMaterial += m_innerScene.PrimMaterial;
             client.OnLinkObjects += m_innerScene.LinkObjects;
             client.OnDelinkObjects += m_innerScene.DelinkObjects;
             client.OnObjectDuplicate += m_innerScene.DuplicateObject;
