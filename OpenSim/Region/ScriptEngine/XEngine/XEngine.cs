@@ -342,7 +342,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             int lineEnd = script.IndexOf('\n');
 
-            if (lineEnd != 1)
+            if (lineEnd > 1)
             {
                 string firstline = script.Substring(0, lineEnd).Trim();
 

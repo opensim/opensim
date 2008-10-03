@@ -1684,7 +1684,8 @@ namespace OpenSim.Region.Environment.Scenes
                     Queue<InventoryFolderImpl> searchfolders = new Queue<InventoryFolderImpl>();
                     searchfolders.Enqueue(userInfo.RootFolder);
 
-                    UUID foundFolder = userInfo.RootFolder.ID;
+                    UUID foundFolder = UUID.Zero;
+                    InventoryItemBase item = null;
 
                     // search through folders to find the asset.
                     while (searchfolders.Count > 0)
@@ -1696,6 +1697,7 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 if (fld.Items.ContainsKey(assetID))
                                 {
+                                    item = fld.Items[assetID];
                                     foundFolder = fld.ID;
                                     searchfolders.Clear();
                                     break;
@@ -1711,49 +1713,30 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
 
-                    AssetBase asset = CreateAsset(
-                        objectGroup.GetPartName(objectGroup.LocalId),
-                        objectGroup.GetPartDescription(objectGroup.LocalId),
-                        (sbyte)AssetType.Object,
-                        Utils.StringToBytes(sceneObjectXml));
-                    AssetCache.AddAsset(asset);
-
-                    InventoryItemBase item = new InventoryItemBase();
-                    item.Creator = objectGroup.RootPart.CreatorID;
-                    item.Owner = agentID;
-                    item.ID = assetID;
-                    item.AssetID = asset.FullID;
-                    item.Description = asset.Description;
-                    item.Name = asset.Name;
-                    item.AssetType = asset.Type;
-                    item.InvType = (int)InventoryType.Object;
-
-                    // Sticking it in root folder for now..    objects folder later?
-
-                    item.Folder = foundFolder;// DeRezPacket.AgentBlock.DestinationID;
-                    if ((agentID != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+                    if (foundFolder != UUID.Zero && item != null)
                     {
-                        item.BasePermissions = objectGroup.RootPart.NextOwnerMask;
-                        item.CurrentPermissions = objectGroup.RootPart.NextOwnerMask;
-                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                        item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
-                    }
-                    else
-                    {
-                        item.BasePermissions = objectGroup.GetEffectivePermissions();
-                        item.CurrentPermissions = objectGroup.GetEffectivePermissions();
-                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                        item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
-                    }
+                        AssetBase asset = CreateAsset(
+                            objectGroup.GetPartName(objectGroup.LocalId),
+                            objectGroup.GetPartDescription(objectGroup.LocalId),
+                            (sbyte)AssetType.Object,
+                            Utils.StringToBytes(sceneObjectXml));
+                        AssetCache.AddAsset(asset);
 
-                    userInfo.AddItem(item);
+                        item.AssetID = asset.FullID;
+                        item.Description = asset.Description;
+                        item.Name = asset.Name;
+                        item.AssetType = asset.Type;
+                        item.InvType = (int)InventoryType.Object;
+                        item.Folder = foundFolder;
 
-                    // this gets called when the agent loggs off!
-                    if (remoteClient != null)
-                    {
-                        remoteClient.SendInventoryItemCreateUpdate(item);
+                        userInfo.UpdateItem(item);
+
+                        // this gets called when the agent loggs off!
+                        if (remoteClient != null)
+                        {
+                            remoteClient.SendInventoryItemCreateUpdate(item);
+                        }
                     }
-
                 }
             }
         }
@@ -1786,9 +1769,8 @@ namespace OpenSim.Region.Environment.Scenes
                     item.AssetType = asset.Type;
                     item.InvType = (int)InventoryType.Object;
 
-                    // Sticking it in root folder for now..    objects folder later?
+                    item.Folder = UUID.Zero; // Objects folder!
 
-                    item.Folder = userInfo.RootFolder.ID;// DeRezPacket.AgentBlock.DestinationID;
                     if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                     {
                         item.BasePermissions = objectGroup.RootPart.NextOwnerMask;
@@ -1805,8 +1787,11 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     item.CreationDate = Util.UnixTimeSinceEpoch();
 
+                    grp.SetFromAssetID(item.ID);
+
                     userInfo.AddItem(item);
                     remoteClient.SendInventoryItemCreateUpdate(item);
+
                     return item.AssetID;
                 }
                 return UUID.Zero;

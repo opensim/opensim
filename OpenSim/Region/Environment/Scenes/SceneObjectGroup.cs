@@ -734,16 +734,18 @@ namespace OpenSim.Region.Environment.Scenes
                 m_rootPart.IsAttachment = true;
 
                 m_rootPart.SetParentLocalId(avatar.LocalId);
-                lock (m_parts)
-                {
-                    foreach (SceneObjectPart part in m_parts.Values)
-                    {
-                        part.SetAttachmentPoint(attachmentpoint);
-                    }
-                }
+                SetAttachmentPoint(Convert.ToByte(attachmentpoint));
 
                 avatar.AddAttachment(this);
-                m_rootPart.ScheduleFullUpdate();
+                // Killing it here will cause the client to deselect it
+                // It then reappears on the avatar, deselected
+                // through the full update below
+                //
+                foreach (SceneObjectPart part in m_parts.Values)
+                    m_scene.SendKiPrimitive(part.LocalId);
+
+                IsSelected = false; // fudge....
+                ScheduleGroupForFullUpdate();
             }
         }
         public byte GetAttachmentPoint()
@@ -757,10 +759,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ClearPartAttachmentData()
         {
-            foreach (SceneObjectPart part in m_parts.Values)
-            {
-                part.SetAttachmentPoint((Byte)0);
-            }
+            SetAttachmentPoint((Byte)0);
         }
 
         public void DetachToGround()
@@ -775,7 +774,7 @@ namespace OpenSim.Region.Environment.Scenes
             AbsolutePosition = detachedpos;
             m_rootPart.AttachedAvatar = UUID.Zero;
             m_rootPart.SetParentLocalId(0);
-            m_rootPart.SetAttachmentPoint((byte)0);
+            SetAttachmentPoint((byte)0);
             m_rootPart.IsAttachment = false;
             m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             HasGroupChanged = true;
@@ -2754,6 +2753,15 @@ namespace OpenSim.Region.Environment.Scenes
         public override string ToString()
         {
             return String.Format("{0} {1} ({2})", Name, UUID, AbsolutePosition);
+        }
+
+        public void SetAttachmentPoint(byte point)
+        {
+            lock(m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                    part.SetAttachmentPoint(point);
+            }
         }
     }
 }

@@ -418,8 +418,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="rot"></param>
         protected internal void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot)
         {
-            // Calls attach with a Zero position
+            // If we can't take it, we can't attach it!
+            //
+            SceneObjectPart part = m_parentScene.GetSceneObjectPart(objectLocalID);
+            if (part == null)
+                return;
 
+            if (!m_parentScene.ExternalChecks.ExternalChecksCanTakeObject(
+                    part.UUID, remoteClient.AgentId))
+                return;
+
+            // Calls attach with a Zero position
+            //
             AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero);
         }
 
@@ -431,6 +441,7 @@ namespace OpenSim.Region.Environment.Scenes
                 (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
                 (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
                 ItemFlags, false, false, remoteClient.AgentId, true);
+            objatt.SetAttachmentPoint(Convert.ToByte(AttachmentPt));
 
             if (objatt != null)
             {
@@ -514,7 +525,6 @@ namespace OpenSim.Region.Environment.Scenes
                                 UUID newAssetID = m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId);
 
                                 // sets assetID so client can show asset as 'attached' in inventory
-                                group.SetFromAssetID(newAssetID);
                             }
                             group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos);
                             // In case it is later dropped again, don't let

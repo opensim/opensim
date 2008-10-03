@@ -2097,6 +2097,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="clientFlags"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient, Vector3 lPos, uint clientFlags)
         {
+            // Suppress full updates during attachment editing
+            //
+            if (ParentGroup.IsSelected && IsAttachment)
+                return;
+
             clientFlags &= ~(uint) PrimFlags.CreateSelected;
 
             if (remoteClient.AgentId == _ownerID)
