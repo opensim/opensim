@@ -214,6 +214,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetScriptEngineName();
         }
+		
+		public string osGetSimulatorVersion()
+		{
+		   return m_OSSL_Functions.osGetSimulatorVersion();	
+		}
 
 
         //for testing purposes only
