@@ -517,6 +517,10 @@ namespace OpenSim.Region.Environment.Scenes
                                 group.SetFromAssetID(newAssetID);
                             }
                             group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos);
+                            // In case it is later dropped again, don't let
+                            // it get cleaned up
+                            //
+                            group.RootPart.RemFlag(PrimFlags.TemporaryOnRez);
                         }
                         else
                         {

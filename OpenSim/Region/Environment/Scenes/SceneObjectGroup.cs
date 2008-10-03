@@ -713,7 +713,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // don't attach attachments to child agents
                 if (avatar.IsChildAgent) return;
 
-                DetachFromBackup(this);
+                DetachFromBackup();
                 m_rootPart.AttachedAvatar = agentID;
 
 
@@ -955,7 +955,7 @@ namespace OpenSim.Region.Environment.Scenes
             // code needs a redesign.
             m_isDeleted = true;
 
-            DetachFromBackup(this);
+            DetachFromBackup();
 
             lock (m_parts)
             {
@@ -1925,9 +1925,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// Stop this object from being persisted over server restarts.
         /// </summary>
         /// <param name="objectGroup"></param>
-        public void DetachFromBackup(SceneObjectGroup objectGroup)
+        public void DetachFromBackup()
         {
-            m_scene.EventManager.OnBackup -= objectGroup.ProcessBackup;
+            m_scene.EventManager.OnBackup -= ProcessBackup;
         }
 
         private void LinkNonRootPart(SceneObjectPart part, Vector3 oldGroupPosition, Quaternion oldGroupRotation)

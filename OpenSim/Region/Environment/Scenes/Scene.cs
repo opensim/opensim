@@ -2052,6 +2052,10 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             if (RootPrim.Shape.State != 0)
                             {
+                                // Never persist
+
+                                grp.DetachFromBackup();
+
                                 // Attachment
                                 ScenePresence sp = GetScenePresence(grp.OwnerID);
                                 if (sp != null)
@@ -2062,6 +2066,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                                     grp.SetFromAssetID(grp.RootPart.LastOwnerID);
                                     AttachObject(sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition);
+                                }
+                                else
+                                {
+                                    RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
                                 }
                             }
                         }
