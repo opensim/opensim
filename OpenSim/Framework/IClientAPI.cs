@@ -363,7 +363,7 @@ namespace OpenSim.Framework
         // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
         event ImprovedInstantMessage OnInstantMessage;
         // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments. Rename OnChat.")]
-        event ChatMessage OnChatFromViewer;
+        event ChatMessage OnChatFromClient;
         // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
         event TextureRequest OnRequestTexture;
         // [Obsolete("LLClientView Specific - Remove bitbuckets. Adam, can you be more specific here..  as I don't see any bit buckets.")]

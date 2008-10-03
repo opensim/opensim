@@ -381,7 +381,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         protected void StartManaging(IClientAPI client)
         {
             m_log.Debug("[CONTENT MANAGEMENT] Registering channel with chat services.");
-            client.OnChatFromViewer += SimChatSent;
+            // client.OnChatFromClient += SimChatSent;
             //init = true;
 
             OnNewClient(client);
@@ -412,7 +412,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 {
                     IClientAPI client = presence.ControllingClient;
                     m_log.Debug("[CONTENT MANAGEMENT] Unregistering channel with chat services.");
-                    client.OnChatFromViewer -= SimChatSent;
+                    // client.OnChatFromViewer -= SimChatSent;
 
                     m_log.Debug("[CONTENT MANAGEMENT] Removing handlers to client");
                     client.OnUpdatePrimScale -= UpdateSingleScale;
@@ -641,6 +641,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_log.Debug("[CONTENT MANAGEMENT] Initializing Content Management System.");
 
             scene.EventManager.OnNewClient += StartManaging;
+            scene.EventManager.OnChatFromClient += SimChatSent;
             scene.EventManager.OnRemovePresence += StopManaging;
             //    scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
             scene.EventManager.OnObjectBeingRemovedFromScene += GroupBeingDeleted;

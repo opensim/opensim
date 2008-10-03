@@ -230,14 +230,20 @@ namespace OpenSim.Region.Environment.Scenes
         public event DeregisterCapsEvent OnDeregisterCaps;
         /// <summary>
         /// ChatFromWorldEvent is called via Scene when a chat message
-        /// from world comes in (chat from viewer is available via
-        /// client.OnChatFromViewer).
+        /// from world comes in.
         /// </summary>
         public delegate void ChatFromWorldEvent(Object sender, OSChatMessage chat);
         public event ChatFromWorldEvent OnChatFromWorld;
         /// <summary>
+        /// ChatFromClientEvent is triggered via ChatModule (or
+        /// substitutes thereof) when a chat message
+        /// from the client  comes in.
+        /// </summary>
+        public delegate void ChatFromClientEvent(Object sender, OSChatMessage chat);
+        public event ChatFromClientEvent OnChatFromClient;
+        /// <summary>
         /// ChatBroadcastEvent is called via Scene when a broadcast chat message
-        /// from world comes in (chat from viewer is available via client.OnChatFromViewer).
+        /// from world comes in
         /// </summary>
         public delegate void ChatBroadcastEvent(Object sender, OSChatMessage chat);
         public event ChatBroadcastEvent OnChatBroadcast;
@@ -349,6 +355,7 @@ namespace OpenSim.Region.Environment.Scenes
         private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
         private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
         private ChatFromWorldEvent handlerChatFromWorld = null; // OnChatFromWorld;
+        private ChatFromClientEvent handlerChatFromClient = null; // OnChatFromClient;
         private ChatBroadcastEvent handlerChatBroadcast = null; // OnChatBroadcast;
         private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
         private RequestChangeWaterHeight handlerRequestChangeWaterHeight = null; //OnRequestChangeWaterHeight
@@ -769,6 +776,15 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerChatFromWorld != null)
             {
                 handlerChatFromWorld(sender, chat);
+            }
+        }
+
+        public void TriggerOnChatFromClient(Object sender, OSChatMessage chat)
+        {
+            handlerChatFromClient = OnChatFromClient;
+            if (handlerChatFromClient != null)
+            {
+                handlerChatFromClient(sender, chat);
             }
         }
 

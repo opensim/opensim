@@ -124,8 +124,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private GenericMessage handlerGenericMessage = null;
         private RequestAvatarProperties handlerRequestAvatarProperties = null; //OnRequestAvatarProperties;
         private UpdateAvatarProperties handlerUpdateAvatarProperties = null; // OnUpdateAvatarProperties;
-        private ChatMessage handlerChatFromViewer = null; //OnChatFromViewer;
-        private ChatMessage handlerChatFromViewer2 = null; //OnChatFromViewer;
+        private ChatMessage handlerChatFromClient = null; //OnChatFromClient;
+        private ChatMessage handlerChatFromClient2 = null; //OnChatFromClient;
         private ImprovedInstantMessage handlerInstantMessage = null; //OnInstantMessage;
         private FriendActionDelegate handlerApproveFriendRequest = null; //OnApproveFriendRequest;
         private FriendshipTermination handlerTerminateFriendship = null; //OnTerminateFriendship;
@@ -393,7 +393,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="circuitCode"></param>
         /// <param name="proxyEP"></param>
         public LLClientView(EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
-                          AgentCircuitManager authenSessions, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
+                            AgentCircuitManager authenSessions, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
             m_moneyBalance = 1000;
 
@@ -833,7 +833,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event Action<IClientAPI> OnConnectionClosed;
         public event ViewerEffectEventHandler OnViewerEffect;
         public event ImprovedInstantMessage OnInstantMessage;
-        public event ChatMessage OnChatFromViewer;
+        public event ChatMessage OnChatFromClient;
         public event TextureRequest OnRequestTexture;
         public event RezObject OnRezObject;
         public event GenericCall4 OnDeRezObject;
@@ -4008,7 +4008,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         int channel = inchatpack.ChatData.Channel;
 
-                        if (OnChatFromViewer != null)
+                        if (OnChatFromClient != null)
                         {
                             OSChatMessage args = new OSChatMessage();
                             args.Channel = channel;
@@ -4020,9 +4020,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             args.Scene = Scene;
                             args.Sender = this;
 
-                            handlerChatFromViewer = OnChatFromViewer;
-                            if (handlerChatFromViewer != null)
-                                handlerChatFromViewer(this, args);
+                            handlerChatFromClient = OnChatFromClient;
+                            if (handlerChatFromClient != null)
+                                handlerChatFromClient(this, args);
                         }
                         break;
                     case PacketType.AvatarPropertiesUpdate:
@@ -4047,7 +4047,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ScriptDialogReplyPacket rdialog = (ScriptDialogReplyPacket)Pack;
                         int ch = rdialog.Data.ChatChannel;
                         byte[] msg = rdialog.Data.ButtonLabel;
-                        if (OnChatFromViewer != null)
+                        if (OnChatFromClient != null)
                         {
                             OSChatMessage args = new OSChatMessage();
                             args.Channel = ch;
@@ -4057,9 +4057,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             args.Position = new Vector3();
                             args.Scene = Scene;
                             args.Sender = this;
-                            handlerChatFromViewer2 = OnChatFromViewer;
-                            if (handlerChatFromViewer2 != null)
-                                handlerChatFromViewer2(this, args);
+                            handlerChatFromClient2 = OnChatFromClient;
+                            if (handlerChatFromClient2 != null)
+                                handlerChatFromClient2(this, args);
                         }
 
                         break;

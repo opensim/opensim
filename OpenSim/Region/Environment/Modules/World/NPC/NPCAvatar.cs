@@ -59,22 +59,22 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         public void Say(string message)
         {
-            SendOnChatFromViewer(message, ChatTypeEnum.Say);
+            SendOnChatFromClient(message, ChatTypeEnum.Say);
         }
 
         public void Shout(string message)
         {
-            SendOnChatFromViewer(message, ChatTypeEnum.Shout);
+            SendOnChatFromClient(message, ChatTypeEnum.Shout);
         }
 
         public void Whisper(string message)
         {
-            SendOnChatFromViewer(message, ChatTypeEnum.Whisper);
+            SendOnChatFromClient(message, ChatTypeEnum.Whisper);
         }
 
         public void Broadcast(string message)
         {
-            SendOnChatFromViewer(message, ChatTypeEnum.Broadcast);
+            SendOnChatFromClient(message, ChatTypeEnum.Broadcast);
         }
 
         public void GiveMoney(UUID target, int amount)
@@ -132,19 +132,19 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         #region Internal Functions
 
-        private void SendOnChatFromViewer(string message, ChatTypeEnum chatType)
+        private void SendOnChatFromClient(string message, ChatTypeEnum chatType)
         {
-            OSChatMessage chatFromViewer = new OSChatMessage();
-            chatFromViewer.Channel = 0;
-            chatFromViewer.From = Name;
-            chatFromViewer.Message = message;
-            chatFromViewer.Position = StartPos;
-            chatFromViewer.Scene = m_scene;
-            chatFromViewer.Sender = this;
-            chatFromViewer.SenderUUID = AgentId;
-            chatFromViewer.Type = chatType;
+            OSChatMessage chatFromClient = new OSChatMessage();
+            chatFromClient.Channel = 0;
+            chatFromClient.From = Name;
+            chatFromClient.Message = message;
+            chatFromClient.Position = StartPos;
+            chatFromClient.Scene = m_scene;
+            chatFromClient.Sender = this;
+            chatFromClient.SenderUUID = AgentId;
+            chatFromClient.Type = chatType;
 
-            OnChatFromViewer(this, chatFromViewer);
+            OnChatFromClient(this, chatFromClient);
         }
 
         #endregion
@@ -161,7 +161,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event Action<IClientAPI> OnConnectionClosed;
         public event GenericMessage OnGenericMessage;
         public event ImprovedInstantMessage OnInstantMessage;
-        public event ChatMessage OnChatFromViewer;
+        public event ChatMessage OnChatFromClient;
         public event TextureRequest OnRequestTexture;
         public event RezObject OnRezObject;
         public event ModifyTerrain OnModifyTerrain;

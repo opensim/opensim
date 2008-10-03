@@ -50,7 +50,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
         private int _conciergeChannel = 42;
         private List<Scene> _scenes = new List<Scene>();
         private IConfig _config;
-        private string _whoami = null;
+        private string _whoami = "conferencier";
 
         internal object _syncy = new object();
 
@@ -78,8 +78,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 return;
             }
 
-            _conciergeChannel = config.Configs["Concierge"].GetInt("concierge_channel", _conciergeChannel);
-            _whoami = _config.GetString("concierge_name", "conferencier");
+            if (_config != null)
+            {
+                _conciergeChannel = config.Configs["Concierge"].GetInt("concierge_channel", _conciergeChannel);
+                _whoami = _config.GetString("whoami", "conferencier");
+            }
+            _log.InfoFormat("[Concierge] reporting as \"{0}\" to our users", _whoami);
 
             lock (_syncy)
             {
@@ -88,8 +92,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                     _scenes.Add(scene);
                     // subscribe to NewClient events
                     scene.EventManager.OnNewClient += OnNewClient;
+                    scene.EventManager.OnNewClient += OnNewClient;
 
-                    // subscribe to *Chat events
+                    // subscribe to *Chat events and FilterChat* events
                     scene.EventManager.OnChatFromWorld += OnSimChat;
                     scene.EventManager.OnChatBroadcast += OnSimBroadcast;
 
@@ -124,18 +129,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
         #region ISimChat Members
         public void OnSimBroadcast(Object sender, OSChatMessage c)
         {
-            if (_conciergeChannel == c.Channel)
-            { 
-                // concierge request: interpret
-                return;
-            }
-
-            if (0 == c.Channel || DEBUG_CHANNEL == c.Channel)
-            {
-                // log as avatar/prim chat
-                return;
-            }
-
+            // log to buffer?
             return;
         }
 
@@ -149,6 +143,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
             if (0 == c.Channel || DEBUG_CHANNEL == c.Channel)
             {
+                // if (_amplify)
+                // {
+                    
+                // }
+
                 // log as avatar/prim chat
                 return;
             }
@@ -161,14 +160,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
         public void OnNewClient(IClientAPI client)
         {
-            try
-            {
-                client.OnChatFromViewer += OnSimChat;
-            }
-            catch (Exception ex)
-            {
-                _log.Error("[Concierge]: NewClient exception trap:" + ex.ToString());
-            }
+            client.OnLogout += OnClientLoggedOut;
+            client.OnConnectionClosed += OnClientLoggedOut;
+
+            _log.DebugFormat("[Concierge] {0} logs on to {1}", client.Name, client.Scene.RegionInfo.RegionName);
+            AnnounceToAgentsRegion(client, String.Format("{0} logs on to {1}", client.Name, client.Scene.RegionInfo.RegionName));
+        }
+
+        public void OnClientLoggedOut(IClientAPI client)
+        {
+            client.OnLogout -= OnClientLoggedOut;
+            client.OnConnectionClosed -= OnClientLoggedOut;
+            
+            _log.DebugFormat("[Concierge] {0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName);
+            AnnounceToAgentsRegion(client, String.Format("{0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName));
         }
 
 
@@ -188,12 +193,21 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
         public void ClientLoggedOut(IClientAPI client)
         {
-            string clientName = String.Format("{0} {1}", client.FirstName, client.LastName);
-            _log.DebugFormat("[CONCIERGE] {0} logging off.", clientName);
+            _log.DebugFormat("[Concierge] {0} logs out of {1}", client.Name, client.Scene.RegionInfo.RegionName);
+            AnnounceToAgentsRegion(client, String.Format("{0} logs out of {1}", client.Name, client.Scene.RegionInfo.RegionName));
         }
 
 
         static private Vector3 posOfGod = new Vector3(128, 128, 9999);
+
+        protected void AnnounceToAgentsRegion(IClientAPI client, string msg)
+        {
+            ScenePresence agent = null;
+            if ((client.Scene is Scene) && (client.Scene as Scene).TryGetAvatar(client.AgentId, out agent)) 
+                AnnounceToAgentsRegion(agent, msg);
+            else
+                _log.DebugFormat("[Concierge] could not find an agent for client {0}", client.Name);
+        }
 
         protected void AnnounceToAgentsRegion(ScenePresence scenePresence, string msg)
         {

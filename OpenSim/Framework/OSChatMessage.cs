@@ -140,6 +140,11 @@ namespace OpenSim.Framework
             set { m_scene = value; }
         }
 
+        public override string ToString()
+        {
+            return m_message;
+        }
+
         #endregion
     }
 }

@@ -55,7 +55,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event Action<IClientAPI> OnConnectionClosed;
 
         public event ImprovedInstantMessage OnInstantMessage;
-        public event ChatMessage OnChatFromViewer;
+        public event ChatMessage OnChatFromClient;
         public event TextureRequest OnRequestTexture;
         public event RezObject OnRezObject;
         public event ModifyTerrain OnModifyTerrain;
@@ -696,7 +696,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
                 if (count >= 10)
                 {
-                    if (OnChatFromViewer != null)
+                    if (OnChatFromClient != null)
                     {
                         OSChatMessage args = new OSChatMessage();
                         args.Message = "Hey You! Get out of my Home. This is my Region";
@@ -706,7 +706,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                         args.Sender = this;
                         args.Type = ChatTypeEnum.Shout;
 
-                        OnChatFromViewer(this, args);
+                        OnChatFromClient(this, args);
                     }
                     count = -1;
                 }

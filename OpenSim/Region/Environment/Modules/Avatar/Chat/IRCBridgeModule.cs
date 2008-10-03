@@ -93,6 +93,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     m_scenes.Add(scene);
                     scene.EventManager.OnNewClient += OnNewClient;
                     scene.EventManager.OnChatFromWorld += OnSimChat;
+                    scene.EventManager.OnChatFromClient += OnSimChat;
                     scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
                     scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
                 }
@@ -236,7 +237,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             if (avatar != null)
             {
-                fromName = avatar.Firstname + " " + avatar.Lastname;
+                fromName = avatar.Name;
             }
 
             // Try to reconnect to server if not connected
@@ -277,21 +278,19 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
             try
             {
-                string clientName = String.Format("{0} {1}", client.FirstName, client.LastName);
-
-                client.OnChatFromViewer += OnSimChat;
+                // client.OnChatFromViewer += OnSimChat;
                 client.OnLogout += OnClientLoggedOut;
                 client.OnConnectionClosed += OnClientLoggedOut;
 
-                if (clientName != m_last_new_user)
+                if (client.Name != m_last_new_user)
                 {
                     if ((m_irc.Enabled) && (m_irc.Connected))
                     {
-                        m_log.DebugFormat("[IRC] {0} logging on", clientName);
+                        m_log.DebugFormat("[IRC] {0} logging on", client.Name);
                         m_irc.PrivMsg(m_irc.Nick, "Sim",
-                        String.Format("notices {0} logging on", clientName));
+                        String.Format("notices {0} logging on", client.Name));
                     }
-                    m_last_new_user = clientName;
+                    m_last_new_user = client.Name;
                 }
             }
             catch (Exception ex)
@@ -343,21 +342,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 {
                     if ((m_irc.Enabled) && (m_irc.Connected))
                     {
-                        string clientName = String.Format("{0} {1}", client.FirstName, client.LastName);
                         // handles simple case. May not work for hundred connecting in per second.
                         // and the NewClients calles getting interleved
                         // but filters out multiple reports
-                        if (clientName != m_last_leaving_user)
+                        if (client.Name != m_last_leaving_user)
                         {
                             Console.WriteLine("Avatar was seen logging out.");
                             //Console.ReadLine();
                             Console.WriteLine();
-                            m_last_leaving_user = clientName;
-                            m_irc.PrivMsg(m_irc.Nick, "Sim", String.Format("notices {0} logging out", clientName));
-                            m_log.InfoFormat("[IRC]: {0} logging out", clientName);
+                            m_last_leaving_user = client.Name;
+                            m_irc.PrivMsg(m_irc.Nick, "Sim", String.Format("notices {0} logging out", client.Name));
+                            m_log.InfoFormat("[IRC]: {0} logging out", client.Name);
                         }
 
-                        if (m_last_new_user == clientName)
+                        if (m_last_new_user == client.Name)
                             m_last_new_user = null;
                     }
                 }

@@ -116,7 +116,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             m_scene = scene;
             m_scene.RegisterModuleInterface<IWorldComm>(this);
             m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
-            m_scene.EventManager.OnNewClient += NewClient;
+            m_scene.EventManager.OnChatFromClient += DeliverClientMessage;
             m_pendingQ = new Queue();
             m_pending = Queue.Synchronized(m_pendingQ);
         }
@@ -203,7 +203,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         /// enqueue the message for delivery to the objects listen event handler.
         /// The enqueued ListenerInfo no longer has filter values, but the actually trigged values.
         /// Objects that do an llSay have their messages delivered here and for nearby avatars,
-        /// the OnChatFromViewer event is used.
+        /// the OnChatFromClient event is used.
         /// </summary>
         /// <param name="type">type of delvery (whisper,say,shout or regionwide)</param>
         /// <param name="channel">channel to sent on</param>
@@ -311,10 +311,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
         #endregion
 
-        private void NewClient(IClientAPI client)
-        {
-            client.OnChatFromViewer += DeliverClientMessage;
-        }
+        // private void NewClient(IClientAPI client)
+        // {
+        //     client.OnChatFromViewer += DeliverClientMessage;
+        // }
 
         /********************************************************************
          *
