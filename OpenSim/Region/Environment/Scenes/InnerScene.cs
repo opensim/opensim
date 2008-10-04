@@ -543,7 +543,7 @@ namespace OpenSim.Region.Environment.Scenes
                             // Saves and gets assetID
                             if (group.GetFromAssetID() == UUID.Zero)
                             {
-                                UUID newAssetID = m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId);
+                                m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId);
 
                                 // sets assetID so client can show asset as 'attached' in inventory
                             }
