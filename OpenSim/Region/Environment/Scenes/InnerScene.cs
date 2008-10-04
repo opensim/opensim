@@ -1602,10 +1602,12 @@ namespace OpenSim.Region.Environment.Scenes
             if (IncludeInSearch && m_parentScene.ExternalChecks.ExternalChecksCanEditObject(objid, user))
             {
                 obj.ParentGroup.RootPart.AddFlag(PrimFlags.JointWheel);
+                obj.ParentGroup.HasGroupChanged = true;
             }
             else if (!IncludeInSearch && m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(objid,user))
             {
                 obj.ParentGroup.RootPart.RemFlag(PrimFlags.JointWheel);
+                obj.ParentGroup.HasGroupChanged = true;
             }
             #pragma warning restore 0612
         }
