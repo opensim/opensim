@@ -31,7 +31,9 @@ using System.Reflection;
 using System.Xml;
 using log4net;
 using OpenSim.Region.DataSnapshot.Interfaces;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Modules.World.Land;
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -103,34 +105,24 @@ namespace OpenSim.Region.DataSnapshot.Providers
                 {
                     SceneObjectGroup obj = (SceneObjectGroup)entity;
 
-                    m_log.Debug("[DATASNAPSHOT]: Found object " + obj.Name + " in scene");
+//                    m_log.Debug("[DATASNAPSHOT]: Found object " + obj.Name + " in scene");
 
                     // libomv will complain about PrimFlags.JointWheel
                     // being obsolete, so we...
                     #pragma warning disable 0612
-                    if ((obj.RootPart.Flags & PrimFlags.JointWheel) == PrimFlags.JointWheel) {
-                        XmlNode xmlobject = nodeFactory.CreateNode(XmlNodeType.Element, "object", "");
+                    if ((obj.RootPart.Flags & PrimFlags.JointWheel) == PrimFlags.JointWheel)
+                    {
+                        SceneObjectPart m_rootPart = obj.RootPart;
 
-                        node = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
-                        node.InnerText = obj.UUID.ToString();
-                        xmlobject.AppendChild(node);
-
-                        SceneObjectPart m_rootPart = null;
-                        try
-                        {
-                            Type sog = typeof(SceneObjectGroup);
-                            FieldInfo rootField = sog.GetField("m_rootPart", BindingFlags.NonPublic | BindingFlags.Instance);
-                            if (rootField != null)
-                            {
-                                m_rootPart = (SceneObjectPart)rootField.GetValue(obj);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("[DATASNAPSHOT] couldn't access field reflectively\n" + e.ToString());
-                        }
                         if (m_rootPart != null)
                         {
+                            ILandObject land = m_scene.LandChannel.GetLandObject(m_rootPart.AbsolutePosition.X, m_rootPart.AbsolutePosition.Y);
+
+                            XmlNode xmlobject = nodeFactory.CreateNode(XmlNodeType.Element, "object", "");
+                            node = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
+                            node.InnerText = obj.UUID.ToString();
+                            xmlobject.AppendChild(node);
+
                             node = nodeFactory.CreateNode(XmlNodeType.Element, "title", "");
                             node.InnerText = m_rootPart.Name;
                             xmlobject.AppendChild(node);
@@ -142,8 +134,17 @@ namespace OpenSim.Region.DataSnapshot.Providers
                             node = nodeFactory.CreateNode(XmlNodeType.Element, "flags", "");
                             node.InnerText = String.Format("{0:x}", m_rootPart.ObjectFlags);
                             xmlobject.AppendChild(node);
+
+                            node = nodeFactory.CreateNode(XmlNodeType.Element, "regionuuid", "");
+                            node.InnerText = m_scene.RegionInfo.RegionSettings.RegionUUID.ToString();
+                            xmlobject.AppendChild(node);
+
+                            node = nodeFactory.CreateNode(XmlNodeType.Element, "parceluuid", "");
+                            node.InnerText = land.landData.GlobalID.ToString();
+                            xmlobject.AppendChild(node);
+
+                            parent.AppendChild(xmlobject);
                         }
-                        parent.AppendChild(xmlobject);
                     }
                     #pragma warning disable 0612
                 }
