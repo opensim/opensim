@@ -71,9 +71,9 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
                 //TODO: Fix the marshalling system to have less copypasta gruntwork
                 XmlNode user = factory.CreateNode(XmlNodeType.Element, "user", "");
-                XmlAttribute type = (XmlAttribute)factory.CreateNode(XmlNodeType.Attribute, "type", "");
-                type.Value = "owner";
-                user.Attributes.Append(type);
+//                XmlAttribute type = (XmlAttribute)factory.CreateNode(XmlNodeType.Attribute, "type", "");
+//                type.Value = "owner";
+//                user.Attributes.Append(type);
 
                 //TODO: Create more TODOs
                 XmlNode username = factory.CreateNode(XmlNodeType.Element, "name", "");
