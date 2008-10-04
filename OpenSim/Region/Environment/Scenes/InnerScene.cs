@@ -454,13 +454,13 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectGroup RezSingleAttachment(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
-            SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient, itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+            SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient,
+                itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                 false, false, remoteClient.AgentId, true);
+
 
             if (objatt != null)
             {
-                objatt.SetAttachmentPoint(Convert.ToByte(AttachmentPt));
-
                 AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition);
                 objatt.ScheduleGroupForFullUpdate();
             }
@@ -531,9 +531,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 AttachmentPt = (uint)AttachmentPoint.LeftHand;
                                 attachPos = Vector3.Zero;
                             }
-                            m_log.Debug("[ATTACH]: Using attachpoint: " + AttachmentPt.ToString());
 
-
+                            group.SetAttachmentPoint(Convert.ToByte(AttachmentPt));
 
                             // Saves and gets assetID
                             if (group.GetFromAssetID() == UUID.Zero)
