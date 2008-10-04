@@ -2022,6 +2022,10 @@ namespace OpenSim.Region.Physics.Meshing
         {
             Mesh mesh = null;
 
+            if (size.X < 0.01f) size.X = 0.01f;
+            if (size.Y < 0.01f) size.Y = 0.01f;
+            if (size.Z < 0.01f) size.Z = 0.01f;
+
 #if SPAM
             reportPrimParams(primName, primShape);
 #endif
