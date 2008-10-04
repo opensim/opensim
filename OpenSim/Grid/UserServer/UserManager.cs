@@ -710,18 +710,23 @@ namespace OpenSim.Grid.UserServer
             {
                 try
                 {
-                    UUID userUUID = new UUID((string) requestData["avatar_uuid"]);
-                    UUID RegionID = new UUID((string) requestData["region_uuid"]);
-                    ulong regionhandle = (ulong) Convert.ToInt64((string) requestData["region_handle"]);
-                    float posx = (float) Convert.ToDecimal((string) requestData["region_pos_x"]);
-                    float posy = (float) Convert.ToDecimal((string) requestData["region_pos_y"]);
-                    float posz = (float) Convert.ToDecimal((string) requestData["region_pos_z"]);
+                    UUID userUUID = new UUID((string)requestData["avatar_uuid"]);
+                    UUID RegionID = new UUID((string)requestData["region_uuid"]);
+                    ulong regionhandle = (ulong)Convert.ToInt64((string)requestData["region_handle"]);
+                    Vector3 position = new Vector3(
+                        (float)Convert.ToDecimal((string)requestData["region_pos_x"]),
+                        (float)Convert.ToDecimal((string)requestData["region_pos_y"]),
+                        (float)Convert.ToDecimal((string)requestData["region_pos_z"]));
+                    Vector3 lookat = new Vector3(
+                        (float)Convert.ToDecimal((string)requestData["lookat_x"]),
+                        (float)Convert.ToDecimal((string)requestData["lookat_y"]),
+                        (float)Convert.ToDecimal((string)requestData["lookat_z"]));
 
                     handlerLogOffUser = OnLogOffUser;
                     if (handlerLogOffUser != null)
                         handlerLogOffUser(userUUID);
 
-                    LogOffUser(userUUID, RegionID, regionhandle, posx, posy, posz);
+                    LogOffUser(userUUID, RegionID, regionhandle, position, lookat);
                 }
                 catch (FormatException)
                 {

@@ -46,9 +46,10 @@ using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
 using Nini.Config;
-using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
-using Image=System.Drawing.Image;
-using Timer=System.Timers.Timer;
+using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
+using Image = System.Drawing.Image;
+using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
+using Timer = System.Timers.Timer;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -2269,38 +2270,33 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_log.DebugFormat("gesture : {0} ", gestureId.ToString());
         }
-
+        
+        /// <summary>
+        /// Teleport an avatar to their home region
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <param name="client"></param>
         public virtual void TeleportClientHome(UUID agentId, IClientAPI client)
         {
             UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(agentId);
             if (UserProfile != null)
             {
-                UUID homeRegionID = UserProfile.HomeRegionID;
-                ulong homeRegionHandle = UserProfile.HomeRegion;
-                if (homeRegionID == UUID.Zero)
+                RegionInfo regionInfo = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegionID);
+                if (regionInfo == null)
                 {
-                    RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegion);
-                    if (info == null)
-                    {
-                        // can't find the region: Tell viewer and abort
-                        client.SendTeleportFailed("Your home-region could not be found.");
-                        return;
-                    }
-                    UserProfile.HomeRegionID = info.RegionID;
+                    regionInfo = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegion);
+                    UserProfile.HomeRegionID = regionInfo.RegionID;
                     CommsManager.UserService.UpdateUserProfile(UserProfile);
                 }
-                else
+                if (regionInfo == null)
                 {
-                    RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(homeRegionID);
-                    if (info == null)
-                    {
-                        // can't find the region: Tell viewer and abort
-                        client.SendTeleportFailed("Your home-region could not be found.");
-                        return;
-                    }
-                    homeRegionHandle = info.RegionHandle;
+                    // can't find the Home region: Tell viewer and abort
+                    client.SendTeleportFailed("Your home-region could not be found.");
+                    return;
                 }
-                RequestTeleportLocation(client, homeRegionHandle, UserProfile.HomeLocation, UserProfile.HomeLookAt, (uint)0);
+                RequestTeleportLocation(
+                    client, regionInfo.RegionHandle, UserProfile.HomeLocation, UserProfile.HomeLookAt, 
+                    (uint)(TPFlags.SetLastToTarget | TPFlags.ViaHome));
             }
         }
 
@@ -2461,9 +2457,7 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     m_innerScene.removeUserCount(true);
-                    m_sceneGridService.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle,
-                                                  avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y,
-                                                  avatar.AbsolutePosition.Z);
+                    m_sceneGridService.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle, avatar.AbsolutePosition, avatar.Lookat);
                     List<ulong> childknownRegions = new List<ulong>();
                     List<ulong> ckn = avatar.GetKnownRegionList();
                     for (int i = 0; i < ckn.Count; i++)
@@ -2922,9 +2916,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionName"></param>
         /// <param name="position"></param>
         /// <param name="lookAt"></param>
-        /// <param name="flags"></param>
+        /// <param name="teleportFlags"></param>
         public void RequestTeleportLocation(IClientAPI remoteClient, string regionName, Vector3 position,
-                                            Vector3 lookat, uint flags)
+                                            Vector3 lookat, uint teleportFlags)
         {
             RegionInfo regionInfo = m_sceneGridService.RequestClosestRegion(regionName);
             if (regionInfo == null)
@@ -2933,7 +2927,7 @@ namespace OpenSim.Region.Environment.Scenes
                 remoteClient.SendTeleportFailed("The region '" + regionName + "' could not be found.");
                 return;
             }
-            RequestTeleportLocation(remoteClient, regionInfo.RegionHandle, position, lookat, flags);
+            RequestTeleportLocation(remoteClient, regionInfo.RegionHandle, position, lookat, teleportFlags);
         }
 
         /// <summary>
@@ -2943,16 +2937,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionHandle"></param>
         /// <param name="position"></param>
         /// <param name="lookAt"></param>
-        /// <param name="flags"></param>
+        /// <param name="teleportFlags"></param>
         public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, Vector3 position,
-                                            Vector3 lookAt, uint flags)
+                                            Vector3 lookAt, uint teleportFlags)
         {
             lock (m_scenePresences)
             {
                 if (m_scenePresences.ContainsKey(remoteClient.AgentId))
                 {
                     m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], regionHandle,
-                                                                 position, lookAt, flags);
+                                                                 position, lookAt, teleportFlags);
                 }
             }
         }
@@ -2979,7 +2973,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_scenePresences.ContainsKey(remoteClient.AgentId))
                 {
                     m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], info.RegionHandle,
-                                                                 position, Vector3.Zero, 0);
+                        position, Vector3.Zero, (uint)(TPFlags.SetLastToTarget | TPFlags.ViaLandmark));
                 }
             }
         }
