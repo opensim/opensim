@@ -271,10 +271,10 @@ namespace OpenSim.Framework
     public class PluginExtensionNode : ExtensionNode
     {
         [NodeAttribute]
-        string provider;
+        string provider = "";
 
         [NodeAttribute]
-        string type;
+        string type = "";
 
         Type typeobj;
 
