@@ -4135,8 +4135,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd,
                                              rezPacket.RezData.RayStart, rezPacket.RezData.RayTargetID,
                                              rezPacket.RezData.BypassRaycast, rezPacket.RezData.RayEndIsIntersection,
-                                             rezPacket.RezData.EveryoneMask, rezPacket.RezData.GroupMask,
-                                             rezPacket.RezData.NextOwnerMask, rezPacket.RezData.ItemFlags,
                                              rezPacket.RezData.RezSelected, rezPacket.RezData.RemoveItem,
                                              rezPacket.RezData.FromTaskID);
                         }
@@ -4250,7 +4248,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             RezSingleAttachmentFromInvPacket rez = (RezSingleAttachmentFromInvPacket)Pack;
                             handlerRezSingleAttachment(this, rez.ObjectData.ItemID,
-                                                       rez.ObjectData.AttachmentPt, rez.ObjectData.ItemFlags, rez.ObjectData.NextOwnerMask);
+                                                       rez.ObjectData.AttachmentPt);
                         }
 
                         break;

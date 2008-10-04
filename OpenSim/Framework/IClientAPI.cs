@@ -53,11 +53,9 @@ namespace OpenSim.Framework
 
     public delegate void RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
-                                   uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
                                    bool RezSelected, bool RemoveItem, UUID fromTaskID);
 
-    public delegate void RezSingleAttachmentFromInv(IClientAPI remoteClient, UUID itemID, uint AttachmentPt,
-                                                    uint ItemFlags, uint NextOwnerMask);
+    public delegate void RezSingleAttachmentFromInv(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
 
     public delegate void ObjectAttach(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot);
 

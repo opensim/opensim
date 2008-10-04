@@ -1677,9 +1677,10 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (!grp.HasGroupChanged)
                 {
-                    m_log.InfoFormat("Detaching {0} which is unchanged", grp.UUID.ToString());
+                    m_log.InfoFormat("[ATTACHMENT] Detaching {0} which is unchanged", grp.UUID.ToString());
                     return;
                 }
+                m_log.InfoFormat("[ATTACHMENT] Updating asset for attachment {0}, attachpoint {1}", grp.UUID.ToString(), grp.GetAttachmentPoint());
                 string sceneObjectXml = objectGroup.ToXmlString();
 
                 CachedUserInfo userInfo =
@@ -1818,19 +1819,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="RayEndIsIntersection"></param>
         /// <param name="EveryoneMask"></param>
         /// <param name="GroupMask"></param>
-        /// <param name="NextOwnerMask"></param>
-        /// <param name="ItemFlags"></param>
         /// <param name="RezSelected"></param>
         /// <param name="RemoveItem"></param>
         /// <param name="fromTaskID"></param>
         public virtual void RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
-                                    uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID)
         {
             RezObject(
                 remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
-                EveryoneMask, GroupMask, NextOwnerMask, ItemFlags, RezSelected, RemoveItem, fromTaskID, false);
+                RezSelected, RemoveItem, fromTaskID, false);
         }
 
        /// <summary>
@@ -1843,10 +1841,6 @@ namespace OpenSim.Region.Environment.Scenes
        /// <param name="RayTargetID"></param>
        /// <param name="BypassRayCast"></param>
        /// <param name="RayEndIsIntersection"></param>
-       /// <param name="EveryoneMask"></param>
-       /// <param name="GroupMask"></param>
-       /// <param name="NextOwnerMask"></param>
-       /// <param name="ItemFlags"></param>
        /// <param name="RezSelected"></param>
        /// <param name="RemoveItem"></param>
        /// <param name="fromTaskID"></param>
@@ -1854,7 +1848,6 @@ namespace OpenSim.Region.Environment.Scenes
        /// <returns></returns>
         public virtual SceneObjectGroup RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
-                                    uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
             // Work out position details
@@ -2259,9 +2252,9 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public void RezSingleAttachment(IClientAPI remoteClient, UUID itemID,
-                uint AttachmentPt, uint ItemFlags, uint NextOwnerMask)
+                uint AttachmentPt)
         {
-            SceneObjectGroup att = m_innerScene.RezSingleAttachment(remoteClient, itemID, AttachmentPt, ItemFlags, NextOwnerMask);
+            SceneObjectGroup att = m_innerScene.RezSingleAttachment(remoteClient, itemID, AttachmentPt);
 
             if (att == null)
             {
@@ -2269,13 +2262,11 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            RezSingleAttachment(att, remoteClient, itemID, AttachmentPt,
-                    ItemFlags, NextOwnerMask);
+            RezSingleAttachment(att, remoteClient, itemID, AttachmentPt);
         }
 
         public void RezSingleAttachment(SceneObjectGroup att,
-                IClientAPI remoteClient, UUID itemID, uint AttachmentPt,
-                uint ItemFlags, uint NextOwnerMask)
+                IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
             if (att.RootPart != null)
                 AttachmentPt = att.RootPart.AttachmentPoint;

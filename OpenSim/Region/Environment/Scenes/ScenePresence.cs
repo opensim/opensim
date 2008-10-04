@@ -2958,7 +2958,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     // Rez from inventory
                     m_scene.RezSingleAttachment(ControllingClient, itemID,
-                            (uint)attachpoint, 0, 0);
+                            (uint)attachpoint);
                 }
                 catch (Exception e)
                 {

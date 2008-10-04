@@ -452,13 +452,10 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public SceneObjectGroup RezSingleAttachment(
-            IClientAPI remoteClient, UUID itemID, uint AttachmentPt,uint ItemFlags, uint NextOwnerMask)
+            IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
             SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient, itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
-                (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
-                (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
-                (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
-                ItemFlags, false, false, remoteClient.AgentId, true);
+                false, false, remoteClient.AgentId, true);
 
             if (objatt != null)
             {
