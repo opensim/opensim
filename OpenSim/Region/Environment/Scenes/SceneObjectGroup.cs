@@ -743,8 +743,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //
                 if (IsSelected)
                 {
-                    foreach (SceneObjectPart part in m_parts.Values)
-                        m_scene.SendKiPrimitive(part.LocalId);
+                    m_scene.SendKiPrimitive(m_rootPart.LocalId);
                 }
 
                 IsSelected = false; // fudge....
