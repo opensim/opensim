@@ -322,6 +322,8 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
 
+        public event DirPlacesQuery OnDirPlacesQuery;
+
 #pragma warning restore 67
 
         #endregion

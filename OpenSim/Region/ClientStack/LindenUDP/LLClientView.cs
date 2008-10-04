@@ -260,6 +260,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ActivateGesture handlerActivateGesture = null;
         private DeactivateGesture handlerDeactivateGesture = null;
 
+        private DirPlacesQuery handlerDirPlacesQuery = null;
+
         //private TerrainUnacked handlerUnackedTerrain = null;
 
         //**
@@ -983,6 +985,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
+
+        public event DirPlacesQuery OnDirPlacesQuery;
 
 
         // voire si c'est necessaire
@@ -6245,6 +6249,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     case PacketType.InventoryDescendents:
                         // TODO: handle this packet
                         //m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
+                        break;
+                    case PacketType.DirPlacesQuery:
+                        DirPlacesQueryPacket dirPlacesQueryPacket = (DirPlacesQueryPacket)Pack;
+                        Console.WriteLine(dirPlacesQueryPacket.ToString());
+
+                        handlerDirPlacesQuery = OnDirPlacesQuery;
+                        if (handlerDirPlacesQuery != null)
+                        {
+                            handlerDirPlacesQuery(this,
+                                dirPlacesQueryPacket.QueryData.QueryID,
+                                Utils.BytesToString(
+                                    dirPlacesQueryPacket.QueryData.QueryText),
+                                (int)dirPlacesQueryPacket.QueryData.QueryFlags,
+                                (int)dirPlacesQueryPacket.QueryData.Category,
+                                Utils.BytesToString(
+                                    dirPlacesQueryPacket.QueryData.SimName),
+                                dirPlacesQueryPacket.QueryData.QueryStart);
+                        }
                         break;
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());

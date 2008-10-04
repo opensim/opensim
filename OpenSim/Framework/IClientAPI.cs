@@ -309,6 +309,7 @@ namespace OpenSim.Framework
 
     public delegate void TerrainUnacked(IClientAPI remoteClient, int patchX, int patchY);
 
+    public delegate void DirPlacesQuery(IClientAPI remoteClient, UUID queryID, string queryText, int queryFlags, int category, string simName, int queryStart);
     #endregion
 
     public interface IClientAPI
@@ -533,6 +534,8 @@ namespace OpenSim.Framework
         event TerrainUnacked OnUnackedTerrain;
         event ActivateGesture OnActivateGesture;
         event DeactivateGesture OnDeactivateGesture;
+
+        event DirPlacesQuery OnDirPlacesQuery;
 
    //     void ActivateGesture(UUID assetId, UUID gestureId);
 
