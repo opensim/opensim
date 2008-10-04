@@ -265,24 +265,6 @@ namespace OpenSim
                 config.Set("inventory_server_url", "http://127.0.0.1:" + InventoryConfig.DefaultHttpPort.ToString());
                 config.Set("secure_inventory_server", "true");
             }
-        
-            {
-                IConfig config = DefaultConfig.Configs["RemoteAdmin"];
-                
-                if (null == config)
-                    config = DefaultConfig.AddConfig("RemoteAdmin");
-
-                config.Set("enabled", "false");
-            }
-        
-            {
-                IConfig config = DefaultConfig.Configs["Voice"];
-                
-                if (null == config)
-                    config = DefaultConfig.AddConfig("Voice");
-
-                config.Set("enabled", "false");
-            }
 
             return DefaultConfig;
         }
