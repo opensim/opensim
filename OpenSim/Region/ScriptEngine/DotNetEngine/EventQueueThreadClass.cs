@@ -196,13 +196,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         SceneObjectPart part =
                                 lastScriptEngine.World.GetSceneObjectPart(
                                 lastLocalID);
-
                         if (part != null && part.ParentGroup != null)
                             lastScriptEngine.World.DeleteSceneObject(
                                     part.ParentGroup);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+		        if (lastScriptEngine != null)
+			    lastScriptEngine.Log.WarnFormat("[{0}]: Exception {1} thrown",ScriptEngineName,e.GetType().ToString());
+		        throw e;
                     }
                 }
             }
@@ -288,11 +290,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 InExecution = false;
                             }
                         }
+		        catch (SelfDeleteException sde) 
+			{
+			    // Make sure this exception isn't consumed here... we need it
+			    throw sde;
+			}
+		        catch (TargetInvocationException tie)
+			{
+			    // Probably don't need to special case this one
+			    throw tie;
+			}
                         catch (Exception e)
                         {
-                            InExecution = false;
-                            string text = FormatException(e, QIS.LineMap);
-
+			    InExecution = false;
+			    string text = FormatException(e, QIS.LineMap);
+							
                             // DISPLAY ERROR INWORLD
 
 //                            if (e.InnerException != null)

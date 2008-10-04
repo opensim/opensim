@@ -156,7 +156,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             string EventName = state + "_event_" + FunctionName;
 
 //#if DEBUG
-//            Console.WriteLine("ScriptEngine: Script event function name: " + EventName);
+            //Console.WriteLine("ScriptEngine: Script event function name: " + EventName);
 //#endif
 
             if (Events.ContainsKey(EventName) == false)
@@ -191,7 +191,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             //Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
 #endif
             // Found
-            ev.Invoke(m_Script, args);
+			try 
+			{
+				ev.Invoke(m_Script, args);
+			}
+			catch (TargetInvocationException tie)
+			{
+				// Grab the inner exception and rethrow it
+				throw tie.InnerException;
+			}
+			catch (Exception e)
+			{
+				throw e;
+			}
         }
 
         protected void initEventFlags()
