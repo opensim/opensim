@@ -248,8 +248,42 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         public virtual void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
             List<MapBlockData> mapBlocks;
-            mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, minX + 4, minY + 4);
-            remoteClient.SendMapBlock(mapBlocks, flag);
+            if ((flag & 0x10000) != 0)  // user clicked on the map a tile that isn't visible
+            {
+                List<MapBlockData> response = new List<MapBlockData>();
+                
+                // this should return one mapblock at most. But make sure: Look whether the one we requested is in there
+                mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
+                if (mapBlocks != null)
+                {
+                    foreach (MapBlockData block in mapBlocks)
+                    {
+                        if (block.X == minX && block.Y == minY)
+                        {
+                            // found it => add it to response
+                            response.Add(block);
+                            break;
+                        }
+                    }
+                }
+                
+                if (response.Count == 0)
+                {
+                    // response still empty => couldn't find the map-tile the user clicked on => tell the client
+                    MapBlockData block = new MapBlockData();
+                    block.X = (ushort)minX;
+                    block.Y = (ushort)minY;
+                    block.Access = 254; // == not there
+                    response.Add(block);
+                }
+                remoteClient.SendMapBlock(response, 0);
+            }
+            else
+            {
+                // normal mapblock request. Use the provided values
+                mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, maxX + 4, maxY + 4);
+                remoteClient.SendMapBlock(mapBlocks, flag);
+            }
         }
 
         public Hashtable OnHTTPGetMapImage(Hashtable keysvals)

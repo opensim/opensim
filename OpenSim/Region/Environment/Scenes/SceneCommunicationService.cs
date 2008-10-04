@@ -736,6 +736,25 @@ namespace OpenSim.Region.Environment.Scenes
                         avatar.ControllingClient.SendTeleportFailed("Remote Region appears to be down");
                     }
                 }
+                else
+                {
+                    // TP to a place that doesn't exist (anymore)
+                    // Inform the viewer about that
+                    avatar.ControllingClient.SendTeleportFailed("The region you tried to teleport to doesn't exist anymore");
+                    
+                    // and set the map-tile to '(Offline)'
+                    uint regX, regY;
+                    Helpers.LongToUInts(regionHandle, out regX, out regY);
+                    
+                    MapBlockData block = new MapBlockData();
+                    block.X = (ushort)(regX / Constants.RegionSize);
+                    block.Y = (ushort)(regY / Constants.RegionSize);
+                    block.Access = 254; // == not there
+                    
+                    List<MapBlockData> blocks = new List<MapBlockData>();
+                    blocks.Add(block);
+                    avatar.ControllingClient.SendMapBlock(blocks, 0);
+                }
             }
         }
 
