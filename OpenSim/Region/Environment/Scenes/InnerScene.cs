@@ -461,8 +461,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (objatt != null)
             {
+                bool tainted = false;
+                if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
+                    tainted = true;
+
                 AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition);
                 objatt.ScheduleGroupForFullUpdate();
+                if (tainted)
+                    objatt.HasGroupChanged = true;
             }
             return objatt;
         }
