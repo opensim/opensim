@@ -274,7 +274,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     int eventFlags = m_ScriptManager.GetStateEventFlags(localID,
                             itemID);
 
-                    SceneObjectPart part = m_Scene.GetSceneObjectPart(itemID);
+                    SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
                     if (part != null)
                         part.SetScriptEvents(itemID, eventFlags);
 
