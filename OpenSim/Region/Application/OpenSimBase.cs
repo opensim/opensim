@@ -150,47 +150,38 @@ namespace OpenSim
             set { m_moduleLoader = value; }
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configSource"></param>
         public OpenSimBase(IConfigSource configSource) : base()
         {
             IConfig startupConfig = configSource.Configs["Startup"];
 
-            Application.iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
+            string iniFileName = startupConfig.GetString("inifile", "OpenSim.ini");            
+            Application.iniFilePath = Path.Combine(Util.configDir(), iniFileName);
 
             m_config = new OpenSimConfigSource();
             m_config.Source = new IniConfigSource();
-            // IConfigSource icong;
-
+            m_config.Source.Merge(DefaultConfig());            
+            
             //check for .INI file (either default or name passed in command line)
             if (File.Exists(Application.iniFilePath))
             {
+                // From reading Nini's code, it seems that later merged keys replace earlier ones.                
                 m_config.Source.Merge(new IniConfigSource(Application.iniFilePath));
-                m_config.Source.Merge(configSource);
+                m_config.Source.Merge(configSource);               
             }
-            else
-            {
-                Application.iniFilePath = Path.Combine(Util.configDir(), Application.iniFilePath);
+            else 
+            {   
+                // check for a xml config file                
+                Application.iniFilePath = Path.Combine(Util.configDir(), "OpenSim.xml");
+                
                 if (File.Exists(Application.iniFilePath))
                 {
-                    m_config.Source.Merge(new IniConfigSource(Application.iniFilePath));
+                    m_config.Source = new XmlConfigSource();
+                    m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
                     m_config.Source.Merge(configSource);
-                }
-                else
-                {
-                    if (File.Exists("OpenSim.xml"))
-                    {
-                        // check for a xml config file
-                        Application.iniFilePath = "OpenSim.xml";
-                        m_config.Source = new XmlConfigSource();
-                        m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
-                        m_config.Source.Merge(configSource);
-                    }
-                    else
-                    {
-                        // using OpenSim.ini instead
-                        m_config.Source.Merge(DefaultConfig());
-                        m_config.Source.Merge(configSource);
-                        m_config.Save(Application.iniFilePath);
-                    }
                 }
             }
 
@@ -213,17 +204,17 @@ namespace OpenSim
 
                 config.Set("gridmode", false);
                 config.Set("physics", "basicphysics");
+                config.Set("meshing", "ZeroMesher");
                 config.Set("physical_prim", true);
                 config.Set("see_into_this_sim_from_neighbor", true);
                 config.Set("serverside_object_permissions", false);
                 config.Set("storage_plugin", "OpenSim.Data.SQLite.dll");
-                config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
+                config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");                
                 config.Set("storage_prim_inventories", true);
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
                 config.Set("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
                 config.Set("DefaultScriptEngine", "DotNetEngine");
-
                 config.Set("asset_database", "sqlite");
                 config.Set("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
@@ -277,48 +268,42 @@ namespace OpenSim
 
             if (startupConfig != null)
             {
-                m_sandbox = !startupConfig.GetBoolean("gridmode", false);
-                m_physicsEngine = startupConfig.GetString("physics", "basicphysics");
-                m_meshEngineName = startupConfig.GetString("meshing", "ZeroMesher");
+                m_sandbox = !startupConfig.GetBoolean("gridmode");
+                m_physicsEngine = startupConfig.GetString("physics");
+                m_meshEngineName = startupConfig.GetString("meshing");
 
-                m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
+                m_physicalPrim = startupConfig.GetBoolean("physical_prim");
 
-                m_see_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
+                m_see_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor");
 
-                m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.Data.SQLite.dll");
+                m_storageDll = startupConfig.GetString("storage_plugin");
                 if (m_storageDll == "OpenSim.DataStore.MonoSqlite.dll")
                 {
                     m_storageDll = "OpenSim.Data.SQLite.dll";
                     Console.WriteLine("WARNING: OpenSim.DataStore.MonoSqlite.dll is deprecated. Set storage_plugin to OpenSim.Data.SQLite.dll.");
                     Thread.Sleep(3000);
                 }
-                m_storageConnectionString
-                    = startupConfig.GetString("storage_connection_string", "URI=file:OpenSim.db,version=3");
-                m_estateConnectionString
-                    = startupConfig.GetString("estate_connection_string", m_storageConnectionString);
-                m_assetStorage = startupConfig.GetString("asset_database", "local");
-                m_clientstackDll = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
+                
+                m_storageConnectionString  = startupConfig.GetString("storage_connection_string");
+                m_estateConnectionString = startupConfig.GetString("estate_connection_string", m_storageConnectionString);
+                m_assetStorage = startupConfig.GetString("asset_database");
+                m_clientstackDll = startupConfig.GetString("clientstack_plugin");
             }
 
             IConfig standaloneConfig = m_config.Source.Configs["StandAlone"];
             if (standaloneConfig != null)
             {
-                m_standaloneAuthenticate = standaloneConfig.GetBoolean("accounts_authenticate", false);
-                m_standaloneWelcomeMessage = standaloneConfig.GetString("welcome_message", "Welcome to OpenSim");
-                m_standaloneInventoryPlugin =
-                    standaloneConfig.GetString("inventory_plugin", "OpenSim.Data.SQLite.dll");
-                m_standaloneInventorySource =
-                    standaloneConfig.GetString("inventory_source","");
-                m_standaloneUserPlugin =
-                    standaloneConfig.GetString("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
-                m_standaloneUserSource =
-                    standaloneConfig.GetString("user_source","");
-                m_standaloneAssetPlugin =
-                    standaloneConfig.GetString("asset_plugin", "OpenSim.Data.SQLite.dll");
-                m_standaloneAssetSource =
-                    standaloneConfig.GetString("asset_source","");
+                m_standaloneAuthenticate = standaloneConfig.GetBoolean("accounts_authenticate");
+                m_standaloneWelcomeMessage = standaloneConfig.GetString("welcome_message");
+                
+                m_standaloneInventoryPlugin = standaloneConfig.GetString("inventory_plugin");
+                m_standaloneInventorySource = standaloneConfig.GetString("inventory_source");
+                m_standaloneUserPlugin = standaloneConfig.GetString("userDatabase_plugin");
+                m_standaloneUserSource = standaloneConfig.GetString("user_source");
+                m_standaloneAssetPlugin = standaloneConfig.GetString("asset_plugin");
+                m_standaloneAssetSource = standaloneConfig.GetString("asset_source");
 
-                m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
+                m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file");
             }
 
             m_networkServersInfo.loadFromConfiguration(m_config.Source);

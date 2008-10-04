@@ -27,6 +27,8 @@
 
 using System;
 using System.Net;
+using System.Reflection;
+using log4net;
 using log4net.Config;
 using Nini.Config;
 using OpenSim.Framework;
@@ -36,6 +38,8 @@ namespace OpenSim
 {
     public class Application
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         public static string iniFilePath = "";
 
         //could move our main function into OpenSimMain and kill this class
@@ -124,9 +128,7 @@ namespace OpenSim
             msg += "\r\n";
             msg += "Application is terminating: " + e.IsTerminating.ToString() + "\r\n";
 
-            // Do we not always want to see exception messages?
-//            if (e.IsTerminating)
-                MainConsole.Instance.Error("[APPLICATION]: " + msg);
+            m_log.ErrorFormat("[APPLICATION]: {0}", msg);
 
             // Try to post errormessage to an URL
             try
