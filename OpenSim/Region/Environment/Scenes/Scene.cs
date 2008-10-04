@@ -2172,6 +2172,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnDetachAttachmentIntoInv += DetachSingleAttachmentToInv;
             client.OnObjectAttach += m_innerScene.AttachObject;
             client.OnObjectDetach += m_innerScene.DetachObject;
+            client.OnObjectDrop += m_innerScene.DropObject;
             client.OnNameFromUUIDRequest += CommsManager.HandleUUIDNameRequest;
             client.OnObjectDescription += m_innerScene.PrimDescription;
             client.OnObjectName += m_innerScene.PrimName;

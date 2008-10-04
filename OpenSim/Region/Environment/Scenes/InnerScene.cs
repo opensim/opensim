@@ -358,6 +358,24 @@ namespace OpenSim.Region.Environment.Scenes
             m_activeScripts += number;
         }
 
+        protected internal void DropObject(uint objectLocalID, IClientAPI remoteClient)
+        {
+            List<EntityBase> EntityList = GetEntities();
+
+            foreach (EntityBase obj in EntityList)
+            {
+                if (obj is SceneObjectGroup)
+                {
+                    if (((SceneObjectGroup)obj).LocalId == objectLocalID)
+                    {
+                        SceneObjectGroup group = (SceneObjectGroup)obj;
+
+                        m_parentScene.DetachSingleAttachmentToGround(group.UUID,remoteClient);
+                    }
+                }
+            }
+        }
+
         protected internal void DetachObject(uint objectLocalID, IClientAPI remoteClient)
         {
             List<EntityBase> EntityList = GetEntities();
@@ -441,10 +459,11 @@ namespace OpenSim.Region.Environment.Scenes
                 (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
                 (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
                 ItemFlags, false, false, remoteClient.AgentId, true);
-            objatt.SetAttachmentPoint(Convert.ToByte(AttachmentPt));
 
             if (objatt != null)
             {
+                objatt.SetAttachmentPoint(Convert.ToByte(AttachmentPt));
+
                 AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition);
                 objatt.ScheduleGroupForFullUpdate();
             }

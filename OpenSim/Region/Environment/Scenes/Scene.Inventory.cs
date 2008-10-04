@@ -2293,6 +2293,37 @@ namespace OpenSim.Region.Environment.Scenes
             m_innerScene.AttachObject(controllingClient, localID, attachPoint, rot, pos);
         }
 
+        public void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient)
+        {
+            SceneObjectPart part = GetSceneObjectPart(itemID);
+            if(part == null || part.ParentGroup == null)
+                return;
+
+            UUID inventoryID = part.ParentGroup.GetFromAssetID();
+
+            ScenePresence presence;
+            if (TryGetAvatar(remoteClient.AgentId, out presence))
+            {
+                if(!ExternalChecks.ExternalChecksCanRezObject(part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
+                    return;
+
+                presence.Appearance.DetachAttachment(itemID);
+                IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
+                if (ava != null)
+                {
+                    ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
+                part.ParentGroup.DetachToGround();
+                CachedUserInfo userInfo =
+                    CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                if (userInfo != null)
+                {
+                    userInfo.DeleteItem(inventoryID);
+                    remoteClient.SendRemoveInventoryItem(inventoryID);
+                }
+            }
+        }
+
         public void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
         {
             ScenePresence presence;

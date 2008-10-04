@@ -766,19 +766,19 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
             Vector3 detachedpos = new Vector3(127f,127f,127f);
-            if (avatar != null)
-            {
-                detachedpos = avatar.AbsolutePosition;
-                avatar.RemoveAttachment(this);
-            }
+            if (avatar == null)
+                return;
+
+            detachedpos = avatar.AbsolutePosition;
+
             AbsolutePosition = detachedpos;
             m_rootPart.AttachedAvatar = UUID.Zero;
             m_rootPart.SetParentLocalId(0);
             SetAttachmentPoint((byte)0);
-            m_rootPart.IsAttachment = false;
             m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             HasGroupChanged = true;
             AttachToBackup();
+            m_scene.EventManager.TriggerParcelPrimCountTainted();
             m_rootPart.ScheduleFullUpdate();
             m_rootPart.ClearUndoState();
         }

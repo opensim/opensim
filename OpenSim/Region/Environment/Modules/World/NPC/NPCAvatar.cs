@@ -171,6 +171,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event UUIDNameRequest OnDetachAttachmentIntoInv;
         public event ObjectAttach OnObjectAttach;
         public event ObjectDeselect OnObjectDetach;
+        public event ObjectDrop OnObjectDrop;
         public event StartAnim OnStartAnim;
         public event StopAnim OnStopAnim;
         public event LinkObjects OnLinkObjects;

@@ -242,6 +242,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ObjectBuy handlerObjectBuy = null;
         //private BuyObjectInventory handlerBuyObjectInventory = null;
         private ObjectDeselect handlerObjectDetach = null;
+        private ObjectDrop handlerObjectDrop = null;
         private AgentSit handlerOnUndo = null;
 
         private ForceReleaseControls handlerForceReleaseControls = null;
@@ -848,6 +849,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event UUIDNameRequest OnDetachAttachmentIntoInv;
         public event ObjectAttach OnObjectAttach;
         public event ObjectDeselect OnObjectDetach;
+        public event ObjectDrop OnObjectDrop;
         public event GenericCall2 OnCompleteMovementToRegion;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
@@ -4295,6 +4297,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         }
 
+                        break;
+                    case PacketType.ObjectDrop:
+                        ObjectDropPacket dropp = (ObjectDropPacket)Pack;
+                        for (int j = 0; j < dropp.ObjectData.Length; j++)
+                        {
+                            uint obj = dropp.ObjectData[j].ObjectLocalID;
+                            handlerObjectDrop = OnObjectDrop;
+                            if (handlerObjectDrop != null)
+                            {
+                                handlerObjectDrop(obj, this);
+                            }
+                        }
                         break;
                     case PacketType.SetAlwaysRun:
                         SetAlwaysRunPacket run = (SetAlwaysRunPacket)Pack;

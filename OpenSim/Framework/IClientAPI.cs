@@ -112,6 +112,7 @@ namespace OpenSim.Framework
         IClientAPI remoteClient, UUID AgentID, uint RequestFlags, UUID TaskID);
 
     public delegate void ObjectDeselect(uint localID, IClientAPI remoteClient);
+    public delegate void ObjectDrop(uint localID, IClientAPI remoteClient);
 
     public delegate void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient);
 
@@ -380,6 +381,7 @@ namespace OpenSim.Framework
         event UUIDNameRequest OnDetachAttachmentIntoInv;
         event ObjectAttach OnObjectAttach;
         event ObjectDeselect OnObjectDetach;
+        event ObjectDrop OnObjectDrop;
         event StartAnim OnStartAnim;
         event StopAnim OnStopAnim;
         event LinkObjects OnLinkObjects;
