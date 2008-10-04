@@ -741,8 +741,11 @@ namespace OpenSim.Region.Environment.Scenes
                 // It then reappears on the avatar, deselected
                 // through the full update below
                 //
-                foreach (SceneObjectPart part in m_parts.Values)
-                    m_scene.SendKiPrimitive(part.LocalId);
+                if (IsSelected)
+                {
+                    foreach (SceneObjectPart part in m_parts.Values)
+                        m_scene.SendKiPrimitive(part.LocalId);
+                }
 
                 IsSelected = false; // fudge....
                 ScheduleGroupForFullUpdate();
