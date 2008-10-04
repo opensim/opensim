@@ -1675,6 +1675,11 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup objectGroup = grp;
             if (objectGroup != null)
             {
+                if (!grp.HasGroupChanged)
+                {
+                    m_log.InfoFormat("Detaching {0} which is unchanged", grp.UUID.ToString());
+                    return;
+                }
                 string sceneObjectXml = objectGroup.ToXmlString();
 
                 CachedUserInfo userInfo =

@@ -1115,6 +1115,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.RootPart == null)
                 return;
 
+            if (scale.x < 0.01 || scale.y < 0.01 || scale.z < 0.01)
+                return;
+
             if (part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
             {
                 if (scale.x > World.m_maxPhys)
