@@ -4699,7 +4699,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (cindex > 0)
                     {
                         ret.Add(str.Substring(0, cindex));
-					}
+                    }
                     // Cannot use spacers.Contains() because spacers may be either type String or LSLString
                     for (int j = 0; j < spacers.Length; j++)
                     {

@@ -191,19 +191,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             //Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
 #endif
             // Found
-			try 
-			{
-				ev.Invoke(m_Script, args);
-			}
-			catch (TargetInvocationException tie)
-			{
-				// Grab the inner exception and rethrow it
-				throw tie.InnerException;
-			}
-			catch (Exception e)
-			{
-				throw e;
-			}
+            try 
+            {
+                ev.Invoke(m_Script, args);
+            }
+            catch (TargetInvocationException tie)
+            {
+                // Grab the inner exception and rethrow it
+                throw tie.InnerException;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
 
         protected void initEventFlags()

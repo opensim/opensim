@@ -3896,7 +3896,7 @@ namespace OpenSim.Region.Environment.Scenes
         //            }
         //        }
 
-		/// <summary>
+        /// <summary>
         /// Get a named prim contained in this scene (will return the first 
         /// found, if there are more than one prim with the same name)
         /// </summary>

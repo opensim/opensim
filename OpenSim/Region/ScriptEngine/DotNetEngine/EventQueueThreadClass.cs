@@ -202,9 +202,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     }
                     catch (Exception e)
                     {
-		        if (lastScriptEngine != null)
-			    lastScriptEngine.Log.WarnFormat("[{0}]: Exception {1} thrown",ScriptEngineName,e.GetType().ToString());
-		        throw e;
+                        if (lastScriptEngine != null)
+                            lastScriptEngine.Log.WarnFormat("[{0}]: Exception {1} thrown", ScriptEngineName, e.GetType().ToString());
+                        throw e;
                     }
                 }
             }
@@ -216,7 +216,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public void DoProcessQueue()
         {
             foreach (ScriptEngine m_ScriptEngine in
-                    new ArrayList(ScriptEngine.ScriptEngines))
+                     new ArrayList(ScriptEngine.ScriptEngines))
             {
                 lastScriptEngine = m_ScriptEngine;
 
@@ -290,21 +290,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 InExecution = false;
                             }
                         }
-		        catch (SelfDeleteException sde) 
-			{
-			    // Make sure this exception isn't consumed here... we need it
-			    throw sde;
-			}
-		        catch (TargetInvocationException tie)
-			{
-			    // Probably don't need to special case this one
-			    throw tie;
-			}
+                        catch (SelfDeleteException sde) 
+                        {
+                            // Make sure this exception isn't consumed here... we need it
+                            throw sde;
+                        }
+                        catch (TargetInvocationException tie)
+                        {
+                            // Probably don't need to special case this one
+                            throw tie;
+                        }
                         catch (Exception e)
                         {
-			    InExecution = false;
-			    string text = FormatException(e, QIS.LineMap);
-							
+                            InExecution = false;
+                            string text = FormatException(e, QIS.LineMap);
+                            
                             // DISPLAY ERROR INWORLD
 
 //                            if (e.InnerException != null)
@@ -340,7 +340,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                             catch (Exception)
                             {
                                 m_ScriptEngine.m_EventQueueManager.
-                                        m_ScriptEngine.Log.Error("[" +
+                                    m_ScriptEngine.Log.Error("[" +
                                         ScriptEngineName + "]: " +
                                         "Unable to send text in-world:\r\n" +
                                         text);

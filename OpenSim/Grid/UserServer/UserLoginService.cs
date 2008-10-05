@@ -460,7 +460,7 @@ namespace OpenSim.Grid.UserServer
             UUID uid;
             string pass = requestData["password"].ToString();
 
-            if(!UUID.TryParse((string) requestData["avatar_uuid"], out uid))
+            if (!UUID.TryParse((string) requestData["avatar_uuid"], out uid))
             {
                 responseData["error"] = "No authorization";
                 response.Value = responseData;

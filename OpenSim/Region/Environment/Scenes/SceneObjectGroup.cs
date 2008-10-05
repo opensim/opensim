@@ -2759,7 +2759,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetAttachmentPoint(byte point)
         {
-            lock(m_parts)
+            lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                     part.SetAttachmentPoint(point);

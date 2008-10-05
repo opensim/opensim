@@ -2292,7 +2292,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient)
         {
             SceneObjectPart part = GetSceneObjectPart(itemID);
-            if(part == null || part.ParentGroup == null)
+            if (part == null || part.ParentGroup == null)
                 return;
 
             UUID inventoryID = part.ParentGroup.GetFromAssetID();
@@ -2300,7 +2300,7 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence presence;
             if (TryGetAvatar(remoteClient.AgentId, out presence))
             {
-                if(!ExternalChecks.ExternalChecksCanRezObject(part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
+                if (!ExternalChecks.ExternalChecksCanRezObject(part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
                     return;
 
                 presence.Appearance.DetachAttachment(itemID);

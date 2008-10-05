@@ -85,7 +85,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetRegionWaterHeight(double height);
 
         string osGetScriptEngineName();
-		string osGetSimulatorVersion();
+        string osGetSimulatorVersion();
         void osSetParcelMediaTime(double time);
         Hashtable osParseJSON(string JSON);
         

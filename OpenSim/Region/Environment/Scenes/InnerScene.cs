@@ -857,7 +857,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
                 return null;
         }
-		
+        
         /// <summary>
         /// Get a named prim contained in this scene (will return the first 
         /// found, if there are more than one prim with the same name)
@@ -872,13 +872,13 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-					foreach(SceneObjectPart p in ((SceneObjectGroup) ent).GetParts())
-					{
-						if (p.Name==name)
-						{
-							return p;
-						}
-					}
+                    foreach (SceneObjectPart p in ((SceneObjectGroup) ent).GetParts())
+                    {
+                        if (p.Name==name)
+                        {
+                            return p;
+                        }
+                    }
                 }
             }
             return null;

@@ -710,18 +710,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return String.Empty;
             }
         }
-		
-		public string osGetSimulatorVersion()
-		{
+        
+        public string osGetSimulatorVersion()
+        {
             // High because it can be used to target attacks to known weaknesses
             // This would allow a new class of griefer scripts that don't even
             // require their user to know what they are doing (see script
             // kiddie)
             //
-		    CheckThreatLevel(ThreatLevel.High,"osGetSimulatorVersion");
-		    m_host.AddScriptLPS(1);
-		    return m_ScriptEngine.World.GetSimulatorVersion();
-		}
+            CheckThreatLevel(ThreatLevel.High,"osGetSimulatorVersion");
+            m_host.AddScriptLPS(1);
+            return m_ScriptEngine.World.GetSimulatorVersion();
+        }
 
 
         //for testing purposes only
