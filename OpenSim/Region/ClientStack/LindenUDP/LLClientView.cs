@@ -6252,7 +6252,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
                     case PacketType.DirPlacesQuery:
                         DirPlacesQueryPacket dirPlacesQueryPacket = (DirPlacesQueryPacket)Pack;
-                        Console.WriteLine(dirPlacesQueryPacket.ToString());
+                        //Console.WriteLine(dirPlacesQueryPacket.ToString());
 
                         handlerDirPlacesQuery = OnDirPlacesQuery;
                         if (handlerDirPlacesQuery != null)
