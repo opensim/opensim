@@ -322,6 +322,13 @@ namespace OpenSim.Region.Communications.OGS1
         /// </returns>
         public RegionInfo RequestNeighbourInfo(UUID Region_UUID)
         {
+            // don't ask the gridserver about regions on this instance...
+            foreach (RegionInfo info in m_regionsOnInstance)
+            {
+                if (info.RegionID == Region_UUID) return info;
+            }
+
+            // didn't find it so far, we have to go the long way
             RegionInfo regionInfo;
             Hashtable requestData = new Hashtable();
             requestData["region_UUID"] = Region_UUID.ToString();
