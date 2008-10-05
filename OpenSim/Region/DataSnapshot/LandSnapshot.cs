@@ -184,7 +184,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         XmlNode tpLocation = nodeFactory.CreateNode(XmlNodeType.Element, "location", "");
                         Vector3 loc = parcel.UserLocation;
                         if (loc.Equals(Vector3.Zero)) // This test is moot at this point: the location is wrong by default
-                            loc = new Vector3((parcel.AABBMax.X - parcel.AABBMin.X) / 2, (parcel.AABBMax.Y - parcel.AABBMin.Y) / 2, (parcel.AABBMax.Y - parcel.AABBMin.Y) / 2);
+                            loc = new Vector3((parcel.AABBMax.X + parcel.AABBMin.X) / 2, (parcel.AABBMax.Y + parcel.AABBMin.Y) / 2, (parcel.AABBMax.Z + parcel.AABBMin.Z) / 2);
                         tpLocation.InnerText = loc.X.ToString() + "/" + loc.Y.ToString() + "/" + loc.Z.ToString();
                         xmlparcel.AppendChild(tpLocation);
 
