@@ -1637,7 +1637,24 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (avatars[i] != this)
                 {
-                    CoarseLocations.Add(avatars[i].m_pos);
+                    if (avatars[i].ParentID != 0)
+                    {
+                        // sitting avatar
+                        SceneObjectPart sop = m_scene.GetSceneObjectPart(avatars[i].ParentID);
+                        if (sop != null)
+                        {
+                            CoarseLocations.Add(sop.AbsolutePosition + avatars[i].m_pos);
+                        }
+                        else
+                        {
+                            // we can't find the parent..  ! arg!
+                            CoarseLocations.Add(avatars[i].m_pos);
+                        }
+                    }
+                    else
+                    {
+                        CoarseLocations.Add(avatars[i].m_pos);
+                    }
                 }
             }
 
