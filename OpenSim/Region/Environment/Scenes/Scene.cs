@@ -1945,7 +1945,7 @@ namespace OpenSim.Region.Environment.Scenes
                     = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + 1) * Constants.RegionSize));
                 // y + 1
             }
-            else if (attemptedPosition.Y < -1f)
+            else if (attemptedPosition.Y < -0.1f)
             {
                 pos.Y = ((pos.Y + Constants.RegionSize));
                 newRegionHandle 
