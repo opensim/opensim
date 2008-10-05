@@ -55,9 +55,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         int PacketsReceived { get; }
         int PacketsReceivedReported { get; }
         uint SilenceLimit { get; set; }
-        uint DiscardTimeout { get; set; }
         uint ResendTimeout { get; set; }
         bool ReliableIsImportant { get; set; }
+        int MaxReliableResends { get; set; }
 
         void InPacket(Packet packet);
         void ProcessInPacket(LLQueItem item);
@@ -104,16 +104,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //
         private class AckData
         {
-            public AckData(Packet packet, Object identifier, int tickCount)
+            public AckData(Packet packet, Object identifier, int tickCount, int resends)
             {
                 Packet = packet;
                 Identifier = identifier;
                 TickCount = tickCount;
+                Resends = resends;
             }
 
             public Packet Packet;
             public Object Identifier;
             public int TickCount;
+            public int Resends;
         }
         
         private Dictionary<uint, AckData> m_NeedAck =
@@ -122,7 +124,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// The number of milliseconds that can pass before a packet that needs an ack is resent.
         /// </param>
-        private uint m_ResendTimeout = 2000;
+        private uint m_ResendTimeout = 4000;
 
         public uint ResendTimeout
         {
@@ -130,23 +132,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set { m_ResendTimeout = value; }
         }
 
-        /// <summary>
-        /// The number of milliseconds that can pass before a packet that needs an ack is discarded instead.
-        /// </summary>
-        private uint m_DiscardTimeout = 16000;
-
-        public uint DiscardTimeout
-        {
-            get { return m_DiscardTimeout; }
-            set { m_DiscardTimeout = value; }
-        }
-
-        private uint m_SilenceLimit = 250;
+        private uint m_SilenceLimit = 350;
 
         public uint SilenceLimit
         {
             get { return m_SilenceLimit; }
             set { m_SilenceLimit = value; }
+        }
+
+        private int m_MaxReliableResends = 3;
+
+        public int MaxReliableResends
+        {
+            get { return m_MaxReliableResends; }
+            set { m_MaxReliableResends = value; }
         }
 
         private int m_LastAck = 0;
@@ -204,7 +203,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // Packet dropping
         //
         List<PacketType> m_ImportantPackets = new List<PacketType>();
-        private bool m_ReliableIsImportant = true;
+        private bool m_ReliableIsImportant = false;
 
         public bool ReliableIsImportant
         {
@@ -362,41 +361,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //
                     if ((now - data.TickCount) > m_ResendTimeout)
                     {
-                        // Resend the packet. Set the packet's tick count to
-                        // now, and keep it marked as resent.
-                        //m_log.DebugFormat(
-                        //    "[CLIENT]: In {0} resending unacked packet {1} after {2}ms", 
-                        //    m_Client.Scene.RegionInfo.ExternalEndPoint.Port, packet.Header.Sequence, now - data.TickCount);
-                        //m_log.DebugFormat("[CLIENT]: Resent {0} packets in total", ++m_resentCount);
-                        
-                        packet.Header.Resent = true;
-                        QueuePacket(packet, ThrottleOutPacketType.Resend,
-                                data.Identifier);
-                    }
+                        m_NeedAck[packet.Header.Sequence].Resends++;
 
-                    // The discard logic
-                    // If the packet is in the queue for <DiscardTimeout> s
-                    // without having been processed, then we have clogged
-                    // pipes. Most likely, the client is gone
-                    // Drop the packets
-                    //
-                    if ((now - data.TickCount) > m_DiscardTimeout)
-                    {
-                        if (!m_ReliableIsImportant || !packet.Header.Reliable)
+                        if (m_NeedAck[packet.Header.Sequence].Resends >=
+                            m_MaxReliableResends && (!m_ReliableIsImportant))
                         {
-                            if (!m_ImportantPackets.Contains(packet.Type))
-                            {
-                                m_NeedAck.Remove(packet.Header.Sequence);
-                                
-                                //m_log.DebugFormat(
-                                //    "[CLIENT]: In {0} discarding ack requirement for packet {1}", 
-                                //    m_Client.Scene.RegionInfo.ExternalEndPoint.Port, packet.Header.Sequence);
-                            }
-
+                            m_NeedAck.Remove(packet.Header.Sequence);
                             TriggerOnPacketDrop(packet, data.Identifier);
-
                             continue;
                         }
+
+                        m_NeedAck[packet.Header.Sequence].TickCount =
+                                System.Environment.TickCount;
+
+                        QueuePacket(packet, ThrottleOutPacketType.Resend,
+                                data.Identifier);
                     }
                 }
             }
@@ -712,7 +691,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                 }
 
-                m_NeedAck.Add(key, new AckData(packet, null, System.Environment.TickCount));
+                m_NeedAck.Add(key, new AckData(packet, null, System.Environment.TickCount, 0));
             }
 
             m_Sequence = info.sequence;
@@ -776,7 +755,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         // Keep track of when this packet was sent out
                         m_NeedAck[packet.Header.Sequence] = new AckData(packet,
-                                item.Identifier, System.Environment.TickCount);
+                                item.Identifier, System.Environment.TickCount,
+                                0);
                     }
                 }
             }
