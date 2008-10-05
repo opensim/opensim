@@ -891,6 +891,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data)
+        {
+        }
+
         public void KillEndDone()
         {
         }

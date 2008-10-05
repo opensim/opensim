@@ -888,6 +888,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data)
+        {
+        }
+
         public void KillEndDone()
         {
         }

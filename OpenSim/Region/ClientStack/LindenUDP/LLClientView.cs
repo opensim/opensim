@@ -6725,6 +6725,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return string.Empty;
         }
 
+        public void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data)
+        {
+            DirPlacesReplyPacket packet = (DirPlacesReplyPacket)PacketPool.Instance.GetPacket(PacketType.DirPlacesReply);
+
+            packet.AgentData = new DirPlacesReplyPacket.AgentDataBlock();
+
+            packet.QueryData = new DirPlacesReplyPacket.QueryDataBlock[1];
+            packet.QueryData[0] = new DirPlacesReplyPacket.QueryDataBlock();
+
+            packet.QueryReplies =
+                    new DirPlacesReplyPacket.QueryRepliesBlock[data.Length];
+
+            packet.AgentData.AgentID = AgentId;
+
+            packet.QueryData[0].QueryID = queryID;
+
+            int i = 0;
+            foreach (DirPlacesReplyData d in data)
+            {
+                packet.QueryReplies[i] =
+                        new DirPlacesReplyPacket.QueryRepliesBlock();
+                packet.QueryReplies[i].ParcelID = d.parcelID;
+                packet.QueryReplies[i].Name = Utils.StringToBytes(d.name);
+                packet.QueryReplies[i].ForSale = d.forSale;
+                packet.QueryReplies[i].Auction = d.auction;
+                packet.QueryReplies[i].Dwell = d.dwell;
+            }
+
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
         public void KillEndDone()
         {
             KillPacket kp = new KillPacket();

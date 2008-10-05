@@ -312,6 +312,15 @@ namespace OpenSim.Framework
     public delegate void DirPlacesQuery(IClientAPI remoteClient, UUID queryID, string queryText, int queryFlags, int category, string simName, int queryStart);
     #endregion
 
+    public struct DirPlacesReplyData
+    {
+        public UUID parcelID;
+        public string name;
+        public bool forSale;
+        public bool auction;
+        public float dwell;
+    }
+
     public interface IClientAPI
     {
         Vector3 StartPos { get; set; }
@@ -764,6 +773,8 @@ namespace OpenSim.Framework
         void SendRegionHandle(UUID regoinID, ulong handle);
         void SendParcelInfo(RegionInfo info, LandData land, UUID parcelID, uint x, uint y);
         void SendScriptTeleportRequest(string objName, string simName, Vector3 pos, Vector3 lookAt);
+
+        void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data);
         void KillEndDone();
     }
 }
