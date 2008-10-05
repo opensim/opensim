@@ -188,6 +188,12 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         tpLocation.InnerText = loc.X.ToString() + "/" + loc.Y.ToString() + "/" + loc.Z.ToString();
                         xmlparcel.AppendChild(tpLocation);
 
+                        XmlNode infouuid = nodeFactory.CreateNode(XmlNodeType.Element, "infouuid", "");
+                        infouuid.InnerText = Util.BuildFakeParcelID(
+                                m_scene.RegionInfo.RegionHandle,
+                                (uint)loc.X, (uint)loc.Y).ToString();
+                        xmlparcel.AppendChild(infouuid);
+
                         XmlNode dwell = nodeFactory.CreateNode(XmlNodeType.Element, "dwell", "");
                         dwell.InnerText = "0";
                         xmlparcel.AppendChild(dwell);
