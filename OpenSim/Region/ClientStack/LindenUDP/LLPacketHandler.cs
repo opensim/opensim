@@ -204,7 +204,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // Packet dropping
         //
         List<PacketType> m_ImportantPackets = new List<PacketType>();
-        private bool m_ReliableIsImportant = false;
+        private bool m_ReliableIsImportant = true;
 
         public bool ReliableIsImportant
         {
