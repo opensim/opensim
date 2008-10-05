@@ -682,10 +682,12 @@ namespace OpenSim.Region.Environment.Scenes
                         // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
                         // once we reach here...
                         avatar.Scene.RemoveCapsHandler(avatar.UUID);
-
+                        agent.child = false;
                         m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agent);
+                        
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
                                                                      position, false);
+                        Thread.Sleep(4000);
                         AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();
 
                         // TODO Should construct this behind a method

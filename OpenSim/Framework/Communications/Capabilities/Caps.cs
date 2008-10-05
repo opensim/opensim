@@ -157,6 +157,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             {
                 // the root of all evil
                 m_capsHandlers["SEED"] = new RestStreamHandler("POST", capsBase + m_requestPath, CapsRequest);
+                m_log.Warn("[SEED]: " + capsBase + m_requestPath); 
                 //m_capsHandlers["MapLayer"] =
                 //    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST",
                 //                                                                capsBase + m_mapLayerPath,
