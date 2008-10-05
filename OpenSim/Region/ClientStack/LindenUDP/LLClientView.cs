@@ -6751,6 +6751,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.QueryReplies[i].ForSale = d.forSale;
                 packet.QueryReplies[i].Auction = d.auction;
                 packet.QueryReplies[i].Dwell = d.dwell;
+                i++;
             }
 
             OutPacket(packet, ThrottleOutPacketType.Task);
