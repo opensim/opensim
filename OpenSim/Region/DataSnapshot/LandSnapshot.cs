@@ -151,7 +151,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         public_attr.Value = GetPublicPermissions(parcel);
                         // Check the category of the Parcel
                         XmlAttribute category_attr = nodeFactory.CreateAttribute("category");
-                        category_attr.Value = parcel.Category.ToString();
+                        category_attr.Value = ((int)parcel.Category).ToString();
                         
 
                         //XmlAttribute entities_attr = nodeFactory.CreateAttribute("entities");
