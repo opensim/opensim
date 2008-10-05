@@ -124,7 +124,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// The number of milliseconds that can pass before a packet that needs an ack is resent.
         /// </param>
-        private uint m_ResendTimeout = 4000;
+        private uint m_ResendTimeout = 2000;
 
         public uint ResendTimeout
         {
@@ -132,7 +132,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set { m_ResendTimeout = value; }
         }
 
-        private uint m_SilenceLimit = 350;
+        private uint m_SilenceLimit = 250;
 
         public uint SilenceLimit
         {
