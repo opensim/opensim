@@ -189,9 +189,10 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         xmlparcel.AppendChild(tpLocation);
 
                         XmlNode infouuid = nodeFactory.CreateNode(XmlNodeType.Element, "infouuid", "");
+                        uint x = (uint)loc.X, y = (uint)loc.Y;
+                        findPointInParcel(land, ref x, ref y); // find a suitable spot
                         infouuid.InnerText = Util.BuildFakeParcelID(
-                                m_scene.RegionInfo.RegionHandle,
-                                (uint)loc.X, (uint)loc.Y).ToString();
+                                m_scene.RegionInfo.RegionHandle, x, y).ToString();
                         xmlparcel.AppendChild(infouuid);
 
                         XmlNode dwell = nodeFactory.CreateNode(XmlNodeType.Element, "dwell", "");
@@ -345,5 +346,41 @@ namespace OpenSim.Region.DataSnapshot.Providers
         }
 
         #endregion
+        
+        // this is needed for non-convex parcels (example: rectangular parcel, and in the exact center
+        // another, smaller rectangular parcel). Both will have the same initial coordinates.
+        private void findPointInParcel(ILandObject land, ref uint refX, ref uint refY)
+        {
+            m_log.DebugFormat("[LAND] trying {0}, {1}", refX, refY);
+            // the point we started with already is in the parcel
+            if (land.containsPoint((int)refX, (int)refY)) return;
+            
+            // ... otherwise, we have to search for a point within the parcel
+            uint startX = (uint)land.landData.AABBMin.X;
+            uint startY = (uint)land.landData.AABBMin.Y;
+            uint endX = (uint)land.landData.AABBMax.X;
+            uint endY = (uint)land.landData.AABBMax.Y;
+            
+            // default: center of the parcel
+            refX = (startX + endX) / 2;
+            refY = (startY + endY) / 2;
+            // If the center point is within the parcel, take that one
+            if (land.containsPoint((int)refX, (int)refY)) return;
+            
+            // otherwise, go the long way.
+            for (uint y = startY; y <= endY; ++y)
+            {
+                for (uint x = startX; x <= endX; ++x)
+                {
+                    if (land.containsPoint((int)x, (int)y))
+                    {
+                        // found a point
+                        refX = x;
+                        refY = y;
+                        return;
+                    }
+                }
+            }
+        }
     }
 }
