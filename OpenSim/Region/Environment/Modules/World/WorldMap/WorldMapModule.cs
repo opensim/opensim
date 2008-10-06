@@ -248,32 +248,76 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         public virtual void HandleMapItemRequest(IClientAPI remoteClient, uint flags, 
             uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
+            uint xstart = 0;
+            uint ystart = 0;
+            Helpers.LongToUInts(m_scene.RegionInfo.RegionHandle, out xstart, out ystart);
             if (itemtype == 6) // we only sevice 6 right now (avatar green dots)
             {
-                RegionInfo mreg = m_scene.SceneGridService.RequestNeighbouringRegionInfo(regionhandle);
-                if (mreg != null)
-                {
-                    string httpserver = "http://" + mreg.ExternalEndPoint.Address.ToString() + ":" + mreg.HttpPort + "/MAP/MapItems/" + regionhandle.ToString();
-                    List<mapItemReply> returnitems = new List<mapItemReply>();
-                    LLSDMap ramap = RequestMapItems(httpserver);
-                    if (ramap.ContainsKey(itemtype.ToString()))
+                if (regionhandle == 0 || regionhandle == m_scene.RegionInfo.RegionHandle)
+                {    
+                    List<ScenePresence> avatars = m_scene.GetAvatars();
+                    int tc = System.Environment.TickCount;
+                    List<mapItemReply> mapitems = new List<mapItemReply>();
+                    mapItemReply mapitem = new mapItemReply();
+                    if (avatars.Count == 0 || avatars.Count == 1)
                     {
-                        LLSDArray itemarray = (LLSDArray)ramap[itemtype.ToString()];
-                        for (int i = 0; i < itemarray.Count; i++)
-                        {
-                            LLSDMap mapitem = (LLSDMap)itemarray[i];
-                            mapItemReply mi = new mapItemReply();
-                            mi.x = (uint)mapitem["X"].AsInteger();
-                            mi.y = (uint)mapitem["Y"].AsInteger();
-                            mi.id = mapitem["ID"].AsUUID();
-                            mi.Extra = mapitem["Extra"].AsInteger();
-                            mi.Extra2 = mapitem["Extra2"].AsInteger();
-                            mi.name = mapitem["Name"].AsString();
-                            returnitems.Add(mi);
-                        }
-
+                        mapitem = new mapItemReply();
+                        mapitem.x = (uint)(xstart + 1);
+                        mapitem.y = (uint)(ystart + 1);
+                        mapitem.id = UUID.Zero;
+                        mapitem.name = Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString());
+                        mapitem.Extra = 0;
+                        mapitem.Extra2 = 0;
+                        mapitems.Add(mapitem);
                     }
-                    remoteClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
+                    else
+                    {
+                        
+                        foreach (ScenePresence av in avatars)
+                        {
+                            // Don't send a green dot for yourself
+                            if (av.UUID != remoteClient.AgentId)
+                            {
+                                mapitem = new mapItemReply();
+                                mapitem.x = (uint)(xstart + av.AbsolutePosition.X);
+                                mapitem.y = (uint)(ystart + av.AbsolutePosition.Y);
+                                mapitem.id = UUID.Zero;
+                                mapitem.name = Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString());
+                                mapitem.Extra = 1;
+                                mapitem.Extra2 = 0;
+                                mapitems.Add(mapitem);
+                            }
+                        }
+                    }
+                    remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
+                }
+                else
+                {
+                    RegionInfo mreg = m_scene.SceneGridService.RequestNeighbouringRegionInfo(regionhandle);
+                    if (mreg != null)
+                    {
+                        string httpserver = "http://" + mreg.ExternalEndPoint.Address.ToString() + ":" + mreg.HttpPort + "/MAP/MapItems/" + regionhandle.ToString();
+                        List<mapItemReply> returnitems = new List<mapItemReply>();
+                        LLSDMap ramap = RequestMapItems(httpserver);
+                        if (ramap.ContainsKey(itemtype.ToString()))
+                        {
+                            LLSDArray itemarray = (LLSDArray)ramap[itemtype.ToString()];
+                            for (int i = 0; i < itemarray.Count; i++)
+                            {
+                                LLSDMap mapitem = (LLSDMap)itemarray[i];
+                                mapItemReply mi = new mapItemReply();
+                                mi.x = (uint)mapitem["X"].AsInteger();
+                                mi.y = (uint)mapitem["Y"].AsInteger();
+                                mi.id = mapitem["ID"].AsUUID();
+                                mi.Extra = mapitem["Extra"].AsInteger();
+                                mi.Extra2 = mapitem["Extra2"].AsInteger();
+                                mi.name = mapitem["Name"].AsString();
+                                returnitems.Add(mi);
+                            }
+
+                        }
+                        remoteClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
+                    }
                 }
             }
 
