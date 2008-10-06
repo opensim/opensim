@@ -167,6 +167,7 @@ namespace OpenSim.Framework
     public delegate void ParcelObjectOwnerRequest(int local_id, IClientAPI remote_client);
 
     public delegate void ParcelAbandonRequest(int local_id, IClientAPI remote_client);
+    public delegate void ParcelGodForceOwner(int local_id, UUID ownerID, IClientAPI remote_client);
     public delegate void ParcelReclaim(int local_id, IClientAPI remote_client);
 
     public delegate void ParcelReturnObjectsRequest(int local_id, uint return_type, UUID[] agent_ids, UUID[] selected_ids, IClientAPI remote_client);
@@ -486,6 +487,7 @@ namespace OpenSim.Framework
         event ParcelSelectObjects OnParcelSelectObjects;
         event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         event ParcelAbandonRequest OnParcelAbandonRequest;
+        event ParcelGodForceOwner OnParcelGodForceOwner;
         event ParcelReclaim OnParcelReclaim;
         event ParcelReturnObjectsRequest OnParcelReturnObjectsRequest;
         event RegionInfoRequest OnRegionInfoRequest;

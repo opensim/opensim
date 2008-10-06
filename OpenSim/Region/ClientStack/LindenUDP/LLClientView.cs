@@ -211,6 +211,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ParcelSelectObjects handlerParcelSelectObjects = null; //OnParcelSelectObjects;
         private ParcelObjectOwnerRequest handlerParcelObjectOwnerRequest = null; //OnParcelObjectOwnerRequest;
         private ParcelAbandonRequest handlerParcelAbandonRequest = null;
+        private ParcelGodForceOwner handlerParcelGodForceOwner = null;
         private ParcelReclaim handlerParcelReclaim = null;
         private ParcelReturnObjectsRequest handlerParcelReturnObjectsRequest = null;
         private RegionInfoRequest handlerRegionInfoRequest = null; //OnRegionInfoRequest;
@@ -938,6 +939,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ParcelSelectObjects OnParcelSelectObjects;
         public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         public event ParcelAbandonRequest OnParcelAbandonRequest;
+        public event ParcelGodForceOwner OnParcelGodForceOwner;
         public event ParcelReclaim OnParcelReclaim;
         public event ParcelReturnObjectsRequest OnParcelReturnObjectsRequest;
         public event RegionInfoRequest OnRegionInfoRequest;
@@ -5676,6 +5678,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (handlerParcelObjectOwnerRequest != null)
                         {
                             handlerParcelObjectOwnerRequest(reqPacket.ParcelData.LocalID, this);
+                        }
+                        break;
+                    case PacketType.ParcelGodForceOwner:
+                        ParcelGodForceOwnerPacket godForceOwnerPacket = (ParcelGodForceOwnerPacket)Pack;
+
+                        handlerParcelGodForceOwner = OnParcelGodForceOwner;
+                        if (handlerParcelGodForceOwner != null)
+                        {
+                            handlerParcelGodForceOwner(godForceOwnerPacket.Data.LocalID, godForceOwnerPacket.Data.OwnerID, this);
                         }
                         break;
                     case PacketType.ParcelRelease:

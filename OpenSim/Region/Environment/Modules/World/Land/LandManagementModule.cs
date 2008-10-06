@@ -103,6 +103,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             client.OnParcelAccessListRequest += new ParcelAccessListRequest(handleParcelAccessRequest);
             client.OnParcelAccessListUpdateRequest += new ParcelAccessListUpdateRequest(handleParcelAccessUpdateRequest);
             client.OnParcelAbandonRequest += new ParcelAbandonRequest(handleParcelAbandonRequest);
+            client.OnParcelGodForceOwner += new ParcelGodForceOwner(handleParcelGodForceOwner);
             client.OnParcelReclaim += new ParcelReclaim(handleParcelReclaim);
             client.OnParcelInfoRequest += new ParcelInfoRequest(handleParcelInfo);
             if (m_scene.Entities.ContainsKey(client.AgentId))
@@ -908,6 +909,20 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 else
                 {
                     System.Console.WriteLine("[PARCEL]: Invalid land object passed for parcel object owner request");
+                }
+            }
+        }
+
+        public void handleParcelGodForceOwner(int local_id, UUID ownerID, IClientAPI remote_client)
+        {
+            if (landList.ContainsKey(local_id))
+            {
+                if (m_scene.ExternalChecks.ExternalChecksCanBeGodLike(remote_client.AgentId))
+                {
+                    landList[local_id].landData.OwnerID = ownerID;
+
+                    m_scene.Broadcast(SendParcelOverlay);
+                    landList[local_id].sendLandUpdateToClient(remote_client);
                 }
             }
         }
