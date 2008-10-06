@@ -92,6 +92,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod);
                     m_httpd.AddXmlRPCHandler("admin_load_heightmap", XmlRpcLoadHeightmapMethod);
                     m_httpd.AddXmlRPCHandler("admin_create_user", XmlRpcCreateUserMethod);
+                    m_httpd.AddXmlRPCHandler("admin_exists_user", XmlRpcUserExistsMethod);
                     m_httpd.AddXmlRPCHandler("admin_update_user", XmlRpcUpdateUserAccountMethod);
                     m_httpd.AddXmlRPCHandler("admin_load_xml", XmlRpcLoadXMLMethod);
                     m_httpd.AddXmlRPCHandler("admin_save_xml", XmlRpcSaveXMLMethod);
@@ -638,6 +639,79 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 responseData["success"]     = "false";
                 responseData["avatar_uuid"] = UUID.Zero.ToString();
+                responseData["error"]       = e.Message;
+
+                response.Value = responseData;
+            }
+
+            return response;
+        }
+
+
+        /// <summary>
+        /// Check whether a certain user account exists.
+        /// <summary>
+        /// <param name="request">incoming XML RPC request</param>
+        /// <remarks>
+        /// XmlRpcUserExistsMethod takes the following XMLRPC
+        /// parameters
+        /// <list type="table">
+        /// <listheader><term>parameter name</term><description>description</description></listheader>
+        /// <item><term>password</term>
+        ///       <description>admin password as set in OpenSim.ini</description></item>
+        /// <item><term>user_firstname</term>
+        ///       <description>avatar's first name</description></item>
+        /// <item><term>user_lastname</term>
+        ///       <description>avatar's last name</description></item>
+        /// </list>
+        ///
+        /// XmlRpcCreateUserMethod returns
+        /// <list type="table">
+        /// <listheader><term>name</term><description>description</description></listheader>
+        /// <item><term>user_firstname</term>
+        ///       <description>avatar's first name</description></item>
+        /// <item><term>user_lastname</term>
+        ///       <description>avatar's last name</description></item>
+        /// <item><term>success</term>
+        ///       <description>true or false</description></item>
+        /// <item><term>error</term>
+        ///       <description>error message if success is false</description></item>
+        /// </list>
+        /// </remarks>
+        public XmlRpcResponse XmlRpcUserExistsMethod(XmlRpcRequest request)
+        {
+            m_log.Info("[RADMIN]: UserExists: new request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                Hashtable requestData = (Hashtable) request.Params[0];
+
+                // check completeness
+                checkStringParameters(request, new string[] { "password", "user_firstname", "user_lastname"});
+                
+                string firstname = (string) requestData["user_firstname"];
+                string lastname  = (string) requestData["user_lastname"];
+                
+                UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+
+                responseData["user_firstname"] = firstname;
+                responseData["user_lastname"] = lastname;
+
+                if (null == userProfile)
+                    responseData["success"] = false;
+                else
+                    responseData["success"] = true;
+                    
+                response.Value = responseData;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[RADMIN] UserExists: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] UserExists: failed: {0}", e.ToString());
+
+                responseData["success"]     = "false";
                 responseData["error"]       = e.Message;
 
                 response.Value = responseData;
