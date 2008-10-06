@@ -191,14 +191,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             //Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
 #endif
             // Found
-            try 
+            try
             {
                 ev.Invoke(m_Script, args);
             }
             catch (TargetInvocationException tie)
             {
-                // Grab the inner exception and rethrow it
-                throw tie.InnerException;
+              // Grab the inner exception and rethrow it, unless the inner
+              // exception is an EventAbortException as this indicates event
+              // invokation termination due to a state change.
+              if ( !(tie.InnerException is EventAbortException) )
+              {
+                  throw tie.InnerException;
+              }
             }
             catch (Exception e)
             {
