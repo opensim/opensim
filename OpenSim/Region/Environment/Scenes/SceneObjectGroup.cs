@@ -1202,7 +1202,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part, uint clientFlags)
         {
-            if (m_rootPart.UUID == part.UUID)
+            if (m_rootPart != null && m_rootPart.UUID == part.UUID)
             {
                 if (m_rootPart.IsAttachment)
                 {
