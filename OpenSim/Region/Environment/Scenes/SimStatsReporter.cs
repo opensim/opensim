@@ -36,7 +36,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public class SimStatsReporter
     {
-        public delegate void SendStatResult(SimStatsPacket pack);
+        public delegate void SendStatResult(SimStats stats);
 
         public event SendStatResult OnSendStatsResult;
 
@@ -100,12 +100,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         private int objectCapacity = 45000;
 
-
-        SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[21];
-        SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
-        SimStatsPacket statpack = (SimStatsPacket)PacketPool.Instance.GetPacket(PacketType.SimStats);
-
-
         private Scene m_scene;
 
         private RegionInfo ReportingRegion;
@@ -118,10 +112,7 @@ namespace OpenSim.Region.Environment.Scenes
             statsUpdateFactor = (float)(statsUpdatesEveryMS / 1000);
             m_scene = scene;
             ReportingRegion = scene.RegionInfo;
-            for (int i = 0; i<21;i++)
-            {
-                sb[i] = new SimStatsPacket.StatBlock();
-            }
+
             m_report.AutoReset = true;
             m_report.Interval = statsUpdatesEveryMS;
             m_report.Elapsed += new ElapsedEventHandler(statsHeartBeat);
@@ -140,26 +131,24 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void statsHeartBeat(object sender, EventArgs e)
         {
+            SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[21];
+            SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
+            
             // Know what's not thread safe in Mono... modifying timers.
             // System.Console.WriteLine("Firing Stats Heart Beat");
             lock (m_report)
             {
-                // Packet is already initialized and ready for data insert
-
-
-                statpack.Region = rb;
-                statpack.Region.RegionX = ReportingRegion.RegionLocX;
-                statpack.Region.RegionY = ReportingRegion.RegionLocY;
+                uint regionFlags = 0;
+                
                 try
                 {
                     IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
-                    statpack.Region.RegionFlags = estateModule != null ? estateModule.GetRegionFlags() : (uint) 0;
+                    regionFlags = estateModule != null ? estateModule.GetRegionFlags() : (uint) 0;
                 }
                 catch (Exception)
                 {
-                    statpack.Region.RegionFlags = (uint) 0;
+                    // leave region flags at 0
                 }
-                statpack.Region.ObjectCapacity = (uint) objectCapacity;
 
 #region various statistic googly moogly
 
@@ -182,7 +171,7 @@ namespace OpenSim.Region.Environment.Scenes
                     physfps = 0;
 
 #endregion
-
+                
                 //Our time dilation is 0.91 when we're running a full speed,
                 // therefore to make sure we get an appropriate range,
                 // we have to factor in our error.   (0.10f * statsUpdateFactor)
@@ -190,6 +179,11 @@ namespace OpenSim.Region.Environment.Scenes
                 // / 10 divides the value by the number of times the sim heartbeat runs (10fps)
                 // Then we divide the whole amount by the amount of seconds pass in between stats updates.
 
+                for (int i = 0; i<21;i++)
+                {
+                    sb[i] = new SimStatsPacket.StatBlock();
+                }
+                
                 sb[0].StatID = (uint) Stats.TimeDilation;
                 sb[0].StatValue = m_timeDilation ; //((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
 
@@ -252,13 +246,15 @@ namespace OpenSim.Region.Environment.Scenes
 
                 sb[20].StatID = (uint)Stats.ScriptLinesPerSecond;
                 sb[20].StatValue = m_scriptLinesPerSecond / statsUpdateFactor;
-
-                statpack.Stat = sb;
+              
+                SimStats simStats 
+                    = new SimStats(
+                        ReportingRegion.RegionLocX, ReportingRegion.RegionLocY, regionFlags, (uint)objectCapacity, rb, sb);
 
                 handlerSendStatResult = OnSendStatsResult;
                 if (handlerSendStatResult != null)
                 {
-                    handlerSendStatResult(statpack);
+                    handlerSendStatResult(simStats);
                 }
                 resetvalues();
             }

@@ -2610,9 +2610,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(PacketPool.Instance.GetPacket(PacketType.DisableSimulator), ThrottleOutPacketType.Unknown);
         }
 
-        public void SendSimStats(Packet pack)
+        public void SendSimStats(SimStats stats)
         {
+            SimStatsPacket pack = new SimStatsPacket();
+            
+            pack.Region.RegionX = stats.RegionX;
+            pack.Region.RegionY = stats.RegionY;
+            pack.Region.RegionFlags = stats.RegionFlags;
+            pack.Region.ObjectCapacity = stats.ObjectCapacity;
+            pack.Region = stats.RegionBlock;
+            pack.Stat = stats.StatsBlock;
+            
             pack.Header.Reliable = false;
+            
             OutPacket(pack, ThrottleOutPacketType.Task);
         }
 

@@ -216,31 +216,31 @@ namespace OpenSim.Framework.Statistics
         /// client purposes) sends information to listeners.
         /// </summary>
         /// <param name="pack"></param>
-        public void ReceiveClassicSimStatsPacket(SimStatsPacket statsPacket)
+        public void ReceiveClassicSimStatsPacket(SimStats stats)
         {
-            // FIXME: Really shouldn't rely on the probably arbitrary order in which
-            // stats are packed into the packet
-            timeDilation            = statsPacket.Stat[0].StatValue;
-            simFps                  = statsPacket.Stat[1].StatValue;
-            physicsFps              = statsPacket.Stat[2].StatValue;
-            agentUpdates            = statsPacket.Stat[3].StatValue;
-            rootAgents              = statsPacket.Stat[4].StatValue;
-            childAgents             = statsPacket.Stat[5].StatValue;
-            totalPrims              = statsPacket.Stat[6].StatValue;
-            activePrims             = statsPacket.Stat[7].StatValue;
-            totalFrameTime          = statsPacket.Stat[8].StatValue;
-            netFrameTime            = statsPacket.Stat[9].StatValue;
-            physicsFrameTime        = statsPacket.Stat[10].StatValue;
-            otherFrameTime          = statsPacket.Stat[11].StatValue;
-            imageFrameTime          = statsPacket.Stat[12].StatValue;
-            inPacketsPerSecond      = statsPacket.Stat[13].StatValue;
-            outPacketsPerSecond     = statsPacket.Stat[14].StatValue;
-            unackedBytes            = statsPacket.Stat[15].StatValue;
-            agentFrameTime          = statsPacket.Stat[16].StatValue;
-            pendingDownloads        = statsPacket.Stat[17].StatValue;
-            pendingUploads          = statsPacket.Stat[18].StatValue;
-            activeScripts           = statsPacket.Stat[19].StatValue;
-            scriptLinesPerSecond    = statsPacket.Stat[20].StatValue;
+            // FIXME: SimStats shouldn't allow an arbitrary stat packing order (which is inherited from the original
+            // SimStatsPacket that was being used).
+            timeDilation            = stats.StatsBlock[0].StatValue;
+            simFps                  = stats.StatsBlock[1].StatValue;
+            physicsFps              = stats.StatsBlock[2].StatValue;
+            agentUpdates            = stats.StatsBlock[3].StatValue;
+            rootAgents              = stats.StatsBlock[4].StatValue;
+            childAgents             = stats.StatsBlock[5].StatValue;
+            totalPrims              = stats.StatsBlock[6].StatValue;
+            activePrims             = stats.StatsBlock[7].StatValue;
+            totalFrameTime          = stats.StatsBlock[8].StatValue;
+            netFrameTime            = stats.StatsBlock[9].StatValue;
+            physicsFrameTime        = stats.StatsBlock[10].StatValue;
+            otherFrameTime          = stats.StatsBlock[11].StatValue;
+            imageFrameTime          = stats.StatsBlock[12].StatValue;
+            inPacketsPerSecond      = stats.StatsBlock[13].StatValue;
+            outPacketsPerSecond     = stats.StatsBlock[14].StatValue;
+            unackedBytes            = stats.StatsBlock[15].StatValue;
+            agentFrameTime          = stats.StatsBlock[16].StatValue;
+            pendingDownloads        = stats.StatsBlock[17].StatValue;
+            pendingUploads          = stats.StatsBlock[18].StatValue;
+            activeScripts           = stats.StatsBlock[19].StatValue;
+            scriptLinesPerSecond    = stats.StatsBlock[20].StatValue;
         }
 
         /// <summary>

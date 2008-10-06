@@ -837,14 +837,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        private void SendSimStatsPackets(SimStatsPacket pack)
+        private void SendSimStatsPackets(SimStats stats)
         {
             List<ScenePresence> StatSendAgents = GetScenePresences();
             foreach (ScenePresence agent in StatSendAgents)
             {
                 if (!agent.IsChildAgent)
                 {
-                    agent.ControllingClient.SendSimStats(pack);
+                    agent.ControllingClient.SendSimStats(stats);
                 }
             }
         }

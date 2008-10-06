@@ -722,7 +722,13 @@ namespace OpenSim.Framework
         void SendImagePart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec);
 
         void SendShutdownConnectionNotice();
-        void SendSimStats(Packet pack);
+        
+        /// <summary>
+        /// Send statistical information about the sim to the client.
+        /// </summary>
+        /// <param name="stats"></param>
+        void SendSimStats(SimStats stats);
+        
         void SendObjectPropertiesFamilyData(uint RequestFlags, UUID ObjectUUID, UUID OwnerID, UUID GroupID,
                                                     uint BaseMask, uint OwnerMask, uint GroupMask, uint EveryoneMask,
                                                     uint NextOwnerMask, int OwnershipCost, byte SaleType, int SalePrice, uint Category,

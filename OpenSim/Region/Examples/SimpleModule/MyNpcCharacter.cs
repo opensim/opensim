@@ -625,7 +625,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void SendSimStats(Packet pack)
+        public void SendSimStats(SimStats stats)
         {
         }
 

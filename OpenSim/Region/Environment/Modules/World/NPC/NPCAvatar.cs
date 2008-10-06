@@ -706,7 +706,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void SendSimStats(Packet pack)
+        public void SendSimStats(SimStats stats)
         {
         }
 
