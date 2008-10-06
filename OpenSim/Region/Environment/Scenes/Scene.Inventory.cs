@@ -2340,5 +2340,21 @@ namespace OpenSim.Region.Environment.Scenes
         {
             EventManager.TriggerGetScriptRunning(controllingClient, objectID, itemID);
         }
+
+        void ObjectOwner(IClientAPI remoteClient, UUID ownerID, UUID groupID, List<uint> localIDs)
+        {
+            if (!ExternalChecks.ExternalChecksCanBeGodLike(remoteClient.AgentId))
+                return;
+
+            foreach (uint localID in localIDs)
+            {
+                SceneObjectPart part = GetSceneObjectPart(localID);
+                if (part != null && part.ParentGroup != null)
+                {
+                    part.ParentGroup.SetOwnerId(ownerID);
+                    part.ParentGroup.SetGroup(groupID, remoteClient);
+                }
+            }
+        }
     }
 }

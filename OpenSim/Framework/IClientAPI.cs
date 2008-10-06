@@ -308,6 +308,7 @@ namespace OpenSim.Framework
     public delegate void DeactivateGesture(IClientAPI client, UUID gestureid);
 
     public delegate void TerrainUnacked(IClientAPI remoteClient, int patchX, int patchY);
+    public delegate void ObjectOwner(IClientAPI remoteClient, UUID ownerID, UUID groupID, List<uint> localIDs);
 
     public delegate void DirPlacesQuery(IClientAPI remoteClient, UUID queryID, string queryText, int queryFlags, int category, string simName, int queryStart);
 
@@ -546,6 +547,7 @@ namespace OpenSim.Framework
         event TerrainUnacked OnUnackedTerrain;
         event ActivateGesture OnActivateGesture;
         event DeactivateGesture OnDeactivateGesture;
+        event ObjectOwner OnObjectOwner;
 
         event DirPlacesQuery OnDirPlacesQuery;
 

@@ -321,6 +321,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
+        public event ObjectOwner OnObjectOwner;
 
         public event DirPlacesQuery OnDirPlacesQuery;
 

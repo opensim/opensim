@@ -259,6 +259,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //Gesture
         private ActivateGesture handlerActivateGesture = null;
         private DeactivateGesture handlerDeactivateGesture = null;
+        private ObjectOwner handlerObjectOwner = null;
 
         private DirPlacesQuery handlerDirPlacesQuery = null;
 
@@ -987,6 +988,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
+        public event ObjectOwner OnObjectOwner;
 
         public event DirPlacesQuery OnDirPlacesQuery;
 
@@ -6184,6 +6186,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (handlerDeactivateGesture != null)
                         {
                             handlerDeactivateGesture(this, deactivateGesturePacket.Data[0].ItemID);
+                        }
+                        break;
+                    case PacketType.ObjectOwner:
+                        ObjectOwnerPacket objectOwnerPacket = (ObjectOwnerPacket)Pack;
+
+                        List<uint> localIDs = new List<uint>();
+
+                        foreach (ObjectOwnerPacket.ObjectDataBlock d in objectOwnerPacket.ObjectData)
+                            localIDs.Add(d.ObjectLocalID);
+
+                        handlerObjectOwner = OnObjectOwner;
+                        if (handlerObjectOwner != null)
+                        {
+                            handlerObjectOwner(this, objectOwnerPacket.HeaderData.OwnerID, objectOwnerPacket.HeaderData.GroupID, localIDs);
                         }
                         break;
 

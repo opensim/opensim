@@ -2227,6 +2227,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnActivateGesture += ActivateGesture;
             client.OnDeactivateGesture += DeactivateGesture;
 
+            client.OnObjectOwner += ObjectOwner;
+
             // EventManager.TriggerOnNewClient(client);
         }
 

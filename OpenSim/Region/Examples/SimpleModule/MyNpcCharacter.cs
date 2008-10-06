@@ -216,6 +216,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
        public event ActivateGesture OnActivateGesture;
        public event DeactivateGesture OnDeactivateGesture;
+       public event ObjectOwner OnObjectOwner;
 
        public event DirPlacesQuery OnDirPlacesQuery;
 
