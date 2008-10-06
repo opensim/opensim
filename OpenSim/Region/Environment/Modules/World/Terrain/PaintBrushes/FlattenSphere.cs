@@ -25,48 +25,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 {
     public class FlattenSphere : ITerrainPaintableEffect
     {
-
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength, double duration)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz, double strength, double duration)
         {
             strength = TerrainUtil.MetersToSphericalStrength(strength);
 
             int x, y;
-
-            double sum = 0.0;
-            double step2 = 0.0;
-            duration = 0.009; //MCP Should be read from ini file
- 
-
-            // compute delta map
-            for (x = 0; x < map.Width; x++)
-            {
-                for (y = 0; y < map.Height; y++)
-                {
-                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
-
-                    if (z > 0) // add in non-zero amount
-                    {
-                        sum += map[x, y] * z;
-                        step2 += z;
-                    }
-                }
-            }
-
-            double avg = sum / step2;
 
             // blend in map
             for (x = 0; x < map.Width; x++)
             {
                 for (y = 0; y < map.Height; y++)
                 {
+                    if (!mask[x,y])
+                        continue;
+
                     double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength) * duration;
 
                     if (z > 0) // add in non-zero amount
@@ -74,8 +55,18 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                         if (z > 1.0)
                             z = 1.0;
 
-                        map[x, y] = (map[x, y] * (1.0 - z)) + (avg * z);
+                        map[x, y] = (map[x, y] * (1.0 - z)) + (rz * z);
                     }
+
+                    double delta = rz - map[x, y];
+                    if (Math.Abs(delta) > 0.1)
+                        delta *= 0.25;
+
+                    if (delta != 0) // add in non-zero amount
+                    {
+                        map[x, y] += delta;
+                    }
+ 
                 }
             }
         }

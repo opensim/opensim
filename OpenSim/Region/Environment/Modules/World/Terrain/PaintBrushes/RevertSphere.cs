@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength, double duration)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz, double strength, double duration)
         {
             strength = TerrainUtil.MetersToSphericalStrength(strength);
             duration = 0.03; //MCP Should be read from ini file
@@ -54,15 +54,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
             int x;
             for (x = 0; x < map.Width; x++)
             {
-                // Skip everything unlikely to be affected
-                if (Math.Abs(x - rx) > strength * 1.1)
-                    continue;
-
                 int y;
                 for (y = 0; y < map.Height; y++)
                 {
-                    // Skip everything unlikely to be affected
-                    if (Math.Abs(y - ry) > strength * 1.1)
+                    if (!mask[x,y])
                         continue;
 
                     // Calculate a sphere and add it to the heighmap
