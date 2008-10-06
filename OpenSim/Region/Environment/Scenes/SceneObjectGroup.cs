@@ -2152,10 +2152,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void UpdatePermissions(UUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
+        public void UpdatePermissions(UUID AgentID, byte field, uint localID,
+                uint mask, byte addRemTF)
         {
-            SceneObjectPart updatePart = GetChildPart(localID);
-            updatePart.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
+            foreach (SceneObjectPart part in m_parts.Values)
+                part.UpdatePermissions(AgentID, field, localID, mask,
+                        addRemTF);
+
             HasGroupChanged = true;
         }
 
