@@ -45,9 +45,10 @@ namespace OpenSim.Framework.Servers
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// An OSHttpHandler that matches on the "content-type" header can
-        /// supply an OSHttpContentTypeChecker delegate which will be
-        /// invoked by the request matcher in OSHttpRequestPump.
+        /// XmlRpcMethodMatch tries to reify (deserialize) an incoming
+        /// XmlRpc request (and posts it to the "whiteboard") and
+        /// checks whether the method name is one we are interested
+        /// in.
         /// </summary>
         /// <returns>true if the handler is interested in the content;
         /// false otherwise</returns>

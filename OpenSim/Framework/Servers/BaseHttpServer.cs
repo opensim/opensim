@@ -103,119 +103,12 @@ namespace OpenSim.Framework.Servers
         {
             m_ssl = ssl;
             m_port = port;
+
             if (m_ssl)
             {
-                //SetupSsl((int)sslport, CN);
                 m_sslport = sslport;
             }
         }
-
-        
-        /*
-         * 
-        public bool SetupSsl(int port, string CN)
-        {
-            string searchCN = Environment.MachineName.ToUpper();
-            
-            if (CN.Length > 0)
-                searchCN = CN.ToUpper();
-
-            m_SSLCommonName = searchCN;
-
-            Type t = Type.GetType("Mono.Runtime");
-            if (t != null)
-            {
-                // TODO Mono User Friendly HTTPS setup
-                // if this doesn't exist, then mono people can still manually use httpcfg
-            }
-            else
-            {
-                // Windows.
-                // Search through the store for a certificate with a Common name specified in OpenSim.ini.
-                // We need to find it's hash so we can pass it to httpcfg
-                X509Store store = new X509Store(StoreLocation.LocalMachine);
-                //Use the first cert to configure Ssl
-                store.Open(OpenFlags.ReadOnly);
-                //Assumption is we have certs. If not then this call will fail :(
-                try
-                {
-                    bool found = false;
-                    //X509Certificate2.CreateFromCertFile("testCert.cer");
-
-                    foreach (X509Certificate2 cert in store.Certificates)
-                    {
-                        String certHash = cert.GetCertHashString();
-                        //Only install certs issued for the machine and has the name as the machine name
-                        if (cert.Subject.ToUpper().IndexOf(searchCN) >= 0)
-                        {
-                            string httpcfgparams = String.Format("set ssl -i 0.0.0.0:{1} -c \"MY\" -h {0}", certHash, port);
-                            try
-                            {
-                                found = true;
-
-                                ExecuteHttpcfgCommand(httpcfgparams);
- 
-                                break;
-                            }
-                            catch (Exception e)
-                            {
-                                m_log.WarnFormat("[HTTPS]: Automatic HTTPS setup failed.  Do you have httpcfg.exe in your path?  If not, you can download it in the windowsXP Service Pack 2 Support Tools, here: http://www.microsoft.com/downloads/details.aspx?FamilyID=49ae8576-9bb9-4126-9761-ba8011fabf38&displaylang=en.  When you get it installed type, httpcfg {0} - {1}", httpcfgparams, e);
-                                return false;
-                            }
-                        }
-                    }
-
-                    if (!found)
-                    {
-                        m_log.WarnFormat("[HTTPS]: We didn't find a certificate that matched the common name {0}.  Automatic HTTPS setup failed, you may have certificate errors.  To fix this, make sure you generate a certificate request(CSR) using OpenSSL or the IIS snap-in with the common name you specified in opensim.ini. Then get it signed by a certification authority or sign it yourself with OpenSSL and the junkCA.  Finally, be sure to import the cert to the 'MY' store(StoreLocation.LocalMachine)", searchCN);
-                        return false;
-                    }
-
-                }
-                catch (Exception e)
-                {
-                    m_log.WarnFormat("[HTTPS]: We didn't any certificates in your LocalMachine certificate store.  Automatic HTTPS setup failed, you may have certificate errors.  To fix this, make sure you generate a certificate request(CSR) using OpenSSL or the IIS snap-inwith the common name you specified in opensim.ini. Then get it signed by a certification authority or sign it yourself with OpenSSL and the junkCA.  Finally, be sure to import the cert to the 'MY' store(StoreLocation.LocalMachine). The configured common name is {0} - {1}", searchCN, e);
-                    return false;
-                }
-                finally
-                {
-                    if (store != null)
-                    {
-                        store.Close();
-                    }
-                }
-            }
-            return true;
-        }
-
-        private void ExecuteHttpcfgCommand(string p)
-        {
-            
-            string file = "httpcfg";
-
-            ProcessStartInfo info = new ProcessStartInfo(file, p);
-            // Redirect output so we can read it.
-            info.RedirectStandardOutput = true;
-            // To redirect, we must not use shell execute.
-            info.UseShellExecute = false;
-
-            // Create and execute the process.
-            Process httpcfgprocess = Process.Start(info);
-            httpcfgprocess.Start();
-            string result = httpcfgprocess.StandardOutput.ReadToEnd();
-            if (result.Contains("HttpSetServiceConfiguration completed with"))
-            {
-                //success
-            
-            }
-            else
-            {
-                //fail
-                m_log.WarnFormat("[HTTPS]:Error binding certificate with the requested port.  Message:{0}", result);
-            }
-            
-        }
-        */
 
         /// <summary>
         /// Add a stream handler to the http server.  If the handler already exists, then nothing happens.
@@ -311,81 +204,6 @@ namespace OpenSim.Framework.Servers
             return true;
         }
 
-        /// <summary>
-        /// HttpListener Handle an individual http request.  This method is given to a worker in the thread pool.
-        /// </summary>
-        /// <param name="stateinfo"></param>
-        public virtual void HandleRequest(Object stateinfo)
-        {
-            // force the culture to en-US
-            
-
-            // If we don't catch the exception here it will just disappear into the thread pool and we'll be none the wiser
-            try
-            {
-                HttpListenerContext context = (HttpListenerContext)stateinfo;
-
-                OSHttpRequest request = new OSHttpRequest(context.Request);
-                OSHttpResponse response = new OSHttpResponse(context.Response);
-                
-                HandleRequest(request, response);
-            
-            }
-            catch (SocketException e)
-            {
-                // At least on linux, it appears that if the client makes a request without requiring the response,
-                // an unconnected socket exception is thrown when we close the response output stream.  There's no
-                // obvious way to tell if the client didn't require the response, so instead we'll catch and ignore
-                // the exception instead.
-                //
-                // An alternative may be to turn off all response write exceptions on the HttpListener, but let's go
-                // with the minimum first
-                m_log.WarnFormat("[BASE HTTP SERVER]: HandleRequest threw {0}.\nNOTE: this may be spurious on Linux", e);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
-            }
-        }
-
-        /*
-        /// <summary>
-        /// HttpListener Handle an individual http request.  This method is given to a worker in the thread pool.
-        /// </summary>
-        /// <param name="stateinfo"></param>
-        public virtual void HandleRequestHttpServer(Object stateinfo)
-        {
-            // force the culture to en-US
-
-
-            // If we don't catch the exception here it will just disappear into the thread pool and we'll be none the wiser
-            try
-            {
-                HttpServerContextObj context = (HttpServerContextObj)stateinfo;
-
-                OSHttpRequest request = new OSHttpRequest(context.Request);
-                OSHttpResponse response = new OSHttpResponse(context.Response);
-
-                HandleRequest(request, response);
-
-            }
-            catch (SocketException e)
-            {
-                // At least on linux, it appears that if the client makes a request without requiring the response,
-                // an unconnected socket exception is thrown when we close the response output stream.  There's no
-                // obvious way to tell if the client didn't require the response, so instead we'll catch and ignore
-                // the exception instead.
-                //
-                // An alternative may be to turn off all response write exceptions on the HttpListener, but let's go
-                // with the minimum first
-                m_log.WarnFormat("[BASE HTTP SERVER]: HandleRequest threw {0}.\nNOTE: this may be spurious on Linux", e);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
-            }
-        }
-      */ 
         public void OnHandleRequestIOThread(IHttpClientContext context, IHttpRequest request)
         {
             OSHttpRequest req = new OSHttpRequest(context, request);
@@ -845,7 +663,7 @@ namespace OpenSim.Framework.Servers
                 if (TryGetLLSDHandler(request.RawUrl, out llsdhandler) && !LegacyLLSDLoginLibOMV)
                 {
                     // we found a registered llsd handler to service this request
-                    llsdResponse = llsdhandler(request.RawUrl, llsdRequest, (request.RemoteIPEndPoint == null)? "" : request.RemoteIPEndPoint.ToString());
+                    llsdResponse = llsdhandler(request.RawUrl, llsdRequest, request.RemoteIPEndPoint.ToString());
                 }
                 else
                 {

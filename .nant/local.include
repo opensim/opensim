@@ -35,6 +35,7 @@
       <test>
         <assemblies>
           <include name="./bin/OpenSim.Framework.Tests.dll" />
+          <include name="./bin/OpenSim.Framework.Servers.Tests.dll" />
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
           <include name="./bin/OpenSim.Region.Environment.Tests.dll" />
@@ -51,6 +52,7 @@
       <test>
         <assemblies>
           <include name="./bin/OpenSim.Framework.Tests.dll" />
+          <include name="./bin/OpenSim.Framework.Servers.Tests.dll" />
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
           <include name="./bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
           <include name="./bin/OpenSim.Region.Environment.Tests.dll" />

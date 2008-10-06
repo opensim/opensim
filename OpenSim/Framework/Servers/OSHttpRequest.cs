@@ -31,18 +31,25 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using HttpServer;
+using log4net;
 
 namespace OpenSim.Framework.Servers
 {
     public class OSHttpRequest
     {
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        protected HttpServer.IHttpRequest _request = null;
+        protected HttpServer.IHttpClientContext _context = null;
+
+
         public string[] AcceptTypes
         {
-            get { return _acceptTypes; }
+            get { return _request.AcceptTypes; }
         }
-        private string[] _acceptTypes;
 
         public Encoding ContentEncoding
         {
@@ -52,9 +59,8 @@ namespace OpenSim.Framework.Servers
 
         public long ContentLength
         {
-            get { return _contentLength64; }
+            get { return _request.ContentLength; }
         }
-        private long _contentLength64;
 
         public long ContentLength64
         {
@@ -67,71 +73,35 @@ namespace OpenSim.Framework.Servers
         }
         private string _contentType;
 
-        // public CookieCollection Cookies
-        // {
-        //     get { return _cookies; }
-        // }
-        // private CookieCollection _cookies;
+        public bool HasEntityBody
+        {
+            get { return _request.ContentLength != 0; }
+        }
 
         public NameValueCollection Headers
         {
-            get { return _headers; }
+            get { return _request.Headers; }
         }
-        private NameValueCollection _headers;
 
         public string HttpMethod
         {
-            get { return _httpMethod; }
+            get { return _request.Method; }
         }
-        private string _httpMethod;
 
         public Stream InputStream
         {
-            get { return _inputStream; }
+            get { return _request.Body; }
         }
-        private Stream _inputStream;
 
-        // public bool IsSecureConnection
-        // {
-        //     get { return _isSecureConnection; }
-        // }
-        // private bool _isSecureConnection;
-
-        // public bool IsAuthenticated
-        // {
-        //     get { return _isAuthenticated; }
-        // }
-        // private bool _isAuthenticated;
-
-        public bool HasEntityBody
+        public bool IsSecured
         {
-            get { return _hasbody; }
+            get { return _context.Secured; }
         }
-        private bool _hasbody;
 
         public bool KeepAlive
         {
-            get { return _keepAlive; }
+            get { return ConnectionType.KeepAlive == _request.Connection; }
         }
-        private bool _keepAlive;
-
-        public string RawUrl
-        {
-            get { return _rawUrl; }
-        }
-        private string _rawUrl;
-
-        public Uri Url
-        {
-            get { return _url; }
-        }
-        private Uri _url;
-
-        public string UserAgent
-        {
-            get { return _userAgent; }
-        }
-        private string _userAgent;
 
         public NameValueCollection QueryString
         {
@@ -145,23 +115,30 @@ namespace OpenSim.Framework.Servers
         }
         private Hashtable _query;
 
+        public string RawUrl
+        {
+            get { return _request.Uri.AbsolutePath; }
+        }
+
         public IPEndPoint RemoteIPEndPoint
         {
-            get { return _ipEndPoint; }
+            get { return _remoteIPEndPoint; }
         }
-        private IPEndPoint _ipEndPoint;
+        private IPEndPoint _remoteIPEndPoint;
 
-        // internal HttpRequest HttpRequest
-        // {
-        //     get { return _request; }
-        // }
-        // private HttpRequest _request;
+        public Uri Url
+        {
+            get { return _request.Uri; }
+        }
 
-        // internal HttpClientContext HttpClientContext
-        // {
-        //     get { return _context; }
-        // }
-        // private HttpClientContext _context;
+        public string UserAgent
+        {
+            get { return _userAgent; }
+        }
+        private string _userAgent;
+
+
+
 
         /// <summary>
         /// Internal whiteboard for handlers to store temporary stuff
@@ -173,81 +150,60 @@ namespace OpenSim.Framework.Servers
         }
         private Dictionary<string, object> _whiteboard = new Dictionary<string, object>();
 
+
         public OSHttpRequest()
         {
         }
 
-        public OSHttpRequest(HttpListenerRequest req)
+        public OSHttpRequest(HttpServer.IHttpClientContext context, HttpServer.IHttpRequest req)
         {
-            _acceptTypes = req.AcceptTypes;
-            _contentEncoding = req.ContentEncoding;
-            _contentLength64 = req.ContentLength64;
-            _contentType = req.ContentType;
-            _headers = req.Headers;
-            _httpMethod = req.HttpMethod;
-            _hasbody = req.HasEntityBody;
-            _inputStream = req.InputStream;
-            _keepAlive = req.KeepAlive;
-            _rawUrl = req.RawUrl;
-            _url = req.Url;
-            _queryString = req.QueryString;
-            _userAgent = req.UserAgent;
-            _ipEndPoint = req.RemoteEndPoint;
+            _request = req;
+            _context = context;
 
-            // _cookies = req.Cookies;
-            // _isSecureConnection = req.IsSecureConnection;
-            // _isAuthenticated = req.IsAuthenticated;
+            if (null != req.Headers["content-encoding"])
+                _contentEncoding = Encoding.GetEncoding(_request.Headers["content-encoding"]);
+            if (null != req.Headers["content-type"])
+                _contentType = _request.Headers["content-type"];
+            if (null != req.Headers["user-agent"])
+                _userAgent = req.Headers["user-agent"];
+            if (null != req.Headers["remote_addr"])
+            {
+                try
+                {
+                    IPAddress addr = IPAddress.Parse(req.Headers["remote_addr"]);
+                    int port = Int32.Parse(req.Headers["remote_port"]);
+                    _remoteIPEndPoint = new IPEndPoint(addr, port);
+                }
+                catch (FormatException)
+                {
+                    _log.ErrorFormat("[OSHttpRequest]: format exception on addr/port {0}:{1}, ignoring", 
+                                     req.Headers["remote_addr"], req.Headers["remote_port"]);
+                }
+            }
+
+            _queryString = new NameValueCollection();
+            _query = new Hashtable();
+            try
+            {
+                foreach (HttpInputItem item in req.QueryString)
+                {
+                    try
+                    {
+                        _queryString.Add(item.Name, item.Value);
+                        _query[item.Name] = item.Value;
+                    }
+                    catch (InvalidCastException)
+                    {
+                        _log.DebugFormat("[OSHttpRequest]: error parsing {0} query item, skipping it", item.Name);
+                        continue;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                _log.ErrorFormat("[OSHttpRequest]: Error parsing querystring");
+            }
         }
-
-         public OSHttpRequest(HttpServer.IHttpClientContext context, HttpServer.IHttpRequest req)
-         {
-             //_context = context;
-             HttpServer.IHttpRequest _request = req;
-
-             _acceptTypes = req.AcceptTypes;
-             if (null != req.Headers["content-encoding"])
-                 _contentEncoding = Encoding.GetEncoding(_request.Headers["content-encoding"]);
-             _contentLength64 = req.ContentLength;
-             if (null != req.Headers["content-type"])
-                 _contentType = _request.Headers["content-type"];
-             _headers = req.Headers;
-             _httpMethod = req.Method;
-             _hasbody = req.ContentLength != 0;
-             _inputStream = req.Body;
-             _keepAlive = ConnectionType.KeepAlive == req.Connection;
-             _rawUrl = req.Uri.AbsolutePath;
-             _url = req.Uri;
-             if (null != req.Headers["user-agent"])
-                 _userAgent = req.Headers["user-agent"];
-             _queryString = new NameValueCollection();
-             _query = new Hashtable();
-             try
-             {
-                 foreach (HttpInputItem item in req.QueryString)
-                 {
-                     try
-                     {
-                         _queryString.Add(item.Name, item.Value);
-                         _query[item.Name] = item.Value;
-                     }
-                     catch (InvalidCastException)
-                     {
-                         System.Console.WriteLine("[OSHttpRequest]: Errror parsing querystring..  but it was recoverable..  skipping on to the next one");
-                         continue;
-                     }
-                 }
-             }
-             catch (Exception)
-             {
-                 System.Console.WriteLine("[OSHttpRequest]: Errror parsing querystring");
-             }
-             // TODO: requires change to HttpServer.HttpRequest
-             _ipEndPoint = null;
-
-             // _cookies = req.Cookies;
-             // _isSecureConnection = req.IsSecureConnection;
-             // _isAuthenticated = req.IsAuthenticated;
-         }
 
         public override string ToString()
         {
@@ -259,7 +215,7 @@ namespace OpenSim.Framework.Servers
             }
             if (null != RemoteIPEndPoint)
             {
-                me.Append(String.Format("    IP: {0}\n", RemoteIPEndPoint.ToString()));
+                me.Append(String.Format("    IP: {0}\n", RemoteIPEndPoint));
             }
 
             return me.ToString();
