@@ -1137,13 +1137,6 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                // Vector3 oldPos = group.AbsolutePosition;
-                if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.IsAttachment)
-                {
-                    group.SendGroupTerseUpdate();
-                    return;
-                }
-
                 if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.IsAttachment)
                 {
                     group.UpdateSinglePosition(pos, localID);
@@ -1170,13 +1163,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.IsAttachment)
-                    {
-                        group.SendGroupTerseUpdate();
-
-                        return;
-                    }
-                        if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.IsAttachment)
+                    if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.IsAttachment)
                     {
                         group.UpdateGroupPosition(pos);
                     }
