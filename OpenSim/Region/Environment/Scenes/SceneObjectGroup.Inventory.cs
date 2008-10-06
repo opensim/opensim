@@ -255,18 +255,18 @@ namespace OpenSim.Region.Environment.Scenes
                 perms &= part.MaskEffectivePermissions();
             }
 
-            if (ownerMask & (uint)PermissionMask.Modify) == 0)
+            if ((ownerMask & (uint)PermissionMask.Modify) == 0)
                 perms &= ~(uint)PermissionMask.Modify;
-            if (ownerMask & (uint)PermissionMask.Copy) == 0)
+            if ((ownerMask & (uint)PermissionMask.Copy) == 0)
                 perms &= ~(uint)PermissionMask.Copy;
-            if (ownerMask & (uint)PermissionMask.Transfer) == 0)
+            if ((ownerMask & (uint)PermissionMask.Transfer) == 0)
                 perms &= ~(uint)PermissionMask.Transfer;
 
-            if (ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Modify) == 0)
+            if ((ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Modify) == 0)
                 perms &= ~((uint)PermissionMask.Modify >> 13);
-            if (ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Copy) == 0)
+            if ((ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Copy) == 0)
                 perms &= ~((uint)PermissionMask.Copy >> 13);
-            if (ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Transfer) == 0)
+            if ((ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Transfer) == 0)
                 perms &= ~((uint)PermissionMask.Transfer >> 13);
 
             return perms;
