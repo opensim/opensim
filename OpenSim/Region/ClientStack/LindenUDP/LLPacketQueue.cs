@@ -109,7 +109,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TextureOutgoingPacketQueue = new Queue<LLQueItem>();
             AssetOutgoingPacketQueue = new Queue<LLQueItem>();
 
-            // Set up the throttle classes (min, max, current) in bytes
+            // Set up the throttle classes (min, max, current) in bits per second
             ResendThrottle = new LLPacketThrottle(5000, 100000, 16000);
             LandThrottle = new LLPacketThrottle(1000, 100000, 2000);
             WindThrottle = new LLPacketThrottle(0, 100000, 0);
@@ -118,8 +118,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AssetThrottle = new LLPacketThrottle(1000, 800000, 1000);
             TextureThrottle = new LLPacketThrottle(1000, 800000, 4000);
             
-            // Total Throttle trumps all
-            // Number of bytes allowed to go out per second.            
+            // Total Throttle trumps all - it is the number of bits in total that are allowed to go out per second.            
             ThrottleSettings totalThrottleSettings = userSettings.TotalThrottleSettings;
             if (null == totalThrottleSettings)
             {                
@@ -320,32 +319,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         LLQueItem qpack = ResendOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);
-                        TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                        ResendThrottle.Add(qpack.Packet.ToBytes().Length);
+                        TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        ResendThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     if (LandThrottle.UnderLimit() && LandOutgoingPacketQueue.Count > 0)
                     {
                         LLQueItem qpack = LandOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);
-                        TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                        LandThrottle.Add(qpack.Packet.ToBytes().Length);
+                        TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        LandThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     if (WindThrottle.UnderLimit() && WindOutgoingPacketQueue.Count > 0)
                     {
                         LLQueItem qpack = WindOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);
-                        TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                        WindThrottle.Add(qpack.Packet.ToBytes().Length);
+                        TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        WindThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     if (CloudThrottle.UnderLimit() && CloudOutgoingPacketQueue.Count > 0)
                     {
                         LLQueItem qpack = CloudOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);
-                        TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                        CloudThrottle.Add(qpack.Packet.ToBytes().Length);
+                        TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        CloudThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     if (TaskThrottle.UnderLimit() && (TaskOutgoingPacketQueue.Count > 0 || TaskLowpriorityPacketQueue.Count > 0))
                     {
@@ -360,24 +359,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             qpack = TaskLowpriorityPacketQueue.Dequeue();
                             SendQueue.Enqueue(qpack);
                         }
-                        TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                        TaskThrottle.Add(qpack.Packet.ToBytes().Length);
+                        TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        TaskThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     if (TextureThrottle.UnderLimit() && TextureOutgoingPacketQueue.Count > 0)
                     {
                         LLQueItem qpack = TextureOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);
-                        TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                        TextureThrottle.Add(qpack.Packet.ToBytes().Length);
+                        TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        TextureThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                     if (AssetThrottle.UnderLimit() && AssetOutgoingPacketQueue.Count > 0)
                     {
                         LLQueItem qpack = AssetOutgoingPacketQueue.Dequeue();
 
                         SendQueue.Enqueue(qpack);
-                        TotalThrottle.Add(qpack.Packet.ToBytes().Length);
-                        AssetThrottle.Add(qpack.Packet.ToBytes().Length);
+                        TotalThrottle.AddBytes(qpack.Packet.ToBytes().Length);
+                        AssetThrottle.AddBytes(qpack.Packet.ToBytes().Length);
                     }
                 }
                 // m_log.Info("[THROTTLE]: Processed " + throttleLoops + " packets");
@@ -404,8 +403,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 try
                 {
                     Monitor.Enter(this);
-                    throttle.Add(item.Packet.ToBytes().Length);
-                    TotalThrottle.Add(item.Packet.ToBytes().Length);
+                    throttle.AddBytes(item.Packet.ToBytes().Length);
+                    TotalThrottle.AddBytes(item.Packet.ToBytes().Length);
                     SendQueue.Enqueue(item);
                 }
                 catch (Exception e)
@@ -508,16 +507,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             tAsset = (int) BitConverter.ToSingle(throttle, j);
 
             tall = tResend + tLand + tWind + tCloud + tTask + tTexture + tAsset;
-            /*
-              m_log.Info("[CLIENT]: Client AgentThrottle - Got throttle:resendbytes=" + tResend +
-              " landbytes=" + tLand +
-              " windbytes=" + tWind +
-              " cloudbytes=" + tCloud +
-              " taskbytes=" + tTask +
-              " texturebytes=" + tTexture +
-              " Assetbytes=" + tAsset +
-              " Allbytes=" + tall);
-            */
+
+              m_log.Info("[CLIENT]: Client AgentThrottle - Got throttle:resendbits=" + tResend +
+              " landbits=" + tLand +
+              " windbits=" + tWind +
+              " cloudbits=" + tCloud +
+              " taskbits=" + tTask +
+              " texturebits=" + tTexture +
+              " Assetbits=" + tAsset +
+              " Allbits=" + tall);
+
 
             // Total Sanity
             // Make sure that the client sent sane total values.

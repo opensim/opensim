@@ -26,37 +26,43 @@
  */
 
 namespace OpenSim.Region.ClientStack.LindenUDP
-{
+{    
     public class LLPacketThrottle
     {
         private readonly int m_maxAllowableThrottle;
         private readonly int m_minAllowableThrottle;
         private int m_currentThrottle;
         private const int m_throttleTimeDivisor = 7;
-        private int m_currentBytesSent;
+        private int m_currentBitsSent;
 
         public LLPacketThrottle(int Min, int Max, int Throttle)
         {
             m_maxAllowableThrottle = Max;
             m_minAllowableThrottle = Min;
             m_currentThrottle = Throttle;
-            m_currentBytesSent = 0;
+            m_currentBitsSent = 0;
         }
 
         public void Reset()
         {
-            m_currentBytesSent = 0;
+            m_currentBitsSent = 0;
         }
 
         public bool UnderLimit()
         {
-            return (m_currentBytesSent < (m_currentThrottle/m_throttleTimeDivisor));
+            return (m_currentBitsSent < (m_currentThrottle/m_throttleTimeDivisor));
+        }
+        
+        public int AddBits(int bits)
+        {
+            m_currentBitsSent += bits;
+            return m_currentBitsSent;
         }
 
-        public int Add(int bytes)
+        public int AddBytes(int bytes)
         {
-            m_currentBytesSent += bytes;
-            return m_currentBytesSent;
+            m_currentBitsSent += bytes * 8;
+            return m_currentBitsSent;
         }
 
         // Properties
