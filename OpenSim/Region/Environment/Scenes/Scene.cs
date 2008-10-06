@@ -4116,6 +4116,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     foreach (SceneObjectPart child in partList)
                     {
+                        child.ChangeInventoryOwner(remoteClient.AgentId);
                         child.OwnerMask &= child.NextOwnerMask;
                         child.GroupMask &= child.NextOwnerMask;
                         child.EveryoneMask &= child.NextOwnerMask;

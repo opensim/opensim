@@ -3026,23 +3026,32 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdatePermissions(UUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
         {
             bool set = addRemTF == 1;
+            bool god = m_parentGroup.Scene.ExternalChecks.ExternalChecksCanBeGodLike(AgentID);
+
+            uint baseMask = _baseMask;
+            if (god)
+                baseMask = 0x7ffffff0;
 
             // Are we the owner?
-            if (AgentID == _ownerID)
+            if ((AgentID == _ownerID) || god)
             {
                 switch (field)
                 {
                     case 2:
-                        _ownerMask = ApplyMask(_ownerMask, set, mask);
+                        _ownerMask = ApplyMask(_ownerMask, set, mask) &
+                                baseMask;
                         break;
                     case 4:
-                        _groupMask = ApplyMask(_groupMask, set, mask);
+                        _groupMask = ApplyMask(_groupMask, set, mask) &
+                                baseMask;
                         break;
                     case 8:
-                        _everyoneMask = ApplyMask(_everyoneMask, set, mask);
+                        _everyoneMask = ApplyMask(_everyoneMask, set, mask) &
+                                baseMask;
                         break;
                     case 16:
-                        _nextOwnerMask = ApplyMask(_nextOwnerMask, set, mask);
+                        _nextOwnerMask = ApplyMask(_nextOwnerMask, set, mask) &
+                                baseMask;
                         break;
                 }
                 SendFullUpdateToAllClients();

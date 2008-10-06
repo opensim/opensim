@@ -2352,6 +2352,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (part != null && part.ParentGroup != null)
                 {
                     part.ParentGroup.SetOwnerId(ownerID);
+                    part.ChangeInventoryOwner(ownerID);
                     part.ParentGroup.SetGroup(groupID, remoteClient);
                 }
             }
