@@ -1332,6 +1332,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SetAlpha(m_host, alpha, face);
         }
 
+        public void llSetLinkAlpha(int linknumber, double alpha, int face)
+        {
+            m_host.AddScriptLPS(1);
+
+            List<SceneObjectPart> parts = GetLinkParts(linknumber);
+
+            foreach (SceneObjectPart part in parts)
+                SetAlpha(part, alpha, face);
+        }
+
         private void SetAlpha(SceneObjectPart part, double alpha, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
@@ -6237,84 +6247,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             return DateTime.Now.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
-        }
-
-        public void llSetLinkAlpha(int linknumber, double alpha, int face)
-        {
-            m_host.AddScriptLPS(1);
-            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
-            if (linknumber > -1)
-            {
-                Primitive.TextureEntry tex = part.Shape.Textures;
-                Color4 texcolor;
-                if (face >= 0 && face < GetNumberOfSides(m_host))
-                {
-                    texcolor = tex.CreateFace((uint)face).RGBA;
-                    texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
-                    tex.FaceTextures[face].RGBA = texcolor;
-                    part.UpdateTexture(tex);
-                    return;
-                }
-                else if (face == ScriptBaseClass.ALL_SIDES)
-                {
-                    texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
-                    tex.DefaultTexture.RGBA = texcolor;
-                    for (uint i = 0; i < GetNumberOfSides(m_host); i++)
-                    {
-                        if (tex.FaceTextures[i] != null)
-                        {
-                            texcolor = tex.FaceTextures[i].RGBA;
-                            texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
-                            tex.FaceTextures[i].RGBA = texcolor;
-                        }
-                    }
-                    texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
-                    tex.DefaultTexture.RGBA = texcolor;
-                    part.UpdateTexture(tex);
-                    return;
-                }
-                return;
-            }
-            else if (linknumber == -1)
-            {
-                int num = m_host.ParentGroup.PrimCount;
-                for (int w = 0; w < num; w++)
-                {
-                    linknumber = w;
-                    part = m_host.ParentGroup.GetLinkNumPart(linknumber);
-                    Primitive.TextureEntry tex = part.Shape.Textures;
-                    Color4 texcolor;
-                    if (face > -1)
-                    {
-                        texcolor = tex.CreateFace((uint)face).RGBA;
-                        texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
-                        tex.FaceTextures[face].RGBA = texcolor;
-                        part.UpdateTexture(tex);
-                    }
-                    else if (face == -1)
-                    {
-                        texcolor = tex.DefaultTexture.RGBA;
-                        texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
-                        tex.DefaultTexture.RGBA = texcolor;
-                        for (uint i = 0; i < 32; i++)
-                        {
-                            if (tex.FaceTextures[i] != null)
-                            {
-                                texcolor = tex.FaceTextures[i].RGBA;
-                                texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
-                                tex.FaceTextures[i].RGBA = texcolor;
-                            }
-                        }
-                        texcolor = tex.DefaultTexture.RGBA;
-                        texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
-                        tex.DefaultTexture.RGBA = texcolor;
-                        part.UpdateTexture(tex);
-                    }
-                }
-                return;
-            }
         }
 
         public LSL_Integer llGetNumberOfPrims()
