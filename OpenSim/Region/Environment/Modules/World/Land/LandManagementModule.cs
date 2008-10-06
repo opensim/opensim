@@ -595,7 +595,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 {
                     if (obj != null)
                     {
-                        if (obj is SceneObjectGroup)
+                        if ((obj is SceneObjectGroup) && ((SceneObjectGroup)obj).RootPart != null && !((SceneObjectGroup)obj).RootPart.IsAttachment)
                         {
                             m_scene.EventManager.TriggerParcelPrimCountAdd((SceneObjectGroup)obj);
                         }
