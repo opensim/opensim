@@ -262,6 +262,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private DirPlacesQuery handlerDirPlacesQuery = null;
 
+        private MapItemRequest handlerMapItemRequest = null;
+
         //private TerrainUnacked handlerUnackedTerrain = null;
 
         //**
@@ -988,6 +990,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public event DirPlacesQuery OnDirPlacesQuery;
 
+        public event MapItemRequest OnMapItemRequest;
 
         // voire si c'est necessaire
         public void ActivateGesture(UUID assetId, UUID gestureId)
@@ -6215,6 +6218,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //break;
                     case PacketType.MapItemRequest:
                         // TODO: handle this packet
+                        MapItemRequestPacket mirpk = (MapItemRequestPacket)Pack;
+                        //System.Console.WriteLine(mirpk.ToString());
+                        handlerMapItemRequest = OnMapItemRequest;
+                        if (handlerMapItemRequest != null)
+                        {
+                            handlerMapItemRequest(this,mirpk.AgentData.Flags, mirpk.AgentData.EstateID,
+                                    mirpk.AgentData.Godlike,mirpk.RequestData.ItemType,
+                                    mirpk.RequestData.RegionHandle);
+
+                        }
                         //m_log.Warn("[CLIENT]: unhandled MapItemRequest packet");
                         break;
                     case PacketType.TransferAbort:
@@ -6755,6 +6768,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+        public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)
+        {
+            MapItemReplyPacket mirplk = new MapItemReplyPacket();
+            mirplk.AgentData.AgentID = AgentId;
+            mirplk.RequestData.ItemType = mapitemtype;
+            mirplk.Data = new MapItemReplyPacket.DataBlock[replies.Length];
+            for (int i = 0; i < replies.Length; i++ )
+            {
+                MapItemReplyPacket.DataBlock mrdata = new MapItemReplyPacket.DataBlock();
+                mrdata.X = replies[i].x;
+                mrdata.Y = replies[i].y;
+                mrdata.ID = replies[i].id;
+                mrdata.Extra = replies[i].Extra;
+                mrdata.Extra2 = replies[i].Extra2;
+                mrdata.Name = Utils.StringToBytes(replies[i].name);
+                mirplk.Data[i] = mrdata;
+            }
+            //System.Console.WriteLine(mirplk.ToString());
+            OutPacket(mirplk, ThrottleOutPacketType.Task);
+
         }
 
         public void KillEndDone()

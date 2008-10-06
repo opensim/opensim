@@ -324,6 +324,8 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         public event DirPlacesQuery OnDirPlacesQuery;
 
+        public event MapItemRequest OnMapItemRequest;
+
 #pragma warning restore 67
 
         #endregion
@@ -892,6 +894,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
 
         public void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data)
+        {
+        }
+
+        public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)
         {
         }
 

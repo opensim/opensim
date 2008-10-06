@@ -219,6 +219,8 @@ namespace OpenSim.Region.Examples.SimpleModule
 
        public event DirPlacesQuery OnDirPlacesQuery;
 
+        public event MapItemRequest OnMapItemRequest;
+
 
 #pragma warning restore 67
 
@@ -889,6 +891,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data)
+        {
+        }
+
+        public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)
         {
         }
 

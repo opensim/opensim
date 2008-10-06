@@ -310,6 +310,9 @@ namespace OpenSim.Framework
     public delegate void TerrainUnacked(IClientAPI remoteClient, int patchX, int patchY);
 
     public delegate void DirPlacesQuery(IClientAPI remoteClient, UUID queryID, string queryText, int queryFlags, int category, string simName, int queryStart);
+
+    public delegate void MapItemRequest(IClientAPI remoteClient, uint flags, uint EstateID, bool godlike, uint itemtype, ulong regionhandle);
+
     #endregion
 
     public struct DirPlacesReplyData
@@ -546,6 +549,9 @@ namespace OpenSim.Framework
 
         event DirPlacesQuery OnDirPlacesQuery;
 
+        event MapItemRequest OnMapItemRequest;
+
+
    //     void ActivateGesture(UUID assetId, UUID gestureId);
 
         // [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
@@ -775,6 +781,9 @@ namespace OpenSim.Framework
         void SendScriptTeleportRequest(string objName, string simName, Vector3 pos, Vector3 lookAt);
 
         void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data);
+
+        void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags);
+        
         void KillEndDone();
     }
 }
