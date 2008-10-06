@@ -66,6 +66,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         private int cachedTime = 0;
         private byte[] myMapImageJPEG;
         private bool m_Enabled = false;
+        private Dictionary<UUID, MapRequestState> m_openRequests = new Dictionary<UUID, MapRequestState>();
+        
 
         //private int CacheRegionsDistance = 256;
 
@@ -297,11 +299,51 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     if (mreg != null)
                     {
                         string httpserver = "http://" + mreg.ExternalEndPoint.Address.ToString() + ":" + mreg.HttpPort + "/MAP/MapItems/" + regionhandle.ToString();
-                        List<mapItemReply> returnitems = new List<mapItemReply>();
-                        LLSDMap ramap = RequestMapItems(httpserver);
-                        if (ramap.ContainsKey(itemtype.ToString()))
+                        
+                        RequestMapItems(httpserver,remoteClient.AgentId,flags,EstateID,godlike,itemtype,regionhandle);
+                        
+                    }
+                }
+            }
+
+        }
+
+        public delegate LLSDMap RequestMapItemsDelegate(string httpserver, UUID id, uint flags,
+            uint EstateID, bool godlike, uint itemtype, ulong regionhandle);
+
+        private void RequestMapItemsCompleted(IAsyncResult iar)
+        {
+            
+            RequestMapItemsDelegate icon = (RequestMapItemsDelegate)iar.AsyncState;
+            LLSDMap response = icon.EndInvoke(iar);
+            
+
+
+            UUID requestID = response["requestID"].AsUUID();
+
+            if (requestID != UUID.Zero)
+            {
+                MapRequestState mrs = new MapRequestState();
+                mrs.agentID = UUID.Zero;
+                lock (m_openRequests)
+                {
+                    if (m_openRequests.ContainsKey(requestID))
+                    {
+                        mrs = m_openRequests[requestID];
+                        m_openRequests.Remove(requestID);
+                    }
+                }
+
+                if (mrs.agentID != UUID.Zero)
+                {
+                    ScenePresence av = null;
+                    m_scene.TryGetAvatar(mrs.agentID, out av);
+                    if (av != null)
+                    {
+                        if (response.ContainsKey(mrs.itemtype.ToString()))
                         {
-                            LLSDArray itemarray = (LLSDArray)ramap[itemtype.ToString()];
+                            List<mapItemReply> returnitems = new List<mapItemReply>();
+                            LLSDArray itemarray = (LLSDArray)response[mrs.itemtype.ToString()];
                             for (int i = 0; i < itemarray.Count; i++)
                             {
                                 LLSDMap mapitem = (LLSDMap)itemarray[i];
@@ -314,17 +356,38 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                                 mi.name = mapitem["Name"].AsString();
                                 returnitems.Add(mi);
                             }
-
+                            av.ControllingClient.SendMapItemReply(returnitems.ToArray(), mrs.itemtype, mrs.flags);
                         }
-                        remoteClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
+                        
                     }
+
                 }
             }
-
         }
-
-        private LLSDMap RequestMapItems(string httpserver)
+        public void RequestMapItems(string httpserver, UUID id, uint flags,
+            uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
+            //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
+            RequestMapItemsDelegate d = RequestMapItemsAsync;
+            d.BeginInvoke(httpserver, id,flags,EstateID,godlike,itemtype,regionhandle,RequestMapItemsCompleted, d);
+            //bool val = m_commsProvider.InterRegion.RegionUp(new SerializableRegionInfo(region));
+        }
+        private LLSDMap RequestMapItemsAsync(string httpserver, UUID id, uint flags,
+            uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
+        {
+            UUID requestID = UUID.Random();
+            
+            MapRequestState mrs = new MapRequestState();
+            mrs.agentID = id;
+            mrs.EstateID = EstateID;
+            mrs.flags = flags;
+            mrs.godlike = godlike;
+            mrs.itemtype=itemtype;
+            mrs.regionhandle = regionhandle;
+
+            lock (m_openRequests)
+                m_openRequests.Add(requestID, mrs);
+
             WebRequest mapitemsrequest = WebRequest.Create(httpserver);
             mapitemsrequest.Method = "POST";
             mapitemsrequest.ContentType = "application/xml+llsd";
@@ -335,6 +398,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             byte[] buffer = LLSDParser.SerializeXmlBytes(LLSDofRAMap);
             LLSDMap responseMap = new LLSDMap();
+            responseMap["requestID"] = LLSD.FromUUID(requestID);
+
             Stream os = null;
             try
             { // send the Post
@@ -381,6 +446,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     rezResponse = LLSDParser.DeserializeXml(response_mapItems_reply);
 
                     responseMap = (LLSDMap)rezResponse;
+                    responseMap["requestID"] = LLSD.FromUUID(requestID);
                 }
                 catch (Exception ex)
                 {
@@ -590,5 +656,15 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             return responsemap;
         }
     }
-    
+    public struct MapRequestState
+    {
+        public UUID agentID;
+        public uint flags;
+        public uint EstateID;
+        public bool godlike;
+        public uint itemtype;
+        public ulong regionhandle;
+    }
+
+  
 }
