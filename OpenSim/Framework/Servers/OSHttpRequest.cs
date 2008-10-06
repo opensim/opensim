@@ -42,9 +42,8 @@ namespace OpenSim.Framework.Servers
     {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected HttpServer.IHttpRequest _request = null;
-        protected HttpServer.IHttpClientContext _context = null;
-
+        protected IHttpRequest _request = null;
+        protected IHttpClientContext _context = null;
 
         public string[] AcceptTypes
         {
@@ -137,8 +136,15 @@ namespace OpenSim.Framework.Servers
         }
         private string _userAgent;
 
+        internal IHttpRequest IHttpRequest
+        { 
+            get { return _request; }
+        }
 
-
+        internal IHttpClientContext IHttpClientContext 
+        {
+            get { return _context; }
+        }
 
         /// <summary>
         /// Internal whiteboard for handlers to store temporary stuff
@@ -151,11 +157,9 @@ namespace OpenSim.Framework.Servers
         private Dictionary<string, object> _whiteboard = new Dictionary<string, object>();
 
 
-        public OSHttpRequest()
-        {
-        }
+        public OSHttpRequest() {}
 
-        public OSHttpRequest(HttpServer.IHttpClientContext context, HttpServer.IHttpRequest req)
+        public OSHttpRequest(IHttpClientContext context, IHttpRequest req)
         {
             _request = req;
             _context = context;

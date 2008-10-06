@@ -1213,7 +1213,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     response.ContentLength64 = buffer.Length;
 
-                    if (response.Headers.Get("Content-Encoding") == null)
+                    if (response.ContentEncoding == null)
                         response.ContentEncoding = encoding;
 
                     response.SendChunked     = chunked;
@@ -1256,7 +1256,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 handled = true;
 
-                DumpHeaders();
+                // DumpHeaders();
 
                 // if (request.InputStream != null)
                 // {
@@ -1273,8 +1273,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 // Closing the outputstream should complete the transmission process
 
-                Rest.Log.DebugFormat("{0} Closing output stream", MsgId);
-                response.OutputStream.Close();
+                Rest.Log.DebugFormat("{0} Sending response", MsgId);
+                // response.OutputStream.Close();
+                response.Send();
 
             }
 
@@ -1292,44 +1293,35 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         internal void AddHeader(string hdr, string data)
         {
-            if (Rest.DEBUG)
-            {
-                Rest.Log.DebugFormat("{0}   Adding header: <{1}: {2}>",
-                         MsgId, hdr, data);
-                if (response.Headers.Get(hdr) != null)
-                {
-                    Rest.Log.DebugFormat("{0} Multipe {1} headers will be generated>",
-                             MsgId, hdr);
-                }
-            }
-            response.Headers.Add(hdr, data);
+            if (Rest.DEBUG) Rest.Log.DebugFormat("{0}   Adding header: <{1}: {2}>", MsgId, hdr, data);
+            response.AddHeader(hdr, data);
         }
 
-        internal void RemoveHeader(string hdr)
-        {
-            if (Rest.DEBUG)
-            {
-                Rest.Log.DebugFormat("{0} Removing header: <{1}>", MsgId, hdr);
-                if (response.Headers.Get(hdr) == null)
-                {
-                    Rest.Log.DebugFormat("{0} No such header existed",
-                             MsgId, hdr);
-                }
-            }
-            response.Headers.Remove(hdr);
-        }
+        // internal void RemoveHeader(string hdr)
+        // {
+        //     if (Rest.DEBUG)
+        //     {
+        //         Rest.Log.DebugFormat("{0} Removing header: <{1}>", MsgId, hdr);
+        //         if (response.Headers.Get(hdr) == null)
+        //         {
+        //             Rest.Log.DebugFormat("{0} No such header existed",
+        //                      MsgId, hdr);
+        //         }
+        //     }
+        //     response.Headers.Remove(hdr);
+        // }
 
-        internal void DumpHeaders()
-        {
-            if (Rest.DEBUG)
-            {
-                for (int i=0;i<response.Headers.Count;i++)
-                {
-                    Rest.Log.DebugFormat("{0} Header[{1}] : {2}", MsgId, i,
-                             response.Headers.Get(i));
-                }
-            }
-        }
+        // internal void DumpHeaders()
+        // {
+        //     if (Rest.DEBUG)
+        //     {
+        //         for (int i=0;i<response.Headers.Count;i++)
+        //         {
+        //             Rest.Log.DebugFormat("{0} Header[{1}] : {2}", MsgId, i,
+        //                      response.Headers.Get(i));
+        //         }
+        //     }
+        // }
 
         // Setup the XML writer for output
 

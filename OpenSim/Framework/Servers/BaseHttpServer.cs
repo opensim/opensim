@@ -277,7 +277,7 @@ namespace OpenSim.Framework.Servers
                 }
 
                 IRequestHandler requestHandler;
-                response.KeepAlive   = false;
+                response.KeepAlive   = true;
                 response.SendChunked = false;
 
                 string path = request.RawUrl;
@@ -634,7 +634,7 @@ namespace OpenSim.Framework.Servers
             requestStream.Close();
 
             //m_log.DebugFormat("[OGP]: {0}:{1}", request.RawUrl, requestBody);
-            response.KeepAlive = false;
+            response.KeepAlive = true;
 
             LLSD llsdRequest = null;
             LLSD llsdResponse = null;
@@ -705,7 +705,7 @@ namespace OpenSim.Framework.Servers
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
-            response.KeepAlive = false;
+            response.KeepAlive = true;
 
             try
             {
@@ -928,7 +928,7 @@ namespace OpenSim.Framework.Servers
                 {
                     m_log.Warn("[HTTP-AGENT]: Error - " + e.Message);
                     response.SendChunked   = false;
-                    response.KeepAlive     = false;
+                    response.KeepAlive     = true;
                     response.StatusCode    = (int)OSHttpStatusCode.ServerErrorInternalError;
                     //response.OutputStream.Close();
                     try
@@ -1128,6 +1128,7 @@ namespace OpenSim.Framework.Servers
             int responsecode = (int)responsedata["int_response_code"];
             string responseString = (string)responsedata["str_response_string"];
             string contentType = (string)responsedata["content_type"];
+
             if (responsedata.ContainsKey("error_status_text"))
             {
                 response.StatusDescription = (string)responsedata["error_status_text"];

@@ -38,19 +38,8 @@ namespace OpenSim.Framework.Servers
     /// OSHttpResponse is the OpenSim representation of an HTTP
     /// response.
     /// </summary>
-    /// <remarks>
-    /// OSHttpResponse is currently dual "homed" in that it support
-    /// both the .NET HttpListenerResponse and the HttpServer
-    /// HttpResponse (similar to OSHttpRequest); this duality is only
-    /// temporary and the .NET usage will disappear once the switch to
-    /// HttpServer is completed.
-    /// </remarks>
     public class OSHttpResponse
     {
-
-        // property code below is a bit messy, will all resolve to
-        // harmony once we've completed the switch
-
         /// <summary>
         /// Content type property.
         /// </summary>
@@ -62,22 +51,12 @@ namespace OpenSim.Framework.Servers
         {
             get
             {
-                if (HttpServer)
-                    return _httpResponse.ContentType;
-                else
-                    return _httpListenerResponse.ContentType;
+                return _httpResponse.ContentType;
             }
+
             set
             {
-                if (HttpServer)
-                {
-                    _httpResponse.ContentType = value;
-                }
-                else
-                {
-                    _httpListenerResponse.ContentType = value;
-                    _contentTypeSet = true;
-                }
+                _httpResponse.ContentType = value;
             }
         }
 
@@ -102,17 +81,12 @@ namespace OpenSim.Framework.Servers
         {
             get
             {
-                if (HttpServer)
-                    return _httpResponse.ContentLength;
-                else
-                    return _httpListenerResponse.ContentLength64;
+                return _httpResponse.ContentLength;
             }
+
             set
             {
-                if (HttpServer)
-                    _httpResponse.ContentLength = value;
-                else
-                    _httpListenerResponse.ContentLength64 = value;
+                _httpResponse.ContentLength = value;
             }
         }
 
@@ -132,59 +106,55 @@ namespace OpenSim.Framework.Servers
         {
             get
             {
-                if (HttpServer)
-                    return _httpResponse.Encoding;
-                else
-                    return _httpListenerResponse.ContentEncoding;
+                return _httpResponse.Encoding;
             }
 
             set
             {
-                if (HttpServer)
-                    _httpResponse.Encoding = value;
-                else
-                    _httpListenerResponse.ContentEncoding = value;
+                _httpResponse.Encoding = value;
             }
         }
 
-        /// <summary>
-        /// Headers of the response.
-        /// </summary>
-        public WebHeaderCollection Headers
-        {
-            get
-            {
-                if (HttpServer)
-                    return null;
-                else
-                    return _httpListenerResponse.Headers;
-            }
-        }
-
-        /// <summary>
-        /// Get or set the keep alive property.
-        /// </summary>
         public bool KeepAlive
         {
-            get
+            get 
             {
-                if (HttpServer)
-                    return _httpResponse.Connection == ConnectionType.KeepAlive;
-                else
-                    return _httpListenerResponse.KeepAlive;
+                return _httpResponse.Connection == ConnectionType.KeepAlive;
             }
 
             set
             {
-                if (HttpServer)
+                if (value)
+                    _httpResponse.Connection = ConnectionType.KeepAlive;
+                else
+                    _httpResponse.Connection = ConnectionType.Close;
+            }
+        }
+
+        /// <summary>
+        /// Get or set the keep alive timeout property (default is
+        /// 20). Setting this to 0 also disables KeepAlive. Setting
+        /// this to something else but 0 also enable KeepAlive.
+        /// </summary>
+        public int KeepAliveTimeout
+        {
+            get
+            {
+                return _httpResponse.KeepAlive;
+            }
+
+            set
+            {
+                if (value == 0)
                 {
-                    if (value == true)
-                        _httpResponse.Connection = ConnectionType.KeepAlive;
-                    else
-                        _httpResponse.Connection = ConnectionType.Close;
+                    _httpResponse.Connection = ConnectionType.Close;
+                    _httpResponse.KeepAlive = 0;
                 }
                 else
-                    _httpListenerResponse.KeepAlive = value;
+                {
+                    _httpResponse.Connection = ConnectionType.KeepAlive;
+                    _httpResponse.KeepAlive = value;
+                }
             }
         }
 
@@ -198,10 +168,7 @@ namespace OpenSim.Framework.Servers
         {
             get
             {
-                if (HttpServer)
-                    return _httpResponse.Body;
-                else
-                    return _httpListenerResponse.OutputStream;
+                return _httpResponse.Body;
             }
         }
 
@@ -209,18 +176,12 @@ namespace OpenSim.Framework.Servers
         {
             get
             {
-                if (HttpServer)
-                    return _httpResponse.ProtocolVersion;
-                else
-                    return _httpListenerResponse.ProtocolVersion.ToString();
+                return _httpResponse.ProtocolVersion;
             }
+
             set
             {
-                if (HttpServer)
-                    _httpResponse.ProtocolVersion = value;
-                else
-                    _httpListenerResponse.ProtocolVersion = new Version(value); ;
-                
+                _httpResponse.ProtocolVersion = value;
             }
         }
 
@@ -231,9 +192,7 @@ namespace OpenSim.Framework.Servers
         {
             get
             {
-                if (HttpServer)
-                    return _httpResponse.Body;
-                throw new Exception("[OSHttpResponse] mixed .NET and HttpServer access");
+                return _httpResponse.Body;
             }
         }
 
@@ -245,10 +204,7 @@ namespace OpenSim.Framework.Servers
             // get { return _redirectLocation; }
             set
             {
-                if (HttpServer)
-                    _httpResponse.Redirect(value);
-                else
-                    _httpListenerResponse.RedirectLocation = value;
+                _httpResponse.Redirect(value);
             }
         }
 
@@ -260,18 +216,12 @@ namespace OpenSim.Framework.Servers
         {
             get
             {
-                if (HttpServer)
                     return _httpResponse.Chunked;
-                else
-                    return _httpListenerResponse.SendChunked;
             }
 
             set
             {
-                if (HttpServer)
-                    _httpResponse.Chunked = value;
-                else
-                    _httpListenerResponse.SendChunked = value;
+                _httpResponse.Chunked = value;
             }
         }
 
@@ -282,18 +232,12 @@ namespace OpenSim.Framework.Servers
         {
             get
             {
-                if (HttpServer)
-                    return (int)_httpResponse.Status;
-                else
-                    return _httpListenerResponse.StatusCode;
+                return (int)_httpResponse.Status;
             }
 
             set
             {
-                if (HttpServer)
-                    _httpResponse.Status = (HttpStatusCode)value;
-                else
-                    _httpListenerResponse.StatusCode = value;
+                _httpResponse.Status = (HttpStatusCode)value;
             }
         }
 
@@ -305,64 +249,35 @@ namespace OpenSim.Framework.Servers
         {
             get
             {
-                if (HttpServer)
-                    return _httpResponse.Reason;
-                else
-                    return _httpListenerResponse.StatusDescription;
+                return _httpResponse.Reason;
             }
 
             set
             {
-                if (HttpServer)
-                    _httpResponse.Reason = value;
-                else
-                    _httpListenerResponse.StatusDescription = value;
+                _httpResponse.Reason = value;
             }
         }
 
 
-        internal bool HttpServer
-        {
-            get { return null != _httpResponse; }
-        }
-        private HttpResponse _httpResponse;
-        private HttpListenerResponse _httpListenerResponse;
+        protected IHttpResponse _httpResponse;
 
-        internal HttpResponse HttpResponse
-        {
-             get { return _httpResponse; }
-        }
+        public OSHttpResponse() {}
 
-        public OSHttpResponse()
-        {
-        }
-
-        /// <summary>
-        /// Instantiate an OSHttpResponse object based on an
-        /// underlying .NET HttpListenerResponse.
-        /// </summary>
-        /// <remarks>
-        /// Almost deprecated; will go west to make once HttpServer
-        /// base takes over.
-        /// </remarks>
-        public OSHttpResponse(HttpListenerResponse resp)
-        {
-            _httpListenerResponse = resp;
-        }
-        public OSHttpResponse(HttpServer.HttpResponse resp)
+        public OSHttpResponse(IHttpResponse resp)
         {
             _httpResponse = resp;
         }
+
         /// <summary>
         /// Instantiate an OSHttpResponse object from an OSHttpRequest
         /// object.
         /// </summary
         /// <param name="req">Incoming OSHttpRequest to which we are
         /// replying</param>
-        // public OSHttpResponse(OSHttpRequest req)
-        // {
-        //     _httpResponse = new HttpResponse(req.HttpClientContext, req.HttpRequest);
-        // }
+        public OSHttpResponse(OSHttpRequest req)
+        {
+            _httpResponse = new HttpResponse(req.IHttpClientContext, req.IHttpRequest);
+        }
 
         /// <summary>
         /// Add a header field and content to the response.
@@ -373,10 +288,7 @@ namespace OpenSim.Framework.Servers
         /// value</param>
         public void AddHeader(string key, string value)
         {
-            if (HttpServer)
-                _httpResponse.AddHeader(key, value);
-            else
-                _httpListenerResponse.Headers.Add(key, value);
+            _httpResponse.AddHeader(key, value);
         }
 
         /// <summary>
@@ -384,16 +296,8 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public void Send()
         {
-            if (HttpServer)
-            {
-                _httpResponse.Body.Flush();
-                _httpResponse.Send();
-                
-            }
-            else
-            {
-                OutputStream.Close();
-            }
+            _httpResponse.Body.Flush();
+            _httpResponse.Send();
         }
     }
 }
