@@ -46,6 +46,7 @@ namespace OpenSim.Framework
         public string GridSendKey = String.Empty;
         public uint HttpPort = DefaultHttpPort;
         public bool HttpSSL = DefaultHttpSSL;
+        public uint DefaultUserLevel = 0;
 
         private Uri m_inventoryUrl;
 
@@ -122,7 +123,11 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("default_Y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Known good region Y", "1000", false);
             configMember.addConfigurationOption("enable_llsd_login", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Enable LLSD login support [Currently used by libsl based clients/bots]? true/false", true.ToString(), false);
+                    "Enable LLSD login support [Currently used by libsl based clients/bots]? true/false", true.ToString(), false);
+            
+            configMember.addConfigurationOption("default_loginLevel", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Minimum Level a user should have to login [0 default]", "0", false);
+            
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -165,6 +170,10 @@ namespace OpenSim.Framework
                 case "enable_llsd_login":
                     EnableLLSDLogin = (bool)configuration_result;
                     break;
+
+                case "default_loginLevel":
+                    DefaultUserLevel = (uint)configuration_result;
+                     break;
             }
 
             return true;

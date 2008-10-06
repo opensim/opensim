@@ -124,6 +124,10 @@ namespace OpenSim.Grid.UserServer
             m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
 
             m_httpServer.AddHTTPHandler("login", m_loginService.ProcessHTMLLogin);
+            //
+            // Get the minimum defaultLevel to access to the grid
+            //
+            m_loginService.setloginlevel((int)Cfg.DefaultUserLevel);
 
             if (Cfg.EnableLLSDLogin)
             {
@@ -294,10 +298,7 @@ namespace OpenSim.Grid.UserServer
                     }
                     break;
                 case "login-reset":
-                    if (cmdparams.Length == 1)
-                    {
-                        m_loginService.setloginlevel(0);
-                    }
+                     m_loginService.setloginlevel(0);
                     break;
                 case "login-text":
                     if (cmdparams.Length == 1)
