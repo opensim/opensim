@@ -362,6 +362,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if ((now - data.TickCount) > m_ResendTimeout)
                     {
                         m_NeedAck[packet.Header.Sequence].Resends++;
+                        
+                        // The client needs to be told that a packet is being resent, otherwise it appears to believe
+                        // that it should reset its sequence to that packet number.
+                        packet.Header.Resent = true;
 
                         if (m_NeedAck[packet.Header.Sequence].Resends >=
                             m_MaxReliableResends && (!m_ReliableIsImportant))
