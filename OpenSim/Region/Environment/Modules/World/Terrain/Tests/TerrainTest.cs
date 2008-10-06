@@ -37,30 +37,19 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.Tests
         [Test]
         public void BrushTest()
         {
-            TerrainChannel map = new TerrainChannel(256, 256);
-            bool[,] allowMask = new bool[map.Width,map.Height];
-            int x;
-            int y;
-            for (x=0; x<map.Width; x++)
-            {
-                for (y=0; y<map.Height; y++)
-                {
-                    allowMask[x,y] = true;
-                }
-            }
-
+            TerrainChannel x = new TerrainChannel(256, 256);
             ITerrainPaintableEffect effect = new RaiseSphere();
 
-            effect.PaintEffect(map, allowMask, 128.0, 128.0, 23.0, 50, 0.1);
-            Assert.That(map[128, 128] > 0.0, "Raise brush not raising values.");
-            Assert.That(map[0, 128] > 0.0, "Raise brush lowering edge values.");
+            effect.PaintEffect(x, 128.0, 128.0, 100, 0.1);
+            Assert.That(x[128, 128] > 0.0, "Raise brush not raising values.");
+            Assert.That(x[0, 128] > 0.0, "Raise brush lowering edge values.");
 
-            map = new TerrainChannel(256, 256);
+            x = new TerrainChannel(256, 256);
             effect = new LowerSphere();
 
-            effect.PaintEffect(map, allowMask, 128.0, 128.0, -1, 50, 0.1);
-            Assert.That(map[128, 128] < 0.0, "Lower not lowering values.");
-            Assert.That(map[0, 128] < 0.0, "Lower brush affecting edge values.");
+            effect.PaintEffect(x, 128.0, 128.0, 100, 0.1);
+            Assert.That(x[128, 128] < 0.0, "Lower not lowering values.");
+            Assert.That(x[0, 128] < 0.0, "Lower brush affecting edge values.");
         }
 
         [Test]

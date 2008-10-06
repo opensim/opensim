@@ -42,7 +42,6 @@ using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
 using OpenSim.Region.Environment.Modules.World.Land;
-using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -3369,11 +3368,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llModifyLand(int action, int brush)
         {
             m_host.AddScriptLPS(1);
-            ITerrainModule tm = m_ScriptEngine.World.RequestModuleInterface<ITerrainModule>();
-            if (tm != null)
-            {
-                tm.ModifyTerrain(m_host.AbsolutePosition, (byte) brush, (byte) action, m_host.OwnerID);
-            }
+            World.ExternalChecks.ExternalChecksCanTerraformLand(m_host.OwnerID, new Vector3(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, 0));
         }
 
         public void llCollisionSound(string impact_sound, double impact_volume)

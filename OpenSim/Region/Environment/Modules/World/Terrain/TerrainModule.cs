@@ -40,7 +40,6 @@ using OpenSim.Region.Environment.Modules.World.Terrain.FloodBrushes;
 using OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes;
 using OpenSim.Region.Environment.Scenes;
 
-
 namespace OpenSim.Region.Environment.Modules.World.Terrain
 {
     public class TerrainModule : IRegionModule, ICommandableModule, ITerrainModule
@@ -258,18 +257,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader availible for that format.");
             throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
         }
-
-        /// <summary>
-        /// Modify Land
-        /// </summary>
-        /// <param name="pos">Land-position (X,Y,0)</param>
-        /// <param name="size">The size of the brush (0=small, 1=medium, 2=large)</param>
-        /// <param name="action">0=LAND_LEVEL, 1=LAND_RAISE, 2=LAND_LOWER, 3=LAND_SMOOTH, 4=LAND_NOISE, 5=LAND_REVERT</param>
-        /// <param name="agentId">UUID of script-owner</param>
-        public void ModifyTerrain(Vector3 pos, byte size, byte action, UUID agentId)
-        {
-            client_OnModifyTerrain((float)pos.Z, (float)0.25, size, action, pos.Y, pos.X, pos.Y, pos.X, agentId);
-        }        
 
         /// <summary>
         /// Saves the current heightmap to a specified stream.
@@ -600,92 +587,58 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             );
         }
 
-        private void client_OnModifyTerrain(float height, float seconds, byte size, byte action,
-                                            float north, float west, float south, float east, UUID agentId)
+        private void client_OnModifyTerrain(float height, float seconds, byte size, byte action, float north, float west,
+                                            float south, float east, IClientAPI remoteClient)
         {
-            bool allowed = false;
-            if (north == south && east == west)
+            // Not a good permissions check, if in area mode, need to check the entire area.
+            if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(remoteClient.AgentId, new Vector3(north, west, 0)))
             {
-                if (m_painteffects.ContainsKey((StandardTerrainEffects) action))
+                if (north == south && east == west)
                 {
-                    bool[,] allowMask = new bool[m_channel.Width,m_channel.Height];
-                    allowMask.Initialize();
-                    int n = size + 1;
-                    if (n > 2)
-                        n = 4;
-
-                    int zx = (int) (west + 0.5);
-                    int zy = (int) (north + 0.5);
-
-                    int dx;
-                    for (dx=-n; dx<=n; dx++)
-                    {
-                        int dy;
-                        for (dy=-n; dy<=n; dy++)
-                        {
-                            int x = zx + dx;
-                            int y = zy + dy;
-                            if (x>=0 && y>=0 && x<m_channel.Width && y<m_channel.Height)
-                            {
-                                if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(agentId, new Vector3(x,y,0)))
-                                {
-                                    allowMask[x, y] = true;
-                                    allowed = true;
-                                }
-                            }
-                        }
-                    }
-                    if (allowed)
+                    if (m_painteffects.ContainsKey((StandardTerrainEffects) action))
                     {
                         m_painteffects[(StandardTerrainEffects) action].PaintEffect(
-                            m_channel, allowMask, west, south, height, size, seconds);
+                            m_channel, west, south, size, seconds);
 
                         CheckForTerrainUpdates(true); //revert changes outside estate limits
+                    }
+                    else
+                    {
+                        m_log.Debug("Unknown terrain brush type " + action);
                     }
                 }
                 else
                 {
-                    m_log.Debug("Unknown terrain brush type " + action);
-                }
-            }
-            else
-            {
-                if (m_floodeffects.ContainsKey((StandardTerrainEffects) action))
-                {
-                    bool[,] fillArea = new bool[m_channel.Width,m_channel.Height];
-                    fillArea.Initialize();
-
-                    int x;
-                    for (x = 0; x < m_channel.Width; x++)
+                    if (m_floodeffects.ContainsKey((StandardTerrainEffects) action))
                     {
-                        int y;
-                        for (y = 0; y < m_channel.Height; y++)
+                        bool[,] fillArea = new bool[m_channel.Width,m_channel.Height];
+                        fillArea.Initialize();
+
+                        int x;
+                        for (x = 0; x < m_channel.Width; x++)
                         {
-                            if (x < east && x > west)
+                            int y;
+                            for (y = 0; y < m_channel.Height; y++)
                             {
-                                if (y < north && y > south)
+                                if (x < east && x > west)
                                 {
-                                    if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(agentId, new Vector3(x,y,0)))
+                                    if (y < north && y > south)
                                     {
                                         fillArea[x, y] = true;
-                                        allowed = true;
                                     }
                                 }
                             }
                         }
-                    }
 
-                    if (allowed)
-                    {
                         m_floodeffects[(StandardTerrainEffects) action].FloodEffect(
                             m_channel, fillArea, size);
 
                         CheckForTerrainUpdates(true); //revert changes outside estate limits
                     }
-                }
-                else
-                {
-                    m_log.Debug("Unknown terrain flood type " + action);
+                    else
+                    {
+                        m_log.Debug("Unknown terrain flood type " + action);
+                    }
                 }
             }
         }

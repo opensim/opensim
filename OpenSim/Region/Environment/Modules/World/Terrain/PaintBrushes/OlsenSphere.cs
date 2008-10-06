@@ -151,7 +151,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz, double strength, double duration)
+        public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength, double duration)
         {
             strength = TerrainUtil.MetersToSphericalStrength(strength);
 
@@ -162,9 +162,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                 int y;
                 for (y = 0; y < map.Height; y++)
                 {
-                    if (!mask[x,y])
-                        continue;
-
                     double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
 
                     if (z > 0) // add in non-zero amount

@@ -41,7 +41,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.Effects
             bool[,] cliffMask = new bool[map.Width,map.Height];
             bool[,] channelMask = new bool[map.Width,map.Height];
             bool[,] smoothMask = new bool[map.Width,map.Height];
-            bool[,] allowMask = new bool[map.Width,map.Height];
 
             Console.WriteLine("S1");
 
@@ -53,7 +52,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.Effects
                 {
                     Console.Write(".");
                     smoothMask[x, y] = true;
-                    allowMask[x,y] = true;
 
                     // Start underwater
                     map[x, y] = TerrainUtil.PerlinNoise2D(x, y, 3, 0.25) * 5;
@@ -79,7 +77,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.Effects
                 for (y = 0; y < map.Height; y++)
                 {
                     if (cliffMask[x, y])
-                        eroder.PaintEffect(map, allowMask, x, y, -1, 4, 0.1);
+                        eroder.PaintEffect(map, x, y, 4, 0.1);
                 }
             }
 

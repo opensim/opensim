@@ -61,7 +61,7 @@ namespace OpenSim.Framework
 
     public delegate void ModifyTerrain(
         float height, float seconds, byte size, byte action, float north, float west, float south, float east,
-        UUID agentId);
+        IClientAPI remoteClient);
 
     public delegate void SetAppearance(byte[] texture, List<byte> visualParamList);
 

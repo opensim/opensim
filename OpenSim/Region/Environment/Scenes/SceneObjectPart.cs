@@ -756,7 +756,6 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 StoreUndoState();
-if (m_shape != null) {
                 m_shape.Scale = value;
 
                 if (PhysActor != null && m_parentGroup != null)
@@ -770,7 +769,6 @@ if (m_shape != null) {
                         }
                     }
                 }
-}
                 TriggerScriptChangedEvent(Changed.SCALE);
             }
         }

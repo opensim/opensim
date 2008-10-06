@@ -25,9 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 using System.IO;
-using OpenMetaverse;
 
 namespace OpenSim.Region.Environment.Modules.World.Terrain
 {
@@ -35,8 +33,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
     {
         void LoadFromFile(string filename);
         void SaveToFile(string filename);
-        void ModifyTerrain(Vector3 pos, byte size, byte action, UUID agentId);
-        
+
         /// <summary>
         /// Load a terrain from a stream.
         /// </summary>
