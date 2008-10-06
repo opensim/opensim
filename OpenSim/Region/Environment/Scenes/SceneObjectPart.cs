@@ -3037,6 +3037,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 switch (field)
                 {
+					case 1:
+						if (god)
+						{
+							_baseMask = ApplyMask(_baseMask, set, mask);
+							ApplyGodPermissions(_baseMask);
+						}
+
+						break;
                     case 2:
                         _ownerMask = ApplyMask(_ownerMask, set, mask) &
                                 baseMask;

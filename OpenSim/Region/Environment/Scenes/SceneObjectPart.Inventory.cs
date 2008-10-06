@@ -733,6 +733,15 @@ namespace OpenSim.Region.Environment.Scenes
             TriggerScriptChangedEvent(Changed.OWNER);
         }
 
+        public void ApplyGodPermissions(uint perms)
+        {
+            foreach (TaskInventoryItem item in m_taskInventory.Values)
+            {
+                item.CurrentPermissions = perms;
+                item.BasePermissions = perms;
+            }
+        }
+
         public bool ContainsScripts()
         {
             foreach (TaskInventoryItem item in m_taskInventory.Values)

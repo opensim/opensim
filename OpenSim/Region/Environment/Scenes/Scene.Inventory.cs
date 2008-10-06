@@ -1516,6 +1516,12 @@ namespace OpenSim.Region.Environment.Scenes
                         permissionToDelete = false; //Just taking copy!
 
                     }
+                    else if (DeRezPacket.AgentBlock.Destination == 5) //God take copy
+                    {
+                        permissionToTake = ExternalChecks.ExternalChecksCanBeGodLike(remoteClient.AgentId);
+                        permissionToDelete = false; //Just taking copy!
+
+                    }
                     else if (DeRezPacket.AgentBlock.Destination == 4) //Take
                     {
                         // Take
