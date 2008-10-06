@@ -136,8 +136,8 @@ namespace OpenSim.Region.DataSnapshot.Providers
                     LandObject land = (LandObject)parcel_interface;
 
                     LandData parcel = land.landData;
-                    if ((parcel.Flags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory)
-                    {
+//                    if ((parcel.Flags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory)
+//                    {
 
                         //TODO: make better method of marshalling data from LandData to XmlNode
                         XmlNode xmlparcel = nodeFactory.CreateNode(XmlNodeType.Element, "parcel", "");
@@ -152,14 +152,22 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         // Check the category of the Parcel
                         XmlAttribute category_attr = nodeFactory.CreateAttribute("category");
                         category_attr.Value = ((int)parcel.Category).ToString();
-                        
-
+                        // Check if the parcel is for sale
+                        XmlAttribute forsale_attr = nodeFactory.CreateAttribute("forsale");
+                        forsale_attr.Value = CheckForSale(parcel);
+                        XmlAttribute sales_attr = nodeFactory.CreateAttribute("salesprice");
+                        sales_attr.Value = parcel.SalePrice.ToString();
+                                                
+                        XmlAttribute directory_attr = nodeFactory.CreateAttribute("show_directory");
+                        directory_attr.Value = GetShowInSearch(parcel);
                         //XmlAttribute entities_attr = nodeFactory.CreateAttribute("entities");
                         //entities_attr.Value = land.primsOverMe.Count.ToString();
                         xmlparcel.Attributes.Append(scripts_attr);
                         xmlparcel.Attributes.Append(build_attr);
                         xmlparcel.Attributes.Append(public_attr);
                         xmlparcel.Attributes.Append(category_attr);
+                        xmlparcel.Attributes.Append(forsale_attr);
+                        xmlparcel.Attributes.Append(sales_attr);
                         //xmlparcel.Attributes.Append(entities_attr);
 
 
@@ -255,7 +263,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         //}
 
                         parent.AppendChild(xmlparcel);
-                    }
+//                    }
                 }
                 //snap.AppendChild(parent);
             }
@@ -293,27 +301,44 @@ namespace OpenSim.Region.DataSnapshot.Providers
         private string GetScriptsPermissions(LandData parcel)
         {
             if ((parcel.Flags & (uint)Parcel.ParcelFlags.AllowOtherScripts) == (uint)Parcel.ParcelFlags.AllowOtherScripts)
-                return "yes";
+                return "true";
             else
-                return "no";
+                return "false";
 
         }
 
         private string GetPublicPermissions(LandData parcel)
         {
             if ((parcel.Flags & (uint)Parcel.ParcelFlags.UseAccessList) == (uint)Parcel.ParcelFlags.UseAccessList)
-                return "no";
+                return "false";
             else
-                return "yes";
+                return "true";
 
         }
 
         private string GetBuildPermissions(LandData parcel)
         {
             if ((parcel.Flags & (uint)Parcel.ParcelFlags.CreateObjects) == (uint)Parcel.ParcelFlags.CreateObjects)
-                return "yes";
+                return "true";
             else
-                return "no";
+                return "false";
+
+        }
+
+        private string CheckForSale(LandData parcel)
+        {
+            if (parcel.SalePrice > 0)
+                return "true";
+            else
+                return "false";
+        }
+
+        private string GetShowInSearch(LandData parcel)
+        {
+            if ((parcel.Flags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory)
+                return "true";
+            else
+                return "false";
 
         }
 
