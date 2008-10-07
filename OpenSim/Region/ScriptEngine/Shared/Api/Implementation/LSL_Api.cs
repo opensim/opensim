@@ -91,9 +91,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 config.AddConfig("XEngine");
 
             m_ScriptDelayFactor = config.Configs["XEngine"].
-                    GetFloat("ScriptDelayFactor", 1.0f);
+                GetFloat("ScriptDelayFactor", 1.0f);
             m_ScriptDistanceFactor = config.Configs["XEngine"].
-                    GetFloat("ScriptDistanceLimitFactor", 1.0f);
+                GetFloat("ScriptDistanceLimitFactor", 1.0f);
 
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
@@ -937,7 +937,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llGround(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-	    Vector3 pos = m_host.GetWorldPosition();
+            Vector3 pos = m_host.GetWorldPosition();
             int x = (int)(pos.X + offset.x);
             int y = (int)(pos.Y + offset.y);
             return World.GetLandHeight(x, y);
@@ -1719,9 +1719,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetPos()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(m_host.AbsolutePosition.X,
-                                         m_host.AbsolutePosition.Y,
-                                         m_host.AbsolutePosition.Z);
+            Vector3 pos = m_host.GetWorldPosition();
+            return new LSL_Vector(pos.X, pos.Y, pos.Z);
         }
 
         public LSL_Vector llGetLocalPos()
@@ -4845,21 +4844,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Vector3 p0 = new Vector3(pos.X, pos.Y,
                                      (float)llGround(
-                                                 new LSL_Vector(pos.X, pos.Y, pos.Z)
-                                                 ));
+                                         new LSL_Vector(pos.X, pos.Y, pos.Z)
+                                         ));
             Vector3 p1 = new Vector3(pos.X + 1, pos.Y,
                                      (float)llGround(
-                                                 new LSL_Vector(pos.X + 1, pos.Y, pos.Z)
-                                                 ));
+                                         new LSL_Vector(pos.X + 1, pos.Y, pos.Z)
+                                         ));
             Vector3 p2 = new Vector3(pos.X, pos.Y + 1,
                                      (float)llGround(
-                                                 new LSL_Vector(pos.X, pos.Y + 1, pos.Z)
-                                                 ));
+                                         new LSL_Vector(pos.X, pos.Y + 1, pos.Z)
+                                         ));
 
-            Vector3 v0 = new Vector3(
-                p1.X - p0.X, p1.Y - p0.Y, p1.Z - p0.Z);
-            Vector3 v1 = new Vector3(
-                p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
+            Vector3 v0 = new Vector3(p1.X - p0.X, p1.Y - p0.Y, p1.Z - p0.Z);
+            Vector3 v1 = new Vector3(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
 
             v0.Normalize();
             v1.Normalize();
