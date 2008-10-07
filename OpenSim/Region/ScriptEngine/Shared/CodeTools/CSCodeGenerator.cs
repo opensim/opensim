@@ -99,10 +99,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 string message;
 
                 // LL start numbering lines at 0 - geeks!
+                // Also need to subtract one line we prepend!
                 //
+                string emessage = e.Message;
+                string slinfo = e.slInfo.ToString();
+
+                // Remove wrong line number info
+                //
+                if (emessage.StartsWith(slinfo+": "))
+                    emessage = emessage.Substring(slinfo.Length+2);
+
                 message = String.Format("Line ({0},{1}) {2}",
-                        e.slInfo.lineNumber - 1,
-                        e.slInfo.charPosition - 1, e.Message);
+                        e.slInfo.lineNumber - 2,
+                        e.slInfo.charPosition - 1, emessage);
 
                 throw new Exception(message);
             }

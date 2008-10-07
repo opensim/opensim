@@ -514,7 +514,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 try
                 {
                     // DISPLAY ERROR INWORLD
-                    string text = "Error compiling script:\n" + e.ToString();
+                    string text = "Error compiling script:\n" + e.Message.ToString();
                     if (text.Length > 1000)
                         text = text.Substring(0, 1000);
                     World.SimChat(Utils.StringToBytes(text),

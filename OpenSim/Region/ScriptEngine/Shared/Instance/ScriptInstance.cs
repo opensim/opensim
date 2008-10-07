@@ -613,27 +613,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
 
-                            if (!(e is TargetInvocationException) || (!(e.InnerException is EventAbortException) && (!(e.InnerException is SelfDeleteException))))
+                            if (!(e is TargetInvocationException) || !(e.InnerException is SelfDeleteException))
                             {
-                                if (e is System.Threading.ThreadAbortException)
-                                {
-                                    lock (m_EventQueue)
-                                    {
-                                        if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
-                                        {
-                                            m_CurrentResult=m_Engine.QueueEventHandler(this);
-                                        }
-                                        else
-                                        {
-                                            m_CurrentResult = null;
-                                        }
-                                    }
-
-                                    m_DetectParams = null;
-
-                                    return 0;
-                                }
-
                                 try
                                 {
                                     // DISPLAY ERROR INWORLD
