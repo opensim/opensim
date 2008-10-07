@@ -53,15 +53,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return (m_currentBitsSent < (m_currentThrottle/m_throttleTimeDivisor));
         }
         
-        public int AddBits(int bits)
-        {
-            m_currentBitsSent += bits;
-            return m_currentBitsSent;
-        }
+//        public int AddBits(int bits)
+//        {
+//            m_currentBitsSent += bits;
+//            return m_currentBitsSent;
+//        }
 
         public int AddBytes(int bytes)
         {
-            m_currentBitsSent += bytes * 8;
+            // XXX: Temporarily treat bytes as bits.  This is a temporary revert of r6714 until other underlying issues
+            // are addressed.
+            m_currentBitsSent += bytes;
             return m_currentBitsSent;
         }
 
