@@ -508,6 +508,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             tall = tResend + tLand + tWind + tCloud + tTask + tTexture + tAsset;
 
+            /*
               m_log.Info("[CLIENT]: Client AgentThrottle - Got throttle:resendbits=" + tResend +
               " landbits=" + tLand +
               " windbits=" + tWind +
@@ -516,6 +517,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
               " texturebits=" + tTexture +
               " Assetbits=" + tAsset +
               " Allbits=" + tall);
+              */
 
 
             // Total Sanity
