@@ -937,8 +937,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llGround(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            int x = (int)(m_host.OffsetPosition.X + offset.x);
-            int y = (int)(m_host.OffsetPosition.Y + offset.y);
+	    Vector3 pos = m_host.GetWorldPosition();
+            int x = (int)(pos.X + offset.x);
+            int y = (int)(pos.Y + offset.y);
             return World.GetLandHeight(x, y);
         }
 
