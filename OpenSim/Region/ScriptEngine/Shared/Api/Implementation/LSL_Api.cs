@@ -1521,6 +1521,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // ScriptSleep(200);
         }
 
+        public void llSetLinkTexture(int linknumber, string texture, int face)
+        {
+            m_host.AddScriptLPS(1);
+
+            List<SceneObjectPart> parts = GetLinkParts(linknumber);
+
+            foreach (SceneObjectPart part in parts)
+              SetTexture(part, texture, face);
+
+            // ScriptSleep(200);
+        }
+
         private void SetTexture(SceneObjectPart part, string texture, int face)
         {
             UUID textureID=new UUID();
@@ -8024,22 +8036,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
             return ret;
-        }
-
-        public void llSetLinkTexture(int linknumber, string texture, int face)
-        {
-            m_host.AddScriptLPS(1);
-
-            if (m_host.ParentGroup == null)
-                return;
-
-            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknumber);
-
-            if (part == null)
-                return;
-
-            SetTexture(part, texture, face);
-            // ScriptSleep(200);
         }
 
         public LSL_String llStringTrim(string src, int type)
