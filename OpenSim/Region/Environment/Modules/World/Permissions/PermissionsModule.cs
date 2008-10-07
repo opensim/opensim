@@ -984,11 +984,9 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                bool permission = false;
-
                 // Estate override
                 if (GenericEstatePermission(user))
-                    permission = true;
+                    return true;
 
                 float X = position.X;
                 float Y = position.Y;
@@ -1002,13 +1000,19 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if (Y < 0)
                     Y = 0;
 
-                // Land owner can terraform too
                 ILandObject parcel = m_scene.LandChannel.GetLandObject(X, Y);
+                if (parcel == null)
+                    return false;
+
+                // Others allowed to terraform?
+                if ((parcel.landData.Flags & ((int)Parcel.ParcelFlags.AllowTerraform)) != 0)
+                    return true;
+
+                // Land owner can terraform too
                 if (parcel != null && GenericParcelPermission(user, parcel))
-                    permission = true;
+                    return true;
 
-
-                return permission;
+                return false;
             }
 
             private bool CanViewScript(UUID script, UUID objectID, UUID user, Scene scene)

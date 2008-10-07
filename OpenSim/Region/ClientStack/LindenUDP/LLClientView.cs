@@ -4183,7 +4183,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                              modify.ModifyBlock.BrushSize,
                                                              modify.ModifyBlock.Action, modify.ParcelData[i].North,
                                                              modify.ParcelData[i].West, modify.ParcelData[i].South,
-                                                             modify.ParcelData[i].East, this);
+                                                             modify.ParcelData[i].East, this.AgentId);
                                     }
                                 }
                             }

@@ -150,7 +150,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength, double duration)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz, double strength, double duration)
         {
             strength = TerrainUtil.MetersToSphericalStrength(strength);
 
@@ -173,10 +173,13 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                 {
                     for (y = 0; y < water.Height; y++)
                     {
-                        const double solConst = (1.0 / rounds);
-                        double sedDelta = water[x, y] * solConst;
-                        map[x, y] -= sedDelta;
-                        sediment[x, y] += sedDelta;
+                        if (mask[x,y])
+                        {
+                            const double solConst = (1.0 / rounds);
+                            double sedDelta = water[x, y] * solConst;
+                            map[x, y] -= sedDelta;
+                            sediment[x, y] += sedDelta;
+                        }
                     }
                 }
 
@@ -292,8 +295,11 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                         double sedimentDeposit = sediment[x, y] - waterCapacity;
                         if (sedimentDeposit > 0)
                         {
-                            sediment[x, y] -= sedimentDeposit;
-                            map[x, y] += sedimentDeposit;
+                            if (mask[x,y])
+                            {
+                                sediment[x, y] -= sedimentDeposit;
+                                map[x, y] += sedimentDeposit;
+                            }
                         }
                     }
                 }
@@ -302,7 +308,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
             // Deposit any remainder (should be minimal)
             for (x = 0; x < water.Width; x++)
                 for (y = 0; y < water.Height; y++)
-                    if (sediment[x, y] > 0)
+                    if (mask[x,y] && sediment[x, y] > 0)
                         map[x, y] += sediment[x, y];
         }
 
