@@ -295,14 +295,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 }
                 else
                 {
-                    RegionInfo mreg = m_scene.SceneGridService.RequestNeighbouringRegionInfo(regionhandle);
-                    if (mreg != null)
-                    {
-                        string httpserver = "http://" + mreg.ExternalEndPoint.Address.ToString() + ":" + mreg.HttpPort + "/MAP/MapItems/" + regionhandle.ToString();
+                    //RegionInfo mreg = m_scene.SceneGridService.RequestNeighbouringRegionInfo(regionhandle);
+                    //if (mreg != null)
+                    //{
+                    //    string httpserver = "http://" + mreg.ExternalEndPoint.Address.ToString() + ":" + mreg.HttpPort + "/MAP/MapItems/" + regionhandle.ToString();
                         
-                        RequestMapItems(httpserver,remoteClient.AgentId,flags,EstateID,godlike,itemtype,regionhandle);
+                    //    RequestMapItems(httpserver,remoteClient.AgentId,flags,EstateID,godlike,itemtype,regionhandle);
                         
-                    }
+                    //}
                 }
             }
 
