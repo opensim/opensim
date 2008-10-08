@@ -393,7 +393,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             mapitemsrequest.ContentType = "application/xml+llsd";
             LLSDMap RAMap = new LLSDMap();
 
-            string RAMapString = RAMap.ToString();
+            // string RAMapString = RAMap.ToString();
             LLSD LLSDofRAMap = RAMap; // RENAME if this works
 
             byte[] buffer = LLSDParser.SerializeXmlBytes(LLSDofRAMap);
@@ -433,7 +433,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     //m_log.InfoFormat("[OGP]: rez_avatar reply was {0} ", response_mapItems_reply);
 
                 }
-                catch (WebException ex)
+                catch (WebException)
                 {
                     //m_log.InfoFormat("[OGP]: exception on read after send of rez avatar {0}", ex.Message);
                     responseMap["connect"] = LLSD.FromBoolean(false);
@@ -448,7 +448,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     responseMap = (LLSDMap)rezResponse;
                     responseMap["requestID"] = LLSD.FromUUID(requestID);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //m_log.InfoFormat("[OGP]: exception on parse of rez reply {0}", ex.Message);
                     responseMap["connect"] = LLSD.FromBoolean(false);
