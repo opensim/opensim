@@ -290,20 +290,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 InExecution = false;
                             }
                         }
-                        catch (SelfDeleteException sde) 
-                        {
-                            // Make sure this exception isn't consumed here... we need it
-                            throw sde;
-                        }
                         catch (TargetInvocationException tie)
                         {
-                            // Probably don't need to special case this one
-                            throw tie;
-                        }
-                        catch (Exception e)
-                        {
+                            Exception e = tie.InnerException;
+
+                            if (e is SelfDeleteException) // Forward it
+                                throw e;
+
                             InExecution = false;
-                            string text = FormatException(e, QIS.LineMap);
+                            string text = FormatException(tie, QIS.LineMap);
                             
                             // DISPLAY ERROR INWORLD
 
@@ -356,6 +351,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                         QIS.localID, QIS.itemID);
                                 }
                             }
+                        }
+                        catch (Exception e)
+                        {
+                            throw;
                         }
                         finally
                         {
