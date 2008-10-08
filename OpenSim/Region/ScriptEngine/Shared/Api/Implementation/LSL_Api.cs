@@ -1718,14 +1718,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 targetPos = currentPos + m_ScriptDistanceFactor * 10.0f * llVecNorm(targetPos - currentPos);
             }
+            
 
-            if (part.ParentID != 0)
+            if (part.ParentGroup == null)
             {
                 part.UpdateOffSet(new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z));
             }
             else
             {
-                part.UpdateGroupPosition(new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z));
+                SceneObjectGroup parent = part.ParentGroup;
+                parent.UpdateGroupPosition(new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z));
             }
         }
 
