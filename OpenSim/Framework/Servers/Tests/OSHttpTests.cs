@@ -30,9 +30,12 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+
 using HttpServer;
 using HttpServer.Exceptions;
 using HttpServer.FormDecoders;
+
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 
@@ -186,64 +189,210 @@ namespace OpenSim.Framework.Servers.Tests
             }
         }
 
+        public class TestHttpResponse: IHttpResponse
+        {
+            public Stream Body 
+            {
+                get { return _body; }
+
+                set { _body = value; }
+            }
+            private Stream _body;
+
+            public string ProtocolVersion 
+            { 
+                get { return _protocolVersion; }
+                set { _protocolVersion = value; }
+            }
+            private string _protocolVersion;
+
+            public bool Chunked 
+            {
+                get { return _chunked; }
+
+                set { _chunked = value; }
+            }
+            private bool _chunked;
+
+            public ConnectionType Connection 
+            {
+                get { return _connection; }
+
+                set { _connection = value; }
+            }
+            private ConnectionType _connection;
+
+            public Encoding Encoding 
+            {
+                get { return _encoding; }
+
+                set { _encoding = value; }
+            }
+            private Encoding _encoding;
+
+            public int KeepAlive 
+            {
+                get { return _keepAlive; }
+
+                set { _keepAlive = value; }
+            }
+            private int _keepAlive;
+
+            public HttpStatusCode Status 
+            {
+                get { return _status; }
+
+                set { _status = value; }
+            }
+            private HttpStatusCode _status;
+
+            public string Reason 
+            {
+                get { return _reason; }
+
+                set { _reason = value; }
+            }
+            private string _reason;
+
+            public long ContentLength 
+            {
+                get { return _contentLength; }
+
+                set { _contentLength = value; }
+            }
+            private long _contentLength;
+
+            public string ContentType 
+            {
+                get { return _contentType; }
+
+                set { _contentType = value; }
+            }
+            private string _contentType;
+
+            public bool HeadersSent 
+            {
+                get { return _headersSent; }
+            }
+            private bool _headersSent;
+
+            public bool Sent 
+            {
+                get { return _sent; }
+            }
+            private bool _sent;
+
+            public ResponseCookies Cookies 
+            {
+                get { return _cookies; }
+            }
+            private ResponseCookies _cookies;
+
+            public TestHttpResponse()
+            {
+                _headersSent = false;
+                _sent = false;
+            }
+
+            public void AddHeader(string name, string value) {}
+            public void Send() 
+            {
+                if (!_headersSent) SendHeaders();
+                if (_sent) throw new InvalidOperationException("stuff already sent");
+                _sent = true;
+            }
+
+            public void SendBody(byte[] buffer, int offset, int count) 
+            {
+                if (!_headersSent) SendHeaders();
+                _sent = true;
+            }
+            public void SendBody(byte[] buffer) 
+            {
+                if (!_headersSent) SendHeaders();
+                _sent = true;
+            }
+
+            public void SendHeaders() 
+            {
+                if (_headersSent) throw new InvalidOperationException("headers already sent");
+                _headersSent = true;
+            }
+
+            public void Redirect(Uri uri) {}
+            public void Redirect(string url) {}
+        }
+
         
-        public OSHttpRequest r0;
-        public OSHttpRequest r1;
+        public OSHttpRequest req0;
+        public OSHttpRequest req1;
+
+        public OSHttpResponse rsp0;
 
         public IPEndPoint ipEP0;
 
         [TestFixtureSetUp]
         public void Init()
         {
-            TestHttpRequest thr0 = new TestHttpRequest("utf-8", "text/xml", "OpenSim Test Agent", "192.168.0.1", "4711", 
+            TestHttpRequest threq0 = new TestHttpRequest("utf-8", "text/xml", "OpenSim Test Agent", "192.168.0.1", "4711", 
                                                        new string[] {"text/xml"}, 
                                                        ConnectionType.KeepAlive, 4711, 
                                                        new Uri("http://127.0.0.1/admin/inventory/Dr+Who/Tardis"));
-            thr0.Method = "GET";
-            thr0.HttpVersion = HttpHelper.HTTP10;
+            threq0.Method = "GET";
+            threq0.HttpVersion = HttpHelper.HTTP10;
 
-            TestHttpRequest thr1 = new TestHttpRequest("utf-8", "text/xml", "OpenSim Test Agent", "192.168.0.1", "4711", 
+            TestHttpRequest threq1 = new TestHttpRequest("utf-8", "text/xml", "OpenSim Test Agent", "192.168.0.1", "4711", 
                                                        new string[] {"text/xml"}, 
                                                        ConnectionType.KeepAlive, 4711, 
                                                        new Uri("http://127.0.0.1/admin/inventory/Dr+Who/Tardis?a=0&b=1&c=2"));
-            thr1.Method = "POST";
-            thr1.HttpVersion = HttpHelper.HTTP11;
-            thr1.Headers["x-wuff"] = "wuffwuff";
-            thr1.Headers["www-authenticate"] = "go away";
+            threq1.Method = "POST";
+            threq1.HttpVersion = HttpHelper.HTTP11;
+            threq1.Headers["x-wuff"] = "wuffwuff";
+            threq1.Headers["www-authenticate"] = "go away";
             
-            r0 = new OSHttpRequest(new TestHttpClientContext(false), thr0);
-            r1 = new OSHttpRequest(new TestHttpClientContext(false), thr1);
+            req0 = new OSHttpRequest(new TestHttpClientContext(false), threq0);
+            req1 = new OSHttpRequest(new TestHttpClientContext(false), threq1);
+
+            rsp0 = new OSHttpResponse(new TestHttpResponse());
 
             ipEP0 = new IPEndPoint(IPAddress.Parse("192.168.0.1"), 4711);
+
         }
 
         [Test]
-        public void T001_SimpleOSHttpRequest()
+        public void T000_OSHttpRequest()
         {
-            Assert.That(r0.HttpMethod, Is.EqualTo("GET"));
-            Assert.That(r0.ContentType, Is.EqualTo("text/xml"));
-            Assert.That(r0.ContentLength, Is.EqualTo(4711));
+            Assert.That(req0.HttpMethod, Is.EqualTo("GET"));
+            Assert.That(req0.ContentType, Is.EqualTo("text/xml"));
+            Assert.That(req0.ContentLength, Is.EqualTo(4711));
 
-            Assert.That(r1.HttpMethod, Is.EqualTo("POST"));
+            Assert.That(req1.HttpMethod, Is.EqualTo("POST"));
         }
 
         [Test]
-        public void T002_HeaderAccess()
+        public void T001_OSHttpRequestHeaderAccess()
         {
-            Assert.That(r1.Headers["x-wuff"], Is.EqualTo("wuffwuff"));
-            Assert.That(r1.Headers.Get("x-wuff"), Is.EqualTo("wuffwuff"));
+            Assert.That(req1.Headers["x-wuff"], Is.EqualTo("wuffwuff"));
+            Assert.That(req1.Headers.Get("x-wuff"), Is.EqualTo("wuffwuff"));
 
-            Assert.That(r1.Headers["www-authenticate"], Is.EqualTo("go away"));
-            Assert.That(r1.Headers.Get("www-authenticate"), Is.EqualTo("go away"));
+            Assert.That(req1.Headers["www-authenticate"], Is.EqualTo("go away"));
+            Assert.That(req1.Headers.Get("www-authenticate"), Is.EqualTo("go away"));
 
-            Assert.That(r0.RemoteIPEndPoint, Is.EqualTo(ipEP0));
+            Assert.That(req0.RemoteIPEndPoint, Is.EqualTo(ipEP0));
         }
 
         [Test]
-        public void T003_UriParsing()
+        public void T002_OSHttpRequestUriParsing()
         {
-            Assert.That(r0.RawUrl, Is.EqualTo("/admin/inventory/Dr+Who/Tardis"));
-            Assert.That(r1.Url.ToString(), Is.EqualTo("http://127.0.0.1/admin/inventory/Dr+Who/Tardis?a=0&b=1&c=2"));
+            Assert.That(req0.RawUrl, Is.EqualTo("/admin/inventory/Dr+Who/Tardis"));
+            Assert.That(req1.Url.ToString(), Is.EqualTo("http://127.0.0.1/admin/inventory/Dr+Who/Tardis?a=0&b=1&c=2"));
+        }
+
+        [Test]
+        public void T100_OSHttpResponse()
+        {
+            rsp0.ContentType = "text/xml";
+            Assert.That(rsp0.ContentType, Is.EqualTo("text/xml"));
         }
     }
 }
