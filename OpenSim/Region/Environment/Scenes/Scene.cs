@@ -3625,6 +3625,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 land.landData.MusicURL = url;
+                land.sendLandUpdateToAvatarsOverMe();
                 return;
             }
         }
@@ -3641,6 +3642,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 land.landData.MediaURL = url;
+                land.sendLandUpdateToAvatarsOverMe();
                 return;
             }
         }

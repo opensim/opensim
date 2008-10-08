@@ -294,8 +294,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 try
                 {
                     over =
-                        m_scene.LandChannel.GetLandObject((int) Math.Max(255, Math.Min(0, Math.Round(avatars[i].AbsolutePosition.X))),
-                                                          (int) Math.Max(255, Math.Min(0, Math.Round(avatars[i].AbsolutePosition.Y))));
+                        m_scene.LandChannel.GetLandObject(Util.Clamp<int>((int)Math.Round(avatars[i].AbsolutePosition.X), 0, 255),
+                                                          Util.Clamp<int>((int)Math.Round(avatars[i].AbsolutePosition.Y), 0, 255));
                 }
                 catch (Exception)
                 {
