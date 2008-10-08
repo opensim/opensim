@@ -352,7 +352,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 }
                             }
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             throw;
                         }
