@@ -4,8 +4,11 @@
 ; Set this to false if you are running OpenSimulator in standalone mode
 gridmode = false
 
-; Enables EventQueueGet Service. 
+; Enables EventQueueGet Service.
 EventQueue = true
+
+; Set this to the DLL containig the client stack to use.
+clientstack_plugin="OpenSim.Region.ClientStack.LindenUDP.dll"
 
 ; ##
 ; ## REGIONS
@@ -16,16 +19,16 @@ EventQueue = true
 region_info_source = "filesystem"
 ; region_info_source = "web"
 
-; Determines where the region XML files are stored if you are loading these from the filesystem.  
+; Determines where the region XML files are stored if you are loading these from the filesystem.
 ; Defaults to bin/Regions in your OpenSimulator installation directory
 ; regionload_regionsdir="C:\somewhere\xmlfiles\"
 
 ; Determines the page from which regions xml is retrieved if you are loading these from the web
-; The XML here has the same format as it does on the filesystem (including the <Root> tag), 
+; The XML here has the same format as it does on the filesystem (including the <Root> tag),
 ; except that everything is also enclosed in a <Regions> tag.
 ; regionload_webserver_url = "http://example.com/regions.xml";
 
-; Draw objects on maptile.   This step might take a long time if you've got a huge amount of 
+; Draw objects on maptile.   This step might take a long time if you've got a huge amount of
 ; objects, so you can turn it off here if you'd like.
 DrawPrimOnMapTile = true
 ; Use terrain texture for maptiles if true, use shaded green if false
@@ -60,7 +63,7 @@ storage_connection_string="URI=file:OpenSim.db,version=3";
 ; If you're running in standalone, you definitely want local, since there is no grid (hence this is redundant, and should
 ; really be eliminated).  The database itself is defined in asset_plugin below
 ;
-; If you're running a region server connecting to a grid, you probably want grid mode, since this will use the 
+; If you're running a region server connecting to a grid, you probably want grid mode, since this will use the
 ; grid asset server.  If you select local in grid mode, then you will use a database as specified in asset_plugin to store assets
 ; locally.  This will mean you won't be able to take items using your assets to other people's regions.
 asset_database = "local"
@@ -78,7 +81,7 @@ see_into_this_sim_from_neighbor = True
 ; sticking to the basic shapes the engine does support. Usually this is only a box.
 ; Meshmerizer gives a better handling of complex prims by using triangle meshes.
 ; Note, that only ODE physics currently deals with meshed prims in a satisfactoring way
-; 
+;
 meshing = ZeroMesher
 ;meshing = Meshmerizer
 
@@ -198,7 +201,7 @@ shout_distance = 100
 
 [ODEPhysicsSettings]
 
-;## 
+;##
 ;## World Settings
 ;##
 
@@ -253,7 +256,7 @@ objectcontact_bounce = 0.2
 ; ## Avatar Control
 ; ##
 
-; PID Controller Settings. These affect the math that causes the avatar to reach the 
+; PID Controller Settings. These affect the math that causes the avatar to reach the
 ; desired velocity
 ; See http://en.wikipedia.org/wiki/PID_controller
 
@@ -270,7 +273,7 @@ av_capsule_radius = 0.37
 av_capsule_standup_tensor_win = 550000
 av_capsule_standup_tensor_linux = 2000000
 
-; used to calculate mass of avatar.  
+; used to calculate mass of avatar.
 ; float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS, 2)*CAPSULE_LENGTH);
 ; av_density * AVvolume;
 
@@ -354,7 +357,7 @@ access_password = unknown
 region_file_template = "{0}x{1}-{2}.xml"
 
 [RestPlugins]
-; Change this to true to enable REST Plugins. This must be true if you wish to use 
+; Change this to true to enable REST Plugins. This must be true if you wish to use
 ; REST Region or REST Asset and Inventory Plugins
 enabled = false
 god_key = SECRET
@@ -406,8 +409,8 @@ msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
 [Voice]
 ; PLEASE NOTE that we don't have voice support in OpenSim quite yet - these configuration options are stubs
 enabled = false
-; This is not supported by the SLViewer right now and 
-; hardcoded within the SL Viewer. Maybe it will be 
+; This is not supported by the SLViewer right now and
+; hardcoded within the SL Viewer. Maybe it will be
 ; changed in future. :-)
 account_management_server = https://www.bhr.vivox.com/api2
 ; Global SIP Server for conference calls
@@ -417,11 +420,11 @@ sip_domain = testserver.com
 [AsteriskVoice]
 ; PLEASE NOTE that we don't have voice support in OpenSim quite yet - these configuration options are stubs
 enabled = false
-; SIP account server domain 
+; SIP account server domain
 sip_domain = testserver.com
-; SIP conf server domain 
+; SIP conf server domain
 conf_domain = testserver.com
-; URL of the asterisk opensim frontend 
+; URL of the asterisk opensim frontend
 asterisk_frontend = http://testserver.com:49153/
 ; password for the asterisk frontend XmlRpc calls
 asterisk_password = bah-humbug
@@ -452,7 +455,7 @@ Enabled = true
 ; When a script receives an event the event is queued.
 ; Any free thread will start executing this event. One script can only have one event executed simultaneously.
 ; If you have only one thread, and one script has a loop or does a lot of work, then no other scripts can run at the same time.
-; Same if you have 10 threads, then only 10 scripts can be run simultaneously. 
+; Same if you have 10 threads, then only 10 scripts can be run simultaneously.
 ; But because most scripts exit after their task, the threads are free to go on to the next script.
 
 ; Refresh ScriptEngine config options (these settings) every xx seconds
@@ -491,7 +494,7 @@ DeactivateScriptOnTimeout=false
 SleepTimeIfNoScriptExecutionMs=50
 
 ; AppDomains are used for two things:
-; * Security: Scripts inside AppDomains are limited in permissions. 
+; * Security: Scripts inside AppDomains are limited in permissions.
 ; * Script unloading: When a script is deactivated it can not be unloaded. Only whole AppDomains can be unloaded.
 ;                     AppDomains are therefore only unloaded once ALL active scripts inside it has been deactivated (removed from prims).
 ; Each AppDomain has some memory overhead. But leaving dead scripts in memory also has memory overhead.
@@ -600,17 +603,17 @@ PriceGroupCreate = 0
 ; This is the account Money goes to for fees.  Remember, economy requires that money circulates somewhere... even if it's an upload fee
 EconomyBaseAccount = 00000000-0000-0000-0000-000000000000
 
-; This is the type of user that will pay fees.  
+; This is the type of user that will pay fees.
 ; Set this to 2 for users, estate managers and Estate Owners
 ; Set this to 1 for Users and Estate Managers
-; Set this to 0 for Users only.   
+; Set this to 0 for Users only.
 ; -1 disables
 UserLevelPaysFees = -1
 
 ; Amount to give to user as a stipend
 UserStipend = 1000
 
-; When a user gets low on money units and logs off, then logs back on, issue a new stipend if they have less money units then this 
+; When a user gets low on money units and logs off, then logs back on, issue a new stipend if they have less money units then this
 ; amount. Be aware that the account money isn't stored anywhere so users will get a stipend if you restart the simulator
 IssueStipendWhenClientIsBelowAmount = 10
 
@@ -704,11 +707,11 @@ ScriptDistanceLimitFactor = 1.0
 [GridInfo]
 
 ; These settings are used to return information on a get_grid_info call.
-; Client launcher scripts and third-party clients make use of this to 
+; Client launcher scripts and third-party clients make use of this to
 ; autoconfigure the client and to provide a nice user experience. If you
 ; want to facilitate that, you should configure the settings here according
-; to your grid or standalone setup. 
-; 
+; to your grid or standalone setup.
+;
 ; See http://opensimulator.org/wiki/GridInfo
 
 ; login uri: for grid this is the user server URI
@@ -721,15 +724,15 @@ gridname = "the lost continent of hippo"
 gridnick = "hippogrid"
 
 
-; login page: optional: if it exists it will be used to tell the client to use 
+; login page: optional: if it exists it will be used to tell the client to use
 ;                       this as splash page
 welcome = http://127.0.0.1/welcome
 
-; helper uri: optional: if it exists if will be used to tell the client to use 
+; helper uri: optional: if it exists if will be used to tell the client to use
 ;                       this for all economy related things
 economy = http://127.0.0.1:9000/
 
-; web page of grid: optional: page providing further information about your grid 
+; web page of grid: optional: page providing further information about your grid
 about = http://127.0.0.1/about/
 
 ; account creation: optional: page providing further information about obtaining
@@ -742,7 +745,7 @@ help = http://127.0.0.1/help
 ; password help: optional: page providing password assistance for users of your grid
 password = http://127.0.0.1/password
 
-;These are the settings for the Open Grid Protocol..  the Agent Domain, Region Domain,   you know..  
+;These are the settings for the Open Grid Protocol..  the Agent Domain, Region Domain,   you know..
 [OpenGridProtocol]
 ;On/true or Off/false
 ogp_enabled=false
