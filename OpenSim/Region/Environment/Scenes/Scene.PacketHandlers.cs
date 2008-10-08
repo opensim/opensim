@@ -141,7 +141,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Handle the deselection of a prim from the client.
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="remoteClient"></param>
@@ -150,36 +150,29 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
             if (part == null)
                 return;
+            
+            // The prim is in the process of being deleted.
+            if (null == part.ParentGroup.RootPart)
+                return;
+            
+            // A deselect packet contains all the local prims being deselected.  However, since selection is still
+            // group based we only want the root prim to trigger a full update - otherwise on objects with many prims
+            // we end up sending many duplicate ObjectUpdates
+            if (part.ParentGroup.RootPart.LocalId != part.LocalId)
+                return;
 
             bool isAttachment = false;
-
-            // If the parent group is null, we are in an inconsistent state
-            // try to recover gracefully by doing all that can be done on
-            // a lone prim
+            
+            // This is wrong, wrong, wrong. Selection should not be
+            // handled by group, but by prim. Legacy cruft.
+            // TODO: Make selection flagging per prim!
             //
-            if (part.ParentGroup == null)
-            {
-                if (part.IsAttachment)
-                    isAttachment = true;
-                else
-                    part.ScheduleFullUpdate();
-            }
+            part.ParentGroup.IsSelected = false;
+            
+            if (part.ParentGroup.RootPart.IsAttachment)
+                isAttachment = true;
             else
-            {
-                part.ParentGroup.IsSelected = false;
-
-                // This is wrong, wrong, wrong. Selection should not be
-                // handled by group, but by prim. Legacy cruft.
-                // TODO: Make selection flagging per prim!
-                //
-                if (part.ParentGroup.RootPart != null)
-                {
-                    if (part.ParentGroup.RootPart.IsAttachment)
-                        isAttachment = true;
-                    else
-                        part.ParentGroup.ScheduleGroupForFullUpdate();
-                }
-            }
+                part.ParentGroup.ScheduleGroupForFullUpdate();
 
             // If it's not an attachment, and we are allowed to move it,
             // then we might have done so. If we moved across a parcel
