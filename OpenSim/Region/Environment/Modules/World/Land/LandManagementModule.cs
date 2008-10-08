@@ -484,8 +484,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             try
             {
-                x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float) / Convert.ToDouble(4.0)));
-                y = Convert.ToInt32(Math.Floor(Convert.ToDouble(y_float) / Convert.ToDouble(4.0)));
+                x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float) / 4.0));
+                y = Convert.ToInt32(Math.Floor(Convert.ToDouble(y_float) / 4.0));
             }
             catch (OverflowException)
             {
