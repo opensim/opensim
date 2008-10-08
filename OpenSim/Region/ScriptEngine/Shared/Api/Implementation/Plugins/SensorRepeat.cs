@@ -237,24 +237,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                         if (keep && (ts.name.Length > 0))
                         {
-                            string avatarname=null;
-                            string objectname=null;
-                            string entname =ent.Name;
-
-                            // try avatar username surname
-                            CachedUserInfo profile = m_CmdManager.m_ScriptEngine.World.CommsManager.UserProfileCacheService.GetUserDetails(ent.UUID);
-                            if (profile != null && profile.UserProfile != null)
-                            {
-                               avatarname = profile.UserProfile.FirstName + " " + profile.UserProfile.SurName;
-                            }
-                            // try an scene object
-                            SceneObjectPart SOP = m_CmdManager.m_ScriptEngine.World.GetSceneObjectPart(ent.UUID);
-                            if (SOP != null)
-                            {
-                                objectname = SOP.Name;
-                            }
-
-                            if ((ts.name != entname) && (ts.name != avatarname) && (ts.name != objectname))
+                            if (ts.name != ent.Name)
                             {
                                keep = false;
                             }
