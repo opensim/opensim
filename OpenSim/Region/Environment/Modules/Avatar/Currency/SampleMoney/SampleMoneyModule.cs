@@ -1591,9 +1591,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 return;
             }
 
-            doMoneyTransfer(remoteClient.AgentId, part.OwnerID, salePrice, 5000, "Object buy");
-
-            s.PerformObjectBuy(remoteClient, categoryID, localID, saleType);
+            if (s.PerformObjectBuy(remoteClient, categoryID, localID, saleType))
+                doMoneyTransfer(remoteClient.AgentId, part.OwnerID, salePrice, 5000, "Object buy");
         }
     }
 

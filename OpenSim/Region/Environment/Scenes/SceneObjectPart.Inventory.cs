@@ -716,7 +716,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (TaskInventoryItem item in m_taskInventory.Values)
             {
-                if (item.InvType == 6)
+                if (item.InvType == 6 && (item.CurrentPermissions & 7) != 0)
                 {
                     if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
                         item.CurrentPermissions &= ~(uint)PermissionMask.Copy;

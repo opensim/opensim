@@ -4089,22 +4089,30 @@ namespace OpenSim.Region.Environment.Scenes
             part.GetProperties(client);
         }
 
-        public void PerformObjectBuy(IClientAPI remoteClient, UUID categoryID,
+        public bool PerformObjectBuy(IClientAPI remoteClient, UUID categoryID,
                 uint localID, byte saleType)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
 
             if (part == null)
-                return;
+                return false;
 
             if (part.ParentGroup == null)
-                return;
+                return false;
 
             SceneObjectGroup group = part.ParentGroup;
 
             switch (saleType)
             {
             case 1: // Sell as original (in-place sale)
+                uint effectivePerms=group.GetEffectivePermissions();
+
+                if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
+                {
+                    remoteClient.SendAgentAlertMessage("This item doesn't appear to be for sale", false);
+                    return false;
+                }
+
                 group.SetOwnerId(remoteClient.AgentId);
                 group.SetRootPartOwner(part, remoteClient.AgentId,
                         remoteClient.ActiveGroupId);
@@ -4138,6 +4146,14 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (userInfo != null)
                 {
+                    uint perms=group.GetEffectivePermissions();
+
+                    if ((perms & (uint)PermissionMask.Transfer) == 0)
+                    {
+                        remoteClient.SendAgentAlertMessage("This item doesn't appear to be for sale", false);
+                        return false;
+                    }
+
                     AssetBase asset = CreateAsset(
                         group.GetPartName(localID),
                         group.GetPartDescription(localID),
@@ -4157,7 +4173,6 @@ namespace OpenSim.Region.Environment.Scenes
                     item.InvType = (int)InventoryType.Object;
                     item.Folder = categoryID;
 
-                    uint perms=group.GetEffectivePermissions();
                     uint nextPerms=(perms & 7) << 13;
                     if ((nextPerms & (uint)PermissionMask.Copy) == 0)
                         perms &= ~(uint)PermissionMask.Copy;
@@ -4177,16 +4192,42 @@ namespace OpenSim.Region.Environment.Scenes
                     userInfo.AddItem(item);
                     remoteClient.SendInventoryItemCreateUpdate(item);
                 }
+                else
+                {
+                    remoteClient.SendAgentAlertMessage("Cannot buy now. Your inventory is unavailable", false);
+                    return false;
+                }
                 break;
 
             case 3: // Sell contents
                 List<UUID> invList = part.GetInventoryList();
+
+                bool okToSell = true;
+
+                foreach (UUID invID in invList)
+                {
+                    TaskInventoryItem item = part.GetInventoryItem(invID);
+                    if ((item.CurrentPermissions &
+                            (uint)PermissionMask.Transfer) == 0)
+                    {
+                        okToSell = false;
+                        break;
+                    }
+                }
+
+                if (!okToSell)
+                {
+                    remoteClient.SendAgentAlertMessage("This item's inventory doesn't appear to be for sale", false);
+                    return false;
+                }
 
                 if (invList.Count > 0)
                     MoveTaskInventoryItems(remoteClient.AgentId, part.Name,
                             part, invList);
                 break;
             }
+
+            return true;
         }
 
         public void CleanTempObjects()

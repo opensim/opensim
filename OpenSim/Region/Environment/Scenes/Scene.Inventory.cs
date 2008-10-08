@@ -928,6 +928,11 @@ namespace OpenSim.Region.Environment.Scenes
                 return null;
             }
 
+            if ((destAgent != taskItem.OwnerID) && ((taskItem.CurrentPermissions & (uint)PermissionMask.Transfer) == 0))
+            {
+                return null;
+            }
+
             InventoryItemBase agentItem = new InventoryItemBase();
 
             agentItem.ID = UUID.Random();
@@ -943,7 +948,7 @@ namespace OpenSim.Region.Environment.Scenes
             if ((destAgent != taskItem.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
             {
                 agentItem.BasePermissions = taskItem.NextPermissions;
-                agentItem.CurrentPermissions = taskItem.NextPermissions;
+                agentItem.CurrentPermissions = taskItem.NextPermissions | 8;
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions & taskItem.NextPermissions;
             }
@@ -975,6 +980,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
 
             InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId);
+
+            if (agentItem == null)
+                return;
 
             agentItem.Folder = folderId;
             AddInventoryItem(remoteClient, agentItem);
@@ -1045,6 +1053,10 @@ namespace OpenSim.Region.Environment.Scenes
                         avatarId);
                 }
                 InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(avatarId, part, itemId);
+
+                if (agentItem == null)
+                    return;
+
                 agentItem.Folder = folderId;
 
                 AddInventoryItem(avatarId, agentItem);
@@ -1081,6 +1093,11 @@ namespace OpenSim.Region.Environment.Scenes
                         destId);
                 return;
             }
+
+            // Can't transfer this
+            //
+            if ((part.OwnerID != destPart.OwnerID) && ((srcTaskItem.CurrentPermissions & (uint)PermissionMask.Transfer) == 0))
+                return;
 
             if (part.OwnerID != destPart.OwnerID && (part.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) == 0)
             {
@@ -1166,9 +1183,13 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (UUID itemID in items)
             {
                 InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(destID, host, itemID);
-                agentItem.Folder = newFolderID;
 
-                AddInventoryItem(destID, agentItem);
+                if (agentItem != null)
+                {
+                    agentItem.Folder = newFolderID;
+
+                    AddInventoryItem(destID, agentItem);
+                }
             }
 
             ScenePresence avatar;
