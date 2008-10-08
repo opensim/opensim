@@ -77,8 +77,6 @@ namespace OpenSim.Region.Environment.Modules.Framework
         {
             m_gConfig = config;
 
-
-
             IConfig startupConfig = m_gConfig.Configs["Startup"];
 
             ReadConfigAndPopulate(scene, startupConfig, "Startup");
@@ -285,15 +283,15 @@ namespace OpenSim.Region.Environment.Modules.Framework
             // TODO: this has to be redone to not busy-wait (and block the thread),
             // TODO: as soon as we have a non-blocking way to handle HTTP-requests.
 
-            if (m_log.IsDebugEnabled)
-            { 
-                String debug = "[EVENTQUEUE]: Got request for agent {0} in region {1} from thread {2}: [  ";
-                foreach (object key in request.Keys)
-                {
-                    debug += key.ToString() + "=" + request[key].ToString() + "  ";
-                }
-                m_log.DebugFormat(debug + "  ]", agentID, m_scene.RegionInfo.RegionName, System.Threading.Thread.CurrentThread.Name);
-            }
+//            if (m_log.IsDebugEnabled)
+//            { 
+//                String debug = "[EVENTQUEUE]: Got request for agent {0} in region {1} from thread {2}: [  ";
+//                foreach (object key in request.Keys)
+//                {
+//                    debug += key.ToString() + "=" + request[key].ToString() + "  ";
+//                }
+//                m_log.DebugFormat(debug + "  ]", agentID, m_scene.RegionInfo.RegionName, System.Threading.Thread.CurrentThread.Name);
+//            }
 
             BlockingLLSDQueue queue = GetQueue(agentID);
             LLSD element = queue.Dequeue(15000); // 15s timeout
