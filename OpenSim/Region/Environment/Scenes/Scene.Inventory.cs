@@ -1275,7 +1275,9 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         agentTransactions.HandleTaskItemUpdateFromTransaction(
                             remoteClient, part, transactionID, currentItem);
-                    }                    
+                    }
+                    if (part.UpdateInventoryItem(itemInfo))
+                        part.GetProperties(remoteClient);
                 }
             }
             else
