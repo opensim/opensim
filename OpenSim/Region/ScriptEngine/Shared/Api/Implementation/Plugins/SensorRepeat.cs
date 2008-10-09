@@ -45,9 +45,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             m_CmdManager = CmdManager;
         }
 
-        public Dictionary<uint, Dictionary<UUID, LSL_Types.list>> SenseEvents =
-            new Dictionary<uint, Dictionary<UUID, LSL_Types.list>>();
         private Object SenseLock = new Object();
+
+        private const int AGENT = 1;
+        private const int ACTIVE = 2;
+        private const int PASSIVE = 4;
+        private const int SCRIPTED = 8;
+
+        private double maximumRange = 96.0;
+        private int maximumToReturn = 16;
 
         //
         // SenseRepeater and Sensors
@@ -87,7 +93,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             ts.name = name;
             ts.keyID = keyID;
             ts.type = type;
-            ts.range = range;
+            if (range > maximumRange)
+                ts.range = maximumRange;
+            else
+                ts.range = range;
             ts.arc = arc;
             ts.host = host;
 
@@ -150,7 +159,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             ts.name = name;
             ts.keyID = keyID;
             ts.type = type;
-            ts.range = range;
+            if (range > maximumRange)
+                ts.range = maximumRange;
+            else
+                ts.range = range;
             ts.arc = arc;
             ts.host = host;
             SensorSweep(ts);
@@ -158,12 +170,100 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         private void SensorSweep(SenseRepeatClass ts)
         {
-            SceneObjectPart SensePoint = ts.host;
-
-            if (SensePoint == null)
+            if (ts.host == null)
             {
                 return;
             }
+
+            LSL_Types.list SensedObjects = new LSL_Types.list();
+
+            // Is the sensor type is AGENT and not SCRIPTED then include agents
+            if ((ts.type & AGENT) != 0 && (ts.type & SCRIPTED) == 0)
+            {
+                doAgentSensor(ts, SensedObjects);
+            }
+
+            // If SCRIPTED or PASSIVE or ACTIVE check objects
+            if ((ts.type & SCRIPTED) != 0 || (ts.type & PASSIVE) != 0 || (ts.type & ACTIVE) != 0)
+            {
+                doObjectSensor(ts, SensedObjects);
+            }
+
+            lock (SenseLock)
+            {
+                if (SensedObjects.Length == 0)
+                {
+                    // send a "no_sensor"
+                    // Add it to queue
+                    m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
+                            new EventParams("no_sensor", new Object[0],
+                            new DetectParams[0]));
+                }
+                else
+                {
+                    // the sort is stride = 2 and ascending to get everything ordered by distance
+                    SensedObjects = SensedObjects.Sort(2, 1);
+                    int count = SensedObjects.Length;
+                    int idx;
+                    List<DetectParams> detected = new List<DetectParams>();
+                    for (idx = 0; idx < count; idx++)
+                    {
+                        try
+                        {
+                            DetectParams detect = new DetectParams();
+                            detect.Key = (UUID)(SensedObjects.Data[(idx * 2) + 1]);
+                            detect.Populate(m_CmdManager.m_ScriptEngine.World);
+                            detected.Add(detect);
+                        }
+                        catch (Exception)
+                        {
+                            // Ignore errors, the object has been deleted or the avatar has gone and
+                            // there was a problem in detect.Populate so nothing added to the list
+                        }
+                        if (detected.Count == maximumToReturn)
+                            break;
+                    }
+
+                    if (detected.Count == 0)
+                    {
+                        // To get here with zero in the list there must have been some sort of problem
+                        // like the object being deleted or the avatar leaving to have caused some
+                        // difficulty during the Populate above so fire a no_sensor event
+                        m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
+                                new EventParams("no_sensor", new Object[0],
+                                new DetectParams[0]));
+                    }
+                    else
+                    {
+                        m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
+                                new EventParams("sensor",
+                                new Object[] {new LSL_Types.LSLInteger(detected.Count) },
+                                detected.ToArray()));
+                    }
+                }
+            }
+        }
+
+        private void doObjectSensor(SenseRepeatClass ts, LSL_Types.list SensedObjects)
+        {
+            List<EntityBase> Entities;
+
+            // If this is an object sense by key try to get it directly
+            // rather than getting a list to scan through
+            if (ts.keyID != UUID.Zero)
+            {
+                EntityBase e = null;
+                m_CmdManager.m_ScriptEngine.World.Entities.TryGetValue(ts.keyID, out e);
+                if (e == null)
+                    return;
+                Entities = new List<EntityBase>();
+                Entities.Add(e);
+            }
+            else
+            {
+                Entities = m_CmdManager.m_ScriptEngine.World.GetEntities();
+            }
+            SceneObjectPart SensePoint = ts.host;
 
             Vector3 sensorPos = SensePoint.AbsolutePosition;
             Vector3 regionPos = new Vector3(m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocX * Constants.RegionSize, m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocY * Constants.RegionSize, 0);
@@ -174,37 +274,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
             double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
 
-            // Here we should do some smart culling ...
-            // math seems quicker than strings so try that first
-            LSL_Types.list SensedObjects = new LSL_Types.list();
-            LSL_Types.Vector3 ZeroVector = new LSL_Types.Vector3(0, 0, 0);
+            Vector3 ZeroVector = new Vector3(0, 0, 0);
 
-            foreach (EntityBase ent in m_CmdManager.m_ScriptEngine.World.Entities.Values)
+            bool nameSearch = (ts.name != null && ts.name != "");
+            SceneObjectGroup group;
+
+            foreach (EntityBase ent in Entities)
             {
+                bool keep = true;
+
+                if (nameSearch && ent.Name != ts.name) // Wrong name and it is a named search
+                    continue;
+
+                if (ent.IsDeleted) // taken so long to do this it has gone from the scene
+                    continue;
+
+                if (!(ent is SceneObjectGroup)) // dont bother if it is a pesky avatar
+                    continue;
+
                 Vector3 toRegionPos = ent.AbsolutePosition + regionPos;
                 double dis = Math.Abs((double)Util.GetDistanceTo(toRegionPos, fromRegionPos));
-                if (dis <= ts.range)
+                if (keep && dis <= ts.range && ts.host.UUID != ent.UUID)
                 {
-                    // In Range, is it the right Type ?
+                    // In Range and not the object containing the script, is it the right Type ?
                     int objtype = 0;
 
-                    if (m_CmdManager.m_ScriptEngine.World.GetScenePresence(ent.UUID) != null) objtype |= 0x01; // actor
-                    if (ent.Velocity.Equals(ZeroVector))
-                        objtype |= 0x04; // passive non-moving
-                    else
-                        objtype |= 0x02; // active moving
+                    SceneObjectPart part = ((SceneObjectGroup)ent).RootPart;
+                    if (part.AttachmentPoint != 0) // Attached so ignore
+                        continue;
 
-                    SceneObjectPart part = m_CmdManager.m_ScriptEngine.World.GetSceneObjectPart(ent.UUID);
-
-                    if (part != null && part.ContainsScripts()) objtype |= 0x08; // Scripted. It COULD have one hidden ...
-
-                    if (((ts.type & objtype) != 0) || ((ts.type & objtype) == ts.type))
+                    if (part.ContainsScripts())
                     {
-                        // docs claim AGENT|ACTIVE should find agent objects OR active objects
-                        // so the bitwise AND with object type should be non-zero
+                        objtype |= ACTIVE | SCRIPTED; // Scripted and active. It COULD have one hidden ...
+                    }
+                    else
+                    {
+                        if (ent.Velocity.Equals(ZeroVector))
+                        {
+                            objtype |= PASSIVE; // Passive non-moving
+                        }
+                        else
+                        {
+                            objtype |= ACTIVE; // moving so active
+                        }
+                    }
 
+                    // If any of the objects attributes match any in the requested scan type
+                    if (((ts.type & objtype) != 0))
+                    {
                         // Right type too, what about the other params , key and name ?
-                        bool keep = true;
                         if (ts.arc < Math.PI)
                         {
                             // not omni-directional. Can you see it ?
@@ -230,67 +348,118 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                             if (ang_obj > ts.arc) keep = false;
                         }
 
-                        if (keep && (ts.keyID != UUID.Zero) && (ts.keyID != ent.UUID))
+                        if (keep == true)
                         {
-                            keep = false;
+                            // add distance for sorting purposes later
+                            SensedObjects.Add(new LSL_Types.LSLFloat(dis));
+                            SensedObjects.Add(ent.UUID);
                         }
-
-                        if (keep && (ts.name.Length > 0))
-                        {
-                            if (ts.name != ent.Name)
-                            {
-                               keep = false;
-                            }
-                        }
-
-                        if (keep == true) SensedObjects.Add(ent.UUID);
                     }
                 }
             }
+        }
 
-            lock (SenseLock)
+        private void doAgentSensor(SenseRepeatClass ts, LSL_Types.list SensedObjects)
+        {
+            List<ScenePresence> Presences;
+
+            // If this is an avatar sense by key try to get them directly
+            // rather than getting a list to scan through
+            if (ts.keyID != UUID.Zero)
             {
-                // Create object if it doesn't exist
-                if (SenseEvents.ContainsKey(ts.localID) == false)
-                {
-                    SenseEvents.Add(ts.localID, new Dictionary<UUID, LSL_Types.list>());
-                }
-                // clear if previous traces exist
-                Dictionary<UUID, LSL_Types.list> Obj;
-                SenseEvents.TryGetValue(ts.localID, out Obj);
-                if (Obj.ContainsKey(ts.itemID) == true)
-                    Obj.Remove(ts.itemID);
+                ScenePresence p = m_CmdManager.m_ScriptEngine.World.GetScenePresence(ts.keyID);
+                if (p == null)
+                    return;
+                Presences = new List<ScenePresence>();
+                Presences.Add(p);
+            }
+            else
+            {
+                Presences = m_CmdManager.m_ScriptEngine.World.GetScenePresences();
+            }
 
-                // note list may be zero length
-                Obj.Add(ts.itemID, SensedObjects);
+            // If nobody about quit fast
+            if (Presences.Count == 0)
+                return;
 
-                if (SensedObjects.Length == 0)
-                {
-                    // send a "no_sensor"
-                    // Add it to queue
-                    m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
-                            new EventParams("no_sensor", new Object[0],
-                            new DetectParams[0]));
-                }
-                else
-                {
-                    DetectParams[] detect =
-                            new DetectParams[SensedObjects.Length];
+            SceneObjectPart SensePoint = ts.host;
 
-                    int idx;
-                    for (idx = 0; idx < SensedObjects.Length; idx++)
+            Vector3 sensorPos = SensePoint.AbsolutePosition;
+            Vector3 regionPos = new Vector3(m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocX * Constants.RegionSize, m_CmdManager.m_ScriptEngine.World.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+            Vector3 fromRegionPos = sensorPos + regionPos;
+
+            Quaternion q = SensePoint.RotationOffset;
+            LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
+            LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
+            double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
+
+            bool attached = (SensePoint.AttachmentPoint != 0);
+            bool nameSearch = (ts.name != null && ts.name != "");
+
+            foreach (ScenePresence presence in Presences)
+            {
+                bool keep = true;
+
+                if (presence.IsDeleted)
+                    continue;
+
+                if (presence.IsChildAgent)
+                    keep = false;
+
+                Vector3 toRegionPos = presence.AbsolutePosition + regionPos;
+                double dis = Math.Abs(Util.GetDistanceTo(toRegionPos, fromRegionPos));
+
+                // are they in range
+                if (keep && dis <= ts.range)
+                {
+                    // if the object the script is in is attached and the avatar is the owner
+                    // then this one is not wanted
+                    if (attached && presence.UUID == SensePoint.OwnerID)
+                        keep = false;
+
+                    // check the name if needed
+                    if (keep && nameSearch && ts.name != presence.Name)
+                        keep = false;
+
+                    // Are they in the required angle of view
+                    if (keep && ts.arc < Math.PI)
                     {
-                        detect[idx] = new DetectParams();
-                        detect[idx].Key=(UUID)(SensedObjects.Data[idx]);
-                        detect[idx].Populate(m_CmdManager.m_ScriptEngine.World);
+                        // not omni-directional. Can you see it ?
+                        // vec forward_dir = llRot2Fwd(llGetRot())
+                        // vec obj_dir = toRegionPos-fromRegionPos
+                        // dot=dot(forward_dir,obj_dir)
+                        // mag_fwd = mag(forward_dir)
+                        // mag_obj = mag(obj_dir)
+                        // ang = acos(dot /(mag_fwd*mag_obj))
+                        double ang_obj = 0;
+                        try
+                        {
+                            Vector3 diff = toRegionPos - fromRegionPos;
+                            LSL_Types.Vector3 obj_dir = new LSL_Types.Vector3(diff.X, diff.Y, diff.Z);
+                            double dot = LSL_Types.Vector3.Dot(forward_dir, obj_dir);
+                            double mag_obj = LSL_Types.Vector3.Mag(obj_dir);
+                            ang_obj = Math.Acos(dot / (mag_fwd * mag_obj));
+                        }
+                        catch
+                        {
+                        }
+                        if (ang_obj > ts.arc) keep = false;
                     }
-
-                    m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
-                            new EventParams("sensor",
-                            new Object[] {
-                            new LSL_Types.LSLInteger(SensedObjects.Length) },
-                            detect));
                 }
+
+                // Do not report gods, not even minor ones
+                if (keep && presence.GodLevel > 0.0)
+                    keep = false;
+
+                if (keep) // add to list with distance
+                {
+                    SensedObjects.Add(new LSL_Types.LSLFloat(dis));
+                    SensedObjects.Add(presence.UUID);
+                }
+
+                // If this is a search by name and we have just found it then no more to do 
+                if (nameSearch && ts.name == presence.Name)
+                    return;
             }
         }
 
