@@ -41,12 +41,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected readonly ILLClientStackNetworkHandler m_networkHandler;
         protected IScene m_scene;
-
-        //private readonly ClientManager m_clientManager = new ClientManager();
-        //public ClientManager ClientManager
-        //{
-        //    get { return m_clientManager; }
-        //}
         
         /// <summary>
         /// Tweakable user settings

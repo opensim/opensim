@@ -956,6 +956,8 @@
       </Configuration>
 
       <ReferencePath>../../../../../bin/</ReferencePath>
+      <Reference name="OpenSim.Region.ClientStack"/>
+      <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
       <Reference name="nunit.framework.dll" />
 
       <Files>

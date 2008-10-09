@@ -25,7 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using NUnit.Framework;
+using OpenSim.Region.ClientStack;
+using OpenSim.Region.ClientStack.LindenUDP;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {
@@ -36,9 +39,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
     public class BasicCircuitTests
     {
         [Test]
-        public void TestHello()
+        public void TestAddClient()
         {
-            // Nowt here yet
+            IClientNetworkServer llUdpServer = new LLUDPServer();
+            
+            uint port = 666;            
+            llUdpServer.Initialise(null, ref port, -1, false, new ClientStackUserSettings(), null, null);
         }
     }
 }
