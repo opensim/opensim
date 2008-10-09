@@ -992,7 +992,7 @@
       </Configuration>
 
       <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System.Net"/>
+      <Reference name="System"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.ClientStack"/>
