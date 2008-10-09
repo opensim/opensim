@@ -3419,179 +3419,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return String.Empty;
         }
 
-        public void llMessageLinked(int linknum, int num, string msg, string id)
+        public void llMessageLinked(int linknumber, int num, string msg, string id)
         {
-
             m_host.AddScriptLPS(1);
 
-            // uint partLocalID;
+            List<SceneObjectPart> parts = GetLinkParts(linknumber);
+
             UUID partItemID;
-
-            switch ((int)linknum)
-            {
-
-                case (int)ScriptBaseClass.LINK_ROOT:
-
-                    SceneObjectPart part = m_host.ParentGroup.RootPart;
-
-                    foreach (TaskInventoryItem item in part.TaskInventory.Values)
-                    {
-                        if (item.Type == 10)
-                        {
-                            // partLocalID = part.LocalId;
-                            partItemID = item.ItemID;
-
-                            object[] resobj = new object[]
-                            {
-                                new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
-                            };
-
-                            m_ScriptEngine.PostScriptEvent(partItemID,
-                                    new EventParams("link_message",
-                                    resobj, new DetectParams[0]));
-                        }
-                    }
-
-                    break;
-
-                case (int)ScriptBaseClass.LINK_SET:
-
-                    foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
+            foreach (SceneObjectPart part in parts)
+                foreach (TaskInventoryItem item in part.TaskInventory.Values)
+                {
+                    if (item.Type == ScriptBaseClass.INVENTORY_SCRIPT)
                     {
 
-                        foreach (TaskInventoryItem item in partInst.TaskInventory.Values)
-                        {
-                            if (item.Type == 10)
-                            {
-                                // partLocalID = partInst.LocalId;
-                                partItemID = item.ItemID;
-                                Object[] resobj = new object[]
-                                {
-                                    new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
-                                };
+                        partItemID = item.ItemID;
 
-                                m_ScriptEngine.PostScriptEvent(partItemID,
-                                        new EventParams("link_message",
-                                        resobj, new DetectParams[0]));
-                            }
-                        }
+                        object[] resobj = new object[]
+                                  {
+                                      new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
+                                  };
+
+                        m_ScriptEngine.PostScriptEvent(partItemID,
+                                new EventParams("link_message",
+                                resobj, new DetectParams[0]));
                     }
-
-                    break;
-
-                case (int)ScriptBaseClass.LINK_ALL_OTHERS:
-
-                    foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
-                    {
-
-                        if (partInst.LocalId != m_host.LocalId)
-                        {
-
-                            foreach (TaskInventoryItem item in partInst.TaskInventory.Values)
-                            {
-                                if (item.Type == 10)
-                                {
-                                    // partLocalID = partInst.LocalId;
-                                    partItemID = item.ItemID;
-                                    Object[] resobj = new object[]
-                                    {
-                                        new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
-                                    };
-
-                                    m_ScriptEngine.PostScriptEvent(partItemID,
-                                            new EventParams("link_message",
-                                            resobj, new DetectParams[0]));
-                                }
-                            }
-
-                        }
-                    }
-
-                    break;
-
-                case (int)ScriptBaseClass.LINK_ALL_CHILDREN:
-
-                    foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
-                    {
-
-                        if (partInst.LocalId != m_host.ParentGroup.RootPart.LocalId)
-                        {
-
-                            foreach (TaskInventoryItem item in partInst.TaskInventory.Values)
-                            {
-                                if (item.Type == 10)
-                                {
-                                    // partLocalID = partInst.LocalId;
-                                    partItemID = item.ItemID;
-                                    Object[] resobj = new object[]
-                                    {
-                                        new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
-                                    };
-
-                                    m_ScriptEngine.PostScriptEvent(partItemID,
-                                            new EventParams("link_message",
-                                            resobj, new DetectParams[0]));
-                                }
-                            }
-
-                        }
-                    }
-
-                    break;
-
-                case (int)ScriptBaseClass.LINK_THIS:
-
-                    foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-                    {
-                        if (item.Type == 10)
-                        {
-                            partItemID = item.ItemID;
-
-                            object[] resobj = new object[]
-                            {
-                                new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
-                            };
-
-                            m_ScriptEngine.PostScriptEvent(partItemID,
-                                    new EventParams("link_message",
-                                    resobj, new DetectParams[0]));
-                        }
-                    }
-
-                    break;
-
-                default:
-
-                    foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
-                    {
-
-                        if ((partInst.LinkNum) == linknum)
-                        {
-
-                            foreach (TaskInventoryItem item in partInst.TaskInventory.Values)
-                            {
-                                if (item.Type == 10)
-                                {
-                                    // partLocalID = partInst.LocalId;
-                                    partItemID = item.ItemID;
-                                    Object[] resObjDef = new object[]
-                                    {
-                                        new LSL_Integer(m_host.LinkNum), new LSL_Integer(num), new LSL_String(msg), new LSL_String(id)
-                                    };
-
-                                    m_ScriptEngine.PostScriptEvent(partItemID,
-                                            new EventParams("link_message",
-                                            resObjDef, new DetectParams[0]));
-                                }
-                            }
-
-                        }
-                    }
-
-                    break;
-
-            }
-
+                }
         }
 
         public void llPushObject(string target, LSL_Vector impulse, LSL_Vector ang_impulse, int local)
