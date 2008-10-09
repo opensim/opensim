@@ -125,6 +125,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 UUID regionID = new UUID((string) requestData["regionID"]);
 
                 responseData["accepted"] = "true";
+                responseData["success"] = "true";
                 response.Value = responseData;
 
                 Scene rebootedScene;
@@ -133,6 +134,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     throw new Exception("region not found");
 
                 responseData["rebooting"] = "true";
+                response.Value = responseData;
                 rebootedScene.Restart(30);
             }
             catch(Exception e)
@@ -167,6 +169,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 m_log.InfoFormat("[RADMIN]: Broadcasting: {0}", message);
 
                 responseData["accepted"] = "true";
+                responseData["success"] = "true";
                 response.Value = responseData;
 
                 m_app.SceneManager.SendGeneralMessage(message);
@@ -441,6 +444,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 region.MasterAvatarFirstName = (string) requestData["region_master_first"];
                 region.MasterAvatarLastName = (string) requestData["region_master_last"];
                 region.MasterAvatarSandboxPassword = (string) requestData["region_master_password"];
+                region.MasterAvatarAssignedUUID = new UUID(requestData["region_master_uuid"].ToString());
 
                 bool persist = Convert.ToBoolean((string)requestData["persist"]);
                 if (persist)
