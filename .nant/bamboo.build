@@ -5,7 +5,7 @@
     <nant buildfile="../OpenSim.build" target="build" />
   </target>
   <target name="cibuild">
-    <property name="projectdir" value="opensim-0.5.9" />
+    <property name="projectdir" value="opensim-0.5.10" />
     <exec program="mono" commandline="bin/Prebuild.exe /target nant" workingdir="../" />
     <nant buildfile="../OpenSim.build" target="clean" />
     <nant buildfile="../OpenSim.build" target="build" />
