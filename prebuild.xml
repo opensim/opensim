@@ -992,6 +992,9 @@
       </Configuration>
 
       <ReferencePath>../../../../../bin/</ReferencePath>
+      <Reference name="System.Net"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Commmunications"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
       <Reference name="nunit.framework.dll" />
