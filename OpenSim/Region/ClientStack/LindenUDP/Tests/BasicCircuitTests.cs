@@ -25,8 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
+using System.Net;
 using NUnit.Framework;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.ClientStack.LindenUDP;
 
