@@ -156,6 +156,8 @@ namespace OpenSim
         /// <param name="configSource"></param>
         public OpenSimBase(IConfigSource configSource) : base()
         {
+            bool iniFileExists = false;
+            
             IConfig startupConfig = configSource.Configs["Startup"];
 
             string iniFileName = startupConfig.GetString("inifile", "OpenSim.ini");            
@@ -168,6 +170,8 @@ namespace OpenSim
             //check for .INI file (either default or name passed in command line)
             if (File.Exists(Application.iniFilePath))
             {
+                iniFileExists = true;
+                
                 // From reading Nini's code, it seems that later merged keys replace earlier ones.                
                 m_config.Source.Merge(new IniConfigSource(Application.iniFilePath));
                 m_config.Source.Merge(configSource);               
@@ -179,11 +183,16 @@ namespace OpenSim
                 
                 if (File.Exists(Application.iniFilePath))
                 {
+                    iniFileExists = true;
+                    
                     m_config.Source = new XmlConfigSource();
                     m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
                     m_config.Source.Merge(configSource);
                 }
             }
+            
+            if (!iniFileExists)
+                m_config.Save("OpenSim.ini");
 
             ReadConfigSettings();
         }
