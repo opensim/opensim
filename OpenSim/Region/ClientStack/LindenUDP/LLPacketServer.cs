@@ -67,7 +67,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        ///
+        /// Process an incoming packet.
         /// </summary>
         /// <param name="circuitCode"></param>
         /// <param name="packet"></param>
