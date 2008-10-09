@@ -171,8 +171,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// This method is called every time that we receive new UDP data.  We pass this data on to the LLPacketServer
-        /// except in the case that the packet is UseCircuitCode.  In this case we set up the circuit code instead.
+        /// This method is called every time that we receive new UDP data. 
         /// </summary>
         /// <param name="result"></param>
         protected virtual void OnReceivedData(IAsyncResult result)
@@ -252,46 +251,54 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             BeginReceive();
 
             if (packet != null)
+                ProcessInPacket(packet);
+        }
+        
+        /// <summary>
+        /// Process a successfully received packet.   We pass the packet on to the LLPacketServer
+        /// except in the case that the packet is UseCircuitCode.  In that case we set up the circuit code instead.
+        /// </summary>
+        /// <param name="packet"></param>
+        protected virtual void ProcessInPacket(Packet packet)
+        {
+            try
             {
-                try
+                // do we already have a circuit for this endpoint
+                uint circuit;
+
+                bool ret;
+                lock (clientCircuits)
                 {
-                    // do we already have a circuit for this endpoint
-                    uint circuit;
-
-                    bool ret;
-                    lock (clientCircuits)
-                    {
-                        ret = clientCircuits.TryGetValue(epSender, out circuit);
-                    }
-
-                    if (ret)
-                    {
-                        //if so then send packet to the packetserver
-                        //m_log.DebugFormat("[UDPSERVER]: For endpoint {0} got packet {1}", epSender, packet.Type);
-
-                        m_packetServer.InPacket(circuit, packet);
-                    }
-                    else if (packet.Type == PacketType.UseCircuitCode)
-                    {
-                        AddNewClient(packet);
-
-                        UseCircuitCodePacket p = (UseCircuitCodePacket)packet;
-
-                        // Ack the first UseCircuitCode packet
-                        PacketAckPacket ack_it = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
-                        // TODO: don't create new blocks if recycling an old packet
-                        ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
-                        ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
-                        ack_it.Packets[0].ID = packet.Header.Sequence;
-                        ack_it.Header.Reliable = false;
-                        SendPacketTo(ack_it.ToBytes(),ack_it.ToBytes().Length,SocketFlags.None,p.CircuitCode.Code);
-                    }
+                    ret = clientCircuits.TryGetValue(epSender, out circuit);
                 }
-                catch (Exception e)
+
+                if (ret)
                 {
-                    m_log.Error("[CLIENT]: Exception in processing packet - ignoring: ", e);
+                    //if so then send packet to the packetserver
+                    //m_log.DebugFormat("[UDPSERVER]: For endpoint {0} got packet {1}", epSender, packet.Type);
+
+                    m_packetServer.InPacket(circuit, packet);
+                }
+                else if (packet.Type == PacketType.UseCircuitCode)
+                {
+                    AddNewClient(packet);
+
+                    UseCircuitCodePacket p = (UseCircuitCodePacket)packet;
+
+                    // Ack the first UseCircuitCode packet
+                    PacketAckPacket ack_it = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
+                    // TODO: don't create new blocks if recycling an old packet
+                    ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
+                    ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
+                    ack_it.Packets[0].ID = packet.Header.Sequence;
+                    ack_it.Header.Reliable = false;
+                    SendPacketTo(ack_it.ToBytes(),ack_it.ToBytes().Length,SocketFlags.None,p.CircuitCode.Code);
                 }
             }
+            catch (Exception e)
+            {
+                m_log.Error("[CLIENT]: Exception in processing packet - ignoring: ", e);
+            }           
         }
 
         private void BeginReceive()
