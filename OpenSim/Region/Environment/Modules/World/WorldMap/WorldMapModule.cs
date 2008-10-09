@@ -719,25 +719,11 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                         // Save to bitmap
                         mapTexture = new Bitmap(image);
 
-                        ImageCodecInfo myImageCodecInfo;
-
-                        Encoder myEncoder;
-
-                        EncoderParameter myEncoderParameter;
                         EncoderParameters myEncoderParameters = new EncoderParameters();
+                        myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, 95L);
 
-                        myImageCodecInfo = GetEncoderInfo("image/jpeg");
-
-                        myEncoder = Encoder.Quality;
-
-                        myEncoderParameter = new EncoderParameter(myEncoder, 95L);
-                        myEncoderParameters.Param[0] = myEncoderParameter;
-
-                    myEncoderParameter = new EncoderParameter(myEncoder, 95L);
-                    myEncoderParameters.Param[0] = myEncoderParameter;
-
-                    // Save bitmap to stream
-                    mapTexture.Save(imgstream, myImageCodecInfo, myEncoderParameters);
+                        // Save bitmap to stream
+                        mapTexture.Save(imgstream, GetEncoderInfo("image/jpeg"), myEncoderParameters);
 
                         // Write the stream to a byte array for output
                         jpeg = imgstream.ToArray();
