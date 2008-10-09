@@ -281,9 +281,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else if (packet.Type == PacketType.UseCircuitCode)
                 {
-                    AddNewClient(packet);
-
                     UseCircuitCodePacket p = (UseCircuitCodePacket)packet;
+                    
+                    AddNewClient(p);                    
 
                     // Ack the first UseCircuitCode packet
                     PacketAckPacket ack_it = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
@@ -292,7 +292,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
                     ack_it.Packets[0].ID = packet.Header.Sequence;
                     ack_it.Header.Reliable = false;
-                    SendPacketTo(ack_it.ToBytes(),ack_it.ToBytes().Length,SocketFlags.None,p.CircuitCode.Code);
+                    SendPacketTo(ack_it.ToBytes(), ack_it.ToBytes().Length, SocketFlags.None, p.CircuitCode.Code);
                 }
             }
             catch (Exception e)
@@ -359,16 +359,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Add a new client circuit.
         /// </summary>
         /// <param name="packet"></param>
-        protected virtual void AddNewClient(Packet packet)
+        protected virtual void AddNewClient(UseCircuitCodePacket useCircuit)
         {
             //Slave regions don't accept new clients
             if (m_localScene.Region_Status != RegionStatus.SlaveScene)
             {
-                if (!(packet is UseCircuitCodePacket))
-                    return;
-
-                UseCircuitCodePacket useCircuit = (UseCircuitCodePacket) packet;
-
                 m_log.DebugFormat("[CLIENT]: Adding new circuit for agent {0}, circuit code {1}", useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
 
                 lock (clientCircuits)
@@ -400,7 +395,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
             }
 
-            PacketPool.Instance.ReturnPacket(packet);
+            PacketPool.Instance.ReturnPacket(useCircuit);
         }
 
         public void ServerListener()
