@@ -492,8 +492,6 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
-      <Reference name="System.IO"/>
-      <Reference name="System.Net"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="log4net.dll"/>
