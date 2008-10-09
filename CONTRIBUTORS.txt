@@ -42,25 +42,39 @@ Patches
 * brianw/Sir_Ahzz
 * CharlieO
 * ChrisDown
+* Chris Yeoh
 * Daedius
 * daTwitch 
 * devalnor-#708
 * Diva Canto
 * dmiles (Daxtron Labs)
+* Godfrey
 * Grumly57
+* idb
 * jhurliman
 * jimbo2120 (IBM)
 * John R Sohn (XenReborn)
 * Junta Kohime
+* Kayne
+* kcoznes
 * kinoc (Daxtron Labs)
 * krtaylor (IBM)
 * lulurun 
+* M.Igarashi
 * Mic Bowman
 * mikkopa/_someone - RealXtend
+* nlin
 * nornalbion
 * openlifegrid.com
+* ralphos
+* Ruud Lathorp
+* SachaMagne
+* sempuki
+* tglion
+* tyre
 * webmage (IBM)
 * Xantor
+* Y. Nitta
 * YZh
 * Zha Ewry
 
