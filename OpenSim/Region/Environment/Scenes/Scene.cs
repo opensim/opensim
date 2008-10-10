@@ -168,6 +168,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_physics_enabled = true;
         private bool m_scripts_enabled = true;
         private string m_defaultScriptEngine;
+        private int m_LastLogin = 0;
 
         #endregion
 
@@ -2142,6 +2143,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 CreateAndAddScenePresence(client, child);
             }
+            m_LastLogin = System.Environment.TickCount;
             EventManager.TriggerOnNewClient(client);
         }
 
@@ -4257,6 +4259,18 @@ namespace OpenSim.Region.Environment.Scenes
         public void DeleteFromStorage(UUID uuid)
         {
             m_storageManager.DataStore.RemoveObject(uuid, m_regInfo.RegionID);
+        }
+
+        public int GetHealth()
+        {
+            int health=1; // Start at 1, means we're up
+
+            // A login in the last 4 mins? We can't be doing too badly
+            //
+            if ((System.Environment.TickCount - m_LastLogin) < 240000)
+                health++;
+
+            return 0;
         }
     }
 }

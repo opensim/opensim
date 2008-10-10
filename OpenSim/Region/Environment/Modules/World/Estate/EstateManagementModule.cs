@@ -585,6 +585,11 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 args.SimOwner = m_scene.RegionInfo.EstateSettings.EstateOwner;
             else
                 args.SimOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+
+            // Fudge estate owner
+            if (m_scene.ExternalChecks.ExternalChecksCanBeGodLike(remoteClient.AgentId))
+                args.SimOwner = remoteClient.AgentId;
+
             args.terrainBase0 = UUID.Zero;
             args.terrainBase1 = UUID.Zero;
             args.terrainBase2 = UUID.Zero;

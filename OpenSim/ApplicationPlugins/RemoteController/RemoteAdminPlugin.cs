@@ -97,6 +97,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_httpd.AddXmlRPCHandler("admin_load_xml", XmlRpcLoadXMLMethod);
                     m_httpd.AddXmlRPCHandler("admin_save_xml", XmlRpcSaveXMLMethod);
                     m_httpd.AddXmlRPCHandler("admin_load_oar", XmlRpcLoadOARMethod);
+                    m_httpd.AddXmlRPCHandler("admin_region_query", XmlRpcRegionQueryMethod);
                 }
             }
             catch (NullReferenceException)
@@ -1076,6 +1077,61 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 responseData["loaded"] = "false";
                 responseData["switched"] = "false";
+                responseData["error"] = e.Message;
+
+                response.Value = responseData;
+            }
+
+            return response;
+        }
+
+        public XmlRpcResponse XmlRpcRegionQueryMethod(XmlRpcRequest request)
+        {
+            m_log.Info("[RADMIN]: Received Save XML Administrator Request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                responseData["success"] = "true";
+
+                Hashtable requestData = (Hashtable)request.Params[0];
+
+                // check completeness
+                if (!requestData.Contains("password"))
+                    throw new Exception(String.Format("missing required parameter"));
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                if (requestData.Contains("region_uuid"))
+                {
+                    UUID region_uuid = (UUID)(string)requestData["region_uuid"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_uuid))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_uuid.ToString());
+                }
+                else if (requestData.Contains("region_name"))
+                {
+                    string region_name = (string)requestData["region_name"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_name))
+                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_name);
+                }
+                else throw new Exception("neither region_name nor region_uuid given");
+
+                Scene s = m_app.SceneManager.CurrentScene;
+
+                int health = s.GetHealth();
+
+                responseData["health"] = health;
+
+                response.Value = responseData;
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[RADMIN] RegionQuery: {0}", e.Message);
+
+                responseData["success"] = "false";
                 responseData["error"] = e.Message;
 
                 response.Value = responseData;
