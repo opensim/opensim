@@ -872,9 +872,6 @@ namespace OpenSim
         /// <param name="cmdparams"></param>
         protected void LoadOar(string[] cmdparams)
         {
-            m_log.Warn("[CONSOLE]: Experimental functionality.  Please don't rely on this yet.");
-            m_log.Warn("[CONSOLE]: See http://opensimulator.org/wiki/OpenSim_Archives for more details.");
-
             if (cmdparams.Length > 0)
             {
                 m_sceneManager.LoadArchiveToCurrentScene(cmdparams[0]);
@@ -891,9 +888,6 @@ namespace OpenSim
         /// <param name="cmdparams"></param>
         protected void SaveOar(string[] cmdparams)
         {
-            m_log.Warn("[CONSOLE]: Experimental functionality.  Please don't rely on this yet.");
-            m_log.Warn("[CONSOLE]: See http://opensimulator.org/wiki/OpenSim_Archives for more details.");
-
             if (cmdparams.Length > 0)
             {
                 m_sceneManager.SaveCurrentSceneToArchive(cmdparams[0]);
