@@ -69,36 +69,35 @@ namespace OpenSim.Region.Physics.Meshing
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
-// TODO: unused
-//         private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
-//                                                     PhysicsVector r2, ref float lambda, ref float mu)
-//         {
-//             // p1, p2, points on the straight
-//             // r1, r2, directional vectors of the straight. Not necessarily of length 1!
-//             // note, that l, m can be scaled such, that the range 0..1 is mapped to the area between two points,
-//             // thus allowing to decide whether an intersection is between two points
+        private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
+                                                    PhysicsVector r2, ref float lambda, ref float mu)
+        {
+            // p1, p2, points on the straight
+            // r1, r2, directional vectors of the straight. Not necessarily of length 1!
+            // note, that l, m can be scaled such, that the range 0..1 is mapped to the area between two points,
+            // thus allowing to decide whether an intersection is between two points
 
-//             float r1x = r1.X;
-//             float r1y = r1.Y;
-//             float r2x = r2.X;
-//             float r2y = r2.Y;
+            float r1x = r1.X;
+            float r1y = r1.Y;
+            float r2x = r2.X;
+            float r2y = r2.Y;
 
-//             float denom = r1y*r2x - r1x*r2y;
+            float denom = r1y * r2x - r1x * r2y;
 
-//             if (denom == 0.0)
-//             {
-//                 lambda = Single.NaN;
-//                 mu = Single.NaN;
-//                 return;
-//             }
+            if (denom == 0.0)
+            {
+                lambda = Single.NaN;
+                mu = Single.NaN;
+                return;
+            }
 
-//             float p1x = p1.X;
-//             float p1y = p1.Y;
-//             float p2x = p2.X;
-//             float p2y = p2.Y;
-//             lambda = (-p2x*r2y + p1x*r2y + (p2y - p1y)*r2x)/denom;
-//             mu = (-p2x*r1y + p1x*r1y + (p2y - p1y)*r1x)/denom;
-//         }
+            float p1x = p1.X;
+            float p1y = p1.Y;
+            float p2x = p2.X;
+            float p2y = p2.Y;
+            lambda = (-p2x * r2y + p1x * r2y + (p2y - p1y) * r2x) / denom;
+            mu = (-p2x * r1y + p1x * r1y + (p2y - p1y) * r1x) / denom;
+        }
 
         private static List<Triangle> FindInfluencedTriangles(List<Triangle> triangles, Vertex v)
         {
@@ -432,17 +431,10 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 taperY = primShape.PathScaleY;
             UInt16 pathShearX = primShape.PathShearX;
             UInt16 pathShearY = primShape.PathShearY;
-            // Int16 twistTop = primShape.PathTwistBegin;
-            // Int16 twistBot = primShape.PathTwist;
 
 #if SPAM
             reportPrimParams("[BOX] " + primName, primShape);
 #endif
-
-            //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
-            //m_log.Error("pathTaper:" + primShape.PathTaperX.ToString() + "," + primShape.PathTaperY.ToString());
-            //m_log.Error("ProfileBegin:" + primShape.ProfileBegin.ToString() + "," + primShape.ProfileBegin.ToString());
-            //m_log.Error("PathScale:" + primShape.PathScaleX.ToString() + "," + primShape.PathScaleY.ToString());
 
             // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
             // of a block are basically the same
@@ -575,12 +567,10 @@ namespace OpenSim.Region.Physics.Meshing
                 if (taperX > 100)
                 {
                     extr.taperTopFactorX = 1.0f - ((float)(taperX - 100) / 100);
-                    //System.Console.WriteLine("taperTopFactorX: " + extr.taperTopFactorX.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
-                    //System.Console.WriteLine("taperBotFactorX: " + extr.taperBotFactorX.ToString());
                 }
 
             }
@@ -590,12 +580,10 @@ namespace OpenSim.Region.Physics.Meshing
                 if (taperY > 100)
                 {
                     extr.taperTopFactorY = 1.0f - ((float)(taperY - 100) / 100);
-                    //System.Console.WriteLine("taperTopFactorY: " + extr.taperTopFactorY.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorY = 1.0f - ((100 - (float)taperY) / 100);
-                    //System.Console.WriteLine("taperBotFactorY: " + extr.taperBotFactorY.ToString());
                 }
             }
 
@@ -1595,63 +1583,6 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
 
-        public static void CalcNormals(Mesh mesh)
-        {
-            int iTriangles = mesh.triangles.Count;
-
-            mesh.normals = new float[iTriangles * 3];
-
-            int i = 0;
-            foreach (Triangle t in mesh.triangles)
-            {
-                float ux, uy, uz;
-                float vx, vy, vz;
-                float wx, wy, wz;
-
-                ux = t.v1.X;
-                uy = t.v1.Y;
-                uz = t.v1.Z;
-
-                vx = t.v2.X;
-                vy = t.v2.Y;
-                vz = t.v2.Z;
-
-                wx = t.v3.X;
-                wy = t.v3.Y;
-                wz = t.v3.Z;
-
-
-                // Vectors for edges
-                float e1x, e1y, e1z;
-                float e2x, e2y, e2z;
-
-                e1x = ux - vx;
-                e1y = uy - vy;
-                e1z = uz - vz;
-
-                e2x = ux - wx;
-                e2y = uy - wy;
-                e2z = uz - wz;
-
-
-                // Cross product for normal
-                float nx, ny, nz;
-                nx = e1y * e2z - e1z * e2y;
-                ny = e1z * e2x - e1x * e2z;
-                nz = e1x * e2y - e1y * e2x;
-
-                // Length
-                float l = (float)Math.Sqrt(nx * nx + ny * ny + nz * nz);
-
-                // Normalized "normal"
-                nx /= l;
-                ny /= l;
-                nz /= l;
-
-                i += 3;
-            }
-        }
-
         public static Vertex midUnitRadialPoint(Vertex a, Vertex b, float radius)
         {
             Vertex midpoint = new Vertex(a + b) * 0.5f;
@@ -1853,7 +1784,6 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 SculptMesh smesh = CreateSculptMesh(primName, primShape, size, lod);
                 mesh = (Mesh)smesh;
-                //CalcNormals(mesh);
             }
 
             else if (usePrimMesher)
@@ -1866,14 +1796,12 @@ namespace OpenSim.Region.Physics.Meshing
                 { // its a box
                     mesh = CreateBoxMesh(primName, primShape, size);
                     //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
-                    //CalcNormals(mesh);
                 }
                 else if (primShape.PathCurve == (byte)Extrusion.Curve1)
                 { // tube
                     // do a cylinder for now
                     mesh = CreateCylinderMesh(primName, primShape, size);
                     //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
-                    //CalcNormals(mesh);
                 }
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
@@ -1882,15 +1810,13 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     mesh = CreateCylinderMesh(primName, primShape, size);
                     //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
-                    //CalcNormals(mesh);
                 }
 
                 // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
                 else if (primShape.PathCurve == (byte) Extrusion.Curve1)
                 {  // dahlia's favorite, a torus :)
                     mesh = CreateCircularPathMesh(primName, primShape, size);
-                    //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
-                    //CalcNormals(mesh);
+                    //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);\
                 }
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
@@ -1900,7 +1826,6 @@ namespace OpenSim.Region.Physics.Meshing
                     //mesh = CreateSphereMesh(primName, primShape, size);
                     mesh = CreateCircularPathMesh(primName, primShape, size);
                     //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
-                    //CalcNormals(mesh);
                 }
             }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
@@ -1909,20 +1834,17 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     mesh = CreatePrismMesh(primName, primShape, size);
                     //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
-                    //CalcNormals(mesh);
                 }
                 else if (primShape.PathCurve == (byte) Extrusion.Curve1)
                 {  // a ring - do a cylinder for now
                     //mesh = CreateCylinderMesh(primName, primShape, size);
                     mesh = CreateCircularPathMesh(primName, primShape, size);
                     //mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
-                    //CalcNormals(mesh);
                 }
             }
             else // just do a box
             {
                 mesh = CreateBoxMesh(primName, primShape, size);
-                //CalcNormals(mesh);
             }
 
             if (mesh != null)
