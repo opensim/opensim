@@ -1214,7 +1214,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="offset"></param>
         /// <param name="pos"></param>
         /// <param name="remoteClient"></param>
-        protected internal void MoveObject(UUID objectID, Vector3 offset, Vector3 pos, IClientAPI remoteClient)
+        protected internal void MoveObject(UUID objectID, Vector3 offset, Vector3 pos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
             SceneObjectGroup group = GetGroupByPrim(objectID);
             if (group != null)

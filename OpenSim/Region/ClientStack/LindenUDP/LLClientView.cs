@@ -4725,8 +4725,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         if (handlerGrabUpdate != null)
                         {
+                            List<SurfaceTouchEventArgs> touchArgs = new List<SurfaceTouchEventArgs>();
+                            if ((grabUpdate.SurfaceInfo != null) && (grabUpdate.SurfaceInfo.Length > 0))
+                            {
+                                foreach (ObjectGrabUpdatePacket.SurfaceInfoBlock surfaceInfo in grabUpdate.SurfaceInfo)
+                                {
+                                    SurfaceTouchEventArgs arg = new SurfaceTouchEventArgs();
+                                    arg.Binormal = surfaceInfo.Binormal;
+                                    arg.FaceIndex = surfaceInfo.FaceIndex;
+                                    arg.Normal = surfaceInfo.Normal;
+                                    arg.Position = surfaceInfo.Position;
+                                    arg.STCoord = surfaceInfo.STCoord;
+                                    arg.UVCoord = surfaceInfo.UVCoord;
+                                    touchArgs.Add(arg);
+                                }
+                            }
                             handlerGrabUpdate(grabUpdate.ObjectData.ObjectID, grabUpdate.ObjectData.GrabOffsetInitial,
-                                              grabUpdate.ObjectData.GrabPosition, this);
+                                              grabUpdate.ObjectData.GrabPosition, this, touchArgs);
                         }
                         break;
                     case PacketType.ObjectDeGrab:

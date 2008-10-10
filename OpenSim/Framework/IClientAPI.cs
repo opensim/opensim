@@ -144,7 +144,7 @@ namespace OpenSim.Framework
     public delegate void AvatarPickerRequest(IClientAPI remoteClient, UUID agentdata, UUID queryID, string UserQuery
         );
 
-    public delegate void MoveObject(UUID objectID, Vector3 offset, Vector3 grapPos, IClientAPI remoteClient);
+    public delegate void MoveObject(UUID objectID, Vector3 offset, Vector3 grapPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs);
 
     public delegate void ParcelAccessListRequest(
         UUID agentID, UUID sessionID, uint flags, int sequenceID, int landLocalID, IClientAPI remote_client);
