@@ -37,6 +37,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Land;
 using OpenSim.Region.Environment.Scenes;
 using OpenMetaverse.Packets;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.DataSnapshot.Providers
 {
@@ -136,134 +137,135 @@ namespace OpenSim.Region.DataSnapshot.Providers
                     LandObject land = (LandObject)parcel_interface;
 
                     LandData parcel = land.landData;
-//                    if ((parcel.Flags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory)
-//                    {
+                    //                    if ((parcel.Flags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory)
+                    //                    {
 
-                        //TODO: make better method of marshalling data from LandData to XmlNode
-                        XmlNode xmlparcel = nodeFactory.CreateNode(XmlNodeType.Element, "parcel", "");
+                    //TODO: make better method of marshalling data from LandData to XmlNode
+                    XmlNode xmlparcel = nodeFactory.CreateNode(XmlNodeType.Element, "parcel", "");
 
-                        // Attributes of the parcel node
-                        XmlAttribute scripts_attr = nodeFactory.CreateAttribute("scripts");
-                        scripts_attr.Value = GetScriptsPermissions(parcel);
-                        XmlAttribute build_attr = nodeFactory.CreateAttribute("build");
-                        build_attr.Value = GetBuildPermissions(parcel);
-                        XmlAttribute public_attr = nodeFactory.CreateAttribute("public");
-                        public_attr.Value = GetPublicPermissions(parcel);
-                        // Check the category of the Parcel
-                        XmlAttribute category_attr = nodeFactory.CreateAttribute("category");
-                        category_attr.Value = ((int)parcel.Category).ToString();
-                        // Check if the parcel is for sale
-                        XmlAttribute forsale_attr = nodeFactory.CreateAttribute("forsale");
-                        forsale_attr.Value = CheckForSale(parcel);
-                        XmlAttribute sales_attr = nodeFactory.CreateAttribute("salesprice");
-                        sales_attr.Value = parcel.SalePrice.ToString();
-                                                
-                        XmlAttribute directory_attr = nodeFactory.CreateAttribute("show_directory");
-                        directory_attr.Value = GetShowInSearch(parcel);
-                        //XmlAttribute entities_attr = nodeFactory.CreateAttribute("entities");
-                        //entities_attr.Value = land.primsOverMe.Count.ToString();
-                        xmlparcel.Attributes.Append(scripts_attr);
-                        xmlparcel.Attributes.Append(build_attr);
-                        xmlparcel.Attributes.Append(public_attr);
-                        xmlparcel.Attributes.Append(category_attr);
-                        xmlparcel.Attributes.Append(forsale_attr);
-                        xmlparcel.Attributes.Append(sales_attr);
-                        //xmlparcel.Attributes.Append(entities_attr);
+                    // Attributes of the parcel node
+                    XmlAttribute scripts_attr = nodeFactory.CreateAttribute("scripts");
+                    scripts_attr.Value = GetScriptsPermissions(parcel);
+                    XmlAttribute build_attr = nodeFactory.CreateAttribute("build");
+                    build_attr.Value = GetBuildPermissions(parcel);
+                    XmlAttribute public_attr = nodeFactory.CreateAttribute("public");
+                    public_attr.Value = GetPublicPermissions(parcel);
+                    // Check the category of the Parcel
+                    XmlAttribute category_attr = nodeFactory.CreateAttribute("category");
+                    category_attr.Value = ((int)parcel.Category).ToString();
+                    // Check if the parcel is for sale
+                    XmlAttribute forsale_attr = nodeFactory.CreateAttribute("forsale");
+                    forsale_attr.Value = CheckForSale(parcel);
+                    XmlAttribute sales_attr = nodeFactory.CreateAttribute("salesprice");
+                    sales_attr.Value = parcel.SalePrice.ToString();
+
+                    XmlAttribute directory_attr = nodeFactory.CreateAttribute("show_directory");
+                    directory_attr.Value = GetShowInSearch(parcel);
+                    //XmlAttribute entities_attr = nodeFactory.CreateAttribute("entities");
+                    //entities_attr.Value = land.primsOverMe.Count.ToString();
+                    xmlparcel.Attributes.Append(directory_attr);
+                    xmlparcel.Attributes.Append(scripts_attr);
+                    xmlparcel.Attributes.Append(build_attr);
+                    xmlparcel.Attributes.Append(public_attr);
+                    xmlparcel.Attributes.Append(category_attr);
+                    xmlparcel.Attributes.Append(forsale_attr);
+                    xmlparcel.Attributes.Append(sales_attr);
+                    //xmlparcel.Attributes.Append(entities_attr);
 
 
-                        //name, description, area, and UUID
-                        XmlNode name = nodeFactory.CreateNode(XmlNodeType.Element, "name", "");
-                        name.InnerText = parcel.Name;
-                        xmlparcel.AppendChild(name);
+                    //name, description, area, and UUID
+                    XmlNode name = nodeFactory.CreateNode(XmlNodeType.Element, "name", "");
+                    name.InnerText = parcel.Name;
+                    xmlparcel.AppendChild(name);
 
-                        XmlNode desc = nodeFactory.CreateNode(XmlNodeType.Element, "description", "");
-                        desc.InnerText = parcel.Description;
-                        xmlparcel.AppendChild(desc);
+                    XmlNode desc = nodeFactory.CreateNode(XmlNodeType.Element, "description", "");
+                    desc.InnerText = parcel.Description;
+                    xmlparcel.AppendChild(desc);
 
-                        XmlNode uuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
-                        uuid.InnerText = parcel.GlobalID.ToString();
-                        xmlparcel.AppendChild(uuid);
+                    XmlNode uuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
+                    uuid.InnerText = parcel.GlobalID.ToString();
+                    xmlparcel.AppendChild(uuid);
 
-                        XmlNode area = nodeFactory.CreateNode(XmlNodeType.Element, "area", "");
-                        area.InnerText = parcel.Area.ToString();
-                        xmlparcel.AppendChild(area);
+                    XmlNode area = nodeFactory.CreateNode(XmlNodeType.Element, "area", "");
+                    area.InnerText = parcel.Area.ToString();
+                    xmlparcel.AppendChild(area);
 
-                        //default location
-                        XmlNode tpLocation = nodeFactory.CreateNode(XmlNodeType.Element, "location", "");
-                        Vector3 loc = parcel.UserLocation;
-                        if (loc.Equals(Vector3.Zero)) // This test is moot at this point: the location is wrong by default
-                            loc = new Vector3((parcel.AABBMax.X + parcel.AABBMin.X) / 2, (parcel.AABBMax.Y + parcel.AABBMin.Y) / 2, (parcel.AABBMax.Z + parcel.AABBMin.Z) / 2);
-                        tpLocation.InnerText = loc.X.ToString() + "/" + loc.Y.ToString() + "/" + loc.Z.ToString();
-                        xmlparcel.AppendChild(tpLocation);
+                    //default location
+                    XmlNode tpLocation = nodeFactory.CreateNode(XmlNodeType.Element, "location", "");
+                    Vector3 loc = parcel.UserLocation;
+                    if (loc.Equals(Vector3.Zero)) // This test is moot at this point: the location is wrong by default
+                        loc = new Vector3((parcel.AABBMax.X + parcel.AABBMin.X) / 2, (parcel.AABBMax.Y + parcel.AABBMin.Y) / 2, (parcel.AABBMax.Z + parcel.AABBMin.Z) / 2);
+                    tpLocation.InnerText = loc.X.ToString() + "/" + loc.Y.ToString() + "/" + loc.Z.ToString();
+                    xmlparcel.AppendChild(tpLocation);
 
-                        XmlNode infouuid = nodeFactory.CreateNode(XmlNodeType.Element, "infouuid", "");
-                        uint x = (uint)loc.X, y = (uint)loc.Y;
-                        findPointInParcel(land, ref x, ref y); // find a suitable spot
-                        infouuid.InnerText = Util.BuildFakeParcelID(
-                                m_scene.RegionInfo.RegionHandle, x, y).ToString();
-                        xmlparcel.AppendChild(infouuid);
+                    XmlNode infouuid = nodeFactory.CreateNode(XmlNodeType.Element, "infouuid", "");
+                    uint x = (uint)loc.X, y = (uint)loc.Y;
+                    findPointInParcel(land, ref x, ref y); // find a suitable spot
+                    infouuid.InnerText = Util.BuildFakeParcelID(
+                            m_scene.RegionInfo.RegionHandle, x, y).ToString();
+                    xmlparcel.AppendChild(infouuid);
 
-                        XmlNode dwell = nodeFactory.CreateNode(XmlNodeType.Element, "dwell", "");
-                        dwell.InnerText = "0";
-                        xmlparcel.AppendChild(dwell);
+                    XmlNode dwell = nodeFactory.CreateNode(XmlNodeType.Element, "dwell", "");
+                    dwell.InnerText = "0";
+                    xmlparcel.AppendChild(dwell);
 
-                        //TODO: figure how to figure out teleport system landData.landingType
+                    //TODO: figure how to figure out teleport system landData.landingType
 
-                        //land texture snapshot uuid
-                        if (parcel.SnapshotID != UUID.Zero)
+                    //land texture snapshot uuid
+                    if (parcel.SnapshotID != UUID.Zero)
+                    {
+                        XmlNode textureuuid = nodeFactory.CreateNode(XmlNodeType.Element, "image", "");
+                        textureuuid.InnerText = parcel.SnapshotID.ToString();
+                        xmlparcel.AppendChild(textureuuid);
+                    }
+
+                    //attached user and group
+                    if (parcel.GroupID != UUID.Zero)
+                    {
+                        XmlNode groupblock = nodeFactory.CreateNode(XmlNodeType.Element, "group", "");
+                        XmlNode groupuuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
+                        groupuuid.InnerText = parcel.GroupID.ToString();
+                        groupblock.AppendChild(groupuuid);
+
+                        //No name yet, there's no way to get a group name since they don't exist yet.
+                        //TODO: When groups are supported, add the group handling code.
+
+                        xmlparcel.AppendChild(groupblock);
+                    }
+
+                    if (!parcel.IsGroupOwned)
+                    {
+                        XmlNode userblock = nodeFactory.CreateNode(XmlNodeType.Element, "owner", "");
+
+                        UUID userOwnerUUID = parcel.OwnerID;
+
+                        XmlNode useruuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
+                        useruuid.InnerText = userOwnerUUID.ToString();
+                        userblock.AppendChild(useruuid);
+
+                        try
                         {
-                            XmlNode textureuuid = nodeFactory.CreateNode(XmlNodeType.Element, "image", "");
-                            textureuuid.InnerText = parcel.SnapshotID.ToString();
-                            xmlparcel.AppendChild(textureuuid);
+                            XmlNode username = nodeFactory.CreateNode(XmlNodeType.Element, "name", "");
+                            CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userOwnerUUID);
+                            username.InnerText = profile.UserProfile.FirstName + " " + profile.UserProfile.SurName;
+                            userblock.AppendChild(username);
+                        }
+                        catch (Exception)
+                        {
+                            //m_log.Info("[DATASNAPSHOT]: Cannot find owner name; ignoring this parcel");
                         }
 
-                        //attached user and group
-                        if (parcel.GroupID != UUID.Zero)
-                        {
-                            XmlNode groupblock = nodeFactory.CreateNode(XmlNodeType.Element, "group", "");
-                            XmlNode groupuuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
-                            groupuuid.InnerText = parcel.GroupID.ToString();
-                            groupblock.AppendChild(groupuuid);
+                        xmlparcel.AppendChild(userblock);
+                    }
+                    //else
+                    //{
+                    //    XmlAttribute type = (XmlAttribute)nodeFactory.CreateNode(XmlNodeType.Attribute, "type", "");
+                    //    type.InnerText = "owner";
+                    //    groupblock.Attributes.Append(type);
+                    //}
 
-                            //No name yet, there's no way to get a group name since they don't exist yet.
-                            //TODO: When groups are supported, add the group handling code.
-
-                            xmlparcel.AppendChild(groupblock);
-                        }
-
-                        if (!parcel.IsGroupOwned)
-                        {
-                            XmlNode userblock = nodeFactory.CreateNode(XmlNodeType.Element, "owner", "");
-
-                            UUID userOwnerUUID = parcel.OwnerID;
-
-                            XmlNode useruuid = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
-                            useruuid.InnerText = userOwnerUUID.ToString();
-                            userblock.AppendChild(useruuid);
-
-                            try
-                            {
-                                XmlNode username = nodeFactory.CreateNode(XmlNodeType.Element, "name", "");
-                                UserProfileData userProfile = m_scene.CommsManager.UserService.GetUserProfile(userOwnerUUID);
-                                username.InnerText = userProfile.FirstName + " " + userProfile.SurName;
-                                userblock.AppendChild(username);
-                            }
-                            catch (Exception)
-                            {
-                                m_log.Info("[DATASNAPSHOT]: Cannot find owner name; ignoring this parcel");
-                            }
-
-                            xmlparcel.AppendChild(userblock);
-                        }
-                        //else
-                        //{
-                        //    XmlAttribute type = (XmlAttribute)nodeFactory.CreateNode(XmlNodeType.Attribute, "type", "");
-                        //    type.InnerText = "owner";
-                        //    groupblock.Attributes.Append(type);
-                        //}
-
-                        parent.AppendChild(xmlparcel);
-//                    }
+                    parent.AppendChild(xmlparcel);
+                    //                    }
                 }
                 //snap.AppendChild(parent);
             }
@@ -327,7 +329,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
         private string CheckForSale(LandData parcel)
         {
-            if (parcel.SalePrice > 0)
+            if ((parcel.Flags & (uint)Parcel.ParcelFlags.ForSale) == (uint)Parcel.ParcelFlags.ForSale)
                 return "true";
             else
                 return "false";
@@ -349,15 +351,15 @@ namespace OpenSim.Region.DataSnapshot.Providers
         public void OnNewClient(IClientAPI client)
         {
             //Land hooks
-            client.OnParcelDivideRequest += delegate (int west, int south, int east, int north,
+            client.OnParcelDivideRequest += delegate(int west, int south, int east, int north,
                 IClientAPI remote_client) { this.Stale = true; };
-            client.OnParcelJoinRequest += delegate (int west, int south, int east, int north,
+            client.OnParcelJoinRequest += delegate(int west, int south, int east, int north,
                 IClientAPI remote_client) { this.Stale = true; };
             client.OnParcelPropertiesUpdateRequest += delegate(LandUpdateArgs args, int local_id,
                 IClientAPI remote_client) { this.Stale = true; };
-            client.OnParcelBuy += delegate (UUID agentId, UUID groupId, bool final, bool groupOwned,
+            client.OnParcelBuy += delegate(UUID agentId, UUID groupId, bool final, bool groupOwned,
                 bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated)
-                { this.Stale = true; };
+            { this.Stale = true; };
         }
 
         public void ParcelSplitHook(int west, int south, int east, int north, IClientAPI remote_client)
@@ -371,7 +373,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
         }
 
         #endregion
-        
+
         // this is needed for non-convex parcels (example: rectangular parcel, and in the exact center
         // another, smaller rectangular parcel). Both will have the same initial coordinates.
         private void findPointInParcel(ILandObject land, ref uint refX, ref uint refY)
@@ -379,19 +381,19 @@ namespace OpenSim.Region.DataSnapshot.Providers
             m_log.DebugFormat("[LAND] trying {0}, {1}", refX, refY);
             // the point we started with already is in the parcel
             if (land.containsPoint((int)refX, (int)refY)) return;
-            
+
             // ... otherwise, we have to search for a point within the parcel
             uint startX = (uint)land.landData.AABBMin.X;
             uint startY = (uint)land.landData.AABBMin.Y;
             uint endX = (uint)land.landData.AABBMax.X;
             uint endY = (uint)land.landData.AABBMax.Y;
-            
+
             // default: center of the parcel
             refX = (startX + endX) / 2;
             refY = (startY + endY) / 2;
             // If the center point is within the parcel, take that one
             if (land.containsPoint((int)refX, (int)refY)) return;
-            
+
             // otherwise, go the long way.
             for (uint y = startY; y <= endY; ++y)
             {
@@ -409,3 +411,4 @@ namespace OpenSim.Region.DataSnapshot.Providers
         }
     }
 }
+

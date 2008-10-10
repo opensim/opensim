@@ -144,6 +144,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             if (landList.ContainsKey(local_id))
             {
+                newData.LocalID = local_id;
                 landList[local_id].landData = newData.Copy();
                 m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, landList[local_id]);
             }
