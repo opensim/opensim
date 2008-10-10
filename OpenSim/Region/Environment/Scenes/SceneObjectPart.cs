@@ -783,9 +783,7 @@ if (m_shape != null) {
         #endregion
 
 //---------------
-
-
-        #region Public Properties with only Get
+#region Public Properties with only Get
 
 
         public Vector3 AbsolutePosition
@@ -957,6 +955,7 @@ if (m_shape != null) {
             set { _flags = value; }
         }
 
+        [XmlIgnore]
         public UUID SitTargetAvatar
         {
             get { return m_sitTargetAvatar; }
@@ -992,6 +991,8 @@ if (m_shape != null) {
         }
 
         #endregion Public Properties with only Get
+
+        
 
         #region Private Methods
 
