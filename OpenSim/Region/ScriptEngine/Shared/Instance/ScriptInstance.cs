@@ -613,7 +613,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
 
-                            if (!(e is TargetInvocationException) || !(e.InnerException is SelfDeleteException))
+                            if ((!(e is TargetInvocationException) || !(e.InnerException is SelfDeleteException)) && (!(e is ThreadAbortException)))
                             {
                                 try
                                 {
