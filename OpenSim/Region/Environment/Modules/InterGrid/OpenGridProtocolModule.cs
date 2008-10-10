@@ -858,11 +858,12 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     int rrY = rezResponseMap["region_y"].AsInteger();
                     m_log.ErrorFormat("X:{0}, Y:{1}", rrX, rrY);
                     UUID rrRID = rezResponseMap["region_id"].AsUUID();
-
+                    LLSDArray RezResponsePositionArray = null;
                     string rrAccess = rezResponseMap["sim_access"].AsString();
-
-                    LLSDArray RezResponsePositionArray = (LLSDArray)rezResponseMap["position"];
-
+                    if (rezResponseMap.ContainsKey("position"))
+                    {
+                        RezResponsePositionArray = (LLSDArray)rezResponseMap["position"];
+                    }
                     // DEPRECIATED
                     responseMap["seed_capability"] = LLSD.FromString(rezRespSeedCap);
                     
@@ -878,13 +879,17 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     responseMap["region_y"] = LLSD.FromInteger(rrY );
                     responseMap["region_id"] = LLSD.FromUUID(rrRID);
                     responseMap["sim_access"] = LLSD.FromString(rrAccess);
-                    responseMap["position"] = RezResponsePositionArray;
+
+                    if (RezResponsePositionArray != null)
+                    {
+                        responseMap["position"] = RezResponsePositionArray;
+                    }
                     responseMap["look_at"] = lookArray;
                     responseMap["connect"] = LLSD.FromBoolean(true);
 
                     ShutdownConnection(LocalID,this);
-
-                    m_log.Warn("RESPONSEDEREZ: " + responseMap.ToString());
+                    // PLEASE STOP CHANGING THIS TO an M_LOG, M_LOG DOESN'T WORK ON MULTILINE .TOSTRINGS
+                    System.Console.WriteLine("RESPONSEDEREZ: " + responseMap.ToString());
                     return responseMap;
                 }
                 else

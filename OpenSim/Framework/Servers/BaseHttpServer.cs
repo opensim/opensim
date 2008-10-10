@@ -587,7 +587,40 @@ namespace OpenSim.Framework.Servers
                 }
                 else
                 {
+                    //HandleLLSDRequests(request, response);
+                    response.ContentType = "text/plain";
+                    response.StatusCode = 404;
+                    response.StatusDescription = "Not Found";
+                    response.ProtocolVersion = "HTTP/1.0";
+                    byte[] buf = Encoding.UTF8.GetBytes("Not found");
+                    response.KeepAlive = false;
+
                     m_log.ErrorFormat("[BASE HTTP SERVER] Handler not found for http request {0}", request.RawUrl);
+                    
+                    response.SendChunked = false;
+                    response.ContentLength64 = buf.Length;
+                    response.ContentEncoding = Encoding.UTF8;
+                    try
+                    {
+                        response.OutputStream.Write(buf, 0, buf.Length);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_log.Warn("[HTTPD]: Error - " + ex.Message);
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            response.Send();
+                        }
+                        catch (SocketException e)
+                        {
+                            // This has to be here to prevent a Linux/Mono crash
+                            m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                        }
+                    }
+                    return;
                     responseString = "Error";
                 }
             }
@@ -1207,7 +1240,7 @@ namespace OpenSim.Framework.Servers
         public void SendHTML404(OSHttpResponse response, string host)
         {
             // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
-            response.StatusCode = (int)OSHttpStatusCode.SuccessOk;
+            response.StatusCode = 404;
             response.AddHeader("Content-type", "text/html");
 
             string responseString = GetHTTP404(host);
