@@ -132,12 +132,16 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         private BlockingLLSDQueue GetQueue(UUID agentId)
         {
-            if (!queues.ContainsKey(agentId))
+            lock (queues)
             {
-                m_log.DebugFormat("[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", agentId, m_scene.RegionInfo.RegionName);
-                queues[agentId] = new BlockingLLSDQueue();
+                if (!queues.ContainsKey(agentId))
+                {
+                    m_log.DebugFormat("[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", agentId,
+                                      m_scene.RegionInfo.RegionName);
+                    queues[agentId] = new BlockingLLSDQueue();
+                }
+                return queues[agentId];
             }
-            return queues[agentId];
         }
 
         
@@ -164,7 +168,10 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         private void ClientClosed(UUID AgentID)
         {
-            queues.Remove(AgentID);
+            lock (queues)
+            {
+                queues.Remove(AgentID);
+            }
             List<UUID> removeitems = new List<UUID>();
             lock (m_AvatarQueueUUIDMapping)
             {
