@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using OpenSim.Region.Physics.Manager;
+using PrimMesher;
 
 namespace OpenSim.Region.Physics.Meshing
 {
@@ -40,7 +41,7 @@ namespace OpenSim.Region.Physics.Meshing
         GCHandle pinnedVirtexes;
         GCHandle pinnedIndex;
         public PrimMesh primMesh = null;
-        //public float[] normals;
+        public float[] normals;
 
         public Mesh()
         {
@@ -139,6 +140,68 @@ namespace OpenSim.Region.Physics.Meshing
             foreach (Vertex v in lv)
             {
                 vertices.Add(v);
+            }
+        }
+
+        public void CalcNormals()
+        {
+            int iTriangles = triangles.Count;
+
+            this.normals = new float[iTriangles * 3];
+
+            int i = 0;
+            foreach (Triangle t in triangles)
+            {
+                float ux, uy, uz;
+                float vx, vy, vz;
+                float wx, wy, wz;
+
+                ux = t.v1.X;
+                uy = t.v1.Y;
+                uz = t.v1.Z;
+
+                vx = t.v2.X;
+                vy = t.v2.Y;
+                vz = t.v2.Z;
+
+                wx = t.v3.X;
+                wy = t.v3.Y;
+                wz = t.v3.Z;
+
+
+                // Vectors for edges
+                float e1x, e1y, e1z;
+                float e2x, e2y, e2z;
+
+                e1x = ux - vx;
+                e1y = uy - vy;
+                e1z = uz - vz;
+
+                e2x = ux - wx;
+                e2y = uy - wy;
+                e2z = uz - wz;
+
+
+                // Cross product for normal
+                float nx, ny, nz;
+                nx = e1y * e2z - e1z * e2y;
+                ny = e1z * e2x - e1x * e2z;
+                nz = e1x * e2y - e1y * e2x;
+
+                // Length
+                float l = (float)Math.Sqrt(nx * nx + ny * ny + nz * nz);
+                float lReciprocal = 1.0f / l;
+
+                // Normalized "normal"
+                //nx /= l;
+                //ny /= l;
+                //nz /= l;
+
+                normals[i] = nx * lReciprocal;
+                normals[i + 1] = ny * lReciprocal;
+                normals[i + 2] = nz * lReciprocal;
+
+                i += 3;
             }
         }
 

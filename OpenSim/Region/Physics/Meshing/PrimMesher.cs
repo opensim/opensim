@@ -27,12 +27,77 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.IO;
-using OpenSim.Region.Physics.Manager;
-using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.Meshing
+namespace PrimMesher
 {
+    public struct Quat
+    {
+        /// <summary>X value</summary>
+        public float X;
+        /// <summary>Y value</summary>
+        public float Y;
+        /// <summary>Z value</summary>
+        public float Z;
+        /// <summary>W value</summary>
+        public float W;
+
+        public Quat(float x, float y, float z, float w)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+            W = w;
+        }
+
+        public Quat(Coord axis, float angle)
+        {
+            axis = axis.Normalize();
+
+            angle *= 0.5f;
+            float c = (float)Math.Cos(angle);
+            float s = (float)Math.Sin(angle);
+
+            X = axis.X * s;
+            Y = axis.Y * s;
+            Z = axis.Z * s;
+            W = c;
+
+            Normalize();
+        }
+
+        public float Length()
+        {
+            return (float)Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
+        }
+
+        public Quat Normalize()
+        {
+            const float MAG_THRESHOLD = 0.0000001f;
+            float mag = Length();
+
+            // Catch very small rounding errors when normalizing
+            if (mag > MAG_THRESHOLD)
+            {
+                float oomag = 1f / mag;
+                X *= oomag;
+                Y *= oomag;
+                Z *= oomag;
+                W *= oomag;
+            }
+            else
+            {
+                X = 0f;
+                Y = 0f;
+                Z = 0f;
+                W = 1f;
+            }
+
+            return this;
+        }
+    }
+
     public struct Coord
     {
         public float X;
@@ -46,23 +111,119 @@ namespace OpenSim.Region.Physics.Meshing
             this.Z = z;
         }
 
+        public float Length()
+        {
+            return (float)Math.Sqrt(this.X * this.X + this.Y * this.Y + this.Z * this.Z);
+        }
+
+        public Coord Normalize()
+        {
+            const float MAG_THRESHOLD = 0.0000001f;
+            float mag = Length();
+
+            // Catch very small rounding errors when normalizing
+            if (mag > MAG_THRESHOLD)
+            {
+                float oomag = 1.0f / mag;
+                this.X *= oomag;
+                this.Y *= oomag;
+                this.Z *= oomag;
+            }
+            else
+            {
+                this.X = 0.0f;
+                this.Y = 0.0f;
+                this.Z = 0.0f;
+            }
+
+            return this;
+        }
+
         public override string ToString()
         {
             return this.X.ToString() + " " + this.Y.ToString() + " " + this.Z.ToString();
+        }
+
+        public static Coord Cross(Coord c1, Coord c2)
+        {
+            return new Coord(
+                c1.Y * c2.Z - c2.Y * c1.Z,
+                c1.Z * c2.X - c2.Z * c1.X,
+                c1.X * c2.Y - c2.X * c1.Y
+                );
+        }
+
+        public static Coord operator *(Coord v, Quat q)
+        {
+            // From http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/transforms/
+
+            Coord c2 = new Coord(0.0f, 0.0f, 0.0f);
+
+            c2.X = q.W * q.W * v.X +
+                2f * q.Y * q.W * v.Z -
+                2f * q.Z * q.W * v.Y +
+                     q.X * q.X * v.X +
+                2f * q.Y * q.X * v.Y +
+                2f * q.Z * q.X * v.Z -
+                     q.Z * q.Z * v.X -
+                     q.Y * q.Y * v.X;
+
+            c2.Y =
+                2f * q.X * q.Y * v.X +
+                     q.Y * q.Y * v.Y +
+                2f * q.Z * q.Y * v.Z +
+                2f * q.W * q.Z * v.X -
+                     q.Z * q.Z * v.Y +
+                     q.W * q.W * v.Y -
+                2f * q.X * q.W * v.Z -
+                     q.X * q.X * v.Y;
+
+            c2.Z =
+                2f * q.X * q.Z * v.X +
+                2f * q.Y * q.Z * v.Y +
+                     q.Z * q.Z * v.Z -
+                2f * q.W * q.Y * v.X -
+                     q.Y * q.Y * v.Z +
+                2f * q.W * q.X * v.Y -
+                     q.X * q.X * v.Z +
+                     q.W * q.W * v.Z;
+
+            return c2;
         }
     }
 
     public struct Face
     {
+        // vertices
         public int v1;
         public int v2;
         public int v3;
+
+        //normals
+        public int n1;
+        public int n2;
+        public int n3;
 
         public Face(int v1, int v2, int v3)
         {
             this.v1 = v1;
             this.v2 = v2;
             this.v3 = v3;
+
+            this.n1 = 0;
+            this.n2 = 0;
+            this.n3 = 0;
+        }
+
+        public Face(int v1, int v2, int v3, int n1, int n2, int n3)
+        {
+            this.v1 = v1;
+            this.v2 = v2;
+            this.v3 = v3;
+
+            this.n1 = n1;
+            this.n2 = n2;
+            this.n3 = n3;
         }
     }
 
@@ -79,81 +240,6 @@ namespace OpenSim.Region.Physics.Meshing
             this.Y = y;
         }
     }
-
-    //internal float angles3[][] = [
-    //[0.0f, 1.0f, 0.0f],
-    //[0.33333333333333331f, -0.49999999999999978f, 0.86602540378443871f],
-    //[0.66666666666666663f, -0.50000000000000044f, -0.86602540378443837f],
-    //[1.0f, 1.0f, -2.4492127076447545e-016f]];
-    /*
-angles3 = [
-    [0.0, 1.0, 0.0],
-    [0.33333333333333331, -0.49999999999999978, 0.86602540378443871],
-    [0.66666666666666663, -0.50000000000000044, -0.86602540378443837],
-    [1.0, 1.0, -2.4492127076447545e-016]]
-
-angles4 = [
-    [0.0, 1.0, 0.0],
-    [0.25, 0.0, 1.0],
-    [0.5, -1.0, 0.0],
-    [0.75, 0.0, -1.0],
-    [1.0, 1.0, 0.0]]
-
-angles24 = [
-    [0.0, 0.5, 0.0],
-    [0.041666666666666664, 0.48296291314453416, 0.12940952255126037],
-    [0.083333333333333329, 0.43301270189221935, 0.25],
-    [0.125, 0.35355339059327379, 0.35355339059327373],
-    [0.16666666666666666, 0.25, 0.4330127018922193],
-    [0.20833333333333331, 0.12940952255126048, 0.4829629131445341],
-    [0.25, 0.0, 0.5],
-    [0.29166666666666663, -0.12940952255126031, 0.48296291314453416],
-    [0.33333333333333331, -0.25, 0.43301270189221935],
-    [0.375, -0.35355339059327373, 0.35355339059327379],
-    [0.41666666666666663, -0.43301270189221924, 0.25],
-    [0.45833333333333331, -0.4829629131445341, 0.12940952255126051],
-    [0.5, -0.5, 0.0],
-    [0.54166666666666663, -0.48296291314453421, -0.12940952255126018],
-    [0.58333333333333326, -0.43301270189221941, -0.25],
-    [0.62499999999999989, -0.35355339059327395, -0.35355339059327356],
-    [0.66666666666666663, -0.25, -0.43301270189221919],
-    [0.70833333333333326, -0.12940952255126076, -0.48296291314453405],
-    [0.75, 0.0, -0.5],
-    [0.79166666666666663, 0.12940952255126015, -0.48296291314453421],
-    [0.83333333333333326, 0.25, -0.43301270189221952],
-    [0.875, 0.35355339059327368, -0.35355339059327384],
-    [0.91666666666666663, 0.43301270189221919, -0.25],
-    [0.95833333333333326, 0.48296291314453405, -0.12940952255126079],
-    [1.0, 0.5, 0.0]]
-
-angles24 = [
-    [0.0, 1.0, 0.0],
-    [0.041666666666666664, 0.96592582628906831, 0.25881904510252074],
-    [0.083333333333333329, 0.86602540378443871, 0.5],
-    [0.125, 0.70710678118654757, 0.70710678118654746],
-    [0.16666666666666667, 0.5, 0.8660254037844386],
-    [0.20833333333333331, 0.25881904510252096, 0.9659258262890682],
-    [0.25, 6.1230317691118863e-017, 1.0],
-    [0.29166666666666663, -0.25881904510252063, 0.96592582628906831],
-    [0.33333333333333333, -0.5, 0.86602540378443871],
-    [0.375, -0.70710678118654746, 0.70710678118654757],
-    [0.41666666666666663, -0.86602540378443849, 0.5],
-    [0.45833333333333331, -0.9659258262890682, 0.25881904510252102],
-    [0.5, -1.0, 1.2246063538223773e-016],
-    [0.54166666666666663, -0.96592582628906842, -0.25881904510252035],
-    [0.58333333333333326, -0.86602540378443882, -0.5],
-    [0.62499999999999989, -0.70710678118654791, -0.70710678118654713],
-    [0.66666666666666667, -0.5, -0.86602540378443837],
-    [0.70833333333333326, -0.25881904510252152, -0.96592582628906809],
-    [0.75, -1.8369095307335659e-016, -1.0],
-    [0.79166666666666663, 0.2588190451025203, -0.96592582628906842],
-    [0.83333333333333326, 0.5, -0.86602540378443904],
-    [0.875, 0.70710678118654735, -0.70710678118654768],
-    [0.91666666666666663, 0.86602540378443837, -0.5],
-    [0.95833333333333326, 0.96592582628906809, -0.25881904510252157],
-    [1.0, 1.0, -2.4492127076447545e-016]]
-
-     */
 
     internal class AngleList
     {
@@ -226,7 +312,7 @@ angles24 = [
 
         internal List<Angle> angles;
 
-        internal void makeAngles( int sides, float startAngle, float stopAngle )
+        internal void makeAngles(int sides, float startAngle, float stopAngle)
         {
             angles = new List<Angle>();
             double twoPi = System.Math.PI * 2.0;
@@ -556,7 +642,7 @@ angles24 = [
             }
         }
 
-        public void AddRot(Quaternion q)
+        public void AddRot(Quat q)
         {
             int i;
             int numVerts = this.coords.Count;
@@ -565,7 +651,7 @@ angles24 = [
             for (i = 0; i < numVerts; i++)
             {
                 vert = this.coords[i];
-                Vertex v = new Vertex(vert.X, vert.Y, vert.Z) * q;
+                Coord v = new Coord(vert.X, vert.Y, vert.Z) * q;
 
                 vert.X = v.X;
                 vert.Y = v.Y;
@@ -646,6 +732,7 @@ angles24 = [
         private const float twoPi = 2.0f * (float)Math.PI;
 
         public List<Coord> coords;
+        public List<Coord> normals;
         public List<Face> faces;
 
         public int sides = 4;
@@ -712,7 +799,7 @@ angles24 = [
 
             if (sides < 3)
                 this.sides = 3;
-            if ( hollowSides < 3)
+            if (hollowSides < 3)
                 this.hollowSides = 3;
             if (profileStart < 0.0f)
                 this.profileStart = 0.0f;
@@ -795,7 +882,7 @@ angles24 = [
             Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, true);
 
             if (initialProfileRot != 0.0f)
-                profile.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), initialProfileRot));
+                profile.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), initialProfileRot));
 
             bool done = false;
             while (!done)
@@ -819,7 +906,7 @@ angles24 = [
 
                 float twist = twistBegin + twistTotal * percentOfPath;
                 if (twist != 0.0f)
-                    newLayer.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), twist));
+                    newLayer.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), twist));
 
                 newLayer.AddPos(xOffset, yOffset, zOffset);
 
@@ -972,7 +1059,7 @@ angles24 = [
             Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, needEndFaces);
 
             if (initialProfileRot != 0.0f)
-                profile.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), initialProfileRot));
+                profile.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), initialProfileRot));
 
             bool done = false;
             while (!done) // loop through the length of the path and add the layers
@@ -980,7 +1067,7 @@ angles24 = [
                 bool isEndLayer = false;
                 if (angle == startAngle || angle >= endAngle)
                     isEndLayer = true;
-                
+
                 Profile newLayer = profile.Clone(isEndLayer && needEndFaces);
 
                 float xProfileScale = (1.0f - Math.Abs(this.skew)) * this.holeSizeX;
@@ -1019,12 +1106,12 @@ angles24 = [
 
                 // next apply twist rotation to the profile layer
                 if (twistTotal != 0.0f || twistBegin != 0.0f)
-                    newLayer.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), twist));
+                    newLayer.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), twist));
 
                 // now orient the rotation of the profile layer relative to it's position on the path
                 // adding taperY to the angle used to generate the quat appears to approximate the viewer
                 //newLayer.AddRot(new Quaternion(new Vertex(1.0f, 0.0f, 0.0f), angle + this.topShearY * 0.9f));
-                newLayer.AddRot(Quaternion.CreateFromAxisAngle(new Vector3(1.0f, 0.0f, 0.0f), angle + this.topShearY));
+                newLayer.AddRot(new Quat(new Coord(1.0f, 0.0f, 0.0f), angle + this.topShearY));
                 newLayer.AddPos(xOffset, yOffset, zOffset);
 
                 if (angle == startAngle)
@@ -1084,6 +1171,47 @@ angles24 = [
             }
         }
 
+        public Coord SurfaceNormal(int faceIndex)
+        {
+            int numFaces = faces.Count;
+            if (faceIndex < 0 || faceIndex >= faces.Count)
+                return new Coord(0.0f, 0.0f, 0.0f);
+
+            Face face = faces[faceIndex];
+            Coord c1 = coords[face.v1];
+            Coord c2 = coords[face.v2];
+            Coord c3 = coords[face.v3];
+
+            Coord edge1 = new Coord(c2.X - c1.X, c2.Y - c1.Y, c2.Z - c1.Z);
+            Coord edge2 = new Coord(c3.X - c1.X, c3.Y - c1.Y, c3.Z - c1.Z);
+
+            Coord normal = Coord.Cross(edge1, edge2);
+
+            normal.Normalize();
+
+            return normal;
+        }
+
+        public void CalcNormals()
+        {
+            int numFaces = faces.Count;
+            this.normals = new List<Coord>();
+
+            for (int i = 0; i < numFaces; i++)
+            {
+                Face face = faces[i];
+
+                this.normals.Add(SurfaceNormal(i).Normalize());
+
+                int normIndex = normals.Count - 1;
+                face.n1 = normIndex;
+                face.n2 = normIndex;
+                face.n3 = normIndex;
+
+                this.faces[i] = face;
+            }
+        }
+
         public void AddPos(float x, float y, float z)
         {
             int i;
@@ -1100,7 +1228,7 @@ angles24 = [
             }
         }
 
-        public void AddRot(Quaternion q)
+        public void AddRot(Quat q)
         {
             int i;
             int numVerts = this.coords.Count;
@@ -1109,7 +1237,7 @@ angles24 = [
             for (i = 0; i < numVerts; i++)
             {
                 vert = this.coords[i];
-                Vertex v = new Vertex(vert.X, vert.Y, vert.Z) * q;
+                Coord v = new Coord(vert.X, vert.Y, vert.Z) * q;
 
                 vert.X = v.X;
                 vert.Y = v.Y;
