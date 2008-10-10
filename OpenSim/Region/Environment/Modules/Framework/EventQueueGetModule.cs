@@ -149,8 +149,14 @@ namespace OpenSim.Region.Environment.Modules.Framework
         public bool Enqueue(LLSD ev, UUID avatarID)
         {
             m_log.DebugFormat("[EVENTQUEUE]: Enqueuing event for {0} in region {1}", avatarID, m_scene.RegionInfo.RegionName);
-            BlockingLLSDQueue queue = GetQueue(avatarID);
-            queue.Enqueue(ev);
+            try
+            {
+                BlockingLLSDQueue queue = GetQueue(avatarID);
+                queue.Enqueue(ev);
+            } catch(NullReferenceException)
+            {
+                return false;
+            }
             return true;
         }
         #endregion
