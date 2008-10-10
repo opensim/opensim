@@ -601,17 +601,14 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (pathShearX != 0)
             {
-                //System.Console.WriteLine("pushX: " + pathShearX.ToString());
                 if (pathShearX > 50)
                 {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
-                    //System.Console.WriteLine("pushX: " + extr.pushX);
                 }
                 else
                 {
                     extr.pushX = (float)pathShearX / 100;
-                    //System.Console.WriteLine("pushX: " + extr.pushX);
                 }
             }
 
@@ -621,56 +618,18 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
-                    //System.Console.WriteLine("pushY: " + extr.pushY);
                 }
                 else
                 {
                     extr.pushY = (float)pathShearY / 100;
-                    //System.Console.WriteLine("pushY: " + extr.pushY);
                 }
             }
-
-            //if (twistTop != 0)
-            //{
-            //    extr.twistTop = 180 * ((float)twistTop / 100);
-            //    if (extr.twistTop > 0)
-            //    {
-            //        extr.twistTop = 360 - (-1 * extr.twistTop);
-
-            //    }
-
-
-            //    extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
-            //}
-
-            //float twistMid = ((twistTop + twistBot) * 0.5f);
-
-            //if (twistMid != 0)
-            //{
-            //    extr.twistMid = 180 * ((float)twistMid / 100);
-            //    if (extr.twistMid > 0)
-            //    {
-            //        extr.twistMid = 360 - (-1 * extr.twistMid);
-            //    }
-            //    extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
-            //}
-
-            //if (twistBot != 0)
-            //{
-            //    extr.twistBot = 180 * ((float)twistBot / 100);
-            //    if (extr.twistBot > 0)
-            //    {
-            //        extr.twistBot = 360 - (-1 * extr.twistBot);
-            //    }
-            //    extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
-            //}
 
             extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.01f;
             extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.01f;
             extr.pathBegin = primShape.PathBegin;
             extr.pathEnd = primShape.PathEnd;
 
-            //Mesh result = extr.Extrude(m);
             Mesh result = extr.ExtrudeLinearPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
 #if SPAM
@@ -695,8 +654,6 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 taperY = primShape.PathScaleY;
             UInt16 pathShearX = primShape.PathShearX;
             UInt16 pathShearY = primShape.PathShearY;
-            // Int16 twistBot = primShape.PathTwist;
-            // Int16 twistTop = primShape.PathTwistBegin;
 
 #if SPAM
             reportPrimParams("[CYLINDER] " + primName, primShape);
@@ -748,9 +705,8 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 double fProfileBeginAngle = profileBegin / 50000.0 * 360.0;
                 // In degree, for easier debugging and understanding
-                //fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
                 double fProfileEndAngle = 360.0 - profileEnd / 50000.0 * 360.0; // Pathend comes as complement to 1.0
-                //fProfileEndAngle -= (90.0 + 45.0);
+
 #if SPAM
                 Console.WriteLine("Extruder: Cylinder fProfileBeginAngle: " + fProfileBeginAngle.ToString() + " fProfileEndAngle: " + fProfileEndAngle.ToString());
 #endif
@@ -787,7 +743,6 @@ namespace OpenSim.Region.Physics.Meshing
                 // Calculated separately to avoid errors
                 cutHull.AddVertex(legEnd);
 
-                // m_log.DebugFormat("Starting cutting of the hollow shape from the prim {1}", 0, primName);
                 SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
 
                 outerHull = cuttedHull;
@@ -843,20 +798,14 @@ namespace OpenSim.Region.Physics.Meshing
 
             extr.size = size;
 
-            //System.Console.WriteLine("taperFactorX: " + taperX.ToString());
-            //System.Console.WriteLine("taperFactorY: " + taperY.ToString());
-
             if (taperX != 100)
             {
                 if (taperX > 100)
                 {
-                    extr.taperTopFactorX = 1.0f - ((float)(taperX - 100) / 100);
-                    //System.Console.WriteLine("taperTopFactorX: " + extr.taperTopFactorX.ToString());
-                }
+                    extr.taperTopFactorX = 1.0f - ((float)(taperX - 100) / 100);                }
                 else
                 {
                     extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
-                    //System.Console.WriteLine("taperBotFactorX: " + extr.taperBotFactorX.ToString());
                 }
 
             }
@@ -866,12 +815,10 @@ namespace OpenSim.Region.Physics.Meshing
                 if (taperY > 100)
                 {
                     extr.taperTopFactorY = 1.0f - ((float)(taperY - 100) / 100);
-                   // System.Console.WriteLine("taperTopFactorY: " + extr.taperTopFactorY.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorY = 1.0f - ((100 - (float)taperY) / 100);
-                    //System.Console.WriteLine("taperBotFactorY: " + extr.taperBotFactorY.ToString());
                 }
             }
 
@@ -881,12 +828,10 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
-                    //m_log.Warn("pushX: " + extr.pushX);
                 }
                 else
                 {
                     extr.pushX = (float)pathShearX / 100;
-                    //m_log.Warn("pushX: " + extr.pushX);
                 }
             }
 
@@ -896,58 +841,19 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
-                    //m_log.Warn("pushY: " + extr.pushY);
                 }
                 else
                 {
                     extr.pushY = (float)pathShearY / 100;
-                    //m_log.Warn("pushY: " + extr.pushY);
                 }
 
             }
-
-            //if (twistTop != 0)
-            //{
-            //    extr.twistTop = 180 * ((float)twistTop / 100);
-            //    if (extr.twistTop > 0)
-            //    {
-            //        extr.twistTop = 360 - (-1 * extr.twistTop);
-
-            //    }
-
-
-            //    extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
-            //}
-
-            //float twistMid = ((twistTop + twistBot) * 0.5f);
-
-            //if (twistMid != 0)
-            //{
-            //    extr.twistMid = 180 * ((float)twistMid / 100);
-            //    if (extr.twistMid > 0)
-            //    {
-            //        extr.twistMid = 360 - (-1 * extr.twistMid);
-            //    }
-            //    extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
-            //}
-
-            //if (twistBot != 0)
-            //{
-            //    extr.twistBot = 180 * ((float)twistBot / 100);
-            //    if (extr.twistBot > 0)
-            //    {
-            //        extr.twistBot = 360 - (-1 * extr.twistBot);
-            //    }
-            //    extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
-            //}
 
             extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.01f;
             extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.01f;
             extr.pathBegin = primShape.PathBegin;
             extr.pathEnd = primShape.PathEnd;
 
-            //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
-            //Mesh result = extr.Extrude(m);
             Mesh result = extr.ExtrudeLinearPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
 #if SPAM
@@ -972,18 +878,10 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 pathShearX = primShape.PathShearX;
             UInt16 pathShearY = primShape.PathShearY;
 
-            // Int16 twistTop = primShape.PathTwistBegin;
-            // Int16 twistBot = primShape.PathTwist;
 
 #if SPAM
             reportPrimParams("[PRISM] " + primName, primShape);
 #endif
-
-            //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
-            //m_log.Error("pathTaper:" + primShape.PathTaperX.ToString() + "," + primShape.PathTaperY.ToString());
-            //m_log.Error("ProfileBegin:" + primShape.ProfileBegin.ToString() + "," + primShape.ProfileBegin.ToString());
-            //m_log.Error("PathScale:" + primShape.PathScaleX.ToString() + "," + primShape.PathScaleY.ToString());
-
             // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
             // of a block are basically the same
             // They may be warped differently but the shape is identical
@@ -1008,9 +906,8 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 double fProfileBeginAngle = profileBegin / 50000.0 * 360.0;
                 // In degree, for easier debugging and understanding
-                //fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
                 double fProfileEndAngle = 360.0 - profileEnd / 50000.0 * 360.0; // Pathend comes as complement to 1.0
-                //fProfileEndAngle -= (90.0 + 45.0);
+
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
 
@@ -1038,7 +935,6 @@ namespace OpenSim.Region.Physics.Meshing
                 // Calculated separately to avoid errors
                 cutHull.AddVertex(legEnd);
 
-                //m_log.DebugFormat("Starting cutting of the hollow shape from the prim {1}", 0, primName);
                 SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
 
                 outerHull = cuttedHull;
@@ -1099,12 +995,10 @@ namespace OpenSim.Region.Physics.Meshing
                 if (taperX > 100)
                 {
                     extr.taperTopFactorX = 1.0f - ((float)(taperX - 100) / 100);
-                    //System.Console.WriteLine("taperTopFactorX: " + extr.taperTopFactorX.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
-                    //System.Console.WriteLine("taperBotFactorX: " + extr.taperBotFactorX.ToString());
                 }
 
             }
@@ -1114,12 +1008,10 @@ namespace OpenSim.Region.Physics.Meshing
                 if (taperY > 100)
                 {
                     extr.taperTopFactorY = 1.0f - ((float)(taperY - 100) / 100);
-                    // System.Console.WriteLine("taperTopFactorY: " + extr.taperTopFactorY.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorY = 1.0f - ((100 - (float)taperY) / 100);
-                    //System.Console.WriteLine("taperBotFactorY: " + extr.taperBotFactorY.ToString());
                 }
             }
 
@@ -1129,12 +1021,10 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
-                    // m_log.Warn("pushX: " + extr.pushX);
                 }
                 else
                 {
                     extr.pushX = (float)pathShearX / 100;
-                    // m_log.Warn("pushX: " + extr.pushX);
                 }
             }
 
@@ -1144,57 +1034,18 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
-                    //m_log.Warn("pushY: " + extr.pushY);
                 }
                 else
                 {
                     extr.pushY = (float)pathShearY / 100;
-                    //m_log.Warn("pushY: " + extr.pushY);
                 }
             }
-
-            //if (twistTop != 0)
-            //{
-            //    extr.twistTop = 180 * ((float)twistTop / 100);
-            //    if (extr.twistTop > 0)
-            //    {
-            //        extr.twistTop = 360 - (-1 * extr.twistTop);
-
-            //    }
-
-
-            //    extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
-            //}
-
-            //float twistMid = ((twistTop + twistBot) * 0.5f);
-
-            //if (twistMid != 0)
-            //{
-            //    extr.twistMid = 180 * ((float)twistMid / 100);
-            //    if (extr.twistMid > 0)
-            //    {
-            //        extr.twistMid = 360 - (-1 * extr.twistMid);
-            //    }
-            //    extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
-            //}
-
-            //if (twistBot != 0)
-            //{
-            //    extr.twistBot = 180 * ((float)twistBot / 100);
-            //    if (extr.twistBot > 0)
-            //    {
-            //        extr.twistBot = 360 - (-1 * extr.twistBot);
-            //    }
-            //    extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
-            //}
 
             extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.01f;
             extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.01f;
             extr.pathBegin = primShape.PathBegin;
             extr.pathEnd = primShape.PathEnd;
 
-            //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
-            //Mesh result = extr.Extrude(m);
             Mesh result = extr.ExtrudeLinearPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
 #if SPAM
@@ -1227,13 +1078,6 @@ namespace OpenSim.Region.Physics.Meshing
 
             // Still have more to do here.
 
-            // UInt16 hollowFactor = primShape.ProfileHollow;
-            // UInt16 profileBegin = primShape.ProfileBegin;
-            // UInt16 profileEnd = primShape.ProfileEnd;
-            // UInt16 taperX = primShape.PathScaleX;
-            // UInt16 taperY = primShape.PathScaleY;
-            // UInt16 pathShearX = primShape.PathShearX;
-            // UInt16 pathShearY = primShape.PathShearY;
             Mesh m = new Mesh();
 
 #if SPAM
@@ -1356,12 +1200,8 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 hollowFactor = primShape.ProfileHollow;
             UInt16 profileBegin = primShape.ProfileBegin;
             UInt16 profileEnd = primShape.ProfileEnd;
-            // UInt16 taperX = primShape.PathScaleX;
-            // UInt16 taperY = primShape.PathScaleY;
             UInt16 pathShearX = primShape.PathShearX;
             UInt16 pathShearY = primShape.PathShearY;
-            // Int16 twistBot = primShape.PathTwist;
-            // Int16 twistTop = primShape.PathTwistBegin;
             HollowShape hollowShape = primShape.HollowShape;
 
 #if SPAM
@@ -1497,9 +1337,8 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 double fProfileBeginAngle = profileBegin / 50000.0 * 360.0;
                 // In degree, for easier debugging and understanding
-                //fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
                 double fProfileEndAngle = 360.0 - profileEnd / 50000.0 * 360.0; // Pathend comes as complement to 1.0
-                //fProfileEndAngle -= (90.0 + 45.0);
+
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
 
@@ -1657,8 +1496,6 @@ namespace OpenSim.Region.Physics.Meshing
             foreach (Triangle t in m.triangles)
                 t.invertNormal();
 
-            // Vertex vTemp = new Vertex(0.0f, 0.0f, 0.0f);
-
 
             float skew = primShape.PathSkew * 0.01f;
             float pathScaleX = (float)(200 - primShape.PathScaleX) * 0.01f;
@@ -1677,7 +1514,6 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     v.X *= profileXComp;
                     v.Y *= pathScaleY;
-                    //v.Y *= 0.5f; // torus profile is scaled in y axis
                 }
 
             Extruder extr = new Extruder();
@@ -1717,12 +1553,10 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
-                    //m_log.Warn("pushX: " + extr.pushX);
                 }
                 else
                 {
                     extr.pushX = (float)pathShearX / 100;
-                    //m_log.Warn("pushX: " + extr.pushX);
                 }
             }
 
@@ -1732,12 +1566,10 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
-                    //m_log.Warn("pushY: " + extr.pushY);
                 }
                 else
                 {
                     extr.pushY = (float)pathShearY / 100;
-                    //m_log.Warn("pushY: " + extr.pushY);
                 }
 
             }
@@ -1745,7 +1577,6 @@ namespace OpenSim.Region.Physics.Meshing
             extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.02f;
             extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.02f;
 
-            //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
             Mesh result = extr.ExtrudeCircularPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
 
@@ -1764,66 +1595,62 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
 
-        //public static void CalcNormals(Mesh mesh)
-        //{
-        //    int iTriangles = mesh.triangles.Count;
+        public static void CalcNormals(Mesh mesh)
+        {
+            int iTriangles = mesh.triangles.Count;
 
-        //    mesh.normals = new float[iTriangles*3];
+            mesh.normals = new float[iTriangles * 3];
 
-        //    int i = 0;
-        //    foreach (Triangle t in mesh.triangles)
-        //    {
-        //        float ux, uy, uz;
-        //        float vx, vy, vz;
-        //        float wx, wy, wz;
+            int i = 0;
+            foreach (Triangle t in mesh.triangles)
+            {
+                float ux, uy, uz;
+                float vx, vy, vz;
+                float wx, wy, wz;
 
-        //        ux = t.v1.X;
-        //        uy = t.v1.Y;
-        //        uz = t.v1.Z;
+                ux = t.v1.X;
+                uy = t.v1.Y;
+                uz = t.v1.Z;
 
-        //        vx = t.v2.X;
-        //        vy = t.v2.Y;
-        //        vz = t.v2.Z;
+                vx = t.v2.X;
+                vy = t.v2.Y;
+                vz = t.v2.Z;
 
-        //        wx = t.v3.X;
-        //        wy = t.v3.Y;
-        //        wz = t.v3.Z;
-
-
-        //        // Vectors for edges
-        //        float e1x, e1y, e1z;
-        //        float e2x, e2y, e2z;
-
-        //        e1x = ux - vx;
-        //        e1y = uy - vy;
-        //        e1z = uz - vz;
-
-        //        e2x = ux - wx;
-        //        e2y = uy - wy;
-        //        e2z = uz - wz;
+                wx = t.v3.X;
+                wy = t.v3.Y;
+                wz = t.v3.Z;
 
 
-        //        // Cross product for normal
-        //        float nx, ny, nz;
-        //        nx = e1y*e2z - e1z*e2y;
-        //        ny = e1z*e2x - e1x*e2z;
-        //        nz = e1x*e2y - e1y*e2x;
+                // Vectors for edges
+                float e1x, e1y, e1z;
+                float e2x, e2y, e2z;
 
-        //        // Length
-        //        float l = (float) Math.Sqrt(nx*nx + ny*ny + nz*nz);
+                e1x = ux - vx;
+                e1y = uy - vy;
+                e1z = uz - vz;
 
-        //        // Normalized "normal"
-        //        nx /= l;
-        //        ny /= l;
-        //        nz /= l;
+                e2x = ux - wx;
+                e2y = uy - wy;
+                e2z = uz - wz;
 
-        //        //mesh.normals[i] = nx;
-        //        //mesh.normals[i + 1] = ny;
-        //        //mesh.normals[i + 2] = nz;
 
-        //        i += 3;
-        //    }
-        //}
+                // Cross product for normal
+                float nx, ny, nz;
+                nx = e1y * e2z - e1z * e2y;
+                ny = e1z * e2x - e1x * e2z;
+                nz = e1x * e2y - e1y * e2x;
+
+                // Length
+                float l = (float)Math.Sqrt(nx * nx + ny * ny + nz * nz);
+
+                // Normalized "normal"
+                nx /= l;
+                ny /= l;
+                nz /= l;
+
+                i += 3;
+            }
+        }
 
         public static Vertex midUnitRadialPoint(Vertex a, Vertex b, float radius)
         {
@@ -1870,7 +1697,6 @@ namespace OpenSim.Region.Physics.Meshing
 
         public Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
         {
-            //reportPrimParams(primName, primShape);
             Mesh mesh = new Mesh();
 
             float pathShearX = primShape.PathShearX < 128 ? (float)primShape.PathShearX * 0.01f : (float)(primShape.PathShearX - 256) * 0.01f;
@@ -1896,7 +1722,6 @@ namespace OpenSim.Region.Physics.Meshing
                 profileBegin = 0.5f * profileBegin + 0.5f;
                 profileEnd = 0.5f * profileEnd + 0.5f;
 
-                //profileHollow = 0.0f; // debugging only
             }
 
             int hollowSides = sides;
@@ -1908,17 +1733,11 @@ namespace OpenSim.Region.Physics.Meshing
                 hollowSides = 3;
 
             PrimMesh primMesh = new PrimMesh(sides, profileBegin, profileEnd, profileHollow, hollowSides);
-            //PrimMesh primMesh = new PrimMesh(sides, profileBegin, profileEnd, 0.0f, 4);
-
-            //Profile testProfile = new Profile(sides, profileBegin, profileEnd, profileHollow, hollowSides, true);
-            //testProfile.DumpRaw(baseDir, primName, "Profile");
 
             primMesh.topShearX = pathShearX;
             primMesh.topShearY = pathShearY;
             primMesh.pathCutBegin = pathBegin;
             primMesh.pathCutEnd = pathEnd;
-            //primMesh.pathCutBegin = 0.0f;
-            //primMesh.pathCutEnd = 1.0f;
 
             if (primShape.PathCurve == (byte)Extrusion.Straight)
             {
@@ -1943,7 +1762,6 @@ namespace OpenSim.Region.Physics.Meshing
             }
             else
             {
-                //return null;
                 primMesh.holeSizeX = (200 - primShape.PathScaleX) * 0.01f;
                 primMesh.holeSizeY = (200 - primShape.PathScaleY) * 0.01f;
                 primMesh.radius = 0.01f * primShape.PathRadiusOffset;
