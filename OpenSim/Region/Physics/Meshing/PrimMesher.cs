@@ -1173,7 +1173,7 @@ namespace PrimMesher
 
         public Coord SurfaceNormal(int faceIndex)
         {
-            int numFaces = faces.Count;
+            //int numFaces = faces.Count;
             if (faceIndex < 0 || faceIndex >= faces.Count)
                 return new Coord(0.0f, 0.0f, 0.0f);
 

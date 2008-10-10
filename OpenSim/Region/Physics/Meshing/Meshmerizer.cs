@@ -69,35 +69,35 @@ namespace OpenSim.Region.Physics.Meshing
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
-        private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
-                                                    PhysicsVector r2, ref float lambda, ref float mu)
-        {
+//        private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
+//                                                    PhysicsVector r2, ref float lambda, ref float mu)
+//        {
             // p1, p2, points on the straight
             // r1, r2, directional vectors of the straight. Not necessarily of length 1!
             // note, that l, m can be scaled such, that the range 0..1 is mapped to the area between two points,
             // thus allowing to decide whether an intersection is between two points
 
-            float r1x = r1.X;
-            float r1y = r1.Y;
-            float r2x = r2.X;
-            float r2y = r2.Y;
-
-            float denom = r1y * r2x - r1x * r2y;
-
-            if (denom == 0.0)
-            {
-                lambda = Single.NaN;
-                mu = Single.NaN;
-                return;
-            }
-
-            float p1x = p1.X;
-            float p1y = p1.Y;
-            float p2x = p2.X;
-            float p2y = p2.Y;
-            lambda = (-p2x * r2y + p1x * r2y + (p2y - p1y) * r2x) / denom;
-            mu = (-p2x * r1y + p1x * r1y + (p2y - p1y) * r1x) / denom;
-        }
+//            float r1x = r1.X;
+//            float r1y = r1.Y;
+//            float r2x = r2.X;
+//            float r2y = r2.Y;
+//
+//            float denom = r1y * r2x - r1x * r2y;
+//
+//            if (denom == 0.0)
+//            {
+//                lambda = Single.NaN;
+//                mu = Single.NaN;
+//                return;
+//            }
+//
+//            float p1x = p1.X;
+//            float p1y = p1.Y;
+//            float p2x = p2.X;
+//            float p2y = p2.Y;
+//            lambda = (-p2x * r2y + p1x * r2y + (p2y - p1y) * r2x) / denom;
+//            mu = (-p2x * r1y + p1x * r1y + (p2y - p1y) * r1x) / denom;
+//        }
 
         private static List<Triangle> FindInfluencedTriangles(List<Triangle> triangles, Vertex v)
         {
