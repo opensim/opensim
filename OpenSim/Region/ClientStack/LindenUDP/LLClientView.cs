@@ -166,7 +166,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ObjectIncludeInSearch handlerObjectIncludeInSearch = null;
         private UpdatePrimFlags handlerUpdatePrimFlags = null; //OnUpdatePrimFlags;
         private UpdatePrimTexture handlerUpdatePrimTexture = null;
-        private UpdateVector handlerGrabObject = null; //OnGrabObject;
+        private GrabObject handlerGrabObject = null; //OnGrabObject;
         private MoveObject handlerGrabUpdate = null; //OnGrabUpdate;
         private ObjectSelect handlerDeGrabObject = null; //OnDeGrabObject;
         private GenericCall7 handlerObjectDescription = null;
@@ -866,7 +866,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event Action<IClientAPI> OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
-        public event UpdateVector OnGrabObject;
+        public event GrabObject OnGrabObject;
         public event ObjectSelect OnDeGrabObject;
         public event ObjectDuplicate OnObjectDuplicate;
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
@@ -4715,7 +4715,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         if (handlerGrabObject != null)
                         {
-                            handlerGrabObject(grab.ObjectData.LocalID, grab.ObjectData.GrabOffset, this);
+                            List<SurfaceTouchEventArgs> touchArgs = new List<SurfaceTouchEventArgs>();
+                            if ((grab.SurfaceInfo != null) && (grab.SurfaceInfo.Length > 0))
+                            {
+                                foreach (ObjectGrabPacket.SurfaceInfoBlock surfaceInfo in grab.SurfaceInfo)
+                                {
+                                    SurfaceTouchEventArgs arg = new SurfaceTouchEventArgs();
+                                    arg.Binormal = surfaceInfo.Binormal;
+                                    arg.FaceIndex = surfaceInfo.FaceIndex;
+                                    arg.Normal = surfaceInfo.Normal;
+                                    arg.Position = surfaceInfo.Position;
+                                    arg.STCoord = surfaceInfo.STCoord;
+                                    arg.UVCoord = surfaceInfo.UVCoord;
+                                    touchArgs.Add(arg);
+                                }
+                            }
+                            handlerGrabObject(grab.ObjectData.LocalID, grab.ObjectData.GrabOffset, this, touchArgs);
                         }
                         break;
                     case PacketType.ObjectGrabUpdate:

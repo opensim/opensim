@@ -197,7 +197,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event RequestGodlikePowers OnRequestGodlikePowers;
         public event GodKickUser OnGodKickUser;
         public event ObjectDuplicate OnObjectDuplicate;
-        public event UpdateVector OnGrabObject;
+        public event GrabObject OnGrabObject;
         public event ObjectSelect OnDeGrabObject;
         public event MoveObject OnGrabUpdate;
         public event ViewerEffectEventHandler OnViewerEffect;

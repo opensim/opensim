@@ -144,6 +144,8 @@ namespace OpenSim.Framework
     public delegate void AvatarPickerRequest(IClientAPI remoteClient, UUID agentdata, UUID queryID, string UserQuery
         );
 
+    public delegate void GrabObject(uint localID, Vector3 pos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs);
+
     public delegate void MoveObject(UUID objectID, Vector3 offset, Vector3 grapPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs);
 
     public delegate void ParcelAccessListRequest(
@@ -426,7 +428,7 @@ namespace OpenSim.Framework
 
         event ObjectDuplicate OnObjectDuplicate;
         event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
-        event UpdateVector OnGrabObject;
+        event GrabObject OnGrabObject;
         event ObjectSelect OnDeGrabObject;
         event MoveObject OnGrabUpdate;
 

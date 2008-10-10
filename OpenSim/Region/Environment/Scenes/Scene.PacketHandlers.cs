@@ -212,7 +212,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.TriggerLandBuy(this, args);
         }
 
-        public virtual void ProcessObjectGrab(uint localID, Vector3 offsetPos, IClientAPI remoteClient)
+        public virtual void ProcessObjectGrab(uint localID, Vector3 offsetPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
 
             List<EntityBase> EntityList = GetEntities();
