@@ -52,8 +52,18 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         //SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant)
 
             uint sun = 0;
+
             if (!m_scene.RegionInfo.EstateSettings.UseGlobalTime)
                 sun=(uint)(m_scene.RegionInfo.EstateSettings.SunPosition*1024.0) + 0x1800;
+            UUID estateOwner;
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
+                estateOwner = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            else
+                estateOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+
+            if (m_scene.ExternalChecks.ExternalChecksCanBeGodLike(remote_client.AgentId))
+                estateOwner = remote_client.AgentId;
+
             remote_client.SendDetailedEstateData(invoice,
                     m_scene.RegionInfo.EstateSettings.EstateName,
                     m_scene.RegionInfo.EstateSettings.EstateID,
@@ -61,7 +71,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     GetEstateFlags(),
                     sun,
                     m_scene.RegionInfo.RegionSettings.Covenant,
-                    m_scene.RegionInfo.EstateSettings.AbuseEmail);
+                    m_scene.RegionInfo.EstateSettings.AbuseEmail,
+                    estateOwner);
 
             remote_client.SendEstateManagersList(invoice,
                     m_scene.RegionInfo.EstateSettings.EstateManagers,

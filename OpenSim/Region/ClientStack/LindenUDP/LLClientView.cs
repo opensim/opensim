@@ -2834,7 +2834,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(einfopack, ThrottleOutPacketType.Task);
         }
 
-        public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, string abuseEmail)
+        public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, string abuseEmail, UUID estateOwner)
         {
             EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
             packet.MethodData.Invoice = invoice;
@@ -2851,10 +2851,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             returnblock[0].Parameter = Utils.StringToBytes(estateName);
             // TODO: remove this cruft once MasterAvatar is fully deprecated
             //
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                returnblock[1].Parameter = Utils.StringToBytes(m_scene.RegionInfo.EstateSettings.EstateOwner.ToString());
-            else
-                returnblock[1].Parameter = Utils.StringToBytes(m_scene.RegionInfo.MasterAvatarAssignedUUID.ToString());
+            returnblock[1].Parameter = Utils.StringToBytes(estateOwner.ToString());
             returnblock[2].Parameter = Utils.StringToBytes(estateID.ToString());
 
             returnblock[3].Parameter = Utils.StringToBytes(estateFlags.ToString());

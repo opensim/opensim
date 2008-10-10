@@ -811,7 +811,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendEstateCovenantInformation(UUID covenant)
         {
         }
-        public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, string abuseEmail)
+        public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, string abuseEmail, UUID estateOwner)
         {
         }
 
