@@ -161,20 +161,30 @@ namespace OpenSim
             IConfig startupConfig = configSource.Configs["Startup"];
 
             string iniFileName = startupConfig.GetString("inifile", "OpenSim.ini");            
-            Application.iniFilePath = Path.Combine(Util.configDir(), iniFileName);
+            if (!iniFileName.StartsWith("/") && !iniFileName.StartsWith("\\"))
+                Application.iniFilePath = Path.Combine(Util.configDir(), iniFileName);
+
+            string masterFileName = startupConfig.GetString("inimaster", "");            
+            string masterfilePath = masterFileName;
+            if (!masterFileName.StartsWith("/") && !masterFileName.StartsWith("\\") && masterFileName != "")
+                masterfilePath = Path.Combine(Util.configDir(), masterfilePath);
 
             m_config = new OpenSimConfigSource();
             m_config.Source = new IniConfigSource();
             m_config.Source.Merge(DefaultConfig());            
             
             //check for .INI file (either default or name passed in command line)
+            if (File.Exists(masterfilePath))
+            {
+                m_config.Source.Merge(new IniConfigSource(masterfilePath));
+            }
+
             if (File.Exists(Application.iniFilePath))
             {
                 iniFileExists = true;
                 
                 // From reading Nini's code, it seems that later merged keys replace earlier ones.                
                 m_config.Source.Merge(new IniConfigSource(Application.iniFilePath));
-                m_config.Source.Merge(configSource);               
             }
             else 
             {   
@@ -187,10 +197,11 @@ namespace OpenSim
                     
                     m_config.Source = new XmlConfigSource();
                     m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
-                    m_config.Source.Merge(configSource);
                 }
             }
             
+            m_config.Source.Merge(configSource);
+
             if (!iniFileExists)
                 m_config.Save("OpenSim.ini");
 
