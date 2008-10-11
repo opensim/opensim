@@ -879,6 +879,10 @@ namespace PrimMesher
             else if (this.sides == 24 && this.hollowSides == 4)
                 hollow *= 1.414f;
 
+            bool hasProfileCut = false;
+            if (profileStart < 0.0 || profileEnd < 1.0)
+                hasProfileCut = true;
+
             Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, true);
 
             if (initialProfileRot != 0.0f)
@@ -927,9 +931,16 @@ namespace PrimMesher
 
                 int numVerts = newLayer.coords.Count;
                 Face newFace = new Face();
+
                 if (step > 0)
                 {
-                    for (int i = coordsLen; i < this.coords.Count - 1; i++)
+                    int startVert = coordsLen + 1;
+                    int endVert = this.coords.Count - 1;
+
+                    if (hasProfileCut || hollow > 0.0f)
+                        startVert--;
+
+                    for (int i = startVert; i < endVert; i++)
                     {
                         newFace.v1 = i;
                         newFace.v2 = i - numVerts;
@@ -941,15 +952,19 @@ namespace PrimMesher
                         this.faces.Add(newFace);
                     }
 
-                    newFace.v1 = coordsLen - 1;
-                    newFace.v2 = coordsLen - numVerts;
-                    newFace.v3 = coordsLen;
-                    this.faces.Add(newFace);
+                    if (hasProfileCut)
+                    {
+                        newFace.v1 = coordsLen - 1;
+                        newFace.v2 = coordsLen - numVerts;
+                        newFace.v3 = coordsLen;
+                        this.faces.Add(newFace);
 
-                    newFace.v1 = coordsLen + numVerts - 1;
-                    newFace.v2 = coordsLen - 1;
-                    newFace.v3 = coordsLen;
-                    this.faces.Add(newFace);
+                        newFace.v1 = coordsLen + numVerts - 1;
+                        newFace.v2 = coordsLen - 1;
+                        newFace.v3 = coordsLen;
+                        this.faces.Add(newFace);
+                    }
+
                 }
 
                 // calc the step for the next iteration of the loop
@@ -1173,7 +1188,7 @@ namespace PrimMesher
 
         public Coord SurfaceNormal(int faceIndex)
         {
-            //int numFaces = faces.Count;
+            int numFaces = faces.Count;
             if (faceIndex < 0 || faceIndex >= faces.Count)
                 return new Coord(0.0f, 0.0f, 0.0f);
 
