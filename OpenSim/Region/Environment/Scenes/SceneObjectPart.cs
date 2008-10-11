@@ -551,15 +551,18 @@ namespace OpenSim.Region.Environment.Scenes
                 //}
                 //m_log.Info("[PART]: OFFSET:" + m_offsetPosition.ToString());
 
-                if (_parentID != 0)
+                if (ParentGroup != null && ParentGroup.RootPart != null)
                 {
-                    Vector3 resultingposition = GetWorldPosition();
-                    PhysActor.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
-                    Quaternion resultingrot = GetWorldRotation();
-                    PhysActor.Orientation = resultingrot;
+                    if (_parentID != 0)
+                    {
+                        Vector3 resultingposition = GetWorldPosition();
+                        PhysActor.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
+                        Quaternion resultingrot = GetWorldRotation();
+                        PhysActor.Orientation = resultingrot;
 
-                    // Tell the physics engines that this prim changed.
-                    m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                        // Tell the physics engines that this prim changed.
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                    }
                 }
             }
         }
