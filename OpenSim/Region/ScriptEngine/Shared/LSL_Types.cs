@@ -1621,6 +1621,16 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return i;
             }
 
+            public static LSLInteger operator << (LSLInteger i, int s)
+            {
+                return i.value << s;
+            }
+
+            public static LSLInteger operator >> (LSLInteger i, int s)
+            {
+                return i.value >> s;
+            }
+
             static public implicit operator System.Double(LSLInteger i)
             {
                 return (double)i.value;
