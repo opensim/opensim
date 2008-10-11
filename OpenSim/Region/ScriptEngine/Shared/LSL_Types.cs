@@ -1346,6 +1346,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return s1.m_string != s2;
             }
 
+            public static LSLString operator +(LSLString s1, LSLString s2)
+            {
+                return new LSLString(s1.m_string + s2.m_string);
+            }
+
             public static explicit operator double(LSLString s)
             {
                 return Convert.ToDouble(s.m_string);
