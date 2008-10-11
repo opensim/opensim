@@ -1724,10 +1724,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 part.UpdateOffSet(new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z));
             }
-            else
+            else if (part.ParentGroup.RootPart == part)
             {
                 SceneObjectGroup parent = part.ParentGroup;
                 parent.UpdateGroupPosition(new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z));
+            }
+            else
+            {
+                part.OffsetPosition = new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z);
+                SceneObjectGroup parent = part.ParentGroup;
+                parent.HasGroupChanged = true;
+                parent.ScheduleGroupForTerseUpdate();
             }
         }
 
