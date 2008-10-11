@@ -239,7 +239,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override UUID UUID
         {
-            get { return m_rootPart.UUID; }
+            get {
+                if (m_rootPart == null)
+                {
+                    m_log.Error("Got a null rootpart while requesting UUID. Called from: ", new Exception());
+                    return UUID.Zero;
+                }
+                else return m_rootPart.UUID;
+            }
             set { m_rootPart.UUID = value; }
         }
 
