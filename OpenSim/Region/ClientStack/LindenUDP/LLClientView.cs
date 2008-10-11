@@ -263,6 +263,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ObjectOwner handlerObjectOwner = null;
 
         private DirPlacesQuery handlerDirPlacesQuery = null;
+        private DirFindQuery handlerDirFindQuery = null;
+        private DirLandQuery handlerDirLandQuery = null;
+        private DirPopularQuery handlerDirPopularQuery = null;
+        private DirClassifiedQuery handlerDirClassifiedQuery = null;
 
         private MapItemRequest handlerMapItemRequest = null;
 
@@ -993,6 +997,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ObjectOwner OnObjectOwner;
 
         public event DirPlacesQuery OnDirPlacesQuery;
+        public event DirFindQuery OnDirFindQuery;
+        public event DirLandQuery OnDirLandQuery;
+        public event DirPopularQuery OnDirPopularQuery;
+        public event DirClassifiedQuery OnDirClassifiedQuery;
 
         public event MapItemRequest OnMapItemRequest;
 
@@ -6346,6 +6354,58 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 dirPlacesQueryPacket.QueryData.QueryStart);
                         }
                         break;
+                    case PacketType.DirFindQuery:
+                        DirFindQueryPacket dirFindQueryPacket = (DirFindQueryPacket)Pack;
+                        handlerDirFindQuery = OnDirFindQuery;
+                        if (handlerDirFindQuery != null)
+                        {
+                            handlerDirFindQuery(this,
+                                    dirFindQueryPacket.QueryData.QueryID,
+                                    Utils.BytesToString(
+                                        dirFindQueryPacket.QueryData.QueryText),
+                                    dirFindQueryPacket.QueryData.QueryFlags,
+                                    dirFindQueryPacket.QueryData.QueryStart);
+                        }
+                        break;
+                    case PacketType.DirLandQuery:
+                        DirLandQueryPacket dirLandQueryPacket = (DirLandQueryPacket)Pack;
+                        handlerDirLandQuery = OnDirLandQuery;
+                        if (handlerDirLandQuery != null)
+                        {
+                            handlerDirLandQuery(this,
+                                    dirLandQueryPacket.QueryData.QueryID,
+                                    dirLandQueryPacket.QueryData.QueryFlags,
+                                    dirLandQueryPacket.QueryData.SearchType,
+                                    dirLandQueryPacket.QueryData.Price,
+                                    dirLandQueryPacket.QueryData.Area,
+                                    dirLandQueryPacket.QueryData.QueryStart);
+                        }
+                        break;
+                    case PacketType.DirPopularQuery:
+                        DirPopularQueryPacket dirPopularQueryPacket = (DirPopularQueryPacket)Pack;
+                        handlerDirPopularQuery = OnDirPopularQuery;
+                        if (handlerDirPopularQuery != null)
+                        {
+                            handlerDirPopularQuery(this,
+                                    dirPopularQueryPacket.QueryData.QueryID,
+                                    dirPopularQueryPacket.QueryData.QueryFlags);
+                        }
+                        break;
+                    case PacketType.DirClassifiedQuery:
+                        DirClassifiedQueryPacket dirClassifiedQueryPacket = (DirClassifiedQueryPacket)Pack;
+                        handlerDirClassifiedQuery = OnDirClassifiedQuery;
+                        if (handlerDirClassifiedQuery != null)
+                        {
+                            handlerDirClassifiedQuery(this,
+                                dirClassifiedQueryPacket.QueryData.QueryID,
+                                Utils.BytesToString(
+                                    dirClassifiedQueryPacket.QueryData.QueryText),
+                                dirClassifiedQueryPacket.QueryData.QueryFlags,
+                                dirClassifiedQueryPacket.QueryData.Category,
+                                dirClassifiedQueryPacket.QueryData.QueryStart);
+                        }
+                        break;
+                        
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
                         break;
@@ -6834,6 +6894,185 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
+
+        public void SendDirPeopleReply(UUID queryID, DirPeopleReplyData[] data)
+        {
+            DirPeopleReplyPacket packet = (DirPeopleReplyPacket)PacketPool.Instance.GetPacket(PacketType.DirPeopleReply);
+
+            packet.AgentData = new DirPeopleReplyPacket.AgentDataBlock();
+            packet.AgentData.AgentID = AgentId;
+
+            packet.QueryData = new DirPeopleReplyPacket.QueryDataBlock();
+            packet.QueryData.QueryID = queryID;
+
+            packet.QueryReplies = new DirPeopleReplyPacket.QueryRepliesBlock[
+                    data.Length];
+
+            int i = 0;
+            foreach (DirPeopleReplyData d in data)
+            {
+                packet.QueryReplies[i] = new DirPeopleReplyPacket.QueryRepliesBlock();
+                packet.QueryReplies[i].AgentID = d.agentID;
+                packet.QueryReplies[i].FirstName =
+                        Utils.StringToBytes(d.firstName);
+                packet.QueryReplies[i].LastName =
+                        Utils.StringToBytes(d.lastName);
+                packet.QueryReplies[i].Group =
+                        Utils.StringToBytes(d.group);
+                packet.QueryReplies[i].Online = d.online;
+                packet.QueryReplies[i].Reputation = d.reputation;
+                i++;
+            }
+
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        public void SendDirEventsReply(UUID queryID, DirEventsReplyData[] data)
+        {
+            DirEventsReplyPacket packet = (DirEventsReplyPacket)PacketPool.Instance.GetPacket(PacketType.DirEventsReply);
+
+            packet.AgentData = new DirEventsReplyPacket.AgentDataBlock();
+            packet.AgentData.AgentID = AgentId;
+
+            packet.QueryData = new DirEventsReplyPacket.QueryDataBlock();
+            packet.QueryData.QueryID = queryID;
+
+            packet.QueryReplies = new DirEventsReplyPacket.QueryRepliesBlock[
+                    data.Length];
+
+            int i = 0;
+            foreach (DirEventsReplyData d in data)
+            {
+                packet.QueryReplies[i] = new DirEventsReplyPacket.QueryRepliesBlock();
+                packet.QueryReplies[i].OwnerID = d.ownerID;
+                packet.QueryReplies[i].Name =
+                        Utils.StringToBytes(d.name);
+                packet.QueryReplies[i].EventID = d.eventID;
+                packet.QueryReplies[i].Date =
+                        Utils.StringToBytes(d.date);
+                packet.QueryReplies[i].UnixTime = d.unixTime;
+                packet.QueryReplies[i].EventFlags = d.eventFlags;
+                i++;
+            }
+
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        public void SendDirGroupsReply(UUID queryID, DirGroupsReplyData[] data)
+        {
+            DirGroupsReplyPacket packet = (DirGroupsReplyPacket)PacketPool.Instance.GetPacket(PacketType.DirGroupsReply);
+
+            packet.AgentData = new DirGroupsReplyPacket.AgentDataBlock();
+            packet.AgentData.AgentID = AgentId;
+
+            packet.QueryData = new DirGroupsReplyPacket.QueryDataBlock();
+            packet.QueryData.QueryID = queryID;
+
+            packet.QueryReplies = new DirGroupsReplyPacket.QueryRepliesBlock[
+                    data.Length];
+
+            int i = 0;
+            foreach (DirGroupsReplyData d in data)
+            {
+                packet.QueryReplies[i] = new DirGroupsReplyPacket.QueryRepliesBlock();
+                packet.QueryReplies[i].GroupID = d.groupID;
+                packet.QueryReplies[i].GroupName =
+                        Utils.StringToBytes(d.groupName);
+                packet.QueryReplies[i].Members = d.members;
+                packet.QueryReplies[i].SearchOrder = d.searchOrder;
+                i++;
+            }
+
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        public void SendDirClassifiedReply(UUID queryID, DirClassifiedReplyData[] data)
+        {
+            DirClassifiedReplyPacket packet = (DirClassifiedReplyPacket)PacketPool.Instance.GetPacket(PacketType.DirClassifiedReply);
+
+            packet.AgentData = new DirClassifiedReplyPacket.AgentDataBlock();
+            packet.AgentData.AgentID = AgentId;
+
+            packet.QueryData = new DirClassifiedReplyPacket.QueryDataBlock();
+            packet.QueryData.QueryID = queryID;
+
+            packet.QueryReplies = new DirClassifiedReplyPacket.QueryRepliesBlock[
+                    data.Length];
+
+            int i = 0;
+            foreach (DirClassifiedReplyData d in data)
+            {
+                packet.QueryReplies[i] = new DirClassifiedReplyPacket.QueryRepliesBlock();
+                packet.QueryReplies[i].ClassifiedID = d.classifiedID;
+                packet.QueryReplies[i].Name =
+                        Utils.StringToBytes(d.name);
+                packet.QueryReplies[i].ClassifiedFlags = d.classifiedFlags;
+                packet.QueryReplies[i].CreationDate = d.creationDate;
+                packet.QueryReplies[i].ExpirationDate = d.expirationDate;
+                packet.QueryReplies[i].PriceForListing = d.price;
+                i++;
+            }
+
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        public void SendDirLandReply(UUID queryID, DirLandReplyData[] data)
+        {
+            DirLandReplyPacket packet = (DirLandReplyPacket)PacketPool.Instance.GetPacket(PacketType.DirLandReply);
+
+            packet.AgentData = new DirLandReplyPacket.AgentDataBlock();
+            packet.AgentData.AgentID = AgentId;
+
+            packet.QueryData = new DirLandReplyPacket.QueryDataBlock();
+            packet.QueryData.QueryID = queryID;
+
+            packet.QueryReplies = new DirLandReplyPacket.QueryRepliesBlock[
+                    data.Length];
+
+            int i = 0;
+            foreach (DirLandReplyData d in data)
+            {
+                packet.QueryReplies[i] = new DirLandReplyPacket.QueryRepliesBlock();
+                packet.QueryReplies[i].ParcelID = d.parcelID;
+                packet.QueryReplies[i].Name =
+                        Utils.StringToBytes(d.name);
+                packet.QueryReplies[i].Auction = d.auction;
+                packet.QueryReplies[i].ForSale = d.forSale;
+                packet.QueryReplies[i].SalePrice = d.salePrice;
+                packet.QueryReplies[i].ActualArea = d.actualArea;
+                i++;
+            }
+
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        public void SendDirPopularReply(UUID queryID, DirPopularReplyData[] data)
+        {
+            DirPopularReplyPacket packet = (DirPopularReplyPacket)PacketPool.Instance.GetPacket(PacketType.DirPopularReply);
+
+            packet.AgentData = new DirPopularReplyPacket.AgentDataBlock();
+            packet.AgentData.AgentID = AgentId;
+
+            packet.QueryData = new DirPopularReplyPacket.QueryDataBlock();
+            packet.QueryData.QueryID = queryID;
+
+            packet.QueryReplies = new DirPopularReplyPacket.QueryRepliesBlock[
+                    data.Length];
+
+            int i = 0;
+            foreach (DirPopularReplyData d in data)
+            {
+                packet.QueryReplies[i] = new DirPopularReplyPacket.QueryRepliesBlock();
+                packet.QueryReplies[i].ParcelID = d.parcelID;
+                packet.QueryReplies[i].Name =
+                        Utils.StringToBytes(d.name);
+                packet.QueryReplies[i].Dwell = d.dwell;
+                i++;
+            }
+
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
         public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)
         {
             MapItemReplyPacket mirplk = new MapItemReplyPacket();

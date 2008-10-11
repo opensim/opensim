@@ -314,6 +314,10 @@ namespace OpenSim.Framework
     public delegate void ObjectOwner(IClientAPI remoteClient, UUID ownerID, UUID groupID, List<uint> localIDs);
 
     public delegate void DirPlacesQuery(IClientAPI remoteClient, UUID queryID, string queryText, int queryFlags, int category, string simName, int queryStart);
+    public delegate void DirFindQuery(IClientAPI remoteClient, UUID queryID, string queryText, uint queryFlags, int queryStart);
+    public delegate void DirLandQuery(IClientAPI remoteClient, UUID queryID, uint queryFlags, uint searchType, int price, int area, int queryStart);
+    public delegate void DirPopularQuery(IClientAPI remoteClient, UUID queryID, uint queryFlags);
+    public delegate void DirClassifiedQuery(IClientAPI remoteClient, UUID queryID, string queryText, uint queryFlags, uint category, int queryStart);
 
     public delegate void MapItemRequest(IClientAPI remoteClient, uint flags, uint EstateID, bool godlike, uint itemtype, ulong regionhandle);
 
@@ -325,6 +329,61 @@ namespace OpenSim.Framework
         public string name;
         public bool forSale;
         public bool auction;
+        public float dwell;
+    }
+
+    public struct DirPeopleReplyData
+    {
+        public UUID agentID;
+        public string firstName;
+        public string lastName;
+        public string group;
+        public bool online;
+        public int reputation;
+    }
+
+    public struct DirEventsReplyData
+    {
+        public UUID ownerID;
+        public string name;
+        public uint eventID;
+        public string date;
+        public uint unixTime;
+        public uint eventFlags;
+    }
+
+    public struct DirGroupsReplyData
+    {
+        public UUID groupID;
+        public string groupName;
+        public int members;
+        public float searchOrder;
+    }
+
+    public struct DirClassifiedReplyData
+    {
+        public UUID classifiedID;
+        public string name;
+        public byte classifiedFlags;
+        public uint creationDate;
+        public uint expirationDate;
+        public int price;
+    }
+
+    public struct DirLandReplyData
+    {
+        public UUID parcelID;
+        public string name;
+        public bool auction;
+        public bool forSale;
+        public int salePrice;
+        public int actualArea;
+    }
+
+    public struct DirPopularReplyData
+    {
+        public UUID parcelID;
+        public string name;
         public float dwell;
     }
 
@@ -793,6 +852,13 @@ namespace OpenSim.Framework
         void SendScriptTeleportRequest(string objName, string simName, Vector3 pos, Vector3 lookAt);
 
         void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data);
+        void SendDirPeopleReply(UUID queryID, DirPeopleReplyData[] data);
+        void SendDirEventsReply(UUID queryID, DirEventsReplyData[] data);
+        void SendDirGroupsReply(UUID queryID, DirGroupsReplyData[] data);
+        void SendDirClassifiedReply(UUID queryID, DirClassifiedReplyData[] data);
+        void SendDirLandReply(UUID queryID, DirLandReplyData[] data);
+        void SendDirPopularReply(UUID queryID, DirPopularReplyData[] data);
+
 
         void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags);
         

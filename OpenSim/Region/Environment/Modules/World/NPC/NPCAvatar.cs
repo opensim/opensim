@@ -325,6 +325,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event ObjectOwner OnObjectOwner;
 
         public event DirPlacesQuery OnDirPlacesQuery;
+        public event DirFindQuery OnDirFindQuery;
+        public event DirLandQuery OnDirLandQuery;
+        public event DirPopularQuery OnDirPopularQuery;
+        public event DirClassifiedQuery OnDirClassifiedQuery;
 
         public event MapItemRequest OnMapItemRequest;
 
@@ -896,6 +900,30 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
 
         public void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data)
+        {
+        }
+
+        public void SendDirPeopleReply(UUID queryID, DirPeopleReplyData[] data)
+        {
+        }
+
+        public void SendDirEventsReply(UUID queryID, DirEventsReplyData[] data)
+        {
+        }
+
+        public void SendDirGroupsReply(UUID queryID, DirGroupsReplyData[] data)
+        {
+        }
+
+        public void SendDirClassifiedReply(UUID queryID, DirClassifiedReplyData[] data)
+        {
+        }
+
+        public void SendDirLandReply(UUID queryID, DirLandReplyData[] data)
+        {
+        }
+
+        public void SendDirPopularReply(UUID queryID, DirPopularReplyData[] data)
         {
         }
 

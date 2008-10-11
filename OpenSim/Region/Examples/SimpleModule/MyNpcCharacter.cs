@@ -210,16 +210,21 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event SetScriptRunning OnSetScriptRunning;
         public event UpdateVector OnAutoPilotGo;
 
-       public event TerrainUnacked OnUnackedTerrain;
+        public event TerrainUnacked OnUnackedTerrain;
 
-       public event RegionHandleRequest OnRegionHandleRequest;
-       public event ParcelInfoRequest OnParcelInfoRequest;
+        public event RegionHandleRequest OnRegionHandleRequest;
+        public event ParcelInfoRequest OnParcelInfoRequest;
 
-       public event ActivateGesture OnActivateGesture;
-       public event DeactivateGesture OnDeactivateGesture;
-       public event ObjectOwner OnObjectOwner;
+        public event ActivateGesture OnActivateGesture;
+        public event DeactivateGesture OnDeactivateGesture;
+        public event ObjectOwner OnObjectOwner;
+ 
+        public event DirPlacesQuery OnDirPlacesQuery;
+        public event DirFindQuery OnDirFindQuery;
+        public event DirLandQuery OnDirLandQuery;
+        public event DirPopularQuery OnDirPopularQuery;
+        public event DirClassifiedQuery OnDirClassifiedQuery;
 
-       public event DirPlacesQuery OnDirPlacesQuery;
 
         public event MapItemRequest OnMapItemRequest;
 
@@ -893,6 +898,30 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data)
+        {
+        }
+
+        public void SendDirPeopleReply(UUID queryID, DirPeopleReplyData[] data)
+        {
+        }
+
+        public void SendDirEventsReply(UUID queryID, DirEventsReplyData[] data)
+        {
+        }
+
+        public void SendDirGroupsReply(UUID queryID, DirGroupsReplyData[] data)
+        {
+        }
+
+        public void SendDirClassifiedReply(UUID queryID, DirClassifiedReplyData[] data)
+        {
+        }
+
+        public void SendDirLandReply(UUID queryID, DirLandReplyData[] data)
+        {
+        }
+
+        public void SendDirPopularReply(UUID queryID, DirPopularReplyData[] data)
         {
         }
 
