@@ -160,14 +160,11 @@ namespace OpenSim
             
             IConfig startupConfig = configSource.Configs["Startup"];
 
-            string iniFileName = startupConfig.GetString("inifile", "OpenSim.ini");            
-            if (!iniFileName.StartsWith("/") && !iniFileName.StartsWith("\\"))
-                Application.iniFilePath = Path.Combine(Util.configDir(), iniFileName);
+            string iniFileName = startupConfig.GetString("inifile", "OpenSim.ini");
+            Application.iniFilePath = Path.Combine(Util.configDir(), iniFileName);
 
-            string masterFileName = startupConfig.GetString("inimaster", "");            
-            string masterfilePath = masterFileName;
-            if (!masterFileName.StartsWith("/") && !masterFileName.StartsWith("\\") && masterFileName != "")
-                masterfilePath = Path.Combine(Util.configDir(), masterfilePath);
+            string masterFileName = startupConfig.GetString("inimaster", "");
+            string masterfilePath = Path.Combine(Util.configDir(), masterFileName);
 
             m_config = new OpenSimConfigSource();
             m_config.Source = new IniConfigSource();
