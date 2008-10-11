@@ -35,7 +35,7 @@ using System.Reflection;
 using System.Globalization;
 using System.Xml;
 using OpenMetaverse;
-//using log4net;
+using log4net;
 using Nini.Config;
 using Amib.Threading;
 using OpenSim.Framework;
@@ -52,7 +52,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 {
     public class ScriptInstance : IScriptInstance
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private IScriptEngine m_Engine;
         private IScriptWorkItem m_CurrentResult = null;
@@ -843,7 +843,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 }
             }
 
-            return message;
+            m_log.ErrorFormat("Scripting exception:");
+            m_log.ErrorFormat(e.ToString());
+
+            return e.ToString();
         }
     }
 }
