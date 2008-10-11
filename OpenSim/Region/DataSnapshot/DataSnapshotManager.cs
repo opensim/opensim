@@ -55,6 +55,7 @@ namespace OpenSim.Region.DataSnapshot
         private List<String> m_disabledModules = new List<String>();
         private Dictionary<string, string> m_gridinfo = new Dictionary<string, string>();
         private string m_snapsDir = "DataSnapshot";
+        private string m_exposure_level = "minimum";
 
         //Lists of stuff we need
         private List<Scene> m_scenes = new List<Scene>();
@@ -82,6 +83,15 @@ namespace OpenSim.Region.DataSnapshot
 
         #endregion
 
+        #region Properties
+
+        public string ExposureLevel
+        {
+            get { return m_exposure_level; }
+        }
+
+        #endregion
+
         #region IRegionModule
 
         public void Close() {}
@@ -92,23 +102,24 @@ namespace OpenSim.Region.DataSnapshot
                 m_configLoaded = true;
                 m_log.Info("[DATASNAPSHOT]: Loading configuration");
                 //Read from the config for options
-                 lock (m_syncInit)
-                 {
-                     try
-                     {
-                         m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
-                         if (config.Configs["Startup"].GetBoolean("gridmode", true))
-                         {
-                             m_gridinfo.Add("gridserverURL", config.Configs["Network"].GetString("grid_server_url", "harbl"));
-                             m_gridinfo.Add("userserverURL", config.Configs["Network"].GetString("user_server_url", "harbl"));
-                             m_gridinfo.Add("assetserverURL", config.Configs["Network"].GetString("asset_server_url", "harbl"));
-                         }
-                         else
-                         {
-                             //Non gridmode stuff
-                         }
+                lock (m_syncInit)
+                {
+                    try
+                    {
+                        m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
+                        if (config.Configs["Startup"].GetBoolean("gridmode", true))
+                        {
+                            m_gridinfo.Add("gridserverURL", config.Configs["Network"].GetString("grid_server_url", "harbl"));
+                            m_gridinfo.Add("userserverURL", config.Configs["Network"].GetString("user_server_url", "harbl"));
+                            m_gridinfo.Add("assetserverURL", config.Configs["Network"].GetString("asset_server_url", "harbl"));
+                        }
+                        else
+                        {
+                            //Non gridmode stuff
+                        }
 
                         m_gridinfo.Add("Name", config.Configs["DataSnapshot"].GetString("gridname", "harbl"));
+                        m_exposure_level = config.Configs["DataSnapshot"].GetString("data_exposure", m_exposure_level);
                         m_period = config.Configs["DataSnapshot"].GetInt("default_snapshot_period", m_period);
                         m_maxStales = config.Configs["DataSnapshot"].GetInt("max_changes_before_update", m_maxStales);
                         m_snapsDir = config.Configs["DataSnapshot"].GetString("snapshot_cache_directory", m_snapsDir);
@@ -116,10 +127,13 @@ namespace OpenSim.Region.DataSnapshot
                         m_listener_port = config.Configs["Network"].GetString("http_listener_port", m_listener_port);
 
                         String[] annoying_string_array = config.Configs["DataSnapshot"].GetString("disable_modules", "").Split(".".ToCharArray());
-                        foreach (String bloody_wanker in annoying_string_array) {
+                        foreach (String bloody_wanker in annoying_string_array)
+                        {
                             m_disabledModules.Add(bloody_wanker);
                         }
-                    } catch (Exception) {
+                    }
+                    catch (Exception)
+                    {
                         m_log.Info("[DATASNAPSHOT]: Could not load configuration. DataSnapshot will be disabled.");
                         m_enabled = false;
                         return;
@@ -147,7 +161,7 @@ namespace OpenSim.Region.DataSnapshot
 
                     MakeEverythingStale();
 
-                    if (m_dataServices != "noservices")
+                    if (m_dataServices != "" &&  m_dataServices != "noservices")
                         NotifyDataServices(m_dataServices);
                 }
             }

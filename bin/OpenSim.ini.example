@@ -569,6 +569,10 @@ max_listens_per_script = 64
 ; Set index_sims to true to enable search engines to index your searchable data
 ; If false, no data will be exposed, DataSnapshot module will be off, and you can ignore the rest of these search-related configs
 index_sims = false
+; The variable data_exposure controls what the regions expose:
+;    minimum: exposes only things explicitly marked for search
+;    all: exposes everything
+data_exposure = minimum
 ; If search is on, change this to your grid name; will be ignored for standalones
 gridname = "OSGrid"
 ; Period between data snapshots, in seconds. 20 minutes, for starters, so that you see the initial changes fast.
@@ -576,9 +580,9 @@ gridname = "OSGrid"
 default_snapshot_period = 1200
 ; This will be created in bin, if it doesn't exist already. It will hold the data snapshots.
 snapshot_cache_directory = "DataSnapshot"
-; This semicolon-separated string serves to notify specific data services
-; about the existence of this sim.
-data_services="http://metaverseink.com/cgi-bin/register.py"
+; This semicolon-separated string serves to notify specific data services about the existence 
+; of this sim. Uncomment if you want to index your data with this and/or other search providers.
+;data_services="http://metaverseink.com/cgi-bin/register.py"
 
 
 [Economy]
