@@ -1543,6 +1543,11 @@ namespace OpenSim.Region.Environment.Scenes
             List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(regionID);
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
+                if (group.RootPart == null)
+                {
+                    m_log.ErrorFormat("[SCENE] Found a SceneObjectGroup with m_rootPart == null and {0} children",
+                                      group.Children == null ? 0 : group.Children.Count);
+                }
                 AddRestoredSceneObject(group, true, true);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.ObjectFlags &= ~(uint)PrimFlags.Scripted;
