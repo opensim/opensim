@@ -249,6 +249,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </returns>
         protected bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
+            if (sceneObject.RootPart == null)
+                return false;
+
             sceneObject.ApplyPhysics(m_parentScene.m_physicalPrim);
             sceneObject.ScheduleGroupForFullUpdate();
 
