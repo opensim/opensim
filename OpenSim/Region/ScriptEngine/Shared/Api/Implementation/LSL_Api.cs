@@ -7190,12 +7190,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             // according to the docs, this command only works if script owner and land owner are the same
-            UUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
-            if (landowner == UUID.Zero || landowner != m_host.ObjectOwner) return;
+            // lets add estate owners and gods, too, and use the generic permission check.
+            ILandObject landObject = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            if (!World.ExternalChecks.ExternalChecksCanEditParcel(m_host.ObjectOwner, landObject)) return;
 
             bool update = false; // send a ParcelMediaUpdate (and possibly change the land's media URL)? 
-            
-            LandData landData = World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+            LandData landData = landObject.landData;
             string url = landData.MediaURL;
             string texture = landData.MediaID.ToString();
             bool autoAlign = landData.MediaAutoScale != 0; 
