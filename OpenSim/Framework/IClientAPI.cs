@@ -613,6 +613,10 @@ namespace OpenSim.Framework
         event ObjectOwner OnObjectOwner;
 
         event DirPlacesQuery OnDirPlacesQuery;
+        event DirFindQuery OnDirFindQuery;
+        event DirLandQuery OnDirLandQuery;
+        event DirPopularQuery OnDirPopularQuery;
+        event DirClassifiedQuery OnDirClassifiedQuery;
 
         event MapItemRequest OnMapItemRequest;
 
