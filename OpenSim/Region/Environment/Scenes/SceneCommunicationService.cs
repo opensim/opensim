@@ -606,6 +606,9 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void RequestTeleportToLocation(ScenePresence avatar, ulong regionHandle, Vector3 position,
                                                       Vector3 lookAt, uint teleportFlags)
         {
+            if (!avatar.Scene.ExternalChecks.ExternalChecksCanTeleport(avatar.UUID))
+                return;
+
             bool destRegionUp = false;
 
             IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
