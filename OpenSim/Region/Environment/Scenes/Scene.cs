@@ -60,10 +60,11 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void SynchronizeSceneHandler(Scene scene);
         public SynchronizeSceneHandler SynchronizeScene = null;
         public int splitID = 0;
+       
 
         #region Fields
 
-        protected Timer m_heartbeatTimer = new Timer();
+        
         protected Timer m_restartWaitTimer = new Timer();
 
         protected SimStatsReporter m_statsReporter;
@@ -83,7 +84,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private int m_timePhase = 24;
 
-        private readonly Mutex updateLock;
+        
 
         /// <summary>
         /// Are we applying physics to any of the prims in this scene?
@@ -169,6 +170,8 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_scripts_enabled = true;
         private string m_defaultScriptEngine;
         private int m_LastLogin = 0;
+        private Thread HeartbeatThread;
+        private volatile bool shuttingdown = false;
 
         #endregion
 
@@ -259,7 +262,7 @@ namespace OpenSim.Region.Environment.Scenes
                      bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
         {
             m_config = config;
-            updateLock = new Mutex(false);
+            
             m_moduleLoader = moduleLoader;
             m_authenticateHandler = authen;
             CommsManager = commsMan;
@@ -631,7 +634,8 @@ namespace OpenSim.Region.Environment.Scenes
             // Stop all client threads.
             ForEachScenePresence(delegate(ScenePresence avatar) { avatar.ControllingClient.Close(true); });
             // Stop updating the scene objects and agents.
-            m_heartbeatTimer.Close();
+            //m_heartbeatTimer.Close();
+            shuttingdown = true;
             // close the inner scene
             m_innerScene.Close();
             // De-register with region communications (events cleanup)
@@ -656,10 +660,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void StartTimer()
         {
-            m_log.Debug("[SCENE]: Starting timer");
-            m_heartbeatTimer.Enabled = true;
-            m_heartbeatTimer.Interval = (int)(m_timespan * 1000);
-            m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
+            //m_log.Debug("[SCENE]: Starting timer");
+            //m_heartbeatTimer.Enabled = true;
+            //m_heartbeatTimer.Interval = (int)(m_timespan * 1000);
+            //m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
+            HeartbeatThread = new Thread(new ParameterizedThreadStart(Heartbeat));
+            HeartbeatThread.SetApartmentState(ApartmentState.MTA);
+            HeartbeatThread.Name = "Heartbeat";
+            HeartbeatThread.Priority = ThreadPriority.AboveNormal;
+            ThreadTracker.Add(HeartbeatThread);
+            HeartbeatThread.Start();
         }
 
         /// <summary>
@@ -685,7 +695,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Heartbeat(object sender, EventArgs e)
+        private void Heartbeat(object sender)
         {
             Update();
         }
@@ -695,146 +705,157 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
-            TimeSpan SinceLastFrame = DateTime.Now - m_lastupdate;
-            // Aquire a lock so only one update call happens at once
-            updateLock.WaitOne();
-            float physicsFPS = 0;
-            //m_log.Info("sadfadf" + m_neighbours.Count.ToString());
-            int agentsInScene = m_innerScene.GetRootAgentCount() + m_innerScene.GetChildAgentCount();
-
-            if (agentsInScene > 21)
+            int maintc = 0;
+            while (!shuttingdown)
             {
-                if (m_update_entities == 1)
+                maintc = System.Environment.TickCount;
+
+                TimeSpan SinceLastFrame = DateTime.Now - m_lastupdate;
+                // Aquire a lock so only one update call happens at once
+                //updateLock.WaitOne();
+                float physicsFPS = 0;
+                //m_log.Info("sadfadf" + m_neighbours.Count.ToString());
+                int agentsInScene = m_innerScene.GetRootAgentCount() + m_innerScene.GetChildAgentCount();
+
+                if (agentsInScene > 21)
                 {
-                    m_update_entities = 5;
-                    m_statsReporter.SetUpdateMS(6000);
-                }
-            }
-            else
-            {
-                if (m_update_entities == 5)
-                {
-                    m_update_entities = 1;
-                    m_statsReporter.SetUpdateMS(3000);
-                }
-            }
-
-            frameMS = System.Environment.TickCount;
-            try
-            {
-                // Increment the frame counter
-                m_frame++;
-
-                // Loop it
-                if (m_frame == Int32.MaxValue)
-                    m_frame = 0;
-
-                physicsMS2 = System.Environment.TickCount;
-                if ((m_frame % m_update_physics == 0) && m_physics_enabled)
-                    m_innerScene.UpdatePreparePhysics();
-                physicsMS2 = System.Environment.TickCount - physicsMS2;
-
-                if (m_frame % m_update_entitymovement == 0)
-                    m_innerScene.UpdateEntityMovement();
-
-                physicsMS = System.Environment.TickCount;
-                if ((m_frame % m_update_physics == 0) && m_physics_enabled)
-                    physicsFPS = m_innerScene.UpdatePhysics(
-                        Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
-                        );
-                if (m_frame % m_update_physics == 0 && SynchronizeScene != null)
-                    SynchronizeScene(this);
-
-                physicsMS = System.Environment.TickCount - physicsMS;
-                physicsMS += physicsMS2;
-
-                otherMS = System.Environment.TickCount;
-                // run through all entities looking for updates (slow)
-                if (m_frame % m_update_entities == 0)
-                    m_innerScene.UpdateEntities();
-
-                // run through entities that have scheduled themselves for
-                // updates looking for updates(faster)
-                if (m_frame % m_update_entitiesquick == 0)
-                    m_innerScene.ProcessUpdates();
-
-                // Run through scenepresences looking for updates
-                if (m_frame % m_update_presences == 0)
-                    m_innerScene.UpdatePresences();
-
-                // Delete temp-on-rez stuff
-                if (m_frame % m_update_backup == 0)
-                    CleanTempObjects();
-
-                if (Region_Status != RegionStatus.SlaveScene)
-                {
-                    if (m_frame % m_update_events == 0)
-                        UpdateEvents();
-
-                    if (m_frame % m_update_backup == 0)
+                    if (m_update_entities == 1)
                     {
-                        UpdateStorageBackup();
+                        m_update_entities = 5;
+                        m_statsReporter.SetUpdateMS(6000);
                     }
-
-                    if (m_frame % m_update_terrain == 0)
-                        UpdateTerrain();
-
-                    if (m_frame % m_update_land == 0)
-                        UpdateLand();
-                    otherMS = System.Environment.TickCount - otherMS;
-                    // if (m_frame%m_update_avatars == 0)
-                    //   UpdateInWorldTime();
-                    m_statsReporter.AddPhysicsFPS(physicsFPS);
-                    m_statsReporter.AddTimeDilation(m_timedilation);
-                    m_statsReporter.AddFPS(1);
-                    m_statsReporter.AddInPackets(0);
-                    m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());
-                    m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
-                    m_statsReporter.SetObjects(m_innerScene.GetTotalObjectsCount());
-                    m_statsReporter.SetActiveObjects(m_innerScene.GetActiveObjectsCount());
-                    frameMS = System.Environment.TickCount - frameMS;
-                    m_statsReporter.addFrameMS(frameMS);
-                    m_statsReporter.addPhysicsMS(physicsMS);
-                    m_statsReporter.addOtherMS(otherMS);
-                    m_statsReporter.SetActiveScripts(m_innerScene.GetActiveScriptsCount());
-                    m_statsReporter.addScriptLines(m_innerScene.GetScriptLPS());
                 }
-            }
-            catch (NotImplementedException)
-            {
-                throw;
-            }
-            catch (AccessViolationException e)
-            {
-                m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-            }
-            catch (NullReferenceException e)
-            {
-                m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-            }
-            catch (InvalidOperationException e)
-            {
-                m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-            }
-            finally
-            {
-                updateLock.ReleaseMutex();
-                // Get actual time dilation
-                float tmpval = (m_timespan / (float)SinceLastFrame.TotalSeconds);
-
-                // If actual time dilation is greater then one, we're catching up, so subtract
-                // the amount that's greater then 1 from the time dilation
-                if (tmpval > 1.0)
+                else
                 {
-                    tmpval = tmpval - (tmpval - 1.0f);
+                    if (m_update_entities == 5)
+                    {
+                        m_update_entities = 1;
+                        m_statsReporter.SetUpdateMS(3000);
+                    }
                 }
-                m_timedilation = tmpval;
 
-                m_lastupdate = DateTime.Now;
+                frameMS = System.Environment.TickCount;
+                try
+                {
+                    // Increment the frame counter
+                    m_frame++;
+
+                    // Loop it
+                    if (m_frame == Int32.MaxValue)
+                        m_frame = 0;
+
+                    physicsMS2 = System.Environment.TickCount;
+                    if ((m_frame % m_update_physics == 0) && m_physics_enabled)
+                        m_innerScene.UpdatePreparePhysics();
+                    physicsMS2 = System.Environment.TickCount - physicsMS2;
+
+                    if (m_frame % m_update_entitymovement == 0)
+                        m_innerScene.UpdateEntityMovement();
+
+                    physicsMS = System.Environment.TickCount;
+                    if ((m_frame % m_update_physics == 0) && m_physics_enabled)
+                        physicsFPS = m_innerScene.UpdatePhysics(
+                            Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
+                            );
+                    if (m_frame % m_update_physics == 0 && SynchronizeScene != null)
+                        SynchronizeScene(this);
+
+                    physicsMS = System.Environment.TickCount - physicsMS;
+                    physicsMS += physicsMS2;
+
+                    otherMS = System.Environment.TickCount;
+                    // run through all entities looking for updates (slow)
+                    if (m_frame % m_update_entities == 0)
+                        m_innerScene.UpdateEntities();
+
+                    // run through entities that have scheduled themselves for
+                    // updates looking for updates(faster)
+                    if (m_frame % m_update_entitiesquick == 0)
+                        m_innerScene.ProcessUpdates();
+
+                    // Run through scenepresences looking for updates
+                    if (m_frame % m_update_presences == 0)
+                        m_innerScene.UpdatePresences();
+
+                    // Delete temp-on-rez stuff
+                    if (m_frame % m_update_backup == 0)
+                        CleanTempObjects();
+
+                    if (Region_Status != RegionStatus.SlaveScene)
+                    {
+                        if (m_frame % m_update_events == 0)
+                            UpdateEvents();
+
+                        if (m_frame % m_update_backup == 0)
+                        {
+                            UpdateStorageBackup();
+                        }
+
+                        if (m_frame % m_update_terrain == 0)
+                            UpdateTerrain();
+
+                        if (m_frame % m_update_land == 0)
+                            UpdateLand();
+                        otherMS = System.Environment.TickCount - otherMS;
+                        // if (m_frame%m_update_avatars == 0)
+                        //   UpdateInWorldTime();
+                        m_statsReporter.AddPhysicsFPS(physicsFPS);
+                        m_statsReporter.AddTimeDilation(m_timedilation);
+                        m_statsReporter.AddFPS(1);
+                        m_statsReporter.AddInPackets(0);
+                        m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());
+                        m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
+                        m_statsReporter.SetObjects(m_innerScene.GetTotalObjectsCount());
+                        m_statsReporter.SetActiveObjects(m_innerScene.GetActiveObjectsCount());
+                        frameMS = System.Environment.TickCount - frameMS;
+                        m_statsReporter.addFrameMS(frameMS);
+                        m_statsReporter.addPhysicsMS(physicsMS);
+                        m_statsReporter.addOtherMS(otherMS);
+                        m_statsReporter.SetActiveScripts(m_innerScene.GetActiveScriptsCount());
+                        m_statsReporter.addScriptLines(m_innerScene.GetScriptLPS());
+                    }
+                }
+                catch (NotImplementedException)
+                {
+                    throw;
+                }
+                catch (AccessViolationException e)
+                {
+                    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                }
+                catch (NullReferenceException e)
+                {
+                    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                }
+                catch (InvalidOperationException e)
+                {
+                    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                }
+                finally
+                {
+                    //updateLock.ReleaseMutex();
+                    // Get actual time dilation
+                    float tmpval = (m_timespan / (float)SinceLastFrame.TotalSeconds);
+
+                    // If actual time dilation is greater then one, we're catching up, so subtract
+                    // the amount that's greater then 1 from the time dilation
+                    if (tmpval > 1.0)
+                    {
+                        tmpval = tmpval - (tmpval - 1.0f);
+                    }
+                    m_timedilation = tmpval;
+
+                    m_lastupdate = DateTime.Now;
+                }
+                maintc = System.Environment.TickCount - maintc;
+                maintc = (int)(m_timespan * 1000) - maintc;
+                
+                if ((maintc < (m_timespan * 1000)) && maintc > 0)
+                    Thread.Sleep(maintc);
             }
         }
 
