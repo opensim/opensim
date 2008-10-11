@@ -222,10 +222,25 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             else {
                 avatar = m_scene.GetScenePresence(id);
                 if (avatar != null)
+                {
                     position = avatar.AbsolutePosition;
+                }
                 else
-                   // bail out early, given source could not be found
-                   return;
+                {
+                    // This is potentially problematic, though I don't
+                    // see how to take advantage of it, basically a request
+                    // to send a message to the region does not have to come
+                    // from something in the region (eg a plugin can send it)
+                    if (type == ChatTypeEnum.Region)
+                    {
+                        position = new Vector3(128, 128, 20);
+                    }
+                    else
+                    {
+                        // bail out early, given source could not be found
+                        return;
+                    }
+                }
             }
 
             // Determine which listen event filters match the given set of arguments, this results

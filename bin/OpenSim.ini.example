@@ -389,7 +389,20 @@ flush-on-error=true
 ;nick    = OpenSimBotNameProbablyMakeThisShorter
 ;channel = #the_irc_channel_you_want_to_connect_to
 ;port = 6667
+;; channel to listen for configuration updates
+;commandchannel = 2777
+;; 0 for no control messages, 2 for all control messages
+;verbosity = 1
+;; bridging connections
+;; outchannel -- channel to send messages out to the IRC bridge
+;; inchannel -- channel to receive message from the IRC bridge
+;; access_password -- simple security device
+;inchannel = 2226
+;outchannel = 2225
+;access_password = foobar
 ;fallback_region = name of "default" region
+;;useworldcomm = true will send IRC chat over the inchannel, false (default) will broadcast to all agents in the region
+;useworldcomm = true
 ;MSGformat fields : 0=botnick, 1=user, 2=region, 3=message
 ; must start with "PRIVMSG {0} : " or irc server will get upset
 ;for <bot>:<user in region> :<message>

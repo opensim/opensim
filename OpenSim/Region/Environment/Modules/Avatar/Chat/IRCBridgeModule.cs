@@ -61,6 +61,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         internal object m_syncLogout = new object();
 
         private IConfig m_config;
+
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -173,13 +174,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void OnSimChat(Object sender, OSChatMessage e)
         {
+            m_log.DebugFormat("[IRC] heard on channel {0}: {1}", e.Channel.ToString(), e.Message);
+
             // We only want to relay stuff on channel 0
             if (e.Channel == m_irc.m_commandChannel)
             {
                 string[] messages = e.Message.Split(' ');
                 string command = messages[0].ToLower();
-
-                m_log.Debug("IRC: Got command on channel: " + e.Channel.ToString() + " message: " + e.Message);
 
                 try
                 {
@@ -206,6 +207,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                         case "server":
                             m_irc.m_server = messages[1];
                             break;
+                        case "verbosity":
+                            m_irc.m_verbosity = Convert.ToInt32(messages[1]);
+                            break;
+                        case "in-channel":
+                            m_irc.m_messageOutChannel = Convert.ToInt32(messages[1]);
+                            break;
+                        case "out-channel":
+                            m_irc.m_messageInChannel = Convert.ToInt32(messages[1]);
+                            break;
 
                         default:
                             m_irc.Send(e.Message);
@@ -215,7 +225,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 catch
                 { }
             }
-            if (e.Channel != 0) return;
+
+            if (e.Channel != m_irc.m_messageOutChannel) return;
             if (e.Message.Length == 0) return;
 
             // not interested in our own babblings
@@ -269,7 +280,27 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             // this is to keep objects from talking to IRC
             if (m_irc.Connected && (avatar != null))
-                m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
+                 m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
+            
+            // Handle messages from objects
+            if (m_irc.Connected && (null == avatar))
+             {
+                 //Message came from an object
+                 char[] splits = { ',' };
+                 string[] tokens = e.Message.Split(splits,3); // This is certainly wrong
+                 if (tokens.Length == 3)
+                 {
+                     if (tokens[0] == m_irc.m_accessPassword) // This is my really simple check
+                     {
+                         m_log.DebugFormat("[IRC] message from object {0}, {1}", tokens[0], tokens[1]);
+                         m_irc.PrivMsg(tokens[1], scene.RegionInfo.RegionName, tokens[2]);
+                     }
+                     else
+                     {
+                         m_log.WarnFormat("[IRC] prim security key mismatch <{0}> not <{1}>", tokens[0], m_irc.m_accessPassword);
+                     }
+                 }
+             }
         }
 
         #endregion
@@ -284,7 +315,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                 if (client.Name != m_last_new_user)
                 {
-                    if ((m_irc.Enabled) && (m_irc.Connected))
+                    if ((m_irc.Enabled) && (m_irc.Connected) && (m_irc.m_verbosity >= 1)) 
                     {
                         m_log.DebugFormat("[IRC] {0} logging on", client.Name);
                         m_irc.PrivMsg(m_irc.Nick, "Sim",
@@ -303,7 +334,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
             try
             {
-                if ((m_irc.Enabled) && (m_irc.Connected))
+                if ((m_irc.Enabled) && (m_irc.Connected) && (m_irc.m_verbosity >= 2))
                 {
                     string regionName = presence.Scene.RegionInfo.RegionName;
                     string clientName = String.Format("{0} {1}", presence.Firstname, presence.Lastname);
@@ -320,7 +351,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
             try
             {
-                if ((m_irc.Enabled) && (m_irc.Connected))
+                if ((m_irc.Enabled) && (m_irc.Connected) && (m_irc.m_verbosity >= 2)) 
                 {
                     string regionName = presence.Scene.RegionInfo.RegionName;
                     string clientName = String.Format("{0} {1}", presence.Firstname, presence.Lastname);
@@ -340,16 +371,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             {
                 try
                 {
-                    if ((m_irc.Enabled) && (m_irc.Connected))
+                    if ((m_irc.Enabled) && (m_irc.Connected) && (m_irc.m_verbosity >= 1)) 
                     {
                         // handles simple case. May not work for hundred connecting in per second.
                         // and the NewClients calles getting interleved
                         // but filters out multiple reports
                         if (client.Name != m_last_leaving_user)
                         {
-                            Console.WriteLine("Avatar was seen logging out.");
-                            //Console.ReadLine();
-                            Console.WriteLine();
+                            // Console.WriteLine("Avatar was seen logging out.");
+                            // Console.ReadLine();
+                            // Console.WriteLine();
                             m_last_leaving_user = client.Name;
                             m_irc.PrivMsg(m_irc.Nick, "Sim", String.Format("notices {0} logging out", client.Name));
                             m_log.InfoFormat("[IRC]: {0} logging out", client.Name);
@@ -412,6 +443,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         private bool m_connected = false;
         private bool m_enabled = false;
         public int m_commandChannel = -1;
+
+        public int m_verbosity = 1;
+        public int m_messageOutChannel = 0; // Will be the message channel we listen to
+        public int m_messageInChannel = 0; // Will be the message channel where we forward msgs
+        public string m_accessPassword = "badkitty";
+        public bool m_useWorldComm = false; // true if we want chat to be localized, false if we want to broadcast to the entire region
+
         public List<Scene> m_last_scenes = null;
         public string m_nick = null;
         public uint m_port = 6668;
@@ -469,6 +507,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 m_user = config.Configs["IRC"].GetString("username", m_user);
                 m_privmsgformat = config.Configs["IRC"].GetString("msgformat", m_privmsgformat);
                 m_commandChannel = config.Configs["IRC"].GetInt("commandchannel", m_commandChannel);
+
+                m_verbosity = config.Configs["IRC"].GetInt("verbosity", m_verbosity);
+                m_messageOutChannel = config.Configs["IRC"].GetInt("outchannel", m_messageOutChannel);
+                m_messageInChannel = config.Configs["IRC"].GetInt("inchannel", m_messageInChannel);
+                m_accessPassword = config.Configs["IRC"].GetString("access_password",m_accessPassword);
+                m_useWorldComm = config.Configs["IRC"].GetBoolean("useworldcomm", m_useWorldComm);
+
                 if (m_server != null && m_nick != null && m_channel != null)
                 {
                     if (m_nrnick == true)
@@ -480,7 +525,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             }
             catch (Exception ex)
             {
-                m_log.Info("[IRC]: Incomplete IRC configuration, skipping IRC bridge configuration");
+                m_log.Error("[IRC]: Incomplete IRC configuration, skipping IRC bridge configuration");
                 m_log.DebugFormat("[IRC] Incomplete IRC configuration: {0}", ex.ToString());
             }
         }
@@ -515,11 +560,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     }
 
                     m_tcp = new TcpClient(m_server, (int)m_port);
-                    m_log.Info("[IRC]: Connecting...");
                     m_stream = m_tcp.GetStream();
-                    m_log.Info("[IRC]: Connected to " + m_server);
                     m_reader = new StreamReader(m_stream);
                     m_writer = new StreamWriter(m_stream);
+
+                    m_log.DebugFormat("[IRC]: Connected to {0}:{1}", m_server, m_port); 
 
                     pingSender = new Thread(new ThreadStart(PingRun));
                     pingSender.Name = "PingSenderThread";
@@ -547,6 +592,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     m_log.ErrorFormat("[IRC] cannot connect to {0}:{1}: {2}",
                                       m_server, m_port, e.Message);
                 }
+                m_log.Debug("[IRC] Connected");
                 return m_connected;
             }
         }
@@ -574,6 +620,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void PrivMsg(string from, string region, string msg)
         {
+            m_log.DebugFormat("[IRC] Sending message to IRC from {0}: {1}", from, msg);
+
             // One message to the IRC server
             try
             {
@@ -686,7 +734,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 {
                     while ((m_connected == true) && ((inputLine = m_reader.ReadLine()) != null))
                     {
-                        //Console.WriteLine("IRC: " + inputLine);
+                        m_log.Info("[IRC]: " + inputLine);
                         if (inputLine.Contains(m_channel))
                         {
                             Dictionary<string, string> data = ExtractMsg(inputLine);
@@ -696,7 +744,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                 OSChatMessage c = new OSChatMessage();
                                 c.Message = data["msg"];
                                 c.Type = ChatTypeEnum.Say;
-                                c.Channel = 0;
+                                c.Channel = m_messageInChannel; 
                                 c.Position = pos;
                                 c.From = data["nick"];
                                 c.Sender = null;
@@ -707,10 +755,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                 if ((1 == c.Message[0]) && c.Message.Substring(1).StartsWith("ACTION"))
                                     c.Message = String.Format("/me {0}", c.Message.Substring(8, c.Message.Length - 9));
 
+                                m_log.DebugFormat("[IRC] ListenerRun from: {0}, {1}", c.From, c.Message);
+
                                 foreach (Scene scene in m_scenes)
                                 {
-                                    c.Scene = scene;
-                                    scene.EventManager.TriggerOnChatBroadcast(this, c);
+                                    if (m_useWorldComm)
+                                    {
+                                        IWorldComm wComm = scene.RequestModuleInterface<IWorldComm>();
+                                        wComm.DeliverMessage(ChatTypeEnum.Region, m_messageInChannel, c.From, UUID.Zero, c.Message);
+                                    }
+                                    else
+                                    {
+                                        c.Scene = scene;
+                                        scene.EventManager.TriggerOnChatBroadcast(this, c);
+                                    }
                                 }
                             }
 
@@ -744,16 +802,24 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 OSChatMessage c = new OSChatMessage();
                 c.From = sender;
                 c.Message = String.Format(format, args);
-                c.Type = ChatTypeEnum.Say;
-                c.Channel = 0;
+                c.Type = ChatTypeEnum.Region; // ChatTypeEnum.Say;
+                c.Channel = m_messageInChannel;
                 c.Position = new Vector3(128, 128, 20);
                 c.Sender = null;
                 c.SenderUUID = UUID.Zero;
 
+                m_log.DebugFormat("[IRC] BroadcastSim from {0}: {1}", c.From, c.Message);
+
                 foreach (Scene m_scene in m_scenes)
                 {
                     c.Scene = m_scene;
-                    m_scene.EventManager.TriggerOnChatBroadcast(this, c);
+                    // m_scene.EventManager.TriggerOnChatBroadcast(this, c);
+                    // m_scene.EventManager.TriggerOnChatFromWorld(this, c);
+                    IWorldComm wComm = m_scene.RequestModuleInterface<IWorldComm>();
+                    wComm.DeliverMessage(ChatTypeEnum.Region, m_messageInChannel, sender, UUID.Zero, c.Message);
+                    //IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+                    //wComm.DeliverMessage(ChatTypeEnum.Region, channelID, m_host.Name, m_host.UUID, text);
+
                 }
             }
             catch (Exception ex) // IRC gate should not crash Sim
@@ -764,7 +830,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void ProcessIRCCommand(string command)
         {
-            //m_log.Info("[IRC]: ProcessIRCCommand:" + command);
+            m_log.Debug("[IRC]: ProcessIRCCommand:" + command);
 
             string[] commArgs = new string[command.Split(' ').Length];
             string c_server = m_server;
@@ -866,14 +932,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             if (IrcChannel.StartsWith(":"))
                 IrcChannel = IrcChannel.Substring(1);
             string IrcUser = commArgs[0].Split('!')[0];
-            BroadcastSim(IrcUser, "/me joins {0}", IrcChannel);
+            if (m_verbosity >= 1) 
+                BroadcastSim(IrcUser, "/me joins {0}", IrcChannel);
         }
 
         public void eventIrcPart(string[] commArgs)
         {
             string IrcChannel = commArgs[2];
             string IrcUser = commArgs[0].Split('!')[0];
-            BroadcastSim(IrcUser, "/me parts {0}", IrcChannel);
+            if (m_verbosity >= 2) 
+                BroadcastSim(IrcUser, "/me parts {0}", IrcChannel);
         }
 
         public void eventIrcMode(string[] commArgs)
@@ -894,7 +962,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
             string UserOldNick = commArgs[0].Split('!')[0];
             string UserNewNick = commArgs[2].Remove(0, 1);
-            BroadcastSim(UserOldNick, "/me is now known as {0}", UserNewNick);
+            if (m_verbosity >= 2) 
+                BroadcastSim(UserOldNick, "/me is now known as {0}", UserNewNick);
         }
 
         public void eventIrcKick(string[] commArgs)
@@ -907,7 +976,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             {
                 KickMessage += commArgs[i] + " ";
             }
-            BroadcastSim(UserKicker, "/me kicks kicks {0} off {1} saying \"{2}\"", UserKicked, IrcChannel, KickMessage);
+            if (m_verbosity >= 1) 
+                BroadcastSim(UserKicker, "/me kicks kicks {0} off {1} saying \"{2}\"", UserKicked, IrcChannel, KickMessage);
             if (UserKicked == m_nick)
             {
                 BroadcastSim(m_nick, "Hey, that was me!!!");
@@ -923,7 +993,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             {
                 QuitMessage += commArgs[i] + " ";
             }
-            BroadcastSim(IrcUser, "/me quits saying \"{0}\"", QuitMessage);
+            if (m_verbosity >= 1)
+                BroadcastSim(IrcUser, "/me quits saying \"{0}\"", QuitMessage);
         }
 
         public void Close()
