@@ -277,16 +277,22 @@ namespace OpenSim.Framework
         {
             if (configMember == null)
             {
-                // Load legacy defaults
-                //
-                configMember =
-                    new ConfigurationMember(Path.Combine(Util.configDir(),
-                            "estate_settings.xml"), "ESTATE SETTINGS",
-                            loadConfigurationOptions,
-                            handleIncomingConfiguration, true);
+                try
+                {
+                    // Load legacy defaults
+                    //
+                    configMember =
+                        new ConfigurationMember(Path.Combine(Util.configDir(),
+                                "estate_settings.xml"), "ESTATE SETTINGS",
+                                loadConfigurationOptions,
+                                handleIncomingConfiguration, true);
 
-                l_EstateManagers.Clear();
-                configMember.performConfigurationRetrieve();
+                    l_EstateManagers.Clear();
+                    configMember.performConfigurationRetrieve();
+                }
+                catch (Exception e)
+                {
+                }
             }
         }
 

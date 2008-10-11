@@ -45,8 +45,14 @@ namespace OpenSim.Framework
         {
             if (configMember == null)
             {
-                configMember = new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.xml"), "ESTATE SETTINGS", LoadConfigurationOptions, HandleIncomingConfiguration, true);
-                configMember.performConfigurationRetrieve();
+                try
+                {
+                    configMember = new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.xml"), "ESTATE SETTINGS", LoadConfigurationOptions, HandleIncomingConfiguration, true);
+                    configMember.performConfigurationRetrieve();
+                }
+                catch (Exception e)
+                {
+                }
             }
         }
 
