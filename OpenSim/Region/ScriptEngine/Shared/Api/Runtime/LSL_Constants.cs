@@ -372,6 +372,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PARCEL_MEDIA_COMMAND_AGENT = 7;
         public const int PARCEL_MEDIA_COMMAND_UNLOAD = 8;
         public const int PARCEL_MEDIA_COMMAND_AUTO_ALIGN = 9;
+        public const int PARCEL_MEDIA_COMMAND_TYPE = 10;
+        public const int PARCEL_MEDIA_COMMAND_SIZE = 11;
+        public const int PARCEL_MEDIA_COMMAND_DESC = 12;
 
         public const int PARCEL_FLAG_ALLOW_FLY = 0x1;                           // parcel allows flying
         public const int PARCEL_FLAG_ALLOW_SCRIPTS = 0x2;                       // parcel allows outside scripts

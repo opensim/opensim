@@ -6745,7 +6745,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.DataBlockExtended.MediaType = Utils.StringToBytes(mediaType);
             updatePacket.DataBlockExtended.MediaDesc = Utils.StringToBytes(mediaDesc);
             updatePacket.DataBlockExtended.MediaWidth = mediaWidth;
-            updatePacket.DataBlockExtended.MediaWidth = mediaHeight;
+            updatePacket.DataBlockExtended.MediaHeight = mediaHeight;
             updatePacket.DataBlockExtended.MediaLoop = mediaLoop;
 
             OutPacket(updatePacket, ThrottleOutPacketType.Unknown);
