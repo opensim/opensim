@@ -53,6 +53,26 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            IConfig groupsConfig = config.Configs["Groups"];
+
+            if (groupsConfig == null)
+            {
+                m_log.Info("[GROUPS] No configuration found. Using defaults");
+            }
+            else
+            {
+                if (!groupsConfig.GetBoolean("Enabled", false))
+                {
+                    m_log.Info("[GROUPS] Groups disabled in configuration");
+                    return;
+                }
+
+                if (groupsConfig.GetString("Module", "Default") != "Default")
+                    return;
+            }
+
+            m_log.Info("[GROUPS] Activated default groups module");
+
             lock (m_scene)
             {
                 m_scene.Add(scene);
