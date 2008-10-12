@@ -142,7 +142,7 @@ namespace OpenSim.Framework
                     {
                         PacketType type = packet.Type;
 
-                        if (pool[type] == null)
+                        if (!pool.ContainsKey(type))
                         {
                             pool[type] = new Stack<Packet>();
                         }
