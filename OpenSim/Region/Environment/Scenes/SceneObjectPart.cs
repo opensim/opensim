@@ -553,7 +553,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (ParentGroup != null && ParentGroup.RootPart != null)
                 {
-                    if (_parentID != 0)
+                     if (_parentID != 0 && PhysActor != null)
                     {
                         Vector3 resultingposition = GetWorldPosition();
                         PhysActor.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
