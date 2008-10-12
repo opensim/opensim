@@ -59,6 +59,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public bool Init()
         {
+            d.InitODE();
             return true;
         }
 
