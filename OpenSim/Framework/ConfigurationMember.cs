@@ -206,7 +206,6 @@ namespace OpenSim.Framework
                 }
                 catch (XmlException e)
                 {
-                {
                     m_log.WarnFormat("[CONFIG] Not using {0}: {1}",
                             configurationFilename,
                             e.Message.ToString());
