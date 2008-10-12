@@ -329,8 +329,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event DirLandQuery OnDirLandQuery;
         public event DirPopularQuery OnDirPopularQuery;
         public event DirClassifiedQuery OnDirClassifiedQuery;
+        public event EventInfoRequest OnEventInfoRequest;
 
         public event MapItemRequest OnMapItemRequest;
+
 
 #pragma warning restore 67
 
@@ -932,6 +934,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
 
         public void KillEndDone()
+        {
+        }
+
+        public void SendEventInfoReply (EventData info)
         {
         }
     }

@@ -318,6 +318,7 @@ namespace OpenSim.Framework
     public delegate void DirLandQuery(IClientAPI remoteClient, UUID queryID, uint queryFlags, uint searchType, int price, int area, int queryStart);
     public delegate void DirPopularQuery(IClientAPI remoteClient, UUID queryID, uint queryFlags);
     public delegate void DirClassifiedQuery(IClientAPI remoteClient, UUID queryID, string queryText, uint queryFlags, uint category, int queryStart);
+    public delegate void EventInfoRequest(IClientAPI remoteClient, uint eventID);
 
     public delegate void MapItemRequest(IClientAPI remoteClient, uint flags, uint EstateID, bool godlike, uint itemtype, ulong regionhandle);
 
@@ -617,7 +618,8 @@ namespace OpenSim.Framework
         event DirLandQuery OnDirLandQuery;
         event DirPopularQuery OnDirPopularQuery;
         event DirClassifiedQuery OnDirClassifiedQuery;
-
+        event EventInfoRequest OnEventInfoRequest;
+        
         event MapItemRequest OnMapItemRequest;
 
 
@@ -862,7 +864,7 @@ namespace OpenSim.Framework
         void SendDirClassifiedReply(UUID queryID, DirClassifiedReplyData[] data);
         void SendDirLandReply(UUID queryID, DirLandReplyData[] data);
         void SendDirPopularReply(UUID queryID, DirPopularReplyData[] data);
-
+        void SendEventInfoReply(EventData info);
 
         void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags);
         

@@ -1001,6 +1001,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event DirLandQuery OnDirLandQuery;
         public event DirPopularQuery OnDirPopularQuery;
         public event DirClassifiedQuery OnDirClassifiedQuery;
+        public event EventInfoRequest OnEventInfoRequest;
 
         public event MapItemRequest OnMapItemRequest;
 
@@ -6405,6 +6406,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 dirClassifiedQueryPacket.QueryData.QueryStart);
                         }
                         break;
+                    case PacketType.EventInfoRequest:
+                        EventInfoRequestPacket eventInfoRequestPacket = (EventInfoRequestPacket)Pack;
+                        if (OnEventInfoRequest != null)
+                        {
+                            OnEventInfoRequest(this, eventInfoRequestPacket.EventData.EventID);
+                        }
+                        break;
                         
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
@@ -7069,6 +7077,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.QueryReplies[i].Dwell = d.dwell;
                 i++;
             }
+
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        public void SendEventInfoReply(EventData data)
+        {
+            EventInfoReplyPacket packet = (EventInfoReplyPacket)PacketPool.Instance.GetPacket(PacketType.EventInfoReply);
+
+            packet.AgentData = new EventInfoReplyPacket.AgentDataBlock();
+            packet.AgentData.AgentID = AgentId;
+
+            packet.EventData = new EventInfoReplyPacket.EventDataBlock();
+            packet.EventData.EventID = data.eventID;
+            packet.EventData.Creator = Utils.StringToBytes(data.creator);
+            packet.EventData.Name = Utils.StringToBytes(data.name);
+            packet.EventData.Category = Utils.StringToBytes(data.category);
+            packet.EventData.Desc = Utils.StringToBytes(data.description);
+            packet.EventData.Date = Utils.StringToBytes(data.date.ToString());
+            packet.EventData.DateUTC = data.dateUTC;
+            packet.EventData.Duration = data.duration;
+            packet.EventData.Cover = data.cover;
+            packet.EventData.Amount = data.amount;
+            packet.EventData.SimName = Utils.StringToBytes(data.simName);
+            packet.EventData.GlobalPos = new Vector3d(data.globalPos);
+            packet.EventData.EventFlags = data.eventFlags;
 
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
