@@ -53,6 +53,9 @@ namespace OpenSim.Framework
         {
             Packet packet;
 
+            if (!packetPoolEnabled)
+                return Packet.BuildPacket(type);
+
             lock (pool)
             {
                 if (!pool.ContainsKey(type) || pool[type] == null || (pool[type]).Count == 0)
