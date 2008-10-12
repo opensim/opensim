@@ -1166,6 +1166,10 @@ namespace PrimMesher
                 }
             }
 
+            bool hasProfileCut = false;
+            if (profileStart > 0.0f || profileEnd < 1.0f)
+                hasProfileCut = true;
+
             bool needEndFaces = false;
             if (this.pathCutBegin != 0.0 || this.pathCutEnd != 1.0)
                 needEndFaces = true;
@@ -1253,7 +1257,14 @@ namespace PrimMesher
                 Face newFace = new Face();
                 if (step > firstStep)
                 {
-                    for (int i = coordsLen; i < this.coords.Count - 1; i++)
+                    int startVert = coordsLen + 1;
+                    int endVert = this.coords.Count - 1;
+
+                    if (sides < 5 || hasProfileCut || hollow > 0.0f)
+                        startVert--;
+
+                    for (int i = startVert; i < endVert; i++)
+                    //for (int i = coordsLen; i < this.coords.Count - 1; i++)
                     {
                         newFace.v1 = i;
                         newFace.v2 = i - numVerts;
@@ -1265,15 +1276,18 @@ namespace PrimMesher
                         this.faces.Add(newFace);
                     }
 
-                    newFace.v1 = coordsLen - 1;
-                    newFace.v2 = coordsLen - numVerts;
-                    newFace.v3 = coordsLen;
-                    this.faces.Add(newFace);
+                    if (hasProfileCut)
+                    {
+                        newFace.v1 = coordsLen - 1;
+                        newFace.v2 = coordsLen - numVerts;
+                        newFace.v3 = coordsLen;
+                        this.faces.Add(newFace);
 
-                    newFace.v1 = coordsLen + numVerts - 1;
-                    newFace.v2 = coordsLen - 1;
-                    newFace.v3 = coordsLen;
-                    this.faces.Add(newFace);
+                        newFace.v1 = coordsLen + numVerts - 1;
+                        newFace.v2 = coordsLen - 1;
+                        newFace.v3 = coordsLen;
+                        this.faces.Add(newFace);
+                    }
                 }
 
                 // calculate terms for next iteration
