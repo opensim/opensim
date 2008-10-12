@@ -245,7 +245,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public Vector3 Lookat
         {
-            get { return Util.GetNormalizedVector(new Vector3(m_CameraAtAxis.X, m_CameraAtAxis.Y, 0)); }
+            get
+            {
+                Vector3 a = new Vector3(m_CameraAtAxis.X, m_CameraAtAxis.Y, 0);
+
+                if(a == Vector3.Zero)
+                    return a;
+
+                return Util.GetNormalizedVector(a);
+            }
         }
 
         private readonly string m_firstname;

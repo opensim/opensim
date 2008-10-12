@@ -274,14 +274,30 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 message = (string)requestData["message"];
 
                 // Bytes don't transfer well over XMLRPC, so, we Base64 Encode them.
-                byte[] dialogdata = Convert.FromBase64String((string)requestData["dialog"]);
-                dialog = dialogdata[0];
+                string requestData1 = (string)requestData["dialog"];
+                if (string.IsNullOrEmpty(requestData1))
+                {
+                    dialog = 0;
+                }
+                else
+                {
+                    byte[] dialogdata = Convert.FromBase64String(requestData1);
+                    dialog = dialogdata[0];
+                }
 
                 if ((string)requestData["from_group"] == "TRUE")
                     fromGroup = true;
 
-                byte[] offlinedata = Convert.FromBase64String((string)requestData["offline"]);
-                offline = offlinedata[0];
+                string requestData2 = (string)requestData["offline"];
+                if (String.IsNullOrEmpty(requestData2))
+                {
+                    offline = 0;
+                }
+                else
+                {
+                    byte[] offlinedata = Convert.FromBase64String(requestData2);
+                    offline = offlinedata[0];
+                }
 
                 # region ParentEstateID
                 try
@@ -346,7 +362,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 # endregion
 
                 Position = new Vector3(pos_x, pos_y, pos_z);
-                binaryBucket = Convert.FromBase64String((string)requestData["binary_bucket"]);
+
+                string requestData3 = (string)requestData["binary_bucket"];
+                if (string.IsNullOrEmpty(requestData3))
+                {
+                    binaryBucket = new byte[0];
+                }
+                else
+                {
+                    binaryBucket = Convert.FromBase64String(requestData3);
+                }
 
                 // Create a New GridInstantMessageObject the the data
                 GridInstantMessage gim = new GridInstantMessage();
