@@ -2649,6 +2649,15 @@
 
   </Solution>
 
+<!-- /////////////////// DO NOT EDIT THE BELOW 6 LINES!!!! //////////// -->
+
+
+
+<!-- FORGE MODULE INSERT -->
+
+
+<!-- /////////////////// END OF INSERTION ///////////////////////////// -->
+
   <!-- Prebuild tool -->
   <Solution name="Prebuild" path="Prebuild/" >
     <Configuration name="Debug">
