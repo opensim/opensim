@@ -739,15 +739,18 @@ namespace OpenSim.Framework
         /// <returns>
         /// The extracted ulong
         /// </returns>
-        public static ulong BytesToUInt64Big(byte[] bytes) {
+        public static ulong BytesToUInt64Big(byte[] bytes)
+        {
             if (bytes.Length < 8) return 0;
             return ((ulong)bytes[0] << 56) | ((ulong)bytes[1] << 48) | ((ulong)bytes[2] << 40) | ((ulong)bytes[3] << 32) |
                 ((ulong)bytes[4] << 24) | ((ulong)bytes[5] << 16) | ((ulong)bytes[6] << 8) | (ulong)bytes[7];
         }
 
         // used for RemoteParcelRequest (for "About Landmark")
-        public static UUID BuildFakeParcelID(ulong regionHandle, uint x, uint y) {
-            byte[] bytes = {
+        public static UUID BuildFakeParcelID(ulong regionHandle, uint x, uint y)
+        {
+            byte[] bytes =
+            {
                 (byte)regionHandle, (byte)(regionHandle >> 8), (byte)(regionHandle >> 16), (byte)(regionHandle >> 24),
                 (byte)(regionHandle >> 32), (byte)(regionHandle >> 40), (byte)(regionHandle >> 48), (byte)(regionHandle << 56),
                 (byte)x, (byte)(x >> 8), (byte)(x >> 16), (byte)(x >> 24),
@@ -755,11 +758,24 @@ namespace OpenSim.Framework
             return new UUID(bytes, 0);
         }
 
-        public static void ParseFakeParcelID(UUID parcelID, out ulong regionHandle, out uint x, out uint y) {
+        public static void ParseFakeParcelID(UUID parcelID, out ulong regionHandle, out uint x, out uint y)
+        {
             byte[] bytes = parcelID.GetBytes();
             regionHandle = Helpers.BytesToUInt64(bytes);
             x = Helpers.BytesToUInt(bytes, 8);
             y = Helpers.BytesToUInt(bytes, 12);
+        }
+
+        public static void FakeParcelIDToGlobalPosition(UUID parcelID, out uint x, out uint y)
+        {
+            ulong regionHandle;
+            uint rx, ry;
+
+            ParseFakeParcelID(parcelID, out regionHandle, out x, out y);
+            Helpers.LongToUInts(regionHandle, out rx, out ry);
+
+            x += rx;
+            y += ry;
         }
     }
 }
