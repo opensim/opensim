@@ -144,7 +144,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="port"></param>
         /// <param name="proxyPortOffsetParm"></param>
         /// <param name="allow_alternate_port"></param>
-        /// <param name="settings"></param>
+        /// <param name="userSettings"></param>
         /// <param name="assetCache"></param>
         /// <param name="circuitManager"></param>
         public void Initialise(

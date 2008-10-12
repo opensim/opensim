@@ -55,7 +55,7 @@ namespace OpenSim.Framework
 
             lock (pool)
             {
-                if (pool[type] == null || (pool[type]).Count == 0)
+                if (!pool.ContainsKey(type) || pool[type] == null || (pool[type]).Count == 0)
                 {
                     // Creating a new packet if we cannot reuse an old package
                     packet = Packet.BuildPacket(type);
