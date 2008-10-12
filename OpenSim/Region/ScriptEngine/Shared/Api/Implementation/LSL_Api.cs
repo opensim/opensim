@@ -7366,7 +7366,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     // now send to all (non-child) agents
                     List<ScenePresence> agents = World.GetAvatars();
-                    foreach(ScenePresence agent in agents)
+                    foreach (ScenePresence agent in agents)
                     {
                         agent.ControllingClient.SendParcelMediaUpdate(landData.MediaURL,
                                                                       landData.MediaID,
@@ -7377,7 +7377,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                                       1); // TODO do some LOOP logic here
                     }
                 }
-                else if(!presence.IsChildAgent)
+                else if (!presence.IsChildAgent)
                 {
                     // we only send to one (root) agent
                     presence.ControllingClient.SendParcelMediaUpdate(url,
@@ -7397,14 +7397,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // send to all (non-child) agents
                     List<ScenePresence> agents = World.GetAvatars();
-                    foreach(ScenePresence agent in agents)
+                    foreach (ScenePresence agent in agents)
                     {
                         agent.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
                                                                        (ParcelMediaCommandEnum)commandToSend,
                                                                        time);
                     }
                 }
-                else if(!presence.IsChildAgent)
+                else if (!presence.IsChildAgent)
                 {
                     presence.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
                                                                       (ParcelMediaCommandEnum)commandToSend,

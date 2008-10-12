@@ -131,10 +131,10 @@ namespace OpenSim.Framework
         /// <param name="packet"></param>
         public void ReturnPacket(Packet packet)
         {
-            if(!packetPoolEnabled)
+            if (!packetPoolEnabled)
                 return;
 
-            switch(packet.Type)
+            switch (packet.Type)
             {
                 // List pooling packets here
                 case PacketType.PacketAck:

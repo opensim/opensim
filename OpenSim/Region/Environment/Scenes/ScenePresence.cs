@@ -249,7 +249,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 Vector3 a = new Vector3(m_CameraAtAxis.X, m_CameraAtAxis.Y, 0);
 
-                if(a == Vector3.Zero)
+                if (a == Vector3.Zero)
                     return a;
 
                 return Util.GetNormalizedVector(a);

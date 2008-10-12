@@ -154,18 +154,21 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     part.SitTargetOrientation = new Quaternion(0,0,0,1);
                     part.SitTargetPosition    = new Vector3(0,0,0);
 
-		    // Fix ownership/creator of inventory items
-		    // Not doing so results in inventory items
-		    // being no copy/no mod for everyone
-		    TaskInventoryDictionary inv = part.TaskInventory;
-		    foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv) {
-			if (!resolveUserUuid(kvp.Value.OwnerID)) {
-			    kvp.Value.OwnerID = masterAvatarId;
-			}
-			if (!resolveUserUuid(kvp.Value.CreatorID)) {
-			    kvp.Value.CreatorID = masterAvatarId;
-			}
-		    }
+                    // Fix ownership/creator of inventory items
+                    // Not doing so results in inventory items
+                    // being no copy/no mod for everyone
+                    TaskInventoryDictionary inv = part.TaskInventory;
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
+                    {
+                        if (!resolveUserUuid(kvp.Value.OwnerID))
+                        {
+                            kvp.Value.OwnerID = masterAvatarId;
+                        }
+                        if (!resolveUserUuid(kvp.Value.CreatorID))
+                        {
+                            kvp.Value.CreatorID = masterAvatarId;
+                        }
+                    }
                 }
 
                 if (m_scene.AddRestoredSceneObject(sceneObject, true, false))
