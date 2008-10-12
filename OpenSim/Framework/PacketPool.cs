@@ -26,8 +26,7 @@
  */
 
 using System;
-using System.Collections;
-using System.Net;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 
@@ -37,7 +36,9 @@ namespace OpenSim.Framework
     {
         private static readonly PacketPool instance = new PacketPool();
 
-        private Hashtable pool = new Hashtable();
+        private const bool packetPoolEnabled = false;
+
+        private readonly Dictionary<PacketType, Stack<Packet>> pool = new Dictionary<PacketType, Stack<Packet>>();
 
         static PacketPool()
         {
@@ -54,7 +55,7 @@ namespace OpenSim.Framework
 
             lock (pool)
             {
-                if (pool[type] == null || ((Stack) pool[type]).Count == 0)
+                if (pool[type] == null || (pool[type]).Count == 0)
                 {
                     // Creating a new packet if we cannot reuse an old package
                     packet = Packet.BuildPacket(type);
@@ -62,7 +63,7 @@ namespace OpenSim.Framework
                 else
                 {
                     // Recycle old packages
-                    packet = (Packet) ((Stack) pool[type]).Pop();
+                    packet = (pool[type]).Pop();
                 }
             }
 
@@ -94,13 +95,13 @@ namespace OpenSim.Framework
                 }
                 else
                 {
-                    id = (ushort) decoded_header[7];
+                    id = decoded_header[7];
                     freq = PacketFrequency.Medium;
                 }
             }
             else
             {
-                id = (ushort) decoded_header[6];
+                id = decoded_header[6];
                 freq = PacketFrequency.High;
             }
 
@@ -113,7 +114,7 @@ namespace OpenSim.Framework
 
             int z;
             for (z = 0 ; z < zeroBuffer.Length ; z++)
-                zeroBuffer[z] = (byte)0;
+                zeroBuffer[z] = 0;
 
             int i = 0;
             Packet packet = GetPacket(type);
@@ -127,23 +128,32 @@ namespace OpenSim.Framework
         /// <param name="packet"></param>
         public void ReturnPacket(Packet packet)
         {
-            return; // packet pool disabled
+            if(!packetPoolEnabled)
+                return;
 
-            /* // Commented out to remove a compiler warning. :)
-            lock (pool)
+            switch(packet.Type)
             {
-                PacketType type=packet.Type;
+                // List pooling packets here
+                case PacketType.PacketAck:
+                    lock (pool)
+                    {
+                        PacketType type = packet.Type;
 
-                if (pool[type] == null)
-                {
-                    pool[type] = new Stack();
-                }
-                if (((Stack)pool[type]).Count < 50)
-                {
-                    ((Stack)pool[type]).Push(packet);
-                }
+                        if (pool[type] == null)
+                        {
+                            pool[type] = new Stack<Packet>();
+                        }
+                        if ((pool[type]).Count < 50)
+                        {
+                            (pool[type]).Push(packet);
+                        }
+                    }
+                    break;
+                
+                // Other packets wont pool
+                default:
+                    return;
             }
-            */
         }
     }
 }

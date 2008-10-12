@@ -327,6 +327,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
+                
                 m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
                                         ReceivedData, null);
 
