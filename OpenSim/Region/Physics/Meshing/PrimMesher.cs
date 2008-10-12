@@ -458,6 +458,10 @@ namespace PrimMesher
                 return;
             }
 
+            bool simpleFace = false; // flag to create as few triangles as possible for 3 or 4 side profile
+            if (sides < 5 && hollow == 0.0f && profileStart == 0.0f && profileEnd == 1.0f)
+                simpleFace = true;
+
             if (this.calcVertexNormals)
             {
                 if (sides > 4)
@@ -501,7 +505,7 @@ namespace PrimMesher
                         }
                 }
             }
-            else
+            else if (!simpleFace)
             {
                 this.coords.Add(center);
                 if (this.calcVertexNormals && sides > 4)
@@ -546,7 +550,7 @@ namespace PrimMesher
                         hollowCoords.Add(newVert);
                     }
                 }
-                else if (createFaces && angle.angle > 0.0001f)
+                else if (!simpleFace && createFaces && angle.angle > 0.0001f)
                 {
                     Face newFace = new Face();
                     newFace.v1 = 0;
@@ -641,6 +645,18 @@ namespace PrimMesher
 
                 this.coords.AddRange(hollowCoords);
             }
+
+            if (simpleFace && createFaces)
+            {
+                if (sides == 3)
+                    this.faces.Add(new Face(0, 1, 2));
+                else if (sides == 4)
+                {
+                    this.faces.Add(new Face(0, 1, 2));
+                    this.faces.Add(new Face(0, 2, 3));
+                }
+            }
+
         }
 
         public Profile Clone()
@@ -966,7 +982,7 @@ namespace PrimMesher
                 hollow *= 1.414f;
 
             bool hasProfileCut = false;
-            if (profileStart < 0.0 || profileEnd < 1.0)
+            if (profileStart > 0.0f || profileEnd < 1.0f)
                 hasProfileCut = true;
 
             Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, true, calcVertexNormals);
@@ -1023,7 +1039,7 @@ namespace PrimMesher
                     int startVert = coordsLen + 1;
                     int endVert = this.coords.Count - 1;
 
-                    if (hasProfileCut || hollow > 0.0f)
+                    if (sides < 5 || hasProfileCut || hollow > 0.0f)
                         startVert--;
 
                     for (int i = startVert; i < endVert; i++)
@@ -1067,6 +1083,9 @@ namespace PrimMesher
                 }
                 else done = true;
             }
+
+            if (calcVertexNormals && sides < 5 && twistBegin == 0.0f && twistEnd == 0.0f)
+                this.CalcNormals();
         }
 
         public void ExtrudeCircular()
