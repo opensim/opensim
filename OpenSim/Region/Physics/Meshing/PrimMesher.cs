@@ -415,17 +415,23 @@ namespace PrimMesher
 
         internal List<Coord> coords;
         internal List<Face> faces;
+        internal List<Coord> normals;
+
+        internal bool calcVertexNormals = false;
 
         internal Profile()
         {
             this.coords = new List<Coord>();
             this.faces = new List<Face>();
+            this.normals = new List<Coord>();
         }
 
-        public Profile(int sides, float profileStart, float profileEnd, float hollow, int hollowSides, bool createFaces)
+        public Profile(int sides, float profileStart, float profileEnd, float hollow, int hollowSides, bool createFaces, bool calcVertexNormals)
         {
+            this.calcVertexNormals = calcVertexNormals;
             this.coords = new List<Coord>();
             this.faces = new List<Face>();
+            this.normals = new List<Coord>();
             Coord center = new Coord(0.0f, 0.0f, 0.0f);
             List<Coord> hollowCoords = new List<Coord>();
 
@@ -452,6 +458,20 @@ namespace PrimMesher
                 return;
             }
 
+            if (this.calcVertexNormals)
+            {
+                if (sides > 4)
+                    foreach (Angle a in angles.angles)
+                        normals.Add(new Coord(a.X, a.Y, 0.0f));
+                else
+                    for (int i = 0; i < angles.angles.Count - 1; i++)
+                    {
+                        Angle a1 = angles.angles[i];
+                        Angle a2 = angles.angles[i + 1];
+                        normals.Add(new Coord(0.5f * (a1.X + a2.X), 0.5f * (a1.Y + a2.Y), 0.0f).Normalize());
+                    }
+            }
+
             if (hollow > 0.001f)
             {
                 if (sides == hollowSides)
@@ -466,9 +486,27 @@ namespace PrimMesher
                         return;
                     }
                 }
+
+                if (this.calcVertexNormals)
+                {
+                    if (hollowSides > 4)
+                        foreach (Angle a in hollowAngles.angles)
+                            normals.Add(new Coord(-a.X, -a.Y, 0.0f));
+                    else
+                        for (int i = 0; i < hollowAngles.angles.Count - 1; i++)
+                        {
+                            Angle a1 = hollowAngles.angles[i];
+                            Angle a2 = hollowAngles.angles[i + 1];
+                            normals.Add(new Coord(-0.5f * (a1.X + a2.X), -0.5f * (a1.Y + a2.Y), 0.0f).Normalize());
+                        }
+                }
             }
             else
+            {
                 this.coords.Add(center);
+                if (this.calcVertexNormals && sides > 4)
+                    this.normals.Add(new Coord(0.0f, 0.0f, 1.0f));
+            }
 
             float z = 0.0f;
 
@@ -617,6 +655,7 @@ namespace PrimMesher
             clone.coords.AddRange(this.coords);
             if (needFaces)
                 clone.faces.AddRange(this.faces);
+            clone.normals.AddRange(this.normals);
 
             return clone;
         }
@@ -646,17 +685,29 @@ namespace PrimMesher
         {
             int i;
             int numVerts = this.coords.Count;
-            Coord vert;
+            Coord c;
 
             for (i = 0; i < numVerts; i++)
             {
-                vert = this.coords[i];
-                Coord v = new Coord(vert.X, vert.Y, vert.Z) * q;
+                c = this.coords[i];
+                Coord v = new Coord(c.X, c.Y, c.Z) * q;
 
-                vert.X = v.X;
-                vert.Y = v.Y;
-                vert.Z = v.Z;
-                this.coords[i] = vert;
+                c.X = v.X;
+                c.Y = v.Y;
+                c.Z = v.Z;
+                this.coords[i] = c;
+            }
+
+            int numNormals = this.normals.Count;
+            for (i = 0; i < numNormals; i++)
+            {
+                c = this.normals[i];
+                Coord n = new Coord(c.X, c.Y, c.Z) * q;
+
+                c.X = n.X;
+                c.Y = n.Y;
+                c.Z = n.Z;
+                this.normals[i] = c;
             }
         }
 
@@ -675,6 +726,9 @@ namespace PrimMesher
             }
         }
 
+        /// <summary>
+        /// Changes order of the vertex indices and negates the center vertex normal. Does not alter vertex normals of radial vertices
+        /// </summary>
         public void FlipNormals()
         {
             int i;
@@ -690,9 +744,20 @@ namespace PrimMesher
                 tmpFace.v1 = tmp;
                 this.faces[i] = tmpFace;
             }
+
+            if (this.calcVertexNormals)
+            {
+                int normalCount = this.normals.Count;
+                if (normalCount > 0)
+                {
+                    Coord n = this.normals[normalCount - 1];
+                    n.Z *= 1.0f;
+                    this.normals[normalCount - 1] = n;
+                }
+            }
         }
 
-        public void AddValue2Faces(int num)
+        public void AddValue2FaceVertexIndices(int num)
         {
             int numFaces = this.faces.Count;
             Face tmpFace;
@@ -702,7 +767,26 @@ namespace PrimMesher
                 tmpFace.v1 += num;
                 tmpFace.v2 += num;
                 tmpFace.v3 += num;
+
                 this.faces[i] = tmpFace;
+            }
+        }
+
+        public void AddValue2FaceNormalIndices(int num)
+        {
+            if (this.calcVertexNormals)
+            {
+                int numFaces = this.faces.Count;
+                Face tmpFace;
+                for (int i = 0; i < numFaces; i++)
+                {
+                    tmpFace = this.faces[i];
+                    tmpFace.n1 += num;
+                    tmpFace.n2 += num;
+                    tmpFace.n3 += num;
+
+                    this.faces[i] = tmpFace;
+                }
             }
         }
 
@@ -756,6 +840,8 @@ namespace PrimMesher
         public float radius = 0.0f;
         public float revolutions = 1.0f;
         public int stepsPerRevolution = 24;
+
+        public bool calcVertexNormals = false;
 
         public string ParamsToDisplayString()
         {
@@ -883,7 +969,7 @@ namespace PrimMesher
             if (profileStart < 0.0 || profileEnd < 1.0)
                 hasProfileCut = true;
 
-            Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, true);
+            Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, true, calcVertexNormals);
 
             if (initialProfileRot != 0.0f)
                 profile.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), initialProfileRot));
@@ -920,7 +1006,7 @@ namespace PrimMesher
                 // append this layer
 
                 int coordsLen = this.coords.Count;
-                newLayer.AddValue2Faces(coordsLen);
+                newLayer.AddValue2FaceVertexIndices(coordsLen);
 
                 this.coords.AddRange(newLayer.coords);
 
@@ -1071,7 +1157,7 @@ namespace PrimMesher
             else if (twistTotal != 0.0)
                 needEndFaces = true;
 
-            Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, needEndFaces);
+            Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, needEndFaces, calcVertexNormals);
 
             if (initialProfileRot != 0.0f)
                 profile.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), initialProfileRot));
@@ -1135,7 +1221,7 @@ namespace PrimMesher
                 // append the layer and fill in the sides
 
                 int coordsLen = this.coords.Count;
-                newLayer.AddValue2Faces(coordsLen);
+                newLayer.AddValue2FaceVertexIndices(coordsLen);
 
                 this.coords.AddRange(newLayer.coords);
 
@@ -1190,7 +1276,9 @@ namespace PrimMesher
         {
             int numFaces = faces.Count;
             if (faceIndex < 0 || faceIndex >= faces.Count)
-                return new Coord(0.0f, 0.0f, 0.0f);
+                throw new Exception("faceIndex out of range");
+
+            //return new Coord(0.0f, 0.0f, 0.0f);
 
             Face face = faces[faceIndex];
             Coord c1 = coords[face.v1];
