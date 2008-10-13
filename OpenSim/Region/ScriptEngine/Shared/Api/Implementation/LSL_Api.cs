@@ -4636,6 +4636,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return World.GetLandOwner((float)pos.x, (float)pos.y).ToString();
         }
 
+        /// <summary>
+        /// According to http://lslwiki.net/lslwiki/wakka.php?wakka=llGetAgentSize
+        /// only the height of avatars vary and that says:- 
+        /// Width (x) and depth (y) are constant. (0.45m and 0.6m respectively).
+        /// </summary>
         public LSL_Vector llGetAgentSize(string id)
         {
             m_host.AddScriptLPS(1);
@@ -4647,8 +4652,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                PhysicsVector size = avatar.PhysicsActor.Size;
-                agentSize = new LSL_Vector(size.X, size.Y, size.Z);
+                byte[] parms = avatar.Appearance.VisualParams;
+                // The values here were arrived at from experimentation with the sliders
+                // in edit appearance in SL to find the ones that affected the height and how
+                // much they affected it.
+                float avatarHeight = 1.23077f  // Shortest possible avatar height
+                                   + 0.516945f * (float)parms[25] / 255.0f   // Body length
+                                   + 0.072514f * (float)parms[120] / 255.0f  // Head size
+                                   + 0.3836f * (float)parms[125] / 255.0f    // Leg length
+                                   + 0.076f * (float)parms[148] / 255.0f;    // Neck length
+                agentSize = new LSL_Vector(0.45, 0.6, avatarHeight);
             }
             return agentSize;
         }
