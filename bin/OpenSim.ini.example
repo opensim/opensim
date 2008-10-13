@@ -260,8 +260,8 @@ objectcontact_bounce = 0.2
 ; desired velocity
 ; See http://en.wikipedia.org/wiki/PID_controller
 
-av_pid_derivative_linux = 3200.0
-av_pid_proportional_linux = 1400.0
+av_pid_derivative_linux = 2200.0
+av_pid_proportional_linux = 900.0;
 
 av_pid_derivative_win = 2200.0
 av_pid_proportional_win = 900.0;
@@ -271,7 +271,7 @@ av_capsule_radius = 0.37
 
 ; Max force permissible to use to keep the avatar standing up straight
 av_capsule_standup_tensor_win = 550000
-av_capsule_standup_tensor_linux = 2000000
+av_capsule_standup_tensor_linux = 550000
 
 ; used to calculate mass of avatar.
 ; float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS, 2)*CAPSULE_LENGTH);
@@ -314,7 +314,7 @@ geom_contactpoints_start_throttling = 3
 geom_updates_before_throttled_update = 15
 
 ; Used for llSetStatus.  How rigid the object rotation is held on the axis specified
-body_motor_joint_maxforce_tensor_linux = 2
+body_motor_joint_maxforce_tensor_linux = 5
 body_motor_joint_maxforce_tensor_win = 5
 
 ; ##

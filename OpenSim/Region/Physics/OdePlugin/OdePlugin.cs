@@ -361,10 +361,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
-                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_linux", 3200.0f);
-                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_linux", 1400.0f);
-                        avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_linux", 2000000f);
-                        bodyMotorJointMaxforceTensor = physicsconfig.GetFloat("body_motor_joint_maxforce_tensor_linux", 2f);
+                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_linux", 2200.0f);
+                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_linux", 900.0f);
+                        avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_linux", 550000f);
+                        bodyMotorJointMaxforceTensor = physicsconfig.GetFloat("body_motor_joint_maxforce_tensor_linux", 5f);
                     }
                     else
                     {
