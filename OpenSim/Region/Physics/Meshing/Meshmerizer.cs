@@ -1626,6 +1626,14 @@ namespace OpenSim.Region.Physics.Meshing
             }
         }
 
+        private void ReportPrimError(string message, string primName, PrimMesh primMesh)
+        {
+            Console.WriteLine(message);
+            Console.WriteLine("\nPrim Name: " + primName);
+            Console.WriteLine("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
+
+        }
+
         public Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
         {
             Mesh mesh = new Mesh();
@@ -1676,6 +1684,13 @@ namespace OpenSim.Region.Physics.Meshing
                 primMesh.twistEnd = primShape.PathTwist * 18 / 10;
                 primMesh.taperX = pathScaleX;
                 primMesh.taperY = pathScaleY;
+
+                if (profileBegin < 0.0f || profileBegin >= profileEnd || profileEnd > 1.0f)
+                {
+                    ReportPrimError("*** CORRUPT PRIM!! ***", primName, primMesh);
+                    if (profileBegin < 0.0f) profileBegin = 0.0f;
+                    if (profileEnd > 1.0f) profileEnd = 1.0f;
+                }
 #if SPAM
                 Console.WriteLine("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
 #endif
@@ -1685,9 +1700,7 @@ namespace OpenSim.Region.Physics.Meshing
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Extrusion failure: exception: " + ex.ToString());
-                    Console.WriteLine("\n Prim Name: " + primName);
-                    Console.WriteLine("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
+                    ReportPrimError("Extrusion failure: exception: " + ex.ToString(), primName, primMesh); 
                     return null;
                 }
             }
@@ -1702,6 +1715,13 @@ namespace OpenSim.Region.Physics.Meshing
                 primMesh.twistEnd = primShape.PathTwist * 36 / 10;
                 primMesh.taperX = primShape.PathTaperX * 0.01f;
                 primMesh.taperY = primShape.PathTaperY * 0.01f;
+
+                if (profileBegin < 0.0f || profileBegin >= profileEnd || profileEnd > 1.0f)
+                {
+                    ReportPrimError("*** CORRUPT PRIM!! ***", primName, primMesh);
+                    if (profileBegin < 0.0f) profileBegin = 0.0f;
+                    if (profileEnd > 1.0f) profileEnd = 1.0f;
+                }
 #if SPAM
                 Console.WriteLine("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());
 #endif
@@ -1711,9 +1731,7 @@ namespace OpenSim.Region.Physics.Meshing
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Extrusion failure: exception: " + ex.ToString());
-                    Console.WriteLine("\n Prim Name: " + primName);
-                    Console.WriteLine("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());
+                    ReportPrimError("Extrusion failure: exception: " + ex.ToString(), primName, primMesh);
                     return null;
                 }
             }
