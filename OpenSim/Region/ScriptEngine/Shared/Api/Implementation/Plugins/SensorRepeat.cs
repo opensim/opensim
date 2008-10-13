@@ -277,7 +277,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             Vector3 ZeroVector = new Vector3(0, 0, 0);
 
             bool nameSearch = (ts.name != null && ts.name != "");
-            SceneObjectGroup group;
 
             foreach (EntityBase ent in Entities)
             {

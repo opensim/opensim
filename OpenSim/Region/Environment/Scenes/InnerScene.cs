@@ -249,7 +249,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </returns>
         protected bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
-            if (sceneObject == null || sceneObject.RootPart == null || sceneObject.RootPart.UUID == null)
+            if (sceneObject == null || sceneObject.RootPart == null || sceneObject.RootPart.UUID == UUID.Zero)
                 return false;
 
             sceneObject.ApplyPhysics(m_parentScene.m_physicalPrim);
