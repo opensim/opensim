@@ -377,6 +377,15 @@ namespace OpenSim.Grid.GridServer
                 m_log.Warn("[LOGIN PRELUDE]: Invalid login parameters, sending back error response.");
                 return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString());
             }
+                     
+            if (!Config.AllowRegionRegistration)
+            {
+                m_log.InfoFormat(
+                    "[LOGIN END]: Disabled region registration blocked login request from simulator: {0}", 
+                    sim.regionName);
+                
+                return ErrorResponse("The grid is currently not accepting region registrations.");
+            }            
 
             m_log.InfoFormat("[LOGIN BEGIN]: Received login request from simulator: {0}", sim.regionName);
 
@@ -1206,6 +1215,20 @@ namespace OpenSim.Grid.GridServer
             }
             return response;
         }
+        
+        /// <summary>
+        /// Construct an XMLRPC registration disabled response
+        /// </summary>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public static XmlRpcResponse XmlRPCRegionRegistrationDisabledResponse(string error)
+        {
+            XmlRpcResponse errorResponse = new XmlRpcResponse();
+            Hashtable errorResponseData = new Hashtable();
+            errorResponse.Value = errorResponseData;
+            errorResponseData["restricted"] = error;
+            return errorResponse;
+        }        
     }
 
     /// <summary>

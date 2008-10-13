@@ -290,7 +290,7 @@ namespace OpenSim.Framework
                     l_EstateManagers.Clear();
                     configMember.performConfigurationRetrieve();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
             }

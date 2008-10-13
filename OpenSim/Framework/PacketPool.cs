@@ -36,7 +36,7 @@ namespace OpenSim.Framework
     {
         private static readonly PacketPool instance = new PacketPool();
 
-        private const bool packetPoolEnabled = false;
+        private bool packetPoolEnabled = false;
 
         private readonly Dictionary<PacketType, Stack<Packet>> pool = new Dictionary<PacketType, Stack<Packet>>();
 

@@ -63,15 +63,42 @@ namespace OpenSim.Grid.GridServer
             MainConsole.Instance = m_console;
         }
 
-        public void managercallback(string cmd)
+        public override void RunCmd(string cmd, string[] cmdparams)
         {
+            base.RunCmd(cmd, cmdparams);   
+            
             switch (cmd)
             {
-                case "shutdown":
-                    RunCmd("shutdown", new string[0]);
+                case "disable-reg":
+                    m_config.AllowRegionRegistration = false;
+                    m_log.Info("Region registration disabled");
+                    break;                
+                case "enable-reg":
+                    m_config.AllowRegionRegistration = true;
+                    m_log.Info("Region registration enabled");
+                    break;      
+            }
+        }
+        
+        public override void Show(string[] showParams)
+        {
+            base.Show(showParams);
+
+            switch (showParams[0])
+            {
+                case "status":
+                    if (m_config.AllowRegionRegistration)
+                    {
+                        m_log.Info("Region registration enabled.");
+                    }
+                    else
+                    {              
+                        m_log.Info("Region registration disabled.");
+                    }
                     break;
             }
         }
+  
 
         protected override void StartupSpecific()
         {

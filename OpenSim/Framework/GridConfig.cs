@@ -34,6 +34,7 @@ namespace OpenSim.Framework
         public static uint DefaultHttpPort = 8001;
 
         public string AllowForcefulBanlines = "TRUE";
+        public bool AllowRegionRegistration = true;
         public string AssetRecvKey = String.Empty;
         public string AssetSendKey = String.Empty;
 
@@ -90,7 +91,13 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("allow_forceful_banlines",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Allow Forceful Banlines", "TRUE", true);
+                                                "Allow Forceful Banlines", "TRUE", true);   
+            
+            configMember.addConfigurationOption("allow_region_registration", 
+                                                ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+                                                "Allow regions to register immediately upon grid server startup? true/false", 
+                                                "True", 
+                                                false);            
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -133,6 +140,9 @@ namespace OpenSim.Framework
                 case "allow_forceful_banlines":
                     AllowForcefulBanlines = (string) configuration_result;
                     break;
+                case "allow_region_registration":
+                    AllowRegionRegistration = (bool)configuration_result;
+                    break;                
             }
 
             return true;
