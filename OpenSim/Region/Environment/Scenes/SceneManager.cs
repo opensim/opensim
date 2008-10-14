@@ -394,7 +394,12 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        public void SetDebugPacketOnCurrentScene(int newDebug)
+        /// <summary>
+        /// Set the debug packet level on the current scene.  This level governs which packets are printed out to the
+        /// console.
+        /// </summary>
+        /// <param name="newDebug"></param>
+        public void SetDebugPacketLevelOnCurrentScene(int newDebug)
         {
             ForEachCurrentScene(delegate(Scene scene)
                                 {
@@ -409,7 +414,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                               scenePresence.Lastname,
                                                               newDebug);
 
-                                            scenePresence.ControllingClient.SetDebug(newDebug);
+                                            scenePresence.ControllingClient.SetDebugPacketLevel(newDebug);
                                         }
                                     }
                                 });

@@ -555,11 +555,11 @@ namespace OpenSim
                         int newDebug;
                         if (int.TryParse(args[1], out newDebug))
                         {
-                            m_sceneManager.SetDebugPacketOnCurrentScene(newDebug);
+                            m_sceneManager.SetDebugPacketLevelOnCurrentScene(newDebug);
                         }
                         else
                         {
-                            m_console.Error("packet debug should be 0..2");
+                            m_console.Error("packet debug should be 0..255");
                         }
                         m_console.Notice("New packet debug: " + newDebug.ToString());
                     }

@@ -67,7 +67,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly UUID m_sessionId;
         private UUID m_secureSessionId = UUID.Zero;
         //private AgentAssetUpload UploadAssets;
-        private int m_debug = 0;
+        
+        private int m_debugPacketLevel = 0;
+        
         private readonly AssetCache m_assetCache;
         // private InventoryCache m_inventoryCache;
         private int m_cachedTextureSerial = 0;
@@ -447,9 +449,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ThreadTracker.Add(m_clientThread);
         }
 
-        public void SetDebug(int newDebug)
+        public void SetDebugPacketLevel(int newDebugPacketLevel)
         {
-            m_debug = newDebug;
+            m_debugPacketLevel = newDebugPacketLevel;
         }
 
         # region Client Methods
@@ -632,23 +634,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected void DebugPacket(string direction, Packet packet)
         {
-            if (m_debug > 0)
+            if (m_debugPacketLevel > 0)
             {
                 string info = String.Empty;
 
-                if (m_debug < 255 && packet.Type == PacketType.AgentUpdate)
+                if (m_debugPacketLevel < 255 && packet.Type == PacketType.AgentUpdate)
                     return;
-                if (m_debug < 254 && packet.Type == PacketType.ViewerEffect)
+                if (m_debugPacketLevel < 254 && packet.Type == PacketType.ViewerEffect)
                     return;
-                if (m_debug < 253 && (
+                if (m_debugPacketLevel < 253 && (
                                          packet.Type == PacketType.CompletePingCheck ||
                                          packet.Type == PacketType.StartPingCheck
                                      ))
                     return;
-                if (m_debug < 252 && packet.Type == PacketType.PacketAck)
+                if (m_debugPacketLevel < 252 && packet.Type == PacketType.PacketAck)
                     return;
 
-                if (m_debug > 1)
+                if (m_debugPacketLevel > 1)
                 {
                     info = packet.ToString();
                 }
@@ -2348,7 +2350,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                           Vector3 velocity, Quaternion rotation)
         {
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
-                rotation = Quaternion.Identity;
+                rotation = Quaternion.Identity;          
 
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock =
                 CreateAvatarImprovedBlock(localID, position, velocity, rotation);
@@ -2360,8 +2362,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             terse.ObjectData[0] = terseBlock;
 
             terse.Header.Reliable = false;
-
             terse.Header.Zerocoded = true;
+            
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
 

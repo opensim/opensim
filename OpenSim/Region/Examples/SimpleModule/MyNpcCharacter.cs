@@ -746,7 +746,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void SetDebug(int newDebug)
+        public void SetDebugPacketLevel(int newDebug)
         {
         }
 

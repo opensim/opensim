@@ -836,8 +836,12 @@ namespace OpenSim.Framework
 
         byte[] GetThrottlesPacked(float multiplier);
 
-
-        void SetDebug(int newDebug);
+        /// <summary>
+        /// Set the debug level at which packet output should be printed to console.
+        /// </summary>
+        /// <param name="newDebugPacketLevel"></param>
+        void SetDebugPacketLevel(int newDebug);
+        
         void InPacket(object NewPack);
         void ProcessInPacket(Packet NewPack);
         void Close(bool ShutdownCircuit);

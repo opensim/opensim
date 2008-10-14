@@ -758,7 +758,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void SetDebug(int newDebug)
+        public void SetDebugPacketLevel(int newDebug)
         {
         }
 
