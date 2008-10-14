@@ -117,6 +117,13 @@ namespace OpenSim.Data.SQLite
 
                 setupUserFriendsCommands(daf, conn);
                 daf.Fill(ds.Tables["userfriends"]);
+                
+                string Unique = "create unique index friend_unique on userfriends (ownerID,friendID)";
+                using (SqliteCommand cmd = new SqliteCommand(Unique, g_conn))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                
             }
 
             return;
@@ -210,8 +217,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="perms">permission flag</param>
         override public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
-            string InsertFriends = "insert into userfriends(ownerID, friendID, friendPerms) values(:ownerID, :friendID, :perms)";
-
+            string InsertFriends = "insert or ignore into userfriends(ownerID, friendID, friendPerms) values(:ownerID, :friendID, :perms)";
             using (SqliteCommand cmd = new SqliteCommand(InsertFriends, g_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.ToString()));
@@ -235,7 +241,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="friend">UUID of the friend to remove</param>
         override public void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
-            string DeletePerms = "delete from friendlist where (ownerID=:ownerID and friendID=:friendID) or (ownerID=:friendID and friendID=:ownerID)";
+            string DeletePerms = "delete from userfriends where (ownerID=:ownerID and friendID=:friendID) or (ownerID=:friendID and friendID=:ownerID)";
             using (SqliteCommand cmd = new SqliteCommand(DeletePerms, g_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.ToString()));
@@ -252,7 +258,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="perms">updated permission flag</param>
         override public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
-            string UpdatePerms = "update friendlist set perms=:perms where ownerID=:ownerID and friendID=:friendID";
+            string UpdatePerms = "update userfriends set friendPerms=:perms where ownerID=:ownerID and friendID=:friendID";
             using (SqliteCommand cmd = new SqliteCommand(UpdatePerms, g_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":perms", perms));
