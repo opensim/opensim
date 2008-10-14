@@ -60,11 +60,9 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void SynchronizeSceneHandler(Scene scene);
         public SynchronizeSceneHandler SynchronizeScene = null;
         public int splitID = 0;
-       
 
         #region Fields
 
-        
         protected Timer m_restartWaitTimer = new Timer();
 
         protected SimStatsReporter m_statsReporter;
@@ -83,8 +81,6 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly Mutex _primAllocateMutex = new Mutex(false);
 
         private int m_timePhase = 24;
-
-        
 
         /// <summary>
         /// Are we applying physics to any of the prims in this scene?
@@ -262,7 +258,7 @@ namespace OpenSim.Region.Environment.Scenes
                      bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
         {
             m_config = config;
-            
+
             m_moduleLoader = moduleLoader;
             m_authenticateHandler = authen;
             CommsManager = commsMan;
@@ -280,7 +276,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_eventManager = new EventManager();
             m_externalChecks = new SceneExternalChecks(this);
-            m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);    
+            m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
 
             // Load region settings
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
@@ -349,18 +345,21 @@ namespace OpenSim.Region.Environment.Scenes
             return m_simulatorVersion;
         }
 
+        /// <summary>
+        /// Another region is up. Gets called from Grid Comms:
+        /// (OGS1 -> LocalBackEnd -> RegionListened -> SceneCommunicationService)
+        /// We have to tell all our ScenePresences about it, and add it to the
+        /// neighbor list.
+        ///
+        /// We only add it to the neighbor list if it's within 1 region from here.
+        /// Agents may have draw distance values that cross two regions though, so
+        /// we add it to the notify list regardless of distance. We'll check
+        /// the agent's draw distance before notifying them though.
+        /// </summary>
+        /// <param name="otherRegion">RegionInfo handle for the new region.</param>
+        /// <returns>True after all operations complete, throws exceptions otherwise.</returns>
         public override bool OtherRegionUp(RegionInfo otherRegion)
         {
-            // Another region is up.
-            // Gets called from Grid Comms (SceneCommunicationService<---RegionListener<----LocalBackEnd<----OGS1)
-            // We have to tell all our ScenePresences about it..
-            // and add it to the neighbor list.
-
-            // We only add it to the neighbor list if it's within 1 region from here.
-            // Agents may have draw distance values that cross two regions though, so
-            // we add it to the notify list regardless of distance.
-            // We'll check the agent's draw distance before notifying them though.
-
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
                 for (int i = 0; i < m_neighbours.Count; i++)
@@ -391,8 +390,8 @@ namespace OpenSim.Region.Environment.Scenes
                         //m_log.Info("[UP]: " + otherRegion.RegionHandle.ToString());
                     }
                 }
-                // If these are cast to INT because long + negative values + abs returns invalid data
 
+                // If these are cast to INT because long + negative values + abs returns invalid data
                 int resultX = Math.Abs((int)otherRegion.RegionLocX - (int)RegionInfo.RegionLocX);
                 int resultY = Math.Abs((int)otherRegion.RegionLocY - (int)RegionInfo.RegionLocY);
                 if (resultX <= 1 && resultY <= 1)
@@ -428,7 +427,6 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        // Given float seconds, this will restart the region.
         public void AddNeighborRegion(RegionInfo region)
         {
             lock (m_neighbours)
@@ -457,6 +455,10 @@ namespace OpenSim.Region.Environment.Scenes
             return found;
         }
 
+        /// <summary>
+        /// Given float seconds, this will restart the region.
+        /// </summary>
+        /// <param name="seconds">float indicating duration before restart.</param>
         public virtual void Restart(float seconds)
         {
             // notifications are done in 15 second increments
@@ -853,7 +855,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 maintc = System.Environment.TickCount - maintc;
                 maintc = (int)(m_timespan * 1000) - maintc;
-                
+
                 if ((maintc < (m_timespan * 1000)) && maintc > 0)
                     Thread.Sleep(maintc);
             }
@@ -1916,9 +1918,9 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Move the given scene object into a new region depending on which region its absolute position has moved 
-        /// into. 
-        /// 
+        /// Move the given scene object into a new region depending on which region its absolute position has moved
+        /// into.
+        ///
         /// This method locates the new region handle and offsets the prim position for the new region
         /// </summary>
         /// <param name="attemptedPosition">the attempted out of region position of the scene object</param>
@@ -1943,7 +1945,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 return;
             }
-            
+
             int thisx = (int)RegionInfo.RegionLocX;
             int thisy = (int)RegionInfo.RegionLocY;
 
@@ -1953,14 +1955,14 @@ namespace OpenSim.Region.Environment.Scenes
             if (attemptedPosition.X > Constants.RegionSize + 0.1f)
             {
                 pos.X = ((pos.X - Constants.RegionSize));
-                newRegionHandle 
+                newRegionHandle
                     = Util.UIntsToLong((uint)((thisx + 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
                 // x + 1
             }
             else if (attemptedPosition.X < -0.1f)
             {
                 pos.X = ((pos.X + Constants.RegionSize));
-                newRegionHandle 
+                newRegionHandle
                     = Util.UIntsToLong((uint)((thisx - 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
                 // x - 1
             }
@@ -1968,14 +1970,14 @@ namespace OpenSim.Region.Environment.Scenes
             if (attemptedPosition.Y > Constants.RegionSize + 0.1f)
             {
                 pos.Y = ((pos.Y - Constants.RegionSize));
-                newRegionHandle 
+                newRegionHandle
                     = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + 1) * Constants.RegionSize));
                 // y + 1
             }
             else if (attemptedPosition.Y < -0.1f)
             {
                 pos.Y = ((pos.Y + Constants.RegionSize));
-                newRegionHandle 
+                newRegionHandle
                     = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy - 1) * Constants.RegionSize));
                 // y - 1
             }
@@ -1986,8 +1988,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             // If we fail to cross the border, then reset the position of the scene object on that border.
             if (!CrossPrimGroupIntoNewRegion(newRegionHandle, grp))
-            {   
-                grp.OffsetForNewRegion(oldGroupPosition);                
+            {
+                grp.OffsetForNewRegion(oldGroupPosition);
             }
         }
 
@@ -1995,16 +1997,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// Move the given scene object into a new region
         /// </summary>
         /// <param name="newRegionHandle"></param>
-        /// <param name="grp">Scene Object Group that we're crossing</param> 
+        /// <param name="grp">Scene Object Group that we're crossing</param>
         /// <returns>
         /// true if the crossing itself was successful, false on failure
         /// FIMXE: we still return true if the crossing object was not successfully deleted from the originating region
         /// </returns>
         public bool CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp)
         {
-            bool successYN = false;            
+            bool successYN = false;
             int primcrossingXMLmethod = 0;
-            
+
             if (newRegionHandle != 0)
             {
                 successYN
@@ -2021,7 +2023,7 @@ namespace OpenSim.Region.Environment.Scenes
                     catch (Exception e)
                     {
                         m_log.ErrorFormat(
-                            "[INTERREGION]: Exception deleting the old object left behind on a border crossing for {0}, {1}", 
+                            "[INTERREGION]: Exception deleting the old object left behind on a border crossing for {0}, {1}",
                             grp, e);
                     }
                 }
@@ -2034,7 +2036,7 @@ namespace OpenSim.Region.Environment.Scenes
                             grp.RootPart.PhysActor.CrossingFailure();
                         }
                     }
-                    
+
                     m_log.ErrorFormat("[INTERREGION]: Prim crossing failed for {0}", grp);
                 }
             }
@@ -2042,7 +2044,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_log.Error("[INTERREGION]: region handle was unexpectedly 0 in Scene.CrossPrimGroupIntoNewRegion()");
             }
-            
+
             return successYN;
         }
 
@@ -2300,7 +2302,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_log.DebugFormat("gesture : {0} ", gestureId.ToString());
         }
-        
+
         /// <summary>
         /// Teleport an avatar to their home region
         /// </summary>
@@ -2325,7 +2327,7 @@ namespace OpenSim.Region.Environment.Scenes
                     return;
                 }
                 RequestTeleportLocation(
-                    client, regionInfo.RegionHandle, UserProfile.HomeLocation, UserProfile.HomeLookAt, 
+                    client, regionInfo.RegionHandle, UserProfile.HomeLocation, UserProfile.HomeLookAt,
                     (uint)(TPFlags.SetLastToTarget | TPFlags.ViaHome));
             }
         }
@@ -3929,7 +3931,7 @@ namespace OpenSim.Region.Environment.Scenes
         //        }
 
         /// <summary>
-        /// Get a named prim contained in this scene (will return the first 
+        /// Get a named prim contained in this scene (will return the first
         /// found, if there are more than one prim with the same name)
         /// </summary>
         /// <param name="name"></param>
