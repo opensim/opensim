@@ -1527,9 +1527,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Scheduling
 
-        /// <summary>
-        /// Examine this object's parts to see if they've changed sufficiently to warrant an update
-        /// </summary>
         public override void Update()
         {
             // Check that the group was not deleted before the scheduled update

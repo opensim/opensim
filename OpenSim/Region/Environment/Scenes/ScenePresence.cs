@@ -908,6 +908,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 }
             }
+            
             if (PhysicsActor == null)
             {
                 return;
@@ -1554,9 +1555,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Overridden Methods
 
-        /// <summary>
-        ///
-        /// </summary>
         public override void Update()
         {
             SendPrimUpdates();

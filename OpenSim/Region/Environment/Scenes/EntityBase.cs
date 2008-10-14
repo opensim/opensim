@@ -131,7 +131,8 @@ namespace OpenSim.Region.Environment.Scenes
         public abstract void UpdateMovement();
 
         /// <summary>
-        /// Performs any updates that need to be done at each frame.
+        /// Performs any updates that need to be done at each frame, as opposed to immediately.  
+        /// These included scheduled updates and updates that occur due to physics processing.
         /// </summary>
         public abstract void Update();
 
