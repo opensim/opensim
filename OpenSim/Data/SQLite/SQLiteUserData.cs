@@ -117,13 +117,6 @@ namespace OpenSim.Data.SQLite
 
                 setupUserFriendsCommands(daf, conn);
                 daf.Fill(ds.Tables["userfriends"]);
-                
-                string Unique = "create unique index friend_unique on userfriends (ownerID,friendID)";
-                using (SqliteCommand cmd = new SqliteCommand(Unique, g_conn))
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                
             }
 
             return;
@@ -206,9 +199,39 @@ namespace OpenSim.Data.SQLite
                 }
             }
         }
-
+        
         #region User Friends List Data
-
+            
+        private bool ExistsFriend(UUID owner, UUID friend)
+        {
+            string FindFriends = "select * from userfriends where (ownerID=:ownerID and friendID=:friendID) or (ownerID=:friendID and friendID=:ownerID)";
+            using (SqliteCommand cmd = new SqliteCommand(FindFriends, g_conn))
+            {
+                cmd.Parameters.Add(new SqliteParameter(":ownerID", owner.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":friendID", friend.ToString()));
+                try
+                {
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        if(reader.Read())
+                        {
+                            reader.Close();
+                            return true;
+                        }
+                        else
+                        {
+                            reader.Close();
+                            return false;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("[USER DB]: Exception getting friends list for user: " + ex.ToString());
+                    return false;
+                }
+            }
+        }
         /// <summary>
         /// Add a new friend in the friendlist
         /// </summary>
@@ -217,7 +240,10 @@ namespace OpenSim.Data.SQLite
         /// <param name="perms">permission flag</param>
         override public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
-            string InsertFriends = "insert or ignore into userfriends(ownerID, friendID, friendPerms) values(:ownerID, :friendID, :perms)";
+            if (ExistsFriend(friendlistowner, friend))
+                return;
+            
+            string InsertFriends = "insert into userfriends(ownerID, friendID, friendPerms) values(:ownerID, :friendID, :perms)";
             using (SqliteCommand cmd = new SqliteCommand(InsertFriends, g_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.ToString()));
