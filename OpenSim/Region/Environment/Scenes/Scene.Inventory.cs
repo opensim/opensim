@@ -1651,6 +1651,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.AssetType = asset.Type;
                 item.InvType = (int)InventoryType.Object;
                 item.Folder = folderID;
+                
                 if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                 {
                     uint perms=objectGroup.GetEffectivePermissions();

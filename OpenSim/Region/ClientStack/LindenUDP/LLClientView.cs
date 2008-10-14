@@ -1545,6 +1545,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(pc, ThrottleOutPacketType.Unknown);
         }
 
+        /// <summary>
+        /// Tell the client that an object has been deleted
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="localID"></param>
         public void SendKiPrimitive(ulong regionHandle, uint localID)
         {
             KillObjectPacket kill = (KillObjectPacket)PacketPool.Instance.GetPacket(PacketType.KillObject);
@@ -1552,7 +1557,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
             kill.ObjectData[0].ID = localID;
-            kill.Header.Reliable = false;
+            kill.Header.Reliable = true;
             kill.Header.Zerocoded = true;
             OutPacket(kill, ThrottleOutPacketType.Task);
         }
