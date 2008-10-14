@@ -1778,24 +1778,23 @@ namespace OpenSim.Region.Environment.Scenes
 
         public UUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, UUID AgentId)
         {
-            SceneObjectGroup objectGroup = grp;
-            if (objectGroup != null)
+            if (grp != null)
             {
-                string sceneObjectXml = objectGroup.ToXmlString();
+                string sceneObjectXml = grp.ToXmlString();
 
                 CachedUserInfo userInfo =
                     CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
                 if (userInfo != null)
                 {
                     AssetBase asset = CreateAsset(
-                        objectGroup.GetPartName(objectGroup.LocalId),
-                        objectGroup.GetPartDescription(objectGroup.LocalId),
+                        grp.GetPartName(grp.LocalId),
+                        grp.GetPartDescription(grp.LocalId),
                         (sbyte)AssetType.Object,
                         Utils.StringToBytes(sceneObjectXml));
                     AssetCache.AddAsset(asset);
 
                     InventoryItemBase item = new InventoryItemBase();
-                    item.Creator = objectGroup.RootPart.CreatorID;
+                    item.Creator = grp.RootPart.CreatorID;
                     item.Owner = remoteClient.AgentId;
                     item.ID = UUID.Random();
                     item.AssetID = asset.FullID;
@@ -1806,22 +1805,23 @@ namespace OpenSim.Region.Environment.Scenes
 
                     item.Folder = UUID.Zero; // Objects folder!
 
-                    if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+                    if ((remoteClient.AgentId != grp.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                     {
-                        item.BasePermissions = objectGroup.RootPart.NextOwnerMask;
-                        item.CurrentPermissions = objectGroup.RootPart.NextOwnerMask;
-                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                        item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
+                        item.BasePermissions = grp.RootPart.NextOwnerMask;
+                        item.CurrentPermissions = grp.RootPart.NextOwnerMask;
+                        item.NextPermissions = grp.RootPart.NextOwnerMask;
+                        item.EveryOnePermissions = grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask;
                     }
                     else
                     {
-                        item.BasePermissions = objectGroup.RootPart.BaseMask;
-                        item.CurrentPermissions = objectGroup.RootPart.OwnerMask;
-                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                        item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
+                        item.BasePermissions = grp.RootPart.BaseMask;
+                        item.CurrentPermissions = grp.RootPart.OwnerMask;
+                        item.NextPermissions = grp.RootPart.NextOwnerMask;
+                        item.EveryOnePermissions = grp.RootPart.EveryoneMask;
                     }
                     item.CreationDate = Util.UnixTimeSinceEpoch();
 
+                    // sets assetID so client can show asset as 'attached' in inventory
                     grp.SetFromAssetID(item.ID);
 
                     userInfo.AddItem(item);
@@ -1832,7 +1832,6 @@ namespace OpenSim.Region.Environment.Scenes
                 return UUID.Zero;
             }
             return UUID.Zero;
-
         }
 
         /// <summary>

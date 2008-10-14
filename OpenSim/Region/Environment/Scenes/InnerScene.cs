@@ -547,8 +547,6 @@ namespace OpenSim.Region.Environment.Scenes
                             if (group.GetFromAssetID() == UUID.Zero)
                             {
                                 m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId);
-
-                                // sets assetID so client can show asset as 'attached' in inventory
                             }
                             group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos);
                             // In case it is later dropped again, don't let
