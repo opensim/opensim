@@ -418,6 +418,16 @@ namespace OpenSim
             {
                 assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
             }
+            else if (m_assetStorage == "cryptogrid") // Decrypt-Only
+            {
+                assetServer = new CryptoGridAssetClient(m_networkServersInfo.AssetURL,
+                                                        Environment.CurrentDirectory, true);
+            }
+            else if (m_assetStorage == "cryptogrid_eou") // Encrypts All Assets
+            {
+                assetServer = new CryptoGridAssetClient(m_networkServersInfo.AssetURL,
+                                                        Environment.CurrentDirectory, false);
+            }
             else if (m_assetStorage == "file")
             {
                 assetServer = new FileAssetClient(m_networkServersInfo.AssetURL);
