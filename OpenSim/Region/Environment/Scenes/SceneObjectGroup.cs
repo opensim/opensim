@@ -750,7 +750,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //
                 if (IsSelected)
                 {
-                    m_scene.SendKiPrimitive(m_rootPart.LocalId);
+                    m_scene.SendKillObject(m_rootPart.LocalId);
                 }
 
                 IsSelected = false; // fudge....
@@ -985,7 +985,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
 
                         if (m_rootPart != null && part == m_rootPart)
-                            avatars[i].ControllingClient.SendKiPrimitive(m_regionHandle, part.LocalId);
+                            avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                     }
                 }
 
@@ -1011,7 +1011,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
 
                     if (m_rootPart != null && part == m_rootPart)
-                        avatars[i].ControllingClient.SendKiPrimitive(m_regionHandle, part.LocalId);
+                        avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                 }
             }
         }

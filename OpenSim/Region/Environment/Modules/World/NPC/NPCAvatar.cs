@@ -443,7 +443,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         }
 
-        public virtual void SendKiPrimitive(ulong regionHandle, uint localID)
+        public virtual void SendKillObject(ulong regionHandle, uint localID)
         {
         }
 

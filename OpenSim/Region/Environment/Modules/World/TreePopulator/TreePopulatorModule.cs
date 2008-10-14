@@ -186,7 +186,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 
                         m_scene.ForEachClient(delegate(IClientAPI controller)
                                                   {
-                                                      controller.SendKiPrimitive(m_scene.RegionInfo.RegionHandle,
+                                                      controller.SendKillObject(m_scene.RegionInfo.RegionHandle,
                                                                                 selectedTree.LocalId);
                                                   });
 

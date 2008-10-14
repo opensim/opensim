@@ -356,7 +356,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         }
 
-        public virtual void SendKiPrimitive(ulong regionHandle, uint localID)
+        public virtual void SendKillObject(ulong regionHandle, uint localID)
         {
         }
 

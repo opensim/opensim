@@ -2068,7 +2068,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     CrossAttachmentsIntoNewRegion(neighbourHandle);
 
-                    m_scene.SendKiPrimitive(m_localId);
+                    m_scene.SendKillObject(m_localId);
 
                     m_scene.NotifyMyCoarseLocationChange();
                     // the user may change their profile information in other region,

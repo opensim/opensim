@@ -1545,12 +1545,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(pc, ThrottleOutPacketType.Unknown);
         }
 
-        /// <summary>
-        /// Tell the client that an object has been deleted
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="localID"></param>
-        public void SendKiPrimitive(ulong regionHandle, uint localID)
+        public void SendKillObject(ulong regionHandle, uint localID)
         {
             KillObjectPacket kill = (KillObjectPacket)PacketPool.Instance.GetPacket(PacketType.KillObject);
             // TODO: don't create new blocks if recycling an old packet
@@ -3688,7 +3683,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (part == null)
                     {
                         // It's a ghost! tell the client to delete it from view.
-                        simClient.SendKiPrimitive(Scene.RegionInfo.RegionHandle,
+                        simClient.SendKillObject(Scene.RegionInfo.RegionHandle,
                                                  localId);
                     }
                     else

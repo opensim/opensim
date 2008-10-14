@@ -2516,7 +2516,7 @@ namespace OpenSim.Region.Environment.Scenes
                       {
                           try
                           {
-                              client.SendKiPrimitive(avatar.RegionHandle, avatar.LocalId);
+                              client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
                           }
                           catch (NullReferenceException)
                           {
@@ -2589,7 +2589,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Entities
 
-        public void SendKiPrimitive(uint localID)
+        public void SendKillObject(uint localID)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
             if (part != null) // It is a prim
@@ -2600,7 +2600,7 @@ namespace OpenSim.Region.Environment.Scenes
                         return;
                 }
             }
-            Broadcast(delegate(IClientAPI client) { client.SendKiPrimitive(m_regionHandle, localID); });
+            Broadcast(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, localID); });
         }
 
         #endregion
@@ -2620,7 +2620,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnExpectPrim += IncomingInterRegionPrimGroup;
             m_sceneGridService.OnRemoveKnownRegionFromAvatar += HandleRemoveKnownRegionsFromAvatar;
             m_sceneGridService.OnLogOffUser += HandleLogOffUserFromGrid;
-            m_sceneGridService.KiPrimitive += SendKiPrimitive;
+            m_sceneGridService.KiPrimitive += SendKillObject;
             m_sceneGridService.OnGetLandData += GetLandData;
         }
 
@@ -2629,7 +2629,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void UnRegisterRegionWithComms()
         {
-            m_sceneGridService.KiPrimitive -= SendKiPrimitive;
+            m_sceneGridService.KiPrimitive -= SendKillObject;
             m_sceneGridService.OnLogOffUser -= HandleLogOffUserFromGrid;
             m_sceneGridService.OnRemoveKnownRegionFromAvatar -= HandleRemoveKnownRegionsFromAvatar;
             m_sceneGridService.OnExpectPrim -= IncomingInterRegionPrimGroup;
