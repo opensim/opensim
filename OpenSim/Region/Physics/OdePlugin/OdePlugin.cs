@@ -1042,6 +1042,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             lock (_activeprims)
             {
+                List<OdePrim> removeprims = null;
                 foreach (OdePrim chr in _activeprims)
                 {
                     if (d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
@@ -1056,7 +1057,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 }
                                 else
                                 {
-                                    m_log.Debug("[PHYSICS]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed");
+                                    if (removeprims == null)
+                                    {
+                                        removeprims = new List<OdePrim>();
+                                    }
+                                    removeprims.Add(chr);
+                                    m_log.Debug("[PHYSICS]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
                                 }
                             }
                         }
@@ -1064,6 +1070,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             m_log.Warn("[PHYSICS]: Unable to space collide");
                         }
+                    }
+                }
+                if (removeprims != null)
+                {
+                    foreach (OdePrim chr in removeprims)
+                    {
+                        _activeprims.Remove(chr);
                     }
                 }
             }
@@ -1466,6 +1479,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY] = d.HashSpaceCreate(IntPtr.Zero);
             d.GeomSetCategoryBits(staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY], (int)CollisionCategories.Space);
             waitForSpaceUnlock(space);
+            d.SpaceSetSublevel(space, 1);
             d.SpaceAdd(space, staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY]);
             return staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY];
         }
@@ -1522,72 +1536,112 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         //    //if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle && pbs.ProfileCurve == (byte)Primitive.ProfileCurve.Circle && pbs.PathScaleY <= 0.75f)
         //    //Console.WriteLine("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + Primitive.UnpackPathScale(pbs.PathScaleY).ToString());
+            int iPropertiesNotSupportedDefault = 0;
+
             if (pbs.SculptEntry && !meshSculptedPrim)
             {
+#if SPAM
+                m_log.Warn("NonMesh");
+#endif
                 return false;
             }
 
             // if it's a standard box or sphere with no cuts or hollows or twist, return false since ODE can use an internal representation for the prim
-            //if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
-            //    || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
-            //    && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
-            //{
-            //    if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
-            //        && pbs.ProfileHollow == 0
-            //        && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
-            //        && pbs.PathBegin == 0 && pbs.PathEnd == 0
-            //        //&& pbs.PathTaperX == 0 && pbs.PathTaperY == 0
-            //        && pbs.PathScaleX == 100 && pbs.PathScaleY == 100)
-            //        return false;
-            //}
+            if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
+                || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
+                && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
+            {
 
-        //    if (pbs.ProfileHollow != 0)
-        //        return true;
+                if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
+                    && pbs.ProfileHollow == 0
+                    && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
+                    && pbs.PathBegin == 0 && pbs.PathEnd == 0
+                    && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
+                    && pbs.PathScaleX == 100 && pbs.PathScaleY == 100)
+                {
+#if SPAM
+                    m_log.Warn("NonMesh");
+#endif
+                    return false;
+                }
+            }
 
-        //    if (((Int16)pbs.PathTwistBegin != 0) || ((Int16)pbs.PathTwist != 0))
-        //        return true;
+            if (pbs.ProfileHollow != 0)
+                iPropertiesNotSupportedDefault++;
 
-        //    if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
-        //        return true;
+            if (((Int16)pbs.PathTwistBegin != 0) || ((Int16)pbs.PathTwist != 0))
+                iPropertiesNotSupportedDefault++; 
 
-        //    if ((pbs.PathScaleX != 100) || (pbs.PathScaleY != 100))
-        //        return true;
+            if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
+                iPropertiesNotSupportedDefault++;
 
-        //    if ((pbs.PathShearX != 0) || (pbs.PathShearY != 0))
-        //        return true;
+            if ((pbs.PathScaleX != 100) || (pbs.PathScaleY != 100))
+                iPropertiesNotSupportedDefault++;
 
-        //    if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
-        //        return true;
-        //    //if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1 && (pbs.Scale.X != pbs.Scale.Y || pbs.Scale.Y != pbs.Scale.Z || pbs.Scale.Z != pbs.Scale.X))
-        //    //    return true;
+            if ((pbs.PathShearX != 0) || (pbs.PathShearY != 0))
+                iPropertiesNotSupportedDefault++;
 
-        //    if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte) Extrusion.Curve1)
-        //        return true;
+            if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
+                iPropertiesNotSupportedDefault++;
 
-        //    // test for torus
-        //    if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle
-        //        && (pbs.ProfileCurve & 0x07) == (byte)Primitive.ProfileCurve.Circle
-        //        && Primitive.UnpackPathScale(pbs.PathScaleY) <= 0.75f)
-        //        return true;
+            if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1 && (pbs.Scale.X != pbs.Scale.Y || pbs.Scale.Y != pbs.Scale.Z || pbs.Scale.Z != pbs.Scale.X))
+                iPropertiesNotSupportedDefault++;
 
-        //    // test for tube
-        //    if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle
-        //        && (pbs.ProfileCurve & 0x07) == (byte)Primitive.ProfileCurve.EqualTriangle)
-        //        return true;
+            if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte) Extrusion.Curve1)
+                iPropertiesNotSupportedDefault++;
 
-        //    // test for ring
-        //    if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle
-        //        && (pbs.ProfileCurve & 0x07) == (byte)Primitive.ProfileCurve.EqualTriangle)
-        //        return true;
+            // test for torus
+            if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
+            {
+                if (pbs.PathCurve == (byte)Extrusion.Curve1)
+                {
+                    iPropertiesNotSupportedDefault++;
+                }
+            }
+            else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
+            {
+                if (pbs.PathCurve == (byte)Extrusion.Straight)
+                {
+                    iPropertiesNotSupportedDefault++;
+                }
 
-        //    if (pbs.ProfileShape == ProfileShape.EquilateralTriangle)
-        //        return true;
+                // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
+                else if (pbs.PathCurve == (byte)Extrusion.Curve1)
+                {
+                    iPropertiesNotSupportedDefault++;
+                }
+            }
+            else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+            {
+                if (pbs.PathCurve == (byte)Extrusion.Curve1 || pbs.PathCurve == (byte)Extrusion.Curve2)
+                {
+                    iPropertiesNotSupportedDefault++;
+                }
+            }
+            else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
+            {
+                if (pbs.PathCurve == (byte)Extrusion.Straight)
+                {
+                    iPropertiesNotSupportedDefault++;
+                }
+                else if (pbs.PathCurve == (byte)Extrusion.Curve1)
+                {
+                    iPropertiesNotSupportedDefault++;
+                }
+            }
 
 
-
-        //    return false;
-
-            return true; // assume the mesher will return a default shape or null and later code can deal with this
+            if (iPropertiesNotSupportedDefault == 0)
+            {
+#if SPAM              
+                m_log.Warn("NonMesh");
+#endif
+                return false;
+            }
+#if SPAM
+            m_log.Debug("Mesh");
+#endif
+            return true; 
         }
 
         /// <summary>
