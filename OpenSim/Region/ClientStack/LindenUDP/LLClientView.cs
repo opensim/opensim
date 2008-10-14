@@ -2339,7 +2339,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        ///
+        /// Send a terse positional/rotation/velocity update about an avatar to the client.  This avatar can be that of
+        /// the client itself. 
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="timeDilation"></param>
@@ -2352,6 +2353,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = Quaternion.Identity;          
 
+            //m_log.DebugFormat("[CLIENT]: Sending rotation {0} for {1} to {2}", rotation, localID, Name);
+            
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock =
                 CreateAvatarImprovedBlock(localID, position, velocity, rotation);
             ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);

@@ -142,7 +142,16 @@ namespace OpenSim.Region.Environment.Scenes
         protected ulong crossingFromRegion = 0;
 
         private readonly Vector3[] Dir_Vectors = new Vector3[6];
+        
+        /// <value>
+        /// The avatar position last sent to clients
+        /// </value>
         private Vector3 lastPhysPos = Vector3.Zero;
+        
+        /// <value>
+        /// The avatar body rotation last sent to clients 
+        /// </value>
+        private Quaternion lastPhysRot = Quaternion.Identity;
 
         // Position of agent's camera in world (region cordinates)
         protected Vector3 m_CameraCenter = Vector3.Zero;
@@ -1581,7 +1590,9 @@ namespace OpenSim.Region.Environment.Scenes
                         m_updateCount = 0;
                     }
                 }
-                else if ((Util.GetDistanceTo(lastPhysPos, AbsolutePosition) > 0.02) || (Util.GetDistanceTo(m_lastVelocity, m_velocity) > 0.02)) // physics-related movement
+                else if ((Util.GetDistanceTo(lastPhysPos, AbsolutePosition) > 0.02) 
+                         || (Util.GetDistanceTo(m_lastVelocity, m_velocity) > 0.02)
+                         || lastPhysRot != m_bodyRot)
                 {
                     // Send Terse Update to all clients updates lastPhysPos and m_lastVelocity
                     // doing the above assures us that we know what we sent the clients last
@@ -1628,6 +1639,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_lastVelocity = m_velocity;
             lastPhysPos = AbsolutePosition;
+            lastPhysRot = m_bodyRot;
 
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
 
@@ -2540,7 +2552,10 @@ namespace OpenSim.Region.Environment.Scenes
                     (float)info.GetValue("lastPhysPos.X", typeof(float)),
                     (float)info.GetValue("lastPhysPos.Y", typeof(float)),
                     (float)info.GetValue("lastPhysPos.Z", typeof(float)));
-
+            
+            // Possibly we should store lastPhysRot.  But there may well be not much point since rotation changes
+            // wouldn't carry us across borders anyway
+                                 
             m_CameraCenter
                 = new Vector3(
                     (float)info.GetValue("m_CameraCenter.X", typeof(float)),
@@ -2686,7 +2701,10 @@ namespace OpenSim.Region.Environment.Scenes
             // Vector3
             info.AddValue("lastPhysPos.X", lastPhysPos.X);
             info.AddValue("lastPhysPos.Y", lastPhysPos.Y);
-            info.AddValue("lastPhysPos.Z", lastPhysPos.Z);
+            info.AddValue("lastPhysPos.Z", lastPhysPos.Z);     
+            
+            // Possibly we should retrieve lastPhysRot.  But there may well be not much point since rotation changes
+            // wouldn't carry us across borders anyway            
 
             // Vector3
             info.AddValue("m_CameraCenter.X", m_CameraCenter.X);
