@@ -621,7 +621,7 @@ namespace OpenSim.Framework.Servers
                         }
                     }
                     return;
-                    responseString = "Error";
+                    //responseString = "Error";
                 }
             }
 
