@@ -252,6 +252,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_CameraCenter; }
         }
 
+        public Quaternion CameraRotation
+        {
+            get { return Util.Axes2Rot(m_CameraAtAxis, m_CameraLeftAxis, m_CameraUpAxis); }
+        }
+
         public Vector3 Lookat
         {
             get

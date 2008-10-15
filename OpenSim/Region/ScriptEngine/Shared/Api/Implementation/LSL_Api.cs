@@ -7531,7 +7531,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Rotation llGetCameraRot()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetCameraRot");
+            UUID invItemID=InventorySelf();
+            if (invItemID == UUID.Zero)
+                return new LSL_Rotation();
+            if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
+               return new LSL_Rotation();
+            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
+            {
+                ShoutError("No permissions to track the camera");
+                return new LSL_Rotation();
+            }
+            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+            if (presence != null)
+            {
+                return new LSL_Rotation(presence.CameraRotation.X, presence.CameraRotation.Y, presence.CameraRotation.Z, presence.CameraRotation.W);
+            }
             return new LSL_Rotation();
         }
 
