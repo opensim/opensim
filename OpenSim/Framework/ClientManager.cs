@@ -178,10 +178,9 @@ namespace OpenSim.Framework
         }
 
         public void ViewerEffectHandler(IClientAPI sender, List<ViewerEffectEventHandlerArg> args)
-        {
-            ViewerEffectPacket packet = (ViewerEffectPacket)PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
+        {            
             // TODO: don't create new blocks if recycling an old packet
-            List<ViewerEffectPacket.EffectBlock> effectBlock = new List<ViewerEffectPacket.EffectBlock>();
+            List<ViewerEffectPacket.EffectBlock> effectBlock = new List<ViewerEffectPacket.EffectBlock>();                        
             for (int i = 0; i < args.Count; i++)
             {
                 ViewerEffectPacket.EffectBlock effect = new ViewerEffectPacket.EffectBlock();
@@ -193,7 +192,7 @@ namespace OpenSim.Framework
                 effect.TypeData = args[i].TypeData;
                 effectBlock.Add(effect);
             }
-            packet.Effect = effectBlock.ToArray();
+            ViewerEffectPacket.EffectBlock[] effectBlockArray = effectBlock.ToArray();
 
             IClientAPI[] LocalClients;
             lock (m_clients)
@@ -206,6 +205,9 @@ namespace OpenSim.Framework
             {
                 if (LocalClients[i].AgentId != sender.AgentId)
                 {
+                    ViewerEffectPacket packet = (ViewerEffectPacket)PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
+                    packet.Effect = effectBlockArray;
+                    
                     packet.AgentData.AgentID = LocalClients[i].AgentId;
                     packet.AgentData.SessionID = LocalClients[i].SessionId;
                     packet.Header.Reliable = false;
