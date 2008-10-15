@@ -172,6 +172,13 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                         try
                         {
                             ITerrainChannel channel = loader.Value.LoadFile(filename);
+                            if (channel.Width != Constants.RegionSize || channel.Height != Constants.RegionSize)
+                            {
+                                // TerrainChannel expects a RegionSize x RegionSize map, currently
+                                throw new ArgumentException(String.Format("wrong size, use a file with size {0} x {1}",
+                                                                          Constants.RegionSize, Constants.RegionSize));
+                            }
+                            m_log.DebugFormat("[TERRAIN]: Loaded terrain, wd/ht: {0}/{1}", channel.Width, channel.Height);
                             m_scene.Heightmap = channel;
                             m_channel = channel;
                             UpdateRevertMap();
@@ -188,6 +195,12 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                                 "[TERRAIN]: Unable to load heightmap, file not found. (A directory permissions error may also cause this)");
                             throw new TerrainException(
                                 String.Format("unable to load heightmap: file {0} not found (or permissions do not allow access", filename));
+                        }
+                        catch (ArgumentException e)
+                        {
+                            m_log.ErrorFormat("[TERRAIN]: Unable to load heightmap: {0}", e.Message);
+                            throw new TerrainException(
+                                String.Format("Unable to load heightmap: {0}", e.Message));
                         }
                     }
                     CheckForTerrainUpdates();
