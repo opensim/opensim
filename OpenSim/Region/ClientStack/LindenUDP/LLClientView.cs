@@ -2921,7 +2921,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void SendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
+        public void SendLandProperties(int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
             ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
             // TODO: don't create new blocks if recycling an old packet
@@ -2999,7 +2999,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.UserLocation = landData.UserLocation;
             updatePacket.ParcelData.UserLookAt = landData.UserLookAt;
             updatePacket.Header.Zerocoded = true;
-            remote_client.OutPacket((Packet)updatePacket, ThrottleOutPacketType.Task);
+            
+            OutPacket((Packet)updatePacket, ThrottleOutPacketType.Task);
         }
 
         public void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID)
@@ -3945,14 +3946,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 
         /// <summary>
-        /// The dreaded OutPacket. This should only be called from within
-        /// the ClientStack itself right now
-        /// This is the entry point for simulator packets to go out to
-        /// the client.
+        /// This is the starting point for sending a simulator packet out to the client.
+        /// 
+        /// Please do not call this from outside the LindenUDP client stack.
         /// </summary>
         /// <param name="NewPack"></param>
         /// <param name="throttlePacketType">Corresponds to the type of data that is going out.  Enum</param>
-        public virtual void OutPacket(Packet NewPack, ThrottleOutPacketType throttlePacketType)
+        public void OutPacket(Packet NewPack, ThrottleOutPacketType throttlePacketType)
         {
             m_PacketHandler.OutPacket(NewPack, throttlePacketType);
         }

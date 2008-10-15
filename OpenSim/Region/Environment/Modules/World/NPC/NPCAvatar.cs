@@ -414,10 +414,6 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             get { return 1; }
         }
 
-        public virtual void OutPacket(Packet newPack, ThrottleOutPacketType packType)
-        {
-        }
-
         public virtual void SendWearables(AvatarWearable[] wearables, int serial)
         {
         }
@@ -840,7 +836,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void SendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor,int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
+        public void SendLandProperties(int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor,int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
         }
         public void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID)

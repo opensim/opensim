@@ -326,11 +326,6 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-
-        public virtual void OutPacket(Packet newPack, ThrottleOutPacketType packType)
-        {
-        }
-
         public virtual void SendWearables(AvatarWearable[] wearables, int serial)
         {
         }
@@ -821,38 +816,42 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
         {
         }
+        
         public void SendEstateCovenantInformation(UUID covenant)
         {
         }
+        
         public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, string abuseEmail, UUID estateOwner)
         {
         }
 
-        public void SendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
+        public void SendLandProperties(int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
         }
+        
         public void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID)
         {
         }
+        
         public void SendForceClientSelectObjects(List<uint> objectIDs)
         {
         }
+        
         public void SendLandObjectOwners(Dictionary<UUID, int> ownersAndCount)
         {
         }
+        
         public void SendLandParcelOverlay(byte[] data, int sequence_id)
         {
         }
 
         public void SendParcelMediaCommand(uint flags, ParcelMediaCommandEnum command, float time)
         {
-
         }
 
         public void SendParcelMediaUpdate(string mediaUrl, UUID mediaTextureID, byte autoScale, string mediaType,
                                           string mediaDesc, int mediaWidth, int mediaHeight, byte mediaLoop)
         {
-
         }
 
         public void SendGroupNameReply(UUID groupLLUID, string GroupName)

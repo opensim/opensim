@@ -172,7 +172,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 //                regionFlags |=  (uint)RegionFlags.AllowLandmark;
 //            if (landData.OwnerID == remote_client.AgentId)
 //                regionFlags |=  (uint)RegionFlags.AllowSetHome;
-            remote_client.SendLandProperties(remote_client, sequence_id,
+            remote_client.SendLandProperties(sequence_id,
                     snap_selection, request_result, landData,
                     (float)m_scene.RegionInfo.RegionSettings.ObjectBonus,
                     getParcelMaxPrimCount(this),

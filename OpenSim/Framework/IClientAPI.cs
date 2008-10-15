@@ -625,8 +625,6 @@ namespace OpenSim.Framework
 
    //     void ActivateGesture(UUID assetId, UUID gestureId);
 
-        // [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
-        void OutPacket(Packet newPack, ThrottleOutPacketType packType);
         void SendWearables(AvatarWearable[] wearables, int serial);
         void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry);
         void SendStartPingCheck(byte seq);
@@ -774,7 +772,7 @@ namespace OpenSim.Framework
         void SendEstateCovenantInformation(UUID covenant);
         void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, string abuseEmail, UUID estateOwner);
 
-        void SendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags);
+        void SendLandProperties(int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags);
         void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID);
         void SendForceClientSelectObjects(List<uint> objectIDs);
         void SendLandObjectOwners(Dictionary<UUID, int> ownersAndCount);
