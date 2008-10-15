@@ -73,6 +73,7 @@ Patches
 * sempuki
 * tglion
 * tyre
+* Vytek
 * webmage (IBM)
 * Xantor
 * Y. Nitta
