@@ -481,6 +481,37 @@ namespace OpenSim.Data.SQLite
 
         }
 
+        private bool ExistsFirstLastName(String fname, String lname)
+        {
+            string FindUser = "select * from users where (username=:username and surname=:surname)";
+            using (SqliteCommand cmd = new SqliteCommand(FindUser, g_conn))
+            {
+                cmd.Parameters.Add(new SqliteParameter(":username", fname));
+                cmd.Parameters.Add(new SqliteParameter(":surname", lname));
+                try
+                {
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        if(reader.Read())
+                        {
+                            reader.Close();
+                            return true;
+                        }
+                        else
+                        {
+                            reader.Close();
+                            return false;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("[USER DB]: Exception searching for user's first and last name: " + ex.ToString());
+                    return false;
+                }
+            }
+        }
+
         /// <summary>
         /// Creates a new user profile
         /// </summary>
@@ -488,6 +519,10 @@ namespace OpenSim.Data.SQLite
         override public void AddNewUserProfile(UserProfileData user)
         {
             DataTable users = ds.Tables["users"];
+            UUID zero = UUID.Zero;
+            if (ExistsFirstLastName(user.FirstName, user.SurName) || user.ID == zero)
+                return;
+            
             lock (ds)
             {
                 DataRow row = users.Rows.Find(Util.ToRawUuidString(user.ID));

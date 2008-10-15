@@ -582,6 +582,11 @@ namespace OpenSim.Data.MySQL
         /// <param name="user">The user profile to create</param>
         public override void AddNewUserProfile(UserProfileData user)
         {
+            UUID zero = UUID.Zero;
+            if (user.ID == zero)
+            {
+                return;   
+            }
             MySQLSuperManager dbm = GetLockedConnection();
 
             try

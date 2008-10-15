@@ -45,6 +45,7 @@ namespace OpenSim.Data.Tests
         public UUID user1;
         public UUID user2;
         public UUID user3;
+        public UUID user4;
         public UUID webkey;
         public UUID zero = UUID.Zero;
         public Random random;
@@ -55,6 +56,8 @@ namespace OpenSim.Data.Tests
         
         public UUID region1;
         
+        public string fname0;
+        public string lname0;
         public string fname1;
         public string lname1;
         public string fname2;
@@ -76,11 +79,14 @@ namespace OpenSim.Data.Tests
             user1 = UUID.Random();
             user2 = UUID.Random();
             user3 = UUID.Random();
+            user4 = UUID.Random();
             agent1 = UUID.Random();
             agent2 = UUID.Random();
             agent3 = UUID.Random();
             webkey = UUID.Random();
             region1 = UUID.Random();
+            fname0 = RandomName(random);
+            lname0 = RandomName(random);
             fname1 = RandomName(random);
             lname1 = RandomName(random);
             fname2 = RandomName(random);
@@ -115,19 +121,16 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_CreateUser()
         {
-            UserProfileData u1 = NewUser(user1,fname1,lname1); // Must first and last names be unique?
-            //UserProfileData u0 = NewUser(zero,fname1,lname1); // Zero causes some weird behaviors
+            UserProfileData u1 = NewUser(user1,fname1,lname1); 
             UserProfileData u2 = NewUser(user2,fname2,lname2);
             UserProfileData u3 = NewUser(user3,fname3,lname3);
-            //db.AddNewUserProfile(u0);
+            Console.WriteLine("Users are {0} {1} {2}",user1,user2,user3);
             db.AddNewUserProfile(u1);
             db.AddNewUserProfile(u2);
             db.AddNewUserProfile(u3);
-            //UserProfileData u1z = db.GetUserByUUID(zero);
             UserProfileData u1a = db.GetUserByUUID(user1);
             UserProfileData u2a = db.GetUserByUUID(user2);
             UserProfileData u3a = db.GetUserByUUID(user3);
-            //Assert.That(zero,Is.EqualTo(u1z.ID));
             Assert.That(user1,Is.EqualTo(u1a.ID));
             Assert.That(user2,Is.EqualTo(u2a.ID));
             Assert.That(user3,Is.EqualTo(u3a.ID));
@@ -164,6 +167,17 @@ namespace OpenSim.Data.Tests
             u1 = db.GetUserByUUID(user1);
             Assert.That(u1.WebLoginKey,Is.EqualTo(webkey));
         }
+        
+        [Test]
+        public void T014_ExpectedNullReferenceReturns()
+        {
+            UserProfileData u0 = NewUser(zero,fname0,lname0); 
+            UserProfileData u4 = NewUser(user4,fname2,lname2);
+            db.AddNewUserProfile(u0);
+            db.AddNewUserProfile(u4);
+            Assert.That(db.GetUserByUUID(zero),Is.Null);
+            Assert.That(db.GetUserByUUID(user4),Is.Null);
+        }        
 
         [Test]
         public void T020_CreateAgent()
