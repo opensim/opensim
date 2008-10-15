@@ -415,7 +415,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="items"></param>
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
-            _Log.InfoFormat("[REGION DB]: Persisting Prim Inventory with prim ID {0}", primID);
+            //_Log.InfoFormat("[REGION DB]: Persisting Prim Inventory with prim ID {0}", primID);
 
             //Statement from MySQL section!
             // For now, we're just going to crudely remove all the previous inventory items

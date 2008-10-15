@@ -1808,7 +1808,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="items"></param>
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
-            m_log.InfoFormat("[REGION DB]: Persisting Prim Inventory with prim ID {0}", primID);
+            //m_log.InfoFormat("[REGION DB]: Persisting Prim Inventory with prim ID {0}", primID);
 
             // For now, we're just going to crudely remove all the previous inventory items
             // no matter whether they have changed or not, and replace them with the current set.
