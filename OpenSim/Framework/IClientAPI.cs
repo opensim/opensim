@@ -755,6 +755,7 @@ namespace OpenSim.Framework
         bool AddMoney(int debit);
 
         void SendSunPos(Vector3 sunPos, Vector3 sunVel, ulong CurrentTime, uint SecondsPerSunCycle, uint SecondsPerYear, float OrbitalPosition);
+        void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks);
         void SendViewerTime(int phase);
         UUID GetDefaultAnimation(string name);
 

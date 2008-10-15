@@ -739,6 +739,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendSunPos(Vector3 sunPos, Vector3 sunVel, ulong time, uint dlen, uint ylen, float phase)
         {
         }
+        
+        public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
+        {
+        }        
 
         public void SendViewerTime(int phase)
         {

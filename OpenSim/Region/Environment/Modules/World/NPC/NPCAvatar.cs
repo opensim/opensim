@@ -744,6 +744,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
+        {
+        }
+            
         public void SendViewerTime(int phase)
         {
         }

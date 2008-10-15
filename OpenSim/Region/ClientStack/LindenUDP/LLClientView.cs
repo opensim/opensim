@@ -2192,6 +2192,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(viewertime, ThrottleOutPacketType.Task);
             */
         }
+        
+        public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
+        {
+            ViewerEffectPacket packet = (ViewerEffectPacket)PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
+            packet.Effect = effectBlocks;
+            
+            packet.AgentData.AgentID = AgentId;
+            packet.AgentData.SessionID = SessionId;
+            packet.Header.Reliable = false;
+            packet.Header.Zerocoded = true;
+            OutPacket(packet, ThrottleOutPacketType.Task);            
+        }
 
         public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] charterMember,
                                          string flAbout, uint flags, UUID flImageID, UUID imageID, string profileURL,

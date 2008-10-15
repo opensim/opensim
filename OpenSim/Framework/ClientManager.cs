@@ -205,14 +205,7 @@ namespace OpenSim.Framework
             {
                 if (LocalClients[i].AgentId != sender.AgentId)
                 {
-                    ViewerEffectPacket packet = (ViewerEffectPacket)PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
-                    packet.Effect = effectBlockArray;
-                    
-                    packet.AgentData.AgentID = LocalClients[i].AgentId;
-                    packet.AgentData.SessionID = LocalClients[i].SessionId;
-                    packet.Header.Reliable = false;
-                    packet.Header.Zerocoded = true;
-                    LocalClients[i].OutPacket(packet, ThrottleOutPacketType.Task);
+                    LocalClients[i].SendViewerEffect(effectBlockArray);
                 }
             }
         }
