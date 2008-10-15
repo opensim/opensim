@@ -89,8 +89,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
             //    "[TEXTURE NOT FOUND SENDER]: Informing the client that texture {0} cannot be found",
             //    m_textureId);
 
-            ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
-            notFound.ImageID.ID = m_textureId;
+            //ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
+            //notFound.ImageID.ID = m_textureId;
 
             // XXX Temporarily disabling as this appears to be causing client crashes on at least
             // 1.19.0(5) of the Linden Second Life client.
