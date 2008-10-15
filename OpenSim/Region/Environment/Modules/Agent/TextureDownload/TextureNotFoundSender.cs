@@ -46,14 +46,14 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         // See ITextureSender
 
         // private bool m_sending = false;
-        private UUID m_textureId;
+        //private UUID m_textureId;
 
         // See ITextureSender
 
         public TextureNotFoundSender(IClientAPI client, UUID textureID)
         {
             // // m_client = client;
-            m_textureId = textureID;
+            //m_textureId = textureID;
         }
 
         #region ITextureSender Members

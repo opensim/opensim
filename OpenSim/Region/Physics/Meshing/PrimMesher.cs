@@ -891,7 +891,7 @@ namespace PrimMesher
         public bool calcVertexNormals = false;
         private bool normalsProcessed = false;
 
-        private List<Coord> edgeNormals;
+        //private List<Coord> edgeNormals;
 
         public string ParamsToDisplayString()
         {
@@ -964,8 +964,8 @@ namespace PrimMesher
 
             float length = this.pathCutEnd - this.pathCutBegin;
             normalsProcessed = false;
-            if (this.calcVertexNormals)
-                this.edgeNormals = new List<Coord>();
+            //if (this.calcVertexNormals)
+            //    this.edgeNormals = new List<Coord>();
 
 #if VIEWER
             if (this.sides == 3)
