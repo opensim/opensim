@@ -297,6 +297,41 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_allowMovement = value; }
         }
 
+        public bool SetAlwaysRun
+        {
+            get
+            {
+                if (PhysicsActor != null)
+                {
+                    return PhysicsActor.SetAlwaysRun;
+                }
+                else
+                {
+                    return m_setAlwaysRun;
+                }
+            }
+            set
+            {
+                m_setAlwaysRun = value;
+                if (PhysicsActor != null)
+                {
+                    PhysicsActor.SetAlwaysRun = value;
+                }
+            }
+        }
+
+        public byte State
+        {
+            get { return m_state; }
+            set { m_state = value; }
+        }
+
+        public uint AgentControlFlags
+        {
+            get { return m_AgentControlFlags; }
+            set { m_AgentControlFlags = value; }
+        }
+
         /// <summary>
         /// This works out to be the ClientView object associated with this avatar, or it's client connection manager
         /// </summary>
@@ -942,9 +977,9 @@ namespace OpenSim.Region.Environment.Scenes
             // In the future, these values might need to go global.
             // Here's where you get them.
 
-            // m_AgentControlFlags = flags;
-            // m_headrotation = agentData.AgentData.HeadRotation;
-            // m_state = agentData.AgentData.State;
+            m_AgentControlFlags = flags;
+            m_headrotation = agentData.HeadRotation;
+            m_state = agentData.State;
 
             if (m_allowMovement)
             {

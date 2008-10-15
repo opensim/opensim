@@ -4455,8 +4455,51 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetAgentInfo(string id)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetAgentInfo");
-            return 0;
+
+            // This is partial implementation.
+
+            UUID key = new UUID();
+            if (!UUID.TryParse(id, out key))
+            {
+                return 0;
+            }
+
+            int flags = 0;
+
+            ScenePresence agent = World.GetScenePresence(key);
+            if (agent == null)
+            {
+                return 0;
+            }
+
+            if (agent.SetAlwaysRun)
+            {
+                flags |= ScriptBaseClass.AGENT_ALWAYS_RUN;
+            }
+
+            if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
+            {
+                flags |= ScriptBaseClass.AGENT_FLYING;
+            }
+
+            if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AWAY) != 0)
+            {
+                flags |= ScriptBaseClass.AGENT_AWAY;
+            }
+
+            if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
+            {
+                flags |= ScriptBaseClass.AGENT_MOUSELOOK;
+            }
+
+            if ((agent.State & (byte)AgentManager.AgentState.Typing) != (byte)0)
+            {
+                flags |= ScriptBaseClass.AGENT_TYPING;
+            }
+
+            //NotImplemented("llGetAgentInfo");
+
+            return flags;
         }
 
         public LSL_String llGetAgentLanguage(string id)
