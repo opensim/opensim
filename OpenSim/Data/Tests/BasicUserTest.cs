@@ -41,7 +41,6 @@ namespace OpenSim.Data.Tests
 {
     public class BasicUserTest
     {
-        //public UserDataBase db;
         public IUserDataPlugin db;
         public UUID user1;
         public UUID user2;
@@ -205,7 +204,7 @@ namespace OpenSim.Data.Tests
             int tempu1, tempu2;
             db.AddNewUserFriend(user1,user2, 1);
             db.AddNewUserFriend(user1,user3, 2);
-            db.AddNewUserFriend(user1,user2, 4); //FAILS uniqueness in SQLite
+            db.AddNewUserFriend(user1,user2, 4); 
             List<FriendListItem> fl1 = db.GetUserFriendList(user1);
             Assert.That(fl1.Count,Is.EqualTo(2));                   
             perms.Add(user2,1);
@@ -213,7 +212,6 @@ namespace OpenSim.Data.Tests
             for (int i = 0; i < fl1.Count; i++)
             {   
                 Assert.That(user1,Is.EqualTo(fl1[i].FriendListOwner));
-                // MySQL does not guarantee insertion order will be mantained
                 friends.Add(fl1[i].Friend,1);
                 temp = perms[fl1[i].Friend];
                 Assert.That(temp,Is.EqualTo(fl1[i].FriendPerms));
