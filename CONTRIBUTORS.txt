@@ -69,6 +69,7 @@ Patches
 * ralphos
 * Ruud Lathorp
 * SachaMagne
+* Salahzar Stenvaag
 * sempuki
 * tglion
 * tyre
