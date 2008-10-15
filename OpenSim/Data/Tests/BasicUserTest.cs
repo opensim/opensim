@@ -53,6 +53,7 @@ namespace OpenSim.Data.Tests
         public UUID agent1;
         public UUID agent2;
         public UUID agent3;
+        public UUID agent4;
         
         public UUID region1;
         
@@ -83,6 +84,7 @@ namespace OpenSim.Data.Tests
             agent1 = UUID.Random();
             agent2 = UUID.Random();
             agent3 = UUID.Random();
+            agent4 = UUID.Random();
             webkey = UUID.Random();
             region1 = UUID.Random();
             fname0 = RandomName(random);
@@ -121,10 +123,9 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_CreateUser()
         {
-            UserProfileData u1 = NewUser(user1,fname1,lname1); 
+            UserProfileData u1 = NewUser(user1,fname1,lname1);
             UserProfileData u2 = NewUser(user2,fname2,lname2);
             UserProfileData u3 = NewUser(user3,fname3,lname3);
-            Console.WriteLine("Users are {0} {1} {2}",user1,user2,user3);
             db.AddNewUserProfile(u1);
             db.AddNewUserProfile(u2);
             db.AddNewUserProfile(u3);
@@ -210,6 +211,22 @@ namespace OpenSim.Data.Tests
         }
         
         [Test]
+        public void T022_ExceptionalCases()
+        {
+            // This will follow User behavior, return Null, in the future
+            UserAgentData a0 = NewAgent(user4,zero);
+            UserAgentData a4 = NewAgent(zero,agent4);
+            db.AddNewUserAgent(a0);
+            db.AddNewUserAgent(a4);
+            UserAgentData a0a = db.GetAgentByUUID(user4);
+            UserAgentData a4a = db.GetAgentByUUID(zero);
+            Assert.That(zero,Is.EqualTo(a0a.SessionID));
+            Assert.That(user4,Is.EqualTo(a0a.ProfileID));
+            Assert.That(agent4,Is.EqualTo(a4a.SessionID));
+            Assert.That(zero,Is.EqualTo(a4a.ProfileID));
+        }
+        
+        [Test]
         public void T030_CreateFriendList()
         {
             Dictionary<UUID, uint> perms = new Dictionary<UUID,uint>();
@@ -256,6 +273,7 @@ namespace OpenSim.Data.Tests
         
         [Test]
         public void T032_UpdateFriendPerms()
+        // user1 has 1 friend, user3, who has permission 2 in T030.
         {
             List<FriendListItem> fl1 = db.GetUserFriendList(user1);
             Assert.That(fl1[0].FriendPerms,Is.EqualTo(2));
