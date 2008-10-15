@@ -2619,6 +2619,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             im.Header.Zerocoded = true;
             OutPacket(im, ThrottleOutPacketType.Texture);
         }
+        
+        public void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData)
+        {
+            ImagePacketPacket im = new ImagePacketPacket();
+            im.Header.Reliable = false;
+            im.ImageID.Packet = partNumber;
+            im.ImageID.ID = imageUuid;
+            im.ImageData.Data = imageData;
+            
+            OutPacket(im, ThrottleOutPacketType.Texture);            
+        }
 
         public void SendShutdownConnectionNotice()
         {

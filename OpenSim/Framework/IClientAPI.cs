@@ -802,6 +802,15 @@ namespace OpenSim.Framework
         /// <param name="ImageData"></param>
         /// <param name="imageCodec"></param>
         void SendImageFirstPart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec);
+        
+        /// <summary>
+        /// Send the next packet for a series of packets making up a single texture, 
+        /// as established by SendImageFirstPart()
+        /// </summary>
+        /// <param name="partNumber"></param>
+        /// <param name="imageUuid"></param>
+        /// <param name="imageData"></param>
+        void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData);
 
         void SendShutdownConnectionNotice();
         

@@ -171,17 +171,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                 }
                 else
                 {
-                    // Doesn't like to be refactored...
-                    ImagePacketPacket im = new ImagePacketPacket();
-                    im.Header.Reliable = false;
-                    im.ImageID.Packet = (ushort)(PacketCounter);
-                    im.ImageID.ID = m_asset.FullID;
                     int size = m_asset.Data.Length - 600 - (1000 * (PacketCounter - 1));
                     if (size > 1000) size = 1000;
-                    im.ImageData.Data = new byte[size];
+                    byte[] imageData = new byte[size];
                     try
                     {
-                        Array.Copy(m_asset.Data, 600 + (1000 * (PacketCounter - 1)), im.ImageData.Data, 0, size);
+                        Array.Copy(m_asset.Data, 600 + (1000 * (PacketCounter - 1)), imageData, 0, size);
                     }
                     catch (ArgumentOutOfRangeException)
                     {
@@ -189,8 +184,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                                     m_asset.FullID.ToString());
                         return;
                     }
-                    RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
-
+                    
+                    RequestUser.SendImageNextPart((ushort)PacketCounter, m_asset.FullID, imageData);
                     PacketCounter++;
                 }
             }

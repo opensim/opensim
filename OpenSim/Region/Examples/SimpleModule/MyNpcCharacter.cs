@@ -625,6 +625,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendImageFirstPart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
         {
         }
+        
+        public void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData)
+        {
+        }
 
         public void SendShutdownConnectionNotice()
         {

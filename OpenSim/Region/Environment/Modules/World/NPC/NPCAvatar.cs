@@ -708,6 +708,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData)
+        {
+        }
+        
         public void SendShutdownConnectionNotice()
         {
         }
