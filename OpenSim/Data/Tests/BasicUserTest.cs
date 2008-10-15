@@ -126,6 +126,7 @@ namespace OpenSim.Data.Tests
             UserProfileData u1 = NewUser(user1,fname1,lname1);
             UserProfileData u2 = NewUser(user2,fname2,lname2);
             UserProfileData u3 = NewUser(user3,fname3,lname3);
+
             db.AddNewUserProfile(u1);
             db.AddNewUserProfile(u2);
             db.AddNewUserProfile(u3);
