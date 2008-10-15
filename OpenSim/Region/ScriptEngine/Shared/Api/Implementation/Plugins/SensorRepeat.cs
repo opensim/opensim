@@ -445,6 +445,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         if (ang_obj > ts.arc) keep = false;
                     }
                 }
+                else
+                {
+                    keep = false;
+                }
 
                 // Do not report gods, not even minor ones
                 if (keep && presence.GodLevel > 0.0)
