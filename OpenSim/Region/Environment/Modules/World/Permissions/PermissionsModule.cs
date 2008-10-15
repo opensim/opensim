@@ -259,6 +259,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     if (profile.UserProfile.GodLevel >= 200)
                         return true;
                 }
+                else
+                {
+                    m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for administrator check", user);
+                }
             }
 
             return false;
@@ -646,8 +650,13 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 {
                     CachedUserInfo userInfo =
                             scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
+                
                     if (userInfo == null)
+                    {
+                        m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for edit notecard check", user);
                         return false;
+                    }                    
+                
 
                     if (userInfo.RootFolder == null)
                         return false;
@@ -1024,8 +1033,12 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 {
                     CachedUserInfo userInfo =
                             scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
+                
                     if (userInfo == null)
+                    {
+                        m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for administrator check", user);
                         return false;
+                    }    
 
                     if (userInfo.RootFolder == null)
                         return false;
@@ -1102,8 +1115,12 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 {
                     CachedUserInfo userInfo =
                             scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
+                
                     if (userInfo == null)
+                    {
+                        m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for view notecard check", user);
                         return false;
+                    }    
 
                     if (userInfo.RootFolder == null)
                         return false;

@@ -604,6 +604,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 string avatarname = profile.UserProfile.FirstName + " " + profile.UserProfile.SurName;
                 return avatarname;
             }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[MONEY]: Could not resolve user {0}", 
+                    agentID);
+            }
+            
             return String.Empty;
         }
 

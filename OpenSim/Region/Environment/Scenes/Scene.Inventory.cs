@@ -143,6 +143,12 @@ namespace OpenSim.Region.Environment.Scenes
                 AddInventoryItem(remoteClient.AgentId, item);
                 remoteClient.SendInventoryItemCreateUpdate(item);
             }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not resolve user {0} for adding an inventory item", 
+                    remoteClient.AgentId);
+            }            
         }
 
         /// <summary>
@@ -194,6 +200,13 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not resolve user {0} for caps inventory update", 
+                    remoteClient.AgentId);
+            }  
+            
             return UUID.Zero;
         }
 

@@ -5044,8 +5044,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 {
                                     CachedUserInfo userInfo = ((Scene)m_scene).CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
                                     if (userInfo == null)
-                                        break;
+                                    {
+                                        m_log.ErrorFormat(
+                                            "[CLIENT]: Could not resolve user {0} for caps inventory update", 
+                                            AgentId);
 
+                                        break;
+                                    }
+                                
                                     if (userInfo.RootFolder == null)
                                         break;
 

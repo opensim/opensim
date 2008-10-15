@@ -75,6 +75,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if (userID == UUID.Zero)
                 return;
+            
             m_log.DebugFormat("[USER CACHE]: Adding user profile for {0}", userID);
             GetUserDetails(userID);
         }
@@ -133,8 +134,8 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Get the details of the given user.  A caller should try this method first if it isn't sure that
-        /// a user profile exists for the given user.
+        /// Get cached details of the given user.  If the user isn't in cache then the user is requested from the 
+        /// profile service.  
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>null if no user details are found</returns>
@@ -160,7 +161,6 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        m_log.ErrorFormat("[USER CACHE]: User profile for user {0} not found.", userID);
                         return null;
                     }
                 }

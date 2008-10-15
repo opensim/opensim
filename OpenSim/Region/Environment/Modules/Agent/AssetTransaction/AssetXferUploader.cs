@@ -244,6 +244,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
                     userInfo.UpdateItem(item);
                 }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "[ASSET TRANSACTIONS]: Could not find user {0} for inventory item update", 
+                        remoteClient.AgentId);                    
+                }                    
             }
         }
         
@@ -294,6 +300,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 userInfo.AddItem(item);
                 ourClient.SendInventoryItemCreateUpdate(item);
             }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[ASSET TRANSACTIONS]: Could not find user {0} for inventory item creation", 
+                    ourClient.AgentId);
+            }                  
         }
 
         /// <summary>
