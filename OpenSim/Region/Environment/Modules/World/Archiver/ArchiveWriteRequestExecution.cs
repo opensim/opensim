@@ -81,7 +81,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             }
 
             m_log.InfoFormat(
-                "[ARCHIVER]: Received {0} of {1} assets requested", assetsFound.Count, assetsFound.Count + assetsNotFoundUuids.Count);
+                "[ARCHIVER]: Received {0} of {1} assets requested", 
+                assetsFound.Count, assetsFound.Count + assetsNotFoundUuids.Count);
+            
+            m_log.InfoFormat("[ARCHIVER]: Creating archive.  This may take some time.");
 
             TarArchiveWriter archive = new TarArchiveWriter();
 
