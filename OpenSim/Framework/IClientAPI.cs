@@ -793,7 +793,15 @@ namespace OpenSim.Framework
         void SendConfirmXfer(ulong xferID, uint PacketID);
         void SendXferRequest(ulong XferID, short AssetType, UUID vFileID, byte FilePath, byte[] FileName);
 
-        void SendImagePart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec);
+        /// <summary>
+        /// Send the first part of a texture.  For sufficiently small textures, this may be the only packet.
+        /// </summary>
+        /// <param name="numParts"></param>
+        /// <param name="ImageUUID"></param>
+        /// <param name="ImageSize"></param>
+        /// <param name="ImageData"></param>
+        /// <param name="imageCodec"></param>
+        void SendImageFirstPart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec);
 
         void SendShutdownConnectionNotice();
         

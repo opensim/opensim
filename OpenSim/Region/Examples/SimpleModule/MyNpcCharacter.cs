@@ -622,7 +622,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void SendImagePart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
+        public void SendImageFirstPart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
         {
         }
 
