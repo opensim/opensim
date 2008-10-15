@@ -733,46 +733,6 @@ namespace OpenSim.Framework
             }
         }
 
-/* 2008-08-28-tyre: Obsolete (see LocalLoginService UserLoginService)
-        public static string[] ParseStartLocationRequest(string startLocationRequest)
-        {
-            string[] returnstring = new string[4];
-            // format uri:RegionName&X&Y&Z
-            returnstring[0] = "last";
-            returnstring[1] = "127";
-            returnstring[2] = "127";
-            returnstring[3] = "0";
-            // This is the crappy way of doing it.
-
-            if (startLocationRequest.Contains(":") && startLocationRequest.Contains("&"))
-            {
-                //System.Console.WriteLine("StartLocationRequest Contains proper elements");
-
-                string[] splitstr = startLocationRequest.Split(':'); //,2,StringSplitOptions.RemoveEmptyEntries);
-
-                //System.Console.WriteLine("Found " + splitstr.GetLength(0) + " elements in 1st split result");
-
-                if (splitstr.GetLength(0) == 2)
-                {
-                    string[] splitstr2 = splitstr[1].Split('&'); //, 4, StringSplitOptions.RemoveEmptyEntries);
-
-                    //System.Console.WriteLine("Found " + splitstr2.GetLength(0) + " elements in 2nd split result");
-
-                    int len = Math.Min(splitstr2.GetLength(0), 4);
-
-                    for (int i = 0; i < 4; ++i)
-                    {
-                        if (len > i)
-                        {
-                            returnstring[i] = splitstr2[i];
-                        }
-                    }
-                }
-            }
-            return returnstring;
-        }
-*/
-
         public static XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
         {
             return SendXmlRpcCommand(url, methodName, args);

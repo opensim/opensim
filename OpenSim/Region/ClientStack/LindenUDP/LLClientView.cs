@@ -2474,15 +2474,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
 
-            // Anything more than 254 will cause libsecondlife to barf
-            // (libsl 1550) adds an \0 on the Utils.StringToBytes conversion if it isn't present
-            if (text.Length > 254)
-            {
-                text = text.Remove(254);
-            }
-
-            outPacket.ObjectData[0].Text = Utils.StringToBytes(text);
-
+            outPacket.ObjectData[0].Text = LLUtil.StringToPacketBytes(text);
             outPacket.ObjectData[0].TextColor[0] = color[0];
             outPacket.ObjectData[0].TextColor[1] = color[1];
             outPacket.ObjectData[0].TextColor[2] = color[2];
@@ -2943,6 +2935,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.IsGroupOwned = landData.IsGroupOwned;
             updatePacket.ParcelData.LandingType = (byte)landData.LandingType;
             updatePacket.ParcelData.LocalID = landData.LocalID;
+            
             if (landData.Area > 0)
             {
                 updatePacket.ParcelData.MaxPrims = parcelObjectCapacity;
@@ -2951,10 +2944,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 updatePacket.ParcelData.MaxPrims = 0;
             }
+            
             updatePacket.ParcelData.MediaAutoScale = landData.MediaAutoScale;
-            updatePacket.ParcelData.MediaID = landData.MediaID;
-            updatePacket.ParcelData.MediaURL = Utils.StringToBytes(landData.MediaURL);
-            updatePacket.ParcelData.MusicURL = Utils.StringToBytes(landData.MusicURL);
+            updatePacket.ParcelData.MediaID = landData.MediaID;           
+            updatePacket.ParcelData.MediaURL = LLUtil.StringToPacketBytes(landData.MediaURL);          
+            updatePacket.ParcelData.MusicURL = LLUtil.StringToPacketBytes(landData.MusicURL);
             updatePacket.ParcelData.Name = Utils.StringToBytes(landData.Name);
             updatePacket.ParcelData.OtherCleanTime = 0; //unemplemented
             updatePacket.ParcelData.OtherCount = 0; //unemplemented
