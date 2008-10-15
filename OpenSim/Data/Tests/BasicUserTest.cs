@@ -282,6 +282,16 @@ namespace OpenSim.Data.Tests
             fl1 = db.GetUserFriendList(user1);
             Assert.That(fl1[0].FriendPerms,Is.EqualTo(4));                  
         }
+        
+        [Test]
+        public void T040_UserAppearance()
+        {
+            AvatarAppearance appear = new AvatarAppearance();
+            appear.Owner = user1;
+            db.UpdateUserAppearance(user1, appear);
+            AvatarAppearance user1app = db.GetUserAppearance(user1);
+            Assert.That(user1,Is.EqualTo(user1app.Owner));
+        }
 
         public UserProfileData NewUser(UUID id,string fname,string lname)
         {
