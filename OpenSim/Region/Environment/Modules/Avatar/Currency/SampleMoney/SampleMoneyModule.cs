@@ -180,7 +180,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 scene.EventManager.OnClientClosed += ClientLoggedOut;
                 scene.EventManager.OnValidateLandBuy += ValidateLandBuy;
                 scene.EventManager.OnLandBuy += processLandBuy;
-                scene.EventManager.OnAvatarKilled += KillAvatar;
             }
         }
 
@@ -1490,60 +1489,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 }
             }
             //m_log.Info("[FRIEND]: " + avatar.Name + " status:" + (!avatar.IsChildAgent).ToString());
-        }
-
-        private void KillAvatar(uint killerObjectLocalID, ScenePresence DeadAvatar)
-        {
-            if (killerObjectLocalID == 0)
-                DeadAvatar.ControllingClient.SendAgentAlertMessage("You committed suicide!", true);
-            else
-            {
-                bool foundResult = false;
-                string resultstring = "";
-                List<ScenePresence> allav = DeadAvatar.Scene.GetScenePresences();
-                try
-                {
-                    foreach (ScenePresence av in allav)
-                    {
-                        if (av.LocalId == killerObjectLocalID)
-                        {
-                            av.ControllingClient.SendAlertMessage("You fragged " + DeadAvatar.Firstname + " " + DeadAvatar.Lastname);
-                            resultstring = av.Firstname + " " + av.Lastname;
-                            foundResult = true;
-                        }
-                    }
-                } catch (System.InvalidOperationException)
-                {
-
-                }
-
-                if (!foundResult)
-                {
-                    SceneObjectPart part = DeadAvatar.Scene.GetSceneObjectPart(killerObjectLocalID);
-                    if (part != null)
-                    {
-                        ScenePresence av = DeadAvatar.Scene.GetScenePresence(part.OwnerID);
-                        if (av != null)
-                        {
-                            av.ControllingClient.SendAlertMessage("You fragged " + DeadAvatar.Firstname + " " + DeadAvatar.Lastname);
-                            resultstring = av.Firstname + " " + av.Lastname;
-                            DeadAvatar.ControllingClient.SendAgentAlertMessage("You got killed by " + resultstring + "!", true);
-                        }
-                        else
-                        {
-                            string killer = DeadAvatar.Scene.CommsManager.UUIDNameRequestString(part.OwnerID);
-                            DeadAvatar.ControllingClient.SendAgentAlertMessage("You impaled yourself on " + part.Name + " owned by " + killer +"!", true);
-                        }
-                        //DeadAvatar.Scene. part.ObjectOwner
-                    }
-                    else
-                    {
-                        DeadAvatar.ControllingClient.SendAgentAlertMessage("You died!", true);
-                    }
-                }
-            }
-            DeadAvatar.Health = 100;
-            DeadAvatar.Scene.TeleportClientHome(DeadAvatar.UUID, DeadAvatar.ControllingClient);
         }
 
         public int GetBalance(IClientAPI client)
