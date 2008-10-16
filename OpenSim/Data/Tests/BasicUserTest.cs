@@ -126,7 +126,6 @@ namespace OpenSim.Data.Tests
             UserProfileData u1 = NewUser(user1,fname1,lname1);
             UserProfileData u2 = NewUser(user2,fname2,lname2);
             UserProfileData u3 = NewUser(user3,fname3,lname3);
-
             db.AddNewUserProfile(u1);
             db.AddNewUserProfile(u2);
             db.AddNewUserProfile(u3);
@@ -324,6 +323,17 @@ namespace OpenSim.Data.Tests
                 name.Append(ch);
             }
             return name.ToString();
-        }        
+        }
+        
+        public void PrintFriendsList(List<FriendListItem> fl)
+        {
+            Console.WriteLine("Friends {0} and {1} and {2}", agent1, agent2, agent3);
+            Console.WriteLine("List owner is {0}",fl[0].FriendListOwner);
+            for (int i = 0; i < fl.Count; i++)
+            {
+                    Console.WriteLine("Friend {0}",fl[i].Friend);
+            }
+
+        }
     }
 }
