@@ -143,8 +143,8 @@ namespace OpenSim.Data.Tests
         {
             UserProfileData u1 = db.GetUserByName(fname1,lname1);
             UserProfileData u2 = db.GetUserByName(fname2,lname2);
-            UserProfileData u3 = db.GetUserByName(fname3,lname3);   
-            Assert.That(user1,Is.EqualTo(u1.ID)); //??
+            UserProfileData u3 = db.GetUserByName(fname3,lname3);
+            Assert.That(user1,Is.EqualTo(u1.ID));
             Assert.That(user2,Is.EqualTo(u2.ID));
             Assert.That(user3,Is.EqualTo(u3.ID));
         }
@@ -219,12 +219,8 @@ namespace OpenSim.Data.Tests
             UserAgentData a4 = NewAgent(zero,agent4);
             db.AddNewUserAgent(a0);
             db.AddNewUserAgent(a4);
-            UserAgentData a0a = db.GetAgentByUUID(user4);
-            UserAgentData a4a = db.GetAgentByUUID(zero);
-            Assert.That(zero,Is.EqualTo(a0a.SessionID));
-            Assert.That(user4,Is.EqualTo(a0a.ProfileID));
-            Assert.That(agent4,Is.EqualTo(a4a.SessionID));
-            Assert.That(zero,Is.EqualTo(a4a.ProfileID));
+            Assert.That(db.GetAgentByUUID(user4),Is.Null);
+            Assert.That(db.GetAgentByUUID(zero),Is.Null);
         }
         
         [Test]

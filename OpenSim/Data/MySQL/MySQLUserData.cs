@@ -617,6 +617,10 @@ namespace OpenSim.Data.MySQL
         /// <param name="agent">The agent to create</param>
         public override void AddNewUserAgent(UserAgentData agent)
         {
+            UUID zero = UUID.Zero;
+            if (agent.ProfileID == zero || agent.SessionID == zero)
+                return;   
+
             MySQLSuperManager dbm = GetLockedConnection();
             try
             {

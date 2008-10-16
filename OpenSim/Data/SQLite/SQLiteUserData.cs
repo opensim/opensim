@@ -567,6 +567,10 @@ namespace OpenSim.Data.SQLite
         /// <param name="agent">The agent to add to the database</param>
         override public void AddNewUserAgent(UserAgentData agent)
         {
+            UUID zero = UUID.Zero;
+            if (agent.SessionID == zero || agent.ProfileID == zero)
+                return;
+
             DataTable agents = ds.Tables["useragents"];
             lock (ds)
             {
