@@ -27,12 +27,13 @@
 
 using System.Net;
 using NUnit.Framework;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.ClientStack.LindenUDP;
 
-namespace OpenSim.Region.ClientStack.LindenUDP.Tests
+namespace OpenSim.Region.ClientStack.LindenUDP
 {
     /// <summary>
     /// This will contain basic tests for the LindenUDP client stack
@@ -47,6 +48,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             
             uint port = 666;            
             llUdpServer.Initialise(null, ref port, -1, false, new ClientStackUserSettings(), null, null);
+            
+            UseCircuitCodePacket uccp = new UseCircuitCodePacket();
+            //llUdpServer.epS
         }
     }
 }

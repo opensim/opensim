@@ -472,6 +472,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
                     return;
+                
                 // Separating static prim geometry spaces.
                 // We'll be calling near recursivly if one
                 // of them is a space to find all of the

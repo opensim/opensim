@@ -991,6 +991,7 @@
 
       <ReferencePath>../../../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.ClientStack"/>

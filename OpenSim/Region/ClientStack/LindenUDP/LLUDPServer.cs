@@ -56,10 +56,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected IPEndPoint ServerIncoming;
         protected byte[] RecvBuffer = new byte[4096];
         protected byte[] ZeroBuffer = new byte[8192];
-        protected IPEndPoint ipeSender;
 
         /// <value>
-        /// The endpoint of a sender of a particular packet.  The port is continually changed by the various socket receive methods
+        /// The endpoint of a sender of a particular packet.  The port is changed by the various socket receive methods
         /// </value>
         protected EndPoint epSender;
 
@@ -176,8 +175,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="result"></param>
         protected virtual void OnReceivedData(IAsyncResult result)
         {
-            ipeSender = new IPEndPoint(listenIP, 0);
-            epSender = ipeSender;
+            epSender = new IPEndPoint(listenIP, 0);
             Packet packet = null;
 
             int numBytes = 1;
@@ -418,8 +416,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_log.Info("[UDPSERVER]: UDP socket bound, getting ready to listen");
 
-            ipeSender = new IPEndPoint(listenIP, 0);
-            epSender = ipeSender;
+            epSender = new IPEndPoint(listenIP, 0);
             ReceivedData = OnReceivedData;
             m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
 
