@@ -990,7 +990,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
 
-            lock (OdeScene.OdeLock)
+            lock (_parent_scene.OdeLock)
             {
                 CreateGeom(m_targetSpace, _mesh);
 

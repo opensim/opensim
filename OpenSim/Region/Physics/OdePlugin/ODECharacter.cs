@@ -147,7 +147,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             CAPSULE_LENGTH = (size.Z - ((size.Z * height_fudge_factor)));
 
-            lock (OdeScene.OdeLock)
+            lock (_parent_scene.OdeLock)
             {
                 AvatarGeomAndBodyCreation(pos.X, pos.Y, pos.Z, m_tensor);
             }
@@ -362,7 +362,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return _position; }
             set
             {
-                lock (OdeScene.OdeLock)
+                lock (_parent_scene.OdeLock)
                 {
                     d.BodySetPosition(Body, value.X, value.Y, value.Z);
                     _position = value;
@@ -386,7 +386,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 m_pidControllerActive = true;
-                lock (OdeScene.OdeLock)
+                lock (_parent_scene.OdeLock)
                 {
                     d.JointDestroy(Amotor);
 
@@ -863,7 +863,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         public void Destroy()
         {
-            lock (OdeScene.OdeLock)
+            lock (_parent_scene.OdeLock)
             {
                 // Kill the Amotor
                 d.JointDestroy(Amotor);

@@ -242,7 +242,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         // split static geometry collision handling into spaces of 30 meters
         public IntPtr[,] staticPrimspace;
 
-        public static Object OdeLock = new Object();
+        public Object OdeLock;
 
         public IMesher mesher;
 
@@ -259,6 +259,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         public OdeScene(CollisionLocker dode)
         {
+            OdeLock = new Object();
             ode = dode;
             nearCallback = near;
             triCallback = TriCallback;
