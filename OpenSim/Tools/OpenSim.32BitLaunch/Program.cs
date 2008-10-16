@@ -44,7 +44,7 @@ namespace OpenSim._32BitLaunch
             System.Threading.Thread.Sleep(300);
             try
             {
-                OpenSim.Application.Main(args);
+                global::OpenSim.Application.Main(args);
             }
             catch (Exception ex)
             {
