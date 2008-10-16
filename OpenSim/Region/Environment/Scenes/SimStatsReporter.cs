@@ -73,6 +73,8 @@ namespace OpenSim.Region.Environment.Scenes
         private float statsUpdateFactor = 0;
         private float m_timeDilation = 0;
         private int m_fps = 0;
+        // saved last reported value so there is something available for llGetRegionFPS 
+        private float lastReportedSimFPS = 0;
         private float m_pfps = 0;
         private int m_agentUpdates = 0;
 
@@ -155,6 +157,8 @@ namespace OpenSim.Region.Environment.Scenes
                 // Our FPS is actually 10fps, so multiplying by 5 to get the amount that people expect there
                 // 0-50 is pretty close to 0-45
                 float simfps = (int) ((m_fps * 5));
+                // save the reported value so there is something available for llGetRegionFPS 
+                lastReportedSimFPS = (float)simfps / statsUpdateFactor;
 
                 //if (simfps > 45)
                 //simfps = simfps - (simfps - 45);
@@ -395,6 +399,14 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetObjectCapacity(int objects)
         {
             objectCapacity = objects;
+        }
+
+        /// <summary>
+        /// This is for llGetRegionFPS
+        /// </summary>
+        public float getLastReportedSimFPS()
+        {
+            return lastReportedSimFPS;
         }
 
         #endregion

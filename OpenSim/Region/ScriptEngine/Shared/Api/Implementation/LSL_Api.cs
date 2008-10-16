@@ -4842,11 +4842,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (double)World.TimeDilation;
         }
 
+        /// <summary>
+        /// Returns the value reported in the client Statistics window
+        /// </summary>
         public LSL_Float llGetRegionFPS()
         {
             m_host.AddScriptLPS(1);
-            //TODO: return actual FPS
-            return 10.0f;
+            return World.SimulatorFPS;
         }
 
         /* particle system rules should be coming into this routine as doubles, that is

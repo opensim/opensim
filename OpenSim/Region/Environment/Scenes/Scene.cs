@@ -196,6 +196,14 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_timedilation; }
         }
 
+        /// <summary>
+        /// This is for llGetRegionFPS
+        /// </summary>
+        public float SimulatorFPS
+        {
+            get { return m_statsReporter.getLastReportedSimFPS(); }
+        }
+
         public int TimePhase
         {
             get { return m_timePhase; }
