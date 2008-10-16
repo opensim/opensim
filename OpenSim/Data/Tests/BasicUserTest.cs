@@ -214,7 +214,6 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T022_ExceptionalCases()
         {
-            // This will follow User behavior, return Null, in the future
             UserAgentData a0 = NewAgent(user4,zero);
             UserAgentData a4 = NewAgent(zero,agent4);
             db.AddNewUserAgent(a0);
@@ -222,10 +221,6 @@ namespace OpenSim.Data.Tests
 
             UserAgentData a0a = db.GetAgentByUUID(user4);
             UserAgentData a4a = db.GetAgentByUUID(zero);
-            Assert.That(zero,Is.EqualTo(a0a.SessionID));
-            Assert.That(user4,Is.EqualTo(a0a.ProfileID));
-            Assert.That(agent4,Is.EqualTo(a4a.SessionID));
-            Assert.That(zero,Is.EqualTo(a4a.ProfileID));
 
             Assert.That(db.GetAgentByUUID(user4),Is.Null);
             Assert.That(db.GetAgentByUUID(zero),Is.Null);
