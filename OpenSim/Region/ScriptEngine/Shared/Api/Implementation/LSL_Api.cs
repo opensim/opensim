@@ -4598,10 +4598,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // ScriptSleep(5000);
         }
 
-        public LSL_List llParseString2List(string str, LSL_List separators, LSL_List spacers)
+        public LSL_List llParseString2List(string str, LSL_List separators, LSL_List in_spacers)
         {
             m_host.AddScriptLPS(1);
             LSL_List ret = new LSL_List();
+            LSL_List spacers = new LSL_List();
+            if (in_spacers.Length > 0 && separators.Length > 0)
+            {
+                for (int i = 0; i < in_spacers.Length; i++)
+                {
+                    object s = in_spacers.Data[i];
+                    for (int j = 0; j < separators.Length; j++)
+                    {
+                        if (separators.Data[j].ToString() == s.ToString())
+                        {
+                            s = null;
+                            break;
+                        }
+                    }
+                    if (s != null)
+                    {
+                        spacers.Add(s);
+                    }
+                }
+            }
             object[] delimiters = new object[separators.Length + spacers.Length];
             separators.Data.CopyTo(delimiters, 0);
             spacers.Data.CopyTo(delimiters, separators.Length);

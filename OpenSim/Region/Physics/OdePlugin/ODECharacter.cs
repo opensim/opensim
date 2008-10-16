@@ -411,6 +411,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _parent_scene.actor_name_map[Shell] = (PhysicsActor) this;
             }
         }
+        
         /// <summary>
         /// This creates the Avatar's physical Surrogate at the position supplied
         /// </summary>
