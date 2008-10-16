@@ -324,17 +324,6 @@ namespace OpenSim.Data.Tests
                 name.Append(ch);
             }
             return name.ToString();
-        }
-        
-        public void PrintFriendsList(List<FriendListItem> fl)
-        {
-            Console.WriteLine("Friends {0} and {1} and {2}", agent1, agent2, agent3);
-            Console.WriteLine("List owner is {0}",fl[0].FriendListOwner);
-            for (int i = 0; i < fl.Count; i++)
-            {
-                    Console.WriteLine("Friend {0}",fl[i].Friend);
-            }
-
-        }
+        }        
     }
 }
