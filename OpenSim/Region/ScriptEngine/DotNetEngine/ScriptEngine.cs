@@ -32,6 +32,7 @@ using log4net;
 using Nini.Config;
 using OpenSim.Region.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Interfaces;
@@ -369,8 +370,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (id == null)
                 return;        
 
-            controllingClient.SendScriptRunningReply(objectID, itemID,
-                    id.Running);
+            IEventQueue eq = World.RequestModuleInterface<IEventQueue>();
+            if (eq == null)
+            {
+                controllingClient.SendScriptRunningReply(objectID, itemID,
+                        id.Running);
+            }
+            else
+            {
+                eq.Enqueue(EventQueueHelper.ScriptRunningReplyEvent(objectID, itemID, id.Running, true),
+                           controllingClient.AgentId);
+            }
         }
 
         public IScriptApi GetApi(UUID itemID, string name)

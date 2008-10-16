@@ -146,6 +146,23 @@ namespace OpenSim.Region.Environment
             return buildEvent("TeleportFinish", body);
         }
 
+        public static LLSD ScriptRunningReplyEvent(UUID objectID, UUID itemID, bool running, bool mono)
+        {
+            LLSDMap script = new LLSDMap();
+            script.Add("ObjectID", LLSD.FromUUID(objectID));
+            script.Add("ItemID", LLSD.FromUUID(itemID));
+            script.Add("Running", LLSD.FromBoolean(running));
+            script.Add("Mono", LLSD.FromBoolean(mono));
+            
+            LLSDArray scriptArr = new LLSDArray();
+            scriptArr.Add(script);
+            
+            LLSDMap body = new LLSDMap();
+            body.Add("Script", scriptArr);
+            
+            return buildEvent("ScriptRunningReply", body);
+        }
+
         public static LLSD KeepAliveEvent()
         {
             return buildEvent("FAKEEVENT", new LLSDMap());

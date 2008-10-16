@@ -972,8 +972,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             IScriptInstance instance = GetInstance(itemID);
             if (instance == null)
                 return;
-            controllingClient.SendScriptRunningReply(objectID, itemID,
-                    GetScriptState(itemID));
+            IEventQueue eq = World.RequestModuleInterface<IEventQueue>();
+            if (eq == null)
+            {
+                controllingClient.SendScriptRunningReply(objectID, itemID,
+                        GetScriptState(itemID));
+            }
+            else
+            {
+                eq.Enqueue(EventQueueHelper.ScriptRunningReplyEvent(objectID, itemID, GetScriptState(itemID), true),
+                           controllingClient.AgentId);
+            }
         }
     }
 }
