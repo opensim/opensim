@@ -58,10 +58,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected byte[] ZeroBuffer = new byte[8192];
 
         /// <value>
-        /// The endpoint of a sender of a particular packet.  The port is changed by the various socket receive methods
+        /// This is an endpoint that is reused where we don't need to protect the information from potentially
+        /// being stomped on by other threads.
         /// </value>
         protected EndPoint reusedEpSender = new IPEndPoint(IPAddress.Any, 0);
-        protected EndPoint reusedEpProxy;
+        
         protected int proxyPortOffset;
         
         protected AsyncCallback ReceivedData;
@@ -178,11 +179,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Packet packet = null;
             int numBytes = 1;
             bool ok = false;
-            reusedEpSender = new IPEndPoint(IPAddress.Any, 0);
+            EndPoint epSender = new IPEndPoint(IPAddress.Any, 0);
 
             try
             {
-                numBytes = m_socket.EndReceiveFrom(result, ref reusedEpSender);
+                numBytes = m_socket.EndReceiveFrom(result, ref epSender);
                 ok = true;
             }
             catch (SocketException e)
@@ -218,12 +219,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (z = numBytes ; z < RecvBuffer.Length ; z++)
                     RecvBuffer[z] = 0;
 
-                reusedEpProxy = reusedEpSender;
-                if (proxyPortOffset != 0)
-                {
-                    reusedEpSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
-                }
-
                 int packetEnd = numBytes - 1;
 
                 try
@@ -242,30 +237,48 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_log.Debug("[CLIENT]: " + e);
                 }
+            }    
+            
+            EndPoint epProxy = null;
+            
+            // If we've received a use circuit packet, then we need to decode an endpoint proxy, if one exists, before 
+            // allowing the RecvBuffer to be overwritten by the next packet. 
+            if (packet.Type == PacketType.UseCircuitCode)
+            {
+                epProxy = epSender;
+                if (proxyPortOffset != 0)
+                {
+                    epSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
+                }
             }
-
-            BeginReceive();
+            
+            BeginReceive(); 
 
             if (packet != null)
-                ProcessInPacket(packet);
+            {
+                if (packet.Type == PacketType.UseCircuitCode)
+                    AddNewClient((UseCircuitCodePacket)packet, epSender, epProxy);                                  
+                else
+                    ProcessInPacket(packet, epSender);
+            }
         }
         
         /// <summary>
-        /// Process a successfully received packet.   We pass the packet on to the LLPacketServer
-        /// except in the case that the packet is UseCircuitCode.  In that case we set up the circuit code instead.
+        /// Process a successfully received packet.
         /// </summary>
         /// <param name="packet"></param>
-        protected virtual void ProcessInPacket(Packet packet)
+        /// <param name="epSender"></param>
+        protected virtual void ProcessInPacket(Packet packet, EndPoint epSender)
         {
             try
             {
                 // do we already have a circuit for this endpoint
                 uint circuit;
-
                 bool ret;
+                
                 lock (clientCircuits)
                 {
-                    ret = clientCircuits.TryGetValue(reusedEpSender, out circuit);
+                    ret = clientCircuits.TryGetValue(epSender, out circuit);
                 }
 
                 if (ret)
@@ -274,21 +287,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //m_log.DebugFormat("[UDPSERVER]: For endpoint {0} got packet {1}", epSender, packet.Type);
 
                     m_packetServer.InPacket(circuit, packet);
-                }
-                else if (packet.Type == PacketType.UseCircuitCode)
-                {
-                    UseCircuitCodePacket p = (UseCircuitCodePacket)packet;
-                    
-                    AddNewClient(p);                    
-
-                    // Ack the first UseCircuitCode packet
-                    PacketAckPacket ack_it = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
-                    // TODO: don't create new blocks if recycling an old packet
-                    ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
-                    ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
-                    ack_it.Packets[0].ID = packet.Header.Sequence;
-                    ack_it.Header.Reliable = false;
-                    SendPacketTo(ack_it.ToBytes(), ack_it.ToBytes().Length, SocketFlags.None, p.CircuitCode.Code);
                 }
             }
             catch (Exception e)
@@ -319,7 +317,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (Exception a)
             {
-                m_log.Info("[UDPSERVER]: " + a);
+                m_log.Error("[UDPSERVER]: " + a);
             }
 
             try
@@ -356,61 +354,47 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Add a new client circuit.
         /// </summary>
         /// <param name="packet"></param>
-        protected virtual void AddNewClient(UseCircuitCodePacket useCircuit)
+        /// <param name="epSender"></param>
+        /// <param name="epProxy"></param>
+        protected virtual void AddNewClient(UseCircuitCodePacket useCircuit, EndPoint epSender, EndPoint epProxy)
         {
             //Slave regions don't accept new clients
             if (m_localScene.Region_Status != RegionStatus.SlaveScene)
             {
-                m_log.DebugFormat(
-                    "[CLIENT]: Adding new circuit for agent {0}, circuit code {1}", 
-                    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
-                
-                // Copy the current reusedEpSender and reusedEpProxy to store in the maps and hashes, 
-                // since the reused ones will change on the next packet receipt.
-                IPEndPoint reusedIpEpSender = (IPEndPoint)reusedEpSender;
-                EndPoint epSender = new IPEndPoint(reusedIpEpSender.Address, reusedIpEpSender.Port);
-                
-                IPEndPoint reusedIpEpPorxy = (IPEndPoint)reusedEpProxy;
-                EndPoint epProxy = new IPEndPoint(reusedIpEpPorxy.Address, reusedIpEpPorxy.Port);
-
                 lock (clientCircuits)
                 {
-                    if (!clientCircuits.ContainsKey(epSender))
-                    {    
-                        clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
-                    }
-                    else
+                    if (!clientCircuits.ContainsKey(epSender))  
                     {
-                        m_log.Error(
-                            "[CLIENT]: clientCircuits already contains entry for user " 
-                            + useCircuit.CircuitCode.Code + ". NOT adding.");
+                        m_log.DebugFormat(
+                            "[CLIENT]: Adding new circuit for agent {0}, circuit code {1}", 
+                            useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
+                        
+                        clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
                     }
                 }
 
                 // This doesn't need locking as it's synchronized data
                 if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
                     clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
-                else
-                    m_log.Error(
-                        "[CLIENT]: clientCurcuits_reverse already contains entry for user " 
-                        + useCircuit.CircuitCode.Code + ". NOT adding.");
 
                 lock (proxyCircuits)
                 {
                     if (!proxyCircuits.ContainsKey(useCircuit.CircuitCode.Code))
                         proxyCircuits.Add(useCircuit.CircuitCode.Code, epProxy);
-                    else
-                        m_log.Error(
-                            "[CLIENT]: proxyCircuits already contains entry for user " 
-                            + useCircuit.CircuitCode.Code + ". NOT adding.");
                 }
 
-                if (!PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy))
-                    m_log.ErrorFormat(
-                        "[CLIENT]: A circuit already existed for agent {0}, circuit {1}",
-                        useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
-            }
-
+                PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy);
+            }            
+            
+            // Ack the UseCircuitCode packet
+            PacketAckPacket ack_it = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
+            // TODO: don't create new blocks if recycling an old packet
+            ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
+            ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
+            ack_it.Packets[0].ID = useCircuit.Header.Sequence;
+            ack_it.Header.Reliable = false;
+            SendPacketTo(ack_it.ToBytes(), ack_it.ToBytes().Length, SocketFlags.None, useCircuit.CircuitCode.Code);
+            
             PacketPool.Instance.ReturnPacket(useCircuit);
         }
 
