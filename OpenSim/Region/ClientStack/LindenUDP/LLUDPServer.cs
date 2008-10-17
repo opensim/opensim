@@ -60,10 +60,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <value>
         /// The endpoint of a sender of a particular packet.  The port is changed by the various socket receive methods
         /// </value>
-        protected EndPoint epSender;
-
-        protected EndPoint epProxy;
+        protected EndPoint reusedEpSender = new IPEndPoint(IPAddress.Any, 0);
+        protected EndPoint reusedEpProxy;
         protected int proxyPortOffset;
+        
         protected AsyncCallback ReceivedData;
         protected LLPacketServer m_packetServer;
         protected Location m_location;
@@ -175,7 +175,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="result"></param>
         protected virtual void OnReceivedData(IAsyncResult result)
         {
-            epSender = new IPEndPoint(listenIP, 0);
             Packet packet = null;
 
             int numBytes = 1;
@@ -184,7 +183,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
-                numBytes = m_socket.EndReceiveFrom(result, ref epSender);
+                numBytes = m_socket.EndReceiveFrom(result, ref reusedEpSender);
                 ok = true;
             }
             catch (SocketException e)
@@ -220,10 +219,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (z = numBytes ; z < RecvBuffer.Length ; z++)
                     RecvBuffer[z] = 0;
 
-                epProxy = epSender;
+                reusedEpProxy = reusedEpSender;
                 if (proxyPortOffset != 0)
                 {
-                    epSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
+                    reusedEpSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
                 }
 
                 int packetEnd = numBytes - 1;
@@ -267,7 +266,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 bool ret;
                 lock (clientCircuits)
                 {
-                    ret = clientCircuits.TryGetValue(epSender, out circuit);
+                    ret = clientCircuits.TryGetValue(reusedEpSender, out circuit);
                 }
 
                 if (ret)
@@ -303,7 +302,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             try
             {
-                m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+                m_socket.BeginReceiveFrom(
+                     RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
             }
             catch (SocketException e)
             {
@@ -316,7 +316,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             try
             {
-                CloseEndPoint(epSender);
+                CloseEndPoint(reusedEpSender);
             }
             catch (Exception a)
             {
@@ -324,10 +324,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             try
-            {
-                
-                m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
-                                        ReceivedData, null);
+            {                
+                m_socket.BeginReceiveFrom(
+                    RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
 
                 // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
                 // so therefore..  we've got to tell the server to BeginReceiveFrom again.
@@ -363,29 +362,48 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //Slave regions don't accept new clients
             if (m_localScene.Region_Status != RegionStatus.SlaveScene)
             {
-                m_log.DebugFormat("[CLIENT]: Adding new circuit for agent {0}, circuit code {1}", useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
+                m_log.DebugFormat(
+                    "[CLIENT]: Adding new circuit for agent {0}, circuit code {1}", 
+                    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
+                
+                // Copy the current reusedEpSender and reusedEpProxy to store in the maps and hashes, 
+                // since the reused ones will change on the next packet receipt.
+                IPEndPoint reusedIpEpSender = (IPEndPoint)reusedEpSender;
+                EndPoint epSender = new IPEndPoint(reusedIpEpSender.Address, reusedIpEpSender.Port);
+                
+                IPEndPoint reusedIpEpPorxy = (IPEndPoint)reusedEpProxy;
+                EndPoint epProxy = new IPEndPoint(reusedIpEpPorxy.Address, reusedIpEpPorxy.Port);
 
                 lock (clientCircuits)
                 {
                     if (!clientCircuits.ContainsKey(epSender))
+                    {    
                         clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
+                    }
                     else
-                        m_log.Error("[CLIENT]: clientCircuits already contains entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
+                    {
+                        m_log.Error(
+                            "[CLIENT]: clientCircuits already contains entry for user " 
+                            + useCircuit.CircuitCode.Code + ". NOT adding.");
+                    }
                 }
 
                 // This doesn't need locking as it's synchronized data
                 if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
                     clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
                 else
-                    m_log.Error("[CLIENT]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
-
+                    m_log.Error(
+                        "[CLIENT]: clientCurcuits_reverse already contains entry for user " 
+                        + useCircuit.CircuitCode.Code + ". NOT adding.");
 
                 lock (proxyCircuits)
                 {
                     if (!proxyCircuits.ContainsKey(useCircuit.CircuitCode.Code))
                         proxyCircuits.Add(useCircuit.CircuitCode.Code, epProxy);
                     else
-                        m_log.Error("[CLIENT]: proxyCircuits already contains entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
+                        m_log.Error(
+                            "[CLIENT]: proxyCircuits already contains entry for user " 
+                            + useCircuit.CircuitCode.Code + ". NOT adding.");
                 }
 
                 if (!PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy))
@@ -416,9 +434,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_log.Info("[UDPSERVER]: UDP socket bound, getting ready to listen");
 
-            epSender = new IPEndPoint(listenIP, 0);
             ReceivedData = OnReceivedData;
-            m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender, ReceivedData, null);
+            m_socket.BeginReceiveFrom(
+                RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
 
             m_log.Info("[UDPSERVER]: Listening on port " + newPort);
         }

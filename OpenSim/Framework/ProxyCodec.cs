@@ -58,7 +58,7 @@ namespace OpenSim.Framework
             numBytes = x;
         }
 
-        public static EndPoint DecodeProxyMessage(byte[] bytes, ref int numBytes)
+        public static IPEndPoint DecodeProxyMessage(byte[] bytes, ref int numBytes)
         {
             // IPv4 Only
             byte[] addr = new byte[4];
@@ -71,7 +71,7 @@ namespace OpenSim.Framework
             ushort port = (ushort) (bytes[--numBytes] * 256);
             port += (ushort) bytes[--numBytes];
 
-            return (EndPoint) new IPEndPoint(new IPAddress(addr), (int) port);
+            return new IPEndPoint(new IPAddress(addr), (int) port);
         }
     }
 }
