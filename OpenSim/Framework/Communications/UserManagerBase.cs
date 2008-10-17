@@ -56,11 +56,11 @@ namespace OpenSim.Framework.Communications
         public void AddPlugin(string provider, string connect)
         {
             PluginLoader<IUserDataPlugin> loader =
-                new PluginLoader<IUserDataPlugin> (new UserDataInitialiser (connect));
+                new PluginLoader<IUserDataPlugin>(new UserDataInitialiser(connect));
 
             // loader will try to load all providers (MySQL, MSSQL, etc)
             // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add ("/OpenSim/UserData", new PluginProviderFilter (provider));
+            loader.Add("/OpenSim/UserData", new PluginProviderFilter(provider));            
             loader.Load();
 
             _plugins = loader.Plugins;
@@ -178,7 +178,12 @@ namespace OpenSim.Framework.Communications
             {
                 try
                 {
-                    return plugin.GetAgentByUUID(uuid);
+                    UserAgentData result = plugin.GetAgentByUUID(uuid);
+                  
+                    if (result != null) 
+                    {
+                        return result;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -260,7 +265,12 @@ namespace OpenSim.Framework.Communications
             {
                 try
                 {
-                    return plugin.GetUserFriendList(ownerID);
+                    List<FriendListItem> result = plugin.GetUserFriendList(ownerID);
+                  
+                    if (result != null) 
+                    {
+                        return result;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -331,7 +341,6 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-
         /// <summary>
         /// Resets the currentAgent in the user profile
         /// </summary>
@@ -344,6 +353,7 @@ namespace OpenSim.Framework.Communications
             {
                 return;
             }
+            
             profile.CurrentAgent = null;
 
             UpdateUserProfile(profile);

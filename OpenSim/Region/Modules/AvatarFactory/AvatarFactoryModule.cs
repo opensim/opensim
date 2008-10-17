@@ -34,7 +34,6 @@ using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Data.Base;
-using OpenSim.Data.MapperFactory;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Interfaces;

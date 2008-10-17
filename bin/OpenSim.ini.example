@@ -144,6 +144,7 @@ asset_plugin = "OpenSim.Data.SQLite.dll"
 inventory_plugin = "OpenSim.Data.SQLite.dll"
 ; inventory_plugin = "OpenSim.Data.MySQL.dll"
 ; inventory_plugin = "OpenSim.Data.NHibernate.dll" ; for nhibernate
+
 ; Inventory Source NHibernate example (DIALECT;DRIVER;CONNECTSTRING)
 ; inventory_source = "SQLiteDialect;SqliteClientDriver;URI=file:Inventory.db,version=3"
 ; Inventory Source MySQL example
@@ -151,9 +152,17 @@ inventory_plugin = "OpenSim.Data.SQLite.dll"
 
 
 ; User Data Database provider
+;
+; Multiple providers can be specified by separating them with commas (whitespace is unimportant)
+; If multiple providers are specified then if a profile is requested, each is queried until one
+; provides a valid profile, or until all providers have been queried.
+; Unfortunately the order of querying is currently undefined (it may not be the order in which
+; providers are specified here).  This needs to be fixed
+;
 userDatabase_plugin = "OpenSim.Data.SQLite.dll"
 ; userDatabase_plugin = "OpenSim.Data.MySQL.dll"
 ; userDatabase_plugin = "OpenSim.Data.NHibernate.dll" ; for nhibernate
+
 ; User Source NHibernate Example (DIALECT;DRIVER;CONNECTSTRING)
 ; user_source = "SQLiteDialect;SqliteClientDriver;URI=file:User.db,version=3"
 ; User Source MySQL example

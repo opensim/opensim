@@ -342,20 +342,45 @@ namespace OpenSim.Framework
     }
 
     /// <summary>
-    /// Filters out which plugin to load based on its "Provider", which is name given by in the addin.xml
+    /// Filters out which plugin to load based on its the plugin name or names given.  Plugin names are contained in 
+    /// their addin.xml
     /// </summary>
     public class PluginProviderFilter : IPluginFilter
     {
-        private string provider;
+        private string[] m_filters;
 
-        public PluginProviderFilter (string p)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="p">
+        /// Plugin name or names on which to filter.  Multiple names should be separated by commas.
+        /// </param>
+        public PluginProviderFilter(string p)
         {
-            provider = p;
+            m_filters = p.Split(',');
+            
+            for (int i = 0; i < m_filters.Length; i++)
+            {
+                m_filters[i] = m_filters[i].Trim();
+            }
         }
 
+        /// <summary>
+        /// Apply this filter to the given plugin.
+        /// </summary>
+        /// <param name="plugin"></param>
+        /// <returns>true if the plugin's name matched one of the filters, false otherwise.</returns>
         public bool Apply (PluginExtensionNode plugin)
         {
-            return (plugin.Provider == provider);
+            for (int i = 0; i < m_filters.Length; i++) 
+            {
+                if (m_filters[i] == plugin.Provider) 
+                {
+                    return true;
+                }
+            }
+            
+            return false;
         }
     }
 }

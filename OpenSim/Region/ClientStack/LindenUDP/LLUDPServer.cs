@@ -60,7 +60,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <value>
         /// The endpoint of a sender of a particular packet.  The port is changed by the various socket receive methods
         /// </value>
-        protected EndPoint epSender;
+        protected EndPoint epSender = new IPEndPoint(IPAddress.Any, 0);
 
         protected EndPoint epProxy;
         protected int proxyPortOffset;
@@ -175,7 +175,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="result"></param>
         protected virtual void OnReceivedData(IAsyncResult result)
         {
-            epSender = new IPEndPoint(listenIP, 0);
             Packet packet = null;
 
             int numBytes = 1;
