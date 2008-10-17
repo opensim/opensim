@@ -317,7 +317,7 @@ namespace OpenSim.Data.Tests
             StringBuilder name = new StringBuilder();
             int size = random.Next(5,12); 
             char ch ;
-            for(int i=0; i<size; i++)
+            for (int i=0; i<size; i++)
             {       
                 ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))) ;
                 name.Append(ch);

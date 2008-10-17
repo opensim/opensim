@@ -213,7 +213,7 @@ namespace OpenSim.Data.SQLite
                 {
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
-                        if(reader.Read())
+                        if (reader.Read())
                         {
                             reader.Close();
                             return true;
@@ -492,7 +492,7 @@ namespace OpenSim.Data.SQLite
                 {
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
-                        if(reader.Read())
+                        if (reader.Read())
                         {
                             reader.Close();
                             return true;
