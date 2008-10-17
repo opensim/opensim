@@ -84,6 +84,7 @@ namespace OpenSim.Framework.Communications
 
             return null;
         }
+        
         public void ResetAttachments(UUID userID)
         {
             foreach (IUserDataPlugin plugin in _plugins)
@@ -91,6 +92,7 @@ namespace OpenSim.Framework.Communications
                 plugin.ResetAttachments(userID);
             }
         }
+        
         public UserAgentData GetAgentByUUID(UUID userId)
         {
             foreach (IUserDataPlugin plugin in _plugins)
@@ -105,6 +107,7 @@ namespace OpenSim.Framework.Communications
 
             return null;
         }
+        
         // see IUserService
         public UserProfileData GetUserProfile(UUID uuid)
         {
@@ -137,6 +140,7 @@ namespace OpenSim.Framework.Communications
                     return new List<AvatarPickerAvatar>();
                 }
             }
+            
             return pickerlist;
         }
 
