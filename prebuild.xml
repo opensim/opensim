@@ -1959,6 +1959,7 @@
       <Reference name="System.Web" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -1999,6 +2000,7 @@
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="System.Runtime.Remoting" localCopy="false"/>
       <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="RAIL.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>

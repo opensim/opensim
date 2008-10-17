@@ -35,6 +35,7 @@ using System.Reflection;
 using System.Globalization;
 using System.Xml;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using log4net;
 using Nini.Config;
 using Amib.Threading;

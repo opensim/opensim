@@ -37,6 +37,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 
