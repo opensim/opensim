@@ -49,7 +49,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             uint port = 666;            
             llUdpServer.Initialise(null, ref port, -1, false, new ClientStackUserSettings(), null, null);
             
-            UseCircuitCodePacket uccp = new UseCircuitCodePacket();
+            //UseCircuitCodePacket uccp = new UseCircuitCodePacket();
             //llUdpServer.epS
         }
     }

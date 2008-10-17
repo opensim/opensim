@@ -46,12 +46,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Combat.CombatModule
 {
     public class CombatModule : IRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Region UUIDS indexed by AgentID
         /// </summary>
-        private Dictionary<UUID, UUID> m_rootAgents = new Dictionary<UUID, UUID>();
+        //private Dictionary<UUID, UUID> m_rootAgents = new Dictionary<UUID, UUID>();
 
         /// <summary>
         /// Scenes by Region Handle
