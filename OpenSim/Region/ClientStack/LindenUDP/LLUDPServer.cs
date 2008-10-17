@@ -176,10 +176,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void OnReceivedData(IAsyncResult result)
         {
             Packet packet = null;
-
             int numBytes = 1;
-
             bool ok = false;
+            reusedEpSender = new IPEndPoint(IPAddress.Any, 0);
 
             try
             {
@@ -451,9 +450,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // find the endpoint for this circuit
             EndPoint sendto;
-            try {
+            try 
+            {
                 sendto = (EndPoint)clientCircuits_reverse[circuitcode];
-            } catch {
+            } 
+            catch 
+            {
                 // Exceptions here mean there is no circuit
                 m_log.Warn("[CLIENT]: Circuit not found, not sending packet");
                 return;
@@ -525,7 +527,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!clientCircuits.ContainsKey(userEP))
                     clientCircuits.Add(userEP, useCircuit.CircuitCode.Code);
                 else
-                    m_log.Error("[CLIENT]: clientCircuits already contans entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
+                    m_log.Error("[CLIENT]: clientCircuits already contains entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
             }
 
             // This data structure is synchronized, so we don't need the lock
