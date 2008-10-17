@@ -3456,10 +3456,176 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPushObject(string target, LSL_Vector impulse, LSL_Vector ang_impulse, int local)
         {
             m_host.AddScriptLPS(1);
-            SceneObjectPart targ = World.GetSceneObjectPart((UUID)target);
-            if (targ == null)
+            bool pushrestricted = World.RegionInfo.RegionSettings.RestrictPushing;
+            bool pushAllowed = false;
+
+            bool pusheeIsAvatar = false;
+            UUID targetID = UUID.Zero;
+            
+            if (!UUID.TryParse(target,out targetID))
                 return;
-            targ.ApplyImpulse(new Vector3((float)impulse.x, (float)impulse.y, (float)impulse.z), local != 0);
+
+            ScenePresence pusheeav = null;
+            //SceneObjectPart pusheeob = null;
+            EntityBase obj = null;
+            Vector3 PusheePos = Vector3.Zero;
+            SceneObjectPart pusheeob = null;
+                     
+            List<ScenePresence> avatars = World.GetAvatars();
+
+            foreach (ScenePresence avatar in avatars)
+            {
+                if (avatar.UUID == targetID)
+                {
+                    pusheeIsAvatar = true;
+
+                    // Pushee doesn't have a physics actor
+                    if (avatar.PhysicsActor == null)
+                        return;
+
+                    // Pushee is in GodMode this pushing object isn't owned by them
+                    if (avatar.GodLevel > 0 && m_host.OwnerID != targetID)
+                        return;
+                    
+                    pusheeav = avatar;
+                    
+                    // Find pushee position
+                    // Pushee Linked?
+                    if (pusheeav.ParentID != 0)
+                    {
+                        SceneObjectPart parentobj = World.GetSceneObjectPart(pusheeav.ParentID);
+                        if (parentobj != null)
+                        {
+                            PusheePos = parentobj.AbsolutePosition;
+                        }
+                        else
+                        {
+                            PusheePos = pusheeav.AbsolutePosition;
+                        }
+                    }
+                    else
+                    {
+                        PusheePos = pusheeav.AbsolutePosition;
+                    }
+                    
+                    obj = (EntityBase)pusheeav;
+                    break;
+                }
+            }
+
+            if (!pusheeIsAvatar)
+            {
+                pusheeob = World.GetSceneObjectPart((UUID)target);
+                
+                // We can't find object
+                if (pusheeob == null)
+                    return;
+
+                // Object not pushable.  Not an attachment and has no physics component
+                if (!pusheeob.IsAttachment && pusheeob.PhysActor == null)
+                    return;
+
+                PusheePos = pusheeob.AbsolutePosition;
+                //obj = (EntityBase)pusheeob;
+            }
+            
+            
+            if (pushrestricted)
+            {
+                ILandObject targetlandObj = World.LandChannel.GetLandObject(PusheePos.X,PusheePos.Y);
+
+                // We didn't find the parcel but region is push restricted so assume it is NOT ok
+                if (targetlandObj == null)
+                    return;
+
+                // Need provisions for Group Owned here
+                if (m_host.OwnerID == targetlandObj.landData.OwnerID || targetlandObj.landData.IsGroupOwned || m_host.OwnerID == targetID)
+                {
+                    pushAllowed = true;
+                }
+            }
+            else
+            {
+                ILandObject targetlandObj = World.LandChannel.GetLandObject(PusheePos.X, PusheePos.Y);
+                if (targetlandObj == null)
+                {
+                    // We didn't find the parcel but region isn't push restricted so assume it's ok
+                    pushAllowed = true;
+                }
+                else
+                {
+                    // Parcel push restriction
+                    if ((targetlandObj.landData.Flags & (uint)Parcel.ParcelFlags.RestrictPushObject) == (uint)Parcel.ParcelFlags.RestrictPushObject)
+                    {
+                        // Need provisions for Group Owned here
+                        if (m_host.OwnerID == targetlandObj.landData.OwnerID || targetlandObj.landData.IsGroupOwned || m_host.OwnerID == targetID)
+                        {
+                            pushAllowed = true;
+                        }
+
+                        //Parcel.ParcelFlags.RestrictPushObject
+                        //pushAllowed = true;
+                    }
+                    else
+                    {
+                        // Parcel isn't push restricted
+                        pushAllowed = true;
+                    }
+                }
+            }
+            if (pushAllowed)
+            {
+                float distance = (PusheePos - m_host.AbsolutePosition).Length();
+                float distance_term = distance * distance * distance; // Script Energy
+                float pusher_mass = m_host.GetMass();
+
+                float PUSH_ATTENUATION_DISTANCE = 17f;
+                float PUSH_ATTENUATION_SCALE = 5f;
+                float distance_attenuation = 1f;
+                if (distance > PUSH_ATTENUATION_DISTANCE)
+                {
+                    float normalized_units = 1f + (distance - PUSH_ATTENUATION_DISTANCE) / PUSH_ATTENUATION_SCALE;
+                    distance_attenuation = 1f / normalized_units;
+                }
+
+                Vector3 applied_linear_impulse = new Vector3((float)impulse.x, (float)impulse.y, (float)impulse.z);
+                {
+                    float impulse_length = applied_linear_impulse.Length();
+
+                    float desired_energy = impulse_length * pusher_mass;
+                    if (desired_energy > 0f)
+                        desired_energy += distance_term;
+
+                    float scaling_factor = 1f;
+                    scaling_factor *= distance_attenuation;
+                    applied_linear_impulse *= scaling_factor;
+
+                }
+                if (pusheeIsAvatar)
+                {
+                    if (pusheeav != null)
+                    {
+                        if (pusheeav.PhysicsActor != null)
+                        {
+                            if (local != 0)
+                            {
+                                applied_linear_impulse *= m_host.GetWorldRotation();
+                            }
+                            pusheeav.PhysicsActor.AddForce(new PhysicsVector(applied_linear_impulse.X, applied_linear_impulse.Y, applied_linear_impulse.Z), true);
+                        }
+                    }
+                }
+                else
+                {
+                    if (pusheeob != null)
+                    {
+                        if (pusheeob.PhysActor != null)
+                        {
+                            pusheeob.ApplyImpulse(applied_linear_impulse, local != 0);
+                        }
+                    }
+                }
+            }
         }
 
         public void llPassCollisions(int pass)

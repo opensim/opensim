@@ -575,10 +575,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             for (int i = 0; i < count; i++)
             {
-                if (checkDupe(contacts[i],p2.PhysicsActorType))
-                {
-                    continue;
-                }
+
 
                 max_collision_depth = (contacts[i].depth > max_collision_depth) ? contacts[i].depth : max_collision_depth;
                 //m_log.Warn("[CCOUNT]: " + count);
@@ -588,7 +585,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 
                 // We only need to test p2 for 'jump crouch purposes'
                 p2.IsColliding = true;
-
+                
                 //if ((framecount % m_returncollisions) == 0)
 
                 switch (p1.PhysicsActorType)
@@ -759,7 +756,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 #endregion
 
-                if (contacts[i].depth >= 0f)
+                if (contacts[i].depth >= 0f && !checkDupe(contacts[i], p2.PhysicsActorType))
                 {
                     // If we're colliding against terrain
                     if (name1 == "Terrain" || name2 == "Terrain")
@@ -863,11 +860,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                             if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
                             {
                                 
-                                if (Math.Abs(contact.depth - contactGeom.depth) < 0.272f)
+                                if (Math.Abs(contact.depth - contactGeom.depth) < 0.072f)
                                 {
                                     //contactGeom.depth *= .00005f;
                                     //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
-                                    // m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
+                                     //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
                                     result = true;
                                     break;
                                 }
