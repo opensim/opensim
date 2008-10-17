@@ -540,6 +540,11 @@ MaintenanceLoopTicks_ScriptLoadUnload=1
 ; check if we need to reload config, adjust running config and enforce max execution time
 MaintenanceLoopTicks_Other=10
 
+; Allow the use of os* functions (some are dangerous)
+AllowOSFunctions = true
+
+; Threat level to allow, one of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
+OSFunctionThreatLevel = Low
 
 ; Maximum number of items in load/unload queue before we start rejecting loads
 ; Note that we will only be rejecting load. Unloads will still be able to queue.
