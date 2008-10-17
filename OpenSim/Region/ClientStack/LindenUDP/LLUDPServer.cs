@@ -46,12 +46,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <value>
+        /// The client circuits established with this UDP server.  If a client exists here we can also assume that
+        /// it is populated in clientCircuits_reverse and proxyCircuits (if relevant)
+        /// </value>
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
-
-        //public Dictionary<uint, EndPoint> clientCircuits_reverse = new Dictionary<uint, EndPoint>();
         public Hashtable clientCircuits_reverse = Hashtable.Synchronized(new Hashtable());
-
         protected Dictionary<uint, EndPoint> proxyCircuits = new Dictionary<uint, EndPoint>();
+        
         private Socket m_socket;
         protected IPEndPoint ServerIncoming;
         protected byte[] RecvBuffer = new byte[4096];
@@ -360,7 +362,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             //Slave regions don't accept new clients
             if (m_localScene.Region_Status != RegionStatus.SlaveScene)
-            {
+            {                
+                bool foundExistingCircuit = false;
+                
                 lock (clientCircuits)
                 {
                     if (!clientCircuits.ContainsKey(epSender))  
@@ -370,20 +374,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
                         
                         clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
+                        
+                        foundExistingCircuit = true;
                     }
                 }
 
-                // This doesn't need locking as it's synchronized data
-                if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
-                    clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
-
-                lock (proxyCircuits)
+                if (!foundExistingCircuit)
                 {
-                    if (!proxyCircuits.ContainsKey(useCircuit.CircuitCode.Code))
-                        proxyCircuits.Add(useCircuit.CircuitCode.Code, epProxy);
-                }
+                    // This doesn't need locking as it's synchronized data
+                    if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
+                        clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
 
-                PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy);
+                    lock (proxyCircuits)
+                    {
+                        if (!proxyCircuits.ContainsKey(useCircuit.CircuitCode.Code))
+                            proxyCircuits.Add(useCircuit.CircuitCode.Code, epProxy);
+                    }
+
+                    PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy);
+                }
             }            
             
             // Ack the UseCircuitCode packet
