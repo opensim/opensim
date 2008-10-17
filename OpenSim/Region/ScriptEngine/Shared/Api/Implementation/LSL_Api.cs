@@ -4041,7 +4041,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List llDeleteSubList(LSL_List src, int start, int end)
         {
-            return src.DeleteSublist(end, start);
+            return src.DeleteSublist(start, end);
         }
 
         public LSL_Integer llGetListEntryType(LSL_List src, int index)
