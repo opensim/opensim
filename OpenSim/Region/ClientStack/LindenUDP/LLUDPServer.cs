@@ -382,13 +382,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!foundExistingCircuit)
                 {
                     // This doesn't need locking as it's synchronized data
-                    if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
-                        clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
+                    clientCircuits_reverse[useCircuit.CircuitCode.Code] = epSender;
 
                     lock (proxyCircuits)
                     {
-                        if (!proxyCircuits.ContainsKey(useCircuit.CircuitCode.Code))
-                            proxyCircuits.Add(useCircuit.CircuitCode.Code, epProxy);
+                        proxyCircuits[useCircuit.CircuitCode.Code] = epProxy;
                     }
 
                     PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy);
