@@ -1158,6 +1158,13 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // Since this is the top of the section of call stack for backing up a particular scene object, don't let
             // any exception propogate upwards.
+
+            if (RootPart == null || UUID == UUID.Zero)
+            {
+                DetachFromBackup();
+                return;
+            }
+
             try
             {
                 ILandObject parcel = m_scene.LandChannel.GetLandObject(
