@@ -1009,7 +1009,7 @@ namespace OpenSim.Region.Environment.Scenes
             // that they don't happen, otherwise the deleted objects will reappear
             m_isDeleted = true;
 
-            DetachFromBackup();
+//            DetachFromBackup();
 
             foreach (SceneObjectPart part in m_parts.Values)
             {

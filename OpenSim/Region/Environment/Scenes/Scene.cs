@@ -3385,6 +3385,12 @@ namespace OpenSim.Region.Environment.Scenes
                 // User needs to be logged into this sim
                 if (m_scenePresences.ContainsKey(agentID))
                 {
+                    if (godLike == false)
+                    {
+                        m_scenePresences[agentID].GrantGodlikePowers(agentID, sessionID, token, godLike);
+                        return;
+                    }
+
                     // First check that this is the sim owner
                     if (ExternalChecks.ExternalChecksCanBeGodLike(agentID))
                     {

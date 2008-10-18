@@ -1618,19 +1618,17 @@ namespace OpenSim.Region.Environment.Scenes
         {
             string sceneObjectXml = objectGroup.ToXmlString();
 
-            CachedUserInfo userInfo =
-                CommsManager.UserProfileCacheService.GetUserDetails(
-                remoteClient.AgentId);
+            CachedUserInfo userInfo;
 
             if (remoteClient == null)
             {
                 userInfo = CommsManager.UserProfileCacheService.GetUserDetails(
-                objectGroup.RootPart.OwnerID);
+                        objectGroup.RootPart.OwnerID);
             }
             else
             {
                 userInfo = CommsManager.UserProfileCacheService.GetUserDetails(
-                remoteClient.AgentId);
+                        remoteClient.AgentId);
             }
 
             if (userInfo != null)
@@ -1648,9 +1646,22 @@ namespace OpenSim.Region.Environment.Scenes
                             (int)AssetType.LostAndFoundFolder);
 
                     if (folder != null)
+                    {
                         folderID = folder.ID;
+                    }
                     else
-                        folderID = userInfo.RootFolder.ID;
+                    {
+                        if (userInfo.RootFolder != null)
+                        {
+                            folderID = userInfo.RootFolder.ID;
+                        }
+                        else
+                        {
+                            CommsManager.UserProfileCacheService.RequestInventoryForUser(objectGroup.RootPart.OwnerID);
+                            m_log.WarnFormat("[SCENE] Can't find root folder for user, requesting inventory");
+                            return;
+                        }
+                    }
                 }
 
                 AssetBase asset = CreateAsset(
@@ -1677,7 +1688,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.InvType = (int)InventoryType.Object;
                 item.Folder = folderID;
                 
-                if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+                if (remoteClient != null && (remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                 {
                     uint perms=objectGroup.GetEffectivePermissions();
                     uint nextPerms=(perms & 7) << 13;
@@ -1706,7 +1717,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
                 userInfo.AddItem(item);
-                if (item.Owner == remoteClient.AgentId)
+                if (remoteClient != null && item.Owner == remoteClient.AgentId)
                 {
                     remoteClient.SendInventoryItemCreateUpdate(item);
                 }

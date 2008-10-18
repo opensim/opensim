@@ -580,7 +580,13 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_pendingObjects = new Queue<SceneObjectGroup>();
 
-                    foreach (EntityBase e in m_scene.Entities.Values)
+                    List<EntityBase> ents = new List<EntityBase>(m_scene.Entities.Values);
+                    ents.Sort(delegate(EntityBase a, EntityBase b)
+                    {
+                        return Vector3.Distance(AbsolutePosition, a.AbsolutePosition).CompareTo(Vector3.Distance(AbsolutePosition, b.AbsolutePosition));
+                    });
+
+                    foreach (EntityBase e in ents)
                         if (e is SceneObjectGroup)
                             m_pendingObjects.Enqueue((SceneObjectGroup)e);
                 }
