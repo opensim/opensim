@@ -77,6 +77,8 @@ namespace OpenSim.Framework
         private UUID _snapshotID = UUID.Zero;
         private Vector3 _userLocation = new Vector3();
         private Vector3 _userLookAt = new Vector3();
+        private int _dwell = 0;
+        private int _otherCleanTime = 0;
 
         public Vector3 AABBMax {
             get {
@@ -402,6 +404,24 @@ namespace OpenSim.Framework
             }
         }
 
+        public int Dwell {
+            get {
+                return _dwell;
+            }
+            set {
+                _dwell = value;
+            }
+        }
+
+        public int OtherCleanTime {
+            get {
+                return _otherCleanTime;
+            }
+            set {
+                _otherCleanTime = value;
+            }
+        }
+
         public LandData()
         {
             _globalID = UUID.Random();
@@ -444,6 +464,8 @@ namespace OpenSim.Framework
             landData._snapshotID = _snapshotID;
             landData._userLocation = _userLocation;
             landData._userLookAt = _userLookAt;
+            landData._otherCleanTime = _otherCleanTime;
+            landData._dwell = _dwell;
 
             landData._parcelAccessList.Clear();
             foreach (ParcelManager.ParcelAccessEntry entry in _parcelAccessList)

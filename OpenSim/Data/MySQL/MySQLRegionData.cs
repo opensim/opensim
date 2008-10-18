@@ -994,6 +994,8 @@ namespace OpenSim.Data.MySQL
             createCol(land, "UserLookAtY", typeof (Double));
             createCol(land, "UserLookAtZ", typeof (Double));
             createCol(land, "AuthBuyerID", typeof (String));
+            createCol(land, "OtherCleanTime", typeof(Int32));
+            createCol(land, "Dwell", typeof(Int32));
 
             land.PrimaryKey = new DataColumn[] {land.Columns["UUID"]};
 
@@ -1357,6 +1359,8 @@ namespace OpenSim.Data.MySQL
 
             UUID.TryParse((string)row["AuthBuyerID"], out authedbuyer);
             UUID.TryParse((string)row["SnapshotUUID"], out snapshotID);
+            newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
+            newData.Dwell = Convert.ToInt32(row["Dwell"]);
 
             newData.AuthBuyerID = authedbuyer;
             newData.SnapshotID = snapshotID;
@@ -1661,6 +1665,8 @@ namespace OpenSim.Data.MySQL
             row["UserLookAtY"] = land.UserLookAt.Y;
             row["UserLookAtZ"] = land.UserLookAt.Z;
             row["AuthBuyerID"] = land.AuthBuyerID;
+            row["OtherCleanTime"] = land.OtherCleanTime;
+            row["Dwell"] = land.Dwell;
         }
 
         /// <summary>

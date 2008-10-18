@@ -96,6 +96,8 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_incrementsof15seconds = 0;
         private volatile bool m_backingup = false;
 
+        private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
+
         protected string m_simulatorVersion = "OpenSimulator Server";
 
         protected ModuleLoader m_moduleLoader;
@@ -929,8 +931,54 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public void Backup()
         {
+            m_returns.Clear();
+
             EventManager.TriggerOnBackup(m_storageManager.DataStore);
             m_backingup = false;
+
+            foreach (KeyValuePair<UUID, ReturnInfo> ret in m_returns)
+            {
+                UUID transaction = UUID.Random();
+
+                GridInstantMessage msg = new GridInstantMessage();
+                msg.fromAgentID = new Guid(UUID.Zero.ToString()); // From server
+                msg.fromAgentSession = new Guid(transaction.ToString());
+                msg.toAgentID = new Guid(ret.Key.ToString());
+                msg.imSessionID = new Guid(transaction.ToString());
+                msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
+                msg.fromAgentName = "Server";
+                msg.dialog = (byte)19; // Object msg
+                msg.fromGroup = false;
+                msg.offline = (byte)1;
+                msg.ParentEstateID = RegionInfo.EstateSettings.ParentEstateID;
+                msg.Position = Vector3.Zero;
+                msg.RegionID = RegionInfo.RegionID.Guid;
+                msg.binaryBucket = new byte[0];
+                if (ret.Value.count > 1)
+                    msg.message = string.Format("Your {0} objects were returned from {1} in region {2} due to parcel auto return", ret.Value.count, ret.Value.location.ToString(), RegionInfo.RegionName);
+                else
+                    msg.message = string.Format("Your object {0} was returned from {1} in region {2} due to parcel auto return", ret.Value.objectName, ret.Value.location.ToString(), RegionInfo.RegionName);
+
+                TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
+            }
+        }
+
+        public void AddReturn(UUID agentID, string objectName, Vector3 location)
+        {
+            if (m_returns.ContainsKey(agentID))
+            {
+                ReturnInfo info = m_returns[agentID];
+                info.count++;
+                m_returns[agentID] = info;
+            }
+            else
+            {
+                ReturnInfo info = new ReturnInfo();
+                info.count = 1;
+                info.objectName = objectName;
+                info.location = location;
+                m_returns[agentID] = info;
+            }
         }
 
         #endregion
@@ -2254,6 +2302,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUndo += m_innerScene.HandleUndo;
             client.OnObjectGroupRequest += m_innerScene.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
+            client.OnParcelSetOtherCleanTime += LandChannel.SetParcelOtherCleanTime;
             client.OnObjectSaleInfo += ObjectSaleInfo;
             client.OnScriptReset += ProcessScriptReset;
             client.OnGetScriptRunning += GetScriptRunning;

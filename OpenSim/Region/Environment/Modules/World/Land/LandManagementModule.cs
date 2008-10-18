@@ -1233,5 +1233,20 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             else
                 m_log.Debug("[LAND] got no parcelinfo; not sending");
         }
+
+        public void setParcelOtherCleanTime(IClientAPI remoteClient, int localID,int otherCleanTime)
+        {
+            if (!landList.ContainsKey(localID))
+                return;
+
+            ILandObject landObject = landList[localID];
+
+            if (!m_scene.ExternalChecks.ExternalChecksCanEditParcel(remoteClient.AgentId, landObject))
+                return;
+
+            landObject.landData.OtherCleanTime = otherCleanTime;
+
+            UpdateLandObject(localID, landObject.landData);
+        }
     }
 }

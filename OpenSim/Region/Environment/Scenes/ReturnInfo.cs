@@ -25,26 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Collections.Generic;
 using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Interfaces
+namespace OpenSim.Region.Environment.Scenes
 {
-    public interface ILandChannel
+    public struct ReturnInfo
     {
-
-        List<ILandObject> ParcelsNearPoint(Vector3 position);
-        List<ILandObject> AllParcels();
-        ILandObject GetLandObject(int x, int y);
-        ILandObject GetLandObject(float x, float y);
-        bool IsLandPrimCountTainted();
-        bool IsForcefulBansAllowed();
-        void UpdateLandObject(int localID, LandData data);
-        void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient);
-        void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
-        void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);
-        void SetParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime);
+        public int count;
+        public Vector3 location;
+        public string objectName;
     }
 }

@@ -715,7 +715,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        private InventoryFolderImpl FindFolderForType(int type)
+        public InventoryFolderImpl FindFolderForType(int type)
         {
             if (RootFolder == null)
                 return null;

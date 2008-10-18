@@ -175,6 +175,15 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 m_landManagementModule.setSimulatorObjectMaxOverride(overrideDel);
             }
         }
+
+        public void SetParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime)
+        {
+            if (m_landManagementModule != null)
+            {
+                m_landManagementModule.setParcelOtherCleanTime(remoteClient, localID, otherCleanTime);
+            }
+        }
+
         #endregion
 
     }

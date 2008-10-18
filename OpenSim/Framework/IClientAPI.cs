@@ -95,6 +95,7 @@ namespace OpenSim.Framework
 
     // really don't want to be passing packets in these events, so this is very temporary.
     public delegate void GenericCall4(Packet packet, IClientAPI remoteClient);
+    public delegate void DeRezObject(IClientAPI remoteClient, uint localID, UUID groupID, byte destination, UUID destinationID);
 
     public delegate void GenericCall5(IClientAPI remoteClient, bool status);
 
@@ -319,6 +320,7 @@ namespace OpenSim.Framework
     public delegate void DirPopularQuery(IClientAPI remoteClient, UUID queryID, uint queryFlags);
     public delegate void DirClassifiedQuery(IClientAPI remoteClient, UUID queryID, string queryText, uint queryFlags, uint category, int queryStart);
     public delegate void EventInfoRequest(IClientAPI remoteClient, uint eventID);
+    public delegate void ParcelSetOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime);
 
     public delegate void MapItemRequest(IClientAPI remoteClient, uint flags, uint EstateID, bool godlike, uint itemtype, ulong regionhandle);
 
@@ -468,7 +470,7 @@ namespace OpenSim.Framework
         event RequestAvatarProperties OnRequestAvatarProperties;
         event SetAlwaysRun OnSetAlwaysRun;
         event TeleportLandmarkRequest OnTeleportLandmarkRequest;
-        event GenericCall4 OnDeRezObject;
+        event DeRezObject OnDeRezObject;
         event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall2 OnRequestWearables;
         event GenericCall2 OnCompleteMovementToRegion;
@@ -619,6 +621,7 @@ namespace OpenSim.Framework
         event DirPopularQuery OnDirPopularQuery;
         event DirClassifiedQuery OnDirClassifiedQuery;
         event EventInfoRequest OnEventInfoRequest;
+        event ParcelSetOtherCleanTime OnParcelSetOtherCleanTime;
         
         event MapItemRequest OnMapItemRequest;
 
@@ -699,9 +702,6 @@ namespace OpenSim.Framework
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
                                  Quaternion rotation, Vector3 velocity, Vector3 rotationalvelocity, byte state, UUID AssetId);
-
-        void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-                                 Quaternion rotation, Vector3 velocity, Vector3 rotationalvelocity);
 
         void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,
                                         List<InventoryFolderBase> folders, bool fetchFolders,

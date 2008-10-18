@@ -79,7 +79,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;
 
-        public event GenericCall4 OnDeRezObject;
+        public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall2 OnRequestWearables;
         public event GenericCall2 OnCompleteMovementToRegion;
@@ -225,6 +225,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event DirPopularQuery OnDirPopularQuery;
         public event DirClassifiedQuery OnDirClassifiedQuery;
         public event EventInfoRequest OnEventInfoRequest;
+        public event ParcelSetOtherCleanTime OnParcelSetOtherCleanTime;
 
         public event MapItemRequest OnMapItemRequest;
 
@@ -496,12 +497,6 @@ namespace OpenSim.Region.Examples.SimpleModule
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
                                                 Vector3 position, Quaternion rotation, Vector3 velocity,
                                                 Vector3 rotationalvelocity, byte state, UUID AssetId)
-        {
-        }
-
-        public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
-                                                Vector3 position, Quaternion rotation, Vector3 velocity,
-                                                Vector3 rotationalvelocity)
         {
         }
 

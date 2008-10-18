@@ -640,7 +640,7 @@ namespace OpenSim.Region.Environment.Scenes
 //                                "[SCENE PRESENCE]: Tersely updating prim {0}, {1} - part timestamp {2}",
 //                                part.Name, part.UUID, part.TimeStampTerse);
 
-                        part.SendTerseUpdate(ControllingClient);
+                        part.SendTerseUpdateToClient(ControllingClient);
 
                         update.LastTerseUpdateTime = part.TimeStampTerse;
                         updateCount++;

@@ -99,6 +99,8 @@ namespace OpenSim.Region.Environment.Scenes
         private Vector3 lastPhysGroupPos;
         private Quaternion lastPhysGroupRot;
 
+        private bool m_isBackedUp = false;
+
         /// <summary>
         /// The constituent parts of this group
         /// </summary>
@@ -120,7 +122,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override string Name
         {
-            get { return RootPart.Name; }
+            get {
+                if (RootPart == null)
+                    return "";
+                return RootPart.Name;
+            }
             set { RootPart.Name = value; }
         }
 
@@ -544,7 +550,9 @@ namespace OpenSim.Region.Environment.Scenes
                 //m_log.DebugFormat(
                 //    "[SCENE OBJECT GROUP]: Attaching object {0} {1} to scene presistence sweep", Name, UUID);
 
-                m_scene.EventManager.OnBackup += ProcessBackup;
+                if (!m_isBackedUp)
+                    m_scene.EventManager.OnBackup += ProcessBackup;
+                m_isBackedUp = true;
             }
         }
 
@@ -786,6 +794,7 @@ namespace OpenSim.Region.Environment.Scenes
             SetAttachmentPoint((byte)0);
             m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             HasGroupChanged = true;
+            RootPart.Rezzed = DateTime.Now;
             AttachToBackup();
             m_scene.EventManager.TriggerParcelPrimCountTainted();
             m_rootPart.ScheduleFullUpdate();
@@ -1000,6 +1009,8 @@ namespace OpenSim.Region.Environment.Scenes
             // that they don't happen, otherwise the deleted objects will reappear
             m_isDeleted = true;
 
+            DetachFromBackup();
+
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 List<ScenePresence> avatars = Scene.GetScenePresences();
@@ -1149,6 +1160,28 @@ namespace OpenSim.Region.Environment.Scenes
             // any exception propogate upwards.
             try
             {
+                ILandObject parcel = m_scene.LandChannel.GetLandObject(
+                        m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y);
+
+                if (parcel.landData.OtherCleanTime != 0)
+                {
+                    if (parcel.landData.OwnerID != OwnerID &&
+                            (parcel.landData.GroupID != GroupID ||
+                            parcel.landData.GroupID == UUID.Zero))
+                    {
+                        if ((DateTime.Now - RootPart.Rezzed).TotalMinutes >
+                                parcel.landData.OtherCleanTime)
+                        {
+                            m_log.InfoFormat("[SCENE] Returning object {0} due to parcel auto return", RootPart.UUID.ToString());
+                            m_scene.AddReturn(OwnerID, Name, AbsolutePosition);
+                            m_scene.DeRezObject(null, RootPart.LocalId,
+                                RootPart.GroupID, 9, UUID.Zero);
+
+                            return;
+                        }
+                    }
+                }
+
                 if (HasGroupChanged)
                 {
                     // don't backup while it's selected or you're asking for changes mid stream.
@@ -1223,35 +1256,6 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 part.SendFullUpdateToClient(remoteClient, clientFlags);
-            }
-        }
-
-        /// <summary>
-        /// Send a terse update to the client for the given part
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="part"></param>
-        internal void SendPartTerseUpdate(IClientAPI remoteClient, SceneObjectPart part)
-        {
-            SceneObjectPart rootPart = m_rootPart;
-            
-            // TODO: that could by caused by some race condition with attachments on sim-crossing
-            if (rootPart == null) return;
-
-            if (rootPart.UUID == part.UUID)
-            {
-                if (rootPart.IsAttachment)
-                {
-                    part.SendTerseUpdateToClient(remoteClient, rootPart.AttachedPos);
-                }
-                else
-                {
-                    part.SendTerseUpdateToClient(remoteClient, AbsolutePosition);
-                }
-            }
-            else
-            {
-                part.SendTerseUpdateToClient(remoteClient);
             }
         }
 
@@ -1920,6 +1924,8 @@ namespace OpenSim.Region.Environment.Scenes
                 if (sendEvents)
                     linkPart.TriggerScriptChangedEvent(Changed.LINK);
 
+                linkPart.Rezzed = RootPart.Rezzed;
+
                 HasGroupChanged = true;
                 ScheduleGroupForFullUpdate();
             }
@@ -1937,7 +1943,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="objectGroup"></param>
         public void DetachFromBackup()
         {
-            m_scene.EventManager.OnBackup -= ProcessBackup;
+            if (m_isBackedUp)
+                m_scene.EventManager.OnBackup -= ProcessBackup;
+            m_isBackedUp = false;
         }
 
         private void LinkNonRootPart(SceneObjectPart part, Vector3 oldGroupPosition, Quaternion oldGroupRotation)

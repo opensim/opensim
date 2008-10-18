@@ -132,7 +132,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private FriendActionDelegate handlerApproveFriendRequest = null; //OnApproveFriendRequest;
         private FriendshipTermination handlerTerminateFriendship = null; //OnTerminateFriendship;
         private RezObject handlerRezObject = null; //OnRezObject;
-        private GenericCall4 handlerDeRezObject = null; //OnDeRezObject;
+        private DeRezObject handlerDeRezObject = null; //OnDeRezObject;
         private ModifyTerrain handlerModifyTerrain = null;
         private BakeTerrain handlerBakeTerrain = null;
         private EstateChangeInfo handlerEstateChangeInfo = null;
@@ -269,6 +269,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private DirLandQuery handlerDirLandQuery = null;
         private DirPopularQuery handlerDirPopularQuery = null;
         private DirClassifiedQuery handlerDirClassifiedQuery = null;
+        private ParcelSetOtherCleanTime handlerParcelSetOtherCleanTime = null;
 
         private MapItemRequest handlerMapItemRequest = null;
 
@@ -851,7 +852,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ChatMessage OnChatFromClient;
         public event TextureRequest OnRequestTexture;
         public event RezObject OnRezObject;
-        public event GenericCall4 OnDeRezObject;
+        public event DeRezObject OnDeRezObject;
         public event ModifyTerrain OnModifyTerrain;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall2 OnRequestWearables;
@@ -1004,6 +1005,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event DirPopularQuery OnDirPopularQuery;
         public event DirClassifiedQuery OnDirClassifiedQuery;
         public event EventInfoRequest OnEventInfoRequest;
+        public event ParcelSetOtherCleanTime OnParcelSetOtherCleanTime;
 
         public event MapItemRequest OnMapItemRequest;
 
@@ -2560,22 +2562,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(terse, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
         }
 
-        public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-                                        Quaternion rotation, Vector3 velocity, Vector3 rotationalvelocity)
-        {
-            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
-                rotation = Quaternion.Identity;
-            ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
-            // TODO: don't create new blocks if recycling an old packet
-            terse.RegionData.RegionHandle = regionHandle;
-            terse.RegionData.TimeDilation = timeDilation;
-            terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, 0);
-            terse.Header.Reliable = false;
-            terse.Header.Zerocoded = true;
-            OutPacket(terse, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
-        }
-
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
         {
             AssetUploadCompletePacket newPack = new AssetUploadCompletePacket();
@@ -2922,7 +2908,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.AABBMin = landData.AABBMin;
             updatePacket.ParcelData.Area = landData.Area;
             updatePacket.ParcelData.AuctionID = landData.AuctionID;
-            updatePacket.ParcelData.AuthBuyerID = landData.AuthBuyerID; //unemplemented
+            updatePacket.ParcelData.AuthBuyerID = landData.AuthBuyerID;
 
             updatePacket.ParcelData.Bitmap = landData.Bitmap;
 
@@ -2950,7 +2936,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.MediaURL = LLUtil.StringToPacketBytes(landData.MediaURL);          
             updatePacket.ParcelData.MusicURL = LLUtil.StringToPacketBytes(landData.MusicURL);
             updatePacket.ParcelData.Name = Utils.StringToBytes(landData.Name);
-            updatePacket.ParcelData.OtherCleanTime = 0; //unemplemented
+            updatePacket.ParcelData.OtherCleanTime = landData.OtherCleanTime;
             updatePacket.ParcelData.OtherCount = 0; //unemplemented
             updatePacket.ParcelData.OtherPrims = landData.OtherPrims;
             updatePacket.ParcelData.OwnerID = landData.OwnerID;
@@ -4190,10 +4176,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         break;
                     case PacketType.DeRezObject:
+                        DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) Pack;
                         handlerDeRezObject = OnDeRezObject;
                         if (handlerDeRezObject != null)
                         {
-                            handlerDeRezObject(Pack, this);
+                            foreach (DeRezObjectPacket.ObjectDataBlock data in
+                                    DeRezPacket.ObjectData)
+                            {
+                                handlerDeRezObject(this, data.ObjectLocalID,
+                                    DeRezPacket.AgentBlock.GroupID,
+                                    DeRezPacket.AgentBlock.Destination,
+                                    DeRezPacket.AgentBlock.DestinationID);
+                            }
                         }
                         break;
                     case PacketType.ModifyLand:
@@ -6443,6 +6437,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         break;
                         
+                    case PacketType.ParcelSetOtherCleanTime:
+                        ParcelSetOtherCleanTimePacket parcelSetOtherCleanTimePacket = (ParcelSetOtherCleanTimePacket)Pack;
+                        handlerParcelSetOtherCleanTime = OnParcelSetOtherCleanTime;
+                        if (handlerParcelSetOtherCleanTime != null)
+                        {
+                            handlerParcelSetOtherCleanTime(this,
+                                    parcelSetOtherCleanTimePacket.ParcelData.LocalID,
+                                    parcelSetOtherCleanTimePacket.ParcelData.OtherCleanTime);
+                        }
+                        break;
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
                         break;

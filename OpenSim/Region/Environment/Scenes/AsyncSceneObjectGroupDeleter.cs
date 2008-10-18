@@ -38,8 +38,7 @@ namespace OpenSim.Region.Environment.Scenes
 {        
     class DeleteToInventoryHolder
     {
-        public DeRezObjectPacket DeRezPacket;
-        public EntityBase selectedEnt;
+        public int destination;
         public IClientAPI remoteClient;
         public SceneObjectGroup objectGroup;
         public UUID folderID;
@@ -70,20 +69,19 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Delete the given object from the scene
         /// </summary>
-        public void DeleteToInventory(
-            DeRezObjectPacket DeRezPacket, UUID folderID, SceneObjectGroup objectGroup, IClientAPI remoteClient, 
-            EntityBase selectedEnt, bool permissionToDelete)
+        public void DeleteToInventory(int destination, UUID folderID,
+                SceneObjectGroup objectGroup, IClientAPI remoteClient, 
+                bool permissionToDelete)
         {
             m_inventoryTicker.Stop();
 
             lock (m_inventoryDeletes)
             {
                 DeleteToInventoryHolder dtis = new DeleteToInventoryHolder();
-                dtis.DeRezPacket = DeRezPacket;
+                dtis.destination = destination;
                 dtis.folderID = folderID;
                 dtis.objectGroup = objectGroup;
                 dtis.remoteClient = remoteClient;
-                dtis.selectedEnt = selectedEnt;
                 dtis.permissionToDelete = permissionToDelete;
 
                 m_inventoryDeletes.Enqueue(dtis);
@@ -121,8 +119,9 @@ namespace OpenSim.Region.Environment.Scenes
                             "[SCENE]: Sending deleted object to user's inventory, {0} item(s) remaining.", left);
                         
                         x = m_inventoryDeletes.Dequeue();
-                        m_scene.DeleteToInventory(
-                            x.DeRezPacket, x.selectedEnt, x.remoteClient, x.objectGroup, x.folderID, x.permissionToDelete);
+                        m_scene.DeleteToInventory(x.destination,
+                                x.folderID, x.objectGroup, x.remoteClient,
+                                x.permissionToDelete);
                         
                         return true;
                     }

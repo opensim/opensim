@@ -1517,77 +1517,89 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="packet"></param>
         /// <param name="remoteClient"></param>
-        public virtual void DeRezObject(Packet packet, IClientAPI remoteClient)
+        public virtual void DeRezObject(IClientAPI remoteClient, uint localID,
+                UUID groupID, byte destination, UUID destinationID)
         {
-            DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) packet;
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            if (part == null)
+                return;
 
-            UUID folderID = UUID.Zero;
+            if (part.ParentGroup == null || part.ParentGroup.RootPart == null)
+                return;
 
-            foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
+            // Can't delete child prims
+            if (part != part.ParentGroup.RootPart)
+                return;
+
+            SceneObjectGroup grp = part.ParentGroup;
+
+            bool permissionToTake = false;
+            bool permissionToDelete = false;
+
+            if (destination == 1) // Take Copy
             {
-//                    m_log.DebugFormat(
-//                        "[AGENT INVENTORY]: Received request to derez {0} into folder {1}",
-//                        Data.ObjectLocalID, DeRezPacket.AgentBlock.DestinationID);
+                permissionToTake =
+                        ExternalChecks.ExternalChecksCanTakeCopyObject(
+                        grp.UUID,
+                        remoteClient.AgentId);
+            }
+            else if (destination == 5) // God take copy
+            {
+                permissionToTake =
+                        ExternalChecks.ExternalChecksCanBeGodLike(
+                        remoteClient.AgentId);
+            }
+            else if (destination == 4) // Take
+            {
+                permissionToTake =
+                        ExternalChecks.ExternalChecksCanTakeObject(
+                        grp.UUID,
+                        remoteClient.AgentId);
 
-                EntityBase selectedEnt = null;
-                //m_log.Info("[CLIENT]: LocalID:" + Data.ObjectLocalID.ToString());
+                //If they can take, they can delete!
+                permissionToDelete = permissionToTake;
+            }
 
-                List<EntityBase> EntityList = GetEntities();
-
-                foreach (EntityBase ent in EntityList)
+            else if (destination == 6) //Delete
+            {
+                permissionToTake =
+                        ExternalChecks.ExternalChecksCanDeleteObject(
+                        grp.UUID,
+                        remoteClient.AgentId);
+                permissionToDelete =
+                        ExternalChecks.ExternalChecksCanDeleteObject(
+                        grp.UUID,
+                        remoteClient.AgentId);
+            }
+            else if (destination == 9) //Return
+            {
+                if (remoteClient != null)
                 {
-                    if (ent.LocalId == Data.ObjectLocalID)
-                    {
-                        selectedEnt = ent;
-                        break;
-                    }
+                    permissionToTake =
+                            ExternalChecks.ExternalChecksCanDeleteObject(
+                            grp.UUID,
+                            remoteClient.AgentId);
+                    permissionToDelete =
+                            ExternalChecks.ExternalChecksCanDeleteObject(
+                            grp.UUID,
+                            remoteClient.AgentId);
                 }
-                if (selectedEnt != null)
+                else // Auto return passes through here with null agent
                 {
-                    bool permissionToTake = false;
-                    bool permissionToDelete = false;
-                    if (DeRezPacket.AgentBlock.Destination == 1)// Take Copy
-                    {
-                        permissionToTake = ExternalChecks.ExternalChecksCanTakeCopyObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
-                        permissionToDelete = false; //Just taking copy!
-
-                    }
-                    else if (DeRezPacket.AgentBlock.Destination == 5) //God take copy
-                    {
-                        permissionToTake = ExternalChecks.ExternalChecksCanBeGodLike(remoteClient.AgentId);
-                        permissionToDelete = false; //Just taking copy!
-
-                    }
-                    else if (DeRezPacket.AgentBlock.Destination == 4) //Take
-                    {
-                        // Take
-                        permissionToTake = ExternalChecks.ExternalChecksCanTakeObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
-                        permissionToDelete = permissionToTake; //If they can take, they can delete!
-                    }
-
-                    else if (DeRezPacket.AgentBlock.Destination == 6) //Delete
-                    {
-                        permissionToTake = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
-                        permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
-                    }
-                    else if (DeRezPacket.AgentBlock.Destination == 9) //Return
-                    {
-                        permissionToTake = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
-                        permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
-                    }
-
-                    SceneObjectGroup objectGroup = (SceneObjectGroup)selectedEnt;
-
-                    if (permissionToTake)
-                    {
-                        m_asyncSceneObjectDeleter.DeleteToInventory(
-                            DeRezPacket, folderID, objectGroup, remoteClient, selectedEnt, permissionToDelete);
-                    }
-                    else if (permissionToDelete)
-                    {
-                        DeleteSceneObject(objectGroup);
-                    }
+                    permissionToTake = true;
+                    permissionToDelete = true;
                 }
+            }
+
+            if (permissionToTake)
+            {
+                m_asyncSceneObjectDeleter.DeleteToInventory(
+                        destination, destinationID, grp, remoteClient,
+                        permissionToDelete);
+            }
+            else if (permissionToDelete)
+            {
+                DeleteSceneObject(grp);
             }
         }
 
@@ -1600,51 +1612,50 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="objectGroup"></param>
         /// <param name="folderID"></param>
         /// <param name="permissionToDelete"></param>
-        public void DeleteToInventory(DeRezObjectPacket DeRezPacket, EntityBase selectedEnt, IClientAPI remoteClient, 
-            SceneObjectGroup objectGroup, UUID folderID, bool permissionToDelete)
+        public void DeleteToInventory(int destination, UUID folderID,
+                SceneObjectGroup objectGroup, IClientAPI remoteClient,
+                bool permissionToDelete)
         {
             string sceneObjectXml = objectGroup.ToXmlString();
 
             CachedUserInfo userInfo =
-                CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                CommsManager.UserProfileCacheService.GetUserDetails(
+                remoteClient.AgentId);
+
+            if (remoteClient == null)
+            {
+                userInfo = CommsManager.UserProfileCacheService.GetUserDetails(
+                objectGroup.RootPart.OwnerID);
+            }
+            else
+            {
+                userInfo = CommsManager.UserProfileCacheService.GetUserDetails(
+                remoteClient.AgentId);
+            }
+
             if (userInfo != null)
             {
-//                            string searchFolder = "";
+                // If we're deleting someone else's item, it goes back to
+                // their deleted items folder
+                // If we're returning someone's item, it goes back to the
+                // owner's Lost And Found folder.
 
-//                            if (DeRezPacket.AgentBlock.Destination == 6)
-//                                searchFolder = "Trash";
-//                            else if (DeRezPacket.AgentBlock.Destination == 9)
-//                                searchFolder = "Lost And Found";
-
-                // If we're deleting someone else's item, it goes back to their deleted items folder
-                // If we're returning someone's item, it goes back to the owner's Lost And Found folder.
-
-                if (DeRezPacket.AgentBlock.DestinationID == UUID.Zero || (DeRezPacket.AgentBlock.Destination == 6 && objectGroup.OwnerID != remoteClient.AgentId))
+                if (folderID == UUID.Zero || (destination == 6 &&
+                        objectGroup.OwnerID != remoteClient.AgentId))
                 {
-                    List<InventoryFolderBase> subrootfolders = userInfo.RootFolder.RequestListOfFolders();
-                    foreach (InventoryFolderBase flder in subrootfolders)
-                    {
-                        if (flder.Name == "Lost And Found")
-                        {
-                            folderID = flder.ID;
-                            break;
-                        }
-                    }
+                    InventoryFolderBase folder =
+                            userInfo.FindFolderForType(
+                            (int)AssetType.LostAndFoundFolder);
 
-                    if (folderID == UUID.Zero)
-                    {
+                    if (folder != null)
+                        folderID = folder.ID;
+                    else
                         folderID = userInfo.RootFolder.ID;
-                    }
-                    //currently following code not used (or don't know of any case of destination being zero
-                }
-                else
-                {
-                    folderID = DeRezPacket.AgentBlock.DestinationID;
                 }
 
                 AssetBase asset = CreateAsset(
-                    ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId),
-                    ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId),
+                    objectGroup.GetPartName(objectGroup.RootPart.LocalId),
+                    objectGroup.GetPartDescription(objectGroup.RootPart.LocalId),
                     (sbyte)AssetType.Object,
                     Utils.StringToBytes(sceneObjectXml));
                 AssetCache.AddAsset(asset);
@@ -1652,7 +1663,8 @@ namespace OpenSim.Region.Environment.Scenes
                 InventoryItemBase item = new InventoryItemBase();
                 item.Creator = objectGroup.RootPart.CreatorID;
 
-                if (DeRezPacket.AgentBlock.Destination == 1 || DeRezPacket.AgentBlock.Destination == 4)// Take / Copy
+                if (destination == 1 ||
+                        destination == 4)// Take / Copy
                     item.Owner = remoteClient.AgentId;
                 else // Delete / Return
                     item.Owner = objectGroup.OwnerID;
@@ -1720,7 +1732,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (!grp.HasGroupChanged)
                 {
-                    m_log.InfoFormat("[ATTACHMENT] Detaching {0} which is unchanged", grp.UUID.ToString());
+                    m_log.InfoFormat("[ATTACHMENT] Save request for {0} which is unchanged", grp.UUID.ToString());
                     return;
                 }
                 m_log.InfoFormat("[ATTACHMENT] Updating asset for attachment {0}, attachpoint {1}", grp.UUID.ToString(), grp.GetAttachmentPoint());

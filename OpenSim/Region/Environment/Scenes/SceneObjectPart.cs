@@ -212,6 +212,7 @@ namespace OpenSim.Region.Environment.Scenes
             // It's not necessary to persist this
             m_TextureAnimation = new byte[0];
             m_particleSystem = new byte[0];
+            Rezzed = DateTime.Now;
         }
 
         public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, UUID ownerID, uint localID,
@@ -237,6 +238,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = regionHandle;
             m_parentGroup = parent;
 
+            Rezzed = DateTime.Now;
             _creationDate = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             _ownerID = ownerID;
             _creatorID = _ownerID;
@@ -311,6 +313,8 @@ namespace OpenSim.Region.Environment.Scenes
             RotationOffset = rotation;
             ObjectFlags = flags;
 
+            Rezzed = DateTime.Now;
+
             m_TextureAnimation = new byte[0];
             m_particleSystem = new byte[0];
             // Since we don't store script state, this is only a 'temporary' objectflag now
@@ -339,6 +343,7 @@ namespace OpenSim.Region.Environment.Scenes
             */
 
             //System.Console.WriteLine("SceneObjectPart Deserialize END");
+            Rezzed = DateTime.Now;
         }
 
         #endregion Constructors
@@ -362,6 +367,7 @@ namespace OpenSim.Region.Environment.Scenes
         private uint _nextOwnerMask = (uint)PermissionMask.All;
         private PrimFlags _flags = 0;
         private DateTime m_expires;
+        private DateTime m_rezzed;
 
         public UUID CreatorID {
             get
@@ -457,6 +463,13 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_expires; }
             set { m_expires = value; }
+        }
+
+        [XmlIgnore]
+        public DateTime Rezzed
+        {
+            get { return m_rezzed; }
+            set { m_rezzed = value; }
         }
 
         /// <summary>
@@ -1270,6 +1283,7 @@ if (m_shape != null) {
             dupe._objectSaleType = _objectSaleType;
             dupe._salePrice = _salePrice;
             dupe._category = _category;
+            dupe.m_rezzed = m_rezzed;
 
             dupe.TaskInventory = (TaskInventoryDictionary)dupe.TaskInventory.Clone();
 
@@ -2226,10 +2240,10 @@ if (m_shape != null) {
         /// Send a terse update to the client.
         /// </summary>
         /// <param name="remoteClient"></param>
-        public void SendTerseUpdate(IClientAPI remoteClient)
-        {
-            m_parentGroup.SendPartTerseUpdate(remoteClient, this);
-        }
+//        public void SendTerseUpdate(IClientAPI remoteClient)
+//        {
+//            SendTerseUpdateToClient(remoteClient);
+//        }
 
         /// <summary>
         ///
@@ -2239,54 +2253,14 @@ if (m_shape != null) {
             List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
-                m_parentGroup.SendPartTerseUpdate(avatars[i].ControllingClient, this);
+                SendTerseUpdateToClient(avatars[i].ControllingClient);
             }
         }
 
-        public void SendTerseUpdateToClient(IClientAPI remoteClient)
-        {
-            Vector3 lPos;
-            lPos = OffsetPosition;
-            Quaternion mRot = RotationOffset;
-            // TODO: I have no idea why we are making this check.  This should be sorted out
-            if ((ObjectFlags & (uint) PrimFlags.Physics) == 0)
-            {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, Shape.State, FromAssetID);
-            }
-            else
-            {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity,
-                                                 RotationalVelocity);
-                //System.Console.WriteLine("LID: " + LocalID + " RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
-            }
-        }
-
-        public void SendTerseUpdateToClient(IClientAPI remoteClient, Vector3 lPos)
-        {
-            Quaternion mRot = RotationOffset;
-            //bool isattachment = IsAttachment;
-            //if (LocalId != ParentGroup.RootPart.LocalId)
-                //isattachment = ParentGroup.RootPart.IsAttachment;
-
-            if (IsAttachment)
-            {
-                //m_log.Debug(AttachmentPoint.ToString());
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, (byte)((AttachmentPoint % 16) * 16 + (AttachmentPoint / 16)),FromAssetID);
-            }
-            else
-            {
-                if ((ObjectFlags & (uint)PrimFlags.Physics) == 0)
-                {
-                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, Shape.State, FromAssetID);
-                }
-                else
-                {
-                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity,
-                                                     RotationalVelocity);
-                    //System.Console.WriteLine("LID: " + LocalID + "RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
-                }
-            }
-        }
+//        public void SendTerseUpdateToClient(IClientAPI remoteClient, Vector3 lPos)
+//        {
+//            SendTerseUpdateToClient(remoteclient);
+//        }
 
         public void SetAttachmentPoint(uint AttachmentPoint)
         {
@@ -3257,6 +3231,15 @@ if (m_shape != null) {
                 PhysActor.Shape = m_shape;
             }
 
+            // This is what makes vehicle trailers work
+            // A script in a child prim re-issues
+            // llSetPrimitiveParams(PRIM_TYPE) every few seconds. That
+            // prevents autoreturn. This is not well known. It also works
+            // in SL.
+            //
+            if (ParentGroup.RootPart != this)
+                ParentGroup.RootPart.Rezzed = DateTime.Now;
+
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
@@ -3427,5 +3410,42 @@ if (m_shape != null) {
         }        
 
         #endregion Public Methods
+
+        private byte GetAttachPointEncoded()
+        {
+            return (byte)((AttachmentPoint % 16) * 16 + (AttachmentPoint / 16));
+        }
+
+        public void SendTerseUpdateToClient(IClientAPI remoteClient)
+        {
+            if (ParentGroup == null || ParentGroup.RootPart == null)
+                return;
+
+            Vector3 lPos = OffsetPosition;
+
+            byte state = Shape.State;
+            if (IsAttachment)
+            {
+                if (ParentGroup.RootPart != this)
+                    return;
+
+                lPos = ParentGroup.RootPart.AttachedPos;
+                state = GetAttachPointEncoded();
+            }
+            else
+            {
+                if (ParentGroup.RootPart == this)
+                    lPos = AbsolutePosition;
+            }
+
+            remoteClient.SendPrimTerseUpdate(m_regionHandle,
+                    (ushort)(m_parentGroup.GetTimeDilation() *
+                    (float)ushort.MaxValue), LocalId, lPos,
+                    RotationOffset, Velocity,
+                    RotationalVelocity, state, FromAssetID);
+        }
     }
 }
+
+
+
