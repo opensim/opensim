@@ -157,11 +157,11 @@ namespace OpenSim.Data.MSSQL
 
             //After this we have a empty fully configured DataSet.
         }
-        
+
         /// <summary>
         /// Dispose the database
         /// </summary>
-        public void Dispose() {}
+        public void Dispose() { }
 
         /// <summary>
         /// Loads the objects present in the region.
@@ -344,35 +344,34 @@ namespace OpenSim.Data.MSSQL
                     && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
                     && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
                 {
-                    lock (_PrimsDataSet)
+
+                    DataTable prims = _PrimsDataSet.Tables["prims"];
+                    DataTable shapes = _PrimsDataSet.Tables["primshapes"];
+
+                    DataRow primRow = prims.Rows.Find(prim.UUID.ToString());
+                    if (primRow == null)
                     {
-                        DataTable prims = _PrimsDataSet.Tables["prims"];
-                        DataTable shapes = _PrimsDataSet.Tables["primshapes"];
-
-                        DataRow primRow = prims.Rows.Find(prim.UUID.ToString());
-                        if (primRow == null)
-                        {
-                            primRow = prims.NewRow();
-                            fillPrimRow(primRow, prim, obj.UUID, regionUUID);
-                            prims.Rows.Add(primRow);
-                        }
-                        else
-                        {
-                            fillPrimRow(primRow, prim, obj.UUID, regionUUID);
-                        }
-
-                        DataRow shapeRow = shapes.Rows.Find(prim.UUID.ToString());
-                        if (shapeRow == null)
-                        {
-                            shapeRow = shapes.NewRow();
-                            fillShapeRow(shapeRow, prim);
-                            shapes.Rows.Add(shapeRow);
-                        }
-                        else
-                        {
-                            fillShapeRow(shapeRow, prim);
-                        }
+                        primRow = prims.NewRow();
+                        fillPrimRow(primRow, prim, obj.UUID, regionUUID);
+                        prims.Rows.Add(primRow);
                     }
+                    else
+                    {
+                        fillPrimRow(primRow, prim, obj.UUID, regionUUID);
+                    }
+
+                    DataRow shapeRow = shapes.Rows.Find(prim.UUID.ToString());
+                    if (shapeRow == null)
+                    {
+                        shapeRow = shapes.NewRow();
+                        fillShapeRow(shapeRow, prim);
+                        shapes.Rows.Add(shapeRow);
+                    }
+                    else
+                    {
+                        fillShapeRow(shapeRow, prim);
+                    }
+
                 }
             }
 
@@ -582,9 +581,9 @@ namespace OpenSim.Data.MSSQL
 
             //Insert new values
             string sql = @"INSERT INTO [land] 
-([UUID],[RegionUUID],[LocalLandID],[Bitmap],[Name],[Description],[OwnerUUID],[IsGroupOwned],[Area],[AuctionID],[Category],[ClaimDate],[ClaimPrice],[GroupUUID],[SalePrice],[LandStatus],[LandFlags],[LandingType],[MediaAutoScale],[MediaTextureUUID],[MediaURL],[MusicURL],[PassHours],[PassPrice],[SnapshotUUID],[UserLocationX],[UserLocationY],[UserLocationZ],[UserLookAtX],[UserLookAtY],[UserLookAtZ],[AuthbuyerID])
+([UUID],[RegionUUID],[LocalLandID],[Bitmap],[Name],[Description],[OwnerUUID],[IsGroupOwned],[Area],[AuctionID],[Category],[ClaimDate],[ClaimPrice],[GroupUUID],[SalePrice],[LandStatus],[LandFlags],[LandingType],[MediaAutoScale],[MediaTextureUUID],[MediaURL],[MusicURL],[PassHours],[PassPrice],[SnapshotUUID],[UserLocationX],[UserLocationY],[UserLocationZ],[UserLookAtX],[UserLookAtY],[UserLookAtZ],[AuthbuyerID],[OtherCleanTime],[Dwell])
 VALUES
-(@UUID,@RegionUUID,@LocalLandID,@Bitmap,@Name,@Description,@OwnerUUID,@IsGroupOwned,@Area,@AuctionID,@Category,@ClaimDate,@ClaimPrice,@GroupUUID,@SalePrice,@LandStatus,@LandFlags,@LandingType,@MediaAutoScale,@MediaTextureUUID,@MediaURL,@MusicURL,@PassHours,@PassPrice,@SnapshotUUID,@UserLocationX,@UserLocationY,@UserLocationZ,@UserLookAtX,@UserLookAtY,@UserLookAtZ,@AuthbuyerID)";
+(@UUID,@RegionUUID,@LocalLandID,@Bitmap,@Name,@Description,@OwnerUUID,@IsGroupOwned,@Area,@AuctionID,@Category,@ClaimDate,@ClaimPrice,@GroupUUID,@SalePrice,@LandStatus,@LandFlags,@LandingType,@MediaAutoScale,@MediaTextureUUID,@MediaURL,@MusicURL,@PassHours,@PassPrice,@SnapshotUUID,@UserLocationX,@UserLocationY,@UserLocationZ,@UserLookAtX,@UserLookAtY,@UserLookAtZ,@AuthbuyerID,@OtherCleanTime,@Dwell)";
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
@@ -880,6 +879,9 @@ VALUES
 
             if (UUID.TryParse((string)row["SnapshotUUID"], out snapshotID))
                 newData.SnapshotID = snapshotID;
+
+            newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
+            newData.Dwell = Convert.ToInt32(row["Dwell"]);
 
             try
             {
@@ -1226,7 +1228,7 @@ VALUES
         /// <returns></returns>
         private SqlParameter[] CreateLandParameters(LandData land, UUID regionUUID)
         {
-            SqlParameter[] parameters = new SqlParameter[32];
+            SqlParameter[] parameters = new SqlParameter[34];
 
             parameters[0] = _Database.CreateParameter("UUID", land.GlobalID);
             parameters[1] = _Database.CreateParameter("RegionUUID", regionUUID);
@@ -1263,6 +1265,8 @@ VALUES
             parameters[29] = _Database.CreateParameter("UserLookAtY", land.UserLookAt.Y);
             parameters[30] = _Database.CreateParameter("UserLookAtZ", land.UserLookAt.Z);
             parameters[31] = _Database.CreateParameter("AuthBuyerID", land.AuthBuyerID);
+            parameters[32] = _Database.CreateParameter("OtherCleanTime", land.OtherCleanTime);
+            parameters[33] = _Database.CreateParameter("Dwell", land.Dwell);
 
             return parameters;
         }
