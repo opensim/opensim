@@ -27,6 +27,7 @@
 
 using System;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -58,6 +59,10 @@ namespace OpenSim.Framework
         private static string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
         private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
         private static object XferLock = new object();
+
+        // Unix-epoch starts at January 1st 1970, 00:00:00 UTC. And all our times in the server are (or at least should be) in UTC.
+        private static readonly DateTime unixEpoch =
+            DateTime.ParseExact("1970-01-01 00:00:00 +0", "yyyy-MM-dd hh:mm:ss z", DateTimeFormatInfo.InvariantInfo).ToUniversalTime();
 
         #region Vector Equations
 
@@ -290,19 +295,19 @@ namespace OpenSim.Framework
 
         public static int ToUnixTime(DateTime stamp)
         {
-            TimeSpan t = (stamp.ToUniversalTime() - Convert.ToDateTime("1/1/1970 8:00:00 AM"));
+            TimeSpan t = stamp.ToUniversalTime() - unixEpoch;
             return (int) t.TotalSeconds;
         }
 
         public static DateTime ToDateTime(ulong seconds)
         {
-            DateTime epoch = Convert.ToDateTime("1/1/1970 8:00:00 AM");
+            DateTime epoch = unixEpoch;
             return epoch.AddSeconds(seconds);
         }
 
         public static DateTime ToDateTime(int seconds)
         {
-            DateTime epoch = Convert.ToDateTime("1/1/1970 8:00:00 AM");
+            DateTime epoch = unixEpoch;
             return epoch.AddSeconds(seconds);
         }
 

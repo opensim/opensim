@@ -278,7 +278,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             CachedUserInfo userInfo =
                 m_userTransactions.Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(
                     ourClient.AgentId);
-            
+
             if (userInfo != null)
             {
                 InventoryItemBase item = new InventoryItemBase();
@@ -296,6 +296,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 item.EveryOnePermissions=0;
                 item.NextPermissions = nextPerm;
                 item.Flags = (uint) wearableType;
+                item.CreationDate = Util.UnixTimeSinceEpoch();
 
                 userInfo.AddItem(item);
                 ourClient.SendInventoryItemCreateUpdate(item);

@@ -754,6 +754,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             item.BasePermissions = 2147483647;
             item.EveryOnePermissions = 0;
             item.NextPermissions = 2147483647;
+            item.CreationDate = Util.UnixTimeSinceEpoch();
 
             if (AddNewInventoryItem != null)
             {
