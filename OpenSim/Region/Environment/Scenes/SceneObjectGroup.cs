@@ -1163,7 +1163,8 @@ namespace OpenSim.Region.Environment.Scenes
                 ILandObject parcel = m_scene.LandChannel.GetLandObject(
                         m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y);
 
-                if (parcel.landData.OtherCleanTime != 0)
+                if (parcel != null && parcel.landData != null &&
+                        parcel.landData.OtherCleanTime != 0)
                 {
                     if (parcel.landData.OwnerID != OwnerID &&
                             (parcel.landData.GroupID != GroupID ||
