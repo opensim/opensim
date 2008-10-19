@@ -154,6 +154,7 @@ namespace OpenSim.Region.Environment.Modules
             //m_scene.RegionInfo.RegionSettings.SunVector = Position;
             //m_scene.RegionInfo.EstateSettings.sunHour = GetLindenEstateHourFromCurrentTime();
         }
+        
         public void ForceWindUpdateToAllClients()
         {
             GenWindPos();        // Generate shared values once

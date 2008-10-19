@@ -304,7 +304,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_socket.BeginReceiveFrom(
                      RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
             }
-            catch (SocketException e)
+            catch (SocketException)
             {
                 // We don't need to see this error, reset connection and get next UDP packet off the buffer
                 // If the UDP packet is part of the same stream, this will happen several hundreds of times before

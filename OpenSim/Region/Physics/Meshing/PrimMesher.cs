@@ -1659,7 +1659,7 @@ namespace PrimMesher
 
         public Coord SurfaceNormal(int faceIndex)
         {
-            int numFaces = faces.Count;
+            //int numFaces = faces.Count;
             if (faceIndex < 0 || faceIndex >= faces.Count)
                 throw new Exception("faceIndex out of range");
 
