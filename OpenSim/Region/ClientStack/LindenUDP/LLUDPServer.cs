@@ -306,7 +306,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (SocketException e)
             {
-                m_log.ErrorFormat("[CLIENT]: BeginRecieve threw exception " + e.Message + ": " + e.StackTrace );
+                // We don't need to see this error, reset connection and get next UDP packet off the buffer
+                // If the UDP packet is part of the same stream, this will happen several hundreds of times before
+                // the next set of UDP data is for a valid client.
+                //m_log.ErrorFormat("[CLIENT]: BeginRecieve threw exception " + e.Message + ": " + e.StackTrace );
+                
+                // ENDLESS LOOP ON PURPOSE!
                 ResetEndPoint();
             }
         }
@@ -322,10 +327,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_log.Error("[UDPSERVER]: " + a);
             }
 
+            // ENDLESS LOOP ON PURPOSE!
+            
+            // We need to purge the UDP stream of crap from the client that disconnected nastily or the UDP server will die
+            // The only way to do that is to beginreceive again!
+            BeginReceive();
+
             try
             {                
-                m_socket.BeginReceiveFrom(
-                    RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
+               // m_socket.BeginReceiveFrom(
+                 //   RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
 
                 // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
                 // so therefore..  we've got to tell the server to BeginReceiveFrom again.
