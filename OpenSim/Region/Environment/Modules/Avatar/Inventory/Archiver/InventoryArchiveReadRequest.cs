@@ -45,14 +45,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
 {
     public class InventoryArchiveReadRequest
     {
+        private static ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         protected Scene scene;
         protected TarArchiveReader archive;
         private static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
-        ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         CachedUserInfo userInfo;
         UserProfileData userProfile;
         CommunicationsManager commsManager;
-        string loadPath;
 
         public InventoryArchiveReadRequest(Scene currentScene, CommunicationsManager commsManager)
         {
@@ -142,21 +143,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
             return item;
         }
 
-        public void execute(string[] cmdparams)
+        public void execute(string firstName, string lastName, string invPath, string loadPath)
         {
             string filePath = "ERROR";
             int successfulAssetRestores = 0;
             int failedAssetRestores = 0;
-
-            string firstName = cmdparams[0];
-            string lastName = cmdparams[1];
-            //string invPath = cmdparams[2];
-            loadPath = (cmdparams.Length > 3 ? cmdparams[3] : "inventory.tar.gz");
+            int successfulItemRestores = 0;
 
             archive
                 = new TarArchiveReader(new GZipStream(
                     new FileStream(loadPath, FileMode.Open), CompressionMode.Decompress));
-
 
             userProfile = commsManager.UserService.GetUserProfile(firstName, lastName);
             userInfo = commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
@@ -175,13 +171,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
                 {
                     //Load the item
                     InventoryItemBase item = loadInvItem(filePath, m_asciiEncoding.GetString(data));
-                    if (item != null) userInfo.AddItem(item);
+                    if (item != null) 
+                    {
+                        userInfo.AddItem(item);
+                        successfulItemRestores++;
+                    }
                 }
             }
 
             archive.Close();
 
-            m_log.InfoFormat("[ARCHIVER]: Restored {0} assets", successfulAssetRestores);
+            m_log.DebugFormat("[ARCHIVER]: Restored {0} assets", successfulAssetRestores);
+            m_log.InfoFormat("[ARCHIVER]: Restored {0} items", successfulItemRestores);
         }
 
         /// <summary>

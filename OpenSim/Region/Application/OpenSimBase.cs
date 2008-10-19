@@ -686,7 +686,7 @@ namespace OpenSim
         #endregion
 
         /// <summary>
-        /// Save inventory to a file.
+        /// Save inventory to a file archive
         /// </summary>
         /// <param name="cmdparams"></param>
         protected void SaveInv(string[] cmdparams)
@@ -697,11 +697,19 @@ namespace OpenSim
                 m_log.Error("[CONSOLE]: usage is save-inv <first name> <last name> <inventory path> [<save file path>]");
                 return;
             }
-            new InventoryArchiveWriteRequest(m_sceneManager.CurrentOrFirstScene,m_commsManager).execute(cmdparams);
+            
+            string firstName = cmdparams[0];
+            string lastName = cmdparams[1];
+            string invPath = cmdparams[2];
+            string savePath = (cmdparams.Length > 3 ? cmdparams[3] : DEFAULT_INV_BACKUP_FILENAME);
+            
+            new InventoryArchiveWriteRequest(
+                m_sceneManager.CurrentOrFirstScene,m_commsManager).execute(
+                    firstName, lastName, invPath, savePath);
         }
 
         /// <summary>
-        /// Load inventory from a tar.gz file.
+        /// Load inventory from an inventory file archive
         /// </summary>
         /// <param name="cmdparams"></param>
         protected void LoadInv(string[] cmdparams)
@@ -712,7 +720,15 @@ namespace OpenSim
                 m_log.Error("[CONSOLE]: usage is load-inv <first name> <last name> <inventory path> [<load file path>]");
                 return;
             }
-            new InventoryArchiveReadRequest(m_sceneManager.CurrentOrFirstScene, m_commsManager).execute(cmdparams);
+            
+            string firstName = cmdparams[0];
+            string lastName = cmdparams[1];
+            string invPath = cmdparams[2];
+            string loadPath = (cmdparams.Length > 3 ? cmdparams[3] : DEFAULT_INV_BACKUP_FILENAME);
+            
+            new InventoryArchiveReadRequest(
+                m_sceneManager.CurrentOrFirstScene, m_commsManager).execute(
+                    firstName, lastName, invPath, loadPath);
         }
 
         /// <summary>

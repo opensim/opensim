@@ -41,15 +41,20 @@ using log4net;
 
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
-{
+{        
     public class InventoryArchiveWriteRequest
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         protected Scene scene;
         protected TarArchiveWriter archive;
         protected CommunicationsManager commsManager;
         Dictionary<UUID, int> assetUuids;
-        string savePath;
-
+        
+        /// <value>
+        /// The path to which the inventory archive will be saved.
+        /// </value>
+        private string m_savePath;
 
         public InventoryArchiveWriteRequest(Scene currentScene, CommunicationsManager commsManager)
         {
@@ -63,7 +68,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
         {
             AssetsArchiver assetsArchiver = new AssetsArchiver(assetsFound);
             assetsArchiver.Archive(archive);
-            archive.WriteTar(new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress));
+            archive.WriteTar(new GZipStream(new FileStream(m_savePath, FileMode.Create), CompressionMode.Compress));
         }
 
         protected void saveInvItem(InventoryItemBase inventoryItem, string path)
@@ -156,15 +161,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
             }
         }
 
-        public void execute(string[] cmdparams)
+        public void execute(string firstName, string lastName, string invPath, string savePath)
         {
-            ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-            string firstName = cmdparams[0];
-            string lastName = cmdparams[1];
-            string invPath = cmdparams[2];
-            savePath = (cmdparams.Length > 3 ? cmdparams[3] : "inventory.tar.gz");
-
+            m_savePath = savePath;
+            
             UserProfileData userProfile = commsManager.UserService.GetUserProfile(firstName, lastName);
             if (null == userProfile)
             {
@@ -242,8 +242,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
             }
 
             new AssetsRequest(assetUuids.Keys, scene.AssetCache, ReceivedAllAssets).Execute();
-
         }
-
     }
 }
