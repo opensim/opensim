@@ -1161,7 +1161,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (RootPart == null || UUID == UUID.Zero)
             {
-                DetachFromBackup();
+//                DetachFromBackup();
                 return;
             }
 
