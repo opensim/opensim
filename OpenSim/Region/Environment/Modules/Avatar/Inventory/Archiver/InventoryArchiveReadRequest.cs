@@ -50,9 +50,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
         protected Scene scene;
         protected TarArchiveReader archive;
         private static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
-        
-        CachedUserInfo userInfo;
-        UserProfileData userProfile;
+
         CommunicationsManager commsManager;
 
         public InventoryArchiveReadRequest(Scene currentScene, CommunicationsManager commsManager)
@@ -81,15 +79,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
             item.InvType = System.Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("CreatorUUID");
-            item.Creator = UUID.Parse(reader.ReadString());
-            item.Creator = userProfile.ID;
+            item.Creator = UUID.Parse(reader.ReadString());            
             reader.ReadEndElement();
             reader.ReadStartElement("CreationDate");
             item.CreationDate = System.Convert.ToInt32(reader.ReadString());
             reader.ReadEndElement();
             reader.ReadStartElement("Owner");
             item.Owner = UUID.Parse(reader.ReadString());
-            item.Owner = userProfile.ID;
             reader.ReadEndElement();
             //No description would kill it
             if (reader.IsEmptyElement)
@@ -149,13 +145,46 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
             int successfulAssetRestores = 0;
             int failedAssetRestores = 0;
             int successfulItemRestores = 0;
+            
+            UserProfileData userProfile = commsManager.UserService.GetUserProfile(firstName, lastName);
+            if (null == userProfile)
+            {
+                m_log.ErrorFormat("[CONSOLE]: Failed to find user {0} {1}", firstName, lastName);
+                return;
+            }
+
+            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
+            if (null == userInfo)
+            {
+                m_log.ErrorFormat(
+                    "[CONSOLE]: Failed to find user info for {0} {1} {2}", 
+                    firstName, lastName, userProfile.ID);
+                
+                return;
+            }
+            
+            if (!userInfo.HasReceivedInventory)
+            {
+                m_log.ErrorFormat(
+                    "[CONSOLE]: Have not yet received inventory info for user {0} {1} {2}", 
+                    firstName, lastName, userProfile.ID);
+                
+                return;
+            }                
+            
+            InventoryFolderImpl inventoryFolder = userInfo.RootFolder.FindFolderByPath(invPath);
+
+            if (null == inventoryFolder)
+            {
+                // TODO: Later on, automatically create this folder if it does not exist
+                m_log.ErrorFormat("[ARCHIVER]: Inventory path {0} does not exist", invPath);
+                
+                return;
+            }
 
             archive
                 = new TarArchiveReader(new GZipStream(
                     new FileStream(loadPath, FileMode.Open), CompressionMode.Decompress));
-
-            userProfile = commsManager.UserService.GetUserProfile(firstName, lastName);
-            userInfo = commsManager.UserProfileCacheService.GetUserDetails(userProfile.ID);
 
             byte[] data;
             while ((data = archive.ReadEntry(out filePath)) != null)
@@ -169,10 +198,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Archiver
                 }
                 else
                 {
-                    //Load the item
                     InventoryItemBase item = loadInvItem(filePath, m_asciiEncoding.GetString(data));
+                        
                     if (item != null) 
                     {
+                        item.Creator = userProfile.ID;
+                        item.Owner = userProfile.ID;
+                        
+                        // Reset folder ID to the one in which we want to load it
+                        // TODO: Properly restore entire folder structure.  At the moment all items are dumped in this
+                        // single folder no matter where in the saved folder structure they are.
+                        item.Folder = inventoryFolder.ID;
+                        
                         userInfo.AddItem(item);
                         successfulItemRestores++;
                     }
