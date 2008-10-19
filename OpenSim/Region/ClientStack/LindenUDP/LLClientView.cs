@@ -1009,6 +1009,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public event MapItemRequest OnMapItemRequest;
 
+        public event OfferCallingCard OnOfferCallingCard;
+        public event AcceptCallingCard OnAcceptCallingCard;
+        public event DeclineCallingCard OnDeclineCallingCard;
+
         // voire si c'est necessaire
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -6447,6 +6451,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     parcelSetOtherCleanTimePacket.ParcelData.OtherCleanTime);
                         }
                         break;
+
+                    case PacketType.OfferCallingCard:
+                        OfferCallingCardPacket offerCallingCardPacket = (OfferCallingCardPacket)Pack;
+                        if (OnOfferCallingCard != null)
+                        {
+                           OnOfferCallingCard(this,
+                                               offerCallingCardPacket.AgentBlock.DestID,
+                                               offerCallingCardPacket.AgentBlock.TransactionID);
+                        }
+                        break;
+
+                    case PacketType.AcceptCallingCard:
+                        AcceptCallingCardPacket acceptCallingCardPacket = (AcceptCallingCardPacket)Pack;
+                        // according to http://wiki.secondlife.com/wiki/AcceptCallingCard FolderData should
+                        // contain exactly one entry
+                        if (OnAcceptCallingCard != null && acceptCallingCardPacket.FolderData.Length > 0)
+                        {
+                           OnAcceptCallingCard(this,
+                                               acceptCallingCardPacket.TransactionBlock.TransactionID,
+                                               acceptCallingCardPacket.FolderData[0].FolderID);
+                        }
+                        break;
+
+                    case PacketType.DeclineCallingCard:
+                        DeclineCallingCardPacket declineCallingCardPacket = (DeclineCallingCardPacket)Pack;
+                        if (OnDeclineCallingCard != null)
+                        {
+                           OnDeclineCallingCard(this,
+                                                declineCallingCardPacket.TransactionBlock.TransactionID);
+                        }
+                        break;
+
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
                         break;
@@ -7159,6 +7195,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //System.Console.WriteLine(mirplk.ToString());
             OutPacket(mirplk, ThrottleOutPacketType.Task);
 
+        }
+
+        public void SendOfferCallingCard(UUID srcID, UUID transactionID)
+        {
+            // a bit special, as this uses AgentID to store the source instead
+            // of the destination. The destination (the receiver) goes into destID
+            OfferCallingCardPacket p = (OfferCallingCardPacket)PacketPool.Instance.GetPacket(PacketType.OfferCallingCard);
+            p.AgentData.AgentID = srcID;
+            p.AgentData.SessionID = UUID.Zero;
+            p.AgentBlock.DestID = AgentId;
+            p.AgentBlock.TransactionID = transactionID;
+            OutPacket(p, ThrottleOutPacketType.Task);
+        }
+
+        public void SendAcceptCallingCard(UUID transactionID)
+        {
+            AcceptCallingCardPacket p = (AcceptCallingCardPacket)PacketPool.Instance.GetPacket(PacketType.AcceptCallingCard);
+            p.AgentData.AgentID = AgentId;
+            p.AgentData.SessionID = UUID.Zero;
+            p.FolderData = new AcceptCallingCardPacket.FolderDataBlock[1];
+            p.FolderData[0] = new AcceptCallingCardPacket.FolderDataBlock();
+            p.FolderData[0].FolderID = UUID.Zero;
+            OutPacket(p, ThrottleOutPacketType.Task);
+        }
+
+        public void SendDeclineCallingCard(UUID transactionID)
+        {
+            DeclineCallingCardPacket p = (DeclineCallingCardPacket)PacketPool.Instance.GetPacket(PacketType.DeclineCallingCard);
+            p.AgentData.AgentID = AgentId;
+            p.AgentData.SessionID = UUID.Zero;
+            p.TransactionBlock.TransactionID = transactionID;
+            OutPacket(p, ThrottleOutPacketType.Task);
         }
 
         public void KillEndDone()

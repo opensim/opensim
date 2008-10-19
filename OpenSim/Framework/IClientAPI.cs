@@ -324,6 +324,10 @@ namespace OpenSim.Framework
 
     public delegate void MapItemRequest(IClientAPI remoteClient, uint flags, uint EstateID, bool godlike, uint itemtype, ulong regionhandle);
 
+    public delegate void OfferCallingCard(IClientAPI remoteClient, UUID destID, UUID transactionID);
+    public delegate void AcceptCallingCard(IClientAPI remoteClient, UUID transactionID, UUID folderID);
+    public delegate void DeclineCallingCard(IClientAPI remoteClient, UUID transactionID);
+
     #endregion
 
     public struct DirPlacesReplyData
@@ -625,6 +629,9 @@ namespace OpenSim.Framework
         
         event MapItemRequest OnMapItemRequest;
 
+        event OfferCallingCard OnOfferCallingCard;
+        event AcceptCallingCard OnAcceptCallingCard;
+        event DeclineCallingCard OnDeclineCallingCard;
 
    //     void ActivateGesture(UUID assetId, UUID gestureId);
 
@@ -894,7 +901,11 @@ namespace OpenSim.Framework
         void SendEventInfoReply(EventData info);
 
         void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags);
-        
+
+        void SendOfferCallingCard(UUID srcID, UUID transactionID);
+        void SendAcceptCallingCard(UUID transactionID);
+        void SendDeclineCallingCard(UUID transactionID);
+
         void KillEndDone();
     }
 }

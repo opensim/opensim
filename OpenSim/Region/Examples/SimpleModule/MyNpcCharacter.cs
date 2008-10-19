@@ -229,6 +229,10 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public event MapItemRequest OnMapItemRequest;
 
+        public event OfferCallingCard OnOfferCallingCard;
+        public event AcceptCallingCard OnAcceptCallingCard;
+        public event DeclineCallingCard OnDeclineCallingCard;
+
 
 #pragma warning restore 67
 
@@ -936,6 +940,18 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public void SendEventInfoReply (EventData info)
+        {
+        }
+
+        public void SendOfferCallingCard (UUID destID, UUID transactionID)
+        {
+        }
+
+        public void SendAcceptCallingCard (UUID transactionID)
+        {
+        }
+
+        public void SendDeclineCallingCard (UUID transactionID)
         {
         }
     }

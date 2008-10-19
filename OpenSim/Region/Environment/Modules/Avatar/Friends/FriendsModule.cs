@@ -48,6 +48,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         private Dictionary<UUID, ulong> m_rootAgents = new Dictionary<UUID, ulong>();
         private Dictionary<UUID, List<StoredFriendListUpdate>> StoredFriendListUpdates = new Dictionary<UUID, List<StoredFriendListUpdate>>();
 
+        private Dictionary<UUID, UUID> m_pendingCallingcardRequests = new Dictionary<UUID,UUID>();
+
         private List<Scene> m_scene = new List<Scene>();
 
         #region IRegionModule Members
@@ -109,7 +111,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
                 UUID.TryParse((string)requestData["agent_id"], out notifyAboutAgentId);
                 m_log.InfoFormat("[PRESENCE]: Got presence update for {0}, and we're telling {1}, with a status {2}", notifyAboutAgentId.ToString(), notifyAgentId.ToString(), notifyOnlineStatus.ToString());
-                ScenePresence avatar = GetPresenceFromAgentID(notifyAgentId);
+                ScenePresence avatar = GetRootPresenceFromAgentID(notifyAgentId);
                 if (avatar != null)
                 {
                     if (avatar.IsChildAgent)
@@ -184,6 +186,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             client.OnApproveFriendRequest += OnApprovedFriendRequest;
             client.OnDenyFriendRequest += OnDenyFriendRequest;
             client.OnTerminateFriendship += OnTerminateFriendship;
+            client.OnOfferCallingCard += OnOfferCallingCard;
+            client.OnAcceptCallingCard += OnAcceptCallingCard;
+            client.OnDeclineCallingCard += OnDeclineCallingCard;
 
             doFriendListUpdateOnline(client.AgentId);
 
@@ -228,7 +233,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             }
             foreach (UUID user in UpdateUsers)
             {
-                ScenePresence av = GetPresenceFromAgentID(user);
+                ScenePresence av = GetRootPresenceFromAgentID(user);
                 if (av != null)
                 {
                     List<FriendListItem> usrfl = new List<FriendListItem>();
@@ -257,7 +262,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
             if (UpdateUsers.Count > 0)
             {
-                ScenePresence avatar = GetPresenceFromAgentID(AgentId);
+                ScenePresence avatar = GetRootPresenceFromAgentID(AgentId);
                 if (avatar != null)
                 {
                     avatar.ControllingClient.SendAgentOnline(UpdateUsers.ToArray());
@@ -349,7 +354,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
                 for (int i = 0; i < updateUsers.Count; i++)
                 {
-                    ScenePresence av = GetPresenceFromAgentID(updateUsers[i]);
+                    ScenePresence av = GetRootPresenceFromAgentID(updateUsers[i]);
                     if (av != null)
                     {
                         UUID[] agents = new UUID[1];
@@ -427,7 +432,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             }
         }
 
-        private ScenePresence GetPresenceFromAgentID(UUID AgentID)
+        private ScenePresence GetRootPresenceFromAgentID(UUID AgentID)
         {
             ScenePresence returnAgent = null;
             lock (m_scene)
@@ -443,6 +448,25 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                             returnAgent = queryagent;
                             break;
                         }
+                    }
+                }
+            }
+            return returnAgent;
+        }
+
+        private ScenePresence GetAnyPresenceFromAgentID(UUID AgentID)
+        {
+            ScenePresence returnAgent = null;
+            lock (m_scene)
+            {
+                ScenePresence queryagent = null;
+                for (int i = 0; i < m_scene.Count; i++)
+                {
+                    queryagent = m_scene[i].GetScenePresence(AgentID);
+                    if (queryagent != null)
+                    {
+                        returnAgent = queryagent;
+                        break;
                     }
                 }
             }
@@ -520,7 +544,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 Scene SceneAgentIn = m_scene[0];
 
                 // Found Pending Friend Request with that Transaction..
-                ScenePresence agentpresence = GetPresenceFromAgentID(agentID);
+                ScenePresence agentpresence = GetRootPresenceFromAgentID(agentID);
                 if (agentpresence != null)
                 {
                     SceneAgentIn = agentpresence.Scene;
@@ -564,7 +588,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 Scene SceneAgentIn = m_scene[0];
 
                 // Found Pending Friend Request with that Transaction..
-                ScenePresence agentpresence = GetPresenceFromAgentID(agentID);
+                ScenePresence agentpresence = GetRootPresenceFromAgentID(agentID);
                 if (agentpresence != null)
                 {
                     SceneAgentIn = agentpresence.Scene;
@@ -607,7 +631,93 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         }
 
         #endregion
+
+        #region CallingCards
+
+        private void OnOfferCallingCard(IClientAPI client, UUID destID, UUID transactionID)
+        {
+            m_log.DebugFormat("[CALLING CARD]: got offer from {0} for {1}, transaction {2}",
+                              client.AgentId, destID, transactionID);
+            // This might be slightly wrong. On a multi-region server, we might get the child-agent instead of the root-agent
+            // (or the root instead of the child)
+            ScenePresence destAgent = GetAnyPresenceFromAgentID(destID);
+            if (destAgent == null)
+            {
+                client.SendAlertMessage("The person you have offered a card to can't be found anymore.");
+                return;
+            }
+
+            m_pendingCallingcardRequests[transactionID] = client.AgentId;
+            // inform the destination agent about the offer
+            destAgent.ControllingClient.SendOfferCallingCard(client.AgentId, transactionID);
+        }
+
+        private void CreateCallingCard(IClientAPI client, UUID creator, UUID folder, string name)
+        {
+            InventoryItemBase item = new InventoryItemBase();
+            item.AssetID = UUID.Zero;
+            item.AssetType = (int)AssetType.CallingCard;
+            item.BasePermissions = (uint)PermissionMask.Copy;
+            item.CreationDate = Util.UnixTimeSinceEpoch();
+            item.Creator = creator;
+            item.CurrentPermissions = item.BasePermissions;
+            item.Description = "";
+            item.EveryOnePermissions = (uint)PermissionMask.None;
+            item.Flags = 0;
+            item.Folder = folder;
+            item.GroupID = UUID.Zero;
+            item.GroupOwned = false;
+            item.ID = UUID.Random();
+            item.InvType = (int)InventoryType.CallingCard;
+            item.Name = name;
+            item.NextPermissions = item.EveryOnePermissions;
+            item.Owner = client.AgentId;
+            item.SalePrice = 10;
+            item.SaleType = (byte)SaleType.Not;
+            ((Scene)client.Scene).AddInventoryItem(client, item);
+        }
+
+        private void OnAcceptCallingCard(IClientAPI client, UUID transactionID, UUID folderID)
+        {
+            m_log.DebugFormat("[CALLING CARD]: User {0} ({1} {2}) accepted tid {3}, folder {4}",
+                              client.AgentId,
+                              client.FirstName, client.LastName,
+                              transactionID, folderID);
+            UUID destID;
+            if (m_pendingCallingcardRequests.TryGetValue(transactionID, out destID))
+            {
+                m_pendingCallingcardRequests.Remove(transactionID);
+
+                ScenePresence destAgent = GetAnyPresenceFromAgentID(destID);
+                // inform sender of the card that destination declined the offer
+                if (destAgent != null) destAgent.ControllingClient.SendAcceptCallingCard(transactionID);
+
+                // put a calling card into the inventory of receiver 
+                CreateCallingCard(client, destID, folderID, destAgent.Name);
+            }
+            else m_log.WarnFormat("[CALLING CARD]: Got a AcceptCallingCard from {0} {1} without an offer before.",
+                                  client.FirstName, client.LastName);
+        }
+
+        private void OnDeclineCallingCard(IClientAPI client, UUID transactionID)
+        {
+            m_log.DebugFormat("[CALLING CARD]: User {0} declined card, tid {2}",
+                              client.AgentId, transactionID);
+            UUID destID;
+            if (m_pendingCallingcardRequests.TryGetValue(transactionID, out destID))
+            {
+                m_pendingCallingcardRequests.Remove(transactionID);
+
+                ScenePresence destAgent = GetAnyPresenceFromAgentID(destID);
+                // inform sender of the card that destination declined the offer
+                if (destAgent != null) destAgent.ControllingClient.SendDeclineCallingCard(transactionID);
+            }
+            else m_log.WarnFormat("[CALLING CARD]: Got a DeclineCallingCard from {0} {1} without an offer before.",
+                                  client.FirstName, client.LastName);
+        }
     }
+
+    #endregion
 
     public struct StoredFriendListUpdate
     {
