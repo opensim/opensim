@@ -245,7 +245,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             // If we've received a use circuit packet, then we need to decode an endpoint proxy, if one exists, before 
             // allowing the RecvBuffer to be overwritten by the next packet. 
-            if (packet.Type == PacketType.UseCircuitCode)
+            if (packet != null && packet.Type == PacketType.UseCircuitCode)
             {
                 epProxy = epSender;
                 if (proxyPortOffset != 0)
