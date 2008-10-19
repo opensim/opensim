@@ -953,7 +953,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llWind(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector();
+            LSL_Vector wind = new LSL_Vector(0, 0, 0);
+            IWindModule module = World.RequestModuleInterface<IWindModule>();
+            if (module != null && module.WindSpeeds != null)
+            {
+                Vector3 pos = m_host.GetWorldPosition();
+                int x = (int)((pos.X + offset.x)/ 16);
+                int y = (int)((pos.Y + offset.y)/ 16);
+                if (x < 0) x = 0;
+                if (x > 15) x = 15;
+                if (y < 0) y = 0;
+                if (y > 15) y = 15;
+                wind.x = module.WindSpeeds[y * 16 + x].X;
+                wind.y = module.WindSpeeds[y * 16 + x].Y;
+            }
+            return wind;
         }
 
         public void llSetStatus(int status, int value)

@@ -35,7 +35,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {
-    public class WindModule : IRegionModule
+    public class WindModule : IWindModule
     {
 
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -83,6 +83,7 @@ namespace OpenSim.Region.Environment.Modules
             scene.EventManager.OnMakeChildAgent += MakeChildAgent;
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
             scene.EventManager.OnClientClosed += ClientLoggedOut;
+            scene.RegisterModuleInterface<IWindModule>(this);
 
             GenWindPos();
 
@@ -115,6 +116,11 @@ namespace OpenSim.Region.Environment.Modules
         public bool IsSharedModule
         {
             get { return false; }
+        }
+
+        public Vector2[] WindSpeeds
+        {
+            get { return windSpeeds; }
         }
 
         public void WindToClient(IClientAPI client)
