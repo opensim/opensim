@@ -73,6 +73,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         private Dictionary<string, int> m_blacklistedurls = new Dictionary<string, int>();
         private Dictionary<ulong, int> m_blacklistedregions = new Dictionary<ulong, int>();
         private Dictionary<ulong, string> m_cachedRegionMapItemsAddress = new Dictionary<ulong, string>();
+        private List<UUID> m_rootAgents = new List<UUID>();
         private Thread mapItemReqThread;
         private volatile bool threadrunning = false;
 
@@ -106,7 +107,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += ClientLoggedOut;
             scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-            scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+            scene.EventManager.OnMakeRootAgent += MakeRootAgent;
 
 
         }
@@ -261,7 +262,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             }
             if (rootcount <= 1)
                 StopThread();
-
+            
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.Contains(AgentId))
+                {
+                    m_rootAgents.Remove(AgentId);
+                }
+            }
 
         }
         #endregion
@@ -275,9 +283,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         private void StartThread(object o)
         {
             if (threadrunning) return;
-
-            m_log.Warn("[WorldMap]: Starting remote MapItem request thread");
             threadrunning = true;
+            m_log.Warn("[WorldMap]: Starting remote MapItem request thread");
             mapItemReqThread = new Thread(new ThreadStart(process));
             mapItemReqThread.IsBackground = true;
             mapItemReqThread.Name = "MapItemRequestThread";
@@ -307,6 +314,12 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         public virtual void HandleMapItemRequest(IClientAPI remoteClient, uint flags, 
             uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
+
+            lock (m_rootAgents)
+            {
+                if (!m_rootAgents.Contains(remoteClient.AgentId))
+                    return;
+            }
             uint xstart = 0;
             uint ystart = 0;
             Helpers.LongToUInts(m_scene.RegionInfo.RegionHandle, out xstart, out ystart);
@@ -387,8 +400,19 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     ThreadTracker.Remove(mapItemReqThread);
                     break;
                 }
-                LLSDMap response = RequestMapItemsAsync("", st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
-                RequestMapItemsCompleted(response);
+                
+                bool dorequest = true;
+                lock (m_rootAgents)
+                {
+                    if (!m_rootAgents.Contains(st.agentID))
+                        dorequest = false;
+                }
+
+                if (dorequest)
+                {
+                    LLSDMap response = RequestMapItemsAsync("", st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
+                    RequestMapItemsCompleted(response);
+                }
             }
             threadrunning = false;
             m_log.Warn("[WorldMap]: Remote request thread exiting");
@@ -826,14 +850,25 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             return responsemap;
         }
         
-        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
-        {
+
+        private void MakeRootAgent(ScenePresence avatar)
+        { 
+            
             // You may ask, why this is in a threadpool to start with..   
             // The reason is so we don't cause the thread to freeze waiting 
             // for the 1 second it costs to start a thread manually.
-
+            
+            m_log.Warn("[WORLDMAP]: MakeRootAgent Works!");
             if (!threadrunning)
                 ThreadPool.QueueUserWorkItem(new WaitCallback(this.StartThread));
+
+            lock (m_rootAgents)
+            {
+                if (!m_rootAgents.Contains(avatar.UUID))
+                {
+                    m_rootAgents.Add(avatar.UUID);
+                }
+            }
         }
 
         private void MakeChildAgent(ScenePresence avatar)
@@ -850,6 +885,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             }
             if (rootcount <= 1)
                 StopThread();
+
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.Contains(avatar.UUID))
+                {
+                    m_rootAgents.Remove(avatar.UUID);
+                }
+            }
         }
     }
 
