@@ -1009,7 +1009,7 @@ namespace OpenSim.Region.Environment.Scenes
             // that they don't happen, otherwise the deleted objects will reappear
             m_isDeleted = true;
 
-//            DetachFromBackup();
+            DetachFromBackup();
 
             foreach (SceneObjectPart part in m_parts.Values)
             {
@@ -1278,6 +1278,7 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectGroup Copy(UUID cAgentID, UUID cGroupID, bool userExposed)
         {
             SceneObjectGroup dupe = (SceneObjectGroup) MemberwiseClone();
+            dupe.m_isBackedUp = false;
             dupe.m_parts = new Dictionary<UUID, SceneObjectPart>();
             dupe.m_parts.Clear();
             //dupe.OwnerID = AgentID;
@@ -1860,6 +1861,7 @@ namespace OpenSim.Region.Environment.Scenes
             // The traffic caused is always going to be pretty minor, so it's not high priority
             //objectGroup.DeleteGroup();
 
+            AttachToBackup();
             HasGroupChanged = true;
             ScheduleGroupForFullUpdate();
         }
