@@ -6,7 +6,7 @@
     <Key Name="name" Value="place_marker" />
     <Key Name="description" Value="simple part-body standing, use low-priority to allow others - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="tpose2">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
@@ -15,7 +15,7 @@
     <Key Name="name" Value="tpose2" />
     <Key Name="description" Value="a tpose more suitable for posing stands - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="bouncy_ball_left">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
@@ -24,7 +24,7 @@
     <Key Name="name" Value="bouncy_ball_left" />
     <Key Name="description" Value="turn left on bouncy ball, grasping - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="tpose">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
@@ -33,7 +33,7 @@
     <Key Name="name" Value="tpose" />
     <Key Name="description" Value="the standard tpose (all must start with this in frame 1) - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="handshake">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
@@ -42,7 +42,7 @@
     <Key Name="name" Value="handshake" />
     <Key Name="description" Value="a simple right-handed, double-pump handshake, (30x30fps) - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="give_and_handshake">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
@@ -51,16 +51,16 @@
     <Key Name="name" Value="give_and_handshake" />
     <Key Name="description" Value="same as handshake, but gives something with left hand first (30x30fps) - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="bouncy_ball_walk">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
-    <Key Name="assetID" Value="be7b9b16-5c88-2862-2d19-ec4b939d6a8e" />
+    <Key Name="assetID" Value="be7b9b16-5c88-2862-2d20-ec4b939d6a8e" />
     <Key Name="inventoryID" Value="6f3642e6-de37-7ad2-8fa2-6e1310a76e84" />
     <Key Name="name" Value="bouncy_ball_walk" />
     <Key Name="description" Value="move foward on bouncy ball, walk speed, grasping - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="bouncy_ball_run">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
@@ -69,7 +69,7 @@
     <Key Name="name" Value="bouncy_ball_run" />
     <Key Name="description" Value="move foward on bouncy ball, run speed, grasping - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="windsurf_left">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
@@ -78,7 +78,7 @@
     <Key Name="name" Value="windsurf_left" />
     <Key Name="description" Value="static, full body, pose of windsurfer, left foot forward - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="bouncy_ball_super">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
@@ -87,7 +87,7 @@
     <Key Name="name" Value="bouncy_ball_super" />
     <Key Name="description" Value="super bounce on bouncy ball, matrix-like, grasping - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="bouncy_ball_right">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
@@ -96,7 +96,7 @@
     <Key Name="name" Value="bouncy_ball_right" />
     <Key Name="description" Value="turn right on bouncy ball, grasping - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
   <Section Name="autograph_right">
     <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
@@ -105,7 +105,7 @@
     <Key Name="name" Value="autograph_right" />
     <Key Name="description" Value="part-body, right-handed signing autograph with left give - contributed by Mo Hax" />
     <Key Name="assetType" Value="20" />
-    <Key Name="inventoryType" Value="19" />
+    <Key Name="inventoryType" Value="20" />
   </Section>
 
   
