@@ -34,6 +34,10 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
+// using log4net;
+// using System.Reflection;
+
+
 /*****************************************************
  *
  * WorldCommModule
@@ -83,6 +87,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 {
     public class WorldCommModule : IRegionModule, IWorldComm
     {
+        // private static readonly ILog m_log =
+        //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private ListenerManager m_listenerManager;
         private Queue m_pending;
         private Queue m_pendingQ;
@@ -117,6 +124,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             m_scene.RegisterModuleInterface<IWorldComm>(this);
             m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
             m_scene.EventManager.OnChatFromClient += DeliverClientMessage;
+            m_scene.EventManager.OnChatBroadcast += DeliverClientMessage;
             m_pendingQ = new Queue();
             m_pending = Queue.Synchronized(m_pendingQ);
         }
@@ -197,6 +205,22 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             m_listenerManager.DeleteListener(itemID);
         }
 
+        public void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg)
+        {
+            Vector3 position;
+            SceneObjectPart source;
+            ScenePresence avatar;
+
+            if ((source = m_scene.GetSceneObjectPart(id)) != null)
+                position = source.AbsolutePosition;
+            else if ((avatar = m_scene.GetScenePresence(id)) != null) 
+                position = avatar.AbsolutePosition;
+            else
+                return;
+
+            DeliverMessage(type, channel, name, id, msg, position);
+        }
+
         /// <summary>
         /// This method scans over the objects which registered an interest in listen callbacks.
         /// For everyone it finds, it checks if it fits the given filter. If it does,  then
@@ -210,39 +234,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         /// <param name="name">name of sender (object or avatar)</param>
         /// <param name="id">key of sender (object or avatar)</param>
         /// <param name="msg">msg to sent</param>
-        public void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg)
+        public void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg, Vector3 position)
         {
-            SceneObjectPart source = null;
-            ScenePresence avatar = null;
-            Vector3 position;
-
-            source = m_scene.GetSceneObjectPart(id);
-            if (source != null)
-                position = source.AbsolutePosition;
-            else {
-                avatar = m_scene.GetScenePresence(id);
-                if (avatar != null)
-                {
-                    position = avatar.AbsolutePosition;
-                }
-                else
-                {
-                    // This is potentially problematic, though I don't
-                    // see how to take advantage of it, basically a request
-                    // to send a message to the region does not have to come
-                    // from something in the region (eg a plugin can send it)
-                    if (type == ChatTypeEnum.Region)
-                    {
-                        position = new Vector3(128, 128, 20);
-                    }
-                    else
-                    {
-                        // bail out early, given source could not be found
-                        return;
-                    }
-                }
-            }
-
             // Determine which listen event filters match the given set of arguments, this results
             // in a limited set of listeners, each belonging a host. If the host is in range, add them
             // to the pending queue.
@@ -326,11 +319,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
         #endregion
 
-        // private void NewClient(IClientAPI client)
-        // {
-        //     client.OnChatFromViewer += DeliverClientMessage;
-        // }
-
         /********************************************************************
          *
          * Listener Stuff
@@ -339,11 +327,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
         private void DeliverClientMessage(Object sender, OSChatMessage e)
         {
-            DeliverMessage(e.Type,
-                           e.Channel,
-                           e.Sender.Name,
-                           e.Sender.AgentId,
-                           e.Message);
+            if (null != e.Sender)
+                DeliverMessage(e.Type, e.Channel, e.Sender.Name, e.Sender.AgentId, e.Message, e.Position);
+            else
+                DeliverMessage(e.Type, e.Channel, e.From, UUID.Zero, e.Message, e.Position);
         }
 
         public Object[] GetSerializationData(UUID itemID)

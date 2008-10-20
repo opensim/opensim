@@ -7238,7 +7238,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            World.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Owner, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
+            World.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Owner, 0, 
+                                   m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 //            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
 //            wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
         }

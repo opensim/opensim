@@ -48,6 +48,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         private const int DEBUG_CHANNEL = 2147483647;
 
+        private bool m_enabled = true;
         private int m_saydistance = 30;
         private int m_shoutdistance = 100;
         private int m_whisperdistance = 10;
@@ -56,8 +57,23 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         internal object m_syncInit = new object();
 
         #region IRegionModule Members
-        public void Initialise(Scene scene, IConfigSource config)
+        public virtual void Initialise(Scene scene, IConfigSource config)
         {
+            // wrap this in a try block so that defaults will work if
+            // the config file doesn't specify otherwise.
+            try
+            {
+                m_enabled = config.Configs["Chat"].GetBoolean("enabled", m_enabled);
+                if (!m_enabled) return;
+
+                m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
+                m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
+                m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
+            }
+            catch (Exception)
+            {
+            }
+
             lock (m_syncInit)
             {
                 if (!m_scenes.Contains(scene))
@@ -69,34 +85,23 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
             }
 
-            // wrap this in a try block so that defaults will work if
-            // the config file doesn't specify otherwise.
-            try
-            {
-                m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
-                m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
-                m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
-            }
-            catch (Exception)
-            {
-            }
             m_log.InfoFormat("[CHAT] initialized for {0} w:{1} s:{2} S:{3}", scene.RegionInfo.RegionName,
                              m_whisperdistance, m_saydistance, m_shoutdistance);
         }
-        public void PostInitialise()
+        public virtual void PostInitialise()
         {
         }
 
-        public void Close()
+        public virtual void Close()
         {
         }
 
-        public string Name
+        public virtual string Name
         {
             get { return "ChatModule"; }
         }
 
-        public bool IsSharedModule
+        public virtual bool IsSharedModule
         {
             get { return true; }
         }
@@ -104,16 +109,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         #endregion
 
 
-        public void OnNewClient(IClientAPI client)
+        public virtual void OnNewClient(IClientAPI client)
         {
-            try
-            {
-                client.OnChatFromClient += OnChatFromClient;
-            }
-            catch (Exception ex)
-            {
-                m_log.Error("[CHAT]: NewClient exception trap:" + ex.ToString());
-            }
+            client.OnChatFromClient += OnChatFromClient;
         }
 
         public virtual void OnChatFromClient(Object sender, OSChatMessage e)
@@ -132,45 +130,76 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 return;
             }
 
-            string message = e.Message;
-            if (e.Channel == DEBUG_CHANNEL) e.Type = ChatTypeEnum.DebugChannel;
+            // string message = e.Message;
+            // if (e.Channel == DEBUG_CHANNEL) e.Type = ChatTypeEnum.DebugChannel;
 
-            ScenePresence avatar = scene.GetScenePresence(e.Sender.AgentId);
-            Vector3 fromPos = avatar.AbsolutePosition;
-            Vector3 regionPos = new Vector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
-                                            scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
-            string fromName = avatar.Firstname + " " + avatar.Lastname;
-            UUID fromID = e.Sender.AgentId;
+            // ScenePresence avatar = scene.GetScenePresence(e.Sender.AgentId);
+            // Vector3 fromPos = avatar.AbsolutePosition;
+            // Vector3 regionPos = new Vector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
+            //                                 scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+            // string fromName = avatar.Firstname + " " + avatar.Lastname;
+            // UUID fromID = e.Sender.AgentId;
 
-            DeliverChatToAvatars(fromPos, regionPos, fromID, fromName, e.Type, ChatSourceType.Agent, message);
+            // DeliverChatToAvatars(fromPos, regionPos, fromID, fromName, e.Type, ChatSourceType.Agent, message);
+            DeliverChatToAvatars(ChatSourceType.Agent, e);
         }
 
-        public void OnChatFromWorld(Object sender, OSChatMessage e)
+        public virtual void OnChatFromWorld(Object sender, OSChatMessage e)
         {
-            Scene scene = (Scene) e.Scene;
-
             // early return if not on public or debug channel
             if (e.Channel != 0 && e.Channel != DEBUG_CHANNEL) return;
 
-            // Filled in since it's easier than rewriting right now.
-            Vector3 fromPos = e.Position;
+            // // Filled in since it's easier than rewriting right now.
+            // Vector3 fromPos = e.Position;
+            // Vector3 regionPos = new Vector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
+            //                                 scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
+
+            // string fromName = e.From;
+            // string message = e.Message;
+            // UUID fromID = e.SenderUUID;
+
+            // if (e.Channel == DEBUG_CHANNEL)
+            //     e.Type = ChatTypeEnum.DebugChannel;
+
+            // DeliverChatToAvatars(fromPos, regionPos, fromID, fromName, e.Type, ChatSourceType.Object, message);
+            DeliverChatToAvatars(ChatSourceType.Object, e);
+        }
+
+        protected virtual void DeliverChatToAvatars(ChatSourceType sourceType, OSChatMessage c)
+        {
+            string fromName = c.From;
+            UUID fromID = UUID.Zero;
+            string message = c.Message;
+            IScene scene = c.Scene;
+            Vector3 fromPos = c.Position;
             Vector3 regionPos = new Vector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
                                             scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
 
-            string fromName = e.From;
-            string message = e.Message;
-            UUID fromID = e.SenderUUID;
+            if (c.Channel == DEBUG_CHANNEL) c.Type = ChatTypeEnum.DebugChannel;
 
-            if (e.Channel == DEBUG_CHANNEL)
-                e.Type = ChatTypeEnum.DebugChannel;
+            switch (sourceType) 
+            {
+            case ChatSourceType.Agent:
+                if (!(scene is Scene))
+                {
+                    m_log.WarnFormat("[CHAT] scene {0} is not a Scene object, cannot obtain scene presence for {1}",
+                                     scene.RegionInfo.RegionName, c.Sender.AgentId);
+                    return;
+                }
+                ScenePresence avatar = (scene as Scene).GetScenePresence(c.Sender.AgentId);
+                fromPos = avatar.AbsolutePosition;
+                fromName = avatar.Firstname + " " + avatar.Lastname;
+                fromID = c.Sender.AgentId;
 
-            DeliverChatToAvatars(fromPos, regionPos, fromID, fromName, e.Type, ChatSourceType.Object, message);
-        }
+                break;
 
-        protected void DeliverChatToAvatars(Vector3 pos, Vector3 regionPos, UUID uuid, string name,
-                                            ChatTypeEnum chatType, ChatSourceType sourceType, string message)
-        {
-            // iterate over message
+            case ChatSourceType.Object:
+                fromID = c.SenderUUID;
+
+                break;
+            }
+
+            // TODO: iterate over message
             if (message.Length >= 1000) // libomv limit
                 message = message.Substring(0, 1000);
 
@@ -178,20 +207,42 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             {
                 s.ForEachScenePresence(delegate(ScenePresence presence) 
                                        {
-                                           TrySendChatMessage(presence, pos, regionPos, uuid, name, 
-                                                              chatType, message, sourceType);
+                                           TrySendChatMessage(presence, fromPos, regionPos, fromID, fromName, 
+                                                              c.Type, message, sourceType);
                                        });
             }
         }
 
+        // protected virtual void DeliverChatToAvatars(Vector3 pos, Vector3 regionPos, UUID uuid, string name,
+        //                                             ChatTypeEnum chatType, ChatSourceType sourceType, string message)
+        // {
+        //     // iterate over message
+        //     if (message.Length >= 1000) // libomv limit
+        //         message = message.Substring(0, 1000);
 
-        public void OnChatBroadcast(Object sender, OSChatMessage c)
+        //     foreach (Scene s in m_scenes)
+        //     {
+        //         s.ForEachScenePresence(delegate(ScenePresence presence) 
+        //                                {
+        //                                    TrySendChatMessage(presence, pos, regionPos, uuid, name, 
+        //                                                       chatType, message, sourceType);
+        //                                });
+        //     }
+        // }
+
+
+        public virtual void OnChatBroadcast(Object sender, OSChatMessage c)
         {
-            // We only want to relay stuff on channel 0 and on the debug channel
-            if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL) return;
+            // unless the chat to be broadcast is of type Region, we
+            // drop it if its channel is neither 0 nor DEBUG_CHANNEL
+            if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL && c.Type != ChatTypeEnum.Region) return;
 
+            ChatTypeEnum cType = c.Type;
             if (c.Channel == DEBUG_CHANNEL)
-                c.Type = ChatTypeEnum.DebugChannel;
+                cType = ChatTypeEnum.DebugChannel;
+
+            if (cType == ChatTypeEnum.Region)
+                cType = ChatTypeEnum.Say;
 
             if (c.Message.Length > 1100)
                 c.Message = c.Message.Substring(0, 1000);
@@ -199,6 +250,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             // broadcast chat works by redistributing every incoming chat
             // message to each avatar in the scene.
             Vector3 pos = new Vector3(128, 128, 30);
+            
+            UUID fromID = UUID.Zero;
+            ChatSourceType sourceType = ChatSourceType.Object;
+            if (null != c.Sender)
+            {
+                fromID = c.Sender.AgentId;
+                sourceType = ChatSourceType.Agent;
+            }
+            
             ((Scene)c.Scene).ForEachScenePresence(
                 delegate(ScenePresence presence)
                 {
@@ -214,29 +274,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                         (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
                         return;
                     
-                    if (null == c.SenderObject)
-                    {
-                        // chat from agent (avatar)
-                        client.SendChatMessage(c.Message, (byte)c.Type,
-                                               pos, c.From, UUID.Zero,
-                                               (byte)ChatSourceType.Agent,
-                                               (byte)ChatAudibleLevel.Fully);
-                    }
-                    else
-                    {
-                        // chat from object
-                        client.SendChatMessage(c.Message, (byte)c.Type,
-                                               pos, c.From, UUID.Zero,
-                                               (byte)ChatSourceType.Object,
-                                               (byte)ChatAudibleLevel.Fully);
-                    }
+                    client.SendChatMessage(c.Message, (byte)cType, pos, c.From, fromID, 
+                                           (byte)sourceType, (byte)ChatAudibleLevel.Fully);
                 });
         }
 
 
-        private void TrySendChatMessage(ScenePresence presence, Vector3 fromPos, Vector3 regionPos,
-                                        UUID fromAgentID, string fromName, ChatTypeEnum type,
-                                        string message, ChatSourceType src)
+        protected virtual void TrySendChatMessage(ScenePresence presence, Vector3 fromPos, Vector3 regionPos,
+                                                  UUID fromAgentID, string fromName, ChatTypeEnum type,
+                                                  string message, ChatSourceType src)
         {
             // don't send stuff to child agents
             if (presence.IsChildAgent) return;

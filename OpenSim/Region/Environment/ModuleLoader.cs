@@ -93,15 +93,15 @@ namespace OpenSim.Region.Environment
                 m_loadedSharedModules.Add(dynamicModule.Name, dynamicModule);
             }
 
-            ChatModule chat = new ChatModule();
-            if (m_loadedSharedModules.ContainsKey(chat.Name))
-            {
-                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", chat.Name, "ChatModule");
-            }
-            else
-            {
-                m_loadedSharedModules.Add(chat.Name, chat);
-            }
+            // ChatModule chat = new ChatModule();
+            // if (m_loadedSharedModules.ContainsKey(chat.Name))
+            // {
+            //     m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", chat.Name, "ChatModule");
+            // }
+            // else
+            // {
+            //     m_loadedSharedModules.Add(chat.Name, chat);
+            // }
 
             InstantMessageModule imMod = new InstantMessageModule();
             if (m_loadedSharedModules.ContainsKey(imMod.Name))

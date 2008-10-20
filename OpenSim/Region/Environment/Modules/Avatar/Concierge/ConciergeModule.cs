@@ -38,24 +38,28 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Modules.Avatar.Chat;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 {
-    public class ConciergeModule : IRegionModule
+    public class ConciergeModule : ChatModule, IRegionModule
     {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const int DEBUG_CHANNEL = 2147483647;
 
         private int _conciergeChannel = 42;
-        private List<Scene> _scenes = new List<Scene>();
+        private List<IScene> _scenes = new List<IScene>();
+        private List<IScene> _conciergedScenes = new List<IScene>();
         private IConfig _config;
         private string _whoami = "conferencier";
+        private bool _replacingChatModule = false;
+        private Regex _regions = null;
 
         internal object _syncy = new object();
 
         #region IRegionModule Members
-        public void Initialise(Scene scene, IConfigSource config)
+        public override void Initialise(Scene scene, IConfigSource config)
         {
             try
             {
@@ -78,25 +82,58 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 return;
             }
 
-            if (_config != null)
+            // check whether ChatModule has been disabled: if yes,
+            // then we'll "stand in"
+            try
             {
-                _conciergeChannel = config.Configs["Concierge"].GetInt("concierge_channel", _conciergeChannel);
-                _whoami = _config.GetString("whoami", "conferencier");
+                if (config.Configs["Chat"] == null)
+                {
+                    _replacingChatModule = false;
+                }
+                else 
+                {
+                    _replacingChatModule  = !config.Configs["Chat"].GetBoolean("enabled", true);
+                }
             }
+            catch (Exception)
+            {
+                _replacingChatModule = false;
+            }
+            _log.InfoFormat("[Concierge] {0} ChatModule", _replacingChatModule ? "replacing" : "not replacing");
+
+
+            // take note of concierge channel and of identity
+            _conciergeChannel = config.Configs["Concierge"].GetInt("concierge_channel", _conciergeChannel);
+            _whoami = _config.GetString("whoami", "conferencier");
             _log.InfoFormat("[Concierge] reporting as \"{0}\" to our users", _whoami);
+
+            // calculate regions Regex
+            if (_regions == null)
+            {
+                string regions = _config.GetString("regions", String.Empty);
+                if (!String.IsNullOrEmpty(regions))
+                {
+                    _regions = new Regex(regions, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                }
+            }
 
             lock (_syncy)
             {
                 if (!_scenes.Contains(scene))
                 {
                     _scenes.Add(scene);
+
+                    if (_regions.IsMatch(scene.RegionInfo.RegionName))
+                        _conciergedScenes.Add(scene);
+
                     // subscribe to NewClient events
                     scene.EventManager.OnNewClient += OnNewClient;
-                    scene.EventManager.OnNewClient += OnNewClient;
 
-                    // subscribe to *Chat events and FilterChat* events
-                    scene.EventManager.OnChatFromWorld += OnSimChat;
-                    scene.EventManager.OnChatBroadcast += OnSimBroadcast;
+                    // subscribe to *Chat events
+                    scene.EventManager.OnChatFromWorld += OnChatFromWorld;
+                    if (!_replacingChatModule)
+                        scene.EventManager.OnChatFromClient += OnChatFromClient;
+                    scene.EventManager.OnChatBroadcast += OnChatBroadcast;
 
                     // subscribe to agent change events
                     scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
@@ -106,20 +143,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             _log.InfoFormat("[Concierge] initialized for {0}", scene.RegionInfo.RegionName);
         }
 
-        public void PostInitialise()
+        public override void PostInitialise()
         {
         }
 
-        public void Close()
+        public override void Close()
         {
         }
 
-        public string Name
+        public override string Name
         {
             get { return "ConciergeModule"; }
         }
 
-        public bool IsSharedModule
+        public override bool IsSharedModule
         {
             get { return true; }
         }
@@ -127,44 +164,90 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
         #endregion
 
         #region ISimChat Members
-        public void OnSimBroadcast(Object sender, OSChatMessage c)
+        public override void OnChatBroadcast(Object sender, OSChatMessage c)
         {
-            // log to buffer?
-            return;
-        }
-
-        public void OnSimChat(Object sender, OSChatMessage c)
-        {
-            if (_conciergeChannel == c.Channel)
-            { 
-                // concierge request: interpret
-                return;
-            }
-
-            if (0 == c.Channel || DEBUG_CHANNEL == c.Channel)
+            if (_replacingChatModule)
             {
-                // if (_amplify)
-                // {
-                    
-                // }
-
-                // log as avatar/prim chat
-                return;
+                // distribute chat message to each and every avatar in
+                // the region
+                base.OnChatBroadcast(sender, c);
             }
 
+            // TODO: capture logic
             return;
         }
 
+        public override void OnChatFromClient(Object sender, OSChatMessage c)
+        {
+            if (_replacingChatModule)
+            {
+                if (_conciergedScenes.Contains(c.Scene))
+                {
+                    // replacing ChatModule: need to redistribute
+                    // ChatFromClient to interested subscribers
+                    Scene scene = (Scene)c.Scene;
+                    scene.EventManager.TriggerOnChatFromClient(sender, c);
+
+                    // when we are replacing ChatModule, we treat
+                    // OnChatFromClient like OnChatBroadcast for
+                    // concierged regions, effectively extending the
+                    // range of chat to cover the whole
+                    // region. however, we don't do this for whisper
+                    // (got to have some privacy)
+                    if (c.Type != ChatTypeEnum.Whisper)
+                    {
+                        base.OnChatBroadcast(sender, c);
+                        return;
+                    }
+                }
+
+                // redistribution will be done by base class
+                base.OnChatFromClient(sender, c);
+            }
+
+            // TODO: capture chat
+            return;
+        }
+
+        public override void OnChatFromWorld(Object sender, OSChatMessage c)
+        {
+            if (_replacingChatModule)
+            {
+                if (_conciergedScenes.Contains(c.Scene))
+                {
+                    // when we are replacing ChatModule, we treat
+                    // OnChatFromClient like OnChatBroadcast for
+                    // concierged regions, effectively extending the
+                    // range of chat to cover the whole
+                    // region. however, we don't do this for whisper
+                    // (got to have some privacy)
+                    if (c.Type != ChatTypeEnum.Whisper) 
+                    {
+                        base.OnChatBroadcast(sender, c);
+                        return;
+                    }
+                }
+
+                base.OnChatFromWorld(sender, c);
+            }
+            return;
+        }
         #endregion
 
 
-        public void OnNewClient(IClientAPI client)
+        public override void OnNewClient(IClientAPI client)
         {
             client.OnLogout += OnClientLoggedOut;
             client.OnConnectionClosed += OnClientLoggedOut;
+            if (_replacingChatModule) 
+                client.OnChatFromClient += OnChatFromClient;
 
-            _log.DebugFormat("[Concierge] {0} logs on to {1}", client.Name, client.Scene.RegionInfo.RegionName);
-            AnnounceToAgentsRegion(client, String.Format("{0} logs on to {1}", client.Name, client.Scene.RegionInfo.RegionName));
+            if (_conciergedScenes.Contains(client.Scene))
+            {
+                _log.DebugFormat("[Concierge] {0} logs on to {1}", client.Name, client.Scene.RegionInfo.RegionName);
+                AnnounceToAgentsRegion(client, String.Format("{0} logs on to {1}", client.Name, 
+                                                             client.Scene.RegionInfo.RegionName));
+            }
         }
 
         public void OnClientLoggedOut(IClientAPI client)
@@ -172,31 +255,45 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             client.OnLogout -= OnClientLoggedOut;
             client.OnConnectionClosed -= OnClientLoggedOut;
             
-            _log.DebugFormat("[Concierge] {0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName);
-            AnnounceToAgentsRegion(client, String.Format("{0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName));
+            if (_conciergedScenes.Contains(client.Scene))
+            {
+                _log.DebugFormat("[Concierge] {0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName);
+                AnnounceToAgentsRegion(client, String.Format("{0} logs off from {1}", client.Name, 
+                                                             client.Scene.RegionInfo.RegionName));
+            }
         }
 
 
         public void OnMakeRootAgent(ScenePresence agent)
         {
-            _log.DebugFormat("[Concierge] {0} enters {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
-            AnnounceToAgentsRegion(agent, String.Format("{0} enters {1}", agent.Name, agent.Scene.RegionInfo.RegionName));
+            if (_conciergedScenes.Contains(agent.Scene))
+            {
+                _log.DebugFormat("[Concierge] {0} enters {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
+                AnnounceToAgentsRegion(agent, String.Format("{0} enters {1}", agent.Name, 
+                                                            agent.Scene.RegionInfo.RegionName));
+            }
         }
 
 
         public void OnMakeChildAgent(ScenePresence agent)
         {
-            _log.DebugFormat("[Concierge] {0} leaves {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
-            AnnounceToAgentsRegion(agent, String.Format("{0} leaves {1}", agent.Name, agent.Scene.RegionInfo.RegionName));
+            if (_conciergedScenes.Contains(agent.Scene))
+            {
+                _log.DebugFormat("[Concierge] {0} leaves {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
+                AnnounceToAgentsRegion(agent, String.Format("{0} leaves {1}", agent.Name, 
+                                                            agent.Scene.RegionInfo.RegionName));
+            }
         }
 
 
         public void ClientLoggedOut(IClientAPI client)
         {
-            _log.DebugFormat("[Concierge] {0} logs out of {1}", client.Name, client.Scene.RegionInfo.RegionName);
-            AnnounceToAgentsRegion(client, String.Format("{0} logs out of {1}", client.Name, client.Scene.RegionInfo.RegionName));
+            if (_conciergedScenes.Contains(client.Scene))
+            {
+                _log.DebugFormat("[Concierge] {0} logs out of {1}", client.Name, client.Scene.RegionInfo.RegionName);
+                AnnounceToAgentsRegion(client, String.Format("{0} logs out of {1}", client.Name, client.Scene.RegionInfo.RegionName));
+            }
         }
-
 
         static private Vector3 posOfGod = new Vector3(128, 128, 9999);
 
