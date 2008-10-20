@@ -5314,7 +5314,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         //CFK 9/28: Most, but not all of the underlying plumbing between here and the physics modules is in
         //CFK 9/28: so these are not complete yet.
-        public void llSetVehicleFloatParam(int param, float value)
+        public void llSetVehicleFloatParam(int param, LSL_Float value)
         {
             m_host.AddScriptLPS(1);
 
@@ -5322,7 +5322,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (m_host.ParentGroup.RootPart != null)
                 {
-                    m_host.ParentGroup.RootPart.SetVehicleFloatParam(param, value);
+                    m_host.ParentGroup.RootPart.SetVehicleFloatParam(param, (float)value);
                 }
             }
         }

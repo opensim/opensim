@@ -339,7 +339,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetTorque(LSL_Vector torque, int local);
               void llSetTouchText(string text);
               void llSetVehicleFlags(int flags);
-              void llSetVehicleFloatParam(int param, float value);
+              void llSetVehicleFloatParam(int param, LSL_Float value);
               void llSetVehicleRotationParam(int param, LSL_Rotation rot);
               void llSetVehicleType(int type);
               void llSetVehicleVectorParam(int param, LSL_Vector vec);

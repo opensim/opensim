@@ -1554,7 +1554,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetVehicleFlags(flags);
         }
 
-        public void llSetVehicleFloatParam(int param, float value)
+        public void llSetVehicleFloatParam(int param, LSL_Float value)
         {
             m_LSL_Functions.llSetVehicleFloatParam(param, value);
         }
