@@ -3480,57 +3480,50 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             ScenePresence pusheeav = null;
-            //SceneObjectPart pusheeob = null;
-            EntityBase obj = null;
             Vector3 PusheePos = Vector3.Zero;
             SceneObjectPart pusheeob = null;
                      
-            List<ScenePresence> avatars = World.GetAvatars();
 
-            foreach (ScenePresence avatar in avatars)
+            ScenePresence avatar = World.GetScenePresence(targetID);
+            if (avatar != null)
             {
-                if (avatar.UUID == targetID)
+                pusheeIsAvatar = true;
+
+                // Pushee doesn't have a physics actor
+                if (avatar.PhysicsActor == null)
+                    return;
+
+                // Pushee is in GodMode this pushing object isn't owned by them
+                if (avatar.GodLevel > 0 && m_host.OwnerID != targetID)
+                    return;
+
+                pusheeav = avatar;
+
+                // Find pushee position
+                // Pushee Linked?
+                if (pusheeav.ParentID != 0)
                 {
-                    pusheeIsAvatar = true;
-
-                    // Pushee doesn't have a physics actor
-                    if (avatar.PhysicsActor == null)
-                        return;
-
-                    // Pushee is in GodMode this pushing object isn't owned by them
-                    if (avatar.GodLevel > 0 && m_host.OwnerID != targetID)
-                        return;
-                    
-                    pusheeav = avatar;
-                    
-                    // Find pushee position
-                    // Pushee Linked?
-                    if (pusheeav.ParentID != 0)
+                    SceneObjectPart parentobj = World.GetSceneObjectPart(pusheeav.ParentID);
+                    if (parentobj != null)
                     {
-                        SceneObjectPart parentobj = World.GetSceneObjectPart(pusheeav.ParentID);
-                        if (parentobj != null)
-                        {
-                            PusheePos = parentobj.AbsolutePosition;
-                        }
-                        else
-                        {
-                            PusheePos = pusheeav.AbsolutePosition;
-                        }
+                        PusheePos = parentobj.AbsolutePosition;
                     }
                     else
                     {
                         PusheePos = pusheeav.AbsolutePosition;
                     }
-                    
-                    obj = (EntityBase)pusheeav;
-                    break;
+                }
+                else
+                {
+                    PusheePos = pusheeav.AbsolutePosition;
                 }
             }
 
             if (!pusheeIsAvatar)
             {
+                // not an avatar so push is not affected by parcel flags
                 pusheeob = World.GetSceneObjectPart((UUID)target);
-                
+
                 // We can't find object
                 if (pusheeob == null)
                     return;
@@ -3540,50 +3533,51 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 PusheePos = pusheeob.AbsolutePosition;
-                //obj = (EntityBase)pusheeob;
-            }
-            
-            
-            if (pushrestricted)
-            {
-                ILandObject targetlandObj = World.LandChannel.GetLandObject(PusheePos.X,PusheePos.Y);
-
-                // We didn't find the parcel but region is push restricted so assume it is NOT ok
-                if (targetlandObj == null)
-                    return;
-
-                // Need provisions for Group Owned here
-                if (m_host.OwnerID == targetlandObj.landData.OwnerID || targetlandObj.landData.IsGroupOwned || m_host.OwnerID == targetID)
-                {
-                    pushAllowed = true;
-                }
+                pushAllowed = true;
             }
             else
             {
-                ILandObject targetlandObj = World.LandChannel.GetLandObject(PusheePos.X, PusheePos.Y);
-                if (targetlandObj == null)
+                if (pushrestricted)
                 {
-                    // We didn't find the parcel but region isn't push restricted so assume it's ok
-                    pushAllowed = true;
+                    ILandObject targetlandObj = World.LandChannel.GetLandObject(PusheePos.X, PusheePos.Y);
+
+                    // We didn't find the parcel but region is push restricted so assume it is NOT ok
+                    if (targetlandObj == null)
+                        return;
+
+                    // Need provisions for Group Owned here
+                    if (m_host.OwnerID == targetlandObj.landData.OwnerID || targetlandObj.landData.IsGroupOwned || m_host.OwnerID == targetID)
+                    {
+                        pushAllowed = true;
+                    }
                 }
                 else
                 {
-                    // Parcel push restriction
-                    if ((targetlandObj.landData.Flags & (uint)Parcel.ParcelFlags.RestrictPushObject) == (uint)Parcel.ParcelFlags.RestrictPushObject)
+                    ILandObject targetlandObj = World.LandChannel.GetLandObject(PusheePos.X, PusheePos.Y);
+                    if (targetlandObj == null)
                     {
-                        // Need provisions for Group Owned here
-                        if (m_host.OwnerID == targetlandObj.landData.OwnerID || targetlandObj.landData.IsGroupOwned || m_host.OwnerID == targetID)
-                        {
-                            pushAllowed = true;
-                        }
-
-                        //Parcel.ParcelFlags.RestrictPushObject
-                        //pushAllowed = true;
+                        // We didn't find the parcel but region isn't push restricted so assume it's ok
+                        pushAllowed = true;
                     }
                     else
                     {
-                        // Parcel isn't push restricted
-                        pushAllowed = true;
+                        // Parcel push restriction
+                        if ((targetlandObj.landData.Flags & (uint)Parcel.ParcelFlags.RestrictPushObject) == (uint)Parcel.ParcelFlags.RestrictPushObject)
+                        {
+                            // Need provisions for Group Owned here
+                            if (m_host.OwnerID == targetlandObj.landData.OwnerID || targetlandObj.landData.IsGroupOwned || m_host.OwnerID == targetID)
+                            {
+                                pushAllowed = true;
+                            }
+
+                            //Parcel.ParcelFlags.RestrictPushObject
+                            //pushAllowed = true;
+                        }
+                        else
+                        {
+                            // Parcel isn't push restricted
+                            pushAllowed = true;
+                        }
                     }
                 }
             }
