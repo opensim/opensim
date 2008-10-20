@@ -46,6 +46,21 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal static bool DEBUG = Log.IsDebugEnabled;
 
         /// <summary>
+        /// Supported authentication schemes
+        /// </summary>
+
+        public const string AS_BASIC                      = "Basic";		// simple user/password verification
+        public const string AS_DIGEST                     = "Digest";		// password safe authentication
+
+        /// Supported Digest algorithms
+
+        public const string Digest_MD5                    = "MD5"; 			// assumed default if omitted
+        public const string Digest_MD5Sess                = "MD5-sess";		// session-span - not good for REST?
+
+        public const string Qop_Auth                      = "auth";			// authentication only
+        public const string Qop_Int                       = "auth-int";		// TODO
+
+        /// <summary>
         /// These values have a single value for the whole
         /// domain and lifetime of the plugin handler. We
         /// make them static for ease of reference within
@@ -67,9 +82,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         internal static bool                      Secure            = true;
         internal static bool                      ExtendedEscape    = true;
         internal static bool                      DumpAsset         = false;
-        internal static bool                      Fill              = true;
+        internal static bool                      Fill              = false;
         internal static bool                      FlushEnabled      = true;
-        internal static string                    Realm             = "REST";
+        internal static string                    Realm             = "OpenSim REST";
+        internal static string                    Scheme            = AS_BASIC;
         internal static int                       DumpLineSize      = 32; // Should be a multiple of 16 or (possibly) 4
 
         /// <summary>
@@ -382,21 +398,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         public const string HttpHeaderVia                 = "Via";
         public const string HttpHeaderWarning             = "Warning";
         public const string HttpHeaderWWWAuthenticate     = "WWW-Authenticate";
-
-        /// <summary>
-        /// Supported authentication schemes
-        /// </summary>
-
-        public const string AS_BASIC                      = "Basic";
-        public const string AS_DIGEST                     = "Digest";
-
-        /// Supported Digest algorithms
-
-        public const string Digest_MD5                    = "MD5"; // assumed default if omitted
-        public const string Digest_MD5Sess                = "MD5-sess";
-
-        public const string Qop_Auth                      = "auth";
-        public const string Qop_Int                       = "auth-int";
 
         /// Utility routines
 

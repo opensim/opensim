@@ -178,8 +178,14 @@ namespace OpenSim.Framework.Communications.Cache
             if (libraryFolders.ContainsKey(item.Folder))
             {
                 InventoryFolderImpl parentFolder = libraryFolders[item.Folder];
-
-                parentFolder.Items.Add(item.ID, item);
+                try
+                {
+                    parentFolder.Items.Add(item.ID, item);
+                }
+                catch (Exception)
+                {
+                    m_log.WarnFormat("[LIBRARY INVENTORY] Item {1} [{0}] not added, duplicate item", item.ID, item.Name);
+                }
             }
             else
             {

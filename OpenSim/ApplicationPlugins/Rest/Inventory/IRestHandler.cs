@@ -42,11 +42,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
     public delegate RequestData RestMethodAllocator(OSHttpRequest request, OSHttpResponse response, string path);
 
     /// <summary>
-    /// This interface represents the boundary between the general purpose
-    /// REST plugin handling, and the functionally specific handlers. The
-    /// handler knows only to initialize and terminate all such handlers
-    /// that it finds. Implementing this interface identifies the class as
-    /// a REST handler implementation.
+    /// This interface exports the generic plugin-handling services
+    /// available to each loaded REST services module (IRest implementation)
     /// </summary>
 
     internal interface IRestHandler

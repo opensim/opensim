@@ -31,6 +31,7 @@ using System.IO;
 using System.Threading;
 using System.Xml;
 using System.Drawing;
+using System.Timers;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications;
@@ -60,6 +61,20 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         {
             Rest.Log.InfoFormat("{0} Inventory services initializing", MsgId);
             Rest.Log.InfoFormat("{0} Using REST Implementation Version {1}", MsgId, Rest.Version);
+
+            // This is better than a null reference.
+
+            if (Rest.InventoryServices == null)
+                throw new Exception(String.Format("{0} OpenSim inventory services are not available",
+                        MsgId));
+
+            if (Rest.UserServices == null)
+                throw new Exception(String.Format("{0} OpenSim user services are not available",
+                        MsgId));
+
+            if (Rest.AssetServices == null)
+                throw new Exception(String.Format("{0} OpenSim asset services are not available",
+                        MsgId));
 
             // If a relative path was specified for the handler's domain,
             // add the standard prefix to make it absolute, e.g. /admin
@@ -167,9 +182,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             try
             {
-                // digest scheme seems borked: disable it for the time
-                // being
-                rdata.scheme = Rest.AS_BASIC;
                 if (!rdata.IsAuthenticated)
                 {
                     rdata.Fail(Rest.HttpStatusCodeNotAuthorized,String.Format("user \"{0}\" could not be authenticated", rdata.userName));
@@ -283,12 +295,22 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.DebugFormat("{0} Inventory catalog requested for {1} {2}",
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
 
-                lock (rdata)
+
+				lock (rdata)
+				{
+					if (!rdata.HaveInventory)
+					{
+						rdata.startWD(1000);
+						rdata.timeout = false;
+						Monitor.Wait(rdata);
+					}
+				}
+
+                if (rdata.timeout)
                 {
-                    if (!rdata.HaveInventory)
-                    {
-                        Monitor.Wait(rdata);
-                    }
+                    Rest.Log.WarnFormat("{0} Inventory not available for {1} {2}. No response from service.",
+                                         MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
+                    rdata.Fail(Rest.HttpStatusCodeServerError, "inventory server not responding");
                 }
 
                 if (rdata.root == null)
@@ -2145,10 +2167,48 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             internal ICollection<InventoryItemBase>     items = null;
             internal UserProfileData              userProfile = null;
             internal InventoryFolderBase                 root = null;
+            internal bool                             timeout = false;
+            internal System.Timers.Timer             watchDog = new System.Timers.Timer();
 
             internal InventoryRequestData(OSHttpRequest request, OSHttpResponse response, string prefix)
                 : base(request, response, prefix)
             {
+            }
+
+            internal void startWD(double interval)
+            {
+                Rest.Log.DebugFormat("{0} Setting watchdog", MsgId);
+                watchDog.Elapsed  += new ElapsedEventHandler(OnTimeOut);
+                watchDog.Interval  = interval;
+                watchDog.AutoReset = false;
+                watchDog.Enabled   = true;
+                watchDog.Start();
+            }
+
+            internal void stopWD()
+            {
+                Rest.Log.DebugFormat("{0} Reset watchdog", MsgId);
+                watchDog.Stop();
+            }
+
+            /// <summary>
+            /// This is the callback method required by the inventory watchdog. The
+            /// requestor issues an inventory request and then blocks until the 
+            /// request completes, or this method signals the monitor.
+            /// </summary>
+
+            private void OnTimeOut(object sender, ElapsedEventArgs args)
+            {
+                Rest.Log.DebugFormat("{0} Asynchronous inventory update timed-out", MsgId);
+                // InventoryRequestData rdata = (InventoryRequestData) sender;
+                lock (this)
+                {
+                    this.folders = null;
+                    this.items   = null;
+                    this.HaveInventory = false;
+                    this.timeout = true;
+                    Monitor.Pulse(this);
+                }
             }
 
             /// <summary>
@@ -2160,11 +2220,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             internal void GetUserInventory(ICollection<InventoryFolderImpl> folders, ICollection<InventoryItemBase> items)
             {
                 Rest.Log.DebugFormat("{0} Asynchronously updating inventory data", MsgId);
-                this.folders = folders;
-                this.items   = items;
-                this.HaveInventory = true;
                 lock (this)
                 {
+                    if (watchDog.Enabled)
+                    {
+                        this.stopWD();
+                    }
+                    this.folders = folders;
+                    this.items   = items;
+                    this.HaveInventory = true;
+                    this.timeout = false;
                     Monitor.Pulse(this);
                 }
             }

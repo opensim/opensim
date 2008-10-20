@@ -239,14 +239,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Prefix            = Prefix;
                 Rest.GodKey            = GodKey;
 
-                Rest.Authenticate      = Rest.Config.GetBoolean("authenticate",true);
-                Rest.Secure            = Rest.Config.GetBoolean("secured",true);
-                Rest.ExtendedEscape    = Rest.Config.GetBoolean("extended-escape",true);
-                Rest.Realm             = Rest.Config.GetString("realm","OpenSim REST");
-                Rest.DumpAsset         = Rest.Config.GetBoolean("dump-asset",false);
-                Rest.Fill              = Rest.Config.GetBoolean("path-fill",true);
-                Rest.DumpLineSize      = Rest.Config.GetInt("dump-line-size",32);
-                Rest.FlushEnabled      = Rest.Config.GetBoolean("flush-on-error",true);
+                Rest.Authenticate      = Rest.Config.GetBoolean("authenticate", Rest.Authenticate);
+                Rest.Scheme            = Rest.Config.GetString("auth-scheme", Rest.Scheme);
+                Rest.Secure            = Rest.Config.GetBoolean("secured", Rest.Secure);
+                Rest.ExtendedEscape    = Rest.Config.GetBoolean("extended-escape", Rest.ExtendedEscape);
+                Rest.Realm             = Rest.Config.GetString("realm", Rest.Realm);
+                Rest.DumpAsset         = Rest.Config.GetBoolean("dump-asset", Rest.DumpAsset);
+                Rest.Fill              = Rest.Config.GetBoolean("path-fill", Rest.Fill);
+                Rest.DumpLineSize      = Rest.Config.GetInt("dump-line-size", Rest.DumpLineSize);
+                Rest.FlushEnabled      = Rest.Config.GetBoolean("flush-on-error", Rest.FlushEnabled);
+
+                // Note: Odd spacing is required in the following strings
 
                 Rest.Log.InfoFormat("{0} Authentication is {1}required", MsgId,
                                     (Rest.Authenticate ? "" : "not "));
@@ -374,13 +377,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             string path = request.RawUrl.ToLower();
 
-            Rest.Log.DebugFormat("{0} Match ENTRY", MsgId);
+            // Rest.Log.DebugFormat("{0} Match ENTRY", MsgId);
 
             try
             {
                 foreach (string key in pathHandlers.Keys)
                 {
-                    Rest.Log.DebugFormat("{0} Match testing {1} against agent prefix <{2}>", MsgId, path, key);
+                    // Rest.Log.DebugFormat("{0} Match testing {1} against agent prefix <{2}>", MsgId, path, key);
 
                     // Note that Match will not necessarily find the handler that will
                     // actually be used - it does no test for the "closest" fit. It
@@ -388,7 +391,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     if (path.StartsWith(key))
                     {
-                        Rest.Log.DebugFormat("{0} Matched prefix <{1}>", MsgId, key);
+                        // Rest.Log.DebugFormat("{0} Matched prefix <{1}>", MsgId, key);
 
                         // This apparently odd evaluation is needed to prevent a match
                         // on anything other than a URI token boundary. Otherwise we
@@ -404,7 +407,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 foreach (string key in streamHandlers.Keys)
                 {
-                    Rest.Log.DebugFormat("{0} Match testing {1} against stream prefix <{2}>", MsgId, path, key);
+                    // Rest.Log.DebugFormat("{0} Match testing {1} against stream prefix <{2}>", MsgId, path, key);
 
                     // Note that Match will not necessarily find the handler that will
                     // actually be used - it does no test for the "closest" fit. It
@@ -412,7 +415,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     if (path.StartsWith(key))
                     {
-                        Rest.Log.DebugFormat("{0} Matched prefix <{1}>", MsgId, key);
+                        // Rest.Log.DebugFormat("{0} Matched prefix <{1}>", MsgId, key);
 
                         // This apparently odd evaluation is needed to prevent a match
                         // on anything other than a URI token boundary. Otherwise we
@@ -434,7 +437,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         /// <summary>
         /// This is called by the HTTP server once the handler has indicated
-        /// that t is able to handle the request.
+        /// that it is able to handle the request.
         /// Preconditions:
         ///  [1] request  != null and is a valid request object
         ///  [2] response != null and is a valid response object
@@ -474,7 +477,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 // A raw exception indicates that something we weren't expecting has
                 // happened. This should always reflect a shortcoming in the plugin,
-                // or a failure to satisfy the preconditions.
+                // or a failure to satisfy the preconditions. It should not reflect
+                // an error in the request itself. Under such circumstances the state
+                // of the request cannot be determined and we are obliged to mark it
+                // as 'handled'.
+
                 Rest.Log.ErrorFormat("{0} Plugin error: {1}", MsgId, e.Message);
                 handled = true;
             }
@@ -497,7 +504,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         {
             RequestData rdata = new RequestData(request, response, String.Empty);
 
-            string bestMatch = null;
+            string bestMatch = String.Empty;
             string path      = String.Format("{0}:{1}", rdata.method, rdata.path).ToLower();
 
             Rest.Log.DebugFormat("{0} Checking for stream handler for <{1}>", MsgId, path);
@@ -511,7 +518,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 if (path.StartsWith(pattern))
                 {
-                    if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
+                    if (pattern.Length > bestMatch.Length)
                     {
                         bestMatch = pattern;
                     }
@@ -520,7 +527,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             // Handle using the best match available
 
-            if (!String.IsNullOrEmpty(bestMatch))
+            if (bestMatch.Length > 0)
             {
                 Rest.Log.DebugFormat("{0} Stream-based handler matched with <{1}>", MsgId, bestMatch);
                 RestStreamHandler handler = streamHandlers[bestMatch];

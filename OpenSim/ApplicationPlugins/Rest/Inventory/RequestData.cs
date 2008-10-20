@@ -167,7 +167,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         //
 
         internal bool                 authenticated = false;
-        internal string               scheme = null;
+        internal string               scheme = Rest.Scheme;
         internal string               realm = Rest.Realm;
         internal string               domain = null;
         internal string               nonce = null;
@@ -287,11 +287,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             request  = p_request;
             response = p_response;
-            qprefix = p_qprefix;
+            qprefix  = p_qprefix;
 
             sbuilder.Length = 0;
 
             encoding = request.ContentEncoding;
+
             if (encoding == null)
             {
                 encoding = Rest.Encoding;
@@ -448,9 +449,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 if (realm != null)
                 {
-                    sbuilder.Append(" realm=\"");
+                    sbuilder.Append(" realm=");
+                    sbuilder.Append(Rest.CS_DQUOTE);
                     sbuilder.Append(realm);
-                    sbuilder.Append("\"");
+                    sbuilder.Append(Rest.CS_DQUOTE);
                 }
                 AddHeader(Rest.HttpHeaderWWWAuthenticate,sbuilder.ToString());
             }
@@ -677,7 +679,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             UserProfileData udata = Rest.UserServices.GetUserProfile(first, last);
 
-            // If we don;t recognize the user id, perhaps it is god?
+            // If we don't recognize the user id, perhaps it is god?
 
             if (udata == null)
                 return pass == Rest.GodKey;
@@ -800,6 +802,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         if (!authparms.ContainsKey("cnonce"))
                         {
                             Rest.Log.WarnFormat("{0} Authentication failed: cnonce missing", MsgId);
+                            Fail(Rest.HttpStatusCodeBadRequest);
                             break;
                         }
 
@@ -808,6 +811,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         if (!authparms.TryGetValue("nc", out nck) || nck == null)
                         {
                             Rest.Log.WarnFormat("{0} Authentication failed: cnonce counter missing", MsgId);
+                            Fail(Rest.HttpStatusCodeBadRequest);
                             break;
                         }
 
@@ -820,6 +824,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                             if (Rest.Hex2Int(ncl) >= Rest.Hex2Int(nck))
                             {
                                 Rest.Log.WarnFormat("{0} Authentication failed: bad cnonce counter", MsgId);
+                                Fail(Rest.HttpStatusCodeBadRequest);
                                 break;
                             }
                             cntable[nonce] = nck;
@@ -840,11 +845,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         if (authparms.ContainsKey("cnonce"))
                         {
                             Rest.Log.WarnFormat("{0} Authentication failed: invalid cnonce", MsgId);
+                            Fail(Rest.HttpStatusCodeBadRequest);
                             break;
                         }
                         if (authparms.ContainsKey("nc"))
                         {
                             Rest.Log.WarnFormat("{0} Authentication failed: invalid cnonce counter[2]", MsgId);
+                            Fail(Rest.HttpStatusCodeBadRequest);
                             break;
                         }
                     }
@@ -857,6 +864,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 while (false);
 
             }
+            else
+                Fail(Rest.HttpStatusCodeBadRequest);
 
         }
 
