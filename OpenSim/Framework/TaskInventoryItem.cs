@@ -336,5 +336,10 @@ namespace OpenSim.Framework
             _itemID = UUID.Random();
             _parentPartID = partID;
         }
+
+        public TaskInventoryItem()
+        {
+            _creationDate = (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+        }
     }
 }

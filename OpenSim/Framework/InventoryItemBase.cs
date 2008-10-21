@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -235,6 +236,11 @@ namespace OpenSim.Framework
         {
             get { return _creationDate; }
             set { _creationDate = value; }
+        }
+        
+        public InventoryItemBase()
+        {
+            _creationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
         }
     }
 }
