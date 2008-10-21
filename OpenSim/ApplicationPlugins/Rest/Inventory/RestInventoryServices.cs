@@ -296,15 +296,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
 
 
-				lock (rdata)
-				{
-					if (!rdata.HaveInventory)
-					{
-						rdata.startWD(1000);
-						rdata.timeout = false;
-						Monitor.Wait(rdata);
-					}
-				}
+                lock (rdata)
+                {
+                    if (!rdata.HaveInventory)
+                    {
+                        rdata.startWD(1000);
+                        rdata.timeout = false;
+                        Monitor.Wait(rdata);
+                    }
+                }
 
                 if (rdata.timeout)
                 {

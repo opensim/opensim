@@ -237,7 +237,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void AddScene(Scene scene)
         {
-            lock(m_syncConnect) m_scenes.Add(scene);
+            lock (m_syncConnect) m_scenes.Add(scene);
         }
 
         public bool Connect()

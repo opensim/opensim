@@ -67,11 +67,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (Rest.AvatarServices == null)
                 throw new Exception(String.Format("{0} OpenSim inventory services are not available",
-						MsgId));
+                                                  MsgId));
 
             if (Rest.UserServices == null)
                 throw new Exception(String.Format("{0} OpenSim user profile services are not available",
-						MsgId));
+                                                  MsgId));
 
             // If a relative path was specified for the handler's domain,
             // add the standard prefix to make it absolute, e.g. /admin

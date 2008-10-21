@@ -56,7 +56,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (Rest.AssetServices == null)
                 throw new Exception(String.Format("{0} OpenSim asset services are not available",
-						MsgId));
+                                                  MsgId));
 
             // If the handler specifies a relative path for its domain
             // then we must add the standard absolute prefix, e.g. /admin

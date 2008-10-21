@@ -49,16 +49,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// Supported authentication schemes
         /// </summary>
 
-        public const string AS_BASIC                      = "Basic";		// simple user/password verification
-        public const string AS_DIGEST                     = "Digest";		// password safe authentication
+        public const string AS_BASIC                      = "Basic";           // simple user/password verification
+        public const string AS_DIGEST                     = "Digest";          // password safe authentication
 
         /// Supported Digest algorithms
 
-        public const string Digest_MD5                    = "MD5"; 			// assumed default if omitted
-        public const string Digest_MD5Sess                = "MD5-sess";		// session-span - not good for REST?
+        public const string Digest_MD5                    = "MD5";             // assumed default if omitted
+        public const string Digest_MD5Sess                = "MD5-sess";        // session-span - not good for REST?
 
-        public const string Qop_Auth                      = "auth";			// authentication only
-        public const string Qop_Int                       = "auth-int";		// TODO
+        public const string Qop_Auth                      = "auth";            // authentication only
+        public const string Qop_Int                       = "auth-int";        // TODO
 
         /// <summary>
         /// These values have a single value for the whole
