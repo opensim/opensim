@@ -51,10 +51,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
         private int _conciergeChannel = 42;
         private List<IScene> _scenes = new List<IScene>();
         private List<IScene> _conciergedScenes = new List<IScene>();
+        private Dictionary<IScene, List<string>> _sceneAttendees = new Dictionary<IScene, List<string>>();
         private IConfig _config;
         private string _whoami = "conferencier";
         private bool _replacingChatModule = false;
         private Regex _regions = null;
+        private string _welcomes = null;
 
         internal object _syncy = new object();
 
@@ -105,6 +107,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             // take note of concierge channel and of identity
             _conciergeChannel = config.Configs["Concierge"].GetInt("concierge_channel", _conciergeChannel);
             _whoami = _config.GetString("whoami", "conferencier");
+            _welcomes = _config.GetString("welcomes", _welcomes);
             _log.InfoFormat("[Concierge] reporting as \"{0}\" to our users", _whoami);
 
             // calculate regions Regex
@@ -123,7 +126,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 {
                     _scenes.Add(scene);
 
-                    if (_regions.IsMatch(scene.RegionInfo.RegionName))
+                    if (_regions == null || _regions.IsMatch(scene.RegionInfo.RegionName))
                         _conciergedScenes.Add(scene);
 
                     // subscribe to NewClient events
@@ -181,13 +184,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
         {
             if (_replacingChatModule)
             {
+                // replacing ChatModule: need to redistribute
+                // ChatFromClient to interested subscribers
+                c = FixPositionOfChatMessage(c);
+
+                Scene scene = (Scene)c.Scene;
+                scene.EventManager.TriggerOnChatFromClient(sender, c);
+
                 if (_conciergedScenes.Contains(c.Scene))
                 {
-                    // replacing ChatModule: need to redistribute
-                    // ChatFromClient to interested subscribers
-                    Scene scene = (Scene)c.Scene;
-                    scene.EventManager.TriggerOnChatFromClient(sender, c);
-
                     // when we are replacing ChatModule, we treat
                     // OnChatFromClient like OnChatBroadcast for
                     // concierged regions, effectively extending the
@@ -269,6 +274,37 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             if (_conciergedScenes.Contains(agent.Scene))
             {
                 _log.DebugFormat("[Concierge] {0} enters {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
+
+                // welcome mechanics: check whether we have a welcomes
+                // directory set and wether there is a region specific
+                // welcome file there: if yes, send it to the agent
+                if (!String.IsNullOrEmpty(_welcomes))
+                {
+                    string welcome = Path.Combine(_welcomes, agent.Scene.RegionInfo.RegionName);
+                    if (File.Exists(welcome)) 
+                    {
+                        try
+                        {
+                            string[] welcomeLines = File.ReadAllLines(welcome);
+                            foreach (string l in welcomeLines)
+                            {
+                                AnnounceToAgent(agent, String.Format(l, agent.Name, agent.Scene.RegionInfo.RegionName, _whoami));
+                            }
+                        }
+                        catch (IOException ioe)
+                        {
+                            _log.ErrorFormat("[Concierge] run into trouble reading welcome file {0} for region {1} for avatar {2}: {3}",
+                                             welcome, agent.Scene.RegionInfo.RegionName, agent.Name, ioe);
+                        }
+                        catch (FormatException fe)
+                        {
+                            _log.ErrorFormat("[Concierge] welcome file {0} is malformed: {1}", welcome, fe);
+                        }
+                    } else {
+                        _log.DebugFormat("[Concierge] not playing out welcome message: {0} not found", welcome);
+                    }
+                }
+
                 AnnounceToAgentsRegion(agent, String.Format("{0} enters {1}", agent.Name, 
                                                             agent.Scene.RegionInfo.RegionName));
             }
@@ -295,7 +331,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             }
         }
 
-        static private Vector3 posOfGod = new Vector3(128, 128, 9999);
+        static private Vector3 PosOfGod = new Vector3(128, 128, 9999);
 
         protected void AnnounceToAgentsRegion(IClientAPI client, string msg)
         {
@@ -312,13 +348,29 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             c.Message = msg;
             c.Type = ChatTypeEnum.Say;
             c.Channel = 0;
-            c.Position = posOfGod;
+            c.Position = PosOfGod;
             c.From = _whoami;
             c.Sender = null;
             c.SenderUUID = UUID.Zero;
             c.Scene = scenePresence.Scene;
 
             scenePresence.Scene.EventManager.TriggerOnChatBroadcast(this, c);
+        }
+
+        protected void AnnounceToAgent(ScenePresence agent, string msg)
+        {
+            OSChatMessage c = new OSChatMessage();
+            c.Message = msg;
+            c.Type = ChatTypeEnum.Say;
+            c.Channel = 0;
+            c.Position = PosOfGod;
+            c.From = _whoami;
+            c.Sender = null;
+            c.SenderUUID = UUID.Zero;
+            c.Scene = agent.Scene;
+
+            agent.ControllingClient.SendChatMessage(msg, (byte) ChatTypeEnum.Say, PosOfGod, _whoami, UUID.Zero, 
+                                                    (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
         }
     }
 }
