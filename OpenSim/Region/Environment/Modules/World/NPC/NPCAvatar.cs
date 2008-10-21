@@ -109,7 +109,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         }
 
-        public void SendGroupMembership(GroupData[] GroupMembership)
+        public void SendGroupMembership(GroupMembershipData[] GroupMembership)
         {
 
         }

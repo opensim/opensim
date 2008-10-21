@@ -39,15 +39,22 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
 {
     public class GroupsModule : IRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<UUID, GroupList> m_grouplistmap = new Dictionary<UUID, GroupList>();
-        private Dictionary<UUID, GroupData> m_groupmap = new Dictionary<UUID, GroupData>();
-        private Dictionary<UUID, IClientAPI> m_iclientmap = new Dictionary<UUID, IClientAPI>();
-        private Dictionary<UUID, GroupData> m_groupUUIDGroup = new Dictionary<UUID, GroupData>();
-        private UUID opensimulatorGroupID = new UUID("00000000-68f9-1111-024e-222222111123");
+        private Dictionary<UUID, GroupMembershipData> m_GroupMap =
+                new Dictionary<UUID, GroupMembershipData>();
 
-        private List<Scene> m_scene = new List<Scene>();
+        private Dictionary<UUID, IClientAPI> m_ClientMap =
+                new Dictionary<UUID, IClientAPI>();
+
+        private UUID opensimulatorGroupID =
+                new UUID("00000000-68f9-1111-024e-222222111123");
+
+        private List<Scene> m_SceneList = new List<Scene>();
+
+        private static GroupMembershipData osGroup =
+                new GroupMembershipData();
 
         #region IRegionModule Members
 
@@ -73,26 +80,27 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
 
             m_log.Info("[GROUPS] Activated default groups module");
 
-            lock (m_scene)
+            lock (m_SceneList)
             {
-                m_scene.Add(scene);
+                if (!m_SceneList.Contains(scene))
+                {
+                    if (m_SceneList.Count == 0)
+                    {
+                        osGroup.GroupID = opensimulatorGroupID;
+                        osGroup.GroupName = "OpenSimulator Testing";
+                        osGroup.GroupPowers =
+                                (uint)(GroupPowers.AllowLandmark |
+                                GroupPowers.AllowSetHome);
+                        m_GroupMap[opensimulatorGroupID] = osGroup;
+                    }
+                    m_SceneList.Add(scene);
+                }
             }
+
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += OnClientClosed;
-            scene.EventManager.OnGridInstantMessageToGroupsModule += OnGridInstantMessage;
-            lock (m_groupUUIDGroup)
-            {
-
-                GroupData OpenSimulatorGroup = new GroupData();
-                OpenSimulatorGroup.ActiveGroupTitle = "OpenSimulator Tester";
-                OpenSimulatorGroup.GroupID = opensimulatorGroupID;
-                OpenSimulatorGroup.groupName = "OpenSimulator Testing";
-                OpenSimulatorGroup.ActiveGroupPowers = GroupPowers.AllowSetHome;
-                OpenSimulatorGroup.GroupTitles.Add("OpenSimulator Tester");
-                if (!m_groupUUIDGroup.ContainsKey(opensimulatorGroupID))
-                    m_groupUUIDGroup.Add(opensimulatorGroupID, OpenSimulatorGroup);
-            }
-            //scene.EventManager.
+            scene.EventManager.OnGridInstantMessageToGroupsModule +=
+                    OnGridInstantMessage;
         }
 
         public void PostInitialise()
@@ -102,21 +110,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
         public void Close()
         {
             m_log.Info("[GROUP]: Shutting down group module.");
-            lock (m_iclientmap)
+            lock (m_ClientMap)
             {
-                m_iclientmap.Clear();
+                m_ClientMap.Clear();
             }
 
-            lock (m_groupmap)
+            lock (m_GroupMap)
             {
-                m_groupmap.Clear();
+                m_GroupMap.Clear();
             }
-
-            lock (m_grouplistmap)
-            {
-                m_grouplistmap.Clear();
-            }
-            GC.Collect();
         }
 
         public string Name
@@ -138,159 +140,104 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             client.OnInstantMessage += OnInstantMessage;
             client.OnAgentDataUpdateRequest += OnAgentDataUpdateRequest;
             client.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
-            lock (m_iclientmap)
+            lock (m_ClientMap)
             {
-                if (!m_iclientmap.ContainsKey(client.AgentId))
+                if (!m_ClientMap.ContainsKey(client.AgentId))
                 {
-                    m_iclientmap.Add(client.AgentId, client);
+                    m_ClientMap.Add(client.AgentId, client);
                 }
-            }
-            GroupData OpenSimulatorGroup = null;
-            lock (m_groupUUIDGroup)
-            {
-                OpenSimulatorGroup = m_groupUUIDGroup[opensimulatorGroupID];
-                if (!OpenSimulatorGroup.GroupMembers.Contains(client.AgentId))
-                {
-                    OpenSimulatorGroup.GroupMembers.Add(client.AgentId);
-                    m_groupUUIDGroup[opensimulatorGroupID] = OpenSimulatorGroup;
-                }
-
             }
 
-            lock (m_groupmap)
-            {
-                if (!m_groupmap.ContainsKey(client.AgentId))
-                {
-                    m_groupmap.Add(client.AgentId, OpenSimulatorGroup);
-                }
-            }
-            GroupList testGroupList = new GroupList();
-            testGroupList.m_GroupList.Add(OpenSimulatorGroup.GroupID);
+            m_log.Info("[GROUP]: Adding " + client.Name + " to " +
+                    osGroup.GroupName + " ");
 
-            lock (m_grouplistmap)
-            {
-                if (!m_grouplistmap.ContainsKey(client.AgentId))
-                {
-                    m_grouplistmap.Add(client.AgentId, testGroupList);
-                }
-            }
-            m_log.Info("[GROUP]: Adding " + client.Name + " to " + OpenSimulatorGroup.groupName + " ");
-            GroupData[] updateGroups = new GroupData[1];
-            updateGroups[0] = OpenSimulatorGroup;
+            GroupMembershipData[] updateGroups = new GroupMembershipData[1];
+            updateGroups[0] = osGroup;
 
             client.SendGroupMembership(updateGroups);
         }
 
-        private void OnAgentDataUpdateRequest(IClientAPI remoteClient, UUID AgentID, UUID SessionID)
+        private void OnAgentDataUpdateRequest(IClientAPI remoteClient,
+                UUID AgentID, UUID SessionID)
         {
-            // Adam, this is one of those impossible to refactor items without resorting to .Split hackery
+            UUID ActiveGroupID;
+            string ActiveGroupName;
+            uint ActiveGroupPowers;
+
             string firstname = remoteClient.FirstName;
             string lastname = remoteClient.LastName;
 
-            UUID ActiveGroupID = UUID.Zero;
-            uint ActiveGroupPowers = 0;
-            string ActiveGroupName = "OpenSimulator Tester";
             string ActiveGroupTitle = "I IZ N0T";
 
-            bool foundUser = false;
+            ActiveGroupID = osGroup.GroupID;
+            ActiveGroupName = osGroup.GroupName;
+            ActiveGroupPowers = osGroup.GroupPowers;
 
-            lock (m_iclientmap)
-            {
-                if (m_iclientmap.ContainsKey(remoteClient.AgentId))
-                {
-                    foundUser = true;
-                }
-            }
-            if (foundUser)
-            {
-                lock (m_groupmap)
-                {
-                    if (m_groupmap.ContainsKey(remoteClient.AgentId))
-                    {
-                        GroupData grp = m_groupmap[remoteClient.AgentId];
-                        if (grp != null)
-                        {
-                            ActiveGroupID = grp.GroupID;
-                            ActiveGroupName = grp.groupName;
-                            ActiveGroupPowers = grp.groupPowers;
-                            ActiveGroupTitle = grp.ActiveGroupTitle;
-                        }
-
-                        remoteClient.SendAgentDataUpdate(AgentID, ActiveGroupID, firstname, lastname, ActiveGroupPowers, ActiveGroupName, ActiveGroupTitle);
-                    }
-                }
-            }
+            remoteClient.SendAgentDataUpdate(AgentID, ActiveGroupID, firstname,
+                    lastname, ActiveGroupPowers, ActiveGroupName,
+                    ActiveGroupTitle);
         }
 
         private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
-                                      UUID fromAgentSession, UUID toAgentID,
-                                      UUID imSessionID, uint timestamp, string fromAgentName,
-                                      string message, byte dialog, bool fromGroup, byte offline,
-                                      uint ParentEstateID, Vector3 Position, UUID RegionID,
-                                      byte[] binaryBucket)
+                UUID fromAgentSession, UUID toAgentID,
+                UUID imSessionID, uint timestamp, string fromAgentName,
+                string message, byte dialog, bool fromGroup, byte offline,
+                uint ParentEstateID, Vector3 Position, UUID RegionID,
+                byte[] binaryBucket)
         {
         }
 
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
             // Trigger the above event handler
-            OnInstantMessage(null, new UUID(msg.fromAgentID), new UUID(msg.fromAgentSession),
-                             new UUID(msg.toAgentID), new UUID(msg.imSessionID), msg.timestamp, msg.fromAgentName,
-                             msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID,
-                             new Vector3(msg.Position.X, msg.Position.Y, msg.Position.Z), new UUID(msg.RegionID),
-                             msg.binaryBucket);
+            OnInstantMessage(null, new UUID(msg.fromAgentID),
+                    new UUID(msg.fromAgentSession),
+                    new UUID(msg.toAgentID), new UUID(msg.imSessionID),
+                    msg.timestamp, msg.fromAgentName,
+                    msg.message, msg.dialog, msg.fromGroup, msg.offline,
+                    msg.ParentEstateID,
+                    new Vector3(msg.Position.X, msg.Position.Y, msg.Position.Z),
+                    new UUID(msg.RegionID),
+                    msg.binaryBucket);
         }
+
         private void HandleUUIDGroupNameRequest(UUID id,IClientAPI remote_client)
         {
             string groupnamereply = "Unknown";
             UUID groupUUID = UUID.Zero;
 
-            lock (m_groupUUIDGroup)
+            lock (m_GroupMap)
             {
-                if (m_groupUUIDGroup.ContainsKey(id))
+                if (m_GroupMap.ContainsKey(id))
                 {
-                    GroupData grp = m_groupUUIDGroup[id];
-                    groupnamereply = grp.groupName;
+                    GroupMembershipData grp = m_GroupMap[id];
+                    groupnamereply = grp.GroupName;
                     groupUUID = grp.GroupID;
                 }
             }
             remote_client.SendGroupNameReply(groupUUID, groupnamereply);
         }
+
         private void OnClientClosed(UUID agentID)
         {
-            lock (m_iclientmap)
+            lock (m_ClientMap)
             {
-                if (m_iclientmap.ContainsKey(agentID))
+                if (m_ClientMap.ContainsKey(agentID))
                 {
-                    IClientAPI cli = m_iclientmap[agentID];
+                    IClientAPI cli = m_ClientMap[agentID];
                     if (cli != null)
                     {
-                        m_log.Info("[GROUP]: Removing all reference to groups for " + cli.Name);
+                        m_log.Info("[GROUP]: Removing all reference to groups "+
+                                "for " + cli.Name);
                     }
                     else
                     {
-                        m_log.Info("[GROUP]: Removing all reference to groups for " + agentID.ToString());
+                        m_log.Info("[GROUP]: Removing all reference to groups "+
+                                "for " + agentID.ToString());
                     }
-                    m_iclientmap.Remove(agentID);
+                    m_ClientMap.Remove(agentID);
                 }
             }
-
-            lock (m_groupmap)
-            {
-                if (m_groupmap.ContainsKey(agentID))
-                {
-                    m_groupmap.Remove(agentID);
-                }
-            }
-
-            lock (m_grouplistmap)
-            {
-                if (m_grouplistmap.ContainsKey(agentID))
-                {
-                    m_grouplistmap.Remove(agentID);
-                }
-            }
-            GC.Collect();
         }
     }
 }

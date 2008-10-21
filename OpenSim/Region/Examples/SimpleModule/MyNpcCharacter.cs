@@ -667,7 +667,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         }
 
-        public void SendGroupMembership(GroupData[] GroupMembership)
+        public void SendGroupMembership(GroupMembershipData[] GroupMembership)
         {
 
         }

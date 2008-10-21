@@ -845,7 +845,7 @@ namespace OpenSim.Framework
 
         void SendAdminResponse(UUID Token, uint AdminLevel);
 
-        void SendGroupMembership(GroupData[] GroupMembership);
+        void SendGroupMembership(GroupMembershipData[] GroupMembership);
 
         void SendGroupNameReply(UUID groupLLUID, string GroupName);
 

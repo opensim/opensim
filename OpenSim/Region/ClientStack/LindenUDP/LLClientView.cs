@@ -6632,7 +6632,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(respondPacket, ThrottleOutPacketType.Task);
         }
 
-        public void SendGroupMembership(GroupData[] GroupMembership)
+        public void SendGroupMembership(GroupMembershipData[] GroupMembership)
         {
             AgentGroupDataUpdatePacket Groupupdate = new AgentGroupDataUpdatePacket();
             AgentGroupDataUpdatePacket.GroupDataBlock[] Groups = new AgentGroupDataUpdatePacket.GroupDataBlock[GroupMembership.Length];
@@ -6640,11 +6640,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 AgentGroupDataUpdatePacket.GroupDataBlock Group = new AgentGroupDataUpdatePacket.GroupDataBlock();
                 Group.AcceptNotices = GroupMembership[i].AcceptNotices;
-                Group.Contribution = GroupMembership[i].contribution;
+                Group.Contribution = GroupMembership[i].Contribution;
                 Group.GroupID = GroupMembership[i].GroupID;
                 Group.GroupInsigniaID = GroupMembership[i].GroupPicture;
-                Group.GroupName = Utils.StringToBytes(GroupMembership[i].groupName);
-                Group.GroupPowers = GroupMembership[i].groupPowers;
+                Group.GroupName = Utils.StringToBytes(GroupMembership[i].GroupName);
+                Group.GroupPowers = GroupMembership[i].GroupPowers;
                 Groups[i] = Group;
                 Groupupdate.GroupData = Groups;
 

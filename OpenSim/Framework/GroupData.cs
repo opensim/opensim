@@ -34,47 +34,24 @@ using System.Text;
 
 namespace OpenSim.Framework
 {
-    public class GroupData
+    public class GroupMembershipData
     {
-        public string ActiveGroupTitle;
+        // Group base data
+        //
         public UUID GroupID;
-        public List<UUID> GroupMembers;
-        public string groupName;
-        public uint groupPowers = (uint)(GroupPowers.AllowLandmark | GroupPowers.AllowSetHome);
-        public List<string> GroupTitles;
-        public bool AcceptNotices = true;
+        public string GroupName;
         public bool AllowPublish = true;
-        public string Charter = "Cool Group Yeah!";
-        public int contribution = 0;
-        public UUID FounderID = UUID.Zero;
-        public int groupMembershipCost = 0;
-        public int groupRollsCount = 1;
-        public UUID GroupPicture = UUID.Zero;
         public bool MaturePublish = true;
+        public UUID Charter = UUID.Zero;
+        public UUID FounderID = UUID.Zero;
+        public UUID GroupPicture = UUID.Zero;
         public int MembershipFee = 0;
         public bool OpenEnrollment = true;
-        public bool ShowInList = true;
 
-        public GroupData()
-        {
-            GroupTitles = new List<string>();
-            GroupMembers = new List<UUID>();
-        }
-
-        public GroupPowers ActiveGroupPowers
-        {
-            set { groupPowers = (uint)value; }
-            get { return (GroupPowers)groupPowers; }
-        }
-    }
-
-    public class GroupList
-    {
-        public List<UUID> m_GroupList;
-
-        public GroupList()
-        {
-            m_GroupList = new List<UUID>();
-        }
+        // Per user data
+        //
+        public bool AcceptNotices = true;
+        public int Contribution = 0;
+        public uint GroupPowers = 0;
     }
 }
