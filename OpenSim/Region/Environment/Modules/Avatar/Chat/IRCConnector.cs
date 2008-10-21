@@ -413,7 +413,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             }
         }
 
-        static private Vector3 pos = new Vector3(128, 128, 20);
+        static private Vector3 CenterOfRegion = new Vector3(128, 128, 20);
         public void ListenerRun()
         {
             string inputLine;
@@ -435,7 +435,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                 OSChatMessage c = new OSChatMessage();
                                 c.Message = data["msg"];
                                 c.Type = ChatTypeEnum.Region;
-                                c.Position = pos;
+                                c.Position = CenterOfRegion;
                                 c.Channel = m_relayPrivateChannels ? m_relayChannel : 0;
                                 c.From = data["nick"];
                                 c.Sender = null;
@@ -487,7 +487,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 c.Message = String.Format(format, args);
                 c.Type = ChatTypeEnum.Region; // ChatTypeEnum.Say;
                 c.Channel = m_relayPrivateChannels ? m_relayChannel : 0;
-                c.Position = new Vector3(128, 128, 20);
+                c.Position = CenterOfRegion;
                 c.Sender = null;
                 c.SenderUUID = UUID.Zero;
 
