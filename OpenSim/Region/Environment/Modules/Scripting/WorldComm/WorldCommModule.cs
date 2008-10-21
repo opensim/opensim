@@ -34,8 +34,8 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-using log4net;
-using System.Reflection;
+// using log4net;
+// using System.Reflection;
 
 
 /*****************************************************
@@ -336,9 +336,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         private void DeliverClientMessage(Object sender, OSChatMessage e)
         {
             if (null != e.Sender)
-                DeliverMessage(e.Type, e.Channel, e.Sender.Name, e.Sender.AgentId, e.Message); // , e.Position);
+                DeliverMessage(e.Type, e.Channel, e.Sender.Name, e.Sender.AgentId, e.Message, e.Position);
             else
-                DeliverMessage(e.Type, e.Channel, e.From, UUID.Zero, e.Message); // , e.Position);
+                DeliverMessage(e.Type, e.Channel, e.From, UUID.Zero, e.Message, e.Position);
         }
 
         public Object[] GetSerializationData(UUID itemID)
