@@ -404,12 +404,12 @@ flush-on-error=true
 ;report_clients = true
 ;; relay private chat connections
 ;; relay_private_channels = true: will relay IRC chat from/to private in-world channels
-;; relay_channel_out -- channel to send messages out to the IRC bridge
-;; relay_channel_in -- channel to receive message from the IRC bridge
+;; relay_private_channel_out -- channel to send messages out to the IRC bridge
+;; relay_private_channel_in -- channel to receive message from the IRC bridge
 ;; access_password -- simple security device
 ;relay_private_channels = false
-;relay_channel_in = 2226
-;relay_channel_out = 2225
+;relay_private_channel_in = 2226
+;relay_private_channel_out = 2225
 ;access_password = foobar
 
 ;fallback_region = name of "default" region
@@ -791,8 +791,16 @@ ogp_lastname_suffix="_EXTERNAL"
 enabled = false
 
 ; name of the concierge
-whoami = "the go-fer"
+whoami = "jeeves"
 
 ; regex specifying for which regions concierge service is desired; if
 ; empty, then for all
 regions = "^MeetingSpace-"
+
+; for each region that matches the regions regexp you can provide
+; (optionally) a welcome template using format substitution:
+: {0} is replaced with the name of the avatar entering the region
+: {1} is replaced with the name of the region
+: {2} is replaced with the name of the concierge (whoami variable above)
+
+welcomes = /path/to/welcome/template/directory
