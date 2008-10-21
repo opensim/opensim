@@ -34,8 +34,8 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-// using log4net;
-// using System.Reflection;
+using log4net;
+using System.Reflection;
 
 
 /*****************************************************
@@ -205,6 +205,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             m_listenerManager.DeleteListener(itemID);
         }
 
+
+        protected static Vector3 CenterOfRegion = new Vector3(128, 128, 20);
+
         public void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg)
         {
             Vector3 position;
@@ -215,6 +218,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
                 position = source.AbsolutePosition;
             else if ((avatar = m_scene.GetScenePresence(id)) != null) 
                 position = avatar.AbsolutePosition;
+            else if (ChatTypeEnum.Region == type)
+                position = CenterOfRegion;
             else
                 return;
 
@@ -236,6 +241,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         /// <param name="msg">msg to sent</param>
         public void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg, Vector3 position)
         {
+            // m_log.DebugFormat("[WorldComm] got[2] type {0}, channel {1}, name {2}, id {3}, msg {4}",
+            //                   type, channel, name, id, msg);
+
             // Determine which listen event filters match the given set of arguments, this results
             // in a limited set of listeners, each belonging a host. If the host is in range, add them
             // to the pending queue.
@@ -328,9 +336,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         private void DeliverClientMessage(Object sender, OSChatMessage e)
         {
             if (null != e.Sender)
-                DeliverMessage(e.Type, e.Channel, e.Sender.Name, e.Sender.AgentId, e.Message, e.Position);
+                DeliverMessage(e.Type, e.Channel, e.Sender.Name, e.Sender.AgentId, e.Message); // , e.Position);
             else
-                DeliverMessage(e.Type, e.Channel, e.From, UUID.Zero, e.Message, e.Position);
+                DeliverMessage(e.Type, e.Channel, e.From, UUID.Zero, e.Message); // , e.Position);
         }
 
         public Object[] GetSerializationData(UUID itemID)
