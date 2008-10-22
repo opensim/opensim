@@ -47,6 +47,88 @@
     </nunit2>
 </target>
 
+<target name="test-cov" depends="build">
+    <!-- Code Coverage Test -->
+    <mkdir dir="cov" failonerror="false" />
+    <exec program="mono">
+      <arg value="--debug" />
+      <arg value="--profile=monocov:outfile=./cov/OpenSim.Framework.Servers.cov,+[OpenSim.Framework.Servers]" />
+      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="./bin/OpenSim.Framework.Servers.Tests.dll" />
+    </exec>
+    <delete dir="./cov/OpenSim.Framework.Servers" />
+    <exec program="monocov">
+      <arg value="--export-html=./cov/OpenSim.Framework.Servers ./cov/OpenSim.Framework.Servers.cov" />
+    </exec>
+    
+    <exec program="mono">
+      <arg value="--debug" />
+      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.ClientStack.LindenUDP.cov,+[OpenSim.Region.ClientStack.LindenUDP]" />
+      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
+    </exec>
+    <delete dir="./cov/OpenSim.Region.ClientStack.LindenUDP" />
+    <exec program="monocov">
+      <arg value="--export-html=./cov/OpenSim.Region.ClientStack.LindenUDP ./cov/OpenSim.Region.ClientStack.LindenUDP.cov" />
+    </exec>
+    
+    <exec program="mono">
+      <arg value="--debug" />
+      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.ScriptEngine.Shared.cov,+[OpenSim.Region.ScriptEngine.Shared]" />
+      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
+    </exec>
+    <delete dir="./cov/penSim.Region.ScriptEngine.Shared" />
+    <exec program="monocov">      
+      <arg value="--export-html=./cov/OpenSim.Region.ScriptEngine.Shared ./cov/OpenSim.Region.ScriptEngine.Shared.cov" />
+    </exec>    
+    
+    <exec program="mono">
+      <arg value="--debug" />
+      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.ScriptEngine.Shared.CodeTools.cov,+[OpenSim.Region.ScriptEngine.Shared.CodeTools]" />
+      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="./bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
+    </exec>
+    <delete dir="./cov/OpenSim.Region.ScriptEngine.Shared.CodeTools" />
+    <exec program="monocov">
+      <arg value="--export-html=./cov/OpenSim.Region.ScriptEngine.Shared.CodeTools ./cov/OpenSim.Region.ScriptEngine.Shared.CodeTools.cov" />
+    </exec>    
+    
+    <exec program="mono">
+      <arg value="--debug" />
+      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.Environment.cov,+[OpenSim.Region.Environment]" />
+      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="./bin/OpenSim.Region.Environment.Tests.dll" />
+    </exec>
+    <delete dir="./cov/OpenSim.Region.Environment" />
+    <exec program="monocov">
+      <arg value="--export-html=./cov/OpenSim.Region.Environment ./cov/OpenSim.Region.Environment.cov" />
+    </exec>    
+    
+    <exec program="mono">
+      <arg value="--debug" />
+      <arg value="--profile=monocov:outfile=./cov/OpenSim.Data.SQLite.cov,+[OpenSim.Data.SQLite]" />
+      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="./bin/OpenSim.Data.SQLite.Tests.dll" />
+    </exec>
+    <delete dir="./cov/OpenSim.Data.SQLite" />
+    <exec program="monocov">
+      <arg value="--export-html=./cov/OpenSim.Data.SQLite ./cov/OpenSim.Data.SQLite.cov" />
+    </exec>    
+    
+    <exec program="mono">
+      <arg value="--debug" />
+      <arg value="--profile=monocov:outfile=./cov/OpenSim.Data.MySQL.cov,+[OpenSim.Data.MySQL.Tests]" />
+      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="./bin/OpenSim.Data.MySQL.Tests.dll" />
+    </exec>  
+    <delete dir="./cov/OpenSim.Data.MySQL" />
+    <exec program="monocov">
+      <arg value="--export-html=./cov/OpenSim.Data.MySQL ./cov/OpenSim.Data.MySQL.cov" />
+    </exec>    
+</target>
+
+
 <target name="test-xml" depends="build">
       <nunit2 failonerror="true" verbose="true">
       <formatter type="Xml" usefile="true" extension=".xml" outputdir="./test-results" />

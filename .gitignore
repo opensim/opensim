@@ -30,4 +30,5 @@ bin/OpenSim.log
 bin/Physics*
 bin/Terrain*
 bin/estate_settings.xml
+cov/*
 *~
