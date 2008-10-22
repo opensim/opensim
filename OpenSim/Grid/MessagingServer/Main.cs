@@ -54,7 +54,7 @@ namespace OpenSim.Grid.MessagingServer
         {
             XmlConfigurator.Configure();
 
-            m_log.Info("Launching MessagingServer...");
+            m_log.Info("[SERVER]: Launching MessagingServer...");
 
             OpenMessage_Main messageserver = new OpenMessage_Main();
 
@@ -78,38 +78,46 @@ namespace OpenSim.Grid.MessagingServer
             }
         }
 
-        protected override void StartupSpecific()
+        private void registerWithUserServer()
         {
-            Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
-
-            m_log.Info("[REGION]: Starting HTTP process");
-            m_httpServer = new BaseHttpServer(Cfg.HttpPort);
-
-            msgsvc = new MessageService(Cfg);
-
             if (msgsvc.registerWithUserServer())
             {
+                m_log.Info("[SERVER]: Starting HTTP process");
+                m_httpServer = new BaseHttpServer(Cfg.HttpPort);
+
                 m_httpServer.AddXmlRPCHandler("login_to_simulator", msgsvc.UserLoggedOn);
                 m_httpServer.AddXmlRPCHandler("logout_of_simulator", msgsvc.UserLoggedOff);
-                //httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
-                //httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
-                //httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", m_userManager.XmlRPCGetAvatarPickerAvatar);
-                //httpServer.AddXmlRPCHandler("add_new_user_friend", m_userManager.XmlRpcResponseXmlRPCAddUserFriend);
-                //httpServer.AddXmlRPCHandler("remove_user_friend", m_userManager.XmlRpcResponseXmlRPCRemoveUserFriend);
-                //httpServer.AddXmlRPCHandler("update_user_friend_perms", m_userManager.XmlRpcResponseXmlRPCUpdateUserFriendPerms);
-                //httpServer.AddXmlRPCHandler("get_user_friend_list", m_userManager.XmlRpcResponseXmlRPCGetUserFriendList);
-
-
-                //httpServer.AddStreamHandler(
-                //new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
                 m_httpServer.Start();
-                m_log.Info("[SERVER]: Messageserver 0.5 - Startup complete");
+                m_log.Info("[SERVER]: Userserver registration was successful");
             }
             else
             {
                 m_log.Error("[STARTUP]: Unable to connect to User Server");
             }
+
+        }
+
+        private void deregisterFromUserServer()
+        {
+            msgsvc.deregisterWithUserServer();
+            if(m_httpServer != null)
+            {
+                // try a completely fresh registration, with fresh handlers, too
+                m_httpServer.Stop();
+                m_httpServer = null;
+            }
+            m_console.Notice("[SERVER]: Deregistered from userserver.");
+        }
+
+        protected override void StartupSpecific()
+        {
+            Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
+
+            msgsvc = new MessageService(Cfg);
+            registerWithUserServer();
+
+            m_log.Info("[SERVER]: Messageserver 0.5 - Startup complete");
         }
 
         public void do_create(string what)
@@ -150,6 +158,10 @@ namespace OpenSim.Grid.MessagingServer
                     int entries = msgsvc.ClearRegionCache();
                     m_console.Notice("Region cache cleared! Cleared " + entries.ToString() + " entries");
                     break;
+                case "register":
+                    deregisterFromUserServer();
+                    registerWithUserServer();
+                    break;
             }
         }
         
@@ -158,6 +170,7 @@ namespace OpenSim.Grid.MessagingServer
             base.ShowHelp(helpArgs);
             
             m_console.Notice("clear-cache - Clears region cache.  Should be done when regions change position.  The region cache gets stale after a while.");
+            m_console.Notice("register    - (Re-)registers with user-server. This might be necessary if the userserver crashed/restarted"); 
         }
 
         protected override void ShutdownSpecific()

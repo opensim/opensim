@@ -1357,6 +1357,11 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+        public void Stop()
+        {
+            m_httpListener2.Stop();
+        }
+
         public void RemoveStreamHandler(string httpMethod, string path)
         {
             string handlerKey = GetHandlerKey(httpMethod, path);
