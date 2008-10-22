@@ -240,6 +240,11 @@ small_hashspace_size_high = 66
 ; surface layer around geometries other geometries can sink into before generating a contact
 world_contact_surface_layer = 0.001
 
+; Filtering Collisions helps keep things stable physics wise, but sometimes 
+; it can be over zealous.  If you notice bouncing, chances are it's being just
+; that
+filter_collisions = true
+
 ; Non Moving Terrain Contact (avatar isn't moving)
 nm_terraincontact_friction = 255.0
 nm_terraincontact_bounce = 0.1

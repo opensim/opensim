@@ -195,6 +195,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float[] _heightmap;
 
         private float[] _watermap;
+        private bool m_filterCollisions = true;
 
         // private float[] _origheightmap;
 
@@ -360,6 +361,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     meshSculptedPrim = physicsconfig.GetBoolean("mesh_sculpted_prim", true);
                     meshSculptLOD = physicsconfig.GetFloat("mesh_lod", 32f);
                     MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", 16f);
+                    m_filterCollisions = physicsconfig.GetBoolean("filter_collisions", true);
 
                     if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
@@ -847,6 +849,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             bool result = false;
             //return result;
+            if (!m_filterCollisions)
+                return false;
+
             ActorTypes at = (ActorTypes)atype;
             lock (_perloopContact)
             {
