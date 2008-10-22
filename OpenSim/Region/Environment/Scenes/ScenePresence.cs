@@ -2447,6 +2447,27 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public bool HasAttachments()
+        {
+            return m_attachments.Count > 0;   
+        }
+
+        public bool HasScriptedAttachments()
+        {
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    if (gobj != null)
+                    {
+                        if (gobj.RootPart.ContainsScripts())
+                            return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public void RemoveAttachment(SceneObjectGroup gobj)
         {
             lock (m_attachments)

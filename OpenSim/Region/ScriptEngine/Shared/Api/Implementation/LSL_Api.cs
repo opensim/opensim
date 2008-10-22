@@ -4626,6 +4626,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 0;
         }
 
+        /// <summary>
+        /// Not fully implemented yet. Still to do:-
+        /// AGENT_SITTING
+        /// AGENT_ON_OBJECT
+        /// AGENT_IN_AIR
+        /// AGENT_CROUCHING
+        /// AGENT_BUSY
+        /// Remove as they are done
+        /// </summary>
         public LSL_Integer llGetAgentInfo(string id)
         {
             m_host.AddScriptLPS(1);
@@ -4649,6 +4658,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (agent.SetAlwaysRun)
             {
                 flags |= ScriptBaseClass.AGENT_ALWAYS_RUN;
+            }
+
+            if (agent.HasAttachments())
+            {
+                flags |= ScriptBaseClass.AGENT_ATTACHMENTS;
+                if (agent.HasScriptedAttachments())
+                    flags |= ScriptBaseClass.AGENT_SCRIPTED;
             }
 
             if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
@@ -4900,9 +4916,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // in edit appearance in SL to find the ones that affected the height and how
                 // much they affected it.
                 float avatarHeight = 1.23077f  // Shortest possible avatar height
-                                   + 0.516945f * (float)parms[25] / 255.0f   // Body length
+                                   + 0.516945f * (float)parms[25] / 255.0f   // Body height
                                    + 0.072514f * (float)parms[120] / 255.0f  // Head size
                                    + 0.3836f * (float)parms[125] / 255.0f    // Leg length
+                                   + 0.08f * (float)parms[77] / 255.0f    // Shoe heel height
+                                   + 0.07f * (float)parms[78] / 255.0f    // Shoe platform height
                                    + 0.076f * (float)parms[148] / 255.0f;    // Neck length
                 agentSize = new LSL_Vector(0.45, 0.6, avatarHeight);
             }
