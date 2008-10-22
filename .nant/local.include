@@ -48,12 +48,12 @@
 </target>
 
 <target name="test-cov" depends="build">
-    <!-- Code Coverage Test -->
+    <!-- Code Coverage Test. Prototype, only works with mono 1.2. Instructions in http://opensimulator.org/wiki/Automated_Testing -->
     <mkdir dir="cov" failonerror="false" />
     <exec program="mono">
       <arg value="--debug" />
       <arg value="--profile=monocov:outfile=./cov/OpenSim.Framework.Servers.cov,+[OpenSim.Framework.Servers]" />
-      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="/usr/lib/nunit/nunit-console.exe" />
       <arg value="./bin/OpenSim.Framework.Servers.Tests.dll" />
     </exec>
     <delete dir="./cov/OpenSim.Framework.Servers" />
@@ -64,7 +64,7 @@
     <exec program="mono">
       <arg value="--debug" />
       <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.ClientStack.LindenUDP.cov,+[OpenSim.Region.ClientStack.LindenUDP]" />
-      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="/usr/lib/nunit/nunit-console.exe" />
      <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
     </exec>
     <delete dir="./cov/OpenSim.Region.ClientStack.LindenUDP" />
@@ -75,10 +75,10 @@
     <exec program="mono">
       <arg value="--debug" />
       <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.ScriptEngine.Shared.cov,+[OpenSim.Region.ScriptEngine.Shared]" />
-      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="/usr/lib/nunit/nunit-console.exe" />
       <arg value="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
     </exec>
-    <delete dir="./cov/penSim.Region.ScriptEngine.Shared" />
+    <delete dir="./cov/OpenSim.Region.ScriptEngine.Shared" />
     <exec program="monocov">      
       <arg value="--export-html=./cov/OpenSim.Region.ScriptEngine.Shared ./cov/OpenSim.Region.ScriptEngine.Shared.cov" />
     </exec>    
@@ -86,7 +86,7 @@
     <exec program="mono">
       <arg value="--debug" />
       <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.ScriptEngine.Shared.CodeTools.cov,+[OpenSim.Region.ScriptEngine.Shared.CodeTools]" />
-      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="/usr/lib/nunit/nunit-console.exe" />
       <arg value="./bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
     </exec>
     <delete dir="./cov/OpenSim.Region.ScriptEngine.Shared.CodeTools" />
@@ -97,7 +97,7 @@
     <exec program="mono">
       <arg value="--debug" />
       <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.Environment.cov,+[OpenSim.Region.Environment]" />
-      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="/usr/lib/nunit/nunit-console.exe" />
       <arg value="./bin/OpenSim.Region.Environment.Tests.dll" />
     </exec>
     <delete dir="./cov/OpenSim.Region.Environment" />
@@ -108,7 +108,7 @@
     <exec program="mono">
       <arg value="--debug" />
       <arg value="--profile=monocov:outfile=./cov/OpenSim.Data.SQLite.cov,+[OpenSim.Data.SQLite]" />
-      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="/usr/lib/nunit/nunit-console.exe" />
       <arg value="./bin/OpenSim.Data.SQLite.Tests.dll" />
     </exec>
     <delete dir="./cov/OpenSim.Data.SQLite" />
@@ -119,13 +119,15 @@
     <exec program="mono">
       <arg value="--debug" />
       <arg value="--profile=monocov:outfile=./cov/OpenSim.Data.MySQL.cov,+[OpenSim.Data.MySQL.Tests]" />
-      <arg value="/usr/lib/nunit2/nunit-console.exe" />
+      <arg value="/usr/lib/nunit/nunit-console.exe" />
       <arg value="./bin/OpenSim.Data.MySQL.Tests.dll" />
     </exec>  
     <delete dir="./cov/OpenSim.Data.MySQL" />
     <exec program="monocov">
       <arg value="--export-html=./cov/OpenSim.Data.MySQL ./cov/OpenSim.Data.MySQL.cov" />
     </exec>    
+    <delete file="C:\NUnitPrimaryTrace.txt" failonerror="false" />
+    <delete file="TestResult.xml" failonerror="false" />
 </target>
 
 
