@@ -1478,7 +1478,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// This method determines the proper movement related animation
         /// </summary>
-        protected string GetMovementAnimation()
+        public string GetMovementAnimation()
         {
             if (m_movementflag != 0)
             {

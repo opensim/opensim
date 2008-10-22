@@ -4671,6 +4671,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 flags |= ScriptBaseClass.AGENT_TYPING;
             }
 
+            string agentMovementAnimation = agent.GetMovementAnimation();
+            if (agentMovementAnimation == "WALK" || agentMovementAnimation == "CROUCHWALK")  
+            {
+                flags |= ScriptBaseClass.AGENT_WALKING;
+            }
+
             //NotImplemented("llGetAgentInfo");
 
             return flags;
