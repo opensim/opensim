@@ -119,7 +119,7 @@ namespace OpenSim.Region.Environment.Scenes
                             "[SCENE]: Sending deleted object to user's inventory, {0} item(s) remaining.", left);
                         
                         x = m_inventoryDeletes.Dequeue();
-                        if (x.objectGroup.RootObject != null)
+                        if (x.objectGroup.RootPart != null)
                         {
                             try
                             {
