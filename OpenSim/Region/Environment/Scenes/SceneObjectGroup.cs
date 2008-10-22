@@ -1458,7 +1458,10 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart rootpart = m_rootPart;
             if (rootpart != null)
             {
-                rootpart.PhysActor.PIDActive = false;
+                if (rootpart.PhysActor != null)
+                {
+                    rootpart.PhysActor.PIDActive = false;
+                }
             }
         }
 
