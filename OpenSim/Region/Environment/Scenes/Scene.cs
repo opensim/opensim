@@ -1880,7 +1880,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_innerScene.DeleteSceneObject(uuid, resultOfLinkingObjects))
             {
-                m_storageManager.DataStore.RemoveObject(uuid, m_regInfo.RegionID);
+                if (!resultOfLinkingObjects)
+                    m_storageManager.DataStore.RemoveObject(uuid,
+                            m_regInfo.RegionID);
                 return true;
             }
 
