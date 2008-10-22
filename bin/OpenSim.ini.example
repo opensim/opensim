@@ -804,8 +804,8 @@ regions = "^MeetingSpace-"
 
 ; for each region that matches the regions regexp you can provide
 ; (optionally) a welcome template using format substitution:
-: {0} is replaced with the name of the avatar entering the region
-: {1} is replaced with the name of the region
-: {2} is replaced with the name of the concierge (whoami variable above)
+; {0} is replaced with the name of the avatar entering the region
+; {1} is replaced with the name of the region
+; {2} is replaced with the name of the concierge (whoami variable above)
 
 welcomes = /path/to/welcome/template/directory
