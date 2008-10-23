@@ -54,6 +54,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         private string m_last_leaving_user = null;
         private string m_last_new_user = null;
         private List<Scene> m_scenes = new List<Scene>();
+        private List<int> m_validInWorldChannels = new List<int>();
 
         internal object m_syncInit = new object();
         internal object m_syncLogout = new object();
@@ -65,6 +66,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         private bool m_relayPrivateChannels = false;
         private int m_relayChannelOut = -1;
         private bool m_clientReporting = true;
+        private bool m_relayChat = true;
+        private Regex m_accessPasswordRe = null;
 
         #region IRegionModule Members
 
@@ -96,8 +99,26 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             m_relayPrivateChannels = m_config.GetBoolean("relay_private_channels", m_relayPrivateChannels);
             m_relayChannelOut = m_config.GetInt("relay_private_channel_out", m_relayChannelOut);
+            m_relayChat = m_config.GetBoolean("relay_chat", m_relayChat);
 
             m_clientReporting = m_config.GetBoolean("report_clients", m_clientReporting);
+
+            if (m_accessPasswordRe == null)
+            {
+                string pass = config.Configs["IRC"].GetString("access_password", String.Empty);
+                m_accessPasswordRe = new Regex(String.Format(@"^{0},(?<avatar>[^,]+),(?<message>.+)$", pass), 
+                                               RegexOptions.Compiled);
+            }
+
+            if (m_relayChat)
+            {
+                m_validInWorldChannels.Add(0);
+                m_validInWorldChannels.Add(DEBUG_CHANNEL);
+            }
+
+            if (m_relayPrivateChannels)
+                m_validInWorldChannels.Add(m_relayChannelOut);
+
 
             lock (m_syncInit)
             {
@@ -227,19 +248,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
             }
 
-            // drop all messages coming in on a private channel,
-            // except if we are relaying private channels, in which
-            // case we drop if the private channel is not the
-            // configured m_relayChannelOut
-            if (m_relayPrivateChannels) 
-            {
-                if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL && c.Channel != m_relayChannelOut)
-                {
-                    m_log.DebugFormat("[IRC] dropping message {0} on channel {1}", c, c.Channel);
-                    return;
-                }
-            }
-            else if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL)
+            // drop messages if their channel is not on the valid
+            // in-world channel list
+            if (!m_validInWorldChannels.Contains(c.Channel))
             {
                 m_log.DebugFormat("[IRC] dropping message {0} on channel {1}", c, c.Channel);
                 return;
@@ -265,31 +276,28 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 return;
             }
 
-            if (null != avatar) 
+            if (null != avatar && m_relayChat) 
             {
                 string msg = c.Message;
                 if (msg.StartsWith("/me "))
                     msg = String.Format("{0} {1}", fromName, c.Message.Substring(4));
 
                 m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, msg);
+                return;
             }
-            else 
+
+            if (null == avatar && m_relayPrivateChannels)
             {
-                //Message came from an object
-                char[] splits = { ',' };
-                string[] tokens = c.Message.Split(splits,3); // This is certainly wrong
-                if (tokens.Length == 3)
+                Match m;
+                if (m_accessPasswordRe != null &&
+                    (m = m_accessPasswordRe.Match(c.Message)) != null)
                 {
-                    if (tokens[0] == m_irc.m_accessPassword) // This is my really simple check
-                    {
-                        m_log.DebugFormat("[IRC] message from object {0}, {1}", tokens[0], tokens[1]);
-                        m_irc.PrivMsg(tokens[1], scene.RegionInfo.RegionName, tokens[2]);
-                    }
-                    else
-                    {
-                        m_log.WarnFormat("[IRC] prim security key mismatch <{0}> not <{1}>", tokens[0], m_irc.m_accessPassword);
-                    }
+                    m_log.DebugFormat("[IRC] relaying message from {0}: {1}", m.Groups["avatar"].ToString(), 
+                                      m.Groups["message"].ToString());
+                    m_irc.PrivMsg(m.Groups["avatar"].ToString(), scene.RegionInfo.RegionName, 
+                                  m.Groups["message"].ToString());
                 }
+                return;
             }
         }
         #endregion

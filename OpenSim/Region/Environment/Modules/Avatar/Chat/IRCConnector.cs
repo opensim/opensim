@@ -135,8 +135,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             set { m_server = value; }
         }
 
-        public string m_accessPassword = "badkitty";
-
         private string m_privmsgformat = "PRIVMSG {0} :<{1} in {2}>: {3}";
         private StreamReader m_reader;
         private List<Scene> m_scenes = new List<Scene>();
@@ -188,20 +186,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 m_port = (uint)config.Configs["IRC"].GetInt("port", (int)m_port);
                 m_user = config.Configs["IRC"].GetString("username", m_user);
                 m_privmsgformat = config.Configs["IRC"].GetString("msgformat", m_privmsgformat);
-                // m_commandChannel = config.Configs["IRC"].GetInt("commandchannel", m_commandChannel);
 
-                // m_verbosity = config.Configs["IRC"].GetInt("verbosity", m_verbosity);
                 m_clientReporting = config.Configs["IRC"].GetInt("verbosity", 2) > 0;
                 m_clientReporting = config.Configs["IRC"].GetBoolean("report_clients", m_clientReporting);
 
-                // m_messageOutChannel = config.Configs["IRC"].GetInt("outchannel", m_messageOutChannel);
-                // m_messageInChannel = config.Configs["IRC"].GetInt("inchannel", m_messageInChannel);
                 m_relayPrivateChannels = config.Configs["IRC"].GetBoolean("relay_private_channels", m_relayPrivateChannels);
                 m_relayPrivateChannels = config.Configs["IRC"].GetBoolean("useworldcomm", m_relayPrivateChannels); //compat
                 m_relayChannel = config.Configs["IRC"].GetInt("relay_private_channel_in", m_relayChannel);
                 m_relayChannel = config.Configs["IRC"].GetInt("inchannel", m_relayChannel);
-                m_accessPassword = config.Configs["IRC"].GetString("access_password",m_accessPassword);
-                // m_useWorldComm = config.Configs["IRC"].GetBoolean("useworldcomm", m_useWorldComm);
 
                 if (m_server != null && m_baseNick != null && m_ircChannel != null)
                 {
