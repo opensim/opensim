@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
             
             uint port = 666;            
-            testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, null);
+            testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, new AgentCircuitManager());
             LLPacketServer packetServer = new LLPacketServer(testLLUDPServer, userSettings);
             testLLUDPServer.LocalScene = new MockScene();
             
@@ -73,7 +73,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             testLLUDPServer.LoadReceive(uccp, testEp);            
             testLLUDPServer.ReceiveData(null);        
             
-            //Assert.IsTrue(testLLUDPServer.HasCircuit(123456));
+            Assert.IsFalse(testLLUDPServer.HasCircuit(101));
+            Assert.IsTrue(testLLUDPServer.HasCircuit(123456));
         }
     }
 }

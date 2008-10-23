@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Sockets;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -65,6 +66,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             return true;
         }
         
+        public override void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode) 
+        {
+            // Don't do anything just yet
+        }
+        
         /// <summary>
         /// Load a packet to be received by the LLUDPServer on the next receive call
         /// </summary>
@@ -81,7 +87,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public void ReceiveData(IAsyncResult result)
         {
             OnReceivedData(result);
-        }
+        }                
         
         /// <summary>
         /// Has a circuit with the given code been established?
