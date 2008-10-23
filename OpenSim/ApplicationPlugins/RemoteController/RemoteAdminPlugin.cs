@@ -345,6 +345,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>firstname of region master</description></item>
         /// <item><term>region_master_last</term>
         ///       <description>lastname of region master</description></item>
+        /// <item><term>region_master_uuid</term>
+        ///       <description>explicit UUID to use for master avatar (optional)</description></item>
         /// <item><term>listen_ip</term>
         ///       <description>internal IP address (dotted quad)</description></item>
         /// <item><term>listen_port</term>
