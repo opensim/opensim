@@ -448,17 +448,28 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 string masterPassword = (string)requestData["region_master_password"];
 
                 UUID userID = UUID.Zero;
-                UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(masterFirst, masterLast);
-                if (null == userProfile) 
+                if (requestData.ContainsKey("region_master_uuid"))
                 {
-                    m_log.InfoFormat("master avatar does not exist, creating it");
-                    userID = m_app.CreateUser(masterFirst, masterLast, masterPassword, region.RegionLocX, region.RegionLocY);
-                    if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
-                                                                               masterFirst, masterLast));
+                    // ok, client wants us to use an explicit UUID
+                    // regardless of what the avatar name provided
+                    userID = new UUID((string)requestData["region_master_uuid"]);
                 }
                 else
                 {
-                    userID = userProfile.ID;
+                    // no client supplied UUID: look it up...
+                    UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(masterFirst, masterLast);
+                    if (null == userProfile) 
+                    {
+                        m_log.InfoFormat("master avatar does not exist, creating it");
+                        // ...or create new user
+                        userID = m_app.CreateUser(masterFirst, masterLast, masterPassword, region.RegionLocX, region.RegionLocY);
+                        if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
+                                                                                   masterFirst, masterLast));
+                    }
+                    else
+                    {
+                        userID = userProfile.ID;
+                    }
                 }
 
                 region.MasterAvatarFirstName = masterFirst;
