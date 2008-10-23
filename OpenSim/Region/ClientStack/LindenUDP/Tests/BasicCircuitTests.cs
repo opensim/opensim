@@ -26,6 +26,7 @@
  */
 
 using System.Net;
+using log4net;
 using NUnit.Framework;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -33,7 +34,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.ClientStack.LindenUDP;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {
     /// <summary>
     /// This will contain basic tests for the LindenUDP client stack
@@ -44,13 +45,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         [Test]
         public void TestAddClient()
         {
-            TestLLUDPServer testLLUDPServer = new TestLLUDPServer();
+            try
+            {
+                log4net.Config.XmlConfigurator.Configure();
+            }
+            catch
+            {
+                // I don't care, just leave log4net off
+            }
+            
+            TestLLUDPServer testLLUDPServer = new TestLLUDPServer();            
+            ClientStackUserSettings userSettings = new ClientStackUserSettings();
             
             uint port = 666;            
-            testLLUDPServer.Initialise(null, ref port, -1, false, new ClientStackUserSettings(), null, null);
+            testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, null);
+            LLPacketServer packetServer = new LLPacketServer(testLLUDPServer, userSettings);
+            testLLUDPServer.LocalScene = new MockScene();
             
-            //UseCircuitCodePacket uccp = new UseCircuitCodePacket();
-            //llUdpServer.epS
+            UseCircuitCodePacket uccp = new UseCircuitCodePacket();
+            UseCircuitCodePacket.CircuitCodeBlock uccpCcBlock 
+                = new OpenMetaverse.Packets.UseCircuitCodePacket.CircuitCodeBlock();
+            uccpCcBlock.Code = 123456;
+            uccp.CircuitCode = uccpCcBlock;
+            
+            EndPoint testEp = new IPEndPoint(IPAddress.Loopback, 999);
+            
+            testLLUDPServer.LoadReceive(uccp, testEp);            
+            testLLUDPServer.ReceiveData(null);        
+            
+            //Assert.IsTrue(testLLUDPServer.HasCircuit(123456));
         }
     }
 }

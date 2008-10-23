@@ -179,6 +179,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return false;
         }
+        
         public abstract bool OtherRegionUp(RegionInfo thisRegion);
 
         public virtual string GetSimulatorVersion()

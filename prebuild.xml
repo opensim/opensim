@@ -991,12 +991,15 @@
 
       <ReferencePath>../../../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="log4net.dll"/>
+      <Reference name="nunit.framework.dll" />
       <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
-      <Reference name="nunit.framework.dll" />
+      <Reference name="OpenSim.Region.Environment"/>
 
       <Files>
         <Match pattern="*.cs" recurse="false"/>

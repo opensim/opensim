@@ -26,11 +26,13 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Net;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {
     /// <summary>
     /// This class enables synchronous testing of the LLUDPServer by allowing us to load our own data into the end 
@@ -38,6 +40,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public class TestLLUDPServer : LLUDPServer
     {
+        /// <summary>
+        /// The chunks of data to pass to the LLUDPServer when it calls EndReceive
+        /// </summary>
+        protected Queue<ChunkSenderTuple> m_chunksToLoad = new Queue<ChunkSenderTuple>();
+        
         protected override void BeginReceive()
         {
             // Do nothing
@@ -45,10 +52,63 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         
         protected override bool EndReceive(out int numBytes, IAsyncResult result, ref EndPoint epSender)
         {
-            // TODO: Return a packet loaded in by a test
             numBytes = 0;
             
+            if (m_chunksToLoad.Count <= 0)
+                return false;
+            
+            ChunkSenderTuple tuple = m_chunksToLoad.Dequeue();
+            RecvBuffer = tuple.Data;
+            numBytes   = tuple.Data.Length;
+            epSender   = tuple.Sender;
+            
             return true;
+        }
+        
+        /// <summary>
+        /// Load a packet to be received by the LLUDPServer on the next receive call
+        /// </summary>
+        /// <param name="packet"></param>
+        public void LoadReceive(Packet packet, EndPoint epSender)
+        {
+            m_chunksToLoad.Enqueue(new ChunkSenderTuple(packet.ToBytes(), epSender));
+        }
+        
+        /// <summary>
+        /// Calls the protected asynchronous result method
+        /// </summary>
+        /// <param name="result"></param>
+        public void ReceiveData(IAsyncResult result)
+        {
+            OnReceivedData(result);
+        }
+        
+        /// <summary>
+        /// Has a circuit with the given code been established?
+        /// </summary>
+        /// <param name="circuitCode"></param>
+        /// <returns></returns>
+        public bool HasCircuit(uint circuitCode)
+        {
+            lock (clientCircuits_reverse)
+            {
+                return clientCircuits_reverse.ContainsKey(circuitCode);
+            }                
+        }        
+    }
+    
+    /// <summary>
+    /// Record the data and sender tuple
+    /// </summary>
+    public class ChunkSenderTuple
+    {
+        public byte[] Data;
+        public EndPoint Sender;
+        
+        public ChunkSenderTuple(byte[] data, EndPoint sender)
+        {
+            Data = data;
+            Sender = sender;
         }
     }
 }
