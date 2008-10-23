@@ -462,6 +462,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_knownChildRegions; }
         }
 
+        public AnimationSet Animations
+        {
+            get { return m_animations;  }
+        }
+
         #endregion
 
         #region Constructor(s)

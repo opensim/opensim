@@ -38,6 +38,10 @@ namespace OpenSim.Region.Environment.Scenes
         private Animation m_defaultAnimation = new Animation();
         private List<Animation> m_animations = new List<Animation>();
 
+        public Animation DefaultAnimation 
+        {
+            get { return m_defaultAnimation; } 
+        }
         public AnimationSet()
         {
             ResetDefaultAnimation();

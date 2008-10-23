@@ -4628,18 +4628,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         /// <summary>
         /// Not fully implemented yet. Still to do:-
-        /// AGENT_SITTING
-        /// AGENT_ON_OBJECT
-        /// AGENT_IN_AIR
-        /// AGENT_CROUCHING
         /// AGENT_BUSY
         /// Remove as they are done
         /// </summary>
         public LSL_Integer llGetAgentInfo(string id)
         {
             m_host.AddScriptLPS(1);
-
-            // This is partial implementation.
 
             UUID key = new UUID();
             if (!UUID.TryParse(id, out key))
@@ -4655,6 +4649,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
             }
 
+            // note: in OpenSim, sitting seems to cancel AGENT_ALWAYS_RUN, unlike SL
             if (agent.SetAlwaysRun)
             {
                 flags |= ScriptBaseClass.AGENT_ALWAYS_RUN;
@@ -4670,6 +4665,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
             {
                 flags |= ScriptBaseClass.AGENT_FLYING;
+                flags |= ScriptBaseClass.AGENT_IN_AIR; // flying always implies in-air, even if colliding with e.g. a wall
             }
 
             if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AWAY) != 0)
@@ -4677,6 +4673,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 flags |= ScriptBaseClass.AGENT_AWAY;
             }
 
+            // seems to get unset, even if in mouselook, when avatar is sitting on a prim???
             if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
             {
                 flags |= ScriptBaseClass.AGENT_MOUSELOOK;
@@ -4688,12 +4685,43 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             string agentMovementAnimation = agent.GetMovementAnimation();
+
+            if (agentMovementAnimation == "CROUCH")
+            {
+                flags |= ScriptBaseClass.AGENT_CROUCHING;
+            }
+
             if (agentMovementAnimation == "WALK" || agentMovementAnimation == "CROUCHWALK")  
             {
                 flags |= ScriptBaseClass.AGENT_WALKING;
             }
 
-            //NotImplemented("llGetAgentInfo");
+            // not colliding implies in air. Note: flying also implies in-air, even if colliding (see above)
+
+            // note: AGENT_IN_AIR and AGENT_WALKING seem to be mutually exclusive states in SL.
+
+            // note: this may need some tweaking when walking downhill. you "fall down" for a brief instant
+            // and don't collide when walking downhill, which instantly registers as in-air, briefly. should
+            // there be some minimum non-collision threshold time before claiming the avatar is in-air?
+            if ((flags & ScriptBaseClass.AGENT_WALKING) == 0 && 
+                agent.PhysicsActor != null && 
+                !agent.PhysicsActor.IsColliding)
+            {
+                    flags |= ScriptBaseClass.AGENT_IN_AIR;
+            }
+
+             if (agent.ParentID != 0)
+             {
+                 flags |= ScriptBaseClass.AGENT_ON_OBJECT;
+                 flags |= ScriptBaseClass.AGENT_SITTING;
+             }
+
+             if (agent.Animations.DefaultAnimation.AnimID == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+             {
+                 flags |= ScriptBaseClass.AGENT_SITTING;
+             }
+
+             //NotImplemented("llGetAgentInfo");
 
             return flags;
         }
