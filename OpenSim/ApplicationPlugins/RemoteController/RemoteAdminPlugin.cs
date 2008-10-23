@@ -441,12 +441,30 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                       scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
 
 
-                region.ExternalHostName = (string) requestData["external_address"];
+                region.ExternalHostName = (string)requestData["external_address"];
 
-                region.MasterAvatarFirstName = (string) requestData["region_master_first"];
-                region.MasterAvatarLastName = (string) requestData["region_master_last"];
-                region.MasterAvatarSandboxPassword = (string) requestData["region_master_password"];
-                region.MasterAvatarAssignedUUID = new UUID(requestData["region_master_uuid"].ToString());
+                string masterFirst = (string)requestData["region_master_first"];
+                string masterLast = (string)requestData["region_master_last"];
+                string masterPassword = (string)requestData["region_master_password"];
+
+                UUID userID = UUID.Zero;
+                UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(masterFirst, masterLast);
+                if (null == userProfile) 
+                {
+                    m_log.InfoFormat("master avatar does not exist, creating it");
+                    userID = m_app.CreateUser(masterFirst, masterLast, masterPassword, region.RegionLocX, region.RegionLocY);
+                    if (userID == UUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
+                                                                               masterFirst, masterLast));
+                }
+                else
+                {
+                    userID = userProfile.ID;
+                }
+
+                region.MasterAvatarFirstName = masterFirst;
+                region.MasterAvatarLastName = masterLast;
+                region.MasterAvatarSandboxPassword = masterPassword;
+                region.MasterAvatarAssignedUUID = userID;
 
                 bool persist = Convert.ToBoolean((string)requestData["persist"]);
                 if (persist)
