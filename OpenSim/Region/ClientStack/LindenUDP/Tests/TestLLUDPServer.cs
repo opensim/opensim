@@ -25,32 +25,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Net;
-using NUnit.Framework;
-using OpenMetaverse.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Region.ClientStack;
-using OpenSim.Region.ClientStack.LindenUDP;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     /// <summary>
-    /// This will contain basic tests for the LindenUDP client stack
+    /// This class enables synchronous testing of the LLUDPServer by allowing us to load our own data into the end 
+    /// receive event
     /// </summary>
-    [TestFixture]
-    public class BasicCircuitTests
+    public class TestLLUDPServer : LLUDPServer
     {
-        [Test]
-        public void TestAddClient()
+        protected override void BeginReceive()
         {
-            TestLLUDPServer testLLUDPServer = new TestLLUDPServer();
+            // Do nothing
+        }
+        
+        protected override bool EndReceive(out int numBytes, IAsyncResult result, ref EndPoint epSender)
+        {
+            // TODO: Return a packet loaded in by a test
+            numBytes = 0;
             
-            uint port = 666;            
-            testLLUDPServer.Initialise(null, ref port, -1, false, new ClientStackUserSettings(), null, null);
-            
-            //UseCircuitCodePacket uccp = new UseCircuitCodePacket();
-            //llUdpServer.epS
+            return true;
         }
     }
 }

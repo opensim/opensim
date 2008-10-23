@@ -180,39 +180,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             Packet packet = null;
             int numBytes = 1;
-            bool ok = false;
             EndPoint epSender = new IPEndPoint(IPAddress.Any, 0);
 
-            try
-            {
-                numBytes = m_socket.EndReceiveFrom(result, ref epSender);
-                ok = true;
-            }
-            catch (SocketException e)
-            {
-                // TODO : Actually only handle those states that we have control over, re-throw everything else,
-                // TODO: implement cases as we encounter them.
-                //m_log.Error("[[CLIENT]: ]: Connection Error! - " + e.ToString());
-                switch (e.SocketErrorCode)
-                {
-                    case SocketError.AlreadyInProgress:
-                        return;
-
-                    case SocketError.NetworkReset:
-                    case SocketError.ConnectionReset:
-                        break;
-
-                    default:
-                        throw;
-                }
-            }
-            catch (ObjectDisposedException e)
-            {
-                m_log.DebugFormat("[CLIENT]: ObjectDisposedException: Object {0} disposed.", e.ObjectName);
-                // Uhh, what object, and why? this needs better handling.
-            }
-
-            if (ok)
+            if (EndReceive(out numBytes, result, ref epSender))
             {
                 // Make sure we are getting zeroes when running off the
                 // end of grab / degrab packets from old clients
@@ -297,7 +267,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }           
         }
 
-        private void BeginReceive()
+        /// <summary>
+        /// Begin an asynchronous receive of the next bit of raw data
+        /// </summary>
+        protected virtual void BeginReceive()
         {
             try
             {
@@ -314,6 +287,50 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // ENDLESS LOOP ON PURPOSE!
                 ResetEndPoint();
             }
+        }
+        
+        /// <summary>
+        /// Finish the process of asynchronously receiving the next bit of raw data
+        /// </summary>
+        /// <param name="numBytes">The number of bytes received.  Will return 0 if no bytes were recieved
+        /// <param name="result"></param>
+        /// <param name="epSender">The sender of the data</param>
+        /// <returns></returns>
+        protected virtual bool EndReceive(out int numBytes, IAsyncResult result, ref EndPoint epSender)
+        {
+            bool hasReceivedOkay = false;
+            numBytes = 0;
+            
+            try
+            {
+                numBytes = m_socket.EndReceiveFrom(result, ref epSender);
+                hasReceivedOkay = true;
+            }
+            catch (SocketException e)
+            {
+                // TODO : Actually only handle those states that we have control over, re-throw everything else,
+                // TODO: implement cases as we encounter them.
+                //m_log.Error("[[CLIENT]: ]: Connection Error! - " + e.ToString());
+                switch (e.SocketErrorCode)
+                {
+                    case SocketError.AlreadyInProgress:
+                        return hasReceivedOkay;
+
+                    case SocketError.NetworkReset:
+                    case SocketError.ConnectionReset:
+                        break;
+
+                    default:
+                        throw;
+                }
+            }
+            catch (ObjectDisposedException e)
+            {
+                m_log.DebugFormat("[CLIENT]: ObjectDisposedException: Object {0} disposed.", e.ObjectName);
+                // Uhh, what object, and why? this needs better handling.
+            }      
+            
+            return hasReceivedOkay;
         }
 
         private void ResetEndPoint()
