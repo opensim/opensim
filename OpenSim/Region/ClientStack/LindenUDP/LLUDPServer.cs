@@ -82,12 +82,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </value>
         protected AgentCircuitManager m_circuitManager;
 
-        public LLPacketServer PacketServer
-        {
-            get { return m_packetServer; }
-            set { m_packetServer = value; }
-        }
-
         public IScene LocalScene
         {
             set
@@ -417,7 +411,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         proxyCircuits[useCircuit.CircuitCode.Code] = epProxy;
                     }
 
-                    PacketServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy);
+                    m_packetServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy);
                 }
             }            
             
@@ -569,7 +563,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            PacketServer.AddNewClient(userEP, useCircuit, m_assetCache, m_circuitManager, proxyEP);
+            m_packetServer.AddNewClient(userEP, useCircuit, m_assetCache, m_circuitManager, proxyEP);
         }
     }
 }
