@@ -85,20 +85,20 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_app = openSim;
                     m_httpd = openSim.HttpServer;
 
-                    m_httpd.AddXmlRPCHandler("admin_create_region", XmlRpcCreateRegionMethod);
-                    m_httpd.AddXmlRPCHandler("admin_delete_region", XmlRpcDeleteRegionMethod);
-                    m_httpd.AddXmlRPCHandler("admin_shutdown", XmlRpcShutdownMethod);
-                    m_httpd.AddXmlRPCHandler("admin_broadcast", XmlRpcAlertMethod);
-                    m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod);
-                    m_httpd.AddXmlRPCHandler("admin_load_heightmap", XmlRpcLoadHeightmapMethod);
-                    m_httpd.AddXmlRPCHandler("admin_create_user", XmlRpcCreateUserMethod);
-                    m_httpd.AddXmlRPCHandler("admin_exists_user", XmlRpcUserExistsMethod);
-                    m_httpd.AddXmlRPCHandler("admin_update_user", XmlRpcUpdateUserAccountMethod);
-                    m_httpd.AddXmlRPCHandler("admin_load_xml", XmlRpcLoadXMLMethod);
-                    m_httpd.AddXmlRPCHandler("admin_save_xml", XmlRpcSaveXMLMethod);
-                    m_httpd.AddXmlRPCHandler("admin_load_oar", XmlRpcLoadOARMethod);
-                    m_httpd.AddXmlRPCHandler("admin_save_oar", XmlRpcSaveOARMethod);
-                    m_httpd.AddXmlRPCHandler("admin_region_query", XmlRpcRegionQueryMethod);
+                    m_httpd.AddXmlRPCHandler("admin_create_region", XmlRpcCreateRegionMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_delete_region", XmlRpcDeleteRegionMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_shutdown", XmlRpcShutdownMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_broadcast", XmlRpcAlertMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_load_heightmap", XmlRpcLoadHeightmapMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_create_user", XmlRpcCreateUserMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_exists_user", XmlRpcUserExistsMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_update_user", XmlRpcUpdateUserAccountMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_load_xml", XmlRpcLoadXMLMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_save_xml", XmlRpcSaveXMLMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_load_oar", XmlRpcLoadOARMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_save_oar", XmlRpcSaveOARMethod, false);
+                    m_httpd.AddXmlRPCHandler("admin_region_query", XmlRpcRegionQueryMethod, false);
                 }
             }
             catch (NullReferenceException)

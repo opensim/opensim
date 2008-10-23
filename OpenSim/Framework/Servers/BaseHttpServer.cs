@@ -54,6 +54,7 @@ namespace OpenSim.Framework.Servers
         protected HttpListener m_httpListener;
         protected CoolHTTPListener m_httpListener2;
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers        = new Dictionary<string, XmlRpcMethod>();
+        protected Dictionary<string, bool> m_rpcHandlersKeepAlive       = new Dictionary<string, bool>();
         protected DefaultLLSDMethod m_defaultLlsdHandler = null; // <--   Moving away from the monolithic..  and going to /registered/
         protected Dictionary<string, LLSDMethod> m_llsdHandlers         = new Dictionary<string, LLSDMethod>();
         protected Dictionary<string, IRequestHandler> m_streamHandlers  = new Dictionary<string, IRequestHandler>();
@@ -141,6 +142,17 @@ namespace OpenSim.Framework.Servers
             lock (m_rpcHandlers)
             {
                 m_rpcHandlers[method] = handler;
+                m_rpcHandlersKeepAlive[method] = true; // default
+                return true;
+            }
+        }
+
+        public bool AddXmlRPCHandler(string method, XmlRpcMethod handler, bool keepAlive)
+        {
+            lock (m_rpcHandlers)
+            {
+                m_rpcHandlers[method] = handler;
+                m_rpcHandlersKeepAlive[method] = keepAlive; // default
                 return true;
             }
         }
@@ -584,6 +596,7 @@ namespace OpenSim.Framework.Servers
                     }
 
                     responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
+                    response.KeepAlive = m_rpcHandlersKeepAlive[methodName];
                 }
                 else
                 {

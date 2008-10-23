@@ -104,6 +104,13 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         protected IUserServiceAdmin m_userServiceAdmin;        
 
+
+        public BaseHttpServer HttpServer
+        {
+            get { return m_httpServer; }
+        }
+        protected BaseHttpServer m_httpServer;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -117,6 +124,7 @@ namespace OpenSim.Framework.Communications
             m_networkServersInfo = serversInfo;
             m_assetCache = assetCache;
             m_userProfileCacheService = new UserProfileCacheService(this, libraryRootFolder);
+            m_httpServer = httpServer;
          //   m_transactionsManager = new AgentAssetTransactionsManager(this, dumpAssetsToFile);
         }
 
