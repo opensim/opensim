@@ -391,7 +391,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //Slave regions don't accept new clients
             if (m_localScene.Region_Status != RegionStatus.SlaveScene)
             {                
-                bool foundExistingCircuit = false;
+                bool isNewCircuit = false;
                 
                 lock (clientCircuits)
                 {
@@ -403,11 +403,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         
                         clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
                         
-                        foundExistingCircuit = true;
+                        isNewCircuit = true;
                     }
                 }
 
-                if (!foundExistingCircuit)
+                if (isNewCircuit)
                 {
                     // This doesn't need locking as it's synchronized data
                     clientCircuits_reverse[useCircuit.CircuitCode.Code] = epSender;
