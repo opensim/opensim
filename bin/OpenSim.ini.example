@@ -411,10 +411,29 @@ flush-on-error=true
 ;; relay_private_channels = true: will relay IRC chat from/to private in-world channels
 ;; relay_private_channel_out -- channel to send messages out to the IRC bridge
 ;; relay_private_channel_in -- channel to receive message from the IRC bridge
+;; relay_chat = false: IRC bridge will not relay normal chat
 ;; access_password -- simple security device
+;;
+;; so, to just relay chat from an IRC channel to in-world region and vice versa:
+;;
+;;     relay_private_channels = false
+;;     relay_chat = true
+;;
+;; to relay chat only to/from private in-world channels:
+;;
+;;     relay_chat = false
+;;     relay_private_channels = true
+;;     relay_private_channel_in = 2226
+;;     relay_private_channel_out = 2225
+;;
+;; in this example, all chat coming in from IRC will be send out via
+;; in-world channel 2226, and all chat from in-world channel 2225 will
+;; be relayed to the IRC channel.
+;;
 ;relay_private_channels = false
 ;relay_private_channel_in = 2226
 ;relay_private_channel_out = 2225
+;relay_chat = true
 ;access_password = foobar
 
 ;fallback_region = name of "default" region
@@ -797,6 +816,9 @@ enabled = false
 
 ; name of the concierge
 whoami = "jeeves"
+
+; password for updating the welcome message templates via XmlRpc
+password = SECRET
 
 ; regex specifying for which regions concierge service is desired; if
 ; empty, then for all

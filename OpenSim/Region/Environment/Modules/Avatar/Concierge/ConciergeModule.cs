@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
@@ -34,8 +35,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using log4net;
 using Nini.Config;
+using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Modules.Avatar.Chat;
@@ -48,15 +51,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
         private const int DEBUG_CHANNEL = 2147483647;
 
-        private int _conciergeChannel = 42;
         private List<IScene> _scenes = new List<IScene>();
         private List<IScene> _conciergedScenes = new List<IScene>();
-        private Dictionary<IScene, List<string>> _sceneAttendees = new Dictionary<IScene, List<string>>();
-        private IConfig _config;
-        private string _whoami = "conferencier";
+        private Dictionary<IScene, List<ScenePresence>> _sceneAttendees = new Dictionary<IScene, List<ScenePresence>>();
         private bool _replacingChatModule = false;
+
+        private IConfig _config;
+        
+        private string _whoami = "conferencier";
         private Regex _regions = null;
         private string _welcomes = null;
+        private int _conciergeChannel = 42;
+        private string _announceEntering = "{0} enters {1} (now {2} visitors in this region)";
+        private string _announceLeaving = "{0} leaves {1} (back to {2} visitors in this region)";
+        private string _xmlRpcPassword = String.Empty;
 
         internal object _syncy = new object();
 
@@ -108,6 +116,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             _conciergeChannel = config.Configs["Concierge"].GetInt("concierge_channel", _conciergeChannel);
             _whoami = _config.GetString("whoami", "conferencier");
             _welcomes = _config.GetString("welcomes", _welcomes);
+            _announceEntering = _config.GetString("announce_entering", _announceEntering);
+            _announceLeaving = _config.GetString("announce_leaving", _announceLeaving);
+            _xmlRpcPassword = _config.GetString("password", _xmlRpcPassword);
             _log.InfoFormat("[Concierge] reporting as \"{0}\" to our users", _whoami);
 
             // calculate regions Regex
@@ -116,9 +127,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 string regions = _config.GetString("regions", String.Empty);
                 if (!String.IsNullOrEmpty(regions))
                 {
-                    _regions = new Regex(regions, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    _regions = new Regex(@regions, RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 }
             }
+
+            scene.CommsManager.HttpServer.AddXmlRPCHandler("concierge_update_welcome", XmlRpcUpdateWelcomeMethod, false);
 
             lock (_syncy)
             {
@@ -244,16 +257,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
         {
             client.OnLogout += OnClientLoggedOut;
             client.OnConnectionClosed += OnClientLoggedOut;
+
             if (_replacingChatModule) 
                 client.OnChatFromClient += OnChatFromClient;
-
-            if (_conciergedScenes.Contains(client.Scene))
-            {
-                _log.DebugFormat("[Concierge] {0} logs on to {1}", client.Name, client.Scene.RegionInfo.RegionName);
-                AnnounceToAgentsRegion(client, String.Format("{0} logs on to {1}", client.Name, 
-                                                             client.Scene.RegionInfo.RegionName));
-            }
         }
+
+        
 
         public void OnClientLoggedOut(IClientAPI client)
         {
@@ -263,8 +272,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             if (_conciergedScenes.Contains(client.Scene))
             {
                 _log.DebugFormat("[Concierge] {0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName);
-                AnnounceToAgentsRegion(client, String.Format("{0} logs off from {1}", client.Name, 
-                                                             client.Scene.RegionInfo.RegionName));
+                ScenePresence agent = (client.Scene as Scene).GetScenePresence(client.AgentId);
+                RemoveFromAttendeeList(agent, agent.Scene);
+                AnnounceToAgentsRegion(agent, String.Format(_announceLeaving, agent.Name, agent.Scene.RegionInfo.RegionName,
+                                                            _sceneAttendees[agent.Scene].Count));
             }
         }
 
@@ -274,39 +285,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             if (_conciergedScenes.Contains(agent.Scene))
             {
                 _log.DebugFormat("[Concierge] {0} enters {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
-
-                // welcome mechanics: check whether we have a welcomes
-                // directory set and wether there is a region specific
-                // welcome file there: if yes, send it to the agent
-                if (!String.IsNullOrEmpty(_welcomes))
-                {
-                    string welcome = Path.Combine(_welcomes, agent.Scene.RegionInfo.RegionName);
-                    if (File.Exists(welcome)) 
-                    {
-                        try
-                        {
-                            string[] welcomeLines = File.ReadAllLines(welcome);
-                            foreach (string l in welcomeLines)
-                            {
-                                AnnounceToAgent(agent, String.Format(l, agent.Name, agent.Scene.RegionInfo.RegionName, _whoami));
-                            }
-                        }
-                        catch (IOException ioe)
-                        {
-                            _log.ErrorFormat("[Concierge] run into trouble reading welcome file {0} for region {1} for avatar {2}: {3}",
-                                             welcome, agent.Scene.RegionInfo.RegionName, agent.Name, ioe);
-                        }
-                        catch (FormatException fe)
-                        {
-                            _log.ErrorFormat("[Concierge] welcome file {0} is malformed: {1}", welcome, fe);
-                        }
-                    } else {
-                        _log.DebugFormat("[Concierge] not playing out welcome message: {0} not found", welcome);
-                    }
-                }
-
-                AnnounceToAgentsRegion(agent, String.Format("{0} enters {1}", agent.Name, 
-                                                            agent.Scene.RegionInfo.RegionName));
+                AddToAttendeeList(agent, agent.Scene);
+                WelcomeAvatar(agent, agent.Scene);
+                AnnounceToAgentsRegion(agent, String.Format(_announceEntering, agent.Name, agent.Scene.RegionInfo.RegionName,
+                                                            _sceneAttendees[agent.Scene].Count));
             }
         }
 
@@ -316,18 +298,79 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             if (_conciergedScenes.Contains(agent.Scene))
             {
                 _log.DebugFormat("[Concierge] {0} leaves {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
-                AnnounceToAgentsRegion(agent, String.Format("{0} leaves {1}", agent.Name, 
-                                                            agent.Scene.RegionInfo.RegionName));
+                RemoveFromAttendeeList(agent, agent.Scene);
+                AnnounceToAgentsRegion(agent, String.Format(_announceLeaving, agent.Name, agent.Scene.RegionInfo.RegionName,
+                                                            _sceneAttendees[agent.Scene].Count));
             }
         }
 
-
-        public void ClientLoggedOut(IClientAPI client)
+        protected void AddToAttendeeList(ScenePresence agent, Scene scene)
         {
-            if (_conciergedScenes.Contains(client.Scene))
+            lock(_sceneAttendees)
             {
-                _log.DebugFormat("[Concierge] {0} logs out of {1}", client.Name, client.Scene.RegionInfo.RegionName);
-                AnnounceToAgentsRegion(client, String.Format("{0} logs out of {1}", client.Name, client.Scene.RegionInfo.RegionName));
+                if (!_sceneAttendees.ContainsKey(scene))
+                    _sceneAttendees[scene] = new List<ScenePresence>();
+                List<ScenePresence> attendees = _sceneAttendees[scene];
+                if (!attendees.Contains(agent))
+                    attendees.Add(agent);
+            }
+        }
+
+        protected void RemoveFromAttendeeList(ScenePresence agent, Scene scene)
+        {
+            lock(_sceneAttendees)
+            {
+                if (!_sceneAttendees.ContainsKey(scene))
+                {
+                    _log.WarnFormat("[Concierge] attendee list missing for region {0}", scene.RegionInfo.RegionName);
+                    return;
+                }
+                List<ScenePresence> attendees = _sceneAttendees[scene];
+                if (!attendees.Contains(agent))
+                {
+                    _log.WarnFormat("[Concierge] avatar {0} sneaked in (not on attendee list of region {1})",
+                                    agent.Name, scene.RegionInfo.RegionName);
+                    return;
+                }
+                attendees.Remove(agent);
+            }
+        }
+
+        protected void WelcomeAvatar(ScenePresence agent, Scene scene)
+        {
+            // welcome mechanics: check whether we have a welcomes
+            // directory set and wether there is a region specific
+            // welcome file there: if yes, send it to the agent
+            if (!String.IsNullOrEmpty(_welcomes))
+            {
+                string[] welcomes = new string[] { 
+                    Path.Combine(_welcomes, agent.Scene.RegionInfo.RegionName),
+                    Path.Combine(_welcomes, "DEFAULT")};
+                foreach (string welcome in welcomes)
+                {
+                    if (File.Exists(welcome)) 
+                    {
+                        try
+                        {
+                            string[] welcomeLines = File.ReadAllLines(welcome);
+                            foreach (string l in welcomeLines)
+                            {
+                                AnnounceToAgent(agent, String.Format(l, agent.Name, scene.RegionInfo.RegionName, _whoami));
+                            }
+                        }
+                        catch (IOException ioe)
+                        {
+                            _log.ErrorFormat("[Concierge] run into trouble reading welcome file {0} for region {1} for avatar {2}: {3}",
+                                             welcome, scene.RegionInfo.RegionName, agent.Name, ioe);
+                        }
+                        catch (FormatException fe)
+                        {
+                            _log.ErrorFormat("[Concierge] welcome file {0} is malformed: {1}", welcome, fe);
+                        }
+                    } 
+                    return;
+                }
+                _log.DebugFormat("[Concierge] no welcome message for region {0}", scene.RegionInfo.RegionName);
             }
         }
 
@@ -371,6 +414,85 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
             agent.ControllingClient.SendChatMessage(msg, (byte) ChatTypeEnum.Say, PosOfGod, _whoami, UUID.Zero, 
                                                     (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
+        }
+
+        private static void checkStringParameters(XmlRpcRequest request, string[] param)
+        {
+            Hashtable requestData = (Hashtable) request.Params[0];
+            foreach (string p in param)
+            {
+                if (!requestData.Contains(p))
+                    throw new Exception(String.Format("missing string parameter {0}", p));
+                if (String.IsNullOrEmpty((string)requestData[p]))
+                    throw new Exception(String.Format("parameter {0} is empty", p));
+            }
+        }
+
+        private static void checkIntegerParams(XmlRpcRequest request, string[] param)
+        {
+            Hashtable requestData = (Hashtable) request.Params[0];
+            foreach (string p in param)
+            {
+                if (!requestData.Contains(p))
+                    throw new Exception(String.Format("missing integer parameter {0}", p));
+            }
+        }
+
+        public XmlRpcResponse XmlRpcUpdateWelcomeMethod(XmlRpcRequest request)
+        {
+            _log.Info("[Concierge]: processing UpdateWelcome request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                Hashtable requestData = (Hashtable)request.Params[0];
+                checkStringParameters(request, new string[] { "password", "region", "welcome" });
+
+                // check password
+                if (!String.IsNullOrEmpty(_xmlRpcPassword) &&
+                    (string)requestData["password"] != _xmlRpcPassword) throw new Exception("wrong password");
+
+                if (String.IsNullOrEmpty(_welcomes))
+                    throw new Exception("welcome templates are not enabled, ask your OpenSim operator to set the \"welcomes\" option in the [Concierge] section of OpenSim.ini");
+
+                string msg = (string)requestData["welcome"];
+                if (String.IsNullOrEmpty(msg))
+                    throw new Exception("empty parameter \"welcome\"");
+
+                string regionName = (string)requestData["region"];
+                IScene scene = _scenes.Find(delegate(IScene s) { return s.RegionInfo.RegionName == regionName; });
+                if (scene == null) 
+                    throw new Exception(String.Format("unknown region \"{0}\"", regionName));
+
+                if (!_conciergedScenes.Contains(scene))
+                    throw new Exception(String.Format("region \"{0}\" is not a concierged region.", regionName));
+
+                string welcome = Path.Combine(_welcomes, regionName);
+                if (File.Exists(welcome))
+                {
+                    _log.InfoFormat("[Concierge] UpdateWelcome: updating existing template \"{0}\"", welcome);
+                    string welcomeBackup = String.Format("{0}~", welcome);
+                    if (File.Exists(welcomeBackup))
+                        File.Delete(welcomeBackup);
+                    File.Move(welcome, welcomeBackup);
+                }
+                File.WriteAllText(welcome, msg);
+
+                responseData["success"] = "true";
+                response.Value = responseData;
+            }
+            catch (Exception e)
+            {
+                _log.InfoFormat("[Concierge] UpdateWelcome failed: {0}", e.Message);
+
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
+
+                response.Value = responseData;
+            }
+            _log.Debug("[Concierge]: done processing UpdateWelcome request");
+            return response;
         }
     }
 }
