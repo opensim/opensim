@@ -6686,7 +6686,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 i++;
                             }
 
-Console.WriteLine(groupRolesReply.ToString());
                             OutPacket(groupRolesReply, ThrottleOutPacketType.Task);
                         }
                         break;
