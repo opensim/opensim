@@ -91,16 +91,6 @@ namespace OpenSim.Framework
             }
         }
 
-        public Vector3 GetPosition(uint circuitCode)
-        {
-            Vector3 vec = new Vector3();
-            if (AgentCircuits.ContainsKey(circuitCode))
-            {
-                vec = AgentCircuits[circuitCode].startpos;
-            }
-            return vec;
-        }
-
         public void UpdateAgentData(AgentCircuitData agentData)
         {
             if (AgentCircuits.ContainsKey((uint) agentData.circuitcode))
@@ -116,7 +106,6 @@ namespace OpenSim.Framework
                 // Console.WriteLine("update user start pos is " + agentData.startpos.X + " , " + agentData.startpos.Y + " , " + agentData.startpos.Z);
             }
         }
-
 
         /// <summary>
         /// Sometimes the circuitcode may not be known before setting up the connection
