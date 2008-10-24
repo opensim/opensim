@@ -6554,11 +6554,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         GroupMembersRequestPacket groupMembersRequestPacket =
                                 (GroupMembersRequestPacket)Pack;
 
-                        List<GroupMembersData> members =
-                                m_GroupsModule.GroupMembersRequest(this, groupMembersRequestPacket.GroupData.GroupID);
-
                         if (m_GroupsModule != null)
                         {
+                            List<GroupMembersData> members =
+                                    m_GroupsModule.GroupMembersRequest(this, groupMembersRequestPacket.GroupData.GroupID);
+
                             GroupMembersReplyPacket groupMembersReply = (GroupMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupMembersReply);
 
                             groupMembersReply.AgentData =
