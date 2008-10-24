@@ -96,6 +96,11 @@ namespace PrimMesher
 
             return this;
         }
+
+        public override string ToString()
+        {
+            return "< X: " + this.X.ToString() + ", Y: " + this.Y.ToString() + ", Z: " + this.Z.ToString() + ", W: " + this.W.ToString() + ">";
+        }
     }
 
     public struct Coord
@@ -151,6 +156,16 @@ namespace PrimMesher
                 c1.Z * c2.X - c2.Z * c1.X,
                 c1.X * c2.Y - c2.X * c1.Y
                 );
+        }
+
+        public static Coord operator +(Coord v, Coord a)
+        {
+            return new Coord(v.X + a.X, v.Y + a.Y, v.Z + a.Z);
+        }
+
+        public static Coord operator *(Coord v, Coord m)
+        {
+            return new Coord(v.X * m.X, v.Y * m.Y, v.Z * m.Z);
         }
 
         public static Coord operator *(Coord v, Quat q)
@@ -895,36 +910,20 @@ namespace PrimMesher
         {
             int i;
             int numVerts = this.coords.Count;
-            Coord c;
 
             for (i = 0; i < numVerts; i++)
-            {
-                c = this.coords[i];
-                Coord v = new Coord(c.X, c.Y, c.Z) * q;
-
-                c.X = v.X;
-                c.Y = v.Y;
-                c.Z = v.Z;
-                this.coords[i] = c;
-            }
+                this.coords[i] *= q;
 
             if (this.calcVertexNormals)
             {
                 int numNormals = this.vertexNormals.Count;
                 for (i = 0; i < numNormals; i++)
-                {
-                    c = this.vertexNormals[i];
-                    Coord n = new Coord(c.X, c.Y, c.Z) * q;
-
-                    c.X = n.X;
-                    c.Y = n.Y;
-                    c.Z = n.Z;
-                    this.vertexNormals[i] = c;
-                }
+                    this.vertexNormals[i] *= q;
 
                 this.faceNormal *= q;
                 this.cutNormal1 *= q;
                 this.cutNormal2 *= q;
+
             }
         }
 
@@ -1298,7 +1297,7 @@ namespace PrimMesher
                     this.normals.AddRange(newLayer.vertexNormals);
                 }
 
-                if (percentOfPath <= this.pathCutBegin || percentOfPath >= this.pathCutEnd)
+                if (percentOfPath < this.pathCutBegin + 0.01f || percentOfPath > this.pathCutEnd - 0.01f)
                     this.faces.AddRange(newLayer.faces);
 
                 // fill faces between layers
@@ -1485,7 +1484,7 @@ namespace PrimMesher
 
                 if (done && viewerMode)
                 {
-                    // add the bottom faces to the viewerFaces list here
+                    // add the top faces to the viewerFaces list here
                     Coord faceNormal = newLayer.faceNormal;
                     ViewerFace newViewerFace = new ViewerFace();
                     newViewerFace.primFaceNumber = 0;
@@ -2023,36 +2022,71 @@ namespace PrimMesher
 
         public void AddRot(Quat q)
         {
+            Console.WriteLine("AddRot(" + q.ToString() + ")");
             int i;
             int numVerts = this.coords.Count;
-            Coord vert;
 
             for (i = 0; i < numVerts; i++)
-            {
-                vert = this.coords[i];
-                Coord v = new Coord(vert.X, vert.Y, vert.Z) * q;
+                this.coords[i] *= q;
 
-                vert.X = v.X;
-                vert.Y = v.Y;
-                vert.Z = v.Z;
-                this.coords[i] = vert;
+            if (this.normals != null)
+            {
+                int numNormals = this.normals.Count;
+                for (i = 0; i < numNormals; i++)
+                    this.normals[i] *= q;
             }
+
+            if (this.viewerFaces != null)
+            {
+                int numViewerFaces = this.viewerFaces.Count;
+
+                for (i = 0; i < numViewerFaces; i++)
+                {
+                    ViewerFace v = this.viewerFaces[i];
+                    v.v1 *= q;
+                    v.v2 *= q;
+                    v.v3 *= q;
+
+                    v.n1 *= q;
+                    v.n2 *= q;
+                    v.n3 *= q;
+                    this.viewerFaces[i] = v;
+                }
+            }
+
         }
 
         public void Scale(float x, float y, float z)
         {
             int i;
             int numVerts = this.coords.Count;
-            Coord vert;
+            //Coord vert;
 
+            Coord m = new Coord(x, y, z);
             for (i = 0; i < numVerts; i++)
+                this.coords[i] *= m;
+            //{
+            //    vert = this.coords[i];
+            //    vert.X *= x;
+            //    vert.Y *= y;
+            //    vert.Z *= z;
+            //    this.coords[i] = vert;
+            //}
+
+            if (this.viewerFaces != null)
             {
-                vert = this.coords[i];
-                vert.X *= x;
-                vert.Y *= y;
-                vert.Z *= z;
-                this.coords[i] = vert;
+                int numViewerFaces = this.viewerFaces.Count;
+                for (i = 0; i < numViewerFaces; i++)
+                {
+                    ViewerFace v = this.viewerFaces[i];
+                    v.v1 *= m;
+                    v.v2 *= m;
+                    v.v3 *= m;
+                    this.viewerFaces[i] = v;
+                }
+
             }
+
         }
 
         public void DumpRaw(String path, String name, String title)
