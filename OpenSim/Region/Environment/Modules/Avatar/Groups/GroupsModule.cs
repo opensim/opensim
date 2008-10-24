@@ -162,7 +162,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
         {
             UUID ActiveGroupID;
             string ActiveGroupName;
-            uint ActiveGroupPowers;
+            ulong ActiveGroupPowers;
 
             string firstname = remoteClient.FirstName;
             string lastname = remoteClient.LastName;

@@ -960,6 +960,7 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Region.Interfaces"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Console"/>

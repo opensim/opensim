@@ -41,6 +41,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack.LindenUDP;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using Timer = System.Timers.Timer;
 
@@ -6480,6 +6481,260 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                            OnDeclineCallingCard(this,
                                                 declineCallingCardPacket.TransactionBlock.TransactionID);
+                        }
+                        break;
+
+                    case PacketType.ActivateGroup:
+                        ActivateGroupPacket activateGroupPacket = (ActivateGroupPacket)Pack;
+                        IGroupsModule grps = m_scene.RequestModuleInterface<IGroupsModule>();
+                        if (grps != null)
+                        {
+                            grps.ActivateGroup(this, activateGroupPacket.AgentData.GroupID);
+                        }
+                        break;
+
+                    case PacketType.GroupTitlesRequest:
+                        GroupTitlesRequestPacket groupTitlesRequest =
+                                (GroupTitlesRequestPacket)Pack;
+
+                        IGroupsModule grps2 = m_scene.RequestModuleInterface<IGroupsModule>();
+                        if (grps2 != null)
+                        {
+                            GroupTitlesReplyPacket groupTitlesReply = (GroupTitlesReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupTitlesReply);
+
+                            groupTitlesReply.AgentData =
+                                    new GroupTitlesReplyPacket.AgentDataBlock();
+
+                            groupTitlesReply.AgentData.AgentID = AgentId;
+                            groupTitlesReply.AgentData.GroupID =
+                                    groupTitlesRequest.AgentData.GroupID;
+
+                            groupTitlesReply.AgentData.RequestID =
+                                 groupTitlesRequest.AgentData.RequestID;
+
+                            List<GroupTitlesData> titles =
+                                    grps2.GroupTitlesRequest(this,
+                                    groupTitlesRequest.AgentData.GroupID);
+
+                            groupTitlesReply.GroupData =
+                                    new GroupTitlesReplyPacket.
+                                    GroupDataBlock[titles.Count];
+
+                            int i = 0;
+                            foreach (GroupTitlesData d in titles)
+                            {
+                                groupTitlesReply.GroupData[i] =
+                                        new GroupTitlesReplyPacket.
+                                        GroupDataBlock();
+
+                                groupTitlesReply.GroupData[i].Title =
+                                        Utils.StringToBytes(d.Name);
+                                groupTitlesReply.GroupData[i].RoleID =
+                                        d.UUID;
+                                groupTitlesReply.GroupData[i].Selected =
+                                        d.Selected;
+                                i++;
+                            }
+
+                            OutPacket(groupTitlesReply, ThrottleOutPacketType.Task);
+                        }
+                        break;
+
+                    case PacketType.GroupProfileRequest:
+                        GroupProfileRequestPacket groupProfileRequest =
+                            (GroupProfileRequestPacket)Pack;
+
+                        IGroupsModule grps3 = m_scene.RequestModuleInterface<IGroupsModule>();
+                        if (grps3 != null)
+                        {
+                            GroupProfileReplyPacket groupProfileReply = (GroupProfileReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupProfileReply);
+
+                            groupProfileReply.AgentData = new GroupProfileReplyPacket.AgentDataBlock();
+                            groupProfileReply.GroupData = new GroupProfileReplyPacket.GroupDataBlock();
+                            groupProfileReply.AgentData.AgentID = AgentId;
+
+                            GroupProfileData d = grps3.GroupProfileRequest(this,
+                                    groupProfileRequest.GroupData.GroupID);
+
+                            groupProfileReply.GroupData.GroupID = d.GroupID;
+                            groupProfileReply.GroupData.Name = Utils.StringToBytes(d.Name);
+                            groupProfileReply.GroupData.Charter = Utils.StringToBytes(d.Charter);
+                            groupProfileReply.GroupData.ShowInList = d.ShowInList;
+                            groupProfileReply.GroupData.MemberTitle = Utils.StringToBytes(d.MemberTitle);
+                            groupProfileReply.GroupData.PowersMask = d.PowersMask;
+                            groupProfileReply.GroupData.InsigniaID = d.InsigniaID;
+                            groupProfileReply.GroupData.FounderID = d.FounderID;
+                            groupProfileReply.GroupData.MembershipFee = d.MembershipFee;
+                            groupProfileReply.GroupData.OpenEnrollment = d.OpenEnrollment;
+                            groupProfileReply.GroupData.Money = d.Money;
+                            groupProfileReply.GroupData.GroupMembershipCount = d.GroupMembershipCount;
+                            groupProfileReply.GroupData.GroupRolesCount = d.GroupRolesCount;
+                            groupProfileReply.GroupData.AllowPublish = d.AllowPublish;
+                            groupProfileReply.GroupData.MaturePublish = d.MaturePublish;
+                            groupProfileReply.GroupData.OwnerRole = d.OwnerRole;
+
+                            OutPacket(groupProfileReply, ThrottleOutPacketType.Task);
+                        }
+                        break;
+
+                    case PacketType.GroupMembersRequest:
+                        GroupMembersRequestPacket groupMembersRequestPacket =
+                                (GroupMembersRequestPacket)Pack;
+
+                        IGroupsModule grps4 = m_scene.RequestModuleInterface<IGroupsModule>();
+                        List<GroupMembersData> members =
+                                grps4.GroupMembersRequest(this, groupMembersRequestPacket.GroupData.GroupID);
+
+                        if (grps4 != null)
+                        {
+                            GroupMembersReplyPacket groupMembersReply = (GroupMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupMembersReply);
+
+                            groupMembersReply.AgentData =
+                                new GroupMembersReplyPacket.AgentDataBlock();
+                            groupMembersReply.GroupData =
+                                new GroupMembersReplyPacket.GroupDataBlock();
+                            groupMembersReply.MemberData =
+                                new GroupMembersReplyPacket.MemberDataBlock[
+                                members.Count];
+
+                            groupMembersReply.AgentData.AgentID = AgentId;
+                            groupMembersReply.GroupData.GroupID =
+                                    groupMembersRequestPacket.GroupData.GroupID;
+                            groupMembersReply.GroupData.RequestID =
+                                    groupMembersRequestPacket.GroupData.RequestID;
+                            groupMembersReply.GroupData.MemberCount = members.Count;
+
+                            int i = 0;
+                            foreach (GroupMembersData m in members)
+                            {
+                                groupMembersReply.MemberData[i] =
+                                        new GroupMembersReplyPacket.MemberDataBlock();
+                                groupMembersReply.MemberData[i].AgentID =
+                                        m.AgentID;
+                                groupMembersReply.MemberData[i].Contribution =
+                                        m.Contribution;
+                                groupMembersReply.MemberData[i].OnlineStatus =
+                                        Utils.StringToBytes(m.OnlineStatus);
+                                groupMembersReply.MemberData[i].AgentPowers =
+                                        m.AgentPowers;
+                                groupMembersReply.MemberData[i].Title =
+                                        Utils.StringToBytes(m.Title);
+                                groupMembersReply.MemberData[i].IsOwner =
+                                        m.IsOwner;
+                                i++;
+                            }
+
+                            OutPacket(groupMembersReply, ThrottleOutPacketType.Task);
+                        }
+                        break;
+
+                    case PacketType.GroupRoleDataRequest:
+                        GroupRoleDataRequestPacket groupRolesRequest =
+                                (GroupRoleDataRequestPacket)Pack;
+
+                        IGroupsModule grps5 = m_scene.RequestModuleInterface<IGroupsModule>();
+                        if (grps5 != null)
+                        {
+                            GroupRoleDataReplyPacket groupRolesReply = (GroupRoleDataReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupRoleDataReply);
+
+                            groupRolesReply.AgentData =
+                                    new GroupRoleDataReplyPacket.AgentDataBlock();
+
+                            groupRolesReply.AgentData.AgentID = AgentId;
+
+                            groupRolesReply.GroupData =
+                                    new GroupRoleDataReplyPacket.
+                                    GroupDataBlock();
+
+                            groupRolesReply.GroupData.GroupID =
+                                    groupRolesRequest.GroupData.GroupID;
+
+                            groupRolesReply.GroupData.RequestID =
+                                 groupRolesRequest.GroupData.RequestID;
+
+                            List<GroupRolesData> titles =
+                                    grps5.GroupRoleDataRequest(this,
+                                    groupRolesRequest.GroupData.GroupID);
+
+                            groupRolesReply.GroupData.RoleCount =
+                                    titles.Count;
+
+                            groupRolesReply.RoleData =
+                                    new GroupRoleDataReplyPacket.
+                                    RoleDataBlock[titles.Count];
+
+                            int i = 0;
+                            foreach (GroupRolesData d in titles)
+                            {
+                                groupRolesReply.RoleData[i] =
+                                        new GroupRoleDataReplyPacket.
+                                        RoleDataBlock();
+
+                                groupRolesReply.RoleData[i].RoleID =
+                                        d.RoleID;
+                                groupRolesReply.RoleData[i].Name =
+                                        Utils.StringToBytes(d.Name);
+                                groupRolesReply.RoleData[i].Title =
+                                        Utils.StringToBytes(d.Title);
+                                groupRolesReply.RoleData[i].Description =
+                                        Utils.StringToBytes(d.Description);
+                                groupRolesReply.RoleData[i].Powers =
+                                        d.Powers;
+                                groupRolesReply.RoleData[i].Members =
+                                        (uint)d.Members;
+
+                                i++;
+                            }
+
+Console.WriteLine(groupRolesReply.ToString());
+                            OutPacket(groupRolesReply, ThrottleOutPacketType.Task);
+                        }
+                        break;
+
+                    case PacketType.GroupRoleMembersRequest:
+                        GroupRoleMembersRequestPacket groupRoleMembersRequest =
+                                (GroupRoleMembersRequestPacket)Pack;
+
+                        IGroupsModule grps6 = m_scene.RequestModuleInterface<IGroupsModule>();
+                        if (grps6 != null)
+                        {
+                            GroupRoleMembersReplyPacket groupRoleMembersReply = (GroupRoleMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupRoleMembersReply);
+                            groupRoleMembersReply.AgentData =
+                                new GroupRoleMembersReplyPacket.AgentDataBlock();
+                            groupRoleMembersReply.AgentData.AgentID =
+                                    AgentId;
+                            groupRoleMembersReply.AgentData.GroupID =
+                                    groupRoleMembersRequest.GroupData.GroupID;
+                            groupRoleMembersReply.AgentData.RequestID =
+                                    groupRoleMembersRequest.GroupData.RequestID;
+
+                            List<GroupRoleMembersData> mappings =
+                                    grps6.GroupRoleMembersRequest(this,
+                                    groupRoleMembersRequest.GroupData.GroupID);
+
+                            groupRoleMembersReply.AgentData.TotalPairs =
+                                    (uint)mappings.Count;
+
+                            groupRoleMembersReply.MemberData =
+                                    new GroupRoleMembersReplyPacket.
+                                    MemberDataBlock[mappings.Count];
+
+                            int i = 0;
+                            foreach (GroupRoleMembersData d in mappings)
+                            {
+                                groupRoleMembersReply.MemberData[i] =
+                                        new GroupRoleMembersReplyPacket.
+                                        MemberDataBlock();
+
+                                groupRoleMembersReply.MemberData[i].RoleID =
+                                        d.RoleID;
+                                groupRoleMembersReply.MemberData[i].MemberID =
+                                        d.MemberID;
+                                i++;
+                            }
+
+
+                            OutPacket(groupRoleMembersReply, ThrottleOutPacketType.Task);
                         }
                         break;
 
