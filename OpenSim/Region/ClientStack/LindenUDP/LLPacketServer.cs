@@ -38,8 +38,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public class LLPacketServer
     {
-        private static readonly log4net.ILog m_log
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly log4net.ILog m_log
+//            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected readonly ILLClientStackNetworkHandler m_networkHandler;
         protected IScene m_scene;

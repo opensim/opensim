@@ -74,7 +74,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             
             uint port = 666;            
             testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, acm);
-            LLPacketServer packetServer = new LLPacketServer(testLLUDPServer, userSettings);
+            new LLPacketServer(testLLUDPServer, userSettings);
             testLLUDPServer.LocalScene = new MockScene();
             
             UseCircuitCodePacket uccp = new UseCircuitCodePacket();
