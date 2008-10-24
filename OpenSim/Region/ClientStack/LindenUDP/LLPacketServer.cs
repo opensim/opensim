@@ -76,21 +76,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Create a new client circuit
         /// </summary>
         /// <param name="remoteEP"></param>
-        /// <param name="initialcirpack"></param>
-        /// <param name="clientManager"></param>
         /// <param name="scene"></param>
         /// <param name="assetCache"></param>
         /// <param name="packServer"></param>
-        /// <param name="authenSessions"></param>
+        /// <param name="sessionInfo"></param>
         /// <param name="agentId"></param>
         /// <param name="sessionId"></param>
         /// <param name="circuitCode"></param>
         /// <param name="proxyEP"></param>
         /// <returns></returns>
-        protected virtual IClientAPI CreateNewCircuit(EndPoint remoteEP, UseCircuitCodePacket initialcirpack,
-                                                      ClientManager clientManager, IScene scene, AssetCache assetCache,
-                                                      LLPacketServer packServer, AuthenticateResponse sessionInfo,
-                                                      UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
+        protected virtual IClientAPI CreateNewCircuit(
+            EndPoint remoteEP, IScene scene, AssetCache assetCache,
+            LLPacketServer packServer, AuthenticateResponse sessionInfo,
+             UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
             return
                 new LLClientView(
@@ -99,10 +97,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Check whether a given client is authorized to connect
+        /// Check whether a given client is authorized to connect.
         /// </summary>
         /// <param name="useCircuit"></param>
         /// <param name="circuitManager"></param>
+        /// <param name="sessionInfo"></param>
         /// <returns></returns>
         public virtual bool IsClientAuthorized(
             UseCircuitCodePacket useCircuit, AgentCircuitManager circuitManager, out AuthenticateResponse sessionInfo)
@@ -120,7 +119,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Add a new client circuit
+        /// Add a new client circuit.  We assume that is has already passed an authorization check
         /// </summary>
         /// <param name="epSender"></param>
         /// <param name="useCircuit"></param>
@@ -150,8 +149,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             newuser 
                 = CreateNewCircuit(
-                    epSender, useCircuit, m_scene.ClientManager, m_scene, assetCache, this, sessionInfo, 
-                    agentId, sessionId, circuitCode, proxyEP);
+                    epSender, m_scene, assetCache, this, sessionInfo, agentId, sessionId, circuitCode, proxyEP);
 
             m_scene.ClientManager.Add(circuitCode, newuser);
 
@@ -165,7 +163,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void LogoutHandler(IClientAPI client)
         {
             client.SendLogoutPacket();
-
             CloseClient(client);
         }
 
