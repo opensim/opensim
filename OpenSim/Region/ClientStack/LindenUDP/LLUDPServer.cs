@@ -385,11 +385,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //Slave regions don't accept new clients
             if (m_localScene.Region_Status != RegionStatus.SlaveScene)
             {                
+                AuthenticateResponse sessionInfo;
                 bool isNewCircuit = false;
+                
+                if (!m_packetServer.IsClientAuthorized(useCircuit, m_circuitManager, out sessionInfo))
+                {
+                    m_log.WarnFormat(
+                        "[CLIENT]: New user request denied to avatar {0} connecting with unauthorized circuit code {1} from {2}",
+                        useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code, epSender);
+                    
+                    return;
+                }
+                else
+                {
+                    m_log.Info("[CLIENT]: Got authenticated connection from " + epSender);
+                }
                 
                 lock (clientCircuits)
                 {
-                    if (!clientCircuits.ContainsKey(epSender))  
+                    if (!clientCircuits.ContainsKey(epSender))
                     {
                         m_log.DebugFormat(
                             "[CLIENT]: Adding new circuit for agent {0}, circuit code {1}", 
@@ -409,8 +423,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         proxyCircuits[useCircuit.CircuitCode.Code] = epProxy;
                     }
-
-                    m_packetServer.AddNewClient(epSender, useCircuit, m_assetCache, m_circuitManager, epProxy);
+                    
+                    m_packetServer.AddNewClient(epSender, useCircuit, m_assetCache, sessionInfo, epProxy);
                 }
             }            
             
@@ -533,6 +547,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             useCircuit.CircuitCode.Code = circuit.circuitcode;
             useCircuit.CircuitCode.ID = circuit.AgentID;
             useCircuit.CircuitCode.SessionID = circuit.SessionID;
+            
+            AuthenticateResponse sessionInfo;
+            
+            if (!m_packetServer.IsClientAuthorized(useCircuit, m_circuitManager, out sessionInfo))
+            {
+                m_log.WarnFormat(
+                    "[CLIENT]: Restore request denied to avatar {0} connecting with unauthorized circuit code {1}",
+                    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
+                
+                return;
+            }               
 
             lock (clientCircuits)
             {
@@ -562,7 +587,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            m_packetServer.AddNewClient(userEP, useCircuit, m_assetCache, m_circuitManager, proxyEP);
+            m_packetServer.AddNewClient(userEP, useCircuit, m_assetCache, sessionInfo, proxyEP);
         }
     }
 }

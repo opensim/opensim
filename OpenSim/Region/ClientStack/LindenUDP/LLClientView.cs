@@ -105,7 +105,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>();
 
         protected IScene m_scene;
-        protected AgentCircuitManager m_authenticateSessionsHandler;
 
         protected LLPacketServer m_networkServer;
 
@@ -409,7 +408,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="proxyEP"></param>
         public LLClientView(
             EndPoint remoteEP, IScene scene, AssetCache assetCache, LLPacketServer packServer,
-            AgentCircuitManager authenSessions, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP,
+            AuthenticateResponse sessionInfo, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP,
             ClientStackUserSettings userSettings)
         {
             m_moneyBalance = 1000;
@@ -422,17 +421,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_assetCache = assetCache;
 
             m_networkServer = packServer;
-            // m_inventoryCache = inventoryCache;
-            m_authenticateSessionsHandler = authenSessions;
 
             m_agentId = agentId;
             m_sessionId = sessionId;
             m_circuitCode = circuitCode;
 
             m_userEndPoint = remoteEP;
-            m_proxyEndPoint = proxyEP;
+            m_proxyEndPoint = proxyEP;           
+            
+            m_firstName = sessionInfo.LoginInfo.First;
+            m_lastName = sessionInfo.LoginInfo.Last;
+            m_startpos = sessionInfo.LoginInfo.StartPos;
 
-            m_startpos = m_authenticateSessionsHandler.GetPosition(circuitCode);
+            if (sessionInfo.LoginInfo.SecureSession != UUID.Zero)
+            {
+                m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
+            }
 
             // While working on this, the BlockingQueue had me fooled for a bit.
             // The Blocking queue causes the thread to stop until there's something
@@ -444,7 +448,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             RegisterLocalPacketHandlers();
 
-            m_clientThread = new Thread(new ThreadStart(AuthUser));
+            m_clientThread = new Thread(new ThreadStart(Start));
             m_clientThread.Name = "ClientThread";
             m_clientThread.IsBackground = true;
             m_clientThread.Start();
@@ -759,9 +763,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Authorize an incoming user session.  This method lies at the base of the entire client thread.
+        /// Start a user session.  This method lies at the base of the entire client thread.
         /// </summary>
-        protected virtual void AuthUser()
+        protected virtual void Start()
         {
             //tell this thread we are using the culture set up for the sim (currently hardcoded to en_US)
             //otherwise it will override this and use the system default
@@ -769,37 +773,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
-                // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(m_cirpack.m_circuitCode.m_sessionId, m_cirpack.m_circuitCode.ID, m_cirpack.m_circuitCode.Code);
-                AuthenticateResponse sessionInfo =
-                    m_authenticateSessionsHandler.AuthenticateSession(m_sessionId, m_agentId, m_circuitCode);
-
-                if (!sessionInfo.Authorised)
-                {
-                    //session/circuit not authorised
-                    m_log.WarnFormat(
-                        "[CLIENT]: New user request denied to avatar {0} connecting with circuit code {1} from {2}",
-                        m_agentId, m_circuitCode, m_userEndPoint);
-
-                    m_PacketHandler.Stop();
-                    m_clientThread.Abort();
-                }
-                else
-                {
-                    m_log.Info("[CLIENT]: Got authenticated connection from " + m_userEndPoint.ToString());
-                    //session is authorised
-                    m_firstName = sessionInfo.LoginInfo.First;
-                    m_lastName = sessionInfo.LoginInfo.Last;
-
-                    if (sessionInfo.LoginInfo.SecureSession != UUID.Zero)
-                    {
-                        m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
-                    }
-
-                    // This sets up all the timers
-                    InitNewClient();
-
-                    ClientLoop();
-                }
+                // This sets up all the timers
+                InitNewClient();
+                ClientLoop();
             }                
             catch (System.Exception e)
             {

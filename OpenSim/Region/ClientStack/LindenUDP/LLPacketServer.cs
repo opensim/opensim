@@ -27,6 +27,8 @@
 
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -36,8 +38,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public class LLPacketServer
     {
-        //private static readonly log4net.ILog m_log
-        //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected readonly ILLClientStackNetworkHandler m_networkHandler;
         protected IScene m_scene;
@@ -87,13 +89,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         protected virtual IClientAPI CreateNewCircuit(EndPoint remoteEP, UseCircuitCodePacket initialcirpack,
                                                       ClientManager clientManager, IScene scene, AssetCache assetCache,
-                                                      LLPacketServer packServer, AgentCircuitManager authenSessions,
+                                                      LLPacketServer packServer, AuthenticateResponse sessionInfo,
                                                       UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP)
         {
             return
                 new LLClientView(
-                     remoteEP, scene, assetCache, packServer, authenSessions, agentId, sessionId, circuitCode, proxyEP,
+                     remoteEP, scene, assetCache, packServer, sessionInfo, agentId, sessionId, circuitCode, proxyEP,
                      m_userSettings);
+        }
+
+        /// <summary>
+        /// Check whether a given client is authorized to connect
+        /// </summary>
+        /// <param name="useCircuit"></param>
+        /// <param name="circuitManager"></param>
+        /// <returns></returns>
+        public virtual bool IsClientAuthorized(
+            UseCircuitCodePacket useCircuit, AgentCircuitManager circuitManager, out AuthenticateResponse sessionInfo)
+        {
+            UUID agentId = useCircuit.CircuitCode.ID;
+            UUID sessionId = useCircuit.CircuitCode.SessionID;
+            uint circuitCode = useCircuit.CircuitCode.Code;
+
+            sessionInfo = circuitManager.AuthenticateSession(sessionId, agentId, circuitCode); 
+
+            if (!sessionInfo.Authorised)
+                return false;  
+            
+            return true;
         }
 
         /// <summary>
@@ -102,34 +125,41 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="epSender"></param>
         /// <param name="useCircuit"></param>
         /// <param name="assetCache"></param>
-        /// <param name="circuitManager"></param>
+        /// <param name="sessionInfo"></param>
         /// <param name="proxyEP"></param>
         /// <returns>
         /// true if a new circuit was created, false if a circuit with the given circuit code already existed
-        /// </returns>
-        public virtual bool AddNewClient(EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache,
-                                         AgentCircuitManager circuitManager, EndPoint proxyEP)
+        /// </returns>        
+        public virtual bool AddNewClient(
+            EndPoint epSender, UseCircuitCodePacket useCircuit, AssetCache assetCache,
+            AuthenticateResponse sessionInfo, EndPoint proxyEP)
         {
             IClientAPI newuser;
-
-            if (m_scene.ClientManager.TryGetClient(useCircuit.CircuitCode.Code, out newuser))
+            uint circuitCode = useCircuit.CircuitCode.Code;
+            
+            if (m_scene.ClientManager.TryGetClient(circuitCode, out newuser))
             {
+                // The circuit is already known to the scene.  This not actually a problem since this will currently
+                // occur if a client is crossing borders (hence upgrading its circuit).  However, we shouldn't 
+                // really by trying to add a new client if this is the case.
                 return false;
             }
-            else
-            {
-                newuser = CreateNewCircuit(epSender, useCircuit, m_scene.ClientManager, m_scene, assetCache, this,
-                                           circuitManager, useCircuit.CircuitCode.ID,
-                                           useCircuit.CircuitCode.SessionID, useCircuit.CircuitCode.Code, proxyEP);
+            
+            UUID agentId = useCircuit.CircuitCode.ID;
+            UUID sessionId = useCircuit.CircuitCode.SessionID;
+            
+            newuser 
+                = CreateNewCircuit(
+                    epSender, useCircuit, m_scene.ClientManager, m_scene, assetCache, this, sessionInfo, 
+                    agentId, sessionId, circuitCode, proxyEP);
 
-                m_scene.ClientManager.Add(useCircuit.CircuitCode.Code, newuser);
+            m_scene.ClientManager.Add(circuitCode, newuser);
 
-                newuser.OnViewerEffect += m_scene.ClientManager.ViewerEffectHandler;
-                newuser.OnLogout += LogoutHandler;
-                newuser.OnConnectionClosed += CloseClient;
+            newuser.OnViewerEffect += m_scene.ClientManager.ViewerEffectHandler;
+            newuser.OnLogout += LogoutHandler;
+            newuser.OnConnectionClosed += CloseClient;
 
-                return true;
-            }
+            return true;
         }
 
         public void LogoutHandler(IClientAPI client)

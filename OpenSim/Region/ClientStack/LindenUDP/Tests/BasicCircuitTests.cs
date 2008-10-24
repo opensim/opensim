@@ -26,6 +26,7 @@
  */
 
 using System.Net;
+//using System.Threading;
 using log4net;
 using NUnit.Framework;
 using OpenMetaverse;
@@ -69,8 +70,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             AgentCircuitManager acm = new AgentCircuitManager();
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = myAgentUuid;
-            acd.SessionID = mySessionUuid;            
-            acm.AddNewCircuit(myCircuitCode, acd);
+            acd.SessionID = mySessionUuid;                        
             
             uint port = 666;            
             testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, acm);
@@ -89,10 +89,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             EndPoint testEp = new IPEndPoint(IPAddress.Loopback, 999);
             
             testLLUDPServer.LoadReceive(uccp, testEp);            
-            testLLUDPServer.ReceiveData(null);        
+            testLLUDPServer.ReceiveData(null);
             
-            Assert.IsFalse(testLLUDPServer.HasCircuit(101));
+            // Circuit shouildn't exist since the circuit manager doesn't know about this circuit for authentication yet
+            Assert.IsFalse(testLLUDPServer.HasCircuit(myCircuitCode));
+                        
+            acm.AddNewCircuit(myCircuitCode, acd);
+            
+            testLLUDPServer.LoadReceive(uccp, testEp);            
+            testLLUDPServer.ReceiveData(null);            
+            
+            // Should succeed now
             Assert.IsTrue(testLLUDPServer.HasCircuit(myCircuitCode));
+            Assert.IsFalse(testLLUDPServer.HasCircuit(101));
         }
     }
 }
