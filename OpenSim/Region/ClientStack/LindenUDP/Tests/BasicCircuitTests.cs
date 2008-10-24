@@ -42,8 +42,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
     [TestFixture]
     public class BasicCircuitTests
     {
-        [Test]
-        public void TestAddClient()
+        [SetUp]
+        public void Init()
         {
             try
             {
@@ -52,8 +52,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             catch
             {
                 // I don't care, just leave log4net off
-            }
-            
+            }            
+        }
+        
+        [Test]
+        public void TestAddClient()
+        {            
             TestLLUDPServer testLLUDPServer = new TestLLUDPServer();            
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
             
