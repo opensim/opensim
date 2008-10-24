@@ -28,6 +28,7 @@
 using System.Net;
 using log4net;
 using NUnit.Framework;
+using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -58,18 +59,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [Test]
         public void TestAddClient()
         {            
+            uint myCircuitCode = 123456;
+            UUID myAgentUuid   = UUID.Parse("00000000-0000-0000-0000-000000000001");
+            UUID mySessionUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
+            
             TestLLUDPServer testLLUDPServer = new TestLLUDPServer();            
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
             
+            AgentCircuitManager acm = new AgentCircuitManager();
+            AgentCircuitData acd = new AgentCircuitData();
+            acd.AgentID = myAgentUuid;
+            acd.SessionID = mySessionUuid;            
+            acm.AddNewCircuit(myCircuitCode, acd);
+            
             uint port = 666;            
-            testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, new AgentCircuitManager());
+            testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, acm);
             LLPacketServer packetServer = new LLPacketServer(testLLUDPServer, userSettings);
             testLLUDPServer.LocalScene = new MockScene();
             
             UseCircuitCodePacket uccp = new UseCircuitCodePacket();
+            
             UseCircuitCodePacket.CircuitCodeBlock uccpCcBlock 
                 = new OpenMetaverse.Packets.UseCircuitCodePacket.CircuitCodeBlock();
-            uccpCcBlock.Code = 123456;
+            uccpCcBlock.Code = myCircuitCode;
+            uccpCcBlock.ID = myAgentUuid;
+            uccpCcBlock.SessionID = mySessionUuid;
             uccp.CircuitCode = uccpCcBlock;
             
             EndPoint testEp = new IPEndPoint(IPAddress.Loopback, 999);
@@ -78,7 +92,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             testLLUDPServer.ReceiveData(null);        
             
             Assert.IsFalse(testLLUDPServer.HasCircuit(101));
-            Assert.IsTrue(testLLUDPServer.HasCircuit(123456));
+            Assert.IsTrue(testLLUDPServer.HasCircuit(myCircuitCode));
         }
     }
 }

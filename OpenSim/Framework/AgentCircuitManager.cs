@@ -74,7 +74,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Add information about a new circuit.
+        /// Add information about a new circuit so that later on we can authenticate a new client session.
         /// </summary>
         /// <param name="circuitCode"></param>
         /// <param name="agentData"></param>

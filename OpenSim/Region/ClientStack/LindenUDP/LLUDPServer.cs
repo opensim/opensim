@@ -395,8 +395,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             "[CLIENT]: Adding new circuit for agent {0}, circuit code {1}", 
                             useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
                         
-                        clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
-                        
+                        clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);                        
                         isNewCircuit = true;
                     }
                 }
