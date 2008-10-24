@@ -1624,7 +1624,7 @@ namespace PrimMesher
             while (!done) // loop through the length of the path and add the layers
             {
                 bool isEndLayer = false;
-                if (angle == startAngle || angle >= endAngle)
+                if (angle <= startAngle + .01f || angle >= endAngle - .01f)
                     isEndLayer = true;
 
                 //Profile newLayer = profile.Clone(isEndLayer && needEndFaces);
@@ -1674,10 +1674,7 @@ namespace PrimMesher
                 newLayer.AddRot(new Quat(new Coord(1.0f, 0.0f, 0.0f), angle + this.topShearY));
                 newLayer.AddPos(xOffset, yOffset, zOffset);
 
-                if (angle == startAngle)
-                    newLayer.FlipNormals();
-
-                if (angle == startAngle)
+                if (isEndLayer && angle <= startAngle + .01f)
                 {
                     newLayer.FlipNormals();
 
@@ -1749,30 +1746,6 @@ namespace PrimMesher
                         newFace.v3 = i + 1;
                         this.faces.Add(newFace);
 
-                        //if (this.viewerMode)
-                        //{
-                        //    // add the side faces to the list of viewerFaces here
-                        //    ViewerFace newViewerFace = new ViewerFace();
-                        //    newViewerFace.v1 = this.coords[i];
-                        //    newViewerFace.v2 = this.coords[i - numVerts];
-                        //    newViewerFace.v3 = this.coords[i - numVerts + 1];
-
-                        //    newViewerFace.n1 = this.normals[i];
-                        //    newViewerFace.n2 = this.normals[i - numVerts];
-                        //    newViewerFace.n3 = this.normals[i - numVerts + 1];
-
-                        //    this.viewerFaces.Add(newViewerFace);
-
-                        //    newViewerFace.v2 = this.coords[i - numVerts + 1];
-                        //    newViewerFace.v3 = this.coords[i + 1];
-
-                        //    newViewerFace.n2 = this.normals[i - numVerts + 1];
-                        //    newViewerFace.n3 = this.normals[i + 1];
-
-                        //    this.viewerFaces.Add(newViewerFace);
-
-                        //}
-
                         if (this.viewerMode)
                         {
                             // add the side faces to the list of viewerFaces here
@@ -1841,19 +1814,6 @@ namespace PrimMesher
 
                         }
                     }
-
-                    //if (this.hasProfileCut)
-                    //{
-                    //    newFace.v1 = coordsLen - 1;
-                    //    newFace.v2 = coordsLen - numVerts;
-                    //    newFace.v3 = coordsLen;
-                    //    this.faces.Add(newFace);
-
-                    //    newFace.v1 = coordsLen + numVerts - 1;
-                    //    newFace.v2 = coordsLen - 1;
-                    //    newFace.v3 = coordsLen;
-                    //    this.faces.Add(newFace);
-                    //}
 
                     if (this.hasProfileCut)
                     { // add the end cut face to the list of viewerFaces here
