@@ -954,5 +954,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendDeclineCallingCard (UUID transactionID)
         {
         }
+
+        public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
+        {
+        }
     }
 }

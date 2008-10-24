@@ -273,6 +273,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private MapItemRequest handlerMapItemRequest = null;
 
+        private IGroupsModule m_GroupsModule = null;
+
         //private TerrainUnacked handlerUnackedTerrain = null;
 
         //**
@@ -411,6 +413,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AuthenticateResponse sessionInfo, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP,
             ClientStackUserSettings userSettings)
         {
+            m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
             m_moneyBalance = 1000;
 
             m_channelVersion = Utils.StringToBytes(scene.GetSimulatorVersion());
@@ -6286,10 +6289,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         //m_log.Warn("[CLIENT]: unhandled ViewerStats packet");
                         break;
 
-                    case PacketType.CreateGroupRequest:
-                        // TODO: handle this packet
-                        //m_log.Warn("[CLIENT]: unhandled CreateGroupRequest packet");
-                        break;
                     //case PacketType.GenericMessage:
                     // TODO: handle this packet
                     //m_log.Warn("[CLIENT]: unhandled GenericMessage packet");
@@ -6462,10 +6461,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     case PacketType.ActivateGroup:
                         ActivateGroupPacket activateGroupPacket = (ActivateGroupPacket)Pack;
-                        IGroupsModule grps = m_scene.RequestModuleInterface<IGroupsModule>();
-                        if (grps != null)
+                        if (m_GroupsModule != null)
                         {
-                            grps.ActivateGroup(this, activateGroupPacket.AgentData.GroupID);
+                            m_GroupsModule.ActivateGroup(this, activateGroupPacket.AgentData.GroupID);
+                            m_GroupsModule.SendAgentGroupDataUpdate(this);
                         }
                         break;
 
@@ -6473,8 +6472,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         GroupTitlesRequestPacket groupTitlesRequest =
                                 (GroupTitlesRequestPacket)Pack;
 
-                        IGroupsModule grps2 = m_scene.RequestModuleInterface<IGroupsModule>();
-                        if (grps2 != null)
+                        if (m_GroupsModule != null)
                         {
                             GroupTitlesReplyPacket groupTitlesReply = (GroupTitlesReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupTitlesReply);
 
@@ -6489,7 +6487,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                  groupTitlesRequest.AgentData.RequestID;
 
                             List<GroupTitlesData> titles =
-                                    grps2.GroupTitlesRequest(this,
+                                    m_GroupsModule.GroupTitlesRequest(this,
                                     groupTitlesRequest.AgentData.GroupID);
 
                             groupTitlesReply.GroupData =
@@ -6520,8 +6518,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         GroupProfileRequestPacket groupProfileRequest =
                             (GroupProfileRequestPacket)Pack;
 
-                        IGroupsModule grps3 = m_scene.RequestModuleInterface<IGroupsModule>();
-                        if (grps3 != null)
+                        if (m_GroupsModule != null)
                         {
                             GroupProfileReplyPacket groupProfileReply = (GroupProfileReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupProfileReply);
 
@@ -6529,7 +6526,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             groupProfileReply.GroupData = new GroupProfileReplyPacket.GroupDataBlock();
                             groupProfileReply.AgentData.AgentID = AgentId;
 
-                            GroupProfileData d = grps3.GroupProfileRequest(this,
+                            GroupProfileData d = m_GroupsModule.GroupProfileRequest(this,
                                     groupProfileRequest.GroupData.GroupID);
 
                             groupProfileReply.GroupData.GroupID = d.GroupID;
@@ -6557,11 +6554,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         GroupMembersRequestPacket groupMembersRequestPacket =
                                 (GroupMembersRequestPacket)Pack;
 
-                        IGroupsModule grps4 = m_scene.RequestModuleInterface<IGroupsModule>();
                         List<GroupMembersData> members =
-                                grps4.GroupMembersRequest(this, groupMembersRequestPacket.GroupData.GroupID);
+                                m_GroupsModule.GroupMembersRequest(this, groupMembersRequestPacket.GroupData.GroupID);
 
-                        if (grps4 != null)
+                        if (m_GroupsModule != null)
                         {
                             GroupMembersReplyPacket groupMembersReply = (GroupMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupMembersReply);
 
@@ -6608,8 +6604,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         GroupRoleDataRequestPacket groupRolesRequest =
                                 (GroupRoleDataRequestPacket)Pack;
 
-                        IGroupsModule grps5 = m_scene.RequestModuleInterface<IGroupsModule>();
-                        if (grps5 != null)
+                        if (m_GroupsModule != null)
                         {
                             GroupRoleDataReplyPacket groupRolesReply = (GroupRoleDataReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupRoleDataReply);
 
@@ -6629,7 +6624,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                  groupRolesRequest.GroupData.RequestID;
 
                             List<GroupRolesData> titles =
-                                    grps5.GroupRoleDataRequest(this,
+                                    m_GroupsModule.GroupRoleDataRequest(this,
                                     groupRolesRequest.GroupData.GroupID);
 
                             groupRolesReply.GroupData.RoleCount =
@@ -6670,8 +6665,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         GroupRoleMembersRequestPacket groupRoleMembersRequest =
                                 (GroupRoleMembersRequestPacket)Pack;
 
-                        IGroupsModule grps6 = m_scene.RequestModuleInterface<IGroupsModule>();
-                        if (grps6 != null)
+                        if (m_GroupsModule != null)
                         {
                             GroupRoleMembersReplyPacket groupRoleMembersReply = (GroupRoleMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupRoleMembersReply);
                             groupRoleMembersReply.AgentData =
@@ -6684,7 +6678,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     groupRoleMembersRequest.GroupData.RequestID;
 
                             List<GroupRoleMembersData> mappings =
-                                    grps6.GroupRoleMembersRequest(this,
+                                    m_GroupsModule.GroupRoleMembersRequest(this,
                                     groupRoleMembersRequest.GroupData.GroupID);
 
                             groupRoleMembersReply.AgentData.TotalPairs =
@@ -6713,6 +6707,108 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         break;
 
+                    case PacketType.CreateGroupRequest:
+                        CreateGroupRequestPacket createGroupRequest =
+                                (CreateGroupRequestPacket)Pack;
+
+                        if (m_GroupsModule != null)
+                        {
+                            CreateGroupReplyPacket createGroupReply = (CreateGroupReplyPacket)PacketPool.Instance.GetPacket(PacketType.CreateGroupReply);
+
+                            createGroupReply.AgentData =
+                                    new CreateGroupReplyPacket.AgentDataBlock();
+                            createGroupReply.ReplyData =
+                                    new CreateGroupReplyPacket.ReplyDataBlock();
+
+                            createGroupReply.AgentData.AgentID = AgentId;
+                            createGroupReply.ReplyData.GroupID = UUID.Zero;
+
+                            IMoneyModule money = m_scene.RequestModuleInterface<IMoneyModule>();
+                            if (money != null && !money.GroupCreationCovered(this))
+                            {
+                                createGroupReply.ReplyData.Success = false;
+                                createGroupReply.ReplyData.Message = Utils.StringToBytes("You do not have sufficient funds to create a group");
+                                OutPacket(createGroupReply, ThrottleOutPacketType.Task);
+                                break;
+                            }
+
+                            UUID groupID = m_GroupsModule.CreateGroup(this,
+                                    Utils.BytesToString(createGroupRequest.GroupData.Name),
+                                    Utils.BytesToString(createGroupRequest.GroupData.Charter),
+                                    createGroupRequest.GroupData.ShowInList,
+                                    createGroupRequest.GroupData.InsigniaID,
+                                    createGroupRequest.GroupData.MembershipFee,
+                                    createGroupRequest.GroupData.OpenEnrollment,
+                                    createGroupRequest.GroupData.AllowPublish,
+                                    createGroupRequest.GroupData.MaturePublish);
+                            if (groupID == UUID.Zero)
+                            {
+                                createGroupReply.ReplyData.Success = false;
+                                createGroupReply.ReplyData.Message = Utils.StringToBytes("We're sorry, but we could not create the requested group. Please try another name");
+                                OutPacket(createGroupReply, ThrottleOutPacketType.Task);
+                                break;
+                            }
+
+                            if (money != null)
+                                money.ApplyGroupCreationCharge(AgentId);
+
+                            createGroupReply.ReplyData.Success = true;
+                            createGroupReply.ReplyData.GroupID = groupID;
+                            createGroupReply.ReplyData.Message = Utils.StringToBytes("Group created");
+                            OutPacket(createGroupReply, ThrottleOutPacketType.Task);
+
+                            // Sync with event queue
+                            System.Threading.Thread.Sleep(1000);
+
+                            m_GroupsModule.SendAgentGroupDataUpdate(this);
+                        }
+                        break;
+
+                    case PacketType.UpdateGroupInfo:
+                        UpdateGroupInfoPacket updateGroupInfo =
+                                (UpdateGroupInfoPacket)Pack;
+
+                        if (m_GroupsModule != null)
+                        {
+                            m_GroupsModule.UpdateGroupInfo(this,
+                                    updateGroupInfo.GroupData.GroupID,
+                                    Utils.BytesToString(updateGroupInfo.GroupData.Charter),
+                                    updateGroupInfo.GroupData.ShowInList,
+                                    updateGroupInfo.GroupData.InsigniaID,
+                                    updateGroupInfo.GroupData.MembershipFee,
+                                    updateGroupInfo.GroupData.OpenEnrollment,
+                                    updateGroupInfo.GroupData.AllowPublish,
+                                    updateGroupInfo.GroupData.MaturePublish);
+                        }
+
+                        break;
+
+                    case PacketType.SetGroupAcceptNotices:
+                        SetGroupAcceptNoticesPacket setGroupAcceptNotices =
+                                (SetGroupAcceptNoticesPacket)Pack;
+
+                        if (m_GroupsModule != null)
+                        {
+                            m_GroupsModule.SetGroupAcceptNotices(this,
+                                    setGroupAcceptNotices.Data.GroupID,
+                                    setGroupAcceptNotices.Data.AcceptNotices,
+                                    setGroupAcceptNotices.NewData.ListInProfile);
+                        }
+
+                        break;
+
+                    case PacketType.GroupTitleUpdate:
+                        GroupTitleUpdatePacket groupTitleUpdate =
+                                (GroupTitleUpdatePacket)Pack;
+
+                        if (m_GroupsModule != null)
+                        {
+                            m_GroupsModule.GroupTitleUpdate(this,
+                                    groupTitleUpdate.AgentData.GroupID,
+                                    groupTitleUpdate.AgentData.TitleRoleID);
+                        }
+
+                        break;
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
                         break;
@@ -7456,6 +7552,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             p.AgentData.AgentID = AgentId;
             p.AgentData.SessionID = UUID.Zero;
             p.TransactionBlock.TransactionID = transactionID;
+            OutPacket(p, ThrottleOutPacketType.Task);
+        }
+
+        public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
+        {
+            int i;
+
+            AvatarGroupsReplyPacket p = (AvatarGroupsReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarGroupsReply);
+
+            p.AgentData = new AvatarGroupsReplyPacket.AgentDataBlock();
+            p.AgentData.AgentID = AgentId;
+            p.AgentData.AvatarID = avatarID;
+
+            p.GroupData = new AvatarGroupsReplyPacket.GroupDataBlock[data.Length];
+            i = 0;
+            foreach (GroupMembershipData m in data)
+            {
+                p.GroupData[i] = new AvatarGroupsReplyPacket.GroupDataBlock();
+                p.GroupData[i].GroupPowers = m.GroupPowers;
+                p.GroupData[i].AcceptNotices = m.AcceptNotices;
+                p.GroupData[i].GroupTitle = Utils.StringToBytes(m.GroupTitle);
+                p.GroupData[i].GroupID = m.GroupID;
+                p.GroupData[i].GroupName = Utils.StringToBytes(m.GroupName);
+                p.GroupData[i].GroupInsigniaID = m.GroupPicture;
+                i++;
+            }
+
+            p.NewGroupData = new AvatarGroupsReplyPacket.NewGroupDataBlock();
+            p.NewGroupData.ListInProfile = true;
+
             OutPacket(p, ThrottleOutPacketType.Task);
         }
 

@@ -187,6 +187,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         {
         }
 
+        public void ApplyGroupCreationCharge(UUID agentID)
+        {
+        }
+
         public bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID, int amount)
         {
             string description = String.Format("Object {0} pays {1}", resolveObjectName(objectID), resolveAgentName(toID));
@@ -1507,6 +1511,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         public bool UploadCovered(IClientAPI client)
         {
             if (GetBalance(client) < PriceUpload)
+                return false;
+
+            return true;
+        }
+
+        public bool GroupCreationCovered(IClientAPI client)
+        {
+            if (GetBalance(client) < PriceGroupCreate)
                 return false;
 
             return true;

@@ -52,7 +52,7 @@ namespace OpenSim.Region.Environment
             };
         }
 
-        private static LLSD buildEvent(string eventName, LLSD eventBody)
+        public static LLSD buildEvent(string eventName, LLSD eventBody)
         {
             LLSDMap llsdEvent = new LLSDMap(2);
             llsdEvent.Add("message", new LLSDString(eventName));

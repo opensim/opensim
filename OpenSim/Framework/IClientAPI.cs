@@ -902,6 +902,7 @@ namespace OpenSim.Framework
 
         void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags);
 
+        void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data);
         void SendOfferCallingCard(UUID srcID, UUID transactionID);
         void SendAcceptCallingCard(UUID transactionID);
         void SendDeclineCallingCard(UUID transactionID);

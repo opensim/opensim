@@ -40,6 +40,8 @@ namespace OpenSim.Region.Interfaces
         int GetBalance(IClientAPI client);
         void ApplyUploadCharge(UUID agentID);
         bool UploadCovered(IClientAPI client);
+        void ApplyGroupCreationCharge(UUID agentID);
+        bool GroupCreationCovered(IClientAPI client);
 
         event ObjectPaid OnObjectPaid;
     }

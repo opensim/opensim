@@ -40,6 +40,15 @@ namespace OpenSim.Region.Interfaces
         List<GroupRolesData> GroupRoleDataRequest(IClientAPI remoteClient, UUID groupID);
         List<GroupRoleMembersData> GroupRoleMembersRequest(IClientAPI remoteClient, UUID groupID);
         GroupProfileData GroupProfileRequest(IClientAPI remoteClient, UUID groupID);
+        GroupMembershipData[] GetMembershipData(UUID UserID);
 
+        void UpdateGroupInfo(IClientAPI remoteClient, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);
+
+        void SetGroupAcceptNotices(IClientAPI remoteClient, UUID groupID, bool acceptNotices, bool listInProfile);
+
+        void GroupTitleUpdate(IClientAPI remoteClient, UUID GroupID, UUID TitleRoleID);
+        UUID CreateGroup(IClientAPI remoteClient, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);
+
+        void SendAgentGroupDataUpdate(IClientAPI remoteClient);
     }
 }

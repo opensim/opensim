@@ -955,5 +955,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public void SendDeclineCallingCard (UUID transactionID)
         {
         }
+
+        public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
+        {
+        }
     }
 }

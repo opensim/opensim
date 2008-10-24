@@ -42,11 +42,12 @@ namespace OpenSim.Framework
         public string GroupName;
         public bool AllowPublish = true;
         public bool MaturePublish = true;
-        public UUID Charter = UUID.Zero;
+        public string Charter;
         public UUID FounderID = UUID.Zero;
         public UUID GroupPicture = UUID.Zero;
         public int MembershipFee = 0;
         public bool OpenEnrollment = true;
+        public bool ShowInList = true;
 
         // Per user data
         //
@@ -55,6 +56,8 @@ namespace OpenSim.Framework
         public ulong GroupPowers = 0;
         public bool Active = false;
         public UUID ActiveRole = UUID.Zero;
+        public bool ListInProfile = false;
+        public string GroupTitle;
     }
 
     public struct GroupTitlesData
@@ -92,6 +95,7 @@ namespace OpenSim.Framework
         public ulong AgentPowers;
         public string Title;
         public bool IsOwner;
+        public bool ListInProfile;
     }
 
     public struct GroupRolesData
