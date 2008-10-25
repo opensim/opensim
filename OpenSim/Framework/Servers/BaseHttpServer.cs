@@ -587,6 +587,8 @@ namespace OpenSim.Framework.Servers
                     if (m_rpcHandlers.TryGetValue(methodName, out method))
                     {
                         xmlRpcResponse = method(xmlRprcRequest);
+                        // if the method wasn't found, we can't determine KeepAlive state anyway, so lets do it only here
+                        response.KeepAlive = m_rpcHandlersKeepAlive[methodName];
                     }
                     else
                     {
@@ -596,7 +598,6 @@ namespace OpenSim.Framework.Servers
                     }
 
                     responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
-                    response.KeepAlive = m_rpcHandlersKeepAlive[methodName];
                 }
                 else
                 {
