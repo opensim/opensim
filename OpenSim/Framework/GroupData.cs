@@ -113,4 +113,14 @@ namespace OpenSim.Framework
         public UUID RoleID;
         public UUID MemberID;
     }
+
+    public struct GroupNoticeData
+    {
+        public UUID NoticeID;
+        public uint Timestamp;
+        public string FromName;
+        public string Subject;
+        public bool HasAttachment;
+        public byte AssetType;
+    }
 }

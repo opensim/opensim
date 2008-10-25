@@ -48,7 +48,9 @@ namespace OpenSim.Region.Interfaces
 
         void GroupTitleUpdate(IClientAPI remoteClient, UUID GroupID, UUID TitleRoleID);
         UUID CreateGroup(IClientAPI remoteClient, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);
-
+        
+        GroupNoticeData[] GroupNoticesListRequest(IClientAPI remoteClient, UUID GroupID);
+        void GroupNoticeRequest(IClientAPI remoteClient, UUID groupNoticeID);
         void SendAgentGroupDataUpdate(IClientAPI remoteClient);
     }
 }

@@ -6809,6 +6809,58 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
 
                         break;
+                    case PacketType.GroupNoticesListRequest:
+                        GroupNoticesListRequestPacket groupNoticesListRequest =
+                                (GroupNoticesListRequestPacket)Pack;
+
+                        if (m_GroupsModule != null)
+                        {
+                            GroupNoticeData[] gn =
+                                    m_GroupsModule.GroupNoticesListRequest(this,
+                                    groupNoticesListRequest.Data.GroupID);
+
+                            GroupNoticesListReplyPacket groupNoticesListReply = (GroupNoticesListReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupNoticesListReply);
+                            groupNoticesListReply.AgentData =
+                                    new GroupNoticesListReplyPacket.AgentDataBlock();
+                            groupNoticesListReply.AgentData.AgentID = AgentId;
+                            groupNoticesListReply.AgentData.GroupID = groupNoticesListRequest.Data.GroupID;
+
+                            groupNoticesListReply.Data = new GroupNoticesListReplyPacket.DataBlock[gn.Length];
+
+                            int i = 0;
+                            foreach (GroupNoticeData g in gn)
+                            {
+                                groupNoticesListReply.Data[i] = new GroupNoticesListReplyPacket.DataBlock();
+                                groupNoticesListReply.Data[i].NoticeID =
+                                        g.NoticeID;
+                                groupNoticesListReply.Data[i].Timestamp =
+                                        g.Timestamp;
+                                groupNoticesListReply.Data[i].FromName =
+                                        Utils.StringToBytes(g.FromName);
+                                groupNoticesListReply.Data[i].Subject =
+                                        Utils.StringToBytes(g.Subject);
+                                groupNoticesListReply.Data[i].HasAttachment =
+                                        g.HasAttachment;
+                                groupNoticesListReply.Data[i].AssetType =
+                                        g.AssetType;
+                                i++;
+                            }
+
+                            OutPacket(groupNoticesListReply, ThrottleOutPacketType.Task);
+                        }
+
+                        break;
+                    case PacketType.GroupNoticeRequest:
+                        GroupNoticeRequestPacket groupNoticeRequest =
+                                (GroupNoticeRequestPacket)Pack;
+
+                        if (m_GroupsModule != null)
+                        {
+                            m_GroupsModule.GroupNoticeRequest(this,
+                                    groupNoticeRequest.Data.GroupNoticeID);
+                        }
+                        break;
+
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
                         break;
