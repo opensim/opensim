@@ -117,7 +117,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 = ((dialog == 38) || (dialog == 39) || (dialog == 40)
                    || dialog == (byte) InstantMessageDialog.InventoryOffered
                    || dialog == (byte) InstantMessageDialog.InventoryAccepted
-                   || dialog == (byte) InstantMessageDialog.InventoryDeclined);
+                   || dialog == (byte) InstantMessageDialog.InventoryDeclined
+                   || dialog == (byte) InstantMessageDialog.GroupNotice);
 
             // IM dialogs need to be pre-processed and have their sessionID filled by the server
             // so the sim can match the transaction on the return packet.

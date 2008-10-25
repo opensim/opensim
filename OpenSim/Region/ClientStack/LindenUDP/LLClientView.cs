@@ -1106,7 +1106,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             SendInstantMessage(
                 fromAgent, fromAgentSession, message, toAgent,
-                imSessionID, fromName, dialog, timeStamp, new byte[0]);
+                imSessionID, fromName, dialog, timeStamp, false, new byte[0]);
         }
 
         /// <summary>
@@ -1116,7 +1116,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="target"></param>
         public void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
                                        UUID imSessionID, string fromName, byte dialog, uint timeStamp,
-                                       byte[] binaryBucket)
+                                       bool fromGroup, byte[] binaryBucket)
         {
             if (((Scene)(this.m_scene)).ExternalChecks.ExternalChecksCanInstantMessage(fromAgent, toAgent))
             {
@@ -1127,7 +1127,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 msg.AgentData.SessionID = fromAgentSession;
                 msg.MessageBlock.FromAgentName = Utils.StringToBytes(fromName);
                 msg.MessageBlock.Dialog = dialog;
-                msg.MessageBlock.FromGroup = false;
+                msg.MessageBlock.FromGroup = fromGroup;
                 msg.MessageBlock.ID = imSessionID;
                 msg.MessageBlock.Offline = 0;
                 msg.MessageBlock.ParentEstateID = 0;
@@ -4089,6 +4089,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
                     case PacketType.ImprovedInstantMessage:
                         ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
+Console.WriteLine(msgpack.ToString());
                         string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
                         string IMmessage = Utils.BytesToString(msgpack.MessageBlock.Message);
                         handlerInstantMessage = OnInstantMessage;

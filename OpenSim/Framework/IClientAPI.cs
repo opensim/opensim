@@ -656,7 +656,7 @@ namespace OpenSim.Framework
 
         void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
                                 UUID imSessionID, string fromName, byte dialog, uint timeStamp,
-                                byte[] binaryBucket);
+                                bool fromGroup, byte[] binaryBucket);
 
         void SendGenericMessage(string method, List<string> message);
 
