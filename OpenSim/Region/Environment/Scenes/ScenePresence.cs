@@ -2390,7 +2390,7 @@ namespace OpenSim.Region.Environment.Scenes
             ControllingClient.SendHealth(Health);
         }
 
-        internal void Close()
+        public void Close()
         {
             lock (m_attachments)
             {
