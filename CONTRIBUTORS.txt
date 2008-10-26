@@ -79,6 +79,7 @@ Patches
 * Y. Nitta
 * YZh
 * Zha Ewry
+* Mircea Kitsune
 
 
 LSL Devs
@@ -86,6 +87,7 @@ LSL Devs
 * Alondria
 * CharlieO
 * Tedd
+* Melanie Thielker
 
 
 Testers
