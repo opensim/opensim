@@ -284,6 +284,14 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_lastname; }
         }
 
+        private string m_grouptitle;
+
+        public string Grouptitle
+        {
+            get { return m_grouptitle; }
+            set { m_grouptitle = value; }
+        }
+
         public float DrawDistance
         {
             get { return m_DrawDistance; }
@@ -483,6 +491,10 @@ namespace OpenSim.Region.Environment.Scenes
             m_uuid = client.AgentId;
             m_regionInfo = reginfo;
             m_localId = m_scene.NextLocalId;
+
+            IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
+            if (gm != null)
+                m_grouptitle = gm.GetGroupTitle(m_uuid);
 
             AbsolutePosition = m_controllingClient.StartPos;
 
@@ -691,6 +703,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeRootAgent(Vector3 pos, bool isFlying)
         {
+            IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
+            if (gm != null)
+                m_grouptitle = gm.GetGroupTitle(m_uuid);
+
             m_scene.SetRootAgentScene(m_uuid);
 
             IAvatarFactory ava = m_scene.RequestModuleInterface<IAvatarFactory>();
@@ -1755,7 +1771,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Note: because Quaternion is a struct, it can't be null
             Quaternion rot = m_bodyRot;
 
-            remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
+            remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
                                                             LocalId, m_pos, m_appearance.Texture.ToBytes(),
                                                             m_parentID, rot);
             m_scene.AddAgentUpdates(1);
@@ -1804,6 +1820,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
             m_scene.AddAgentUpdates(avatars.Count);
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
+
+            SendAnimPack();
         }
 
         /// <summary>
@@ -1818,7 +1836,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Note: because Quaternion is a struct, it can't be null
             Quaternion rot = m_bodyRot;
 
-            m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
+            m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
                                                m_pos, m_appearance.Texture.ToBytes(), m_parentID, rot);
 
             if (!m_isChildAgent)

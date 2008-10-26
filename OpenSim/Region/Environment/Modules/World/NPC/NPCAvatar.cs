@@ -547,7 +547,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, UUID avatarID,
+        public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, string grouptitle, UUID avatarID,
                                            uint avatarLocalID, Vector3 Pos, byte[] textureEntry, uint parentID, Quaternion rotation)
         {
         }

@@ -683,7 +683,7 @@ namespace OpenSim.Framework
         void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance);
         void SendPayPrice(UUID objectID, int[] payPrice);
 
-        void SendAvatarData(ulong regionHandle, string firstName, string lastName, UUID avatarID, uint avatarLocalID,
+        void SendAvatarData(ulong regionHandle, string firstName, string lastName, string grouptitle, UUID avatarID, uint avatarLocalID,
                             Vector3 Pos, byte[] textureEntry, uint parentID, Quaternion rotation);
 
         void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,

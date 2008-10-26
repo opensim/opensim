@@ -118,13 +118,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                    || dialog == (byte) InstantMessageDialog.InventoryOffered
                    || dialog == (byte) InstantMessageDialog.InventoryAccepted
                    || dialog == (byte) InstantMessageDialog.InventoryDeclined
+                   || dialog == (byte) InstantMessageDialog.GroupNoticeInventoryAccepted
+                   || dialog == (byte) InstantMessageDialog.GroupNoticeInventoryDeclined
+                   || dialog == (byte) InstantMessageDialog.GroupInvitationAccept
+                   || dialog == (byte) InstantMessageDialog.GroupInvitationDecline
                    || dialog == (byte) InstantMessageDialog.GroupNotice);
 
             // IM dialogs need to be pre-processed and have their sessionID filled by the server
             // so the sim can match the transaction on the return packet.
 
             // Don't send a Friend Dialog IM with a UUID.Zero session.
-            if (!(dialogHandledElsewhere && imSessionID == UUID.Zero))
+            if (!dialogHandledElsewhere)
             {
                 // Try root avatar only first
                 foreach (Scene scene in m_scenes)
@@ -137,7 +141,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         {
                             user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
                                                                       toAgentID, imSessionID, fromAgentName, dialog,
-                                                                      timestamp);
+                                                                      timestamp, fromGroup, binaryBucket);
                             // Message sent
                             return;
                         }
@@ -154,7 +158,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
                         user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
                                                                   toAgentID, imSessionID, fromAgentName, dialog,
-                                                                  timestamp);
+                                                                  timestamp, fromGroup, binaryBucket);
                         // Message sent
                         return;
                     }

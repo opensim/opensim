@@ -2308,7 +2308,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="avatarID"></param>
         /// <param name="avatarLocalID"></param>
         /// <param name="Pos"></param>
-        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, UUID avatarID,
+        public void SendAvatarData(ulong regionHandle, string firstName, string lastName, string grouptitle, UUID avatarID,
                                    uint avatarLocalID, Vector3 Pos, byte[] textureEntry, uint parentID, Quaternion rotation)
         {
             ObjectUpdatePacket objupdate = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
@@ -2323,7 +2323,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objupdate.ObjectData[0].FullID = avatarID;
             objupdate.ObjectData[0].ParentID = parentID;
             objupdate.ObjectData[0].NameValue =
-                Utils.StringToBytes("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName);
+                Utils.StringToBytes("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName + "\nTitle STRING RW SV " + grouptitle);
 
             Vector3 pos2 = new Vector3((float)Pos.X, (float)Pos.Y, (float)Pos.Z);
             byte[] pb = pos2.GetBytes();

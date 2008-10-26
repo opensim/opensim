@@ -42,7 +42,7 @@ namespace OpenSim.Framework
         public string name;
         public string category;
         public string description;
-        public DateTime date;
+        public string date;
         public uint dateUTC;
         public uint duration;
         public uint cover;
