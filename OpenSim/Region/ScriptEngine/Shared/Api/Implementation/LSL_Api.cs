@@ -2412,8 +2412,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     float groupmass = new_group.GetMass();
 
-                    //Recoil.
-                    llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
+                    if (new_group.RootPart.PhysActor != null && new_group.RootPart.PhysActor.IsPhysical && llvel != Vector3.Zero)
+                    {
+                        new_group.RootPart.ApplyImpulse(llvel, false);
+                        //Recoil.
+                        llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
+                    }
                     // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
                     ScriptSleep((int)((groupmass * velmag) / 10));
                     // ScriptSleep(100);
@@ -4935,20 +4939,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                byte[] parms = avatar.Appearance.VisualParams;
-                // The values here were arrived at from experimentation with the sliders
-                // in edit appearance in SL to find the ones that affected the height and how
-                // much they affected it.
-                float avatarHeight = 1.23077f  // Shortest possible avatar height
-                                   + 0.516945f * (float)parms[25] / 255.0f   // Body height
-                                   + 0.072514f * (float)parms[120] / 255.0f  // Head size
-                                   + 0.3836f * (float)parms[125] / 255.0f    // Leg length
-                                   + 0.08f * (float)parms[77] / 255.0f    // Shoe heel height
-                                   + 0.07f * (float)parms[78] / 255.0f    // Shoe platform height
-                                   + 0.076f * (float)parms[148] / 255.0f;    // Neck length
-                agentSize = new LSL_Vector(0.45, 0.6, avatarHeight);
+                agentSize = new LSL_Vector(0.45, 0.6, calculateAgentHeight(avatar));
             }
             return agentSize;
+        }
+
+        private float calculateAgentHeight(ScenePresence avatar)
+        {
+            byte[] parms = avatar.Appearance.VisualParams;
+            // The values here were arrived at from experimentation with the sliders
+            // in edit appearance in SL to find the ones that affected the height and how
+            // much they affected it.
+            float avatarHeight = 1.23077f  // Shortest possible avatar height
+                               + 0.516945f * (float)parms[25] / 255.0f   // Body height
+                               + 0.072514f * (float)parms[120] / 255.0f  // Head size
+                               + 0.3836f * (float)parms[125] / 255.0f    // Leg length
+                               + 0.08f * (float)parms[77] / 255.0f    // Shoe heel height
+                               + 0.07f * (float)parms[78] / 255.0f    // Shoe platform height
+                               + 0.076f * (float)parms[148] / 255.0f;    // Neck length
+            return avatarHeight;
         }
 
         public LSL_Integer llSameGroup(string agent)
@@ -6431,11 +6440,75 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_host.ParentGroup.PrimCount;
         }
 
+        /// <summary>
+        /// A partial implementation.
+        /// http://lslwiki.net/lslwiki/wakka.php?wakka=llGetBoundingBox
+        /// So far only valid for standing/flying/ground sitting avatars and single prim objects.
+        /// If the object has multiple prims and/or a sitting avatar then the bounding
+        /// box is for the root prim only.
+        /// </summary>
         public LSL_List llGetBoundingBox(string obj)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetBoundingBox");
-            return new LSL_List();
+            UUID objID = UUID.Zero;
+            LSL_List result = new LSL_List();
+            if (!UUID.TryParse(obj, out objID))
+            {
+                result.Add(new LSL_Vector());
+                result.Add(new LSL_Vector());
+                return result;
+            }
+            ScenePresence presence = World.GetScenePresence(objID);
+            if (presence != null)
+            {
+                if (presence.ParentID == 0) // not sat on an object
+                {
+                    LSL_Vector lower;
+                    LSL_Vector upper;
+                    if (presence.Animations.DefaultAnimation.AnimID == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+                    {
+                        // This is for ground sitting avatars
+                        float height = calculateAgentHeight(presence) / 2.66666667f;
+                        lower = new LSL_Vector(-0.3375f, -0.45f, height * -1.0f);
+                        upper = new LSL_Vector(0.3375f, 0.45f, 0.0f);
+                    }
+                    else
+                    {
+                        // This is for standing/flying avatars
+                        float height = calculateAgentHeight(presence) / 2.0f;
+                        lower = new LSL_Vector(-0.225f, -0.3f, height * -1.0f);
+                        upper = new LSL_Vector(0.225f, 0.3f, height + 0.05f);
+                    }
+                    result.Add(lower);
+                    result.Add(upper);
+                    return result;
+                }
+                else
+                {
+                    // sitting on an object so we need the bounding box of that
+                    // which should include the avatar so set the UUID to the
+                    // UUID of the object the avatar is sat on and allow it to fall through
+                    // to processing an object
+                    SceneObjectPart p = World.GetSceneObjectPart(presence.ParentID);
+                    objID = p.UUID;
+                }
+            }
+            SceneObjectPart part = World.GetSceneObjectPart(objID);
+            // Currently only works for single prims without a sitting avatar
+            if (part != null)
+            {
+                Vector3 halfSize = part.Scale / 2.0f;
+                LSL_Vector lower = new LSL_Vector(halfSize.X * -1.0f, halfSize.Y * -1.0f, halfSize.Z * -1.0f);
+                LSL_Vector upper = new LSL_Vector(halfSize.X, halfSize.Y, halfSize.Z);
+                result.Add(lower);
+                result.Add(upper);
+                return result;
+            }
+            
+            // Not found so return empty values
+            result.Add(new LSL_Vector());
+            result.Add(new LSL_Vector());
+            return result;
         }
 
         public LSL_Vector llGetGeometricCenter()
