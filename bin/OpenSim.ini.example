@@ -168,14 +168,16 @@ userDatabase_plugin = "OpenSim.Data.SQLite.dll"
 ; User Source MySQL example
 ;user_source = "Data Source=localhost;Database=opensim;User ID=opensim;Password=****;"
 
-default_location_x = 1000
-default_location_y = 1000
 dump_assets_to_file = false
 
 
 [Network]
 http_listener_port = 9000
 remoting_listener_port = 8895
+
+
+default_location_x = 1000
+default_location_y = 1000
 
 ; ssl config: Experimental!  The auto https config only really works definately on windows XP now
 ; you need a Cert Request/Signed pair installed in the MY store with the CN specified below
@@ -494,6 +496,11 @@ asterisk_salt = paluempalum
 
 [ScriptEngine.DotNetEngine]
 Enabled = true
+
+ScriptDelayFactor = 1.0
+ScriptDistanceLimitFactor = 1.0
+
+
 ;
 ; These settings are specific to DotNetEngine script engine
 ; Other script engines based on OpenSim.Region.ScriptEngine.Common.dll will have almost identical settings, but in another section of this config file.
@@ -608,9 +615,6 @@ CleanUpOldScriptsOnStartup=true
 AllowosConsoleCommand=false
 
 AllowGodFunctions = false
-
-ScriptDelayFactor = 1.0
-ScriptDistanceLimitFactor = 1.0
 
 ; Maximum number of llListen events we allow per script
 ; Set this to 0 to have no limit imposed.

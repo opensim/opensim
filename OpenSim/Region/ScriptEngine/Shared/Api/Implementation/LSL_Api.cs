@@ -87,14 +87,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_localID = localID;
             m_itemID = itemID;
 
-            IConfigSource config = new IniConfigSource(Application.iniFilePath);
-            if (config.Configs["XEngine"] == null)
-                config.AddConfig("XEngine");
-
-            m_ScriptDelayFactor = config.Configs["XEngine"].
-                GetFloat("ScriptDelayFactor", 1.0f);
-            m_ScriptDistanceFactor = config.Configs["XEngine"].
-                GetFloat("ScriptDistanceLimitFactor", 1.0f);
+            m_ScriptDelayFactor =
+                    m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
+            m_ScriptDistanceFactor =
+                    m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
 
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
