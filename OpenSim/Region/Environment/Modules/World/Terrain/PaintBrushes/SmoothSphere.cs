@@ -42,7 +42,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 
             double area = strength; 
             double step = strength / 4.0;
-            duration = 0.0045; //MCP Should be read from ini file
+            duration = 0.03; //MCP Should be read from ini file
  
 
             // compute delta map
