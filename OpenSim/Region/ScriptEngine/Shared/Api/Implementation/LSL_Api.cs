@@ -2976,6 +2976,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             IClientAPI client = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter).ControllingClient;
             SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)target);
+            if (targetPart.ParentGroup.RootPart.AttachmentPoint != 0)
+                return; // Fail silently if attached
             SceneObjectGroup parentPrim = null, childPrim = null;
             if (targetPart != null)
             {
@@ -3015,6 +3017,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (linknum < ScriptBaseClass.LINK_THIS)
               return;
             SceneObjectGroup parentPrim = m_host.ParentGroup;
+            if (parentPrim.RootPart.AttachmentPoint != 0)
+                return; // Fail silently if attached
             SceneObjectPart childPrim = null;
             switch (linknum)
             {
@@ -3072,6 +3076,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             SceneObjectGroup parentPrim = m_host.ParentGroup;
+            if (parentPrim.RootPart.AttachmentPoint != 0)
+                return; // Fail silently if attached
             List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
             parts.Remove(parentPrim.RootPart);
             foreach (SceneObjectPart part in parts)
@@ -3435,6 +3441,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetAnimation(string id)
         {
+            // This should only return a value if the avatar is in the same region
             m_host.AddScriptLPS(1);
             NotImplemented("llGetAnimation");
             return String.Empty;
@@ -4649,6 +4656,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
             }
 
+            if (agent.IsChildAgent)
+                return 0; // Fail if they are not in the same region
+
             // note: in OpenSim, sitting seems to cancel AGENT_ALWAYS_RUN, unlike SL
             if (agent.SetAlwaysRun)
             {
@@ -4728,6 +4738,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetAgentLanguage(string id)
         {
+            // This should only return a value if the avatar is in the same region
             m_host.AddScriptLPS(1);
             NotImplemented("llGetAgentLanguage");
             return "";
@@ -4933,7 +4944,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             ScenePresence avatar = World.GetScenePresence((UUID)id);
             LSL_Vector agentSize;
-            if (avatar == null)
+            if (avatar == null || avatar.IsChildAgent) // Fail if not in the same region
             {
                 agentSize = ScriptBaseClass.ZERO_VECTOR;
             }
@@ -4967,7 +4978,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(agent, out agentId))
                 return new LSL_Integer(0);
             ScenePresence presence = World.GetScenePresence(agentId);
-            if (presence == null)
+            if (presence == null || presence.IsChildAgent) // Return flase for child agents
                 return new LSL_Integer(0);
             IClientAPI client = presence.ControllingClient;
             if (m_host.GroupID == client.ActiveGroupId)
@@ -6374,7 +6385,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List l = new LSL_List();
             ScenePresence av = World.GetScenePresence((UUID)id);
-            if (av == null)
+            if (av == null || av.IsChildAgent) // only if in the region
                 return l;
             UUID[] anims;
             anims = av.GetAnimationArray();
