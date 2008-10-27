@@ -26,51 +26,34 @@
  */
 
 using System;
-using System.Reflection;
-using log4net;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 {
     public class RaiseSphere : ITerrainPaintableEffect
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         #region ITerrainPaintableEffect Members
         
 
         public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz, double strength, double duration)
         {
-            int s = (int) (Math.Pow(2, strength) + 0.5);
+            duration = 0.03; //MCP Should be read from ini file
+            strength = TerrainUtil.MetersToSphericalStrength(strength);
 
             int x;
-            int xFrom = (int)(rx-s+0.5);
-            int xTo   = (int)(rx+s+0.5) + 1;
-            int yFrom = (int)(ry-s+0.5);
-            int yTo   = (int)(ry+s+0.5) + 1;
-
-            if (xFrom < 0)
-                xFrom = 0;
-
-            if (yFrom < 0)
-                yFrom = 0;
-
-            if (xTo > map.Width)
-                xTo = map.Width;
-
-            if (yTo > map.Width)
-                yTo = map.Width;
-
-            for (x = xFrom; x < xTo; x++)
+            for (x = 0; x < map.Width; x++)
             {
                 int y;
-                for (y = yFrom; y <= yTo; y++)
+                for (y = 0; y < map.Height; y++)
                 {
                     if (!mask[x,y])
                         continue;
 
-                    // Calculate a cos-sphere and add it to the heighmap
-                    double r = Math.Sqrt((x-rx) * (x-rx) + ((y-ry) * (y-ry)));
-                    double z = Math.Cos(r * Math.PI / (s * 2));
+                    // Calculate a sphere and add it to the heighmap
+                    double z = strength;
+                    z *= z;
+                    z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
+
                     if (z > 0.0)
                         map[x, y] += z * duration;
                 }
