@@ -37,30 +37,50 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.Tests
         [Test]
         public void BrushTest()
         {
-            TerrainChannel map = new TerrainChannel(256, 256);
-            bool[,] allowMask = new bool[map.Width,map.Height];
+            bool[,] allowMask = new bool[256, 256];
             int x;
             int y;
-            for (x=0; x<map.Width; x++)
+            for (x=0; x<128; x++)
             {
-                for (y=0; y<map.Height; y++)
+                for (y=0; y<256; y++)
                 {
                     allowMask[x,y] = true;
                 }
             }
 
+            //
+            // Test RaiseSphere
+            //
+            TerrainChannel map = new TerrainChannel(256, 256);
             ITerrainPaintableEffect effect = new RaiseSphere();
 
-            effect.PaintEffect(map, allowMask, 128.0, 128.0, 23.0, 100, 0.1);
-            Assert.That(map[128, 128] > 0.0, "Raise brush not raising values.");
-            Assert.That(map[0, 128] > 0.0, "Raise brush lowering edge values.");
+            effect.PaintEffect(map, allowMask, 128.0, 128.0, -1.0, 2, 0.1);
+            Assert.That(map[127, 128] > 0.0, "Raise brush should raising value at this point (127,128).");
+            Assert.That(map[124, 128] > 0.0, "Raise brush should raising value at this point (124,128).");
+            Assert.That(map[123, 128] == 0.0, "Raise brush should not change value at this point (123,128).");
+            Assert.That(map[128, 128] == 0.0, "Raise brush should not change value at this point (128,128).");
+            Assert.That(map[0, 128] == 0.0, "Raise brush should not change value at this point (0,128).");
 
+            //
+            // Test LowerSphere
+            //
             map = new TerrainChannel(256, 256);
+            for (x=0; x<map.Width; x++)
+            {
+                for (y=0; y<map.Height; y++)
+                {
+                    map[x,y] = 1.0;
+                }
+            }
             effect = new LowerSphere();
 
-            effect.PaintEffect(map, allowMask, 128.0, 128.0, -1, 100, 0.1);
-            Assert.That(map[128, 128] < 0.0, "Lower not lowering values.");
-            Assert.That(map[0, 128] < 0.0, "Lower brush affecting edge values.");
+            effect.PaintEffect(map, allowMask, 128.0, 128.0, -1.0, 2, 6.0);
+            Assert.That(map[127, 128] >= 0.0, "Lower should not lowering value below 0.0 at this point (127,128).");
+            Assert.That(map[127, 128] == 0.0, "Lower brush should lowering value to 0.0 at this point (127,128).");
+            Assert.That(map[124, 128] < 1.0, "Lower brush should lowering value at this point (124,128).");
+            Assert.That(map[123, 128] == 1.0, "Lower brush should not change value at this point (123,128).");
+            Assert.That(map[128, 128] == 1.0, "Lower brush should not change value at this point (128,128).");
+            Assert.That(map[0, 128] == 1.0, "Lower brush should not change value at this point (0,128).");
         }
 
         [Test]
