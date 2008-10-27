@@ -220,7 +220,7 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Returns up to maxNum profiles of regions that have a name starting with namePrefix
         /// </summary>
-        /// <param name="name">The name to match against</param>
+        /// <param name="namePrefix">The name to match against</param>
         /// <param name="maxNum">Maximum number of profiles to return</param>
         /// <returns>A list of sim profiles</returns>
         override public List<RegionProfileData> GetRegionsByName (string namePrefix, uint maxNum)

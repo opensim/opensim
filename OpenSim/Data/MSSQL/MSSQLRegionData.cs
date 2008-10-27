@@ -58,9 +58,9 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Const for the prim store..
         /// </summary>
-        private const string _PrimSelect = "SELECT * FROM PRIMS WHERE RegionUUID = @RegionUUID AND (SceneGroupID LIKE @SceneGroupID OR UUID IN (@UUID))";
-        private const string _ShapeSelect = "SELECT * FROM PRIMSHAPES WHERE UUID in (SELECT UUID FROM PRIMS WHERE RegionUUID = @RegionUUID AND (SceneGroupID LIKE @SceneGroupID OR UUID IN (@UUID)))";
-        private const string _ItemsSelect = "SELECT * FROM PRIMITEMS WHERE primID in (SELECT UUID FROM PRIMS WHERE RegionUUID = @RegionUUID AND (SceneGroupID LIKE @SceneGroupID OR UUID IN (@UUID)))";
+        private const string _PrimSelect = "SELECT * FROM PRIMS WHERE RegionUUID = @RegionUUID"; //" AND UUID IN (@UUID)"; //SceneGroupID LIKE @SceneGroupID OR 
+        private const string _ShapeSelect = "SELECT * FROM PRIMSHAPES WHERE UUID in (SELECT UUID FROM PRIMS WHERE RegionUUID = @RegionUUID)"; // AND UUID IN (@UUID))"; //(SceneGroupID LIKE @SceneGroupID OR 
+        private const string _ItemsSelect = "SELECT * FROM PRIMITEMS WHERE primID in (SELECT UUID FROM PRIMS WHERE RegionUUID = @RegionUUID)"; // AND UUID IN (@UUID))"; //(SceneGroupID LIKE @SceneGroupID OR 
 
         private DataSet _PrimsDataSet;
         private SqlDataAdapter _PrimDataAdapter;
@@ -101,8 +101,8 @@ namespace OpenSim.Data.MSSQL
                 using (SqlCommand primSelectCmd = new SqlCommand(_PrimSelect, connection))
                 {
                     primSelectCmd.Parameters.AddWithValue("@RegionUUID", "");
-                    primSelectCmd.Parameters.AddWithValue("@SceneGroupID", "%");
-                    primSelectCmd.Parameters.AddWithValue("@UUID", "");
+                    //primSelectCmd.Parameters.AddWithValue("@SceneGroupID", "%");
+                    //primSelectCmd.Parameters.AddWithValue("@UUID", "");
                     _PrimDataAdapter = new SqlDataAdapter(primSelectCmd);
 
                     DataTable primDataTable = new DataTable("prims");
@@ -119,8 +119,8 @@ namespace OpenSim.Data.MSSQL
                 using (SqlCommand shapeSelectCmd = new SqlCommand(_ShapeSelect, connection))
                 {
                     shapeSelectCmd.Parameters.AddWithValue("@RegionUUID", "");
-                    shapeSelectCmd.Parameters.AddWithValue("@SceneGroupID", "%");
-                    shapeSelectCmd.Parameters.AddWithValue("@UUID", "");
+                    //shapeSelectCmd.Parameters.AddWithValue("@SceneGroupID", "%");
+                    //shapeSelectCmd.Parameters.AddWithValue("@UUID", "");
                     _ShapeDataAdapter = new SqlDataAdapter(shapeSelectCmd);
 
                     DataTable shapeDataTable = new DataTable("primshapes");
@@ -137,8 +137,8 @@ namespace OpenSim.Data.MSSQL
                 using (SqlCommand itemSelectCmd = new SqlCommand(_ItemsSelect, connection))
                 {
                     itemSelectCmd.Parameters.AddWithValue("@RegionUUID", "");
-                    itemSelectCmd.Parameters.AddWithValue("@SceneGroupID", "%");
-                    itemSelectCmd.Parameters.AddWithValue("@UUID", "");
+                    //itemSelectCmd.Parameters.AddWithValue("@SceneGroupID", "%");
+                    //itemSelectCmd.Parameters.AddWithValue("@UUID", "");
                     _ItemsDataAdapter = new SqlDataAdapter(itemSelectCmd);
 
                     DataTable itemsDataTable = new DataTable("primitems");
@@ -328,55 +328,60 @@ namespace OpenSim.Data.MSSQL
             //Retrieve all values of current region, and current scene/or prims
             //Build primID's, we use IN so I can select all prims from objgroup
             string primID = "";
-            foreach (SceneObjectPart prim in obj.Children.Values)
+//            foreach (SceneObjectPart prim in obj.Children.Values)
+//            {
+//                primID += prim.UUID + "', '";
+//            }
+//            primID = primID.Remove(primID.LastIndexOf("',"));
+
+            lock (_Database)
             {
-                primID += prim.UUID + "', '";
-            }
-            primID = primID.Remove(primID.LastIndexOf("',"));
+                RetrievePrimsDataForRegion(regionUUID, obj.UUID, primID);
 
-            RetrievePrimsDataForRegion(regionUUID, obj.UUID, primID);
+                _Log.InfoFormat("[REGION DB]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
 
-            _Log.InfoFormat("[REGION DB]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
+                DataTable prims = _PrimsDataSet.Tables["prims"];
+                DataTable shapes = _PrimsDataSet.Tables["primshapes"];
 
-            foreach (SceneObjectPart prim in obj.Children.Values)
-            {
-                if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == 0
-                    && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
-                    && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
+                foreach (SceneObjectPart prim in obj.Children.Values)
                 {
+                    if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == 0
+                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
+                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
+                    {
 
-                    DataTable prims = _PrimsDataSet.Tables["prims"];
-                    DataTable shapes = _PrimsDataSet.Tables["primshapes"];
+                        DataRow primRow = prims.Rows.Find(prim.UUID.ToString());
+                        if (primRow == null)
+                        {
+//                            _Log.DebugFormat("[REGION DB]: Adding new prim with key: {0}", prim.UUID);
+                            primRow = prims.NewRow();
+                            fillPrimRow(primRow, prim, obj.UUID, regionUUID);
+                            prims.Rows.Add(primRow);
+                        }
+                        else
+                        {
+//                            _Log.DebugFormat("[REGION DB]: Changing prim with key: {0}", prim.UUID);
+                            fillPrimRow(primRow, prim, obj.UUID, regionUUID);
+                        }
 
-                    DataRow primRow = prims.Rows.Find(prim.UUID.ToString());
-                    if (primRow == null)
-                    {
-                        primRow = prims.NewRow();
-                        fillPrimRow(primRow, prim, obj.UUID, regionUUID);
-                        prims.Rows.Add(primRow);
-                    }
-                    else
-                    {
-                        fillPrimRow(primRow, prim, obj.UUID, regionUUID);
-                    }
-
-                    DataRow shapeRow = shapes.Rows.Find(prim.UUID.ToString());
-                    if (shapeRow == null)
-                    {
-                        shapeRow = shapes.NewRow();
-                        fillShapeRow(shapeRow, prim);
-                        shapes.Rows.Add(shapeRow);
-                    }
-                    else
-                    {
-                        fillShapeRow(shapeRow, prim);
+                        DataRow shapeRow = shapes.Rows.Find(prim.UUID.ToString());
+                        if (shapeRow == null)
+                        {
+                            shapeRow = shapes.NewRow();
+                            fillShapeRow(shapeRow, prim);
+                            shapes.Rows.Add(shapeRow);
+                        }
+                        else
+                        {
+                            fillShapeRow(shapeRow, prim);
+                        }
                     }
 
                 }
-            }
 
-            //Save changes
-            CommitDataSet();
+                //Save changes
+                CommitDataSet();
+            }
         }
 
         /// <summary>
@@ -394,16 +399,19 @@ namespace OpenSim.Data.MSSQL
             string sqlPrimItems = string.Format("DELETE FROM PRIMITEMS WHERE primID in (SELECT UUID FROM PRIMS WHERE SceneGroupID = '{0}')", objectID);
             string sqlPrimShapes = string.Format("DELETE FROM PRIMSHAPES WHERE uuid in (SELECT UUID FROM PRIMS WHERE SceneGroupID = '{0}')", objectID);
 
-            //Using the non transaction mode.
-            using (AutoClosingSqlCommand cmd = _Database.Query(sqlPrimShapes))
+            lock (_Database)
             {
-                cmd.ExecuteNonQuery();
+                //Using the non transaction mode.
+                using (AutoClosingSqlCommand cmd = _Database.Query(sqlPrimShapes))
+                {
+                    cmd.ExecuteNonQuery();
 
-                cmd.CommandText = sqlPrimItems;
-                cmd.ExecuteNonQuery();
+                    cmd.CommandText = sqlPrimItems;
+                    cmd.ExecuteNonQuery();
 
-                cmd.CommandText = sqlPrims;
-                cmd.ExecuteNonQuery();
+                    cmd.CommandText = sqlPrims;
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
@@ -921,130 +929,132 @@ VALUES
         /// <summary>
         /// Builds the prim from a datarecord.
         /// </summary>
-        /// <param name="row">datarecord</param>
+        /// <param name="primRow">datarecord</param>
         /// <returns></returns>
-        private static SceneObjectPart buildPrim(DataRow row)
+        private static SceneObjectPart buildPrim(DataRow primRow)
         {
             SceneObjectPart prim = new SceneObjectPart();
 
-            prim.UUID = new UUID((String)row["UUID"]);
+            prim.UUID = new UUID((String)primRow["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
-            prim.ParentID = Convert.ToUInt32(row["ParentID"]);
-            prim.CreationDate = Convert.ToInt32(row["CreationDate"]);
-            prim.Name = (String)row["Name"];
+            prim.ParentID = Convert.ToUInt32(primRow["ParentID"]);
+            prim.CreationDate = Convert.ToInt32(primRow["CreationDate"]);
+            prim.Name = (String)primRow["Name"];
             // various text fields
-            prim.Text = (String)row["Text"];
-            prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorA"]),
-                                        Convert.ToInt32(row["ColorR"]),
-                                        Convert.ToInt32(row["ColorG"]),
-                                        Convert.ToInt32(row["ColorB"]));
-            prim.Description = (String)row["Description"];
-            prim.SitName = (String)row["SitName"];
-            prim.TouchName = (String)row["TouchName"];
+            prim.Text = (String)primRow["Text"];
+            prim.Color = Color.FromArgb(Convert.ToInt32(primRow["ColorA"]),
+                                        Convert.ToInt32(primRow["ColorR"]),
+                                        Convert.ToInt32(primRow["ColorG"]),
+                                        Convert.ToInt32(primRow["ColorB"]));
+            prim.Description = (String)primRow["Description"];
+            prim.SitName = (String)primRow["SitName"];
+            prim.TouchName = (String)primRow["TouchName"];
             // permissions
-            prim.ObjectFlags = Convert.ToUInt32(row["ObjectFlags"]);
-            prim.CreatorID = new UUID((String)row["CreatorID"]);
-            prim.OwnerID = new UUID((String)row["OwnerID"]);
-            prim.GroupID = new UUID((String)row["GroupID"]);
-            prim.LastOwnerID = new UUID((String)row["LastOwnerID"]);
-            prim.OwnerMask = Convert.ToUInt32(row["OwnerMask"]);
-            prim.NextOwnerMask = Convert.ToUInt32(row["NextOwnerMask"]);
-            prim.GroupMask = Convert.ToUInt32(row["GroupMask"]);
-            prim.EveryoneMask = Convert.ToUInt32(row["EveryoneMask"]);
-            prim.BaseMask = Convert.ToUInt32(row["BaseMask"]);
+            prim.ObjectFlags = Convert.ToUInt32(primRow["ObjectFlags"]);
+            prim.CreatorID = new UUID((String)primRow["CreatorID"]);
+            prim.OwnerID = new UUID((String)primRow["OwnerID"]);
+            prim.GroupID = new UUID((String)primRow["GroupID"]);
+            prim.LastOwnerID = new UUID((String)primRow["LastOwnerID"]);
+            prim.OwnerMask = Convert.ToUInt32(primRow["OwnerMask"]);
+            prim.NextOwnerMask = Convert.ToUInt32(primRow["NextOwnerMask"]);
+            prim.GroupMask = Convert.ToUInt32(primRow["GroupMask"]);
+            prim.EveryoneMask = Convert.ToUInt32(primRow["EveryoneMask"]);
+            prim.BaseMask = Convert.ToUInt32(primRow["BaseMask"]);
             // vectors
             prim.OffsetPosition = new Vector3(
-                                    Convert.ToSingle(row["PositionX"]),
-                                    Convert.ToSingle(row["PositionY"]),
-                                    Convert.ToSingle(row["PositionZ"]));
+                                    Convert.ToSingle(primRow["PositionX"]),
+                                    Convert.ToSingle(primRow["PositionY"]),
+                                    Convert.ToSingle(primRow["PositionZ"]));
 
             prim.GroupPosition = new Vector3(
-                                    Convert.ToSingle(row["GroupPositionX"]),
-                                    Convert.ToSingle(row["GroupPositionY"]),
-                                    Convert.ToSingle(row["GroupPositionZ"]));
+                                    Convert.ToSingle(primRow["GroupPositionX"]),
+                                    Convert.ToSingle(primRow["GroupPositionY"]),
+                                    Convert.ToSingle(primRow["GroupPositionZ"]));
 
             prim.Velocity = new Vector3(
-                                Convert.ToSingle(row["VelocityX"]),
-                                Convert.ToSingle(row["VelocityY"]),
-                                Convert.ToSingle(row["VelocityZ"]));
+                                Convert.ToSingle(primRow["VelocityX"]),
+                                Convert.ToSingle(primRow["VelocityY"]),
+                                Convert.ToSingle(primRow["VelocityZ"]));
 
             prim.AngularVelocity = new Vector3(
-                                    Convert.ToSingle(row["AngularVelocityX"]),
-                                    Convert.ToSingle(row["AngularVelocityY"]),
-                                    Convert.ToSingle(row["AngularVelocityZ"]));
+                                    Convert.ToSingle(primRow["AngularVelocityX"]),
+                                    Convert.ToSingle(primRow["AngularVelocityY"]),
+                                    Convert.ToSingle(primRow["AngularVelocityZ"]));
 
             prim.Acceleration = new Vector3(
-                                Convert.ToSingle(row["AccelerationX"]),
-                                Convert.ToSingle(row["AccelerationY"]),
-                                Convert.ToSingle(row["AccelerationZ"]));
+                                Convert.ToSingle(primRow["AccelerationX"]),
+                                Convert.ToSingle(primRow["AccelerationY"]),
+                                Convert.ToSingle(primRow["AccelerationZ"]));
 
             // quaternions
             prim.RotationOffset = new Quaternion(
-                                Convert.ToSingle(row["RotationX"]),
-                                Convert.ToSingle(row["RotationY"]),
-                                Convert.ToSingle(row["RotationZ"]),
-                                Convert.ToSingle(row["RotationW"]));
+                                Convert.ToSingle(primRow["RotationX"]),
+                                Convert.ToSingle(primRow["RotationY"]),
+                                Convert.ToSingle(primRow["RotationZ"]),
+                                Convert.ToSingle(primRow["RotationW"]));
 
             prim.SitTargetPositionLL = new Vector3(
-                                Convert.ToSingle(row["SitTargetOffsetX"]),
-                                Convert.ToSingle(row["SitTargetOffsetY"]),
-                                Convert.ToSingle(row["SitTargetOffsetZ"]));
+                                Convert.ToSingle(primRow["SitTargetOffsetX"]),
+                                Convert.ToSingle(primRow["SitTargetOffsetY"]),
+                                Convert.ToSingle(primRow["SitTargetOffsetZ"]));
 
             prim.SitTargetOrientationLL = new Quaternion(
-                                Convert.ToSingle(row["SitTargetOrientX"]),
-                                Convert.ToSingle(row["SitTargetOrientY"]),
-                                Convert.ToSingle(row["SitTargetOrientZ"]),
-                                Convert.ToSingle(row["SitTargetOrientW"]));
+                                Convert.ToSingle(primRow["SitTargetOrientX"]),
+                                Convert.ToSingle(primRow["SitTargetOrientY"]),
+                                Convert.ToSingle(primRow["SitTargetOrientZ"]),
+                                Convert.ToSingle(primRow["SitTargetOrientW"]));
 
-            prim.PayPrice[0] = Convert.ToInt32(row["PayPrice"]);
-            prim.PayPrice[1] = Convert.ToInt32(row["PayButton1"]);
-            prim.PayPrice[2] = Convert.ToInt32(row["PayButton2"]);
-            prim.PayPrice[3] = Convert.ToInt32(row["PayButton3"]);
-            prim.PayPrice[4] = Convert.ToInt32(row["PayButton4"]);
+            prim.PayPrice[0] = Convert.ToInt32(primRow["PayPrice"]);
+            prim.PayPrice[1] = Convert.ToInt32(primRow["PayButton1"]);
+            prim.PayPrice[2] = Convert.ToInt32(primRow["PayButton2"]);
+            prim.PayPrice[3] = Convert.ToInt32(primRow["PayButton3"]);
+            prim.PayPrice[4] = Convert.ToInt32(primRow["PayButton4"]);
 
-            prim.Sound = new UUID(row["LoopedSound"].ToString());
-            prim.SoundGain = Convert.ToSingle(row["LoopedSoundGain"]);
+            prim.Sound = new UUID(primRow["LoopedSound"].ToString());
+            prim.SoundGain = Convert.ToSingle(primRow["LoopedSoundGain"]);
             prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
-            if (!row.IsNull("TextureAnimation") && row["TextureAnimation"] != DBNull.Value)
-                prim.TextureAnimation = (Byte[])row["TextureAnimation"];
-            if (!row.IsNull("ParticleSystem"))
-                prim.ParticleSystem = (Byte[])row["ParticleSystem"];
+            if (!primRow.IsNull("TextureAnimation") && primRow["TextureAnimation"] != DBNull.Value)
+                prim.TextureAnimation = (Byte[])primRow["TextureAnimation"];
+            if (!primRow.IsNull("ParticleSystem"))
+                prim.ParticleSystem = (Byte[])primRow["ParticleSystem"];
 
             prim.RotationalVelocity = new Vector3(
-                                        Convert.ToSingle(row["OmegaX"]),
-                                        Convert.ToSingle(row["OmegaY"]),
-                                        Convert.ToSingle(row["OmegaZ"]));
+                                        Convert.ToSingle(primRow["OmegaX"]),
+                                        Convert.ToSingle(primRow["OmegaY"]),
+                                        Convert.ToSingle(primRow["OmegaZ"]));
 
             prim.SetCameraEyeOffset(new Vector3(
-                                        Convert.ToSingle(row["CameraEyeOffsetX"]),
-                                        Convert.ToSingle(row["CameraEyeOffsetY"]),
-                                        Convert.ToSingle(row["CameraEyeOffsetZ"])
+                                        Convert.ToSingle(primRow["CameraEyeOffsetX"]),
+                                        Convert.ToSingle(primRow["CameraEyeOffsetY"]),
+                                        Convert.ToSingle(primRow["CameraEyeOffsetZ"])
                                         ));
 
             prim.SetCameraAtOffset(new Vector3(
-                                       Convert.ToSingle(row["CameraAtOffsetX"]),
-                                       Convert.ToSingle(row["CameraAtOffsetY"]),
-                                       Convert.ToSingle(row["CameraAtOffsetZ"])
+                                       Convert.ToSingle(primRow["CameraAtOffsetX"]),
+                                       Convert.ToSingle(primRow["CameraAtOffsetY"]),
+                                       Convert.ToSingle(primRow["CameraAtOffsetZ"])
                                        ));
 
-            if (Convert.ToInt16(row["ForceMouselook"]) != 0)
+            if (Convert.ToInt16(primRow["ForceMouselook"]) != 0)
                 prim.SetForceMouselook(true);
 
-            prim.ScriptAccessPin = Convert.ToInt32(row["ScriptAccessPin"]);
+            prim.ScriptAccessPin = Convert.ToInt32(primRow["ScriptAccessPin"]);
 
-            if (Convert.ToInt16(row["AllowedDrop"]) != 0)
+            if (Convert.ToInt16(primRow["AllowedDrop"]) != 0)
                 prim.AllowedDrop = true;
 
-            if (Convert.ToInt16(row["DieAtEdge"]) != 0)
+            if (Convert.ToInt16(primRow["DieAtEdge"]) != 0)
                 prim.DIE_AT_EDGE = true;
 
-            prim.SalePrice = Convert.ToInt32(row["SalePrice"]);
-            prim.ObjectSaleType = Convert.ToByte(row["SaleType"]);
+            prim.SalePrice = Convert.ToInt32(primRow["SalePrice"]);
+            prim.ObjectSaleType = Convert.ToByte(primRow["SaleType"]);
 
-            if (!row.IsNull("ClickAction"))
-                prim.ClickAction = Convert.ToByte(row["ClickAction"]);
+            prim.Material = Convert.ToByte(primRow["Material"]);
+
+            if (!primRow.IsNull("ClickAction"))
+                prim.ClickAction = Convert.ToByte(primRow["ClickAction"]);
 
             return prim;
         }
@@ -1306,6 +1316,10 @@ VALUES
             // the UUID of the root part for this SceneObjectGroup
             // various text fields
             row["Text"] = prim.Text;
+            row["ColorR"] = prim.Color.R;
+            row["ColorG"] = prim.Color.G;
+            row["ColorB"] = prim.Color.B;
+            row["ColorA"] = prim.Color.A;
             row["Description"] = prim.Description;
             row["SitName"] = prim.SitName;
             row["TouchName"] = prim.TouchName;
@@ -1372,6 +1386,7 @@ VALUES
             }
 
             row["TextureAnimation"] = prim.TextureAnimation;
+            row["ParticleSystem"] = prim.ParticleSystem;
 
             row["OmegaX"] = prim.RotationalVelocity.X;
             row["OmegaY"] = prim.RotationalVelocity.Y;
@@ -1404,6 +1419,11 @@ VALUES
 
             row["SalePrice"] = prim.SalePrice;
             row["SaleType"] = Convert.ToInt16(prim.ObjectSaleType);
+
+            byte clickAction = prim.ClickAction;
+            row["ClickAction"] = clickAction;
+
+            row["Material"] = prim.Material;
         }
 
         /// <summary>
@@ -1461,31 +1481,33 @@ VALUES
             {
                 _PrimDataAdapter.SelectCommand.Connection = connection;
                 _PrimDataAdapter.SelectCommand.Parameters["@RegionUUID"].Value = regionUUID.ToString();
-                if (sceneGroupID != UUID.Zero)
-                    _PrimDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = sceneGroupID.ToString();
-                else
-                    _PrimDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = "%";
-                _PrimDataAdapter.SelectCommand.Parameters["@UUID"].Value = primID;
+//                if (sceneGroupID != UUID.Zero)
+//                    _PrimDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = sceneGroupID.ToString();
+//                else
+//                    _PrimDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = "%";
+//                _PrimDataAdapter.SelectCommand.Parameters["@UUID"].Value = primID;
 
                 _PrimDataAdapter.Fill(_PrimsDataSet, "prims");
 
+                _Log.Debug("Prim row count: " + _PrimsDataSet.Tables["prims"].Rows.Count);
+
                 _ShapeDataAdapter.SelectCommand.Connection = connection;
                 _ShapeDataAdapter.SelectCommand.Parameters["@RegionUUID"].Value = regionUUID.ToString();
-                if (sceneGroupID != UUID.Zero)
-                    _ShapeDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = sceneGroupID.ToString();
-                else
-                    _ShapeDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = "%";
-                _ShapeDataAdapter.SelectCommand.Parameters["@UUID"].Value = primID;
+//                if (sceneGroupID != UUID.Zero)
+//                    _ShapeDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = sceneGroupID.ToString();
+//                else
+//                    _ShapeDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = "%";
+//                _ShapeDataAdapter.SelectCommand.Parameters["@UUID"].Value = primID;
 
                 _ShapeDataAdapter.Fill(_PrimsDataSet, "primshapes");
 
                 _ItemsDataAdapter.SelectCommand.Connection = connection;
                 _ItemsDataAdapter.SelectCommand.Parameters["@RegionUUID"].Value = regionUUID.ToString();
-                if (sceneGroupID != UUID.Zero)
-                    _ItemsDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = sceneGroupID.ToString();
-                else
-                    _ItemsDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = "%";
-                _ItemsDataAdapter.SelectCommand.Parameters["@UUID"].Value = primID;
+//                if (sceneGroupID != UUID.Zero)
+//                    _ItemsDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = sceneGroupID.ToString();
+//                else
+//                    _ItemsDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = "%";
+//                _ItemsDataAdapter.SelectCommand.Parameters["@UUID"].Value = primID;
 
                 _ItemsDataAdapter.Fill(_PrimsDataSet, "primitems");
             }
@@ -1496,7 +1518,7 @@ VALUES
         /// </summary>
         private void CommitDataSet()
         {
-            lock (_PrimsDataSet)
+            try
             {
                 using (SqlConnection connection = _Database.DatabaseConnection())
                 {
@@ -1515,13 +1537,16 @@ VALUES
                     _PrimDataAdapter.Update(_PrimsDataSet.Tables["prims"]);
                     _ShapeDataAdapter.Update(_PrimsDataSet.Tables["primshapes"]);
                     _ItemsDataAdapter.Update(_PrimsDataSet.Tables["primitems"]);
-
-                    _PrimsDataSet.AcceptChanges();
-
-                    _PrimsDataSet.Tables["prims"].Clear();
-                    _PrimsDataSet.Tables["primshapes"].Clear();
-                    _PrimsDataSet.Tables["primitems"].Clear();
                 }
+            }
+            finally
+            {
+                _PrimsDataSet.AcceptChanges();
+
+                _PrimsDataSet.Tables["prims"].Clear();
+                _PrimsDataSet.Tables["primshapes"].Clear();
+                _PrimsDataSet.Tables["primitems"].Clear();
+                
             }
         }
 
