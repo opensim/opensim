@@ -728,6 +728,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
                         {
                             SendCloseChildAgentConnections(avatar.UUID,avatar.GetKnownRegionList());
+                            CloseConnection(m_regionInfo.RegionHandle, avatar.UUID);
                         }
                         // if (teleport success) // seems to be always success here
                         // the user may change their profile information in other region,
