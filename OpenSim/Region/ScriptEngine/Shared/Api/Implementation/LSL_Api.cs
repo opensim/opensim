@@ -1790,6 +1790,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Rotation llGetRot()
         {
+            // unlinked or root prim then use llRootRotation
+            // see llRootRotaion for references.
+            if (m_host.LinkNum == 0 || m_host.LinkNum == 1)
+            {
+                return llGetRootRotation();
+            }
             m_host.AddScriptLPS(1);
             Quaternion q = m_host.RotationOffset;
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
@@ -6416,10 +6422,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Vector(m_host.ParentGroup.AbsolutePosition.X, m_host.ParentGroup.AbsolutePosition.Y, m_host.ParentGroup.AbsolutePosition.Z);
         }
 
+        /// <summary>
+        /// http://lslwiki.net/lslwiki/wakka.php?wakka=llGetRot
+        /// http://lslwiki.net/lslwiki/wakka.php?wakka=ChildRotation
+        /// Also tested in sl in regards to the behaviour in attachments/mouselook
+        /// In the root prim:-
+        ///     Returns the object rotation if not attached
+        ///     Returns the avatars rotation if attached
+        ///     Returns the camera rotation if attached and the avatar is in mouselook
+        /// </summary>
         public LSL_Rotation llGetRootRotation()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Rotation(m_host.ParentGroup.GroupRotation.X, m_host.ParentGroup.GroupRotation.Y, m_host.ParentGroup.GroupRotation.Z, m_host.ParentGroup.GroupRotation.W);
+            Quaternion q;
+            if (m_host.ParentGroup.RootPart.AttachmentPoint != 0)
+            {
+                ScenePresence avatar = World.GetScenePresence(m_host.AttachedAvatar);
+                if (avatar != null)
+                    if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
+                        q = avatar.CameraRotation; // Mouselook
+                    else
+                        q = avatar.Rotation; // Currently infrequently updated so may be inaccurate
+                else
+                    q = m_host.ParentGroup.GroupRotation; // Likely never get here but just in case
+            }
+            else
+                q = m_host.ParentGroup.GroupRotation; // just the group rotation
+            return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
         }
 
         public LSL_String llGetObjectDesc()
