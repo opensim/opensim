@@ -1034,36 +1034,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.Modules.AvatarFactory" path="OpenSim/Region/Modules/AvatarFactory" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Data.Base" />
-      <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="OpenSim.Data.MapperFactory"/>
-      <Reference name="Nini.dll" />
-      <Reference name="OpenSim.Data.MySQLMapper" />
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project name="OpenSim.Region.Modules.Python" path="OpenSim/Region/Modules/Python" type="Library">
       <Configuration name="Debug">
         <Options>

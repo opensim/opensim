@@ -25,142 +25,47 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+
 using System.Threading;
 using OpenMetaverse;
+using log4net;
 using Nini.Config;
+using OpenSim.Data.Base;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Data.MySQLMapper;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Data.Base;
 
-namespace OpenSim.Region.Environment.Modules
+namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
 {
-    public class AvatarFactoryModule : IAvatarFactory
+    public class AvatarFactoryModule : IAvatarFactory, IRegionModule
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene = null;
-        private readonly Dictionary<UUID, AvatarAppearance> m_avatarsAppearance = new Dictionary<UUID, AvatarAppearance>();
-
-        private bool m_enablePersist = false;
-        private string m_connectionString;
-        private bool m_configured = false;
-        private BaseDatabaseConnector m_databaseMapper;
-        private AppearanceTableMapper m_appearanceMapper;
-
-        private Dictionary<UUID, EventWaitHandle> m_fetchesInProgress = new Dictionary<UUID, EventWaitHandle>();
-        private object m_syncLock = new object();
+        private static readonly AvatarAppearance def = new AvatarAppearance();
 
         public bool TryGetAvatarAppearance(UUID avatarId, out AvatarAppearance appearance)
         {
-
-            //should only let one thread at a time do this part
-            EventWaitHandle waitHandle = null;
-            bool fetchInProgress = false;
-            lock (m_syncLock)
+            CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(avatarId);
+            //if ((profile != null) && (profile.RootFolder != null))
+            if (profile != null)
             {
-                appearance = CheckCache(avatarId);
+                appearance = m_scene.CommsManager.AvatarService.GetUserAppearance(avatarId);
                 if (appearance != null)
                 {
+                    //SetAppearanceAssets(profile, ref appearance);
+                    m_log.InfoFormat("[APPEARANCE] found : {0}", appearance.ToString());
                     return true;
-                }
-
-                //not in cache so check to see if another thread is already fetching it
-                if (m_fetchesInProgress.TryGetValue(avatarId, out waitHandle))
-                {
-                    fetchInProgress = true;
-                }
-                else
-                {
-                    fetchInProgress = false;
-
-                    //no thread already fetching this appearance, so add a wait handle to list
-                    //for any following threads that want the same appearance
-                    waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
-                    m_fetchesInProgress.Add(avatarId, waitHandle);
                 }
             }
 
-            if (fetchInProgress)
-            {
-                waitHandle.WaitOne();
-                appearance = CheckCache(avatarId);
-                if (appearance != null)
-                {
-                    waitHandle = null;
-                    return true;
-                }
-                else
-                {
-                    waitHandle = null;
-                    return false;
-                }
-            }
-            else
-            {
-                Thread.Sleep(5000);
+            appearance = CreateDefault(avatarId);
+            m_log.InfoFormat("[APPEARANCE] appearance not found for {0}, creating default", avatarId.ToString());
+            return false;
 
-                //this is the first thread to request this appearance
-                //so let it check the db and if not found then create a default appearance
-                //and add that to the cache
-                appearance = CheckDatabase(avatarId);
-                if (appearance != null)
-                {
-                    //appearance has now been added to cache so lets pulse any waiting threads
-                    lock (m_syncLock)
-                    {
-                        m_fetchesInProgress.Remove(avatarId);
-                        waitHandle.Set();
-                    }
-                    // waitHandle.Close();
-                    waitHandle = null;
-                    return true;
-                }
-
-                //not found a appearance for the user, so create a new default one
-                appearance = CreateDefault(avatarId);
-                if (appearance != null)
-                {
-                    //update database
-                    if (m_enablePersist)
-                    {
-                        m_appearanceMapper.Add(avatarId.UUID, appearance);
-                    }
-
-                    //add appearance to dictionary cache
-                    lock (m_avatarsAppearance)
-                    {
-                        m_avatarsAppearance[avatarId] = appearance;
-                    }
-
-                    //appearance has now been added to cache so lets pulse any waiting threads
-                    lock (m_syncLock)
-                    {
-                        m_fetchesInProgress.Remove(avatarId);
-                        waitHandle.Set();
-                    }
-                    // waitHandle.Close();
-                    waitHandle = null;
-                    return true;
-                }
-                else
-                {
-                    //something went wrong, so release the wait handle and remove it
-                    //all waiting threads will fail to find cached appearance
-                    //but its better for them to fail than wait for ever
-                    lock (m_syncLock)
-                    {
-                        m_fetchesInProgress.Remove(avatarId);
-                        waitHandle.Set();
-                    }
-                    //waitHandle.Close();
-                    waitHandle = null;
-                    return false;
-                }
-            }
         }
 
         private AvatarAppearance CreateDefault(UUID avatarId)
@@ -174,37 +79,6 @@ namespace OpenSim.Region.Environment.Modules
             return appearance;
         }
 
-        private AvatarAppearance CheckDatabase(UUID avatarId)
-        {
-            AvatarAppearance appearance = null;
-            if (m_enablePersist)
-            {
-                if (m_appearanceMapper.TryGetValue(avatarId.UUID, out appearance))
-                {
-                    appearance.VisualParams = GetDefaultVisualParams();
-                    appearance.TextureEntry = AvatarAppearance.GetDefaultTextureEntry();
-                    lock (m_avatarsAppearance)
-                    {
-                        m_avatarsAppearance[avatarId] = appearance;
-                    }
-                }
-            }
-            return appearance;
-        }
-
-        private AvatarAppearance CheckCache(UUID avatarId)
-        {
-            AvatarAppearance appearance = null;
-            lock (m_avatarsAppearance)
-            {
-                if (m_avatarsAppearance.ContainsKey(avatarId))
-                {
-                    appearance = m_avatarsAppearance[avatarId];
-                }
-            }
-            return appearance;
-        }
-
         public void Initialise(Scene scene, IConfigSource source)
         {
             scene.RegisterModuleInterface<IAvatarFactory>(this);
@@ -215,23 +89,6 @@ namespace OpenSim.Region.Environment.Modules
                 m_scene = scene;
             }
 
-            if (!m_configured)
-            {
-                m_configured = true;
-                try
-                {
-                    m_enablePersist = source.Configs["Startup"].GetBoolean("appearance_persist", false);
-                    m_connectionString = source.Configs["Startup"].GetString("appearance_connection_string", "");
-                }
-                catch (Exception)
-                {
-                }
-                if (m_enablePersist)
-                {
-                    m_databaseMapper = new MySQLDatabaseMapper(m_connectionString);
-                    m_appearanceMapper = new AppearanceTableMapper(m_databaseMapper, "AvatarAppearance");
-                }
-            }
         }
 
         public void PostInitialise()
@@ -262,59 +119,78 @@ namespace OpenSim.Region.Environment.Modules
             // client.OnAvatarNowWearing -= AvatarIsWearing;
         }
 
-        public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
+
+        public void SetAppearanceAssets(CachedUserInfo profile, ref AvatarAppearance appearance)
         {
-            IClientAPI clientView = (IClientAPI)sender;
-            CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
-            if (profile != null)
+            if (profile.RootFolder != null)
             {
-                if (profile.RootFolder != null)
+                for (int i = 0; i < 13; i++)
                 {
-                    if (m_avatarsAppearance.ContainsKey(clientView.AgentId))
+                    if (appearance.Wearables[i].ItemID == UUID.Zero)
                     {
-                        AvatarAppearance avatAppearance = null;
-                        lock (m_avatarsAppearance)
+                        appearance.Wearables[i].AssetID = UUID.Zero;
+                    }
+                    else
+                    {
+                        // UUID assetId;
+
+                        InventoryItemBase baseItem = profile.RootFolder.FindItem(appearance.Wearables[i].ItemID);
+
+                        if (baseItem != null)
                         {
-                            avatAppearance = m_avatarsAppearance[clientView.AgentId];
+                            appearance.Wearables[i].AssetID = baseItem.AssetID;
                         }
-
-                        foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
+                        else
                         {
-                            if (wear.Type < 13)
-                            {
-                                if (wear.ItemID == UUID.Zero)
-                                {
-                                    avatAppearance.Wearables[wear.Type].ItemID = UUID.Zero;
-                                    avatAppearance.Wearables[wear.Type].AssetID = UUID.Zero;
-
-                                    UpdateDatabase(clientView.AgentId, avatAppearance);
-                                }
-                                else
-                                {
-                                    UUID assetId;
-
-                                    InventoryItemBase baseItem = profile.RootFolder.FindItem(wear.ItemID);
-                                    if (baseItem != null)
-                                    {
-                                        assetId = baseItem.assetID;
-                                        avatAppearance.Wearables[wear.Type].AssetID = assetId;
-                                        avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
-
-                                        UpdateDatabase(clientView.AgentId, avatAppearance);
-                                    }
-                                }
-                            }
+                            m_log.ErrorFormat("[APPEARANCE] Can't find inventory item {0}, setting to default", appearance.Wearables[i].ItemID);
+                            appearance.Wearables[i].AssetID = def.Wearables[i].AssetID;
                         }
                     }
                 }
             }
+            else
+            {
+                m_log.Error("[APPEARANCE] you have no inventory, appearance stuff isn't going to work");
+            }
         }
 
-        public void UpdateDatabase(UUID userID, AvatarAppearance avatAppearance)
+        public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
         {
-            if (m_enablePersist)
+            IClientAPI clientView = (IClientAPI)sender;
+            ScenePresence avatar = m_scene.GetScenePresence(clientView.AgentId);
+            if (avatar == null) {
+                m_log.Info("Avatar is child agent, ignoring AvatarIsWearing event");
+                return;
+            }
+
+            CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
+
+            AvatarAppearance avatAppearance = null;
+            if (!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) {
+                m_log.Info("We didn't seem to find the appearance, falling back to ScenePresense");
+                avatAppearance = avatar.Appearance;
+            }
+            m_log.Info("Calling Avatar is Wearing");
+            if (profile != null)
             {
-                m_appearanceMapper.Update(userID.Guid, avatAppearance);
+                if (profile.RootFolder != null)
+                {
+                    foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
+                    {
+                        if (wear.Type < 13)
+                        {
+                            avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
+                        }
+                    }
+                    SetAppearanceAssets(profile, ref avatAppearance);
+
+                    m_scene.CommsManager.AvatarService.UpdateUserAppearance(clientView.AgentId, avatAppearance);
+                    avatar.Appearance = avatAppearance;
+                }
+                else
+                {
+                    m_log.Error("Root Profile is null, we can't set the appearance");
+                }
             }
         }
 
@@ -322,6 +198,11 @@ namespace OpenSim.Region.Environment.Modules
         {
             visualParams = GetDefaultVisualParams();
             wearables = AvatarWearable.DefaultWearables;
+        }
+
+        public void UpdateDatabase(UUID user, AvatarAppearance appearance)
+        {
+            m_scene.CommsManager.AvatarService.UpdateUserAppearance(user, appearance);
         }
 
         private static byte[] GetDefaultVisualParams()
@@ -335,4 +216,4 @@ namespace OpenSim.Region.Environment.Modules
             return visualParams;
         }
     }
-}*/
+}
