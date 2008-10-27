@@ -428,15 +428,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             }
         }
 
-        private static void checkIntegerParams(XmlRpcRequest request, string[] param)
-        {
-            Hashtable requestData = (Hashtable) request.Params[0];
-            foreach (string p in param)
-            {
-                if (!requestData.Contains(p))
-                    throw new Exception(String.Format("missing integer parameter {0}", p));
-            }
-        }
+//        private static void checkIntegerParams(XmlRpcRequest request, string[] param)
+//        {
+//            Hashtable requestData = (Hashtable) request.Params[0];
+//            foreach (string p in param)
+//            {
+//                if (!requestData.Contains(p))
+//                    throw new Exception(String.Format("missing integer parameter {0}", p));
+//            }
+//        }
 
         public XmlRpcResponse XmlRpcUpdateWelcomeMethod(XmlRpcRequest request)
         {

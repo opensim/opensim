@@ -976,7 +976,7 @@ namespace PrimMesher
             this.faceNormal.Y = -this.faceNormal.Y;
             this.faceNormal.Z = -this.faceNormal.Z;
 
-            int numUs = this.us.Count;
+            //int numUs = this.us.Count;
             //for (int i = 0; i < numUs; i++)
             //    this.us[i] 
 
@@ -1930,7 +1930,6 @@ namespace PrimMesher
 
         public Coord SurfaceNormal(int faceIndex)
         {
-            int numFaces = faces.Count;
             if (faceIndex < 0 || faceIndex >= faces.Count)
                 throw new Exception("faceIndex out of range");
 
