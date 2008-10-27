@@ -1614,6 +1614,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return ret;
             }
 
+            static public LSLInteger operator ^(LSLInteger i1, LSLInteger i2)
+            {
+                int ret = i1.value ^ i2.value;
+                return ret;
+            }
+
             public static LSLInteger operator ++(LSLInteger i)
             {
                 i.value++;
