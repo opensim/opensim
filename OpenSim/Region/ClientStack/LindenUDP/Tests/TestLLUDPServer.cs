@@ -99,8 +99,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             lock (clientCircuits_reverse)
             {
                 return clientCircuits_reverse.ContainsKey(circuitCode);
-            }                
-        }        
+            }
+        }
     }
     
     /// <summary>

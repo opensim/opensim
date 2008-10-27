@@ -101,7 +101,7 @@ namespace OpenSim.Grid.MessagingServer
         private void deregisterFromUserServer()
         {
             msgsvc.deregisterWithUserServer();
-            if(m_httpServer != null)
+            if (m_httpServer != null)
             {
                 // try a completely fresh registration, with fresh handlers, too
                 m_httpServer.Stop();

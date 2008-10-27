@@ -306,7 +306,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
         protected void AddToAttendeeList(ScenePresence agent, Scene scene)
         {
-            lock(_sceneAttendees)
+            lock (_sceneAttendees)
             {
                 if (!_sceneAttendees.ContainsKey(scene))
                     _sceneAttendees[scene] = new List<ScenePresence>();
@@ -318,7 +318,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
         protected void RemoveFromAttendeeList(ScenePresence agent, Scene scene)
         {
-            lock(_sceneAttendees)
+            lock (_sceneAttendees)
             {
                 if (!_sceneAttendees.ContainsKey(scene))
                 {
