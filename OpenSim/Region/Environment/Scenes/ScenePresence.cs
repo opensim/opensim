@@ -715,9 +715,9 @@ namespace OpenSim.Region.Environment.Scenes
                 ava.TryGetAvatarAppearance(m_uuid, out m_appearance);
             }
 
-//            m_log.DebugFormat(
-//                 "[SCENE PRESENCE]: Upgrading child agent {0}, {1} to a root agent in {2} at pos {3}",
-//                 Name, UUID, m_scene.RegionInfo.RegionName, pos);
+            m_log.DebugFormat(
+                "[SCENE]: Upgrading child to root agent for {0} in {1}",
+                Name, m_scene.RegionInfo.RegionName);
 
             if (pos.X < 0 || pos.X > Constants.RegionSize || pos.Y < 0 || pos.Y > Constants.RegionSize || pos.Z < 0)
             {

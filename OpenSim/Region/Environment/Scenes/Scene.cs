@@ -2486,6 +2486,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Create a scene presence and add it to this scene.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="child"></param>
+        /// <returns></returns>
         protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child)
         {
             AvatarAppearance appearance = null;
@@ -2515,11 +2521,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[APPEARANCE]: Problem fetching appearance for avatar {0}, {1}, {2}",
-                    client.Name, client.AgentId, e.ToString());
+                m_log.ErrorFormat("[APPEARANCE]: Problem fetching appearance for avatar {0}, {1}",
+                    client.Name, e);
             }
+            
             m_log.Warn("[APPEARANCE]: Appearance not found, returning default");
-
         }
 
         /// <summary>

@@ -57,15 +57,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
                 if (appearance != null)
                 {
                     //SetAppearanceAssets(profile, ref appearance);
-                    m_log.InfoFormat("[APPEARANCE] found : {0}", appearance.ToString());
+                    m_log.InfoFormat("[APPEARANCE]: Found : {0}", appearance.ToString());
                     return true;
                 }
             }
 
             appearance = CreateDefault(avatarId);
-            m_log.InfoFormat("[APPEARANCE] appearance not found for {0}, creating default", avatarId.ToString());
+            m_log.InfoFormat("[APPEARANCE]: Appearance not found for {0}, creating default", avatarId);
             return false;
-
         }
 
         private AvatarAppearance CreateDefault(UUID avatarId)
