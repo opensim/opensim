@@ -527,7 +527,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RegisterToEvents()
         {
-            m_controllingClient.OnRequestWearables += SendOwnAppearance;
+            m_controllingClient.OnRequestWearables += SendWearables;
             m_controllingClient.OnSetAppearance += SetAppearance;
             m_controllingClient.OnCompleteMovementToRegion += CompleteMovement;
             m_controllingClient.OnCompleteMovementToRegion += SendInitialData;
@@ -1843,12 +1843,13 @@ namespace OpenSim.Region.Environment.Scenes
          }
 
         /// <summary>
-        ///
+        /// Tell the client for this scene presence what items it should be wearing now
         /// </summary>
         /// <param name="client"></param>
-        public void SendOwnAppearance()
+        public void SendWearables()
         {
-            m_log.Info("[APPEARANCE]: Sending Own Appearance");
+            m_log.DebugFormat("[APPEARANCE]: Sending wearables to {0}", Name);
+            
             ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
             // ControllingClient.SendAppearance(
             //                                 m_appearance.Owner,
@@ -1862,8 +1863,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendAppearanceToAllOtherAgents()
         {
-            m_log.Info("[APPEARANCE]: Sending Appearance to All Other Agents");
-            m_perfMonMS=System.Environment.TickCount;
+            m_log.DebugFormat("[APPEARANCE]: Sending appearance to all other agents for {0}", Name);
+            
+            m_perfMonMS = System.Environment.TickCount;
 
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
                                          {
@@ -1872,6 +1874,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                  SendAppearanceToOtherAgent(scenePresence);
                                              }
                                          });
+            
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }
 
@@ -1886,18 +1889,20 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
-            m_log.Info("[APPEARANCE]: Setting Appearance");
+            m_log.DebugFormat("[APPEARANCE]: Setting appearance for {0}", Name);
+            
             m_appearance.SetAppearance(texture, visualParam);
             SetHeight(m_appearance.AvatarHeight);
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
 
             SendAppearanceToAllOtherAgents();
-            SendOwnAppearance();
+            SendWearables();
         }
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
-            m_log.Info("[APPEARANCE]: Setting Wearable");
+            m_log.DebugFormat("[APPEARANCE]: Setting wearable for {0}", Name);
+            
             m_appearance.SetWearable(wearableId, wearable);
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
             m_controllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);

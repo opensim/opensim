@@ -71,17 +71,23 @@ namespace OpenSim.Framework
                 {
                     defaultWearables[i] = new AvatarWearable();
                 }
+                
+                // Body
                 defaultWearables[0].AssetID = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
                 defaultWearables[0].ItemID = new UUID("66c41e39-38f9-f75a-024e-585989bfaba9");
 
+                // Skin
                 defaultWearables[1].ItemID = new UUID("77c41e39-38f9-f75a-024e-585989bfabc9");
                 defaultWearables[1].AssetID = new UUID("77c41e39-38f9-f75a-024e-585989bbabbb");
 
+                // Shirt
                 defaultWearables[4].ItemID = new UUID("77c41e39-38f9-f75a-0000-585989bf0000");
                 defaultWearables[4].AssetID = new UUID("00000000-38f9-1111-024e-222222111110");
 
+                // Pants
                 defaultWearables[5].ItemID = new UUID("77c41e39-38f9-f75a-0000-5859892f1111");
                 defaultWearables[5].AssetID = new UUID("00000000-38f9-1111-024e-222222111120");
+                
                 return defaultWearables;
             }
         }

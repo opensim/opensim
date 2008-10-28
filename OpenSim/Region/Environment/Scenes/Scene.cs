@@ -2236,8 +2236,6 @@ namespace OpenSim.Region.Environment.Scenes
         protected virtual void SubscribeToClientEvents(IClientAPI client)
         {
             client.OnRegionHandShakeReply += SendLayerData;
-            //remoteClient.OnRequestWearables += new GenericCall(this.GetInitialPrims);
-            // client.OnRequestWearables += InformClientOfNeighbours;
             client.OnAddPrim += AddNewPrim;
             client.OnUpdatePrimGroupPosition += m_innerScene.UpdatePrimPosition;
             client.OnUpdatePrimSinglePosition += m_innerScene.UpdatePrimSinglePosition;

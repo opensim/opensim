@@ -2221,11 +2221,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // Gesture
 
         #region Appearance/ Wearables Methods
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="wearables"></param>
+        
         public void SendWearables(AvatarWearable[] wearables, int serial)
         {
             AgentWearablesUpdatePacket aw = (AgentWearablesUpdatePacket)PacketPool.Instance.GetPacket(PacketType.AgentWearablesUpdate);
@@ -2248,12 +2244,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(aw, ThrottleOutPacketType.Task);
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="agentID"></param>
-        /// <param name="visualParams"></param>
-        /// <param name="textureEntry"></param>
         public void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
         {
             AvatarAppearancePacket avp = (AvatarAppearancePacket)PacketPool.Instance.GetPacket(PacketType.AvatarAppearance);
@@ -4199,6 +4189,7 @@ Console.WriteLine(msgpack.ToString());
                         }
 
                         break;
+                    
                     case PacketType.RegionHandshakeReply:
 
                         handlerRegionHandShakeReply = OnRegionHandShakeReply;
@@ -4208,6 +4199,7 @@ Console.WriteLine(msgpack.ToString());
                         }
 
                         break;
+                    
                     case PacketType.AgentWearablesRequest:
                         handlerRequestWearables = OnRequestWearables;
 
@@ -4224,6 +4216,7 @@ Console.WriteLine(msgpack.ToString());
                         }
 
                         break;
+                    
                     case PacketType.AgentSetAppearance:
                         AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
 

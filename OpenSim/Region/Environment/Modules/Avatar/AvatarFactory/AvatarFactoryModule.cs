@@ -131,8 +131,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
                     }
                     else
                     {
-                        // UUID assetId;
-
                         InventoryItemBase baseItem = profile.RootFolder.FindItem(appearance.Wearables[i].ItemID);
 
                         if (baseItem != null)
@@ -141,7 +139,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
                         }
                         else
                         {
-                            m_log.ErrorFormat("[APPEARANCE] Can't find inventory item {0}, setting to default", appearance.Wearables[i].ItemID);
+                            m_log.ErrorFormat("[APPEARANCE]: Can't find inventory item {0}, setting to default", appearance.Wearables[i].ItemID);
                             appearance.Wearables[i].AssetID = def.Wearables[i].AssetID;
                         }
                     }
@@ -149,7 +147,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
             }
             else
             {
-                m_log.Error("[APPEARANCE] you have no inventory, appearance stuff isn't going to work");
+                m_log.Error("[APPEARANCE]: you have no inventory, appearance stuff isn't going to work");
             }
         }
 
@@ -157,19 +155,24 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
         {
             IClientAPI clientView = (IClientAPI)sender;
             ScenePresence avatar = m_scene.GetScenePresence(clientView.AgentId);
-            if (avatar == null) {
-                m_log.Info("Avatar is child agent, ignoring AvatarIsWearing event");
+            
+            if (avatar == null) 
+            {
+                m_log.Warn("[APPEARANCE]: Avatar is child agent, ignoring AvatarIsWearing event");
                 return;
             }
 
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
 
             AvatarAppearance avatAppearance = null;
-            if (!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) {
-                m_log.Info("We didn't seem to find the appearance, falling back to ScenePresense");
+            if (!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) 
+            {
+                m_log.Info("[APPEARANCE]: We didn't seem to find the appearance, falling back to ScenePresense");
                 avatAppearance = avatar.Appearance;
             }
-            m_log.Info("Calling Avatar is Wearing");
+            
+            m_log.Info("[APPEARANCE]: Calling Avatar is Wearing");
+            
             if (profile != null)
             {
                 if (profile.RootFolder != null)
@@ -181,6 +184,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
                             avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
                         }
                     }
+                    
                     SetAppearanceAssets(profile, ref avatAppearance);
 
                     m_scene.CommsManager.AvatarService.UpdateUserAppearance(clientView.AgentId, avatAppearance);
@@ -188,7 +192,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
                 }
                 else
                 {
-                    m_log.Error("Root Profile is null, we can't set the appearance");
+                    m_log.Error("[APPEARANCE]: Root Profile is null, we can't set the appearance");
                 }
             }
         }
