@@ -703,28 +703,27 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeRootAgent(Vector3 pos, bool isFlying)
         {
+            m_log.DebugFormat(
+                "[SCENE]: Upgrading child to root agent for {0} in {1}",
+                Name, m_scene.RegionInfo.RegionName);
+            
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
                 m_grouptitle = gm.GetGroupTitle(m_uuid);
 
             m_scene.SetRootAgentScene(m_uuid);
 
-            IAvatarFactory ava = m_scene.RequestModuleInterface<IAvatarFactory>();
-            if (ava != null)
-            {
-                ava.TryGetAvatarAppearance(m_uuid, out m_appearance);
-            }
-
-            m_log.DebugFormat(
-                "[SCENE]: Upgrading child to root agent for {0} in {1}",
-                Name, m_scene.RegionInfo.RegionName);
+            // Moved this from SendInitialData to ensure that m_appearance is initialized
+            // before the inventory is processed in MakeRootAgent. This fixes a race condition
+            // related to the handling of attachments
+            m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);            
 
             if (pos.X < 0 || pos.X > Constants.RegionSize || pos.Y < 0 || pos.Y > Constants.RegionSize || pos.Z < 0)
             {
                 Vector3 emergencyPos = new Vector3(128, 128, 128);
 
                 m_log.WarnFormat(
-                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
+                    "[SCENE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
                     pos, Name, UUID, emergencyPos);
 
                 pos = emergencyPos;
@@ -891,11 +890,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
-
-            // Moved this from SendInitialData to ensure that m_appearance is initialized
-            // before the inventory is processed in MakeRootAgent. This fixes a race condition
-            // related to the handling of attachments
-            m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
 
             if (m_isChildAgent)
             {
@@ -1854,7 +1848,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void SendOwnAppearance()
         {
-            m_log.Info("[APPEARANCE] Sending Own Appearance");
+            m_log.Info("[APPEARANCE]: Sending Own Appearance");
             ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
             // ControllingClient.SendAppearance(
             //                                 m_appearance.Owner,
@@ -1868,7 +1862,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendAppearanceToAllOtherAgents()
         {
-            m_log.Info("[APPEARANCE] Sending Appearance to All Other Agents");
+            m_log.Info("[APPEARANCE]: Sending Appearance to All Other Agents");
             m_perfMonMS=System.Environment.TickCount;
 
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
@@ -1892,7 +1886,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
-            m_log.Info("[APPEARANCE] Setting Appearance");
+            m_log.Info("[APPEARANCE]: Setting Appearance");
             m_appearance.SetAppearance(texture, visualParam);
             SetHeight(m_appearance.AvatarHeight);
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
@@ -1903,7 +1897,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
-            m_log.Info("[APPEARANCE] Setting Wearable");
+            m_log.Info("[APPEARANCE]: Setting Wearable");
             m_appearance.SetWearable(wearableId, wearable);
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
             m_controllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
