@@ -1213,7 +1213,7 @@ namespace PrimMesher
 
 
             Coord lastCutNormal1 = new Coord();
-            Coord lastCutNormal2 = new Coord();
+            //Coord lastCutNormal2 = new Coord();
             float lastV = 1.0f;
 
             bool done = false;
@@ -1424,7 +1424,7 @@ namespace PrimMesher
                 }
 
                 lastCutNormal1 = newLayer.cutNormal1;
-                lastCutNormal2 = newLayer.cutNormal2;
+                //lastCutNormal2 = newLayer.cutNormal2;
                 lastV = 1.0f - percentOfPath;
 
                 // calc the step for the next iteration of the loop
@@ -1578,7 +1578,7 @@ namespace PrimMesher
             }
 
             Coord lastCutNormal1 = new Coord();
-            Coord lastCutNormal2 = new Coord();
+            //Coord lastCutNormal2 = new Coord();
             float lastV = 1.0f;
 
             bool done = false;
@@ -1781,7 +1781,7 @@ namespace PrimMesher
                 }
 
                 lastCutNormal1 = newLayer.cutNormal1;
-                lastCutNormal2 = newLayer.cutNormal2;
+                //lastCutNormal2 = newLayer.cutNormal2;
                 lastV = 1.0f - percentOfPath;
 
                 // calculate terms for next iteration

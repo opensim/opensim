@@ -153,7 +153,7 @@ namespace OpenSim.Framework.Servers
                         {
                             sb.Append("ID: " + t.ManagedThreadId + ", Name: " + t.Name + ", DEAD" + Environment.NewLine);
                         }
-                        catch (Exception e)
+                        catch
                         {
                             sb.Append("THREAD ERROR" + Environment.NewLine);
                         }
