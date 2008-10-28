@@ -1373,7 +1373,8 @@ namespace OpenSim.Region.Environment.Scenes
             List<SceneObjectGroup> children = new List<SceneObjectGroup>();
             if (parenPrim != null)
             {
-                for (int i = 0; i < childPrims.Count; i++)
+		// We do this in reverse to get the link order of the prims correct
+                for (int i = childPrims.Count - 1; i >= 0; i--)
                 {
                     foreach (EntityBase ent in EntityList)
                     {
