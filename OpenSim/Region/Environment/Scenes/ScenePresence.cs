@@ -1521,7 +1521,7 @@ namespace OpenSim.Region.Environment.Scenes
                         return "CROUCH";
                     }
                 }
-                else if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -6)
+                else if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -2)
                 {
                     return "FALLDOWN";
                 }
@@ -1542,7 +1542,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 // We are not moving
-                if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -6 && !PhysicsActor.Flying)
+                if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -2 && !PhysicsActor.Flying)
                 {
                     return "FALLDOWN";
                 }
