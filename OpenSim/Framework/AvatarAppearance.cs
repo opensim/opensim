@@ -28,8 +28,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -39,6 +41,9 @@ namespace OpenSim.Framework
     [Serializable]
     public class AvatarAppearance : ISerializable
     {
+//        private static readonly ILog m_log
+//            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         // these are guessed at by the list here -
         // http://wiki.secondlife.com/wiki/Avatar_Appearance.  We'll
         // correct them over time for when were are wrong.
@@ -258,7 +263,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        ///
+        /// Set up appearance textures and avatar parameters, including a height calculation
         /// </summary>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
@@ -266,7 +271,15 @@ namespace OpenSim.Framework
         {
             Primitive.TextureEntry textureEnt = new Primitive.TextureEntry(texture, 0, texture.Length);
             m_texture = textureEnt;
-
+            
+//            m_log.DebugFormat("[APPEARANCE]: Setting an avatar appearance with {0} faces", m_texture.FaceTextures.Length);
+//            for (int i = 0; i < m_texture.FaceTextures.Length; i++)
+//            {
+//                Primitive.TextureEntryFace face = m_texture.FaceTextures[i];  
+//                String textureIdString = (face != null ? face.TextureID.ToString() : "none");
+//                m_log.DebugFormat("[APPEARANCE]: Texture {0} is {1}", i, textureIdString);
+//            }
+            
             m_visualparams = visualParam.ToArray();
 
             // Teravus : Nifty AV Height Getting Maaaaagical formula.  Oh how we love turning 0-255 into meters.
@@ -297,10 +310,10 @@ namespace OpenSim.Framework
         public override String ToString()
         {
             String s = "[Wearables] =>";
-            s += "Body Item: " + BodyItem.ToString() + ";";
-            s += "Skin Item: " + SkinItem.ToString() + ";";
-            s += "Shirt Item: " + ShirtItem.ToString() + ";";
-            s += "Pants Item: " + PantsItem.ToString() + ";";
+            s += " Body Item: " + BodyItem.ToString() + ";";
+            s += " Skin Item: " + SkinItem.ToString() + ";";
+            s += " Shirt Item: " + ShirtItem.ToString() + ";";
+            s += " Pants Item: " + PantsItem.ToString() + ";";
             return s;
         }
 

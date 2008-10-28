@@ -334,6 +334,10 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="asset"></param>
         public void AddAsset(AssetBase asset)
         {
+//            m_log.DebugFormat(
+//                "[ASSET CACHE]: Uploaded asset {0}, temporary {1}, store local {2}", 
+//                asset.ID, asset.Temporary, asset.Local);
+            
             if (asset.Type == (int)AssetType.Texture)
             {
                 if (!Textures.ContainsKey(asset.FullID))
@@ -344,11 +348,23 @@ namespace OpenSim.Framework.Communications.Cache
                     if (StatsManager.SimExtraStats != null)
                         StatsManager.SimExtraStats.AddTexture(textur);
 
-                    if (!asset.Temporary)
+                    // According to http://wiki.secondlife.com/wiki/AssetUploadRequest, Local signifies that the 
+                    // information is stored locally.  It could disappear, in which case we could send the
+                    // ImageNotInDatabase packet to tell the client this.  However, when this was enabled in 
+                    // TextureNotFoundSender it ended up crashing clients - we need to go back and try this again.
+                    //
+                    // In the mean time, we're just going to push local assets to the permanent store instead.
+                    // TODO: Need to come back and address this.
+                    // TODO: Also, Temporary is now deprecated.  We should start ignoring it and not passing it out from LLClientView.
+                    if (!asset.Temporary || asset.Local)
                     {
                         m_assetServer.StoreAsset(asset);
                     }
                 }
+//                else
+//                {
+//                    m_log.DebugFormat("[ASSET CACHE]: Textures already contains {0}", asset.ID);                    
+//                }                
             }
             else
             {
@@ -360,11 +376,16 @@ namespace OpenSim.Framework.Communications.Cache
                     if (StatsManager.SimExtraStats != null)
                         StatsManager.SimExtraStats.AddAsset(assetInf);
 
-                    if (!asset.Temporary)
+                    // See comment above.
+                    if (!asset.Temporary || asset.Local)
                     {
                         m_assetServer.StoreAsset(asset);
                     }
                 }
+//                else
+//                {
+//                    m_log.DebugFormat("[ASSET CACHE]: Assets already contains {0}", asset.ID);                    
+//                }
             }
         }
 
@@ -394,6 +415,8 @@ namespace OpenSim.Framework.Communications.Cache
         // See IAssetReceiver
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
+//            m_log.DebugFormat("[ASSET CACHE]: Received asset {0}", asset.ID);
+            
             //check if it is a texture or not
             //then add to the correct cache list
             //then check for waiting requests for this asset/texture (in the Requested lists)
@@ -464,7 +487,7 @@ namespace OpenSim.Framework.Communications.Cache
         // See IAssetReceiver
         public void AssetNotFound(UUID assetID, bool IsTexture)
         {
-            //m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
+//            m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
 
             if (IsTexture)
             {

@@ -2239,6 +2239,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 awb.AssetID = wearables[i].AssetID;
                 awb.ItemID = wearables[i].ItemID;
                 aw.WearableData[i] = awb;
+                
+//                m_log.DebugFormat(
+//                    "[APPEARANCE]: Sending wearable item/asset {0} {1} (index {2}) for {3}", 
+//                    awb.ItemID, awb.AssetID, i, Name);
             }
 
             OutPacket(aw, ThrottleOutPacketType.Task);
@@ -4205,6 +4209,8 @@ Console.WriteLine(msgpack.ToString());
 
                         if (handlerRequestWearables != null)
                         {
+                            m_log.DebugFormat("[APPEARANCE]: Wearables requested by {0}", Name);
+                        
                             handlerRequestWearables();
                         }
 
@@ -7076,7 +7082,6 @@ Console.WriteLine(msgpack.ToString());
 
         public void SendAsset(AssetRequestToClient req)
         {
-
             //Console.WriteLine("sending asset " + req.RequestAssetID);
             TransferInfoPacket Transfer = new TransferInfoPacket();
             Transfer.TransferInfo.ChannelType = 2;
