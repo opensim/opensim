@@ -100,7 +100,7 @@ namespace OpenSim.Region.Environment.Modules
 
         private Dictionary<UUID, ulong> m_rootAgents = new Dictionary<UUID, ulong>();
 
-        // Current time in elpased seconds since Jan 1st 1970
+        // Current time in elapsed seconds since Jan 1st 1970
         private ulong CurrentTime
         {
             get {
@@ -145,14 +145,12 @@ namespace OpenSim.Region.Environment.Modules
 
             LindenHourOffset = (long)((float)offsethours * (36000000000/m_day_length));
             m_log.Info("[SUN]: Directive from the Estate Tools to set the sun phase to LindenHour " + GetLindenEstateHourFromCurrentTime().ToString());
-
         }
+
         // Called immediately after the module is loaded for a given region
         // i.e. Immediately after instance creation.
-
         public void Initialise(Scene scene, IConfigSource config)
         {
-
             m_log.Debug("[SUN] Initializing");
 
             m_scene = scene;
@@ -176,7 +174,7 @@ namespace OpenSim.Region.Environment.Modules
                 // m_latitude = config.Configs["Sun"].GetDouble("latitude", d_latitude);
                 // Mode: determines how the sun is handled
                 // m_longitude = config.Configs["Sun"].GetDouble("longitude", d_longitude);
-                // Day length in decimal hours
+                // Year length in days
                 m_year_length = config.Configs["Sun"].GetInt("year_length", d_year_length);
                 // Day length in decimal hours
                 m_day_length  = config.Configs["Sun"].GetDouble("day_length", d_day_length);
@@ -304,6 +302,7 @@ namespace OpenSim.Region.Environment.Modules
             m_scene.RegionInfo.RegionSettings.SunVector = Position;
             //m_scene.RegionInfo.EstateSettings.sunHour = GetLindenEstateHourFromCurrentTime();
         }
+
         public void ForceSunUpdateToAllClients()
         {
             GenSunPos();        // Generate shared values once
@@ -319,13 +318,12 @@ namespace OpenSim.Region.Environment.Modules
             m_scene.RegionInfo.RegionSettings.SunVector = Position;
             m_scene.RegionInfo.RegionSettings.SunPosition = GetLindenEstateHourFromCurrentTime();
         }
+
         /// <summary>
         /// Calculate the sun's orbital position and its velocity.
         /// </summary>
-
         private void GenSunPos()
         {
-
             TotalDistanceTravelled  = SunSpeed * CurrentTime;  // distance measured in radians
             OrbitalPosition         = (float) (TotalDistanceTravelled%SunCycle); // position measured in radians
 
@@ -435,8 +433,6 @@ namespace OpenSim.Region.Environment.Modules
                 sunFixed = FixedTime;
                 if (sunFixed)
                     GenSunPos();
-
-
             }
         }
     }

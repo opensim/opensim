@@ -487,11 +487,14 @@ asterisk_salt = paluempalum
 ; in the Sim.  The defaults are what is shown below
 ;[Sun]
 ; number of wall clock hours for an opensim day.  24.0 would mean realtime
-;day_length = 0.5
-
-; send a Sun update ever frame_rate # of frames.  A lower number will
+;day_length = 4
+; Year length in days
+;year_length = 60
+; Day to Night Ratio
+;day_night_offset = 0.45
+; send a Sun update every update_interval # of frames.  A lower number will
 ; make for smoother sun transition at the cost of network
-;frame_rate = 100
+;update_interval = 100
 
 
 [ScriptEngine.DotNetEngine]
