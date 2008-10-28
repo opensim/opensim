@@ -141,9 +141,23 @@ namespace OpenSim.Framework.Servers
                 sb.Append(threads.Count + " threads are being tracked:" + Environment.NewLine);
                 foreach (Thread t in threads)
                 {
-                    sb.Append(
-                        "ID: " + t.ManagedThreadId + ", Name: " + t.Name + ", Alive: " + t.IsAlive
-                        + ", Pri: " + t.Priority + ", State: " + t.ThreadState + Environment.NewLine);
+                    if (t.IsAlive)
+                    {
+                        sb.Append(
+                            "ID: " + t.ManagedThreadId + ", Name: " + t.Name + ", Alive: " + t.IsAlive
+                            + ", Pri: " + t.Priority + ", State: " + t.ThreadState + Environment.NewLine);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            sb.Append("ID: " + t.ManagedThreadId + ", Name: " + t.Name + ", DEAD" + Environment.NewLine);
+                        }
+                        catch (Exception e)
+                        {
+                            sb.Append("THREAD ERROR" + Environment.NewLine);
+                        }
+                    }
                 }
             }
 
