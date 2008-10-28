@@ -146,7 +146,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                         field.FieldType == typeof(Single) ||
                         field.FieldType == typeof(String) ||
                         field.FieldType == typeof(Byte) ||
-                        field.FieldType == typeof(short))
+                        field.FieldType == typeof(short) ||
+                        field.FieldType == typeof(LSL_Types.Vector3) ||
+                        field.FieldType == typeof(LSL_Types.Quaternion))
                 {
                     vars[field.Name] = field.GetValue(this);
                 }
@@ -177,7 +179,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                             m_Fields[var.Key].FieldType == typeof(Single) ||
                             m_Fields[var.Key].FieldType == typeof(String) ||
                             m_Fields[var.Key].FieldType == typeof(Byte) ||
-                            m_Fields[var.Key].FieldType == typeof(short))
+                            m_Fields[var.Key].FieldType == typeof(short) ||
+                            m_Fields[var.Key].FieldType == typeof(LSL_Types.Vector3) ||
+                            m_Fields[var.Key].FieldType == typeof(LSL_Types.Quaternion)
+                        )
                     {
                         m_Fields[var.Key].SetValue(this, var.Value);
                     }
