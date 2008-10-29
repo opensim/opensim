@@ -96,7 +96,8 @@ namespace OpenSim.Region.DataSnapshot
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            if (!m_configLoaded) {
+            if (!m_configLoaded) 
+            {
                 m_configLoaded = true;
                 m_log.Info("[DATASNAPSHOT]: Loading configuration");
                 //Read from the config for options
@@ -110,10 +111,6 @@ namespace OpenSim.Region.DataSnapshot
                             m_gridinfo.Add("gridserverURL", config.Configs["Network"].GetString("grid_server_url", "harbl"));
                             m_gridinfo.Add("userserverURL", config.Configs["Network"].GetString("user_server_url", "harbl"));
                             m_gridinfo.Add("assetserverURL", config.Configs["Network"].GetString("asset_server_url", "harbl"));
-                        }
-                        else
-                        {
-                            //Non gridmode stuff
                         }
 
                         m_gridinfo.Add("Name", config.Configs["DataSnapshot"].GetString("gridname", "harbl"));
@@ -205,9 +202,8 @@ namespace OpenSim.Region.DataSnapshot
 
         public void Close() 
         {
-            if (m_dataServices != "" && m_dataServices != "noservices")
+            if (m_enabled && m_dataServices != "" && m_dataServices != "noservices")
                 NotifyDataServices(m_dataServices, "offline");
-
         }
 
 
