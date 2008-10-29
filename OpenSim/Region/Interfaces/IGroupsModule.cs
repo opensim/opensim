@@ -51,6 +51,8 @@ namespace OpenSim.Region.Interfaces
         
         GroupNoticeData[] GroupNoticesListRequest(IClientAPI remoteClient, UUID GroupID);
         string GetGroupTitle(UUID avatarID);
+        void GroupRoleUpdate(IClientAPI remoteClient, UUID GroupID, UUID RoleID, string name, string description, string title, ulong powers, byte updateType);
+        void GroupRoleChanges(IClientAPI remoteClient, UUID GroupID, UUID RoleID, UUID MemberID, uint changes);
         void GroupNoticeRequest(IClientAPI remoteClient, UUID groupNoticeID);
         void SendAgentGroupDataUpdate(IClientAPI remoteClient);
     }

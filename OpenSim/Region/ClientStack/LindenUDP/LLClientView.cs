@@ -6861,6 +6861,45 @@ Console.WriteLine(msgpack.ToString());
                         }
                         break;
 
+                    case PacketType.GroupRoleUpdate:
+                        GroupRoleUpdatePacket groupRoleUpdate =
+                                (GroupRoleUpdatePacket)Pack;
+
+                        if (m_GroupsModule != null)
+                        {
+                            foreach (GroupRoleUpdatePacket.RoleDataBlock d in
+                                    groupRoleUpdate.RoleData)
+                            {
+                                m_GroupsModule.GroupRoleUpdate(this,
+                                        groupRoleUpdate.AgentData.GroupID,
+                                        d.RoleID,
+                                        Utils.BytesToString(d.Name),
+                                        Utils.BytesToString(d.Description),
+                                        Utils.BytesToString(d.Title),
+                                        d.Powers,
+                                        d.UpdateType);
+                            }
+                        }
+                        break;
+
+                    case PacketType.GroupRoleChanges:
+                        GroupRoleChangesPacket groupRoleChanges =
+                                (GroupRoleChangesPacket)Pack;
+
+                        if (m_GroupsModule != null)
+                        {
+                            foreach (GroupRoleChangesPacket.RoleChangeBlock d in
+                                    groupRoleChanges.RoleChange)
+                            {
+                                m_GroupsModule.GroupRoleChanges(this,
+                                        groupRoleChanges.AgentData.GroupID,
+                                        d.RoleID,
+                                        d.MemberID,
+                                        d.Change);
+                            }
+                        }
+                        break;
+
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
                         break;
