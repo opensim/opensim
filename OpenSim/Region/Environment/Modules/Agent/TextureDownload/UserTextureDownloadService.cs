@@ -121,10 +121,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                     }
                     else
                     {
+//                        m_log.DebugFormat("[TEXTURE]: Received a request for texture {0}", e.RequestedAssetID);
+                        
                         if (!foundTextureLimitStrategy.AllowRequest(e.RequestedAssetID))
                         {
 //                            m_log.DebugFormat(
-//                                "[USER TEXTURE DOWNLOAD SERVICE]: Refusing request for {0} from client {1}",
+//                                "[TEXTURE]: Refusing request for {0} from client {1}",
 //                                e.RequestedAssetID, m_client.AgentId);
 
                             return;
@@ -139,7 +141,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                                 // Commenting out this message for now as it causes too much noise with other
                                 // debug messages.
 //                                m_log.DebugFormat(
-//                                    "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for notified missing texture {0} for client {1} since we have received more than {2} requests",
+//                                    "[TEXTURE]: Dropping requests for notified missing texture {0} for client {1} since we have received more than {2} requests",
 //                                    e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
                             }
 
@@ -196,7 +198,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                             missingTextureLimitStrategy.MonitorRequests(textureID);
 
 //                            m_log.DebugFormat(
-//                                "[USER TEXTURE DOWNLOAD SERVICE]: Queueing first TextureNotFoundSender for {0}, client {1}",
+//                                "[TEXTURE]: Queueing first TextureNotFoundSender for {0}, client {1}",
 //                                textureID, m_client.AgentId);
                         }
 
@@ -214,14 +216,14 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                         }
                     }
 
-                    //m_log.InfoFormat("[TEXTURE SENDER] Removing texture sender with uuid {0}", textureID);
+                    //m_log.InfoFormat("[TEXTURE] Removing texture sender with uuid {0}", textureID);
                     m_textureSenders.Remove(textureID);
-                    //m_log.InfoFormat("[TEXTURE SENDER] Current texture senders in dictionary: {0}", m_textureSenders.Count);
+                    //m_log.InfoFormat("[TEXTURE] Current texture senders in dictionary: {0}", m_textureSenders.Count);
                 }
                 else
                 {
                     m_log.WarnFormat(
-                        "[USER TEXTURE DOWNLOAD SERVICE]: Got a texture uuid {0} with no sender object to handle it, this shouldn't happen",
+                        "[TEXTURE]: Got a texture uuid {0} with no sender object to handle it, this shouldn't happen",
                         textureID);
                 }
             }

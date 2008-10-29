@@ -2598,6 +2598,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             OutPacket(im, ThrottleOutPacketType.Texture);            
         }
+        
+        public void SendImageNotFound(UUID imageid)
+        {
+            ImageNotInDatabasePacket notFoundPacket 
+            = (ImageNotInDatabasePacket)PacketPool.Instance.GetPacket(PacketType.ImageNotInDatabase);
+
+            notFoundPacket.ImageID.ID = imageid;
+
+            OutPacket(notFoundPacket, ThrottleOutPacketType.Texture);
+        }
 
         public void SendShutdownConnectionNotice()
         {

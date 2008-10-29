@@ -202,7 +202,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                 // Make sure that any sender we currently have can get garbage collected
                 sender = null;
 
-                //m_log.InfoFormat("[TEXTURE DOWNLOAD] Texture sender queue size: {0}", m_queueSenders.Count());
+                //m_log.InfoFormat("[TEXTURE] Texture sender queue size: {0}", m_queueSenders.Count());
             }
         }
 
@@ -213,7 +213,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         private void TextureSent(ITextureSender sender)
         {
             sender.Sending = false;
-            //m_log.DebugFormat("[TEXTURE DOWNLOAD]: Removing download stat for {0}", sender.assetID);
+            //m_log.DebugFormat("[TEXTURE]: Removing download stat for {0}", sender.assetID);
             m_scene.AddPendingDownloads(-1);
         }
     }

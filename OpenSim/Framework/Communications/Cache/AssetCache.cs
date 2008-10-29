@@ -350,11 +350,21 @@ namespace OpenSim.Framework.Communications.Cache
 
                     // According to http://wiki.secondlife.com/wiki/AssetUploadRequest, Local signifies that the 
                     // information is stored locally.  It could disappear, in which case we could send the
-                    // ImageNotInDatabase packet to tell the client this.  However, when this was enabled in 
-                    // TextureNotFoundSender it ended up crashing clients - we need to go back and try this again.
+                    // ImageNotInDatabase packet to tell the client this.  
                     //
-                    // In the mean time, we're just going to push local assets to the permanent store instead.
-                    // TODO: Need to come back and address this.
+                    // However, this doesn't quite appear to work with local textures that are part of an avatar's 
+                    // appearance texture set.  Whilst sending an ImageNotInDatabase does trigger an automatic rebake
+                    // and reupload by the client, if those assets aren't pushed to the asset server anyway, then
+                    // on crossing onto another region server, other avatars can no longer get the required textures.
+                    // There doesn't appear to be any signal from the sim to the newly region border crossed client
+                    // asking it to reupload its local texture assets to that region server.
+                    //
+                    // One can think of other cunning ways around this.  For instance, on a region crossing or teleport,
+                    // the original sim could squirt local assets to the new sim.  Or the new sim could have pointers
+                    // to the original sim to fetch the 'local' assets (this is getting more complicated).
+                    //
+                    // But for now, we're going to take the easy way out and store local assets globally.
+                    //
                     // TODO: Also, Temporary is now deprecated.  We should start ignoring it and not passing it out from LLClientView.
                     if (!asset.Temporary || asset.Local)
                     {

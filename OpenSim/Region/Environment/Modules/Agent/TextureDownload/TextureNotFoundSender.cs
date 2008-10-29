@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -37,22 +39,15 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
     /// </summary>
     public class TextureNotFoundSender : ITextureSender
     {
-        //private static readonly log4net.ILog m_log
-        //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly log4net.ILog m_log
+//            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        // private bool m_cancel = false;
-        // private IClientAPI m_client;
-
-        // See ITextureSender
-
-        // private bool m_sending = false;
-        //private UUID m_textureId;
-
-        // See ITextureSender
+//        private IClientAPI m_client;
+//        private UUID m_textureId;
 
         public TextureNotFoundSender(IClientAPI client, UUID textureID)
         {
-            // // m_client = client;
+            //m_client = client;
             //m_textureId = textureID;
         }
 
@@ -61,40 +56,31 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         public bool Sending
         {
             get { return false; }
-            set 
-            { 
-                // m_sending = value; 
-            }
+            set {}
         }
 
         public bool Cancel
         {
             get { return false; }
-            set 
-            { 
-                // m_cancel = value; 
-            }
+            set {}
         }
 
         // See ITextureSender
         public void UpdateRequest(int discardLevel, uint packetNumber)
         {
-            // Not need to implement since priority changes don't affect this operation
+            // No need to implement since priority changes don't affect this operation
         }
 
         // See ITextureSender
         public bool SendTexturePacket()
         {
-            //m_log.InfoFormat(
-            //    "[TEXTURE NOT FOUND SENDER]: Informing the client that texture {0} cannot be found",
-            //    m_textureId);
-
-            //ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();
-            //notFound.ImageID.ID = m_textureId;
+//            m_log.DebugFormat(
+//                "[TEXTURE NOT FOUND SENDER]: Informing the client that texture {0} cannot be found",
+//                m_textureId);
 
             // XXX Temporarily disabling as this appears to be causing client crashes on at least
             // 1.19.0(5) of the Linden Second Life client.
-            // m_client.OutPacket(notFound, ThrottleOutPacketType.Texture);
+//            m_client.SendImageNotFound(m_textureId);
 
             return true;
         }

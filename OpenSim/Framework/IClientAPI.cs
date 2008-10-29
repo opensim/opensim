@@ -829,6 +829,12 @@ namespace OpenSim.Framework
         /// <param name="imageUuid"></param>
         /// <param name="imageData"></param>
         void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData);
+        
+        /// <summary>
+        /// Tell the client that the requested texture cannot be found
+        /// </summary>
+        /// <param name="imageId"></param>
+        void SendImageNotFound(UUID imageid);
 
         void SendShutdownConnectionNotice();
         

@@ -702,6 +702,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public void SendImageFirstPart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
         {
         }
+        
+        public void SendImageNotFound(UUID imageid)
+        {
+        }
 
         public void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData)
         {

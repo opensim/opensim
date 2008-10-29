@@ -623,7 +623,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData)
         {
         }
-
+         
+        public void SendImageNotFound(UUID imageid)
+        {
+        }
+        
         public void SendShutdownConnectionNotice()
         {
         }
