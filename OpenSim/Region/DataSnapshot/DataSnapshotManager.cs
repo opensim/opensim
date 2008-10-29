@@ -94,8 +94,6 @@ namespace OpenSim.Region.DataSnapshot
 
         #region IRegionModule
 
-        public void Close() {}
-
         public void Initialise(Scene scene, IConfigSource config)
         {
             if (!m_configLoaded) {
@@ -162,7 +160,7 @@ namespace OpenSim.Region.DataSnapshot
                     MakeEverythingStale();
 
                     if (m_dataServices != "" &&  m_dataServices != "noservices")
-                        NotifyDataServices(m_dataServices);
+                        NotifyDataServices(m_dataServices, "online");
                 }
             }
 
@@ -204,6 +202,14 @@ namespace OpenSim.Region.DataSnapshot
                 m_log.Warn("[DATASNAPSHOT]: Data snapshot disabled, not adding scene to module (or anything else).");
             }
         }
+
+        public void Close() 
+        {
+            if (m_dataServices != "" && m_dataServices != "noservices")
+                NotifyDataServices(m_dataServices, "offline");
+
+        }
+
 
         public bool IsSharedModule
         {
@@ -313,7 +319,7 @@ namespace OpenSim.Region.DataSnapshot
         #endregion
 
         #region External data services
-        private void NotifyDataServices(string servicesStr)
+        private void NotifyDataServices(string servicesStr, string serviceName)
         {
             Stream reply = null;
             string delimStr = ";";
@@ -325,6 +331,7 @@ namespace OpenSim.Region.DataSnapshot
             {
                 string url = services[i].Trim();
                 RestClient cli = new RestClient(url);
+                cli.AddQueryParameter("service", serviceName);
                 cli.AddQueryParameter("host", m_hostname);
                 cli.AddQueryParameter("port", m_listener_port);
                 cli.RequestMethod = "GET";
