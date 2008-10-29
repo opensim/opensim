@@ -165,19 +165,15 @@ namespace OpenSim.Grid.GridServer
             return null;
         }
 
-        public Dictionary<ulong, RegionProfileData> GetRegions(uint xmin, uint ymin, uint xmax, uint ymax)
+        public List<RegionProfileData> GetRegions(uint xmin, uint ymin, uint xmax, uint ymax)
         {
-            Dictionary<ulong, RegionProfileData> regions = new Dictionary<ulong, RegionProfileData>();
+            List<RegionProfileData> regions = new List<RegionProfileData>();
 
             foreach (IGridDataPlugin plugin in _plugins)
             {
                 try
                 {
-                    RegionProfileData[] neighbours = plugin.GetProfilesInRange(xmin, ymin, xmax, ymax);
-                    foreach (RegionProfileData neighbour in neighbours)
-                    {
-                        regions[neighbour.regionHandle] = neighbour;
-                    }
+                    regions.AddRange(plugin.GetProfilesInRange(xmin, ymin, xmax, ymax));
                 }
                 catch
                 {
@@ -377,15 +373,15 @@ namespace OpenSim.Grid.GridServer
                 m_log.Warn("[LOGIN PRELUDE]: Invalid login parameters, sending back error response.");
                 return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString());
             }
-                     
+
             if (!Config.AllowRegionRegistration)
             {
                 m_log.InfoFormat(
-                    "[LOGIN END]: Disabled region registration blocked login request from simulator: {0}", 
+                    "[LOGIN END]: Disabled region registration blocked login request from simulator: {0}",
                     sim.regionName);
-                
+
                 return ErrorResponse("The grid is currently not accepting region registrations.");
-            }            
+            }
 
             m_log.InfoFormat("[LOGIN BEGIN]: Received login request from simulator: {0}", sim.regionName);
 
@@ -530,21 +526,21 @@ namespace OpenSim.Grid.GridServer
             Hashtable NeighbourBlock;
 
             //First use the fast method. (not implemented in SQLLite)
-            Dictionary<ulong, RegionProfileData> neighbours = GetRegions(sim.regionLocX - 1, sim.regionLocY - 1, sim.regionLocX + 1, sim.regionLocY + 1);
+            List<RegionProfileData> neighbours = GetRegions(sim.regionLocX - 1, sim.regionLocY - 1, sim.regionLocX + 1, sim.regionLocY + 1);
 
             if (neighbours.Count > 0)
             {
-                foreach (KeyValuePair<ulong, RegionProfileData> aSim in neighbours)
+                foreach (RegionProfileData aSim in neighbours)
                 {
                     NeighbourBlock = new Hashtable();
-                    NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(aSim.Value.serverIP.ToString()).ToString();
-                    NeighbourBlock["sim_port"] = aSim.Value.serverPort.ToString();
-                    NeighbourBlock["region_locx"] = aSim.Value.regionLocX.ToString();
-                    NeighbourBlock["region_locy"] = aSim.Value.regionLocY.ToString();
-                    NeighbourBlock["UUID"] = aSim.Value.ToString();
-                    NeighbourBlock["regionHandle"] = aSim.Value.regionHandle.ToString();
+                    NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(aSim.serverIP.ToString()).ToString();
+                    NeighbourBlock["sim_port"] = aSim.serverPort.ToString();
+                    NeighbourBlock["region_locx"] = aSim.regionLocX.ToString();
+                    NeighbourBlock["region_locy"] = aSim.regionLocY.ToString();
+                    NeighbourBlock["UUID"] = aSim.ToString();
+                    NeighbourBlock["regionHandle"] = aSim.regionHandle.ToString();
 
-                    if (aSim.Value.UUID != sim.UUID)
+                    if (aSim.UUID != sim.UUID)
                     {
                         SimNeighboursData.Add(NeighbourBlock);
                     }
@@ -835,29 +831,28 @@ namespace OpenSim.Grid.GridServer
 
             if (fastMode)
             {
-                Dictionary<ulong, RegionProfileData> neighbours =
-                    GetRegions((uint)xmin, (uint)ymin, (uint)xmax, (uint)ymax);
+                List<RegionProfileData> neighbours = GetRegions((uint)xmin, (uint)ymin, (uint)xmax, (uint)ymax);
 
-                foreach (KeyValuePair<ulong, RegionProfileData> aSim in neighbours)
+                foreach (RegionProfileData aSim in neighbours)
                 {
                     Hashtable simProfileBlock = new Hashtable();
-                    simProfileBlock["x"] = aSim.Value.regionLocX.ToString();
-                    simProfileBlock["y"] = aSim.Value.regionLocY.ToString();
-                    //m_log.DebugFormat("[MAP]: Sending neighbour info for {0},{1}", aSim.Value.regionLocX, aSim.Value.regionLocY);
-                    simProfileBlock["name"] = aSim.Value.regionName;
+                    simProfileBlock["x"] = aSim.regionLocX.ToString();
+                    simProfileBlock["y"] = aSim.regionLocY.ToString();
+                    //m_log.DebugFormat("[MAP]: Sending neighbour info for {0},{1}", aSim.regionLocX, aSim.regionLocY);
+                    simProfileBlock["name"] = aSim.regionName;
                     simProfileBlock["access"] = 21;
                     simProfileBlock["region-flags"] = 512;
                     simProfileBlock["water-height"] = 0;
                     simProfileBlock["agents"] = 1;
-                    simProfileBlock["map-image-id"] = aSim.Value.regionMapTextureID.ToString();
+                    simProfileBlock["map-image-id"] = aSim.regionMapTextureID.ToString();
 
                     // For Sugilite compatibility
-                    simProfileBlock["regionhandle"] = aSim.Value.regionHandle.ToString();
-                    simProfileBlock["sim_ip"] = aSim.Value.serverIP.ToString();
-                    simProfileBlock["sim_port"] = aSim.Value.serverPort.ToString();
-                    simProfileBlock["sim_uri"] = aSim.Value.serverURI.ToString();
-                    simProfileBlock["uuid"] = aSim.Value.UUID.ToString();
-                    simProfileBlock["remoting_port"] = aSim.Value.remotingPort;
+                    simProfileBlock["regionhandle"] = aSim.regionHandle.ToString();
+                    simProfileBlock["sim_ip"] = aSim.serverIP.ToString();
+                    simProfileBlock["sim_port"] = aSim.serverPort.ToString();
+                    simProfileBlock["sim_uri"] = aSim.serverURI.ToString();
+                    simProfileBlock["uuid"] = aSim.UUID.ToString();
+                    simProfileBlock["remoting_port"] = aSim.remotingPort;
 
                     simProfileList.Add(simProfileBlock);
                 }
@@ -913,15 +908,15 @@ namespace OpenSim.Grid.GridServer
         public XmlRpcResponse XmlRpcSearchForRegionMethod(XmlRpcRequest request)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
-    
+
             if (!requestData.ContainsKey("name") || !requestData.Contains("maxNumber"))
             {
                 m_log.Warn("[DATA] Invalid region-search request; missing name or maxNumber");
                 return new XmlRpcResponse(500, "Missing name or maxNumber in region search request");
             }
-            
+
             Hashtable responseData = new Hashtable();
-            
+
             string name = (string)requestData["name"];
             int maxNumber = Convert.ToInt32((string)requestData["maxNumber"]);
             if (maxNumber == 0 || name.Length < 3)
@@ -1215,7 +1210,7 @@ namespace OpenSim.Grid.GridServer
             }
             return response;
         }
-        
+
         /// <summary>
         /// Construct an XMLRPC registration disabled response
         /// </summary>
@@ -1228,7 +1223,7 @@ namespace OpenSim.Grid.GridServer
             errorResponse.Value = errorResponseData;
             errorResponseData["restricted"] = error;
             return errorResponse;
-        }        
+        }
     }
 
     /// <summary>
