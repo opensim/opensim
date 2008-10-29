@@ -337,11 +337,11 @@ namespace OpenSim.Region.DataSnapshot
                 }
                 catch (WebException)
                 {
-                    m_log.Warn("[DATASNAPSHOT] Unable to notify " + url);
+                    m_log.Warn("[DATASNAPSHOT]: Unable to notify " + url);
                 }
                 catch (Exception e)
                 {
-                    m_log.Warn("[DATASNAPSHOT] Ignoring unknown exception " + e.ToString());
+                    m_log.Warn("[DATASNAPSHOT]: Ignoring unknown exception " + e.ToString());
                 }
                 byte[] response = new byte[1024];
                 // int n = 0;
@@ -352,11 +352,11 @@ namespace OpenSim.Region.DataSnapshot
                 }
                 catch (Exception e)
                 {
-                    m_log.WarnFormat("[DATASNAPSHOT] Unable to decode reply from data service. Ignoring. {0}", e.StackTrace);
+                    m_log.WarnFormat("[DATASNAPSHOT]: Unable to decode reply from data service. Ignoring. {0}", e.StackTrace);
                 }
                 // This is not quite working, so...
                 // string responseStr = Encoding.UTF8.GetString(response);
-                m_log.Info("[DATASNAPSHOT] data service notified: " + url);
+                m_log.Info("[DATASNAPSHOT]: data service notified: " + url);
             }
 
         }

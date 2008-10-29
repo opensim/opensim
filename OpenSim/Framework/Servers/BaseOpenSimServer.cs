@@ -427,7 +427,7 @@ namespace OpenSim.Framework.Servers
                 EntriesFile.Close();
             }
 
-            m_version += string.IsNullOrEmpty(buildVersion)? ".00000" : ("." + buildVersion + "     ").Substring(0, 6);
+            m_version += string.IsNullOrEmpty(buildVersion) ? "      " : ("." + buildVersion + "     ").Substring(0, 6);
 
             // Add operating system information if available
             string OSString = "";
