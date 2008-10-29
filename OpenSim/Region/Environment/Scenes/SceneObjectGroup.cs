@@ -1831,41 +1831,41 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_parts.Add(linkPart.UUID, linkPart);
 
-		// Insert in terms of link numbers, the new links
-		// before the current ones (with the exception of 
-		// the root prim. Shuffle the old ones up
-		foreach (KeyValuePair<UUID, SceneObjectPart> kvp in m_parts) 
-		{
-		    if (kvp.Value.LinkNum != 1) {
-			// Don't update root prim link number
-			kvp.Value.LinkNum += objectGroup.PrimCount;
-		    }
-		}
+                // Insert in terms of link numbers, the new links
+                // before the current ones (with the exception of 
+                // the root prim. Shuffle the old ones up
+                foreach (KeyValuePair<UUID, SceneObjectPart> kvp in m_parts) 
+                {
+                    if (kvp.Value.LinkNum != 1)
+                    {
+                        // Don't update root prim link number
+                        kvp.Value.LinkNum += objectGroup.PrimCount;
+                    }
+                }
 
+                linkPart.LinkNum = 2;
 
-		linkPart.LinkNum = 2;
+                linkPart.SetParent(this);
+                linkPart.AddFlag(PrimFlags.CreateSelected);
 
-		linkPart.SetParent(this);
-		linkPart.AddFlag(PrimFlags.CreateSelected);
+                //if (linkPart.PhysActor != null)
+                //{
+                // m_scene.PhysicsScene.RemovePrim(linkPart.PhysActor);
+        
+                //linkPart.PhysActor = null;
+                //}
 
-		//if (linkPart.PhysActor != null)
-		//{
-		// m_scene.PhysicsScene.RemovePrim(linkPart.PhysActor);
-		
-		//linkPart.PhysActor = null;
-		//}
-
-		//TODO: rest of parts
-		int linkNum = 3;
-		foreach (SceneObjectPart part in objectGroup.Children.Values)
-		{
-		    if (part.UUID != objectGroup.m_rootPart.UUID)
-		    {
-			LinkNonRootPart(part, oldGroupPosition, oldRootRotation, linkNum++);
-		    }
-		    part.ClearUndoState();
-		}
-	    }
+                //TODO: rest of parts
+                int linkNum = 3;
+                foreach (SceneObjectPart part in objectGroup.Children.Values)
+                {
+                    if (part.UUID != objectGroup.m_rootPart.UUID)
+                    {
+                        LinkNonRootPart(part, oldGroupPosition, oldRootRotation, linkNum++);
+                    }
+                    part.ClearUndoState();
+                }
+            }
 
             m_scene.UnlinkSceneObject(objectGroup.UUID, true);
             objectGroup.Children.Clear();
@@ -1979,8 +1979,8 @@ namespace OpenSim.Region.Environment.Scenes
             part.SetParent(this);
             part.ParentID = m_rootPart.LocalId;
 
-	    // Caller locks m_parts for us
-	    m_parts.Add(part.UUID, part);
+            // Caller locks m_parts for us
+            m_parts.Add(part.UUID, part);
 
             part.LinkNum = linkNum;
 
