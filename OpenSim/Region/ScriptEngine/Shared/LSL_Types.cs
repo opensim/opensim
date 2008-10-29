@@ -102,6 +102,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new Vector3(s);
             }
 
+            public static explicit operator list(Vector3 vec)
+            {
+                return new list(new object[] { vec });
+            }
+
             public static bool operator ==(Vector3 lhs, Vector3 rhs)
             {
                 return (lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z);
@@ -349,6 +354,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static explicit operator Quaternion(string s)
             {
                 return new Quaternion(s);
+            }
+
+            public static explicit operator list(Quaternion r)
+            {
+                return new list(new object[] { r });
             }
 
             public static bool operator ==(Quaternion lhs, Quaternion rhs)
@@ -1394,6 +1404,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLFloat(Convert.ToDouble(s.m_string));
             }
 
+            public static explicit operator list(LSLString s)
+            {
+                return new list(new object[]{s});
+            }
+
             #endregion
 
             #region Overriders
@@ -1486,6 +1501,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             static public explicit operator LSLString(LSLInteger i)
             {
                 return new LSLString(i.ToString());
+            }
+
+            public static explicit operator list(LSLInteger i)
+            {
+                return new list(new object[] { i });
             }
 
             static public implicit operator Boolean(LSLInteger i)
@@ -1746,6 +1766,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     v = "0";
 
                 return new LSLFloat(double.Parse(v));
+            }
+
+            public static explicit operator list(LSLFloat f)
+            {
+                return new list(new object[] { f });
             }
 
             static public implicit operator LSLFloat(double d)
