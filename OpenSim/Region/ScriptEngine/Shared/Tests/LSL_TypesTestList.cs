@@ -85,17 +85,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         public void TestConcatenateDouble()
         {
             LSL_Types.list testList = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger('a'), new LSL_Types.LSLString("test"));
-          testList += new LSL_Types.LSLFloat(2.0f);
+            testList += new LSL_Types.LSLFloat(2.0f);
 
-          Assert.AreEqual(4, testList.Length);
-          Assert.AreEqual(new LSL_Types.LSLFloat(2.0f), testList.Data[3]);
-          Assert.AreEqual(typeof(LSL_Types.LSLFloat), testList.Data[3].GetType());
+            Assert.AreEqual(4, testList.Length);
+            Assert.AreEqual(new LSL_Types.LSLFloat(2.0f), testList.Data[3]);
+            Assert.AreEqual(typeof(LSL_Types.LSLFloat), testList.Data[3].GetType());
 
-          LSL_Types.list secondTestList = testList + new LSL_Types.LSLFloat(0.04f);
+            LSL_Types.list secondTestList = testList + new LSL_Types.LSLFloat(0.04f);
 
-          Assert.AreEqual(5, secondTestList.Length);
-          Assert.AreEqual(new LSL_Types.LSLFloat(0.04f), secondTestList.Data[4]);
-          Assert.AreEqual(typeof(LSL_Types.LSLFloat), secondTestList.Data[4].GetType());
+            Assert.AreEqual(5, secondTestList.Length);
+            Assert.AreEqual(new LSL_Types.LSLFloat(0.04f), secondTestList.Data[4]);
+            Assert.AreEqual(typeof(LSL_Types.LSLFloat), secondTestList.Data[4].GetType());
         }
 
         /// <summary>
@@ -104,10 +104,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestCastLSLIntegerItemToLSLInteger()
         {
-          LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(123);
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(123);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, (LSL_Types.LSLInteger)testList.Data[0]);
+            Assert.AreEqual(testValue, (LSL_Types.LSLInteger)testList.Data[0]);
         }
 
         /// <summary>
@@ -116,10 +116,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestCastLSLFloatItemToLSLFloat()
         {
-          LSL_Types.LSLFloat testValue = new LSL_Types.LSLFloat(123.45678987);
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.LSLFloat testValue = new LSL_Types.LSLFloat(123.45678987);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, (LSL_Types.LSLFloat)testList.Data[0]);
+            Assert.AreEqual(testValue, (LSL_Types.LSLFloat)testList.Data[0]);
         }
 
         /// <summary>
@@ -128,10 +128,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestCastLSLStringItemToLSLString()
         {
-          LSL_Types.LSLString testValue = new LSL_Types.LSLString("hello there");
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.LSLString testValue = new LSL_Types.LSLString("hello there");
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, (LSL_Types.LSLString)testList.Data[0]);
+            Assert.AreEqual(testValue, (LSL_Types.LSLString)testList.Data[0]);
         }
 
         /// <summary>
@@ -140,10 +140,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestCastVector3ItemToVector3()
         {
-          LSL_Types.Vector3 testValue = new LSL_Types.Vector3(12.34, 56.987654, 0.00987);
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.Vector3 testValue = new LSL_Types.Vector3(12.34, 56.987654, 0.00987);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, (LSL_Types.Vector3)testList.Data[0]);
+            Assert.AreEqual(testValue, (LSL_Types.Vector3)testList.Data[0]);
         }
         /// <summary>
         /// Tests casting Quaternion item to Quaternion.
@@ -151,10 +151,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestCastQuaternionItemToQuaternion()
         {
-          LSL_Types.Quaternion testValue = new LSL_Types.Quaternion(12.34, 56.44323, 765.983421, 0.00987);
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.Quaternion testValue = new LSL_Types.Quaternion(12.34, 56.44323, 765.983421, 0.00987);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, (LSL_Types.Quaternion)testList.Data[0]);
+            Assert.AreEqual(testValue, (LSL_Types.Quaternion)testList.Data[0]);
         }
 
 //====================================================================================
@@ -165,10 +165,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetLSLIntegerItemForLSLIntegerItem()
         {
-          LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(999911);
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(999911);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, testList.GetLSLIntegerItem(0));
+            Assert.AreEqual(testValue, testList.GetLSLIntegerItem(0));
         }
 
         /// <summary>
@@ -177,10 +177,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetLSLFloatItemForLSLFloatItem()
         {
-          LSL_Types.LSLFloat testValue = new LSL_Types.LSLFloat(321.45687876);
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.LSLFloat testValue = new LSL_Types.LSLFloat(321.45687876);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, testList.GetLSLFloatItem(0));
+            Assert.AreEqual(testValue, testList.GetLSLFloatItem(0));
         }
 
         /// <summary>
@@ -202,10 +202,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetLSLStringItemForLSLStringItem()
         {
-          LSL_Types.LSLString testValue = new LSL_Types.LSLString("hello all");
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.LSLString testValue = new LSL_Types.LSLString("hello all");
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, testList.GetLSLStringItem(0));
+            Assert.AreEqual(testValue, testList.GetLSLStringItem(0));
         }
 
         /// <summary>
@@ -214,12 +214,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetLSLStringItemForKeyItem()
         {
-          LSL_Types.key testValue
+            LSL_Types.key testValue
                 = new LSL_Types.key("98000000-0000-2222-3333-100000001000");
-          LSL_Types.LSLString testStringValue = new LSL_Types.LSLString(testValue);
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.LSLString testStringValue = new LSL_Types.LSLString(testValue);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testStringValue, testList.GetLSLStringItem(0));
+            Assert.AreEqual(testStringValue, testList.GetLSLStringItem(0));
         }
 
         /// <summary>
@@ -228,10 +228,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetVector3ItemForVector3Item()
         {
-          LSL_Types.Vector3 testValue = new LSL_Types.Vector3(92.34, 58.98754, -0.10987);
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.Vector3 testValue = new LSL_Types.Vector3(92.34, 58.98754, -0.10987);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, testList.GetVector3Item(0));
+            Assert.AreEqual(testValue, testList.GetVector3Item(0));
         }
         /// <summary>
         /// Tests GetQuaternionItem for Quaternion item.
@@ -239,10 +239,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetQuaternionItemForQuaternionItem()
         {
-          LSL_Types.Quaternion testValue = new LSL_Types.Quaternion(12.64, 59.43723, 765.3421, 4.00987);
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.Quaternion testValue = new LSL_Types.Quaternion(12.64, 59.43723, 765.3421, 4.00987);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, testList.GetQuaternionItem(0));
+            Assert.AreEqual(testValue, testList.GetQuaternionItem(0));
         }
 
         /// <summary>
@@ -251,11 +251,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetKeyItemForKeyItem()
         {
-          LSL_Types.key testValue
+            LSL_Types.key testValue
                 = new LSL_Types.key("00000000-0000-2222-3333-100000001012");
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
 
-          Assert.AreEqual(testValue, testList.GetKeyItem(0));
+            Assert.AreEqual(testValue, testList.GetKeyItem(0));
         }
     }
 }
