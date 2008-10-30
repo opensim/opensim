@@ -57,25 +57,72 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             }            
         }
         
+        /// <summary>
+        /// Add a client for testing
+        /// </summary>
+        /// <param name="testLLUDPServer"></param>
+        /// <param name="acm">Agent circuit manager used in setting up the stack</param>        
+        protected void SetupStack( out TestLLUDPServer testLLUDPServer, out AgentCircuitManager acm)
+        {
+            ClientStackUserSettings userSettings = new ClientStackUserSettings();
+            testLLUDPServer = new TestLLUDPServer();             
+            acm = new AgentCircuitManager();
+                                    
+            uint port = 666;            
+            testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, acm);
+            new LLPacketServer(testLLUDPServer, userSettings);
+            testLLUDPServer.LocalScene = new MockScene();            
+        }
+        
+        /// <summary>
+        /// Set up a client for tests which aren't concerned with this process itself
+        /// </summary>
+        /// <param name="circuitCode"></param>
+        /// <param name="testLLUDPServer"></param>
+        /// <param name="acm"></param>
+        protected void AddClient(uint circuitCode, TestLLUDPServer testLLUDPServer, AgentCircuitManager acm)
+        {
+            UUID myAgentUuid   = UUID.Parse("00000000-0000-0000-0000-000000000001");
+            UUID mySessionUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
+
+            AgentCircuitData acd = new AgentCircuitData();
+            acd.AgentID = myAgentUuid;
+            acd.SessionID = mySessionUuid; 
+            
+            UseCircuitCodePacket uccp = new UseCircuitCodePacket();
+            
+            UseCircuitCodePacket.CircuitCodeBlock uccpCcBlock 
+                = new OpenMetaverse.Packets.UseCircuitCodePacket.CircuitCodeBlock();
+            uccpCcBlock.Code = circuitCode;
+            uccpCcBlock.ID = myAgentUuid;
+            uccpCcBlock.SessionID = mySessionUuid;
+            uccp.CircuitCode = uccpCcBlock;
+            
+            EndPoint testEp = new IPEndPoint(IPAddress.Loopback, 999);
+            
+            acm.AddNewCircuit(circuitCode, acd);
+            
+            testLLUDPServer.LoadReceive(uccp, testEp);            
+            testLLUDPServer.ReceiveData(null);
+        }
+        
         [Test]
+        /// <summary>
+        /// Test adding a client to the stack
+        /// </summary>
         public void TestAddClient()
         {            
             uint myCircuitCode = 123456;
             UUID myAgentUuid   = UUID.Parse("00000000-0000-0000-0000-000000000001");
             UUID mySessionUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
             
-            TestLLUDPServer testLLUDPServer = new TestLLUDPServer();            
-            ClientStackUserSettings userSettings = new ClientStackUserSettings();
+            TestLLUDPServer testLLUDPServer;
+            AgentCircuitManager acm;
+            SetupStack(out testLLUDPServer, out acm);
             
-            AgentCircuitManager acm = new AgentCircuitManager();
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = myAgentUuid;
-            acd.SessionID = mySessionUuid;                        
-            
-            uint port = 666;            
-            testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, acm);
-            new LLPacketServer(testLLUDPServer, userSettings);
-            testLLUDPServer.LocalScene = new MockScene();
+            acd.SessionID = mySessionUuid;
             
             UseCircuitCodePacket uccp = new UseCircuitCodePacket();
             
@@ -102,6 +149,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             // Should succeed now
             Assert.IsTrue(testLLUDPServer.HasCircuit(myCircuitCode));
             Assert.IsFalse(testLLUDPServer.HasCircuit(101));
+        }
+
+        [Test]
+        /// <summary>
+        /// Test removing a client from the stack
+        /// </summary>
+        public void TestRemoveClient()
+        {
+            TestLLUDPServer testLLUDPServer;
+            AgentCircuitManager acm;
+            SetupStack(out testLLUDPServer, out acm);
+            
+            AddClient(123457, testLLUDPServer, acm);
         }
     }
 }
