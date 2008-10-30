@@ -130,10 +130,9 @@ namespace OpenSim.Region.Environment.Scenes
         #region Add/Remove Agent/Avatar
 
         /// <summary>
-        ///
+        /// Register the new client with the scene
         /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="agentID"></param>
+        /// <param name="client"></param
         /// <param name="child"></param>
         public abstract void AddNewClient(IClientAPI client, bool child);
 

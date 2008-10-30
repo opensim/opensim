@@ -2185,11 +2185,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Add/Remove Avatar Methods
 
-        /// <summary>
-        /// Register the new client with the scene
-        /// </summary>
-        /// <param name="client"></param
-        /// <param name="child"></param>
         public override void AddNewClient(IClientAPI client, bool child)
         {
             SubscribeToClientEvents(client);

@@ -26,9 +26,9 @@
  */
 
 using System.Net;
-//using System.Threading;
 using log4net;
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -60,9 +60,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         /// <summary>
         /// Add a client for testing
         /// </summary>
+        /// <param name="scene"></param>
         /// <param name="testLLUDPServer"></param>
+        /// <param name="testPacketServer"></param>
         /// <param name="acm">Agent circuit manager used in setting up the stack</param>        
-        protected void SetupStack(out TestLLUDPServer testLLUDPServer, out AgentCircuitManager acm)
+        protected void SetupStack(
+            IScene scene, out TestLLUDPServer testLLUDPServer, out TestLLPacketServer testPacketServer, 
+            out AgentCircuitManager acm)
         {
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
             testLLUDPServer = new TestLLUDPServer();             
@@ -70,8 +74,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                                     
             uint port = 666;            
             testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, acm);
-            new LLPacketServer(testLLUDPServer, userSettings);
-            testLLUDPServer.LocalScene = new MockScene();            
+            testPacketServer = new TestLLPacketServer(testLLUDPServer, userSettings);
+            testLLUDPServer.LocalScene = scene;            
         }
         
         /// <summary>
@@ -117,8 +121,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             UUID mySessionUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
             
             TestLLUDPServer testLLUDPServer;
+            TestLLPacketServer testLLPacketServer;
             AgentCircuitManager acm;
-            SetupStack(out testLLUDPServer, out acm);
+            SetupStack(new MockScene(), out testLLUDPServer, out testLLPacketServer, out acm);
             
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = myAgentUuid;
@@ -160,8 +165,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             uint myCircuitCode = 123457;
             
             TestLLUDPServer testLLUDPServer;
+            TestLLPacketServer testLLPacketServer;
             AgentCircuitManager acm;
-            SetupStack(out testLLUDPServer, out acm);            
+            SetupStack(new MockScene(), out testLLUDPServer, out testLLPacketServer, out acm);            
             AddClient(myCircuitCode, new IPEndPoint(IPAddress.Loopback, 1000), testLLUDPServer, acm);
             
             testLLUDPServer.RemoveClientCircuit(myCircuitCode);            
@@ -179,20 +185,41 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public void TestMalformedPacketSend()
         {
             uint myCircuitCode = 123458;
-            EndPoint testEp = new IPEndPoint(IPAddress.Loopback, 1001);           
+            EndPoint testEp = new IPEndPoint(IPAddress.Loopback, 1001);
+            MockScene scene = new MockScene(); 
             
             TestLLUDPServer testLLUDPServer;
+            TestLLPacketServer testLLPacketServer;
             AgentCircuitManager acm;
-            SetupStack(out testLLUDPServer, out acm);            
+            SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);            
             AddClient(myCircuitCode, testEp, testLLUDPServer, acm);  
-            
+
             byte[] data = new byte[] { 0x01, 0x02, 0x03, 0x04 };
-            
+
+            // Send two garbled 'packets' in succession
+            testLLUDPServer.LoadReceive(data, testEp);
             testLLUDPServer.LoadReceive(data, testEp);
             testLLUDPServer.ReceiveData(null); 
             
             // Check that we are still here
             Assert.IsTrue(testLLUDPServer.HasCircuit(myCircuitCode));
+            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(0));
+            
+            // Check that sending a valid packet to same circuit still succeeds
+            Assert.That(scene.ObjectNameCallsReceived, Is.EqualTo(0));
+
+            ObjectNamePacket onp = new ObjectNamePacket();
+            ObjectNamePacket.ObjectDataBlock odb = new ObjectNamePacket.ObjectDataBlock();
+            odb.LocalID = 1;
+            odb.Name = Utils.StringToBytes("helloooo");
+            onp.ObjectData = new ObjectNamePacket.ObjectDataBlock[] { odb };
+            onp.Header.Zerocoded = false;
+            
+            testLLUDPServer.LoadReceive(onp, testEp);
+            testLLUDPServer.ReceiveData(null);
+            
+            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(1));  
+            Assert.That(testLLPacketServer.GetPacketsReceivedFor(PacketType.ObjectName), Is.EqualTo(1));
         }
     }
 }

@@ -4804,10 +4804,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
                     case PacketType.ObjectName:
                         ObjectNamePacket objName = (ObjectNamePacket)Pack;
-
+                    
                         handlerObjectName = null;
                         for (int i = 0; i < objName.ObjectData.Length; i++)
-                        {
+                        {                        
                             handlerObjectName = OnObjectName;
                             if (handlerObjectName != null)
                             {

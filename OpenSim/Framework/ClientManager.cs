@@ -97,8 +97,10 @@ namespace OpenSim.Framework
         {
             IClientAPI client;
             bool tryGetRet = false;
+            
             lock (m_clients)
                 tryGetRet = m_clients.TryGetValue(circuitCode, out client);
+            
             if (tryGetRet)
             {
                 client.InPacket(packet);

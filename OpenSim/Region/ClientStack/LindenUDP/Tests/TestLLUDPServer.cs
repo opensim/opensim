@@ -91,12 +91,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         }
         
         /// <summary>
-        /// Calls the protected asynchronous result method
+        /// Calls the protected asynchronous result method.  This fires out all data chunks currently queued for send
         /// </summary>
         /// <param name="result"></param>
         public void ReceiveData(IAsyncResult result)
         {
-            OnReceivedData(result);
+            while (m_chunksToLoad.Count > 0)
+                OnReceivedData(result);
         }                
         
         /// <summary>

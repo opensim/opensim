@@ -25,47 +25,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenMetaverse.Packets;
+using OpenSim.Region.ClientStack.LindenUDP;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
-{
-    /// <summary>
-    /// Mock scene for unit tests
-    /// </summary>
-    public class MockScene : SceneBase
-    {
-        public int ObjectNameCallsReceived
-        {
-            get { return m_objectNameCallsReceived; }
-        }
-        protected int m_objectNameCallsReceived;
-        
-        public MockScene()
-        {
-            m_regInfo = new RegionInfo(1000, 1000, null, null);
-            m_regStatus = RegionStatus.Up;
-        }
-        
-        public override void Update() {}
-        public override void LoadWorldMap() {}
-        
-        public override void AddNewClient(IClientAPI client, bool child) 
-        {
-            client.OnObjectName += RecordObjectNameCall;
-        }
-        
-        public override void RemoveClient(UUID agentID) {}
-        public override void CloseAllAgents(uint circuitcode) {}
-        public override bool OtherRegionUp(RegionInfo thisRegion) { return false; }
-            
+{ 
+    public class TestLLPacketServer : LLPacketServer
+    {        
         /// <summary>
-        /// Doesn't really matter what the call is - we're using this to test that a packet has actually been received
+        /// Record counts of packets received
         /// </summary>
-        protected void RecordObjectNameCall(IClientAPI remoteClient, uint localID, string message)
+        protected Dictionary<PacketType, int> m_packetsReceived = new Dictionary<PacketType, int>();
+        
+        public TestLLPacketServer(ILLClientStackNetworkHandler networkHandler, ClientStackUserSettings userSettings)
+            : base(networkHandler, userSettings)
+        {}
+        
+        public override void InPacket(uint circuitCode, Packet packet)
         {
-            m_objectNameCallsReceived++;
+            base.InPacket(circuitCode, packet);
+            
+            if (m_packetsReceived.ContainsKey(packet.Type))
+                m_packetsReceived[packet.Type]++;
+            else
+                m_packetsReceived[packet.Type] = 1;
+        }    
+        
+        public int GetTotalPacketsReceived()
+        {
+            int totalCount = 0;
+            
+            foreach (int count in m_packetsReceived.Values)
+                totalCount += count;
+            
+            return totalCount;
+        }
+        
+        public int GetPacketsReceivedFor(PacketType packetType)
+        {
+            if (m_packetsReceived.ContainsKey(packetType))
+                return m_packetsReceived[packetType];
+            else
+                return 0;
         }
     }
 }
