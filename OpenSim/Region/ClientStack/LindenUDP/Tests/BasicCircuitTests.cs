@@ -157,11 +157,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         /// </summary>
         public void TestRemoveClient()
         {
+            uint myCircuitCode = 123457;
+            
             TestLLUDPServer testLLUDPServer;
             AgentCircuitManager acm;
             SetupStack(out testLLUDPServer, out acm);
             
-            AddClient(123457, testLLUDPServer, acm);
+            AddClient(myCircuitCode, testLLUDPServer, acm);
+            
+            testLLUDPServer.RemoveClientCircuit(myCircuitCode);            
+            Assert.IsFalse(testLLUDPServer.HasCircuit(myCircuitCode));
+            
+            // Check that removing the circuit again doesn't have any bad effects
+            testLLUDPServer.RemoveClientCircuit(myCircuitCode);            
+            Assert.IsFalse(testLLUDPServer.HasCircuit(myCircuitCode));
         }
     }
 }
