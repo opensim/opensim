@@ -72,12 +72,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         }
         
         /// <summary>
+        /// Load some data to be received by the LLUDPServer on the next receive call
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="epSender"></param>
+        public void LoadReceive(byte[] data, EndPoint epSender)
+        {
+            m_chunksToLoad.Enqueue(new ChunkSenderTuple(data, epSender));
+        }
+        
+        /// <summary>
         /// Load a packet to be received by the LLUDPServer on the next receive call
         /// </summary>
         /// <param name="packet"></param>
         public void LoadReceive(Packet packet, EndPoint epSender)
         {
-            m_chunksToLoad.Enqueue(new ChunkSenderTuple(packet.ToBytes(), epSender));
+            LoadReceive(packet.ToBytes(), epSender);
         }
         
         /// <summary>
