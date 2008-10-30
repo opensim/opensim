@@ -161,8 +161,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             
             TestLLUDPServer testLLUDPServer;
             AgentCircuitManager acm;
-            SetupStack(out testLLUDPServer, out acm);
-            
+            SetupStack(out testLLUDPServer, out acm);            
             AddClient(myCircuitCode, testLLUDPServer, acm);
             
             testLLUDPServer.RemoveClientCircuit(myCircuitCode);            
