@@ -254,6 +254,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             bool modified = false;
             bool created  = false;
 
+            AssetBase asset = null;
+
             Rest.Log.DebugFormat("{0} REST Asset handler, Method = <{1}> ENTRY", MsgId, rdata.method);
 
             if (rdata.Parameters.Length == 1)
@@ -269,7 +271,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 }
 
                 UUID uuid = new UUID(rdata.Parameters[0]);
-                AssetBase asset = Rest.AssetServices.GetAsset(uuid, false);
+                asset = Rest.AssetServices.GetAsset(uuid, false);
 
                 modified = (asset != null);
                 created  = !modified;
@@ -300,12 +302,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (created)
             {
+                rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
                 rdata.Complete(Rest.HttpStatusCodeCreated);
             }
             else
             {
                 if (modified)
                 {
+					rdata.appendStatus(String.Format("<p> Modified asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
                     rdata.Complete(Rest.HttpStatusCodeOK);
                 }
                 else
@@ -365,12 +369,14 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (created)
             {
+                rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
                 rdata.Complete(Rest.HttpStatusCodeCreated);
             }
             else
             {
                 if (modified)
                 {
+					rdata.appendStatus(String.Format("<p> Modified asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
                     rdata.Complete(Rest.HttpStatusCodeOK);
                 }
                 else

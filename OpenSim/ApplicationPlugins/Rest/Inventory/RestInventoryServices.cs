@@ -498,7 +498,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         Rest.AssetServices.AddAsset(asset);
 
                         created = true;
-                        rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1}<p>",
+                        rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>",
                                         asset.Name, asset.ID));
 
                         if (Rest.DEBUG && Rest.DumpAsset)
@@ -556,7 +556,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         Rest.InventoryServices.MoveFolder(folder);
 
                         modified = true;
-                        rdata.appendStatus(String.Format("<p> Created folder {0}, UUID {1}<p>",
+                        rdata.appendStatus(String.Format("<p> Created folder {0}, UUID {1} <p>",
                                                          folder.Name, folder.ID));
                     }
                     else
@@ -565,7 +565,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         Rest.InventoryServices.AddFolder(folder);
 
                         created = true;
-                        rdata.appendStatus(String.Format("<p> Modified folder {0}, UUID {1}<p>",
+                        rdata.appendStatus(String.Format("<p> Modified folder {0}, UUID {1} <p>",
                                                          folder.Name, folder.ID));
                     }
                 }
@@ -604,7 +604,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                              MsgId, item.ID, item.AssetID, item.InvType, item.AssetType, item.Name);
                         Rest.InventoryServices.UpdateItem(item);
                         modified = true;
-                        rdata.appendStatus(String.Format("<p> Modified item {0}, UUID {1}<p>", item.Name, item.ID));
+                        rdata.appendStatus(String.Format("<p> Modified item {0}, UUID {1} <p>", item.Name, item.ID));
                     }
                     else
                     {
@@ -612,7 +612,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                              MsgId, item.ID, item.AssetID, item.InvType, item.AssetType, item.Name);
                         Rest.InventoryServices.AddItem(item);
                         created = true;
-                        rdata.appendStatus(String.Format("<p> Created item {2}, UUID {3}<p>", item.Name, item.ID));
+                        rdata.appendStatus(String.Format("<p> Created item {0}, UUID {1} <p>", item.Name, item.ID));
                     }
                 }
 
@@ -705,7 +705,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     Rest.AssetServices.AddAsset(asset);
 
                     created = true;
-                    rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1}<p>", asset.Name, asset.ID));
+                    rdata.appendStatus(String.Format("<p> Created asset {0}, UUID {1} <p>", asset.Name, asset.ID));
 
                     if (Rest.DEBUG && Rest.DumpAsset)
                     {
@@ -824,13 +824,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 foreach (InventoryFolderBase f in entity.Folders)
                 {
-                    rdata.appendStatus(String.Format("<p>Moving folder {0} UUID {1}<p>", f.Name, f.ID));
+                    rdata.appendStatus(String.Format("<p>Moving folder {0} UUID {1} <p>", f.Name, f.ID));
                     Rest.InventoryServices.MoveFolder(f);
                 }
 
                 foreach (InventoryItemBase it in entity.Items)
                 {
-                    rdata.appendStatus(String.Format("<p>Storing item {0} UUID {1}<p>", it.Name, it.ID));
+                    rdata.appendStatus(String.Format("<p>Storing item {0} UUID {1} <p>", it.Name, it.ID));
                     Rest.InventoryServices.AddItem(it);
                 }
             }
@@ -881,7 +881,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 Rest.InventoryServices.AddItem(xml);
 
-                rdata.appendStatus(String.Format("<p>Storing item {0} UUID {1}<p>", xml.Name, xml.ID));
+                rdata.appendStatus(String.Format("<p>Storing item {0} UUID {1} <p>", xml.Name, xml.ID));
             }
 
             if (created)
@@ -941,7 +941,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.InventoryServices.MoveFolder(folder);
                 Rest.InventoryServices.PurgeFolder(TrashCan);
 
-                rdata.appendStatus(String.Format("<p>Deleted folder {0} UUID {1}<p>", folder.Name, folder.ID));
+                rdata.appendStatus(String.Format("<p>Deleted folder {0} UUID {1} <p>", folder.Name, folder.ID));
             }
 
             // Deleting items is much more straight forward.
@@ -952,7 +952,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.DebugFormat("{0} {1}: Item {2} will be deleted",
                                      MsgId, rdata.method, rdata.path);
                 Rest.InventoryServices.DeleteItem(item);
-                rdata.appendStatus(String.Format("<p>Deleted item {0} UUID {1}<p>", item.Name, item.ID));
+                rdata.appendStatus(String.Format("<p>Deleted item {0} UUID {1} <p>", item.Name, item.ID));
             }
 
             rdata.Complete();
