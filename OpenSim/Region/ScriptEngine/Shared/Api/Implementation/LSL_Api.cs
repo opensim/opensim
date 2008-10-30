@@ -937,6 +937,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 pos = m_host.GetWorldPosition();
             int x = (int)(pos.X + offset.x);
             int y = (int)(pos.Y + offset.y);
+
+	    // Clamp to valid position
+	    if (x<0) 
+		x = 0;
+	    else if (x>=World.Heightmap.Width)
+		x = World.Heightmap.Width-1;
+	    if (y<0) 
+		y = 0;
+	    else if (y>=World.Heightmap.Height)
+		y = World.Heightmap.Height-1;
+	    
+
             return World.GetLandHeight(x, y);
         }
 
