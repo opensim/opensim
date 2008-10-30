@@ -438,11 +438,10 @@ namespace OpenSim.Data.SQLite
                             }
                             group.AddPart(prim);
                             group.RootPart = prim;
-                            Console.WriteLine("The Object UUID is {0}",prim.UUID);
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
+                            LoadItems(prim);
                         }
-                        LoadItems(prim);
                     }
                     catch (Exception e)
                     {
@@ -477,10 +476,9 @@ namespace OpenSim.Data.SQLite
                                     "[REGION DB]: No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
-                            Console.WriteLine("Version2: The Object UUID is {0}",prim.UUID);
                             createdObjects[new UUID(objID)].AddPart(prim);
+                            LoadItems(prim);
                         }
-                        LoadItems(prim);
                     }
                     catch (Exception e)
                     {
@@ -504,20 +502,13 @@ namespace OpenSim.Data.SQLite
         {
             //m_log.DebugFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
     
-            DataTable dbItems = ds.Tables["primitems"];
-            //return;            POINT OF FAILURE!!! BELOW THIS LINE FAILS
-            Console.WriteLine("dbItems: {0} and the prim is: {1}, UUID {2}",dbItems,prim.Name,prim.UUID);
+            DataTable dbItems = ds.Tables["primitems"];          
             String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
-            //string sql = "primID = '" + prim.UUID.ToString() + "'";           
             DataRow[] dbItemRows = dbItems.Select(sql);
-            Console.WriteLine("dbItemRows Length: {0}",dbItemRows.Length);
-            if (dbItemRows.Length == 0)
-                return;
             IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
 
             foreach (DataRow row in dbItemRows)
             {
-                Console.WriteLine("Inside the foreach");
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
 
@@ -1194,7 +1185,7 @@ namespace OpenSim.Data.SQLite
                                                          Convert.ToSingle(
                                                                           row["SitTargetOrientW"]));
 
-            prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorR"]), Convert.ToInt32(row["ColorB"]), Convert.ToInt32(row["ColorG"]));
+            prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorR"]), Convert.ToInt32(row["ColorG"]), Convert.ToInt32(row["ColorB"]));
 
             prim.ClickAction = Convert.ToByte(row["ClickAction"]);
             prim.PayPrice[0] = Convert.ToInt32(row["PayPrice"]);

@@ -425,8 +425,8 @@ namespace OpenSim.Data.MySQL
                             group.RootPart = prim;
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
+                            LoadItems(prim);
                         }
-                        LoadItems(prim);
                     }
                     catch (Exception e)
                     {
@@ -463,8 +463,8 @@ namespace OpenSim.Data.MySQL
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
                             createdObjects[new UUID(objID)].AddPart(prim);
+                            LoadItems(prim);
                         }
-                        LoadItems(prim);
                     }
                     catch (Exception e)
                     {
@@ -495,7 +495,6 @@ namespace OpenSim.Data.MySQL
 
                 String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
                 DataRow[] dbItemRows = dbItems.Select(sql);
-                Console.WriteLine("dbItemRows MYSQL Length: {0}",dbItemRows.Length);
                 IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
 
                 foreach (DataRow row in dbItemRows)
