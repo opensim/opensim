@@ -817,15 +817,28 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 string passwd = String.Empty;
                 uint?  regX   = null;
                 uint?  regY   = null;
+                uint?  ulaX   = null;
+                uint?  ulaY   = null;
+                uint?  ulaZ   = null;
+                uint?  usaX   = null;
+                uint?  usaY   = null;
+                uint?  usaZ   = null;
 
-                if (requestData.ContainsKey("user_password")) passwd = (string) requestData["user_password"];
-                if (requestData.ContainsKey("start_region_x")) regX = Convert.ToUInt32((Int32)requestData["start_region_x"]);
-                if (requestData.ContainsKey("start_region_y")) regY = Convert.ToUInt32((Int32)requestData["start_region_y"]);
 
-                if (String.Empty == passwd && null == regX && null == regY)
-                    throw new Exception("neither user_password nor start_region_x nor start_region_y provided");
+                if (requestData.ContainsKey("user_password"))  passwd = (string) requestData["user_password"];
+                if (requestData.ContainsKey("start_region_x"))   regX = Convert.ToUInt32((Int32)requestData["start_region_x"]);
+                if (requestData.ContainsKey("start_region_y"))   regY = Convert.ToUInt32((Int32)requestData["start_region_y"]);
+
+                if (requestData.ContainsKey("start_lookat_x"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_x"]);
+                if (requestData.ContainsKey("start_lookat_y"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_y"]);
+                if (requestData.ContainsKey("start_lookat_z"))   ulaY = Convert.ToUInt32((Int32)requestData["start_lookat_z"]);
+
+                if (requestData.ContainsKey("start_standat_x"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_x"]);
+                if (requestData.ContainsKey("start_standat_y"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_y"]);
+                if (requestData.ContainsKey("start_standat_z"))  usaY = Convert.ToUInt32((Int32)requestData["start_standat_z"]);
 
                 UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+
                 if (null == userProfile)
                     throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
 
@@ -835,9 +848,17 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     userProfile.PasswordHash = md5PasswdHash;
                 }
 
-                if (null != regX) userProfile.HomeRegionX = (uint)regX;
-                if (null != regY) userProfile.HomeRegionY = (uint)regY;
+                if (null != regX) userProfile.HomeRegionX   = (uint)regX;
+                if (null != regY) userProfile.HomeRegionY   = (uint)regY;
 
+                if (null != usaX) userProfile.HomeLocationX = (uint)usaX;
+                if (null != usaY) userProfile.HomeLocationY = (uint)usaY;
+                if (null != usaZ) userProfile.HomeLocationZ = (uint)usaZ;
+    
+                if (null != ulaX) userProfile.HomeLookAtX   = (uint)ulaX;
+                if (null != ulaY) userProfile.HomeLookAtY   = (uint)ulaY;
+                if (null != ulaZ) userProfile.HomeLookAtZ   = (uint)ulaZ;
+    
                 if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
                     throw new Exception("did not manage to update user profile");
 
