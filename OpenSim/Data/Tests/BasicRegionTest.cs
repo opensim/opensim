@@ -375,7 +375,6 @@ namespace OpenSim.Data.Tests
             UUID creator = new UUID();
             creator = UUID.Random();
             TaskInventoryDictionary dic = new TaskInventoryDictionary();
-            uint objf = (uint) random.Next();
             localID = localID + 1;
             string name = "West  Adam";
             byte material = (byte) random.Next(255);
