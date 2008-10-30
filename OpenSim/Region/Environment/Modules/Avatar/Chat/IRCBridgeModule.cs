@@ -242,7 +242,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                             break;
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 { 
                     m_log.DebugFormat("[IRC] error processing in-world command channel input: {0}", ex);
                 }

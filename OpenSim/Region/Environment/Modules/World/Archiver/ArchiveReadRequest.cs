@@ -36,6 +36,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Xml;
+using System.Net;
 using OpenMetaverse;
 using log4net;
 
@@ -70,7 +71,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             TarArchiveReader archive
                 = new TarArchiveReader(
-                    new GZipStream(new FileStream(m_loadPath, FileMode.Open), CompressionMode.Decompress));
+                    new GZipStream(GetStream(m_loadPath), CompressionMode.Decompress));
+
             //AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
 
             List<string> serialisedSceneObjects = new List<string>();
@@ -284,5 +286,65 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             return true;
         }
+
+        /// <summary>
+        /// Resolve path to a working FileStream
+        /// </summary>
+
+        private Stream GetStream(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    return new FileStream(path, FileMode.Open);
+                }    
+                else
+                {
+                    Uri uri = new Uri(path); // throw exception if not valid URI
+                    if (uri.Scheme == "file") 
+                    {
+                        return new FileStream(uri.AbsolutePath, FileMode.Open);
+                    }
+                    else
+                    {
+                        if (uri.Scheme != "http")
+                            throw new Exception(String.Format("Unsupported URI scheme ({0})", path));
+
+                        // OK, now we know we have an HTTP URI to work with
+
+                        return URIFetch(uri);
+
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(String.Format("Unable to create file input stream for {0}: {1}", path, e));
+            }
+        }
+
+        private static Stream URIFetch(Uri uri)
+        {
+
+            HttpWebRequest request  = (HttpWebRequest)  WebRequest.Create(uri);
+
+            // request.Credentials = credentials;
+
+            request.ContentLength = 0;
+
+            WebResponse response = request.GetResponse();
+            Stream file = response.GetResponseStream();
+
+            if (response.ContentType != "application/x-oar")
+                throw new Exception(String.Format("{0} does not identify an OAR file", uri.ToString()));
+
+            if (response.ContentLength == 0)
+                throw new Exception(String.Format("{0} returned an empty file", uri.ToString()));
+
+            return new BufferedStream(file, (int) response.ContentLength);
+
+        }
+
     }
 }

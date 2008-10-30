@@ -448,6 +448,11 @@ msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
 ;for <bot>:<message> - from <user> :
 ;msgformat = "PRIVMSG {0} : {3} - from {1}"
 
+; work-in-progress IRCBridge capabable of supporting multiple IRC channels
+; [XIRC]
+; enabled = false
+
+
 ; Uncomment the following for experiment in world versioning
 ; support.  This is so experimental at this point that I'm not going
 ; to explain it further, you'll need to read the source code
