@@ -412,7 +412,7 @@ namespace OpenSim.Data.SQLite
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
                 m_log.Info("[REGION DB]: " +
                                          "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
-
+                // First, create all groups 
                 foreach (DataRow primRow in primsForRegion)
                 {
                     try
@@ -438,11 +438,32 @@ namespace OpenSim.Data.SQLite
                             }
                             group.AddPart(prim);
                             group.RootPart = prim;
-
+                            Console.WriteLine("The Object UUID is {0}",prim.UUID);
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                         }
-                        else
+                        LoadItems(prim);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("[REGION DB]: Failed create prim object in new group, exception and data follows");
+                        m_log.Info("[REGION DB]: " + e.ToString());
+                        foreach (DataColumn col in prims.Columns)
+                        {
+                            m_log.Info("[REGION DB]: Col: " + col.ColumnName + " => " + primRow[col]);
+                        }
+                    }
+                }
+                // Now fill the groups with part data
+                foreach (DataRow primRow in primsForRegion)
+                {
+                    try
+                    {
+                        SceneObjectPart prim = null;
+
+                        string uuid = (string) primRow["UUID"];
+                        string objID = (string) primRow["SceneGroupID"];
+                        if (uuid != objID) //is new SceneObjectGroup ?
                         {
                             prim = buildPrim(primRow);
                             DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
@@ -456,14 +477,14 @@ namespace OpenSim.Data.SQLite
                                     "[REGION DB]: No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
+                            Console.WriteLine("Version2: The Object UUID is {0}",prim.UUID);
                             createdObjects[new UUID(objID)].AddPart(prim);
                         }
-
                         LoadItems(prim);
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("[REGION DB]: Failed create prim object, exception and data follows");
+                        m_log.Error("[REGION DB]: Failed create prim object in group, exception and data follows");
                         m_log.Info("[REGION DB]: " + e.ToString());
                         foreach (DataColumn col in prims.Columns)
                         {
@@ -482,16 +503,21 @@ namespace OpenSim.Data.SQLite
         private void LoadItems(SceneObjectPart prim)
         {
             //m_log.DebugFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
-
+    
             DataTable dbItems = ds.Tables["primitems"];
-
+            //return;            POINT OF FAILURE!!! BELOW THIS LINE FAILS
+            Console.WriteLine("dbItems: {0} and the prim is: {1}, UUID {2}",dbItems,prim.Name,prim.UUID);
             String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
+            //string sql = "primID = '" + prim.UUID.ToString() + "'";           
             DataRow[] dbItemRows = dbItems.Select(sql);
-
+            Console.WriteLine("dbItemRows Length: {0}",dbItemRows.Length);
+            if (dbItemRows.Length == 0)
+                return;
             IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
 
             foreach (DataRow row in dbItemRows)
             {
+                Console.WriteLine("Inside the foreach");
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
 

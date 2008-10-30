@@ -395,7 +395,8 @@ namespace OpenSim.Data.MySQL
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
                 m_log.Info("[REGION DB]: " +
                                          "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
-
+                
+                // First, create all groups 
                 foreach (DataRow primRow in primsForRegion)
                 {
                     try
@@ -422,11 +423,33 @@ namespace OpenSim.Data.MySQL
                             }
                             group.AddPart(prim);
                             group.RootPart = prim;
-
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                         }
-                        else
+                        LoadItems(prim);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("[REGION DB]: Failed create prim object, exception and data follows");
+                        m_log.Info("[REGION DB]: " + e.ToString());
+                        foreach (DataColumn col in prims.Columns)
+                        {
+                            m_log.Info("[REGION DB]: Col: " + col.ColumnName + " => " + primRow[col]);
+                        }
+                    }
+                }
+                
+                // Now fill the groups with part data
+                foreach (DataRow primRow in primsForRegion)
+                {
+                    try
+                    {
+                        string uuid = (string) primRow["UUID"];
+                        string objID = (string) primRow["SceneGroupID"];
+
+                        SceneObjectPart prim = buildPrim(primRow);
+
+                        if (uuid != objID) //is new SceneObjectGroup ?
                         {
                             DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
                             if (shapeRow != null)
@@ -441,9 +464,8 @@ namespace OpenSim.Data.MySQL
                             }
                             createdObjects[new UUID(objID)].AddPart(prim);
                         }
-
-                            LoadItems(prim);
-                        }
+                        LoadItems(prim);
+                    }
                     catch (Exception e)
                     {
                         m_log.Error("[REGION DB]: Failed create prim object, exception and data follows");
@@ -473,7 +495,7 @@ namespace OpenSim.Data.MySQL
 
                 String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
                 DataRow[] dbItemRows = dbItems.Select(sql);
-
+                Console.WriteLine("dbItemRows MYSQL Length: {0}",dbItemRows.Length);
                 IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
 
                 foreach (DataRow row in dbItemRows)

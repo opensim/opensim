@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenSim.Framework;
@@ -44,15 +46,24 @@ namespace OpenSim.Data.Tests
         public UUID zero = UUID.Zero;
         public UUID region1;
         public UUID region2;
+        public UUID region3;
+        public UUID region4;
         public UUID prim1;
         public UUID prim2;
         public UUID prim3;
+        public UUID prim4;
+        public UUID prim5;
+        public UUID prim6;
         public UUID item1;
         public UUID item2;
         public UUID item3;
 
+        public static Random random;        
+        
         public string itemname1 = "item1";
 
+        public uint localID;
+        
         public double height1;
         public double height2;
 
@@ -68,12 +79,19 @@ namespace OpenSim.Data.Tests
             }
 
             region1 = UUID.Random();
+            region3 = UUID.Random();
+            region4 = UUID.Random();
             prim1 = UUID.Random();
             prim2 = UUID.Random();
             prim3 = UUID.Random();
+            prim4 = UUID.Random();
+            prim5 = UUID.Random();
+            prim6 = UUID.Random();
             item1 = UUID.Random();
             item2 = UUID.Random();
             item3 = UUID.Random();
+            random = new Random();
+            localID = 1;
             height1 = 20;
             height2 = 100;
         }
@@ -82,18 +100,22 @@ namespace OpenSim.Data.Tests
         // Prims
         //  - empty test - 001
         //  - store / retrieve basic prims (most minimal we can make) - 010, 011
-        //  - update existing prims, make sure it sticks - 012
-        //  - add inventory items to prims make - 013
-        //  - remove inventory items make sure it sticks - 014
+        //  - store / retrieve parts in a scenegroup 012
+        //  - store a prim with complete information for consistency check 013
+        //  - update existing prims, make sure it sticks - 014
+        //  - add inventory items to prims make - 015
+        //  - remove inventory items make sure it sticks - 016
         //  - remove prim, make sure it sticks - 020
 
         [Test]
         public void T001_LoadEmpty()
         {
             List<SceneObjectGroup> objs = db.LoadObjects(region1);
+            List<SceneObjectGroup> objs3 = db.LoadObjects(region3);
             List<LandData> land = db.LoadLandObjects(region1);
 
             Assert.That(objs.Count, Is.EqualTo(0));
+            Assert.That(objs3.Count, Is.EqualTo(0));
             Assert.That(land.Count, Is.EqualTo(0));
         }
         
@@ -145,9 +167,262 @@ namespace OpenSim.Data.Tests
                 Assert.That(p.Name, Is.EqualTo(p.Description));
             }
         }
-
+        
         [Test]
-        public void T012_UpdateObject()
+        public void T012_SceneParts()
+        {
+            UUID tmp0 = UUID.Random();
+            UUID tmp1 = UUID.Random();
+            UUID tmp2 = UUID.Random();
+            UUID tmp3 = UUID.Random();            
+            UUID newregion = UUID.Random();
+            SceneObjectPart p1 = NewSOP("SoP 1",tmp1);
+            SceneObjectPart p2 = NewSOP("SoP 2",tmp2);
+            SceneObjectPart p3 = NewSOP("SoP 3",tmp3);
+            SceneObjectGroup sog = NewSOG("Sop 0",tmp0);
+            sog.AddPart(p1);
+            sog.AddPart(p2);
+            sog.AddPart(p3);
+            
+            Console.WriteLine("Test 10 has prims {0} and {1} in region {2}",prim1,prim2,region1);
+            Console.WriteLine("The prims are {0}, {1}, {2} and {3} and region is {4}",tmp0,tmp1,tmp2,tmp3,newregion);
+            SceneObjectPart[] parts = sog.GetParts();
+            Console.WriteLine("Before Insertion:");
+            Assert.That(parts.Length,Is.EqualTo(4));
+            Console.WriteLine("PASSED BEFORE");
+            
+            db.StoreObject(sog, newregion);
+            List<SceneObjectGroup> sogs = db.LoadObjects(newregion);
+            Assert.That(sogs.Count,Is.EqualTo(1));
+            SceneObjectGroup newsog = sogs[0];
+                        
+            SceneObjectPart[] newparts = newsog.GetParts();
+            Console.WriteLine("After Insertion:");
+            Assert.That(newparts.Length,Is.EqualTo(4));
+            Console.WriteLine("PASSED AFTER!");            
+            
+            Assert.That(newsog.HasChildPrim(tmp0));
+            Assert.That(newsog.HasChildPrim(tmp1));
+            Assert.That(newsog.HasChildPrim(tmp2));
+            Assert.That(newsog.HasChildPrim(tmp3));
+        }
+        
+        [Test]
+        [Ignore("Make sure 12 works first")]
+        public void T013_ObjectConsistency()
+        {
+            UUID creator,uuid = new UUID();
+            creator = UUID.Random();
+            uint iserial = (uint) random.Next();
+            TaskInventoryDictionary dic = new TaskInventoryDictionary();
+            uint objf = (uint) random.Next();
+            uuid = prim4;
+            uint localid = localID+1;
+            localID = localID + 1;
+            string name = "Adam  West";
+            byte material = (byte) random.Next(255);
+            ulong regionh = (ulong)random.NextDouble() * (ulong)random.Next();
+            int pin = random.Next();
+            Byte[] partsys = new byte[8];
+            Byte[] textani = new byte[8];
+            random.NextBytes(textani);
+            random.NextBytes(partsys);
+            DateTime expires = new DateTime(2008, 12, 20);
+            DateTime rezzed = new DateTime(2009, 07, 15);
+            Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());             
+            Vector3 offset = new Vector3(random.Next(),random.Next(),random.Next());
+            Quaternion rotoff = new Quaternion(random.Next(),random.Next(),random.Next(),random.Next());
+            Vector3 velocity = new Vector3(random.Next(),random.Next(),random.Next());
+            Vector3 angvelo = new Vector3(random.Next(),random.Next(),random.Next());
+            Vector3 accel = new Vector3(random.Next(),random.Next(),random.Next());
+            string description = name;
+            //Color color = Color.Brown;
+            Color color = Color.FromArgb(255, 165, 42, 42);
+            string text = "All Your Base Are Belong to Us";
+            string sitname = "SitName";
+            string touchname = "TouchName";
+            int linknum = random.Next();
+            byte clickaction = (byte) random.Next(255);
+            PrimitiveBaseShape pbshap = new PrimitiveBaseShape();
+            pbshap = PrimitiveBaseShape.Default;
+            Vector3 scale = new Vector3(random.Next(),random.Next(),random.Next());
+            byte updatef = (byte) random.Next(255);
+            
+            SceneObjectPart sop = new SceneObjectPart();
+            sop.RegionHandle = regionh;
+            sop.UUID = uuid;
+            sop.LocalId = localid;
+            sop.Shape = pbshap;
+            sop.GroupPosition = groupos;
+            sop.RotationOffset = rotoff;
+            sop.CreatorID = creator;            
+            sop.InventorySerial = iserial;
+            sop.TaskInventory = dic;
+            sop.ObjectFlags = objf;
+            sop.Name = name;
+            sop.Material = material;
+            sop.ScriptAccessPin = pin;
+            sop.TextureAnimation = textani;
+            sop.ParticleSystem = partsys;
+            sop.Expires = expires;
+            sop.Rezzed = rezzed;
+            sop.OffsetPosition = offset;
+            sop.Velocity = velocity;
+            sop.AngularVelocity = angvelo;
+            sop.Acceleration = accel;
+            sop.Description = description;
+            sop.Color = color;
+            sop.Text = text;
+            sop.SitName = sitname;
+            sop.TouchName = touchname;
+            sop.LinkNum = linknum;
+            sop.ClickAction = clickaction;
+            sop.Scale = scale;
+            sop.UpdateFlag = updatef;
+
+            //Tests if local part accepted the parameters:
+            Console.WriteLine("Test -0");
+            Assert.That(regionh,Is.EqualTo(sop.RegionHandle));
+            Console.WriteLine("Test -1  localid é: {0} e LocalId é {1}",localid,sop.LocalId);
+            Assert.That(localid,Is.EqualTo(sop.LocalId));
+            Console.WriteLine("Test -2");
+            //**Assert.That(pbshap,Is.EqualTo(sop.Shape));
+            Assert.That(groupos,Is.EqualTo(sop.GroupPosition));
+            Console.WriteLine("Test -3");
+            Assert.That(name,Is.EqualTo(sop.Name));
+            Console.WriteLine("Test -4");
+            Assert.That(rotoff,Is.EqualTo(sop.RotationOffset));
+            Console.WriteLine("Test 0 - uuid is {0}",uuid);
+            Assert.That(uuid,Is.EqualTo(sop.UUID));
+            Console.WriteLine("Test 1");
+            Assert.That(creator,Is.EqualTo(sop.CreatorID));
+            Console.WriteLine("Test 2 - iserial is {0}",iserial);
+            Assert.That(iserial,Is.EqualTo(sop.InventorySerial));
+            Console.WriteLine("Test 3");
+            Assert.That(dic,Is.EqualTo(sop.TaskInventory));
+            Console.WriteLine("Test 4");
+            Assert.That(objf,Is.EqualTo(sop.ObjectFlags));
+            Console.WriteLine("Test 5");
+            Assert.That(name,Is.EqualTo(sop.Name));
+            Console.WriteLine("Test 6");
+            Assert.That(material,Is.EqualTo(sop.Material));
+            Console.WriteLine("Test 7");
+            Assert.That(pin,Is.EqualTo(sop.ScriptAccessPin));
+            Console.WriteLine("Test 8");
+            Assert.That(textani,Is.EqualTo(sop.TextureAnimation));
+            Console.WriteLine("Test 9");
+            Assert.That(partsys,Is.EqualTo(sop.ParticleSystem));
+            Console.WriteLine("Test 9.1");
+            Assert.That(expires,Is.EqualTo(sop.Expires));
+            Console.WriteLine("Test 9.2");
+            Assert.That(rezzed,Is.EqualTo(sop.Rezzed));
+            Console.WriteLine("Test 10");            
+            Assert.That(offset,Is.EqualTo(sop.OffsetPosition));
+            Assert.That(velocity,Is.EqualTo(sop.Velocity));                       
+            Console.WriteLine("Test 12");            
+            Assert.That(angvelo,Is.EqualTo(sop.AngularVelocity));
+            Console.WriteLine("Test 13");            
+            Assert.That(accel,Is.EqualTo(sop.Acceleration));
+            Console.WriteLine("Test 14");
+            Assert.That(description,Is.EqualTo(sop.Description));
+            Assert.That(color,Is.EqualTo(sop.Color));
+            Assert.That(text,Is.EqualTo(sop.Text));
+            Assert.That(sitname,Is.EqualTo(sop.SitName));
+            Console.WriteLine("Test 15");
+            Assert.That(touchname,Is.EqualTo(sop.TouchName));
+            Console.WriteLine("Test 16");
+            Assert.That(linknum,Is.EqualTo(sop.LinkNum));
+            Console.WriteLine("Test 17");
+            Assert.That(clickaction,Is.EqualTo(sop.ClickAction));
+            Console.WriteLine("Test 18");
+            Assert.That(scale,Is.EqualTo(sop.Scale));
+            Console.WriteLine("Test 19");
+            Assert.That(updatef,Is.EqualTo(sop.UpdateFlag));
+            Console.WriteLine("Test 20");
+            
+            // This is necessary or object will not be inserted in DB            
+            sop.ObjectFlags = 0;            
+                        
+            SceneObjectGroup sog = new SceneObjectGroup();
+            sog.AddPart(sop);
+            sog.RootPart = sop;            
+            
+            // Inserts group in DB
+            db.StoreObject(sog,region3);
+            List<SceneObjectGroup> sogs = db.LoadObjects(region3);
+            Assert.That(sogs.Count, Is.EqualTo(1));
+            // Makes sure there are no double insertions:
+            /*
+            db.StoreObject(sog,region3);
+            sogs = db.LoadObjects(region3);
+            Assert.That(sogs.Count, Is.EqualTo(1));            
+            */            
+
+            // Tests if the parameters were inserted correctly
+            SceneObjectPart p = sogs[0].RootPart;               
+            Console.WriteLine("Test -0");
+            Assert.That(regionh,Is.EqualTo(p.RegionHandle));
+            Console.WriteLine("Test -1  localid é: {0} e LocalId é {1}",localid,p.LocalId);
+            //Assert.That(localid,Is.EqualTo(p.LocalId));
+            Console.WriteLine("Test -2");
+            //Assert.That(pbshap,Is.EqualTo(p.Shape));
+            Assert.That(groupos,Is.EqualTo(p.GroupPosition));
+            Console.WriteLine("Test -3");
+            Assert.That(name,Is.EqualTo(p.Name));
+            Console.WriteLine("Test -4");
+            Assert.That(rotoff,Is.EqualTo(p.RotationOffset));
+            Console.WriteLine("Test 0 - uuid is {0}",uuid);
+            Assert.That(uuid,Is.EqualTo(p.UUID));
+            Console.WriteLine("Test 1");
+            Assert.That(creator,Is.EqualTo(p.CreatorID));
+            Console.WriteLine("Test 2 - iserial is {0}",iserial);
+            //Assert.That(iserial,Is.EqualTo(p.InventorySerial));
+            Console.WriteLine("Test 3");
+            Assert.That(dic,Is.EqualTo(p.TaskInventory));
+            Console.WriteLine("Test 4");
+            //Assert.That(objf,Is.EqualTo(p.ObjectFlags));
+            Console.WriteLine("Test 5");
+            Assert.That(name,Is.EqualTo(p.Name));
+            Console.WriteLine("Test 6");
+            Assert.That(material,Is.EqualTo(p.Material));
+            Console.WriteLine("Test 7");
+            Assert.That(pin,Is.EqualTo(p.ScriptAccessPin));
+            Console.WriteLine("Test 8");
+            Assert.That(textani,Is.EqualTo(p.TextureAnimation));
+            Console.WriteLine("Test 9");
+            Assert.That(partsys,Is.EqualTo(p.ParticleSystem));
+            Console.WriteLine("Test 9.1 - Expires in {0}",expires);
+            //Assert.That(expires,Is.EqualTo(p.Expires));
+            Console.WriteLine("Test 9.2 - Rezzed in {0}",rezzed);
+            //Assert.That(rezzed,Is.EqualTo(p.Rezzed));
+            Console.WriteLine("Test 10");            
+            Assert.That(offset,Is.EqualTo(p.OffsetPosition));
+            Assert.That(velocity,Is.EqualTo(p.Velocity));
+            Console.WriteLine("Test 12");            
+            Assert.That(angvelo,Is.EqualTo(p.AngularVelocity));
+            Console.WriteLine("Test 13");            
+            Assert.That(accel,Is.EqualTo(p.Acceleration));
+            Console.WriteLine("Test 14");
+            Assert.That(description,Is.EqualTo(p.Description));
+            Assert.That(color,Is.EqualTo(p.Color));
+            Assert.That(text,Is.EqualTo(p.Text));
+            Assert.That(sitname,Is.EqualTo(p.SitName));
+            Console.WriteLine("Test 15");
+            Assert.That(touchname,Is.EqualTo(p.TouchName));
+            Console.WriteLine("Test 16");
+            //Assert.That(linknum,Is.EqualTo(p.LinkNum));
+            Console.WriteLine("Test 17");
+            Assert.That(clickaction,Is.EqualTo(p.ClickAction));
+            Console.WriteLine("Test 18");
+            Assert.That(scale,Is.EqualTo(p.Scale));
+            Console.WriteLine("Test 19");
+            //Assert.That(updatef,Is.EqualTo(p.UpdateFlag));
+            Console.WriteLine("Test 20");
+            
+        }
+        
+        [Test]
+        public void T014_UpdateObject()
         {
             string text = "object1 text";
             SceneObjectGroup sog = FindSOG("object1", region1);
@@ -364,20 +639,39 @@ namespace OpenSim.Data.Tests
         private SceneObjectGroup NewSOG(string name, UUID uuid)
         {
             SceneObjectPart sop = new SceneObjectPart();
-            sop.LocalId = 1;
+            //sop.LocalId = 1;
+            sop.LocalId = localID;
+            localID = localID + 1;
             sop.Name = name;
             sop.Description = name;
-            sop.Text = "";
-            sop.SitName = "";
-            sop.TouchName = "";
+            sop.Text = RandomName();
+            sop.SitName = RandomName();
+            sop.TouchName = RandomName();
             sop.UUID = uuid;
             sop.Shape = PrimitiveBaseShape.Default;
+            
 
             SceneObjectGroup sog = new SceneObjectGroup();
             sog.AddPart(sop);
             sog.RootPart = sop; 
             
             return sog;
+        }
+        
+        private SceneObjectPart NewSOP(string name, UUID uuid)
+        {
+            SceneObjectPart sop = new SceneObjectPart();           
+            //sop.LocalId = 1;
+            sop.LocalId = localID;
+            localID = localID + 1;
+            sop.Name = name;
+            sop.Description = name;
+            sop.Text = RandomName();
+            sop.SitName = RandomName();
+            sop.TouchName = RandomName();
+            sop.UUID = uuid;
+            sop.Shape = PrimitiveBaseShape.Default;
+            return sop;
         }
 
         // These are copied from the Inventory Item tests 
@@ -395,6 +689,18 @@ namespace OpenSim.Data.Tests
             return i;
         }
 
+        private static string RandomName()
+        {
+            StringBuilder name = new StringBuilder();
+            int size = random.Next(5,12); 
+            char ch ;
+            for (int i=0; i<size; i++)
+            {       
+                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))) ;
+                name.Append(ch);
+            }
+            return name.ToString();
+        }      
 //        private InventoryFolderBase NewFolder(UUID id, UUID parent, UUID owner, string name)
 //        {
 //            InventoryFolderBase f = new InventoryFolderBase();
