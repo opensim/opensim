@@ -2660,13 +2660,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetHoverHeight(double height, int water, double tau)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetHoverHeight");
+            Vector3 pos = m_host.GetWorldPosition();
+            int x = (int)(pos.X);
+            int y = (int)(pos.Y);
+            float landHeight = (float)World.GetLandHeight(x, y);
+            float targetHeight = landHeight + (float)height;
+            if (water == 1)
+            {
+                float waterHeight = (float)World.RegionInfo.RegionSettings.WaterHeight;
+                if (waterHeight > targetHeight)
+                {
+                    targetHeight = waterHeight + (float)height;
+                }
+            }
+            if (m_host.PhysActor != null)
+            {
+                m_host.MoveToTarget(new Vector3(pos.X, pos.Y, targetHeight), (float)tau);
+                m_host.PhysActor.Flying = true;
+            }
         }
 
         public void llStopHover()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llStopHover");
+            if (m_host.PhysActor != null)
+            {
+                m_host.PhysActor.Flying = false;
+                m_host.PhysActor.PIDActive = false;
+            }
         }
 
         public void llMinEventDelay(double delay)
