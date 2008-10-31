@@ -7,6 +7,7 @@ namespace OpenSim.Data.MySQL
         public bool Locked;
         private readonly Mutex m_lock = new Mutex(false);
         public MySQLManager Manager;
+        public string Running;
 
         public void GetLock()
         {
