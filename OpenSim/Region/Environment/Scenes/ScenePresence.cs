@@ -1896,7 +1896,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
 
             SendAppearanceToAllOtherAgents();
-            //SendWearables();
+            SendWearables();
         }
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
