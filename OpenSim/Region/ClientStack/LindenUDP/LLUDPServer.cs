@@ -271,17 +271,59 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_socket.BeginReceiveFrom(
                      RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
             }
-            catch (SocketException)
+            catch (SocketException e)
             {
-                // We don't need to see this error, reset connection and get next UDP packet off the buffer
-                // If the UDP packet is part of the same stream, this will happen several hundreds of times before
-                // the next set of UDP data is for a valid client.
-                //m_log.ErrorFormat("[CLIENT]: BeginRecieve threw exception " + e.Message + ": " + e.StackTrace );
-                
                 // ENDLESS LOOP ON PURPOSE!
-                ResetEndPoint();
+                // Reset connection and get next UDP packet off the buffer
+                // If the UDP packet is part of the same stream, this will happen several hundreds of times before
+                // the next set of UDP data is for a valid client.         
+                ResetServerEndPoint(e);
             }
         }
+
+        /// <summary>
+        /// Reset the server endpoint
+        /// </summary>
+        /// <param name="e">
+        /// The exception that has triggered the reset.  Can be null if there was no exception.
+        /// </param>
+        private void ResetServerEndPoint(Exception e)
+        {
+            try
+            {
+                CloseCircuit(reusedEpSender, e);
+            }
+            catch (Exception a)
+            {
+                m_log.Error("[UDPSERVER]: " + a);
+            }
+
+            // ENDLESS LOOP ON PURPOSE!            
+            // We need to purge the UDP stream of crap from the client that disconnected nastily or the UDP server will die
+            // The only way to do that is to beginreceive again!
+            BeginReceive();
+        }
+
+        /// <summary>
+        /// Close a client circuit.  This is done in response to an exception on receive, and should not be called
+        /// normally.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e">The exception that caused the close.  Can be null if there was no exception</param>
+        private void CloseCircuit(EndPoint sender, Exception e)
+        {
+            uint circuit;
+            lock (clientCircuits)
+            {
+                if (clientCircuits.TryGetValue(sender, out circuit))
+                {
+                    m_packetServer.CloseCircuit(circuit);
+                    
+                    if (e != null)                    
+                        m_log.ErrorFormat("[CLIENT]: Closed circuit {0} {1} due to exception {2}", circuit, sender, e);                                    
+                }
+            }
+        }       
         
         /// <summary>
         /// Finish the process of asynchronously receiving the next bit of raw data
@@ -325,53 +367,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }      
             
             return hasReceivedOkay;
-        }
-
-        private void ResetEndPoint()
-        {
-            try
-            {
-                CloseEndPoint(reusedEpSender);
-            }
-            catch (Exception a)
-            {
-                m_log.Error("[UDPSERVER]: " + a);
-            }
-
-            // ENDLESS LOOP ON PURPOSE!
-            
-            // We need to purge the UDP stream of crap from the client that disconnected nastily or the UDP server will die
-            // The only way to do that is to beginreceive again!
-            BeginReceive();
-
-            try
-            {                
-               // m_socket.BeginReceiveFrom(
-                 //   RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
-
-                // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
-                // so therefore..  we've got to tell the server to BeginReceiveFrom again.
-                // This will happen over and over until we've gone through all packets
-                // sent to and from this particular user.
-                // Stupid I know..
-                // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
-            }
-            catch (SocketException e)
-            {
-                m_log.DebugFormat("[UDPSERVER]: Exception {0} : {1}", e.Message, e.StackTrace );
-            }
-        }
-
-        private void CloseEndPoint(EndPoint sender)
-        {
-            uint circuit;
-            lock (clientCircuits)
-            {
-                if (clientCircuits.TryGetValue(sender, out circuit))
-                {
-                    m_packetServer.CloseCircuit(circuit);
-                }
-            }
         }
 
         /// <summary>

@@ -40,11 +40,12 @@ namespace OpenSim.Region.Environment.Scenes.Tests
     [TestFixture]
     public class SceneTests
     {
+        /// <summary>
+        /// Test adding an object to a scene.  Doesn't yet do what it says on the tin.
+        /// </summary>
         [Test]        
         public void TestAddSceneObject()
-        {          
-            //System.Console.WriteLine("Hello mum!");
-            
+        {               
             RegionInfo regInfo = new RegionInfo(1000, 1000, null, null);
             regInfo.RegionName = "Unit test region";
             AgentCircuitManager acm = new AgentCircuitManager();
