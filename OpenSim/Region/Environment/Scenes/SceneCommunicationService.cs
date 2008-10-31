@@ -76,19 +76,10 @@ namespace OpenSim.Region.Environment.Scenes
         private GetLandData handlerGetLandData = null; // OnGetLandData
 
         public KiPrimitiveDelegate KiPrimitive;
-        public string _debugRegionName = String.Empty;
-
-        public string debugRegionName
-        {
-            get { return _debugRegionName; }
-            set { _debugRegionName = value; }
-        }
 
         public SceneCommunicationService(CommunicationsManager commsMan)
         {
             m_commsProvider = commsMan;
-            m_commsProvider.GridService.gdebugRegionName = _debugRegionName;
-            m_commsProvider.InterRegion.rdebugRegionName = _debugRegionName;
         }
 
         /// <summary>
@@ -99,13 +90,15 @@ namespace OpenSim.Region.Environment.Scenes
         public void RegisterRegion(RegionInfo regionInfos)
         {
             m_regionInfo = regionInfos;
+            m_commsProvider.GridService.gdebugRegionName = regionInfos.RegionName;
+            m_commsProvider.InterRegion.rdebugRegionName = regionInfos.RegionName;            
             regionCommsHost = m_commsProvider.GridService.RegisterRegion(m_regionInfo);
 
             if (regionCommsHost != null)
             {
                 //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: registered with gridservice and got" + regionCommsHost.ToString());
 
-                regionCommsHost.debugRegionName = _debugRegionName;
+                regionCommsHost.debugRegionName = regionInfos.RegionName;
                 regionCommsHost.OnExpectPrim += IncomingPrimCrossing;
                 regionCommsHost.OnExpectUser += NewUserConnection;
                 regionCommsHost.OnAvatarCrossingIntoRegion += AgentCrossing;

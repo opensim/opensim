@@ -273,7 +273,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_authenticateHandler = authen;
             CommsManager = commsMan;
             m_sceneGridService = sceneGridService;
-            m_sceneGridService.debugRegionName = regInfo.RegionName;
             m_storageManager = storeManager;
             AssetCache = assetCach;
             m_regInfo = regInfo;

@@ -111,8 +111,6 @@ namespace OpenSim
         protected List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
 
         protected IConfigSource m_finalConfig = null;
-
-        //protected IniConfigSource m_config;
         protected OpenSimConfigSource m_config;
 
         public OpenSimConfigSource ConfigSource
