@@ -182,6 +182,16 @@ namespace OpenSim.Framework
             Textures = m_defaultTexture;
         }
 
+        public PrimitiveBaseShape(bool noShape)
+        {
+            if (noShape)
+                return;
+
+            PCode = (byte)PCodeEnum.Primitive;
+            ExtraParams = new byte[1];
+            Textures = m_defaultTexture;
+        }
+
         [XmlIgnore]
         public Primitive.TextureEntry Textures
         {
@@ -843,7 +853,7 @@ namespace OpenSim.Framework
 
         public void ReadInExtraParamsBytes(byte[] data)
         {
-            if (data == null)
+            if (data == null || data.Length == 1)
                 return;
 
             const ushort FlexiEP = 0x10;
