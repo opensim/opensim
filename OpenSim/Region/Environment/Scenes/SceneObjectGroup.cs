@@ -93,6 +93,26 @@ namespace OpenSim.Region.Environment.Scenes
         /// since the group's last persistent backup
         /// </summary>
         public bool HasGroupChanged = false;
+        
+        /// <value>
+        /// Is this scene object acting as an attachment?
+        /// 
+        /// We return false if the group has already been deleted.
+        ///  
+        /// TODO: At the moment set must be done on the part itself.  There may be a case for doing it here since I
+        /// presume either all or no parts in a linkset can be part of an attachment (in which
+        /// case the value would get proprogated down into all the descendent parts).
+        /// </value>
+        public bool IsAttachment
+        {
+            get
+            {
+                if (!IsDeleted)
+                    return m_rootPart.IsAttachment;
+                
+                return false;
+            }
+        }
 
         public float scriptScore = 0f;
 

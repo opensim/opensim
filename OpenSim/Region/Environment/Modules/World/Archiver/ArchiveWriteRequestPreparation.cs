@@ -276,7 +276,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 {
                     SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
                     
-                    if (sceneObject.RootPart != null && !sceneObject.RootPart.IsAttachment)
+                    if (!sceneObject.IsDeleted && !sceneObject.IsAttachment)
                         sceneObjects.Add((SceneObjectGroup)entity);
                 }
             }
