@@ -25,36 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
+using System.Collections.Generic;
+using OpenMetaverse;
 
-namespace OpenSim.Region.Communications.Local
+namespace OpenSim.Framework.Communications
 {
-    public class CommunicationsLocal : CommunicationsManager
+    public interface IMessagingService
     {
-        public CommunicationsLocal(
-            NetworkServersInfo serversInfo,
-            BaseHttpServer httpServer,
-            AssetCache assetCache,
-            IUserService userService,
-            IUserServiceAdmin userServiceAdmin,
-            LocalInventoryService inventoryService,
-            IInterRegionCommunications interRegionService,
-            IGridServices gridService, IMessagingService messageService,
-            LibraryRootFolder libraryRootFolder, bool dumpAssetsToFile)
-            : base(serversInfo, httpServer, assetCache, dumpAssetsToFile, libraryRootFolder)
-        {
-            AddInventoryService(inventoryService);
-            m_defaultInventoryHost = inventoryService.Host;
-            m_interServiceInventoryService = inventoryService;
-            m_userService = userService;
-            m_userServiceAdmin = userServiceAdmin;
-            m_avatarService = (IAvatarService)userService;
-            m_gridService = gridService;
-            m_interRegion = interRegionService;
-            m_messageService = messageService;
-        }
+        Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids);
     }
 }

@@ -87,6 +87,7 @@ namespace OpenSim.Grid.MessagingServer
 
                 m_httpServer.AddXmlRPCHandler("login_to_simulator", msgsvc.UserLoggedOn);
                 m_httpServer.AddXmlRPCHandler("logout_of_simulator", msgsvc.UserLoggedOff);
+                m_httpServer.AddXmlRPCHandler("get_presence_info_bulk", msgsvc.GetPresenceInfoBulk);
 
                 m_httpServer.Start();
                 m_log.Info("[SERVER]: Userserver registration was successful");

@@ -963,5 +963,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
         {
         }
+
+        public void SendTerminateFriend(UUID exFriendID)
+        {
+        }
     }
 }

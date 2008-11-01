@@ -137,8 +137,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             // IM dialogs need to be pre-processed and have their sessionID filled by the server
             // so the sim can match the transaction on the return packet.
 
-            // Don't send a Friend Dialog IM with a UUID.Zero session.
-            if (!dialogHandledElsewhere)
+            // Don't process IMs that are handled elsewhere (e.g. friend dialog
+            // IMs) with a non-UUID.Zero agent session, as those have been send
+            // by a client (either directly or from another region via
+            // inter-region communication) and will be processed in another
+            // module (e.g. the friends-module).
+            // IMs with fromAgentSession == UUID.Zero come from the server, and
+            // have to be passed to the matching viewer 
+            if (!dialogHandledElsewhere || fromAgentSession == UUID.Zero)
             {
                 // Try root avatar only first
                 foreach (Scene scene in m_scenes)

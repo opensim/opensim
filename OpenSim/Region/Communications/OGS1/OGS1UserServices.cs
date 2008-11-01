@@ -39,7 +39,7 @@ using OpenSim.Framework.Communications;
 
 namespace OpenSim.Region.Communications.OGS1
 {
-    public class OGS1UserServices : IUserService, IAvatarService
+    public class OGS1UserServices : IUserService, IAvatarService, IMessagingService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -720,6 +720,64 @@ namespace OpenSim.Region.Communications.OGS1
                 // Return Empty list (no friends)
             }
             return buddylist;
+        }
+
+        public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids)
+        {
+            Dictionary<UUID, FriendRegionInfo> result = new Dictionary<UUID, FriendRegionInfo>();
+
+            // ask MessageServer about the current on-/offline status and regions the friends are in
+            ArrayList parameters = new ArrayList();
+            Hashtable map = new Hashtable();
+
+            ArrayList list = new ArrayList();
+            foreach (UUID uuid in uuids)
+            {
+                list.Add(uuid.ToString());
+                list.Add(uuid.ToString());
+            }
+            map["uuids"] = list;
+
+            map["recv_key"] = m_parent.NetworkServersInfo.UserRecvKey;
+            map["send_key"] = m_parent.NetworkServersInfo.UserRecvKey;
+
+            parameters.Add(map);
+
+            try {
+                XmlRpcRequest req = new XmlRpcRequest("get_presence_info_bulk", parameters);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.MessagingURL, 8000);
+                Hashtable respData = (Hashtable) resp.Value;
+                
+                if (respData.ContainsKey("faultMessage"))
+                {
+                    m_log.WarnFormat("[OGS1 USER SERVICES]: Contacting MessageServer about user-regions resulted in error: {0}",
+                                     respData["faultMessage"]);
+                }
+                else
+                {
+                    int count = (int)respData["count"];
+                    m_log.DebugFormat("[OGS1 USER SERVICES]: Request returned {0} results.", count);
+                    for (int i = 0; i < count; ++i)
+                    {
+                        UUID uuid;
+                        if (UUID.TryParse((string)respData["uuid_" + i], out uuid))
+                        {
+                            FriendRegionInfo info = new FriendRegionInfo();
+                            info.isOnline = (bool)respData["isOnline_" + i];
+                            if (info.isOnline) info.regionHandle = Convert.ToUInt64(respData["regionHandle_" + i]);
+                            
+                            result.Add(uuid, info);
+                        }
+                    }
+                }
+            }
+            catch (WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 USER SERVICES]: Network problems when trying to fetch friend infos: {0}", e.Message);
+            }
+            
+            m_log.DebugFormat("[OGS1 USER SERVICES]: Returning {0} entries", result.Count);
+            return result;
         }
 
         #endregion

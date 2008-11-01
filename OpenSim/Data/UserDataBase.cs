@@ -53,6 +53,7 @@ namespace OpenSim.Data
         public abstract void RemoveUserFriend(UUID friendlistowner, UUID friend);
         public abstract void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms);
         public abstract List<FriendListItem> GetUserFriendList(UUID friendlistowner);
+        public abstract Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids);
         public abstract bool MoneyTransferRequest(UUID from, UUID to, uint amount);
         public abstract bool InventoryTransferRequest(UUID from, UUID to, UUID inventory);
         public abstract List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query);

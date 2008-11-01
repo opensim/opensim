@@ -4129,7 +4129,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerApproveFriendRequest(this, agentID, transactionID, callingCardFolders);
                         }
                         break;
-                    
+
+                    case PacketType.DeclineFriendship:
+                        DeclineFriendshipPacket dfriendpack = (DeclineFriendshipPacket)Pack;
+                        
+                        if (OnDenyFriendRequest != null)
+                        {
+                            OnDenyFriendRequest(this,
+                                                dfriendpack.AgentData.AgentID,
+                                                dfriendpack.TransactionBlock.TransactionID,
+                                                null);
+                        }
+                        break;                    
+
                     case PacketType.TerminateFriendship:
                         TerminateFriendshipPacket tfriendpack = (TerminateFriendshipPacket)Pack;
                         UUID listOwnerAgentID = tfriendpack.AgentData.AgentID;
@@ -7645,6 +7657,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             p.AgentData.AgentID = AgentId;
             p.AgentData.SessionID = UUID.Zero;
             p.TransactionBlock.TransactionID = transactionID;
+            OutPacket(p, ThrottleOutPacketType.Task);
+        }
+
+        public void SendTerminateFriend(UUID exFriendID)
+        {
+            TerminateFriendshipPacket p = (TerminateFriendshipPacket)PacketPool.Instance.GetPacket(PacketType.TerminateFriendship);
+            p.AgentData.AgentID = AgentId;
+            p.AgentData.SessionID = SessionId;
+            p.ExBlock.OtherID = exFriendID;
             OutPacket(p, ThrottleOutPacketType.Task);
         }
 

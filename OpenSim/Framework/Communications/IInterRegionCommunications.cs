@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications
@@ -46,5 +47,42 @@ namespace OpenSim.Framework.Communications
         bool AcknowledgePrimCrossed(ulong regionHandle, UUID primID);
 
         bool TellRegionToCloseChildConnection(ulong regionHandle, UUID agentID);
+
+        /// <summary>
+        /// Try to inform friends in the given region about online status of agent.
+        /// </summary>
+        /// <param name="agentId">
+        /// The <see cref="UUID"/> of the agent.
+        /// </param>
+        /// <param name="destRegionHandle">
+        /// The regionHandle of the region.
+        /// </param>
+        /// <param name="friends">
+        /// A List of <see cref="UUID"/>s of friends to inform in the given region.
+        /// </param>
+        /// <param name="online">
+        /// Is the agent online or offline
+        /// </param>
+        /// <returns>
+        /// A list of friends that couldn't be reached on this region.
+        /// </returns>
+        List<UUID> InformFriendsInOtherRegion(UUID agentId, ulong destRegionHandle, List<UUID> friends, bool online);
+
+        /// <summary>
+        /// Send TerminateFriend of exFriendID to agent agentID in region regionHandle.
+        /// </summary>
+        /// <param name="regionHandle">
+        /// The handle of the region agentID is in (hopefully).
+        /// </param>
+        /// <param name="agentID">
+        /// The agent to send the packet to.
+        /// </param>
+        /// <param name="exFriendID">
+        /// The ex-friends ID.
+        /// </param>
+        /// <returns>
+        /// Whether the packet could be sent. False if the agent couldn't be found in the region.
+        /// </returns>
+        bool TriggerTerminateFriend(ulong regionHandle, UUID agentID, UUID exFriendID);
     }
 }

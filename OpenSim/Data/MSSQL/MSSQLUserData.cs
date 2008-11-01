@@ -570,6 +570,39 @@ namespace OpenSim.Data.MSSQL
             return friendList;
         }
 
+        override public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids)
+        {
+            Dictionary<UUID, FriendRegionInfo> infos = new Dictionary<UUID,FriendRegionInfo>(); 
+            try
+            {
+                foreach (UUID uuid in uuids)
+                {
+                    using (AutoClosingSqlCommand command = database.Query(
+                        "select agentOnline,currentHandle from " + m_agentsTableName + " where UUID = @uuid"))
+                    {
+                        command.Parameters.Add(database.CreateParameter("@uuid", uuid));
+
+                        using (IDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                FriendRegionInfo fri = new FriendRegionInfo();
+                                fri.isOnline = (sbyte)reader["agentOnline"] != 0;
+                                fri.regionHandle = (ulong)reader["currentHandle"];
+
+                                infos[uuid] = fri;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[MSSQL]: Got exception on trying to find friends regions:", e);
+            }
+
+            return infos;
+        }
         #endregion
 
         #region Money functions (not used)

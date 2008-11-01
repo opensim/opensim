@@ -136,6 +136,17 @@ namespace OpenSim.Framework
         List<FriendListItem> GetUserFriendList(UUID friendlistowner);
 
         /// <summary>
+        /// Returns a list of <see cref="FriendRegionInfo/>s for the specified UUIDs.
+        /// </summary>
+        /// <param name="uuids">
+        /// A <see cref="List"/> of <see cref="UUID/>s to fetch info for
+        /// </param>
+        /// <returns>
+        /// A <see cref="Dictionary"/>, mapping the <see cref="UUID"/>s to <see cref="FriendRegionInfo"/>s.
+        /// </returns>
+        Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids);
+
+        /// <summary>
         /// Attempts to move currency units between accounts (NOT RELIABLE / TRUSTWORTHY. DONT TRY RUN YOUR OWN CURRENCY EXCHANGE WITH REAL VALUES)
         /// </summary>
         /// <param name="from">The account to transfer from</param>

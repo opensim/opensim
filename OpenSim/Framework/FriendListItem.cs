@@ -35,9 +35,9 @@ namespace OpenSim.Framework
         public UUID FriendListOwner;
 
         // These are what the list owner gives the friend permission to do
+        public uint FriendListOwnerPerms;
 
         // These are what the friend gives the listowner permission to do
-        public uint FriendListOwnerPerms;
         public uint FriendPerms;
 
         public bool onlinestatus = false;

@@ -365,6 +365,49 @@ namespace OpenSim.Data.MySQL
             return Lfli;
         }
 
+        override public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids)
+        {
+            MySQLSuperManager dbm = GetLockedConnection("GetFriendRegionInfos");
+            Dictionary<UUID, FriendRegionInfo> infos = new Dictionary<UUID,FriendRegionInfo>();
+
+            try
+            {
+                foreach (UUID uuid in uuids)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?uuid"] = uuid.ToString();
+                    IDbCommand result =
+                        dbm.Manager.Query("select agentOnline,currentHandle from " + m_agentsTableName +
+                                          " where UUID = ?uuid", param);
+
+                    IDataReader reader = result.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        FriendRegionInfo fri = new FriendRegionInfo();
+                        fri.isOnline = (sbyte)reader["agentOnline"] != 0;
+                        fri.regionHandle = (ulong)reader["currentHandle"];
+
+                        infos[uuid] = fri;
+                    }
+
+                    reader.Dispose();
+                    result.Dispose();
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[MYSQL]: Got exception on trying to find friends regions:", e);
+                dbm.Manager.Reconnect();
+                m_log.Error(e.ToString());
+            }
+            finally
+            {
+                dbm.Release();
+            }
+
+            return infos;
+        }
+
         #endregion
 
         public override void UpdateUserCurrentRegion(UUID avatarid, UUID regionuuid, ulong regionhandle)

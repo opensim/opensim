@@ -255,6 +255,7 @@ namespace OpenSim.Data.NHibernate
         public override void RemoveUserFriend(UUID friendlistowner, UUID friend) { return; }
         public override void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms) { return; }
         public override List<FriendListItem> GetUserFriendList(UUID friendlistowner) { return new List<FriendListItem>(); }
+        public override Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids) { return new Dictionary<UUID, FriendRegionInfo>(); }
         public override bool MoneyTransferRequest(UUID from, UUID to, uint amount) { return true; }
         public override bool InventoryTransferRequest(UUID from, UUID to, UUID inventory) { return true; }
 

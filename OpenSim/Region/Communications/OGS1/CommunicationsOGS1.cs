@@ -56,7 +56,9 @@ namespace OpenSim.Region.Communications.OGS1
                 m_defaultInventoryHost = invService.Host;
             }
 
-            m_userService = new OGS1UserServices(this);
+            OGS1UserServices userServices = new OGS1UserServices(this);
+            m_userService = userServices;
+            m_messageService = userServices;
             m_avatarService = (IAvatarService)m_userService;
         }
 

@@ -35,6 +35,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
+using OpenSim.Framework;
 using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.Communications
@@ -42,7 +43,7 @@ namespace OpenSim.Framework.Communications
     /// <summary>
     /// Base class for user management (create, read, etc)
     /// </summary>
-    public abstract class UserManagerBase : IUserService, IUserServiceAdmin, IAvatarService
+    public abstract class UserManagerBase : IUserService, IUserServiceAdmin, IAvatarService, IMessagingService
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -282,6 +283,27 @@ namespace OpenSim.Framework.Communications
                 }
             }
 
+            return null;
+        }
+
+        public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids)
+        {
+            foreach (IUserDataPlugin plugin in _plugins)
+            {
+                try
+                {
+                    Dictionary<UUID, FriendRegionInfo> result = plugin.GetFriendRegionInfos(uuids);
+                  
+                    if (result != null) 
+                    {
+                        return result;
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.Info("[USERSTORAGE]: Unable to GetFriendRegionInfos via " + plugin.Name + "(" + e.ToString() + ")");
+                }
+            }
             return null;
         }
 

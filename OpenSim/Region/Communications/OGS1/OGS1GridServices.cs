@@ -1785,5 +1785,83 @@ namespace OpenSim.Region.Communications.OGS1
                 return null;
             }
         }
+
+        public List<UUID> InformFriendsInOtherRegion(UUID agentId, ulong destRegionHandle, List<UUID> friends, bool online)
+        {
+            List<UUID> tpdAway = new List<UUID>();
+
+            // destRegionHandle is a region on another server
+            RegionInfo info = RequestNeighbourInfo(destRegionHandle);
+            if (info != null)
+            {
+                string httpServer = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/presence_update_bulk";
+
+                Hashtable reqParams = new Hashtable();
+                reqParams["agentID"] = agentId.ToString();
+                reqParams["agentOnline"] = online;
+                int count = 0;
+                foreach (UUID uuid in friends)
+                {
+                    reqParams["friendID_" + count++] = uuid.ToString();
+                }
+                reqParams["friendCount"] = count;
+
+                IList parameters = new ArrayList();
+                parameters.Add(reqParams);
+                try
+                {
+                    XmlRpcRequest request = new XmlRpcRequest("presence_update_bulk", parameters);
+                    XmlRpcResponse response = request.Send(httpServer, 5000);
+                    Hashtable respData = (Hashtable)response.Value;
+
+                    count = (int)respData["friendCount"];
+                    for (int i = 0; i < count; ++i)
+                    {
+                        UUID uuid;
+                        if(UUID.TryParse((string)respData["friendID_" + i], out uuid)) tpdAway.Add(uuid);
+                    }
+                }
+                catch(Exception e)
+                {
+                    m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
+                }
+            }
+            else m_log.WarnFormat("[OGS1 GRID SERVICES]: Couldn't find region {0}???", destRegionHandle);
+
+            return tpdAway;
+        }
+
+        public bool TriggerTerminateFriend(ulong destRegionHandle, UUID agentID, UUID exFriendID)
+        {
+            // destRegionHandle is a region on another server
+            RegionInfo info = RequestNeighbourInfo(destRegionHandle);
+            if (info == null)
+            {
+                m_log.WarnFormat("[OGS1 GRID SERVICES]: Couldn't find region {0}", destRegionHandle);
+                return false; // region not found???
+            }
+
+            string httpServer = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/presence_update_bulk";
+
+            Hashtable reqParams = new Hashtable();
+            reqParams["agentID"] = agentID.ToString();
+            reqParams["friendID"] = exFriendID.ToString();
+
+            IList parameters = new ArrayList();
+            parameters.Add(reqParams);
+            try
+            {
+                XmlRpcRequest request = new XmlRpcRequest("terminate_friend", parameters);
+                XmlRpcResponse response = request.Send(httpServer, 5000);
+                Hashtable respData = (Hashtable)response.Value;
+
+                return (bool)respData["success"];
+            }
+            catch(Exception e)
+            {
+                m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
+                return false;
+            }
+        }
     }
 }

@@ -39,7 +39,7 @@ namespace OpenSim.Region.Communications.Local
     public class LocalBackEndServices : IGridServices, IInterRegionCommunications
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected Dictionary<ulong, RegionInfo> m_regions = new Dictionary<ulong, RegionInfo>();
 
         protected Dictionary<ulong, RegionCommsListener> m_regionListeners =
@@ -50,7 +50,7 @@ namespace OpenSim.Region.Communications.Local
         private Dictionary<string, string> m_queuedGridSettings = new Dictionary<string, string>();
 
         public string _gdebugRegionName = String.Empty;
-        
+
         public bool RegionLoginsEnabled
         {
             get { return m_regionLoginsEnabled; }
@@ -523,11 +523,27 @@ namespace OpenSim.Region.Communications.Local
                 if (info.RegionName.StartsWith(name))
                 {
                     regions.Add(info);
-                    if (regions.Count >= maxNumber) break; 
+                    if (regions.Count >= maxNumber) break;
                 }
             }
-            
+
             return regions;
+        }
+
+        public List<UUID> InformFriendsInOtherRegion(UUID agentId, ulong destRegionHandle, List<UUID> friends, bool online)
+        {
+            // if we get to here, something is wrong: We are in standalone mode, but have users that are not on our server?
+            m_log.WarnFormat("[INTERREGION STANDALONE] Did find {0} users on a region not on our server: {1} ???",
+                             friends.Count, destRegionHandle);
+            return new List<UUID>();
+        }
+
+        public bool TriggerTerminateFriend (ulong regionHandle, UUID agentID, UUID exFriendID)
+        {
+            // if we get to here, something is wrong: We are in standalone mode, but have users that are not on our server?
+            m_log.WarnFormat("[INTERREGION STANDALONE] Did find user {0} on a region not on our server: {1} ???",
+                             agentID, regionHandle);
+            return true;
         }
     }
 }

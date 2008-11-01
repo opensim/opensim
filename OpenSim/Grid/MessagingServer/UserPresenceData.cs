@@ -38,7 +38,7 @@ namespace OpenSim.Grid.MessagingServer
         public AgentCircuitData agentData = new AgentCircuitData();
         public RegionProfileData regionData = new RegionProfileData();
         public string httpURI = String.Empty;
-        public List<FriendListItem> friendData = new List<FriendListItem> ();
+        public Dictionary<UUID, FriendListItem> friendData = new Dictionary<UUID,FriendListItem>();
         public List<UUID> subscriptionData = new List<UUID>();
         public bool OnlineYN = true;
         public bool lookupUserRegionYN = true;

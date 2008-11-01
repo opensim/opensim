@@ -925,6 +925,8 @@ namespace OpenSim.Framework
         void SendAcceptCallingCard(UUID transactionID);
         void SendDeclineCallingCard(UUID transactionID);
 
+        void SendTerminateFriend(UUID exFriendID);
+
         void KillEndDone();
     }
 }

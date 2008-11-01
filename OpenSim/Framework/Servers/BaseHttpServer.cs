@@ -586,7 +586,18 @@ namespace OpenSim.Framework.Servers
                     XmlRpcMethod method;
                     if (m_rpcHandlers.TryGetValue(methodName, out method))
                     {
-                        xmlRpcResponse = method(xmlRprcRequest);
+                        try
+                        {
+                            xmlRpcResponse = method(xmlRprcRequest);
+                        }
+                        catch(Exception e)
+                        {
+                            // if the registered XmlRpc method threw an exception, we pass a fault-code along
+                            xmlRpcResponse = new XmlRpcResponse();
+                            // Code probably set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
+                            xmlRpcResponse.SetFault(-32603, String.Format("Requested method [{0}] threw exception: {1}",
+                                                                          methodName, e.Message));
+                        }
                         // if the method wasn't found, we can't determine KeepAlive state anyway, so lets do it only here
                         response.KeepAlive = m_rpcHandlersKeepAlive[methodName];
                     }

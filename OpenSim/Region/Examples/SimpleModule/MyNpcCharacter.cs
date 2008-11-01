@@ -962,5 +962,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
         {
         }
+
+        public void SendTerminateFriend(UUID exFriendID)
+        {
+        }
     }
 }

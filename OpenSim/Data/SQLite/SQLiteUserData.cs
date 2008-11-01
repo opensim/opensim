@@ -332,8 +332,28 @@ namespace OpenSim.Data.SQLite
             return returnlist;
         }
 
+        override public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos (List<UUID> uuids)
+        {
+            Dictionary<UUID, FriendRegionInfo> infos = new Dictionary<UUID,FriendRegionInfo>();
 
-
+            DataTable agents = ds.Tables["useragents"];
+            foreach (UUID uuid in uuids)
+            {
+                lock (ds)
+                {
+                    DataRow row = agents.Rows.Find(Util.ToRawUuidString(uuid));
+                    if (row == null) infos[uuid] = null;
+                    else
+                    {
+                        FriendRegionInfo fri = new FriendRegionInfo();
+                        fri.isOnline = (bool)row["agentOnline"];
+                        fri.regionHandle = Convert.ToUInt64(row["currentHandle"]);
+                        infos[uuid] = fri;
+                    }
+                }
+            }
+            return infos;
+        }
 
         #endregion
 

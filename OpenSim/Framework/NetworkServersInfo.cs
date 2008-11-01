@@ -53,6 +53,7 @@ namespace OpenSim.Framework
         public string HttpSSLCN = "";
         public uint httpSSLPort = 9001;
 
+        public string MessagingURL = String.Empty;
 
         public NetworkServersInfo()
         {
@@ -102,6 +103,9 @@ namespace OpenSim.Framework
                                                                "http://127.0.0.1:" +
                                                                InventoryConfig.DefaultHttpPort.ToString());
             secureInventoryServer = config.Configs["Network"].GetBoolean("secure_inventory_server", true);
+
+            MessagingURL = config.Configs["Network"].GetString("messaging_server_url",
+                                                               "http://127.0.0.1:" + MessageServerConfig.DefaultHttpPort);
         }
     }
 }

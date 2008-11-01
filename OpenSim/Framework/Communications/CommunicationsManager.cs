@@ -50,6 +50,12 @@ namespace OpenSim.Framework.Communications
         }
         protected IUserService m_userService;
 
+        public IMessagingService MessageService
+        {
+            get { return m_messageService; }
+        }
+        protected IMessagingService m_messageService;
+
         public IGridServices GridService
         {
             get { return m_gridService; }
@@ -368,6 +374,21 @@ namespace OpenSim.Framework.Communications
         public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
             return m_userService.GetUserFriendList(friendlistowner);
+        }
+
+        public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids)
+        {
+            return m_messageService.GetFriendRegionInfos(uuids);
+        }
+
+        public List<UUID> InformFriendsInOtherRegion(UUID agentId, ulong destRegionHandle, List<UUID> friends, bool online)
+        {
+            return m_interRegion.InformFriendsInOtherRegion(agentId, destRegionHandle, friends, online);
+        }
+
+        public bool TriggerTerminateFriend(ulong regionHandle, UUID agentID, UUID exFriendID)
+        {
+            return m_interRegion.TriggerTerminateFriend(regionHandle, agentID, exFriendID);
         }
 
         #endregion

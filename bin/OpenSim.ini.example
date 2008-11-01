@@ -203,6 +203,9 @@ asset_server_url = "http://127.0.0.1:8003"
 
 inventory_server_url = "http://127.0.0.1:8004"
 
+; The MessagingServer is a companion of the UserServer. It uses
+; user_send_key and user_recv_key, too
+messaging_server_url = "http://127.0.0.1:8006"
 
 [Chat]
 whisper_distance = 10

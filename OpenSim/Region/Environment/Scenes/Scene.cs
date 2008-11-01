@@ -3200,6 +3200,20 @@ namespace OpenSim.Region.Environment.Scenes
             return CommsManager.GetUserFriendList(avatarID);
         }
 
+        public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids)
+        {
+            return CommsManager.GetFriendRegionInfos(uuids);
+        }
+
+        public List<UUID> InformFriendsInOtherRegion(UUID agentId, ulong destRegionHandle, List<UUID> friends, bool online)
+        {
+            return CommsManager.InformFriendsInOtherRegion(agentId, destRegionHandle, friends, online);
+        }
+
+        public bool TriggerTerminateFriend(ulong regionHandle, UUID agentID, UUID exFriendID)
+        {
+            return CommsManager.TriggerTerminateFriend(regionHandle, agentID, exFriendID);
+        }
 
         #endregion
 

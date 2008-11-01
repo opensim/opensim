@@ -4,6 +4,7 @@
         <Import assembly="OpenSim.Grid.GridServer.exe"/>
         <Import assembly="OpenSim.Grid.AssetServer.exe"/>
         <Import assembly="OpenSim.Grid.InventoryServer.exe"/>
+        <Import assembly="OpenSim.Grid.MessagingServer.exe"/>
         <Import assembly="OpenSim.Data.dll"/>
         <Import assembly="OpenSim.Framework.dll"/>
     </Runtime>
