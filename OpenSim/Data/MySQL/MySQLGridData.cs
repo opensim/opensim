@@ -434,9 +434,7 @@ namespace OpenSim.Data.MySQL
                 finally
                 {
                     dbm.Release();
-
                 }
-                dbm.Release();
             }
             m_log.Error("[GRID DB]: Searched for a Region Name shorter then 3 characters");
             return null;
