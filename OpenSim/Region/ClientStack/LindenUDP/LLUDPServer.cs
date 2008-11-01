@@ -293,9 +293,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 CloseCircuit(reusedEpSender, e);
             }
-            catch (Exception a)
+            catch (Exception e2)
             {
-                m_log.Error("[UDPSERVER]: " + a);
+                m_log.ErrorFormat(
+                    "[CLIENT]: Exception thrown when trying to close the circuit for {0} - {1}", reusedEpSender, e2);
             }
 
             // ENDLESS LOOP ON PURPOSE!            

@@ -273,7 +273,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             foreach (EntityBase entity in entities)
             {
                 if (entity is SceneObjectGroup)
-                    sceneObjects.Add((SceneObjectGroup)entity);
+                {
+                    SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
+                    
+                    if (sceneObject.RootPart != null && !sceneObject.RootPart.IsAttachment)
+                        sceneObjects.Add((SceneObjectGroup)entity);
+                }
             }
 
             foreach (SceneObjectGroup sceneObject in sceneObjects)

@@ -64,7 +64,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Signals whether this group was in a scene but has since been deleted from it.
+        /// Signals whether this entity was in a scene but has since been removed from it.
         /// </summary>
         public bool IsDeleted
         {

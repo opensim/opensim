@@ -4129,6 +4129,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerApproveFriendRequest(this, agentID, transactionID, callingCardFolders);
                         }
                         break;
+                    
                     case PacketType.TerminateFriendship:
                         TerminateFriendshipPacket tfriendpack = (TerminateFriendshipPacket)Pack;
                         UUID listOwnerAgentID = tfriendpack.AgentData.AgentID;
@@ -4140,22 +4141,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerTerminateFriendship(this, listOwnerAgentID, exFriendID);
                         }
                         break;
+                    
                     case PacketType.RezObject:
                         RezObjectPacket rezPacket = (RezObjectPacket)Pack;
 
                         handlerRezObject = OnRezObject;
                         if (handlerRezObject != null)
                         {
-                            //rezPacket.RezData.BypassRaycast;
-                            //rezPacket.RezData.RayEnd;
-                            //rezPacket.RezData.RayEndIsIntersection;
-                            //rezPacket.RezData.RayStart;
-                            //rezPacket.RezData.RayTargetID;
-                            //rezPacket.RezData.RemoveItem;
-                            //rezPacket.RezData.RezSelected;
-                            //rezPacket.RezData.FromTaskID;
-                            //m_log.Info("[REZData]: " + rezPacket.ToString());
-
                             handlerRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd,
                                              rezPacket.RezData.RayStart, rezPacket.RezData.RayTargetID,
                                              rezPacket.RezData.BypassRaycast, rezPacket.RezData.RayEndIsIntersection,
@@ -4163,6 +4155,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                              rezPacket.RezData.FromTaskID);
                         }
                         break;
+                    
                     case PacketType.DeRezObject:
                         DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) Pack;
                         handlerDeRezObject = OnDeRezObject;
@@ -4178,6 +4171,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                         }
                         break;
+                    
                     case PacketType.ModifyLand:
                         ModifyLandPacket modify = (ModifyLandPacket)Pack;
                         //m_log.Info("[LAND]: LAND:" + modify.ToString());

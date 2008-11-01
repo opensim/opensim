@@ -741,7 +741,6 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_scene.PhysicsScene.RemovePrim(m_rootPart.PhysActor);
                     m_rootPart.PhysActor = null;
-
                 }
 
                 AbsolutePosition = AttachOffset;
