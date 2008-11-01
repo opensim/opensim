@@ -545,7 +545,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     UUID appDomain = assetID;
 
-                    if (part.ParentGroup.RootPart.IsAttachment)
+                    if (part.ParentGroup.IsAttachment)
                         appDomain = part.ParentGroup.RootPart.UUID;
 
                     if (!m_AppDomains.ContainsKey(appDomain))

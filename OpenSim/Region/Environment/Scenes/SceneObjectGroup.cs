@@ -225,7 +225,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 Vector3 val = value;
                 
-                if ((val.X > 257f || val.X < -1f || val.Y > 257f || val.Y < -1f) && !m_rootPart.IsAttachment)
+                if ((val.X > 257f || val.X < -1f || val.Y > 257f || val.Y < -1f) && !IsAttachment)
                 {                                       
                     m_scene.CrossPrimGroupIntoNewRegion(val, this);
                 }
@@ -1212,7 +1212,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (HasGroupChanged)
                 {
                     // don't backup while it's selected or you're asking for changes mid stream.
-                    if ((!IsSelected) && (RootPart != null) && (!m_rootPart.IsAttachment))
+                    if (!(IsSelected || IsDeleted || IsAttachment))
                     {
                         m_log.DebugFormat(
                             "[SCENE]: Storing {0}, {1} in {2}",
@@ -1271,7 +1271,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_rootPart != null && m_rootPart.UUID == part.UUID)
             {
-                if (m_rootPart.IsAttachment)
+                if (IsAttachment)
                 {
                     part.SendFullUpdateToClient(remoteClient, m_rootPart.AttachedPos, clientFlags);
                 }
@@ -1441,7 +1441,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (rootpart.PhysActor != null)
                 {
-                    if (rootpart.IsAttachment)
+                    if (IsAttachment)
                     {
                         ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
                         if (avatar != null)
@@ -1580,7 +1580,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             lock (m_parts)
             {
-                //if (m_rootPart.m_IsAttachment)
+                //if (IsAttachment)
                 //{
                     //foreach (SceneObjectPart part in m_parts.Values)
                     //{
@@ -2437,7 +2437,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
-                if (m_rootPart.IsAttachment)
+                if (IsAttachment)
                 {
                     m_rootPart.AttachedPos = pos;
                 }

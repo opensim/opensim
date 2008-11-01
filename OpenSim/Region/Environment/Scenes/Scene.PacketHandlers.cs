@@ -169,7 +169,7 @@ namespace OpenSim.Region.Environment.Scenes
             //
             part.ParentGroup.IsSelected = false;
             
-            if (part.ParentGroup.RootPart.IsAttachment)
+            if (part.ParentGroup.IsAttachment)
                 isAttachment = true;
             else
                 part.ParentGroup.ScheduleGroupForFullUpdate();
