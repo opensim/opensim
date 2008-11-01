@@ -214,11 +214,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             else if (s is Constant)
                 retstr += GenerateConstant((Constant) s);
             else if (s is IdentDotExpression)
-                retstr += Generate(((IdentDotExpression) s).Name + "." + ((IdentDotExpression) s).Member, s);
+                retstr += Generate(CheckName(((IdentDotExpression) s).Name) + "." + ((IdentDotExpression) s).Member, s);
             else if (s is IdentExpression)
-                retstr += Generate(((IdentExpression) s).Name, s);
+                retstr += Generate(CheckName(((IdentExpression) s).Name), s);
             else if (s is IDENT)
-                retstr += Generate(((TOKEN) s).yytext, s);
+                retstr += Generate(CheckName(((TOKEN) s).yytext), s);
             else
             {
                 foreach (SYMBOL kid in s.kids)
@@ -247,7 +247,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 else
                     remainingKids.Add(kid);
 
-            retstr += GenerateIndented(String.Format("{0} {1}(", gf.ReturnType, gf.Name), gf);
+            retstr += GenerateIndented(String.Format("{0} {1}(", gf.ReturnType, CheckName(gf.Name)), gf);
 
             // print the state arguments, if any
             foreach (SYMBOL kid in argumentDeclarationListKids)
@@ -344,7 +344,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             foreach (Declaration d in adl.kids)
             {
-                retstr += Generate(String.Format("{0} {1}", d.Datatype, d.Id), d);
+                retstr += Generate(String.Format("{0} {1}", d.Datatype, CheckName(d.Id)), d);
                 if (0 < comma--)
                     retstr += Generate(", ");
             }
@@ -403,7 +403,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <returns>String containing C# code for Declaration d.</returns>
         private string GenerateDeclaration(Declaration d)
         {
-            return Generate(String.Format("{0} {1}", d.Datatype, d.Id), d);
+            return Generate(String.Format("{0} {1}", d.Datatype, CheckName(d.Id)), d);
         }
 
         /// <summary>
@@ -694,10 +694,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (0 < ide.kids.Count)
             {
                 IdentDotExpression dot = (IdentDotExpression) ide.kids.Top;
-                retstr += Generate(String.Format("{0}", ide.PostOperation ? dot.Name + "." + dot.Member + ide.Operation : ide.Operation + dot.Name + "." + dot.Member), ide);
+                retstr += Generate(String.Format("{0}", ide.PostOperation ? CheckName(dot.Name) + "." + dot.Member + ide.Operation : ide.Operation + CheckName(dot.Name) + "." + dot.Member), ide);
             }
             else
-                retstr += Generate(String.Format("{0}", ide.PostOperation ? ide.Name + ide.Operation : ide.Operation + ide.Name), ide);
+                retstr += Generate(String.Format("{0}", ide.PostOperation ? CheckName(ide.Name) + ide.Operation : ide.Operation + CheckName(ide.Name)), ide);
 
             return retstr;
         }
@@ -728,7 +728,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             string retstr = String.Empty;
 
-            retstr += Generate(String.Format("{0}(", fc.Id), fc);
+            retstr += Generate(String.Format("{0}(", CheckName(fc.Id)), fc);
 
             foreach (SYMBOL kid in fc.kids)
                 retstr += GenerateNode(kid);
@@ -967,6 +967,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 }
 
             return retstr;
+        }
+
+        /// <summary>
+        /// Returns the passed name with an underscore prepended if that name is a reserved word in C#
+        /// and not resevered in LSL otherwise it just returns the passed name.
+        /// 
+        /// This makes no attempt to cache the results to minimise future lookups. For a non trivial
+        /// scripts the number of unique identifiers could easily grow to the size of the reserved word
+        /// list so maintaining a list or dictionary and doing the lookup there firstwould probably not
+        /// give any real speed advantage.
+        /// 
+        /// I believe there is a class Microsoft.CSharp.CSharpCodeProvider that has a function
+        /// CreateValidIdentifier(str) that will return either the value of str if it is not a C#
+        /// key word or "_"+str if it is. But availability under Mono?
+        /// </summary>
+        private string CheckName(string s)
+        {
+            if (CSReservedWords.IsReservedWord(s))
+                return "_" + s;
+            else
+                return s;
         }
     }
 }
