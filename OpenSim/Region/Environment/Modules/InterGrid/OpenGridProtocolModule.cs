@@ -195,12 +195,6 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     }
                 }
             }
-            // Of interest to this module potentially
-            //scene.EventManager.OnNewClient += OnNewClient;
-            //scene.EventManager.OnGridInstantMessageToFriendsModule += OnGridInstantMessage;
-            // scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
-            //scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-            //scene.EventManager.OnClientClosed += ClientLoggedOut;
         }
         
         public void PostInitialise()

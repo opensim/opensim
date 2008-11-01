@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
 
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += OnClientClosed;
-            scene.EventManager.OnGridInstantMessageToGroupsModule +=
+            scene.EventManager.OnGridInstantMessage +=
                     OnGridInstantMessage;
         }
 
@@ -187,8 +187,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
         {
         }
 
-        private void OnGridInstantMessage(GridInstantMessage msg)
+        private void OnGridInstantMessage(GridInstantMessage msg, InstantMessageReceiver whichModule)
         {
+            if ((whichModule & InstantMessageReceiver.GroupsModule) == 0)
+                return;
+
             // Trigger the above event handler
             OnInstantMessage(null, new UUID(msg.fromAgentID),
                     new UUID(msg.fromAgentSession),

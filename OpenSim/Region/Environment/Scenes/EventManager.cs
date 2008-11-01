@@ -135,13 +135,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event SignificantClientMovement OnSignificantClientMovement;
 
-        public delegate void NewGridInstantMessage(GridInstantMessage message);
+        public delegate void NewGridInstantMessage(GridInstantMessage message, InstantMessageReceiver whichModule);
 
-        public event NewGridInstantMessage OnGridInstantMessageToIMModule;
-
-        public event NewGridInstantMessage OnGridInstantMessageToFriendsModule;
-
-        public event NewGridInstantMessage OnGridInstantMessageToGroupsModule;
+        public event NewGridInstantMessage OnGridInstantMessage;
 
         public delegate void ClientClosed(UUID clientID);
 
@@ -346,8 +342,7 @@ namespace OpenSim.Region.Environment.Scenes
         private LandObjectAdded handlerLandObjectAdded = null; //OnLandObjectAdded;
         private LandObjectRemoved handlerLandObjectRemoved = null; //OnLandObjectRemoved;
         private AvatarEnteringNewParcel handlerAvatarEnteringNewParcel = null; //OnAvatarEnteringNewParcel;
-        private NewGridInstantMessage handlerGridInstantMessageToIM = null; //OnGridInstantMessageToIMModule;
-        private NewGridInstantMessage handlerGridInstantMessageToFriends = null; //OnGridInstantMessageToFriendsModule;
+        private NewGridInstantMessage handlerGridInstantMessage = null; //OnGridInstantMessage;
         private ClientClosed handlerClientClosed = null; //OnClientClosed;
         private OnMakeChildAgentDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
         private OnMakeRootAgentDelegate handlerMakeRootAgent = null; //OnMakeRootAgent;
@@ -635,21 +630,10 @@ namespace OpenSim.Region.Environment.Scenes
         ///<param name="whichModule">A bit vector containing the modules to send the message to</param>
         public void TriggerGridInstantMessage(GridInstantMessage message, InstantMessageReceiver whichModule)
         {
-            if ((whichModule & InstantMessageReceiver.IMModule) != 0)
+            handlerGridInstantMessage = OnGridInstantMessage;
+            if (handlerGridInstantMessage != null)
             {
-                handlerGridInstantMessageToIM = OnGridInstantMessageToIMModule;
-                if (handlerGridInstantMessageToIM != null)
-                {
-                    handlerGridInstantMessageToIM(message);
-                }
-            }
-            if ((whichModule & InstantMessageReceiver.FriendsModule) != 0)
-            {
-                handlerGridInstantMessageToFriends = OnGridInstantMessageToFriendsModule;
-                if (handlerGridInstantMessageToFriends != null)
-                {
-                    handlerGridInstantMessageToFriends(message);
-                }
+                handlerGridInstantMessage(message, whichModule);
             }
         }
 

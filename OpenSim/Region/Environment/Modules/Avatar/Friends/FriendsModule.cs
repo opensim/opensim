@@ -67,7 +67,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     m_scene.Add(scene);
             }
             scene.EventManager.OnNewClient += OnNewClient;
-            scene.EventManager.OnGridInstantMessageToFriendsModule += OnGridInstantMessage;
+            scene.EventManager.OnGridInstantMessage += OnGridInstantMessage;
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
             scene.EventManager.OnMakeChildAgent += MakeChildAgent;
             scene.EventManager.OnClientClosed += ClientLoggedOut;
@@ -620,8 +620,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // TODO: Inform the client that the ExFriend is offline
         }
 
-        private void OnGridInstantMessage(GridInstantMessage msg)
+        private void OnGridInstantMessage(GridInstantMessage msg, InstantMessageReceiver whichModule)
         {
+            if ((whichModule & InstantMessageReceiver.FriendsModule) == 0)
+                return;
+
             // Trigger the above event handler
             OnInstantMessage(null, new UUID(msg.fromAgentID), new UUID(msg.fromAgentSession),
                              new UUID(msg.toAgentID), new UUID(msg.imSessionID), msg.timestamp, msg.fromAgentName,

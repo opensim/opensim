@@ -54,6 +54,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            if (config.Configs["Messaging"] != null)
+            {
+                if (config.Configs["Messaging"].GetString(
+                        "InstantMessageModule", "InstantMessageModule") !=
+                        "InstantMessageModule")
+                    return;
+            }
+
             lock (m_scenes)
             {
                 if (m_scenes.Count == 0)
@@ -67,7 +75,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 {
                     m_scenes.Add(scene);
                     scene.EventManager.OnNewClient += OnNewClient;
-                    scene.EventManager.OnGridInstantMessageToIMModule += OnGridInstantMessage;
+                    scene.EventManager.OnGridInstantMessage += OnGridInstantMessage;
                 }
             }
         }
@@ -114,7 +122,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                                       byte[] binaryBucket)
         {
             bool dialogHandledElsewhere
-                = ((dialog == 38) || (dialog == 39) || (dialog == 40)
+                = (   dialog == (byte) InstantMessageDialog.FriendshipOffered
+                   || dialog == (byte) InstantMessageDialog.FriendshipAccepted
+                   || dialog == (byte) InstantMessageDialog.FriendshipDeclined
                    || dialog == (byte) InstantMessageDialog.InventoryOffered
                    || dialog == (byte) InstantMessageDialog.InventoryAccepted
                    || dialog == (byte) InstantMessageDialog.InventoryDeclined
@@ -197,8 +207,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         ///
         /// </summary>
         /// <param name="msg"></param>
-        private void OnGridInstantMessage(GridInstantMessage msg)
+        private void OnGridInstantMessage(GridInstantMessage msg, InstantMessageReceiver which)
         {
+            if ((which & InstantMessageReceiver.IMModule) == 0)
+                return;
+
             // Trigger the above event handler
             OnInstantMessage(null, new UUID(msg.fromAgentID), new UUID(msg.fromAgentSession),
                              new UUID(msg.toAgentID), new UUID(msg.imSessionID), msg.timestamp, msg.fromAgentName,
