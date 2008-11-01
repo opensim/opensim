@@ -55,6 +55,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            if (config.Configs["Messaging"] != null)
+            {
+                // Allow disabling this module in config
+                //
+                if (config.Configs["Messaging"].GetString(
+                        "InventoryTransferModule", "InventoryTransferModule") !=
+                        "InventoryTransferModule")
+                    return;
+            }
             if (!m_Scenelist.Contains(scene))
             {
                 m_Scenelist.Add(scene);
