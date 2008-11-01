@@ -228,7 +228,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 {
                     if (!requestData.ContainsKey("password"))
                         throw new Exception("Invalid request");
-                    if (requestData["password"] != password)
+                    if ((string)requestData["password"] != password)
                         throw new Exception("Invalid request");
                 }
 
