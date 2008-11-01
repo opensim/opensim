@@ -439,7 +439,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // Insert a copy of the item into the recipient
                         InventoryItemBase itemCopy = new InventoryItemBase();
                         itemCopy.Owner = recipientClient.AgentId;
-                        itemCopy.Creator = senderId;
+                        itemCopy.Creator = item.Creator;
                         itemCopy.ID = UUID.Random();
                         itemCopy.AssetID = item.AssetID;
                         itemCopy.Description = item.Description;
@@ -477,8 +477,8 @@ namespace OpenSim.Region.Environment.Scenes
                             itemCopy.EveryOnePermissions = item.EveryOnePermissions & item.NextPermissions;
                             itemCopy.BasePermissions = item.BasePermissions;
                         }
-                        itemCopy.GroupID = item.GroupID;
-                        itemCopy.GroupOwned = item.GroupOwned;
+                        itemCopy.GroupID = UUID.Zero;
+                        itemCopy.GroupOwned = false;
                         itemCopy.Flags = item.Flags;
                         itemCopy.SalePrice = item.SalePrice;
                         itemCopy.SaleType = item.SaleType;
