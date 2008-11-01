@@ -1,5 +1,8 @@
+using System;
+
 namespace OpenSim.Framework
 {
+    [Flags]
     public enum ThrottleOutPacketType : int
     {
         Resend = 0,

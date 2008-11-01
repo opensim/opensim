@@ -34,7 +34,6 @@ using System.Text.RegularExpressions;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
-using MySql.Data.MySqlClient;
 
 namespace OpenSim.Data.MySQL
 {

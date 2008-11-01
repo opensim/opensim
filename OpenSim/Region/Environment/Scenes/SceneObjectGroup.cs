@@ -1242,8 +1242,8 @@ namespace OpenSim.Region.Environment.Scenes
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[SCENE]: Storing of {0}, {1} in {2} failed with exception {3}", 
-                    Name, UUID, m_scene.RegionInfo.RegionName, e);
+                    "[SCENE]: Storing of {0}, {1} in {2} failed with exception {3}\n\t{4}", 
+                    Name, UUID, m_scene.RegionInfo.RegionName, e, e.StackTrace);
             }
         }
 
