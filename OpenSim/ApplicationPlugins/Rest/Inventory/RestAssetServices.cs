@@ -309,7 +309,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 if (modified)
                 {
-					rdata.appendStatus(String.Format("<p> Modified asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
+                    rdata.appendStatus(String.Format("<p> Modified asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
                     rdata.Complete(Rest.HttpStatusCodeOK);
                 }
                 else
@@ -376,7 +376,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             {
                 if (modified)
                 {
-					rdata.appendStatus(String.Format("<p> Modified asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
+                    rdata.appendStatus(String.Format("<p> Modified asset {0}, UUID {1} <p>", asset.Name, asset.FullID));
                     rdata.Complete(Rest.HttpStatusCodeOK);
                 }
                 else

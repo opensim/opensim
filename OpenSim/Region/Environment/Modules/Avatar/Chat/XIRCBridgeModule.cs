@@ -99,10 +99,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                 enabled = true;
 
-                if(config.Configs["RemoteAdmin"] != null)
+                if (config.Configs["RemoteAdmin"] != null)
                 {
-					password = config.Configs["RemoteAdmin"].GetString("access_password", password);
-					scene.CommsManager.HttpServer.AddXmlRPCHandler("xirc_admin", XmlRpcAdminMethod, false);
+                    password = config.Configs["RemoteAdmin"].GetString("access_password", password);
+                    scene.CommsManager.HttpServer.AddXmlRPCHandler("xirc_admin", XmlRpcAdminMethod, false);
                 }
 
             }
@@ -224,20 +224,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 bool    found = false;
                 string region = String.Empty;
 
-                if(password != String.Empty)
+                if (password != String.Empty)
                 {
-					if(!requestData.ContainsKey("password"))
-						throw new Exception("Invalid request");
-					if(requestData["password"] != password)
-						throw new Exception("Invalid request");
+                    if (!requestData.ContainsKey("password"))
+                        throw new Exception("Invalid request");
+                    if (requestData["password"] != password)
+                        throw new Exception("Invalid request");
                 }
 
-                if(!requestData.ContainsKey("region"))
-					throw new Exception("No region name specified");
+                if (!requestData.ContainsKey("region"))
+                    throw new Exception("No region name specified");
                 
-                foreach(RegionState rs in m_regions)
+                foreach (RegionState rs in m_regions)
                 {
-					if(rs.Region == region)
+                    if (rs.Region == region)
                     {
                         responseData["server"]    = rs.cs.Server;
                         responseData["port"]      = rs.cs.Port;
@@ -251,7 +251,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     }
                 }
 
-                if(!found) throw new Exception(String.Format("Region <{0}> not found", region));
+                if (!found) throw new Exception(String.Format("Region <{0}> not found", region));
 
                 responseData["success"] = true;
 
