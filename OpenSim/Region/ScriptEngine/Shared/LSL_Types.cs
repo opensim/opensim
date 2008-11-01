@@ -1610,6 +1610,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLInteger(-i.value);
             }
 
+            static public LSLInteger operator ~(LSLInteger i)
+            {
+                return new LSLInteger(~i.value);
+            }
+
             public override bool Equals(Object o)
             {
                 if (!(o is LSLInteger))
