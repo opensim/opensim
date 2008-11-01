@@ -208,8 +208,6 @@ namespace OpenSim.Data.MySQL
 
         public override void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
-            MySQLSuperManager dbm = GetLockedConnection("AddNewUserFriend");
-
             int dtvalue = Util.UnixTimeSinceEpoch();
 
             Dictionary<string, string> param = new Dictionary<string, string>();
@@ -217,6 +215,8 @@ namespace OpenSim.Data.MySQL
             param["?friendID"] = friend.ToString();
             param["?friendPerms"] = perms.ToString();
             param["?datetimestamp"] = dtvalue.ToString();
+
+            MySQLSuperManager dbm = GetLockedConnection("AddNewUserFriend");
 
             try
             {
@@ -252,11 +252,11 @@ namespace OpenSim.Data.MySQL
 
         public override void RemoveUserFriend(UUID friendlistowner, UUID friend)
         {
-            MySQLSuperManager dbm = GetLockedConnection("RemoveUserFriend");
-
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?ownerID"] = friendlistowner.ToString();
             param["?friendID"] = friend.ToString();
+
+            MySQLSuperManager dbm = GetLockedConnection("RemoveUserFriend");
 
             try
             {
@@ -286,12 +286,12 @@ namespace OpenSim.Data.MySQL
 
         public override void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
         {
-            MySQLSuperManager dbm = GetLockedConnection("UpdateUserFriendPerms");
-
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?ownerID"] = friendlistowner.ToString();
             param["?friendID"] = friend.ToString();
             param["?friendPerms"] = perms.ToString();
+
+            MySQLSuperManager dbm = GetLockedConnection("UpdateUserFriendPerms");
 
             try
             {
@@ -317,11 +317,12 @@ namespace OpenSim.Data.MySQL
 
         public override List<FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
-            MySQLSuperManager dbm = GetLockedConnection("GetUserFriendList");
             List<FriendListItem> Lfli = new List<FriendListItem>();
 
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?ownerID"] = friendlistowner.ToString();
+
+            MySQLSuperManager dbm = GetLockedConnection("GetUserFriendList");
 
             try
             {
@@ -373,8 +374,6 @@ namespace OpenSim.Data.MySQL
 
         public override List<AvatarPickerAvatar> GeneratePickerResults(UUID queryID, string query)
         {
-            MySQLSuperManager dbm = GetLockedConnection("GeneratePickerResults");
-
             List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
 
             Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9]");
@@ -386,6 +385,8 @@ namespace OpenSim.Data.MySQL
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], String.Empty) + "%";
                 param["?second"] = objAlphaNumericPattern.Replace(querysplit[1], String.Empty) + "%";
+                MySQLSuperManager dbm = GetLockedConnection("GeneratePickerResults");
+
                 try
                 {
                     IDbCommand result =
@@ -419,6 +420,8 @@ namespace OpenSim.Data.MySQL
             }
             else if (querysplit.Length == 1)
             {
+                MySQLSuperManager dbm = GetLockedConnection("GeneratePickerResults");
+
                 try
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
@@ -520,11 +523,11 @@ namespace OpenSim.Data.MySQL
         /// <remarks>is it still used ?</remarks>
         public override void StoreWebLoginKey(UUID AgentID, UUID WebLoginKey)
         {
-            MySQLSuperManager dbm = GetLockedConnection("StoreWebLoginKey");
-
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?UUID"] = AgentID.ToString();
             param["?webLoginKey"] = WebLoginKey.ToString();
+
+            MySQLSuperManager dbm = GetLockedConnection("StoreWebLoginKey");
 
             try
             {
@@ -785,10 +788,10 @@ namespace OpenSim.Data.MySQL
 
         public Hashtable GetUserAttachments(UUID agentID)
         {
-            MySQLSuperManager dbm = GetLockedConnection("GetUserAttachments");
-
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?uuid"] = agentID.ToString();
+
+            MySQLSuperManager dbm = GetLockedConnection("GetUserAttachments");
 
             try
             {
@@ -829,10 +832,10 @@ namespace OpenSim.Data.MySQL
 
         public override void ResetAttachments(UUID userID)
         {
-            MySQLSuperManager dbm = GetLockedConnection("ResetAttachments");
-
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?uuid"] = userID.ToString();
+
+            MySQLSuperManager dbm = GetLockedConnection("ResetAttachments");
 
             try
             {

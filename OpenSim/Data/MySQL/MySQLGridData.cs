@@ -403,10 +403,10 @@ namespace OpenSim.Data.MySQL
         /// <returns>The sim profile</returns>
         override public RegionProfileData GetProfileByString(string regionName)
         {
-            MySQLSuperManager dbm = GetLockedConnection();
-
             if (regionName.Length > 2)
             {
+                MySQLSuperManager dbm = GetLockedConnection();
+
                 try
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
@@ -436,8 +436,8 @@ namespace OpenSim.Data.MySQL
                     dbm.Release();
 
                 }
+                dbm.Release();
             }
-            dbm.Release();
             m_log.Error("[GRID DB]: Searched for a Region Name shorter then 3 characters");
             return null;
         }
