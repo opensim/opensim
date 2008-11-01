@@ -386,12 +386,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             staticPrimspace = new IntPtr[(int)(300 / metersInSpace), (int)(300 / metersInSpace)];
 
-            // General contact friction, bounce and other parameters
-            contact.surface.mode |= (d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM);
+            // Centeral contact friction and bounce
             contact.surface.mu = nmAvatarObjectContactFriction;
             contact.surface.bounce = nmAvatarObjectContactBounce;
-            contact.surface.soft_cfm = 0.01f;  //ckrinke 11-08
-            contact.surface.soft_erp = 0.010f; //ckrinke 11-08
 
             // Terrain contact friction and Bounce
             // This is the *non* moving version.   Use this when an avatar
@@ -400,6 +397,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             TerrainContact.surface.mu = nmTerrainContactFriction;
             TerrainContact.surface.bounce = nmTerrainContactBounce;
             TerrainContact.surface.soft_erp = nmTerrainContactERP;
+
+            WaterContact.surface.mode |= (d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM);
+            WaterContact.surface.mu = 0f; // No friction
+            WaterContact.surface.bounce = 0.0f; // No bounce
+            WaterContact.surface.soft_cfm = 0.01f;
+            WaterContact.surface.soft_erp = 0.010f;
 
             // Prim contact friction and bounce
             // THis is the *non* moving version of friction and bounce
@@ -414,14 +417,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             AvatarMovementTerrainContact.surface.mu = mTerrainContactFriction;
             AvatarMovementTerrainContact.surface.bounce = mTerrainContactBounce;
             AvatarMovementTerrainContact.surface.soft_erp = mTerrainContactERP;
-
-            // And finally, WaterContact parameters. These are the five different d.Contact defined
-            // currently (11-08)
-            WaterContact.surface.mode |= (d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM);
-            WaterContact.surface.mu = 0f; // No friction
-            WaterContact.surface.bounce = 0.0f; // No bounce
-            WaterContact.surface.soft_cfm = 0.01f;
-            WaterContact.surface.soft_erp = 0.010f;
 
             d.HashSpaceSetLevels(space, worldHashspaceLow, worldHashspaceHigh);
 
