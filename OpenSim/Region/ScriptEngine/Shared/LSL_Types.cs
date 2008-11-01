@@ -1553,16 +1553,39 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return new LSLInteger(0);
             }
 
-            static public bool operator ==(LSLInteger i1, LSLInteger i2)
+            static public LSLInteger operator ==(LSLInteger i1, LSLInteger i2)
             {
                 bool ret = i1.value == i2.value;
-                return ret;
+                return new LSLInteger((ret ? 1 : 0));
             }
 
-            static public bool operator !=(LSLInteger i1, LSLInteger i2)
+            static public LSLInteger operator !=(LSLInteger i1, LSLInteger i2)
             {
                 bool ret = i1.value != i2.value;
-                return ret;
+                return new LSLInteger((ret ? 1 : 0));
+            }
+
+            static public LSLInteger operator <(LSLInteger i1, LSLInteger i2)
+            {
+                bool ret = i1.value < i2.value;
+                return new LSLInteger((ret ? 1 : 0));
+            }
+            static public LSLInteger operator <=(LSLInteger i1, LSLInteger i2)
+            {
+                bool ret = i1.value <= i2.value;
+                return new LSLInteger((ret ? 1 : 0));
+            }
+
+            static public LSLInteger operator >(LSLInteger i1, LSLInteger i2)
+            {
+                bool ret = i1.value > i2.value;
+                return new LSLInteger((ret ? 1 : 0));
+            }
+
+            static public LSLInteger operator >=(LSLInteger i1, LSLInteger i2)
+            {
+                bool ret = i1.value >= i2.value;
+                return new LSLInteger((ret ? 1 : 0));
             }
 
             static public LSLInteger operator +(LSLInteger i1, int i2)
