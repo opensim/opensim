@@ -161,7 +161,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // some of the friends might have teleported away.
             // Actually, even now, between this line and the sending below, some people could TP away. So,
             // we'll have to lock the m_rootAgents list for the duration to prevent/delay that.
-            lock(m_rootAgents)
+            lock (m_rootAgents)
             {
                 List<ScenePresence> friendsHere = new List<ScenePresence>();
                 try
@@ -230,7 +230,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 requestData.ContainsKey("friendID") && UUID.TryParse((string)requestData["friendID"], out friendID))
             {
                 // try to find it and if it is there, prevent it to vanish before we sent the message
-                lock(m_rootAgents)
+                lock (m_rootAgents)
                 {
                     if (m_rootAgents.ContainsKey(agentID))
                     {
@@ -431,7 +431,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     // should receive it. If we *are* local, *we* are the destination, so we have to receive it.
                     // As grid-IMs are routed to all modules (in contrast to local IMs), we have to decide here.
                     InstantMessageReceiver recv = InstantMessageReceiver.IMModule;
-                    if(GetAnyPresenceFromAgentID(toAgentID) != null) recv |= InstantMessageReceiver.FriendsModule;
+                    if (GetAnyPresenceFromAgentID(toAgentID) != null) recv |= InstantMessageReceiver.FriendsModule;
 
                     // We don't really care which local scene we pipe it through.
                     m_initialScene.TriggerGridInstantMessage(msg, recv);
@@ -554,7 +554,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     return; // unknown transaction
                 }
                 // else found pending friend request with that transaction => remove if done with all
-                if(--m_pendingFriendRequests[transactionID].count <= 0) m_pendingFriendRequests.Remove(transactionID);
+                if (--m_pendingFriendRequests[transactionID].count <= 0) m_pendingFriendRequests.Remove(transactionID);
                 outPending();
             }
 
@@ -604,7 +604,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // should receive it. If we *are* local, *we* are the destination, so we have to receive it.
             // As grid-IMs are routed to all modules (in contrast to local IMs), we have to decide here.
             InstantMessageReceiver recv = InstantMessageReceiver.IMModule;
-            if(GetAnyPresenceFromAgentID(friendID) != null) recv |= InstantMessageReceiver.FriendsModule;
+            if (GetAnyPresenceFromAgentID(friendID) != null) recv |= InstantMessageReceiver.FriendsModule;
 
             // now we have to inform the agent about the friend. For the opposite direction, this happens in the handler
             // of the type 39 IM
@@ -621,14 +621,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             Transaction transaction;
             lock (m_pendingFriendRequests)
             {
-                if(!m_pendingFriendRequests.TryGetValue(transactionID, out transaction))
+                if (!m_pendingFriendRequests.TryGetValue(transactionID, out transaction))
                 {
                     m_log.DebugFormat("[FRIEND]: Got friendship denial {0} from {1} ({2}) without matching transaction {3}",
                                       agentID, client.AgentId, client.Name, transactionID);
                     return;
                 }
                 // else found pending friend request with that transaction.
-                if(--m_pendingFriendRequests[transactionID].count <= 0) m_pendingFriendRequests.Remove(transactionID);
+                if (--m_pendingFriendRequests[transactionID].count <= 0) m_pendingFriendRequests.Remove(transactionID);
                 outPending();
             }
             UUID friendID = transaction.agentID;
@@ -661,7 +661,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // should receive it. If we *are* local, *we* are the destination, so we have to receive it.
             // As grid-IMs are routed to all modules (in contrast to local IMs), we have to decide here.
             InstantMessageReceiver recv = InstantMessageReceiver.IMModule;
-            if(GetAnyPresenceFromAgentID(friendID) != null) recv |= InstantMessageReceiver.FriendsModule;
+            if (GetAnyPresenceFromAgentID(friendID) != null) recv |= InstantMessageReceiver.FriendsModule;
 
             // now we have to inform the agent about the friend. For the opposite direction, this happens in the handler
             // of the type 39 IM
@@ -690,7 +690,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             else
             {
                 // retry 3 times, in case the agent TPed from the last known region...
-                for(int retry = 0; retry < 3; ++retry)
+                for (int retry = 0; retry < 3; ++retry)
                 {
                     // wasn't sent, so ex-friend wasn't around on this region-server. Fetch info and try to send
                     UserAgentData data = m_initialScene.CommsManager.UserService.GetAgentByUUID(exfriendID);
@@ -859,7 +859,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 List<UUID> friendIDsToLookup = new List<UUID>(friendIDsToSendTo);
                 foreach (UUID uuid in friendIDsToReceiveFromOffline)
                 {
-                    if(!friendIDsToLookup.Contains(uuid)) friendIDsToLookup.Add(uuid);
+                    if (!friendIDsToLookup.Contains(uuid)) friendIDsToLookup.Add(uuid);
                 }
 
                 m_log.DebugFormat("[FRIEND]: {0} to lookup, {1} to send to, {2} to receive from for agent {3}",
@@ -906,12 +906,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     {
                         // any client is good enough, root or child...
                         ScenePresence agent = GetAnyPresenceFromAgentID(uuid);
-                        if(agent != null)
+                        if (agent != null)
                         {
                             m_log.DebugFormat("[FRIEND]: Found local agent {0}", agent.Name);
 
                             // friend is online and on this server...
-                            if(iAmOnline) agent.ControllingClient.SendAgentOnline(agentArr);
+                            if (iAmOnline) agent.ControllingClient.SendAgentOnline(agentArr);
                             else agent.ControllingClient.SendAgentOffline(agentArr);
 
                             // done, remove it
@@ -962,7 +962,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 // now we have in friendIDsToSendTo only the agents left that TPed away while we tried to contact them.
                 // In most cases, it will be empty, and it won't loop here. But sometimes, we have to work harder and try again...
             }
-            while(++retry < 3 && friendIDsToSendTo.Count > 0);
+            while (++retry < 3 && friendIDsToSendTo.Count > 0);
         }
 
         private void OnEconomyDataRequest(UUID agentID)

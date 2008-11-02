@@ -1818,7 +1818,7 @@ namespace OpenSim.Region.Communications.OGS1
                     for (int i = 0; i < count; ++i)
                     {
                         UUID uuid;
-                        if(UUID.TryParse((string)respData["friendID_" + i], out uuid)) tpdAway.Add(uuid);
+                        if (UUID.TryParse((string)respData["friendID_" + i], out uuid)) tpdAway.Add(uuid);
                     }
                 }
                 catch(Exception e)
