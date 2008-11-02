@@ -396,6 +396,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
                     UUID transactionID = UUID.Random();
 
+                    // 1.20 protocol sends an UUID in the message field, instead of the friendship offer text.
+                    // For interoperability, we have to clear that
+                    if (Util.isUUID(message)) message = "";
+
                     GridInstantMessage msg = new GridInstantMessage();
                     msg.fromAgentID = fromAgentID.Guid;
                     msg.fromAgentSession = UUID.Zero.Guid; // server IMs don't have a session

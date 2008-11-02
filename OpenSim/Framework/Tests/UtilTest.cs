@@ -137,5 +137,20 @@ namespace OpenSim.Framework.Tests
                             "Normalized vector generated from vector does not have magnitude of 1.");
             }
         }
+
+        [Test]
+        public void UUIDTests()
+        {
+            Assert.IsTrue(Util.isUUID("01234567-89ab-Cdef-0123-456789AbCdEf"),
+                          "A correct UUID wasn't recognized.");
+            Assert.IsFalse(Util.isUUID("FOOBAR67-89ab-Cdef-0123-456789AbCdEf"),
+                           "UUIDs with non-hex characters are recognized as correct UUIDs.");
+            Assert.IsFalse(Util.isUUID("01234567"),
+                           "Too short UUIDs are regognized as correct UUIDs.");
+            Assert.IsFalse(Util.isUUID("01234567-89ab-Cdef-0123-456789AbCdEf0"),
+                           "Too long UUIDs are regognized as correct UUIDs.");
+            Assert.IsFalse(Util.isUUID("01234567-89ab-Cdef-0123+456789AbCdEf"),
+                          "UUIDs with wrong format are recognized as correct UUIDs.");
+        }
     }
 }
