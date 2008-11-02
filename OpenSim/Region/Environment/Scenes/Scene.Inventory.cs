@@ -1065,6 +1065,8 @@ namespace OpenSim.Region.Environment.Scenes
                         "Avatar {0} cannot be found to add item",
                         avatarId);
                 }
+                if (!profile.HasReceivedInventory)
+                    CommsManager.UserProfileCacheService.RequestInventoryForUser(avatarId);
                 InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(avatarId, part, itemId);
 
                 if (agentItem == null)
