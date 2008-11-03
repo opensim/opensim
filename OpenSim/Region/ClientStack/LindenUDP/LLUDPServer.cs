@@ -148,8 +148,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource,
             AssetCache assetCache, AgentCircuitManager circuitManager)
         {
-            // XXX Temporary until we start unpacking the config source
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
+            userSettings.ClientThrottleMultipler = 8;
+            
+            IConfig config = configSource.Configs["ClientStack.LindenUDP"];
+            
+            if (config != null)
+            {
+                userSettings.ClientThrottleMultipler = config.GetInt("client_throttle_multiplier"); 
+            }   
+            
+            //m_log.DebugFormat("[CLIENT]: client_throttle_multiplier = {0}", userSettings.ClientThrottleMultipler);
                 
             proxyPortOffset = proxyPortOffsetParm;
             listenPort = (uint) (port + proxyPortOffsetParm);

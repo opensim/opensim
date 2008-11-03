@@ -39,5 +39,11 @@ namespace OpenSim.Region.ClientStack
         /// The settings for the throttle that governs how many packets in total are sent to the client.
         /// </summary>
         public ThrottleSettings TotalThrottleSettings;
+        
+        /// <summary>
+        /// A multiplier applied to all client throttle settings.  This is hopefully a temporary setting to iron out
+        /// bugs that appear if the existing incorrect * 8 throttle (bytes instead of bits) is corrected.
+        /// </summary>
+        public int ClientThrottleMultipler;
     }
 }
