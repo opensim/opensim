@@ -111,7 +111,7 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public InventoryFolderBase RequestRootFolder(UUID userID)
+        public virtual InventoryFolderBase RequestRootFolder(UUID userID)
         {
             // FIXME: Probably doesn't do what was originally intended - only ever queries the first plugin
             foreach (IInventoryDataPlugin plugin in m_plugins)
@@ -185,7 +185,7 @@ namespace OpenSim.Framework.Communications
         #endregion
 
         // See IInventoryServices
-        public bool AddFolder(InventoryFolderBase folder)
+        public virtual bool AddFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Adding folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
@@ -200,7 +200,7 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public bool UpdateFolder(InventoryFolderBase folder)
+        public virtual bool UpdateFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Updating folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
@@ -215,7 +215,7 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public bool MoveFolder(InventoryFolderBase folder)
+        public virtual bool MoveFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Moving folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
@@ -230,7 +230,7 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public bool AddItem(InventoryItemBase item)
+        public virtual bool AddItem(InventoryItemBase item)
         {
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Adding item {0} {1} to folder {2}", item.Name, item.ID, item.Folder);
@@ -245,7 +245,7 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public bool UpdateItem(InventoryItemBase item)
+        public virtual bool UpdateItem(InventoryItemBase item)
         {
             m_log.InfoFormat(
                 "[AGENT INVENTORY]: Updating item {0} {1} in folder {2}", item.Name, item.ID, item.Folder);
@@ -260,7 +260,7 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public bool DeleteItem(InventoryItemBase item)
+        public virtual bool DeleteItem(InventoryItemBase item)
         {
             m_log.InfoFormat(
                 "[AGENT INVENTORY]: Deleting item {0} {1} from folder {2}", item.Name, item.ID, item.Folder);
@@ -281,7 +281,7 @@ namespace OpenSim.Framework.Communications
         /// already know...  Needs heavy refactoring.
         /// </summary>
         /// <param name="folder"></param>
-        public bool PurgeFolder(InventoryFolderBase folder)
+        public virtual bool PurgeFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Purging folder {0} {1} of its contents", folder.Name, folder.ID);
