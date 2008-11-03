@@ -2,9 +2,12 @@
 using System.IO;
 using System.Net;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+
+using log4net;
 
 namespace OpenSim.Framework.Servers
 {
@@ -146,6 +149,9 @@ namespace OpenSim.Framework.Servers
     public class RestDeserialiseSecureHandler<TRequest, TResponse> : BaseRequestHandler, IStreamHandler
         where TRequest : new()
     {
+        private static readonly ILog m_log
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private RestDeserialiseMethod<TRequest, TResponse> m_method;
         private CheckIdentityMethod m_smethod;
 
@@ -161,15 +167,25 @@ namespace OpenSim.Framework.Servers
         public void Handle(string path, Stream request, Stream responseStream,
                            OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            RestSessionObject<TRequest> deserial;
+            RestSessionObject<TRequest> deserial = default(RestSessionObject<TRequest>);
+            bool fail = false;
+
             using (XmlTextReader xmlReader = new XmlTextReader(request))
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof(RestSessionObject<TRequest>));
-                deserial = (RestSessionObject<TRequest>)deserializer.Deserialize(xmlReader);
+                try
+                {
+                    XmlSerializer deserializer = new XmlSerializer(typeof(RestSessionObject<TRequest>));
+                    deserial = (RestSessionObject<TRequest>)deserializer.Deserialize(xmlReader);
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[REST]: Deserialization problem. Ignoring request. " + e);
+                    fail = true;
+                }
             }
 
             TResponse response = default(TResponse);
-            if (m_smethod(deserial.SessionID, deserial.AvatarID))
+            if (!fail && m_smethod(deserial.SessionID, deserial.AvatarID))
             {
                 response = m_method(deserial.Body);
             }
@@ -187,6 +203,9 @@ namespace OpenSim.Framework.Servers
     public class RestDeserialiseTrustedHandler<TRequest, TResponse> : BaseRequestHandler, IStreamHandler
         where TRequest : new()
     {
+        private static readonly ILog m_log
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The operation to perform once trust has been established.
         /// </summary>
@@ -211,15 +230,25 @@ namespace OpenSim.Framework.Servers
         public void Handle(string path, Stream request, Stream responseStream,
                            OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            TRequest deserial;
+            TRequest deserial = default(TRequest);
+            bool fail = false;
+
             using (XmlTextReader xmlReader = new XmlTextReader(request))
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof(TRequest));
-                deserial = (TRequest)deserializer.Deserialize(xmlReader);
+                try
+                {
+                    XmlSerializer deserializer = new XmlSerializer(typeof(TRequest));
+                    deserial = (TRequest)deserializer.Deserialize(xmlReader);
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[REST]: Deserialization problem. Ignoring request. " + e);
+                    fail = true;
+                }
             }
 
             TResponse response = default(TResponse);
-            if (m_tmethod(httpRequest.RemoteIPEndPoint))
+            if (!fail && m_tmethod(httpRequest.RemoteIPEndPoint))
             {
                 response = m_method(deserial);
             }
