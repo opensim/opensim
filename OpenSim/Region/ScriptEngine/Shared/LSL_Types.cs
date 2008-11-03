@@ -102,7 +102,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new Vector3(s);
             }
 
-            public static explicit operator list(Vector3 vec)
+            public static implicit operator list(Vector3 vec)
             {
                 return new list(new object[] { vec });
             }
@@ -356,7 +356,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new Quaternion(s);
             }
 
-            public static explicit operator list(Quaternion r)
+            public static implicit operator list(Quaternion r)
             {
                 return new list(new object[] { r });
             }
@@ -1404,7 +1404,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLFloat(Convert.ToDouble(s.m_string));
             }
 
-            public static explicit operator list(LSLString s)
+            public static implicit operator list(LSLString s)
             {
                 return new list(new object[]{s});
             }
@@ -1503,7 +1503,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLString(i.ToString());
             }
 
-            public static explicit operator list(LSLInteger i)
+            public static implicit operator list(LSLInteger i)
             {
                 return new list(new object[] { i });
             }
@@ -1796,7 +1796,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLFloat(double.Parse(v));
             }
 
-            public static explicit operator list(LSLFloat f)
+            public static implicit operator list(LSLFloat f)
             {
                 return new list(new object[] { f });
             }
