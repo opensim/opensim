@@ -110,13 +110,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AssetOutgoingPacketQueue = new Queue<LLQueItem>();
 
             // Set up the throttle classes (min, max, current) in bits per second
-            ResendThrottle = new LLPacketThrottle(5000, 100000, 16000);
-            LandThrottle = new LLPacketThrottle(1000, 100000, 2000);
-            WindThrottle = new LLPacketThrottle(0, 100000, 0);
-            CloudThrottle = new LLPacketThrottle(0, 100000, 0);
-            TaskThrottle = new LLPacketThrottle(1000, 800000, 3000);
-            AssetThrottle = new LLPacketThrottle(1000, 800000, 1000);
-            TextureThrottle = new LLPacketThrottle(1000, 800000, 4000);
+            ResendThrottle =    new LLPacketThrottle(5000, 100000, 16000, userSettings.ClientThrottleMultipler);
+            LandThrottle =      new LLPacketThrottle(1000, 100000, 2000, userSettings.ClientThrottleMultipler);
+            WindThrottle =      new LLPacketThrottle(0, 100000, 0, userSettings.ClientThrottleMultipler);
+            CloudThrottle =     new LLPacketThrottle(0, 100000, 0, userSettings.ClientThrottleMultipler);
+            TaskThrottle =      new LLPacketThrottle(1000, 800000, 3000, userSettings.ClientThrottleMultipler);
+            AssetThrottle =     new LLPacketThrottle(1000, 800000, 1000, userSettings.ClientThrottleMultipler);
+            TextureThrottle =   new LLPacketThrottle(1000, 800000, 4000, userSettings.ClientThrottleMultipler);
             
             // Total Throttle trumps all - it is the number of bits in total that are allowed to go out per second.            
             ThrottleSettings totalThrottleSettings = userSettings.TotalThrottleSettings;
@@ -127,7 +127,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             TotalThrottle 
                 = new LLPacketThrottle(
-                    totalThrottleSettings.Min, totalThrottleSettings.Max, totalThrottleSettings.Current);
+                    totalThrottleSettings.Min, totalThrottleSettings.Max, totalThrottleSettings.Current, userSettings.ClientThrottleMultipler);
 
             throttleTimer = new Timer((int) (throttletimems/throttleTimeDivisor));
             throttleTimer.Elapsed += new ElapsedEventHandler(ThrottleTimerElapsed);

@@ -44,6 +44,6 @@ namespace OpenSim.Region.ClientStack
         /// A multiplier applied to all client throttle settings.  This is hopefully a temporary setting to iron out
         /// bugs that appear if the existing incorrect * 8 throttle (bytes instead of bits) is corrected.
         /// </summary>
-        public int ClientThrottleMultipler;
+        public float ClientThrottleMultipler;
     }
 }

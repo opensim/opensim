@@ -155,7 +155,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             if (config != null)
             {
-                userSettings.ClientThrottleMultipler = config.GetInt("client_throttle_multiplier"); 
+                userSettings.ClientThrottleMultipler = config.GetFloat("client_throttle_multiplier"); 
             }   
             
             //m_log.DebugFormat("[CLIENT]: client_throttle_multiplier = {0}", userSettings.ClientThrottleMultipler);

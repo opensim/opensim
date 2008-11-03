@@ -34,12 +34,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_currentThrottle;
         private const int m_throttleTimeDivisor = 7;
         private int m_currentBitsSent;
+        
+        /// <value>
+        /// Temporary field
+        /// </value>
+        private float m_throttleMultiplier;
 
-        public LLPacketThrottle(int Min, int Max, int Throttle)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="throttle"></param>
+        /// <param name="throttleMultiplier">
+        /// A temporary parameter that's ends up multiplying all throttle settings.  This only exists as a path to 
+        /// using real throttle values instead of the *8 multipler that we had been using (bytes instead of btis)
+        /// </param>
+        public LLPacketThrottle(int min, int max, int throttle, float throttleMultiplier)
         {
-            m_maxAllowableThrottle = Max;
-            m_minAllowableThrottle = Min;
-            m_currentThrottle = Throttle;
+            m_throttleMultiplier = throttleMultiplier;
+            m_maxAllowableThrottle = (int)(max * throttleMultiplier);
+            m_minAllowableThrottle = (int)(Min * throttleMultiplier);
+            m_currentThrottle = (int)(Throttle * throttleMultiplier);
             m_currentBitsSent = 0;
         }
 
@@ -61,9 +77,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public int AddBytes(int bytes)
         {
-            // XXX: Temporarily treat bytes as bits.  This is a temporary revert of r6714 until other underlying issues
-            // are addressed.
-            m_currentBitsSent += bytes;
+            m_currentBitsSent += bytes * 8;
             return m_currentBitsSent;
         }
 
@@ -83,17 +97,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_currentThrottle; }
             set
             {
-                if (value > m_maxAllowableThrottle)
+                int multipliedValue = (int)(value * m_throttleMultiplier);
+                
+                if (multipliedValue > m_maxAllowableThrottle)
                 {
                     m_currentThrottle = m_maxAllowableThrottle;
                 }
-                else if (value < m_minAllowableThrottle)
+                else if (multipliedValue < m_minAllowableThrottle)
                 {
                     m_currentThrottle = m_minAllowableThrottle;
                 }
                 else
                 {
-                    m_currentThrottle = value;
+                    m_currentThrottle = multipliedValue;
                 }
             }
         }

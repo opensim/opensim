@@ -174,8 +174,6 @@ dump_assets_to_file = false
 [Network]
 http_listener_port = 9000
 remoting_listener_port = 8895
-
-
 default_location_x = 1000
 default_location_y = 1000
 
@@ -186,7 +184,6 @@ http_listener_ssl = false ; Also create a SSL server
 http_listener_cn = "localhost" ; Use the cert with the common name
 http_listener_sslport = 9001 ; Use this port for SSL connections
 http_listener_ssl_cert = "" ; Currently unused, but will be used for OSHttpServer
-
 
 ; Uncomment below to enable llRemoteData/remote channels
 ; remoteDataPort = 20800
@@ -206,6 +203,13 @@ inventory_server_url = "http://127.0.0.1:8004"
 ; The MessagingServer is a companion of the UserServer. It uses
 ; user_send_key and user_recv_key, too
 messaging_server_url = "http://127.0.0.1:8006"
+
+[ClientStack.LindenUDP]
+; Adjust the multiplier applied to all client throttles
+; This setting only exists because we're probably over throttling by a factor of 8.  Setting this to
+; 1 uses the real throttle values, but this may be revealing other bugs, so is currently included as test setting
+; You probably don't want to change this.
+client_throttle_multiplier = 8;
 
 [Chat]
 whisper_distance = 10
