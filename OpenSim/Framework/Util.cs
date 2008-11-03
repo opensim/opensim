@@ -64,7 +64,8 @@ namespace OpenSim.Framework
         private static readonly DateTime unixEpoch =
             DateTime.ParseExact("1970-01-01 00:00:00 +0", "yyyy-MM-dd hh:mm:ss z", DateTimeFormatInfo.InvariantInfo).ToUniversalTime();
 
-        private static readonly Regex UUIDPattern = new Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+        public static readonly Regex UUIDPattern 
+            = new Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
         #region Vector Equations
 
@@ -799,6 +800,11 @@ namespace OpenSim.Framework
             y += ry;
         }
 
+        /// <summary>
+        /// Is the given string a UUID?
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
         public static bool isUUID(string s)
         {
             return UUIDPattern.IsMatch(s);

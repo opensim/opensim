@@ -54,14 +54,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         protected string m_savePath;
 
         /// <summary>
-        /// Used for identifying uuids embedded in scripts
-        /// </summary>
-        protected static readonly Regex m_uuidRegex
-            = new Regex(
-                "[0-9a-eA-E]{8}-[0-9a-eA-E]{4}-[0-9a-eA-E]{4}-[0-9a-eA-E]{4}-[0-9a-eA-E]{12}",
-                RegexOptions.Compiled);
-
-        /// <summary>
         /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
         /// asset was found by the asset service.
         /// </summary>
@@ -136,7 +128,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 string script = Utils.BytesToString(scriptAsset.Data);
                 //m_log.DebugFormat("[ARCHIVER]: Script {0}", script);
-                MatchCollection uuidMatches = m_uuidRegex.Matches(script);
+                MatchCollection uuidMatches = Util.UUIDPattern.Matches(script);
                 //m_log.DebugFormat("[ARCHIVER]: Found {0} matches in script", uuidMatches.Count);
 
                 foreach (Match uuidMatch in uuidMatches)
