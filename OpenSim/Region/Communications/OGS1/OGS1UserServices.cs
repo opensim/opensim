@@ -43,9 +43,9 @@ namespace OpenSim.Region.Communications.OGS1
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private CommunicationsOGS1 m_parent;
+        private CommunicationsManager m_parent;
 
-        public OGS1UserServices(CommunicationsOGS1 parent)
+        public OGS1UserServices(CommunicationsManager parent)
         {
             m_parent = parent;
         }
