@@ -460,7 +460,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                 string welcome = Path.Combine(_welcomes, regionName);
                 if (File.Exists(welcome))
                 {
-                    _log.InfoFormat("[Concierge] UpdateWelcome: updating existing template \"{0}\"", welcome);
+                    _log.InfoFormat("[Concierge]: UpdateWelcome: updating existing template \"{0}\"", welcome);
                     string welcomeBackup = String.Format("{0}~", welcome);
                     if (File.Exists(welcomeBackup))
                         File.Delete(welcomeBackup);
@@ -473,7 +473,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             }
             catch (Exception e)
             {
-                _log.InfoFormat("[Concierge] UpdateWelcome failed: {0}", e.Message);
+                _log.InfoFormat("[Concierge]: UpdateWelcome failed: {0}", e.Message);
 
                 responseData["success"] = "false";
                 responseData["error"] = e.Message;

@@ -56,7 +56,7 @@ Patches
 * John R Sohn (XenReborn)
 * Junta Kohime
 * Kayne
-* kcoznes
+* Kevin Cozens
 * kinoc (Daxtron Labs)
 * krtaylor (IBM)
 * lulurun 
