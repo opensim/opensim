@@ -177,23 +177,23 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             try
             {
-                m_server = config.Configs["IRC"].GetString("server");
-                m_baseNick = config.Configs["IRC"].GetString("nick", "OSimBot");
+                m_server = config.Configs["OIRC"].GetString("server");
+                m_baseNick = config.Configs["OIRC"].GetString("nick", "OSimBot");
 
-                m_randomizeNick = config.Configs["IRC"].GetBoolean("randomize_nick", m_randomizeNick);
-                m_randomizeNick = config.Configs["IRC"].GetBoolean("nicknum", m_randomizeNick); // compat
-                m_ircChannel = config.Configs["IRC"].GetString("channel");
-                m_port = (uint)config.Configs["IRC"].GetInt("port", (int)m_port);
-                m_user = config.Configs["IRC"].GetString("username", m_user);
-                m_privmsgformat = config.Configs["IRC"].GetString("msgformat", m_privmsgformat);
+                m_randomizeNick = config.Configs["OIRC"].GetBoolean("randomize_nick", m_randomizeNick);
+                m_randomizeNick = config.Configs["OIRC"].GetBoolean("nicknum", m_randomizeNick); // compat
+                m_ircChannel = config.Configs["OIRC"].GetString("channel");
+                m_port = (uint)config.Configs["OIRC"].GetInt("port", (int)m_port);
+                m_user = config.Configs["OIRC"].GetString("username", m_user);
+                m_privmsgformat = config.Configs["OIRC"].GetString("msgformat", m_privmsgformat);
 
-                m_clientReporting = config.Configs["IRC"].GetInt("verbosity", 2) > 0;
-                m_clientReporting = config.Configs["IRC"].GetBoolean("report_clients", m_clientReporting);
+                m_clientReporting = config.Configs["OIRC"].GetInt("verbosity", 2) > 0;
+                m_clientReporting = config.Configs["OIRC"].GetBoolean("report_clients", m_clientReporting);
 
-                m_relayPrivateChannels = config.Configs["IRC"].GetBoolean("relay_private_channels", m_relayPrivateChannels);
-                m_relayPrivateChannels = config.Configs["IRC"].GetBoolean("useworldcomm", m_relayPrivateChannels); //compat
-                m_relayChannel = config.Configs["IRC"].GetInt("relay_private_channel_in", m_relayChannel);
-                m_relayChannel = config.Configs["IRC"].GetInt("inchannel", m_relayChannel);
+                m_relayPrivateChannels = config.Configs["OIRC"].GetBoolean("relay_private_channels", m_relayPrivateChannels);
+                m_relayPrivateChannels = config.Configs["OIRC"].GetBoolean("useworldcomm", m_relayPrivateChannels); //compat
+                m_relayChannel = config.Configs["OIRC"].GetInt("relay_private_channel_in", m_relayChannel);
+                m_relayChannel = config.Configs["OIRC"].GetInt("inchannel", m_relayChannel);
 
                 if (m_server != null && m_baseNick != null && m_ircChannel != null)
                 {

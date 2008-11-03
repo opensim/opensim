@@ -75,7 +75,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
             try
             {
-                if ((m_config = config.Configs["IRC"]) == null)
+                if ((m_config = config.Configs["OIRC"]) == null)
                 {
                     m_log.InfoFormat("[IRC] module not configured");
                     return;

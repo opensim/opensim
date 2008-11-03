@@ -79,7 +79,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                 try
                 {
-                    if ((m_config = config.Configs["XIRC"]) == null)
+                    if ((m_config = config.Configs["IRC"]) == null)
                     {
                         m_log.InfoFormat("[XIRC-Bridge] module not configured");
                         return;

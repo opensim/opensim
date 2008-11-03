@@ -50,6 +50,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         private static Regex arg = new Regex(@"\[[^\[\]]*\]");
         private static int _idk_ = 0;
+        private static int DEBUG_CHANNEL = 2147483647;
 
         // These are the IRC Connector configurable parameters with hard-wired
         // default values (retained for compatability).
@@ -61,8 +62,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         internal string User                 = "USER OpenSimBot 8 * :I'm an OpenSim to IRC bot";
 
         internal bool   ClientReporting      = true;
+        internal bool   RelayChat            = true;
         internal bool   RelayPrivateChannels = false;
         internal int    RelayChannel         = 1;
+        internal List<int> ValidInWorldChannels = new List<int>();
 
         // Connector agnostic parameters. These values are NOT shared with the
         // connector and do not differentiate at an IRC level
@@ -71,12 +74,26 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         internal string NoticeMessageFormat  = "PRIVMSG {0} :<{2}> {3}";
         internal int    RelayChannelOut      = -1;
         internal bool   RandomizeNickname    = true;
-        internal string AccessPassword       = "badkitty";
         internal bool   CommandsEnabled      = false;
         internal int    CommandChannel       = -1;
         internal int    ConnectDelay         = 10;
         internal int    PingDelay            = 15;
         internal string DefaultZone          = "Sim";
+
+        internal string _accessPassword      = String.Empty;
+        internal Regex  AccessPasswordRegex  = null;
+        internal string AccessPassword
+        {
+            get { return _accessPassword; }
+            set 
+            {
+                _accessPassword = value;
+                AccessPasswordRegex = new Regex(String.Format(@"^{0},\s*(?<avatar>[^,]+),\s*(?<message>.+)$", _accessPassword), 
+                                                RegexOptions.Compiled);
+            }
+        }
+
+
 
         // IRC connector reference
 
@@ -108,9 +125,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             User                 = model.User;
             CommandsEnabled      = model.CommandsEnabled;
             CommandChannel       = model.CommandChannel;
+            RelayChat            = model.RelayChat;
             RelayPrivateChannels = model.RelayPrivateChannels;
             RelayChannelOut      = model.RelayChannelOut;
             RelayChannel         = model.RelayChannel;
+            ValidInWorldChannels = model.ValidInWorldChannels;
             PrivateMessageFormat = model.PrivateMessageFormat;
             NoticeMessageFormat  = model.NoticeMessageFormat;
             ClientReporting      = model.ClientReporting;
@@ -158,6 +177,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             m_log.DebugFormat("[IRC-Channel-{0}] CommandChannel : <{1}>", cs.idn, cs.CommandChannel);
             cs.CommandChannel       = Convert.ToInt32(Substitute(rs, config.GetString("command_channel", Convert.ToString(cs.CommandChannel))));
             m_log.DebugFormat("[IRC-Channel-{0}] CommandChannel : <{1}>", cs.idn, cs.CommandChannel);
+            cs.RelayChat            = Convert.ToBoolean(Substitute(rs, config.GetString("relay_chat", Convert.ToString(cs.RelayChat))));
+            m_log.DebugFormat("[IRC-Channel-{0}] RelayChat           : <{1}>", cs.idn, cs.RelayChat);
             cs.RelayPrivateChannels = Convert.ToBoolean(Substitute(rs, config.GetString("relay_private_channels", Convert.ToString(cs.RelayPrivateChannels))));
             m_log.DebugFormat("[IRC-Channel-{0}] RelayPrivateChannels : <{1}>", cs.idn, cs.RelayPrivateChannels);
             cs.RelayPrivateChannels = Convert.ToBoolean(Substitute(rs, config.GetString("useworldcomm", Convert.ToString(cs.RelayPrivateChannels))));
@@ -176,14 +197,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             m_log.DebugFormat("[IRC-Channel-{0}] ClientReporting : <{1}>", cs.idn, cs.ClientReporting);
             cs.ClientReporting      = Convert.ToBoolean(Substitute(rs, config.GetString("report_clients", Convert.ToString(cs.ClientReporting))));
             m_log.DebugFormat("[IRC-Channel-{0}] ClientReporting : <{1}>", cs.idn, cs.ClientReporting);
-            cs.AccessPassword       = Substitute(rs, config.GetString("access_password", cs.AccessPassword));
-            m_log.DebugFormat("[IRC-Channel-{0}] AccessPassword : <{1}>", cs.idn, cs.AccessPassword);
             cs.DefaultZone          = Substitute(rs, config.GetString("fallback_region", cs.DefaultZone));
             m_log.DebugFormat("[IRC-Channel-{0}] DefaultZone : <{1}>", cs.idn, cs.DefaultZone);
             cs.ConnectDelay      = Convert.ToInt32(Substitute(rs, config.GetString("connect_delay", Convert.ToString(cs.ConnectDelay))));
             m_log.DebugFormat("[IRC-Channel-{0}] ConnectDelay : <{1}>", cs.idn, cs.ConnectDelay);
             cs.PingDelay      = Convert.ToInt32(Substitute(rs, config.GetString("ping_delay", Convert.ToString(cs.PingDelay))));
             m_log.DebugFormat("[IRC-Channel-{0}] PingDelay : <{1}>", cs.idn, cs.PingDelay);
+            cs.AccessPassword = Substitute(rs, config.GetString("access_password", cs.AccessPassword));
+            m_log.DebugFormat("[IRC-Channel-{0}] AccessPassword : <{1}>", cs.idn, cs.AccessPassword);
+
 
             // Fail if fundamental information is still missing
 
@@ -198,6 +220,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             m_log.InfoFormat("[IRC-Channel-{0}]      User = {1}", cs.idn, cs.User);
 
             // Set the channel state for this region
+
+            if (cs.RelayChat)
+            {
+                cs.ValidInWorldChannels.Add(0);
+                cs.ValidInWorldChannels.Add(DEBUG_CHANNEL);
+            }
+
+            if (cs.RelayPrivateChannels)
+                cs.ValidInWorldChannels.Add(cs.RelayChannelOut);
 
             rs.cs = Integrate(rs, cs);
 
@@ -377,18 +408,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         private bool IsAPerfectMatchFor(ChannelState cs)
         {
             return ( IsAConnectionMatchFor(cs) &&
-
-                RelayChannelOut == cs.RelayChannelOut &&
-                PrivateMessageFormat == cs.PrivateMessageFormat &&
-                NoticeMessageFormat == cs.NoticeMessageFormat &&
-                RandomizeNickname == cs.RandomizeNickname &&
-                AccessPassword == cs.AccessPassword &&
-                CommandsEnabled == cs.CommandsEnabled &&
-                CommandChannel == cs.CommandChannel &&
-                DefaultZone == cs.DefaultZone &&
-                RelayPrivateChannels == cs.RelayPrivateChannels &&
-                RelayChannel == cs.RelayChannel &&
-                ClientReporting == cs.ClientReporting
+                     RelayChannelOut == cs.RelayChannelOut &&
+                     PrivateMessageFormat == cs.PrivateMessageFormat &&
+                     NoticeMessageFormat == cs.NoticeMessageFormat &&
+                     RandomizeNickname == cs.RandomizeNickname &&
+                     AccessPassword == cs.AccessPassword &&
+                     CommandsEnabled == cs.CommandsEnabled &&
+                     CommandChannel == cs.CommandChannel &&
+                     DefaultZone == cs.DefaultZone &&
+                     RelayPrivateChannels == cs.RelayPrivateChannels &&
+                     RelayChannel == cs.RelayChannel &&
+                     RelayChat == cs.RelayChat &&
+                     ClientReporting == cs.ClientReporting
             );
         }
 

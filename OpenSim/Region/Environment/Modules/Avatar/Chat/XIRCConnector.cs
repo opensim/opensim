@@ -521,6 +521,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         }
 
+        private Regex RE = new Regex(@":(?<nick>[\w-]*)!(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)", 
+                                     RegexOptions.Multiline);
+
         private Dictionary<string, string> ExtractMsg(string input)
         {
             //examines IRC commands and extracts any private messages
@@ -529,8 +532,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             // m_log.InfoFormat("[IRC-Connector-{0}]: ExtractMsg: {1}", idn, input);
 
             Dictionary<string, string> result = null;
-            string regex = @":(?<nick>[\w-]*)!(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
-            Regex RE = new Regex(regex, RegexOptions.Multiline);
             MatchCollection matches = RE.Matches(input);
 
             // Get some direct matches $1 $4 is a
