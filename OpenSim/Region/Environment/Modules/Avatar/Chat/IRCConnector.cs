@@ -42,7 +42,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 {
-    public class XIRCConnector
+    public class IRCConnector
     {
 
         #region Global (static) state
@@ -64,13 +64,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         // List of configured connectors
 
-        private static List<XIRCConnector> m_connectors = new List<XIRCConnector>();
+        private static List<IRCConnector> m_connectors = new List<IRCConnector>();
 
         // Watchdog state
 
         private static System.Timers.Timer m_watchdog = null;
 
-        static XIRCConnector()
+        static IRCConnector()
         {
             m_log.DebugFormat("[IRC-Connector]: Static initialization started");
             m_watchdog = new System.Timers.Timer(WD_INTERVAL);
@@ -168,7 +168,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         #region connector instance management
 
-        internal XIRCConnector(ChannelState cs)
+        internal IRCConnector(ChannelState cs)
         {
 
             // Prepare network interface
@@ -225,7 +225,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         }
 
-        ~XIRCConnector()
+        ~IRCConnector()
         {
             m_watchdog.Stop();
             Close();
@@ -797,7 +797,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             _pdk_ = (_pdk_+1)%PING_PERIOD;    // cycle the ping trigger
             _icc_++;    // increment the inter-consecutive-connect-delay counter
 
-            foreach (XIRCConnector connector in m_connectors)
+            foreach (IRCConnector connector in m_connectors)
             {
                 if (connector.Enabled)
                 {

@@ -97,7 +97,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         // IRC connector reference
 
-        internal XIRCConnector irc           = null;
+        internal IRCConnector irc           = null;
 
         internal int idn                     = _idk_++;
 
@@ -256,7 +256,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             // values that, while independent of the IRC connetion, do still distinguish 
             // this region's behavior.
 
-            foreach (ChannelState xcs in XIRCBridgeModule.m_channels)
+            foreach (ChannelState xcs in IRCBridgeModule.m_channels)
             {
                 if (cs.IsAPerfectMatchFor(xcs))
                 {
@@ -279,9 +279,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                 m_log.DebugFormat("[IRC-Channel-{0}]  New channel required", cs.idn);
 
-                if ((cs.irc = new XIRCConnector(cs)) != null)
+                if ((cs.irc = new IRCConnector(cs)) != null)
                 {
-                    XIRCBridgeModule.m_channels.Add(cs);
+                    IRCBridgeModule.m_channels.Add(cs);
 
                     m_log.InfoFormat("[IRC-Channel-{0}] New channel initialized for {1}, nick: {2}, commands {3}, private channels {4}", 
                                  cs.idn, rs.Region, cs.DefaultZone, 
@@ -554,7 +554,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         // contains information that is not differentiating from an
         // IRC point-of-view.
 
-        public static void OSChat(XIRCConnector p_irc, OSChatMessage c, bool cmsg)
+        public static void OSChat(IRCConnector p_irc, OSChatMessage c, bool cmsg)
         {
 
             // m_log.DebugFormat("[IRC-OSCHAT] from {0}:{1}", p_irc.Server, p_irc.IrcChannel);
@@ -568,7 +568,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 // Note that this code is responsible for completing some of the
                 // settings for the inbound OSChatMessage
 
-                foreach (ChannelState cs in XIRCBridgeModule.m_channels)
+                foreach (ChannelState cs in IRCBridgeModule.m_channels)
                 {
                     if ( p_irc == cs.irc)
                     {

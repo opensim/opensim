@@ -39,7 +39,7 @@ using OpenSim.Region.Environment.Scenes;
 namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 {
 
-    public class XIRCBridgeModule : IRegionModule
+    public class IRCBridgeModule : IRegionModule
     {
 
         private static readonly ILog m_log =
@@ -58,7 +58,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public string Name
         {
-            get { return "XIRCBridgeModule"; }
+            get { return "IRCBridgeModule"; }
         }
 
         public bool IsSharedModule
@@ -81,19 +81,19 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 {
                     if ((m_config = config.Configs["IRC"]) == null)
                     {
-                        m_log.InfoFormat("[XIRC-Bridge] module not configured");
+                        m_log.InfoFormat("[IRC-Bridge] module not configured");
                         return;
                     }
 
                     if (!m_config.GetBoolean("enabled", false))
                     {
-                        m_log.InfoFormat("[XIRC-Bridge] module disabled in configuration");
+                        m_log.InfoFormat("[IRC-Bridge] module disabled in configuration");
                         return;
                     }
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[XIRC-Bridge] configuration failed : {0}", e.Message);
+                    m_log.ErrorFormat("[IRC-Bridge] configuration failed : {0}", e.Message);
                     return;
                 }
 
@@ -102,7 +102,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 if (config.Configs["RemoteAdmin"] != null)
                 {
                     password = config.Configs["RemoteAdmin"].GetString("access_password", password);
-                    scene.CommsManager.HttpServer.AddXmlRPCHandler("xirc_admin", XmlRpcAdminMethod, false);
+                    scene.CommsManager.HttpServer.AddXmlRPCHandler("irc_admin", XmlRpcAdminMethod, false);
                 }
 
             }
@@ -115,18 +115,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             {
                 try
                 {
-                    m_log.InfoFormat("[XIRC-Bridge] Connecting region {0}", scene.RegionInfo.RegionName);
+                    m_log.InfoFormat("[IRC-Bridge] Connecting region {0}", scene.RegionInfo.RegionName);
                     m_regions.Add(new RegionState(scene, m_config));
                 }
                 catch (Exception e)
                 {
-                    m_log.WarnFormat("[XIRC-Bridge] Region {0} not connected to IRC : {1}", scene.RegionInfo.RegionName, e.Message);
+                    m_log.WarnFormat("[IRC-Bridge] Region {0} not connected to IRC : {1}", scene.RegionInfo.RegionName, e.Message);
                     m_log.Debug(e);
                 }
             }
             else
             {
-                m_log.WarnFormat("[XIRC-Bridge] Not enabled. Connect for region {0} ignored", scene.RegionInfo.RegionName);
+                m_log.WarnFormat("[IRC-Bridge] Not enabled. Connect for region {0} ignored", scene.RegionInfo.RegionName);
             }
 
         }
@@ -144,7 +144,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             foreach (RegionState region in m_regions)
             {
-                m_log.InfoFormat("[XIRC-Bridge] Opening connection for {0}:{1} on IRC server {2}:{3}",
+                m_log.InfoFormat("[IRC-Bridge] Opening connection for {0}:{1} on IRC server {2}:{3}",
                             region.Region, region.cs.BaseNickname, region.cs.Server, region.cs.IrcChannel);
                 try
                 {
@@ -152,7 +152,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[XIRC-Bridge] Open failed for {0}:{1} on IRC server {2}:{3} : {4}",
+                    m_log.ErrorFormat("[IRC-Bridge] Open failed for {0}:{1} on IRC server {2}:{3} : {4}",
                             region.Region, region.cs.BaseNickname, region.cs.Server, region.cs.IrcChannel,
                             e.Message);
                 }
@@ -173,7 +173,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             foreach (RegionState region in m_regions)
             {
-                m_log.InfoFormat("[XIRC-Bridge] Closing connection for {0}:{1} on IRC server {2}:{3}",
+                m_log.InfoFormat("[IRC-Bridge] Closing connection for {0}:{1} on IRC server {2}:{3}",
                             region.Region, region.cs.BaseNickname, region.cs.Server, region.cs.IrcChannel);
                 try
                 {
@@ -181,7 +181,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[XIRC-Bridge] Close failed for {0}:{1} on IRC server {2}:{3} : {4}",
+                    m_log.ErrorFormat("[IRC-Bridge] Close failed for {0}:{1} on IRC server {2}:{3} : {4}",
                             region.Region, region.cs.BaseNickname, region.cs.Server, region.cs.IrcChannel,
                             e.Message);
                 }
@@ -191,7 +191,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             foreach (ChannelState channel in m_channels)
             {
-                m_log.InfoFormat("[XIRC-Bridge] Closing connection for {0} on IRC server {1}:{2}",
+                m_log.InfoFormat("[IRC-Bridge] Closing connection for {0} on IRC server {1}:{2}",
                             channel.BaseNickname, channel.Server, channel.IrcChannel);
                 try
                 {
@@ -199,7 +199,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[XIRC-Bridge] Close failed for {0} on IRC server {1}:{2} : {3}",
+                    m_log.ErrorFormat("[IRC-Bridge] Close failed for {0} on IRC server {1}:{2} : {3}",
                             channel.BaseNickname, channel.Server, channel.IrcChannel,
                             e.Message);
                 }
@@ -212,7 +212,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         public XmlRpcResponse XmlRpcAdminMethod(XmlRpcRequest request)
         {
 
-            m_log.Info("[XIRC-Bridge]: XML RPC Admin Entry");
+            m_log.Info("[IRC-Bridge]: XML RPC Admin Entry");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable  responseData = new Hashtable();
@@ -258,7 +258,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             }
             catch (Exception e)
             {
-                m_log.InfoFormat("[XIRC-Bridge] XML RPC Admin request failed : {0}", e.Message);
+                m_log.InfoFormat("[IRC-Bridge] XML RPC Admin request failed : {0}", e.Message);
 
                 responseData["success"] = "false";
                 responseData["error"]   = e.Message;
@@ -269,7 +269,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 response.Value = responseData;
             }
 
-            m_log.Debug("[XIRC-Bridge]: XML RPC Admin Exit");
+            m_log.Debug("[IRC-Bridge]: XML RPC Admin Exit");
 
             return response;
 
