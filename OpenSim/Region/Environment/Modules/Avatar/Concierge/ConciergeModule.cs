@@ -84,7 +84,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                     _log.InfoFormat("[Concierge] module disabled by OpenSim.ini configuration");
                     return;
                 }
-
             }
             catch (Exception)
             {

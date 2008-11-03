@@ -149,7 +149,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AssetCache assetCache, AgentCircuitManager circuitManager)
         {
             // XXX Temporary until we start unpacking the config source
-            // TODO: Don't forget to account for the null possibility
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
                 
             proxyPortOffset = proxyPortOffsetParm;
