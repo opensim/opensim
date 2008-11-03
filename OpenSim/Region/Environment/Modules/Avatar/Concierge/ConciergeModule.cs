@@ -75,19 +75,19 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             {
                 if ((_config = config.Configs["Concierge"]) == null)
                 {
-                    _log.InfoFormat("[Concierge] no configuration section [Concierge] in OpenSim.ini: module not configured");
+                    _log.InfoFormat("[Concierge]: no configuration section [Concierge] in OpenSim.ini: module not configured");
                     return;
                 }
 
                 if (!_config.GetBoolean("enabled", false))
                 {
-                    _log.InfoFormat("[Concierge] module disabled by OpenSim.ini configuration");
+                    _log.InfoFormat("[Concierge]: module disabled by OpenSim.ini configuration");
                     return;
                 }
             }
             catch (Exception)
             {
-                _log.Info("[Concierge] module not configured");
+                _log.Info("[Concierge]: module not configured");
                 return;
             }
 
@@ -270,7 +270,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             
             if (_conciergedScenes.Contains(client.Scene))
             {
-                _log.DebugFormat("[Concierge] {0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName);
+                _log.DebugFormat("[Concierge]: {0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName);
                 ScenePresence agent = (client.Scene as Scene).GetScenePresence(client.AgentId);
                 RemoveFromAttendeeList(agent, agent.Scene);
                 AnnounceToAgentsRegion(agent, String.Format(_announceLeaving, agent.Name, agent.Scene.RegionInfo.RegionName,
@@ -283,7 +283,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
         {
             if (_conciergedScenes.Contains(agent.Scene))
             {
-                _log.DebugFormat("[Concierge] {0} enters {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
+                _log.DebugFormat("[Concierge]: {0} enters {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
                 AddToAttendeeList(agent, agent.Scene);
                 WelcomeAvatar(agent, agent.Scene);
                 AnnounceToAgentsRegion(agent, String.Format(_announceEntering, agent.Name, agent.Scene.RegionInfo.RegionName,
@@ -296,7 +296,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
         {
             if (_conciergedScenes.Contains(agent.Scene))
             {
-                _log.DebugFormat("[Concierge] {0} leaves {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
+                _log.DebugFormat("[Concierge]: {0} leaves {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
                 RemoveFromAttendeeList(agent, agent.Scene);
                 AnnounceToAgentsRegion(agent, String.Format(_announceLeaving, agent.Name, agent.Scene.RegionInfo.RegionName,
                                                             _sceneAttendees[agent.Scene].Count));
@@ -321,13 +321,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             {
                 if (!_sceneAttendees.ContainsKey(scene))
                 {
-                    _log.WarnFormat("[Concierge] attendee list missing for region {0}", scene.RegionInfo.RegionName);
+                    _log.WarnFormat("[Concierge]: attendee list missing for region {0}", scene.RegionInfo.RegionName);
                     return;
                 }
                 List<ScenePresence> attendees = _sceneAttendees[scene];
                 if (!attendees.Contains(agent))
                 {
-                    _log.WarnFormat("[Concierge] avatar {0} sneaked in (not on attendee list of region {1})",
+                    _log.WarnFormat("[Concierge]: avatar {0} sneaked in (not on attendee list of region {1})",
                                     agent.Name, scene.RegionInfo.RegionName);
                     return;
                 }
@@ -359,17 +359,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                         }
                         catch (IOException ioe)
                         {
-                            _log.ErrorFormat("[Concierge] run into trouble reading welcome file {0} for region {1} for avatar {2}: {3}",
+                            _log.ErrorFormat("[Concierge]: run into trouble reading welcome file {0} for region {1} for avatar {2}: {3}",
                                              welcome, scene.RegionInfo.RegionName, agent.Name, ioe);
                         }
                         catch (FormatException fe)
                         {
-                            _log.ErrorFormat("[Concierge] welcome file {0} is malformed: {1}", welcome, fe);
+                            _log.ErrorFormat("[Concierge]: welcome file {0} is malformed: {1}", welcome, fe);
                         }
                     } 
                     return;
                 }
-                _log.DebugFormat("[Concierge] no welcome message for region {0}", scene.RegionInfo.RegionName);
+                _log.DebugFormat("[Concierge]: no welcome message for region {0}", scene.RegionInfo.RegionName);
             }
         }
 
@@ -381,7 +381,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             if ((client.Scene is Scene) && (client.Scene as Scene).TryGetAvatar(client.AgentId, out agent)) 
                 AnnounceToAgentsRegion(agent, msg);
             else
-                _log.DebugFormat("[Concierge] could not find an agent for client {0}", client.Name);
+                _log.DebugFormat("[Concierge]: could not find an agent for client {0}", client.Name);
         }
 
         protected void AnnounceToAgentsRegion(ScenePresence scenePresence, string msg)
