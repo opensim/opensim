@@ -110,14 +110,15 @@ namespace OpenSim
 
         protected List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
 
-        protected IConfigSource m_finalConfig = null;
-        protected OpenSimConfigSource m_config;
-
+        /// <value>
+        /// The config information passed into the OpenSim region server.
+        /// </value>        
         public OpenSimConfigSource ConfigSource
         {
             get { return m_config; }
             set { m_config = value; }
         }
+        protected OpenSimConfigSource m_config;
 
         public List<IClientNetworkServer> ClientServers
         {
