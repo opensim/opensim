@@ -996,6 +996,7 @@
       <ReferencePath>../../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="log4net.dll"/>
+      <Reference name="Nini.dll" />
       <Reference name="nunit.framework.dll" />
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>

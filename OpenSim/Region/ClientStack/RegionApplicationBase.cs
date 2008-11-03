@@ -122,14 +122,16 @@ namespace OpenSim.Region.ClientStack
         /// <summary>
         /// Create a scene and its initial base structures.
         /// </summary>
+        /// TODO: Really configSource shouldn't be passed in here, but should be moved up to BaseOpenSimServer and 
+        /// made common to all the servers.
+        /// 
         /// <param name="regionInfo"></param>
         /// <param name="proxyOffset"></param>
-        /// <param name="clientStackUserSettings"></param>
+        /// <param name="configSource"></param>
         /// <param name="clientServer"> </param>
         /// <returns></returns>
         protected Scene SetupScene(
-            RegionInfo regionInfo, int proxyOffset, ClientStackUserSettings clientStackUserSettings, 
-            out IClientNetworkServer clientServer)
+            RegionInfo regionInfo, int proxyOffset, IConfigSource configSource, out IClientNetworkServer clientServer)
         {
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             IPAddress listenIP = regionInfo.InternalEndPoint.Address;
@@ -140,7 +142,7 @@ namespace OpenSim.Region.ClientStack
             
             clientServer 
                 = m_clientStackManager.CreateServer(
-                    listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, clientStackUserSettings,
+                    listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, configSource,
                     m_assetCache, circuitManager);
             
             regionInfo.InternalEndPoint.Port = (int)port;

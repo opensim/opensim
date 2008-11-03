@@ -33,6 +33,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using OpenMetaverse.Packets;
 using log4net;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Scenes;
@@ -127,10 +128,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         public LLUDPServer(
-            IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, ClientStackUserSettings userSettings, 
+            IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, IConfigSource configSource, 
             AssetCache assetCache, AgentCircuitManager authenticateClass)
         {
-            Initialise(_listenIP, ref port, proxyPortOffset, allow_alternate_port, userSettings, assetCache, authenticateClass);
+            Initialise(_listenIP, ref port, proxyPortOffset, allow_alternate_port, configSource, assetCache, authenticateClass);
         }
 
         /// <summary>
@@ -140,13 +141,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="port"></param>
         /// <param name="proxyPortOffsetParm"></param>
         /// <param name="allow_alternate_port"></param>
-        /// <param name="userSettings"></param>
+        /// <param name="configSource"></param>
         /// <param name="assetCache"></param>
         /// <param name="circuitManager"></param>
         public void Initialise(
-            IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, ClientStackUserSettings userSettings,
+            IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource,
             AssetCache assetCache, AgentCircuitManager circuitManager)
         {
+            // XXX Temporary until we start unpacking the config source
+            // TODO: Don't forget to account for the null possibility
+            ClientStackUserSettings userSettings = new ClientStackUserSettings();
+                
             proxyPortOffset = proxyPortOffsetParm;
             listenPort = (uint) (port + proxyPortOffsetParm);
             listenIP = _listenIP;

@@ -27,6 +27,7 @@
 
 using System.Net;
 using log4net;
+using Nini.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
@@ -68,12 +69,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             IScene scene, out TestLLUDPServer testLLUDPServer, out TestLLPacketServer testPacketServer, 
             out AgentCircuitManager acm)
         {
+            IConfigSource configSource = new IniConfigSource();
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
             testLLUDPServer = new TestLLUDPServer();             
             acm = new AgentCircuitManager();
                                     
             uint port = 666;            
-            testLLUDPServer.Initialise(null, ref port, 0, false, userSettings, null, acm);
+            testLLUDPServer.Initialise(null, ref port, 0, false, configSource, null, acm);
             testPacketServer = new TestLLPacketServer(testLLUDPServer, userSettings);
             testLLUDPServer.LocalScene = scene;            
         }

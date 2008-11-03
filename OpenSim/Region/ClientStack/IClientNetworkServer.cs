@@ -27,6 +27,7 @@
 
 using System.Net;
 using System.Net.Sockets;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications.Cache;
@@ -36,7 +37,7 @@ namespace OpenSim.Region.ClientStack
     public interface IClientNetworkServer
     {
         void Initialise(
-            IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, ClientStackUserSettings settings, 
+            IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, 
             AssetCache assetCache, AgentCircuitManager authenticateClass);
 
         Socket Server { get; }

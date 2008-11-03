@@ -77,7 +77,6 @@ namespace OpenSim.Framework.Servers
 
     public class RestSessionObjectPosterResponse<TRequest, TResponse>
     {
-
         public ReturnResponse<TResponse> ResponseCallback;
 
         public void BeginPostObject(string requestUrl, TRequest obj, string sid, string aid)

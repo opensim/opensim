@@ -208,13 +208,13 @@ namespace OpenSim
         /// <returns></returns>
         public static IConfigSource DefaultConfig()
         {
-            IConfigSource DefaultConfig = new IniConfigSource();
+            IConfigSource defaultConfig = new IniConfigSource();
             
             {
-                IConfig config = DefaultConfig.Configs["Startup"];
+                IConfig config = defaultConfig.Configs["Startup"];
                 
                 if (null == config)
-                    config = DefaultConfig.AddConfig("Startup");
+                    config = defaultConfig.AddConfig("Startup");
 
                 config.Set("gridmode", false);
                 config.Set("physics", "basicphysics");
@@ -233,10 +233,10 @@ namespace OpenSim
             }
         
             {
-                IConfig config = DefaultConfig.Configs["StandAlone"];
+                IConfig config = defaultConfig.Configs["StandAlone"];
                 
                 if (null == config)
-                    config = DefaultConfig.AddConfig("StandAlone");
+                    config = defaultConfig.AddConfig("StandAlone");
 
                 config.Set("accounts_authenticate", false);
                 config.Set("welcome_message", "Welcome to OpenSimulator");
@@ -250,10 +250,10 @@ namespace OpenSim
             }
         
             {
-                IConfig config = DefaultConfig.Configs["Network"];
+                IConfig config = defaultConfig.Configs["Network"];
                 
                 if (null == config)
-                    config = DefaultConfig.AddConfig("Network");
+                    config = defaultConfig.AddConfig("Network");
 
                 config.Set("default_location_x", 1000);
                 config.Set("default_location_y", 1000);
@@ -270,7 +270,7 @@ namespace OpenSim
                 config.Set("secure_inventory_server", "true");
             }
 
-            return DefaultConfig;
+            return defaultConfig;
         }
 
         protected virtual void ReadConfigSettings()
@@ -495,7 +495,7 @@ namespace OpenSim
             }
 
             IClientNetworkServer clientServer;
-            Scene scene = SetupScene(regionInfo, proxyOffset, null, out clientServer);
+            Scene scene = SetupScene(regionInfo, proxyOffset, m_config.Source, out clientServer);
 
             m_log.Info("[MODULES]: Loading Region's modules");
 

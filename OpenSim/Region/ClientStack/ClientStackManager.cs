@@ -29,6 +29,7 @@ using System;
 using System.Net;
 using System.Reflection;
 using log4net;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.ClientStack;
 using OpenSim.Framework.Communications;
@@ -91,26 +92,24 @@ namespace OpenSim.Region.Environment
         /// <param name="port"></param>
         /// <param name="proxyPortOffset"></param>
         /// <param name="allow_alternate_port"></param>
-        /// <param name="settings">
+        /// <param name="configSource">
         /// Can be null, in which case default values are used
         /// </param>
         /// <param name="assetCache"></param>
         /// <param name="authenticateClass"></param>
         /// <returns></returns>        
         public IClientNetworkServer CreateServer(
-            IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, ClientStackUserSettings settings,
+            IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, IConfigSource configSource,
             AssetCache assetCache, AgentCircuitManager authenticateClass)
-        {
-            if (null == settings)
-                settings = new ClientStackUserSettings();
-            
+        {            
             if (plugin != null)
             {
                 IClientNetworkServer server =
-                    (IClientNetworkServer) Activator.CreateInstance(pluginAssembly.GetType(plugin.ToString()));
+                    (IClientNetworkServer)Activator.CreateInstance(pluginAssembly.GetType(plugin.ToString()));
                 
                 server.Initialise(
-                    _listenIP, ref port, proxyPortOffset, allow_alternate_port, settings, assetCache, authenticateClass);
+                    _listenIP, ref port, proxyPortOffset, allow_alternate_port, 
+                    configSource, assetCache, authenticateClass);
                 
                 return server;
             }

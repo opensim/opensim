@@ -1961,7 +1961,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAgentDataUpdate(UUID agentid, UUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
         {
-
             m_activeGroupID = activegroupid;
             m_activeGroupName = groupname;
             m_activeGroupPowers = grouppowers;
