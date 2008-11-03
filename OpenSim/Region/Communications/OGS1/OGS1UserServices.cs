@@ -739,19 +739,23 @@ namespace OpenSim.Region.Communications.OGS1
             map["uuids"] = list;
 
             map["recv_key"] = m_parent.NetworkServersInfo.UserRecvKey;
-            map["send_key"] = m_parent.NetworkServersInfo.UserRecvKey;
+            map["send_key"] = m_parent.NetworkServersInfo.UserSendKey;
 
             parameters.Add(map);
 
             try {
                 XmlRpcRequest req = new XmlRpcRequest("get_presence_info_bulk", parameters);
                 XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.MessagingURL, 8000);
-                Hashtable respData = (Hashtable) resp.Value;
-                
-                if (respData.ContainsKey("faultMessage"))
+                Hashtable respData = resp != null ? (Hashtable) resp.Value : null;
+
+                if (respData == null || respData.ContainsKey("faultMessage"))
                 {
-                    m_log.WarnFormat("[OGS1 USER SERVICES]: Contacting MessageServer about user-regions resulted in error: {0}",
-                                     respData["faultMessage"]);
+                    m_log.WarnFormat("[OGS1 USER SERVICES]: Contacting MessagingServer about user-regions resulted in error: {0}",
+                                     respData == null ? "<unknown error>" : respData["faultMessage"]);
+                }
+                else if(!respData.ContainsKey("count"))
+                {
+                    m_log.WarnFormat("[OGS1 USER SERVICES]: Wrong format in response for MessagingServer request get_presence_info_bulk: missing 'count' field");
                 }
                 else
                 {
@@ -759,14 +763,21 @@ namespace OpenSim.Region.Communications.OGS1
                     m_log.DebugFormat("[OGS1 USER SERVICES]: Request returned {0} results.", count);
                     for (int i = 0; i < count; ++i)
                     {
-                        UUID uuid;
-                        if (UUID.TryParse((string)respData["uuid_" + i], out uuid))
+                        if(respData.ContainsKey("uuid_" + i) && respData.ContainsKey("isOnline_" + i) && respData.ContainsKey("regionHandle_" + i))
                         {
-                            FriendRegionInfo info = new FriendRegionInfo();
-                            info.isOnline = (bool)respData["isOnline_" + i];
-                            if (info.isOnline) info.regionHandle = Convert.ToUInt64(respData["regionHandle_" + i]);
-                            
-                            result.Add(uuid, info);
+                            UUID uuid;
+                            if (UUID.TryParse((string)respData["uuid_" + i], out uuid))
+                            {
+                                FriendRegionInfo info = new FriendRegionInfo();
+                                info.isOnline = (bool)respData["isOnline_" + i];
+                                if (info.isOnline) info.regionHandle = Convert.ToUInt64(respData["regionHandle_" + i]);
+
+                                result.Add(uuid, info);
+                            }
+                        }
+                        else
+                        {
+                            m_log.WarnFormat("[OGS1 USER SERVICES]: Response to get_presence_info_bulk contained an error in entry {0}", i);
                         }
                     }
                 }
