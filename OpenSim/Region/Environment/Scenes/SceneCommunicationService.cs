@@ -672,6 +672,9 @@ namespace OpenSim.Region.Environment.Scenes
                             return;
                         }
 
+                        // the avatar.Close below will clear the child region list. We need this below for (possibly)
+                        // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
+                        List<ulong> childRegions = new List<ulong>(avatar.GetKnownRegionList());
                         avatar.Close();
 
                         // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
@@ -721,6 +724,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (Util.fast_distance2d((int)(newRegionX - oldRegionX), (int)(newRegionY - oldRegionY)) > 3)
                         {
                             SendCloseChildAgentConnections(avatar.UUID,avatar.GetKnownRegionList());
+                            SendCloseChildAgentConnections(avatar.UUID, childRegions);
                             CloseConnection(m_regionInfo.RegionHandle, avatar.UUID);
                         }
                         // if (teleport success) // seems to be always success here
