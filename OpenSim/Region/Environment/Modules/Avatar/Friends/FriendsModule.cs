@@ -885,7 +885,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     {
                         UUID uuid = friendIDsToReceiveFromOffline[i];
                         FriendRegionInfo info;
-                        if (friendRegions.TryGetValue(uuid, out info) && info.isOnline)
+                        if (friendRegions.TryGetValue(uuid, out info) && info != null && info.isOnline)
                         {
                             friendIDsToReceiveFromOffline.RemoveAt(i);
                             friendIDsToReceiveFromOnline.Add(uuid);
@@ -906,7 +906,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 {
                     UUID uuid = friendIDsToSendTo[i];
                     FriendRegionInfo info;
-                    if (friendRegions.TryGetValue(uuid, out info) && info.isOnline)
+                    if (friendRegions.TryGetValue(uuid, out info) && info != null && info.isOnline)
                     {
                         // any client is good enough, root or child...
                         ScenePresence agent = GetAnyPresenceFromAgentID(uuid);
