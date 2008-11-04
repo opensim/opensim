@@ -52,12 +52,21 @@ namespace OpenSim.Framework
         }
 
         private static void ThreadTrackerThreadLoop()
-        {
-            while (true)
+        {            
+            try
             {
-                Thread.Sleep(5000);
-                CleanUp();
+                while (true)
+                {
+                    Thread.Sleep(5000);
+                    CleanUp();
+                }
             }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[THREAD TRACKER]: Thread tracker cleanup thread terminating with exception.  Please report this error.  Exception is {0}", 
+                    e);                
+            }                
         }
 
         public static void Add(Thread thread)
