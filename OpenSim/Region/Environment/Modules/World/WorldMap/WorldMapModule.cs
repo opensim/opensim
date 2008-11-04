@@ -540,16 +540,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             }
             if (httpserver.Length == 0)
             {
-                RegionInfo mreg = null;
-                
-                try
-                {
-                    mreg = m_scene.SceneGridService.RequestNeighbouringRegionInfo(regionhandle);
-                }
-                catch (Exception e)
-                {
-                    m_log.WarnFormat("[WorldMap]: Requesting neighbour region info failed with exception {0}", e);
-                }
+                RegionInfo mreg = m_scene.SceneGridService.RequestNeighbouringRegionInfo(regionhandle);
                 
                 if (mreg != null)
                 {

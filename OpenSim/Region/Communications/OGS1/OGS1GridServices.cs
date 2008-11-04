@@ -159,7 +159,7 @@ namespace OpenSim.Region.Communications.OGS1
                             serversInfo.GridURL),
                         e);
 
-                throw(e2);
+                throw e2;
             }
 
             Hashtable GridRespData = (Hashtable)GridResp.Value;
@@ -223,7 +223,7 @@ namespace OpenSim.Region.Communications.OGS1
                             serversInfo.GridURL),
                         e);
 
-                throw(e2);
+                throw e2;
             }
         
             Hashtable GridRespData = (Hashtable) GridResp.Value;
@@ -342,7 +342,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 gridResp = gridReq.Send(serversInfo.GridURL, 3000);
             }
-            catch (WebException e)
+            catch (Exception e)
             {
                 m_log.ErrorFormat(
                     "[OGS1 GRID SERVICES]: Communication with the grid server at {0} failed, {1}",
@@ -431,7 +431,7 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                     }
                 }
-                catch (WebException)
+                catch
                 {
                     m_log.Error("[OGS1 GRID SERVICES]: " +
                                 "Region lookup failed for: " + regionHandle.ToString() +
@@ -475,7 +475,7 @@ namespace OpenSim.Region.Communications.OGS1
                 if (!m_remoteRegionInfoCache.ContainsKey(regionInfo.RegionHandle))
                     m_remoteRegionInfoCache.Add(regionInfo.RegionHandle, regionInfo);
             }
-            catch (WebException)
+            catch
             {
                 m_log.Error("[OGS1 GRID SERVICES]: " +
                             "Region lookup failed for: " + regionName +
@@ -564,7 +564,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (Exception e)
             {
-                m_log.Error("MapBlockQuery XMLRPC failure: " + e.ToString());
+                m_log.Error("MapBlockQuery XMLRPC failure: " + e);
                 return new Hashtable();
             }
         }
@@ -1821,7 +1821,7 @@ namespace OpenSim.Region.Communications.OGS1
                         if (UUID.TryParse((string)respData["friendID_" + i], out uuid)) tpdAway.Add(uuid);
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
                 }
@@ -1857,7 +1857,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                 return (bool)respData["success"];
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
                 return false;
