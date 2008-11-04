@@ -342,7 +342,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             if (response.ContentLength == 0)
                 throw new Exception(String.Format("{0} returned an empty file", uri.ToString()));
 
-            return new BufferedStream(file, (int) response.ContentLength);
+            // return new BufferedStream(file, (int) response.ContentLength);
+            return new BufferedStream(file, 1000000);
 
         }
 

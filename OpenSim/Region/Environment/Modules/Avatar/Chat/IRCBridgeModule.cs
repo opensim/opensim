@@ -234,6 +234,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                 if (!requestData.ContainsKey("region"))
                     throw new Exception("No region name specified");
+                region = (string)requestData["region"];
                 
                 foreach (RegionState rs in m_regions)
                 {
