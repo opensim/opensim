@@ -28,12 +28,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
+using log4net;
 
 namespace OpenSim.Framework
 {
     public static class ThreadTracker
     {
+        private static readonly ILog m_log
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private static readonly long ThreadTimeout = 30 * 10000000;
         public static List<ThreadTrackerItem> m_Threads;
         public static Thread ThreadTrackerThread;
