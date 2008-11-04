@@ -39,8 +39,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 {
     public class TextureDownloadModule : IRegionModule
     {
-        //private static readonly log4net.ILog m_log
-        //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// There is one queue for all textures waiting to be sent, regardless of the requesting user.
@@ -176,34 +176,44 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         {
             ITextureSender sender = null;
 
-            while (true)
+            try
             {
-                sender = m_queueSenders.Dequeue();
-
-                if (sender.Cancel)
+                while (true)
                 {
-                    TextureSent(sender);
+                    sender = m_queueSenders.Dequeue();
 
-                    sender.Cancel = false;
-                }
-                else
-                {
-                    bool finished = sender.SendTexturePacket();
-                    if (finished)
+                    if (sender.Cancel)
                     {
                         TextureSent(sender);
+
+                        sender.Cancel = false;
                     }
                     else
                     {
-                        m_queueSenders.Enqueue(sender);
+                        bool finished = sender.SendTexturePacket();
+                        if (finished)
+                        {
+                            TextureSent(sender);
+                        }
+                        else
+                        {
+                            m_queueSenders.Enqueue(sender);
+                        }
                     }
+
+                    // Make sure that any sender we currently have can get garbage collected
+                    sender = null;
+
+                    //m_log.InfoFormat("[TEXTURE] Texture sender queue size: {0}", m_queueSenders.Count());
                 }
-
-                // Make sure that any sender we currently have can get garbage collected
-                sender = null;
-
-                //m_log.InfoFormat("[TEXTURE] Texture sender queue size: {0}", m_queueSenders.Count());
             }
+            catch (Exception e)
+            {
+                // TODO: Let users in the sim and those entering it and possibly an external watchdog know what has happened
+                m_log.ErrorFormat(
+                    "[TEXTURE]: Texture send thread terminating with exception.  PLEASE REBOOT YOUR SIM - TEXTURES WILL NOT BE AVAILABLE UNTIL YOU DO.  Exception is {0}", 
+                    e);                
+            }            
         }
 
         /// <summary>

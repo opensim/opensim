@@ -371,7 +371,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void Reconnect()
         {
-
             m_log.DebugFormat("[IRC-Connector-{0}]: Reconnect request for {1} on {2}:{3}", idn, m_nick, m_server, m_ircChannel);
 
             // Don't do this if a Connect is in progress...
@@ -518,7 +517,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             }
 
             if (m_enabled) Reconnect();
-
         }
 
         private Regex RE = new Regex(@":(?<nick>[\w-]*)!(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)", 
