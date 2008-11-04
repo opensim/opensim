@@ -103,9 +103,13 @@ namespace OpenSim.Data.Tests
         //  - store / retrieve parts in a scenegroup 012
         //  - store a prim with complete information for consistency check 013
         //  - update existing prims, make sure it sticks - 014
-        //  - add inventory items to prims make - 015
-        //  - remove inventory items make sure it sticks - 016
-        //  - remove prim, make sure it sticks - 020
+        //  - tests empty inventory - 020
+        //  - add inventory items to prims make - 021
+        //  - retrieves the added item - 022
+        //  - update inventory items to prims - 023
+        //  - remove inventory items make sure it sticks - 024
+        //  - checks if all parameters are persistent - 025
+        //  - adds many items and see if it is handled correctly - 026
 
         [Test]
         public void T001_LoadEmpty()
@@ -502,9 +506,22 @@ namespace OpenSim.Data.Tests
 
             Assert.That(t.Name, Is.EqualTo(itemname1));
         }
+        
+        [Test]
+        public void T023_PrimInventoryUpdate()
+        {
+            SceneObjectGroup sog = FindSOG("object1", region1);
+            TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
+            
+            t.Name = "My New Name";
+            sog.UpdateInventoryItem(t);
+
+            Assert.That(t.Name, Is.EqualTo("My New Name"));
+
+        }
 
         [Test]
-        public void T022_PrimInvetoryRemove()
+        public void T024_PrimInventoryRemove()
         {
             List<TaskInventoryItem> list = new List<TaskInventoryItem>();
             db.StorePrimInventory(prim1, list);
@@ -512,6 +529,104 @@ namespace OpenSim.Data.Tests
             SceneObjectGroup sog = FindSOG("object1", region1);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t, Is.Null);
+        }
+        
+        [Test]
+        public void T025_PrimInventoryPersistency()
+        {
+            InventoryItemBase i = new InventoryItemBase();
+            UUID id = UUID.Random();
+            i.ID = id;            
+            UUID folder = UUID.Random();
+            i.Folder = folder;
+            UUID owner = UUID.Random();
+            i.Owner = owner;
+            UUID creator = UUID.Random();
+            i.Creator = creator;
+            string name = RandomName();
+            i.Name = name;
+            i.Description = name;
+            UUID assetid = UUID.Random();
+            i.AssetID = assetid;
+            int invtype = random.Next();
+            i.InvType = invtype;
+            uint nextperm = (uint) random.Next();
+            i.NextPermissions = nextperm;
+            uint curperm = (uint) random.Next();
+            i.CurrentPermissions = curperm;
+            uint baseperm = (uint) random.Next();            
+            i.BasePermissions = baseperm;
+            uint eoperm = (uint) random.Next();
+            i.EveryOnePermissions = eoperm;
+            int assettype = random.Next();
+            i.AssetType = assettype;
+            UUID groupid = UUID.Random();            
+            i.GroupID = groupid;
+            bool groupown = true;
+            i.GroupOwned = groupown;
+            int saleprice = random.Next();
+            i.SalePrice = saleprice;
+            byte saletype = (byte) random.Next(255);
+            i.SaleType = saletype;
+            uint flags = (uint) random.Next();
+            i.Flags = flags;
+            int creationd = random.Next();
+            i.CreationDate = creationd;
+            
+            SceneObjectGroup sog = FindSOG("object1", region1);
+            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, zero), Is.True);
+            TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, id);
+            
+            Assert.That(t.Name, Is.EqualTo(name));
+            Assert.That(t.AssetID,Is.EqualTo(assetid));
+            Assert.That(t.BasePermissions,Is.EqualTo(baseperm));
+            Assert.That(t.CreationDate,Is.EqualTo(creationd));
+            Assert.That(t.CreatorID,Is.EqualTo(creator));
+            Assert.That(t.Description,Is.EqualTo(name));
+            Assert.That(t.EveryonePermissions,Is.EqualTo(eoperm));
+            Assert.That(t.Flags,Is.EqualTo(flags));
+            Assert.That(t.GroupID,Is.EqualTo(sog.RootPart.GroupID));
+            // Where is this group permissions??
+            //Assert.That(t.GroupPermissions,Is.EqualTo());
+            Assert.That(t.InvType,Is.EqualTo(invtype));
+            Assert.That(t.ItemID,Is.EqualTo(id));
+            Assert.That(t.LastOwnerID, Is.EqualTo(sog.RootPart.LastOwnerID));
+            Assert.That(t.NextPermissions, Is.EqualTo(nextperm));
+            Assert.That(t.OwnerID,Is.EqualTo(owner));
+            Assert.That(t.CurrentPermissions, Is.EqualTo(curperm));
+            Assert.That(t.ParentID,Is.EqualTo(sog.RootPart.FolderID));
+            Assert.That(t.ParentPartID,Is.EqualTo(sog.RootPart.UUID));
+        }
+        
+        [Test]
+        [ExpectedException(typeof(System.ArgumentException))]
+        public void T026_PrimInventoryMany()
+        {
+            UUID i1,i2,i3,i4;
+            i1 = UUID.Random();
+            i2 = UUID.Random();
+            i3 = UUID.Random();
+            i4 = i3;
+            InventoryItemBase ib1 = NewItem(i1, zero, zero, RandomName(), zero);
+            InventoryItemBase ib2 = NewItem(i2, zero, zero, RandomName(), zero);
+            InventoryItemBase ib3 = NewItem(i3, zero, zero, RandomName(), zero);
+            InventoryItemBase ib4 = NewItem(i4, zero, zero, RandomName(), zero);
+            
+            SceneObjectGroup sog = FindSOG("object1", region1);
+
+            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib1, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib2, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib3, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib4, zero), Is.True);
+            
+            TaskInventoryItem t1 = sog.GetInventoryItem(sog.RootPart.LocalId, i1);
+            Assert.That(t1.Name, Is.EqualTo(ib1.Name));
+            TaskInventoryItem t2 = sog.GetInventoryItem(sog.RootPart.LocalId, i2);
+            Assert.That(t2.Name, Is.EqualTo(ib2.Name));
+            TaskInventoryItem t3 = sog.GetInventoryItem(sog.RootPart.LocalId, i3);
+            Assert.That(t3.Name, Is.EqualTo(ib3.Name));
+            TaskInventoryItem t4 = sog.GetInventoryItem(sog.RootPart.LocalId, i4);
+            Assert.That(t4, Is.Null);
         }
 
         [Test]
@@ -679,7 +794,6 @@ namespace OpenSim.Data.Tests
             sop.UUID = uuid;
             sop.Shape = PrimitiveBaseShape.Default;
             
-
             SceneObjectGroup sog = new SceneObjectGroup();
             sog.AddPart(sop);
             sog.RootPart = sop; 
