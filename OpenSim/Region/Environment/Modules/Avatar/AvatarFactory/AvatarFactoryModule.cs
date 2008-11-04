@@ -151,6 +151,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
             }
         }
 
+        /// <summary>
+        /// Update what the avatar is wearing using an item from their inventory.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
         {
             IClientAPI clientView = (IClientAPI)sender;
@@ -158,7 +163,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
             
             if (avatar == null) 
             {
-                m_log.Warn("[APPEARANCE]: Avatar is child agent, ignoring AvatarIsWearing event");
+                m_log.Error("[APPEARANCE]: Avatar is child agent, ignoring AvatarIsWearing event");
                 return;
             }
 
@@ -167,11 +172,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
             AvatarAppearance avatAppearance = null;
             if (!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) 
             {
-                m_log.Info("[APPEARANCE]: We didn't seem to find the appearance, falling back to ScenePresense");
+                m_log.Info("[APPEARANCE]: We didn't seem to find the appearance, falling back to ScenePresence");
                 avatAppearance = avatar.Appearance;
             }
             
-            m_log.Info("[APPEARANCE]: Calling Avatar is Wearing");
+            m_log.DebugFormat("[APPEARANCE]: Received wearables for {0}", clientView.Name);
             
             if (profile != null)
             {
@@ -192,8 +197,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
                 }
                 else
                 {
-                    m_log.Error("[APPEARANCE]: Root Profile is null, we can't set the appearance");
+                    m_log.WarnFormat(
+                        "[APPEARANCE]: Inventory has not yet been received for {0}, cannot set wearables", 
+                        clientView.Name);
                 }
+            }
+            else
+            {
+                m_log.WarnFormat("[APPEARANCE]: Cannot set wearables for {0}, no user profile found", clientView.Name);
             }
         }
 
