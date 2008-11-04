@@ -1929,18 +1929,24 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }
 
+        /// <summary>
+        /// Send appearance data to an agent that isn't this one.
+        /// </summary>
+        /// <param name="avatar"></param>
         public void SendAppearanceToOtherAgent(ScenePresence avatar)
         {
             avatar.ControllingClient.SendAppearance(
-                                                    m_appearance.Owner,
-                                                    m_appearance.VisualParams,
-                                                    m_appearance.Texture.ToBytes()
-                                                    );
+                m_appearance.Owner, m_appearance.VisualParams, m_appearance.Texture.ToBytes());
         }
 
+        /// <summary>
+        /// Set appearance data (textureentry and slider settings) received from the client
+        /// </summary>
+        /// <param name="texture"></param>
+        /// <param name="visualParam"></param>
         public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
-            m_log.DebugFormat("[APPEARANCE]: Setting appearance for {0}", Name);
+            m_log.DebugFormat("[APPEARANCE]: Receiving appearance for {0}", Name);
             
             m_appearance.SetAppearance(texture, visualParam);
             SetHeight(m_appearance.AvatarHeight);
