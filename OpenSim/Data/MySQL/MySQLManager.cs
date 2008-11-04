@@ -540,7 +540,7 @@ namespace OpenSim.Data.MySQL
                 retval.ID = id;
                 retval.FirstName = (string) reader["username"];
                 retval.SurName = (string) reader["lastname"];
-                retval.Email = (string) reader["email"];
+                retval.Email = (reader.IsDBNull(reader.GetOrdinal("email"))) ? "" : (string) reader["email"];
 
                 retval.PasswordHash = (string) reader["passwordHash"];
                 retval.PasswordSalt = (string) reader["passwordSalt"];

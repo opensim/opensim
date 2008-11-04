@@ -813,7 +813,8 @@ namespace OpenSim.Data.SQLite
             user.ID = tmp;
             user.FirstName = (String) row["username"];
             user.SurName = (String) row["surname"];
-            user.Email = (String) row["email"];
+            user.Email = (row.IsNull("email")) ? "" : (String) row["email"];
+
             user.PasswordHash = (String) row["passwordHash"];
             user.PasswordSalt = (String) row["passwordSalt"];
 
