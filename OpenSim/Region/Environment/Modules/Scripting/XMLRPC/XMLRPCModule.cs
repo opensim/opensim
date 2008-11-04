@@ -677,7 +677,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
                     }
                 }
             }
-            catch (WebException we)
+            catch (Exception we)
             {
                 sdata = we.Message;
                 m_log.Warn("[SendRemoteDataRequest]: Request failed");
