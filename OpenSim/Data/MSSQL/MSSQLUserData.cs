@@ -268,7 +268,7 @@ namespace OpenSim.Data.MSSQL
         {
             try
             {
-                InsertUserRow(user.ID, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
+                InsertUserRow(user.ID, user.FirstName, user.SurName, user.Email, user.PasswordHash, user.PasswordSalt,
                               user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y,
                               user.HomeLocation.Z,
                               user.HomeLookAt.X, user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created,
@@ -294,6 +294,7 @@ namespace OpenSim.Data.MSSQL
             using (AutoClosingSqlCommand command = database.Query("UPDATE " + m_usersTableName + " set UUID = @uuid, " +
                                                                   "username = @username, " +
                                                                   "lastname = @lastname," +
+                                                                  "email = @email," +
                                                                   "passwordHash = @passwordHash," +
                                                                   "passwordSalt = @passwordSalt," +
                                                                   "homeRegion = @homeRegion," +
@@ -324,6 +325,7 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(database.CreateParameter("uuid", user.ID));
                 command.Parameters.Add(database.CreateParameter("username", user.FirstName));
                 command.Parameters.Add(database.CreateParameter("lastname", user.SurName));
+                command.Parameters.Add(database.CreateParameter("email", user.Email));
                 command.Parameters.Add(database.CreateParameter("passwordHash", user.PasswordHash));
                 command.Parameters.Add(database.CreateParameter("passwordSalt", user.PasswordSalt));
                 command.Parameters.Add(database.CreateParameter("homeRegion", user.HomeRegion));
@@ -1135,7 +1137,7 @@ ELSE
         /// <param name="customType">unknown</param>
         /// <param name="partnerID">UUID of partner</param>
         /// <returns>Success?</returns>
-        private void InsertUserRow(UUID uuid, string username, string lastname, string passwordHash,
+        private void InsertUserRow(UUID uuid, string username, string lastname, string email, string passwordHash,
                                    string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
                                    float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
                                    string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
@@ -1144,13 +1146,13 @@ ELSE
                                    int godLevel, int userFlags, string customType, UUID partnerID)
         {
             string sql = "INSERT INTO " + m_usersTableName;
-            sql += " ([UUID], [username], [lastname], [passwordHash], [passwordSalt], [homeRegion], ";
+            sql += " ([UUID], [username], [lastname], [email], [passwordHash], [passwordSalt], [homeRegion], ";
             sql += "[homeLocationX], [homeLocationY], [homeLocationZ], [homeLookAtX], [homeLookAtY], [homeLookAtZ], [created], ";
             sql += "[lastLogin], [userInventoryURI], [userAssetURI], [profileCanDoMask], [profileWantDoMask], [profileAboutText], ";
             sql += "[profileFirstText], [profileImage], [profileFirstImage], [webLoginKey], ";
             sql += "[homeRegionID], [userFlags], [godLevel], [customType], [partner]) VALUES ";
 
-            sql += "(@UUID, @username, @lastname, @passwordHash, @passwordSalt, @homeRegion, ";
+            sql += "(@UUID, @username, @lastname, @email, @passwordHash, @passwordSalt, @homeRegion, ";
             sql += "@homeLocationX, @homeLocationY, @homeLocationZ, @homeLookAtX, @homeLookAtY, @homeLookAtZ, @created, ";
             sql += "@lastLogin, @userInventoryURI, @userAssetURI, @profileCanDoMask, @profileWantDoMask, @profileAboutText, ";
             sql += "@profileFirstText, @profileImage, @profileFirstImage, @webLoginKey, ";
@@ -1163,6 +1165,7 @@ ELSE
                     command.Parameters.Add(database.CreateParameter("UUID", uuid));
                     command.Parameters.Add(database.CreateParameter("username", username));
                     command.Parameters.Add(database.CreateParameter("lastname", lastname));
+                    command.Parameters.Add(database.CreateParameter("email", email));
                     command.Parameters.Add(database.CreateParameter("passwordHash", passwordHash));
                     command.Parameters.Add(database.CreateParameter("passwordSalt", passwordSalt));
                     command.Parameters.Add(database.CreateParameter("homeRegion", homeRegion));
