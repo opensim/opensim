@@ -160,6 +160,7 @@ namespace OpenSim.Region.Environment.Scenes
         private string m_sitName = String.Empty;
         private Quaternion m_sitTargetOrientation = Quaternion.Identity;
         private Vector3 m_sitTargetPosition = Vector3.Zero;
+        private string m_sitAnimation = "SIT";
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
         private readonly UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
@@ -1015,6 +1016,13 @@ if (m_shape != null) {
                 return _parentUUID;
             }
             set { _parentUUID = value; }
+        }
+
+        [XmlIgnore]
+        public string SitAnimation
+        {
+            get { return m_sitAnimation; }
+            set { m_sitAnimation = value; }
         }
 
         #endregion Public Properties with only Get

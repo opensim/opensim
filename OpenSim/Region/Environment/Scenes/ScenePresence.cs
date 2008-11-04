@@ -97,6 +97,8 @@ namespace OpenSim.Region.Environment.Scenes
         private uint m_requestedSitTargetID = 0;
         private UUID m_requestedSitTargetUUID = UUID.Zero;
 
+        private bool m_startAnimationSet = false;
+
         private Vector3 m_requestedSitOffset = new Vector3();
 
         private Vector3 m_LastFinitePos = new Vector3();
@@ -171,6 +173,8 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_autopilotMoving = false;
         private Vector3 m_autoPilotTarget = Vector3.Zero;
         private bool m_sitAtAutoTarget = false;
+
+        private string m_nextSitAnimation = String.Empty;
 
         // Agent's Draw distance.
         protected float m_DrawDistance = 0f;
@@ -1323,13 +1327,48 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 StandUp();
             }
+            m_nextSitAnimation = "SIT";
 
             //SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
-            SceneObjectPart part =  FindNextAvailableSitTarget(targetID);
+            SceneObjectPart part = FindNextAvailableSitTarget(targetID);
 
             if (part != null)
             {
+                if (!String.IsNullOrEmpty(part.SitAnimation))
+                {
+                    m_nextSitAnimation = part.SitAnimation;
+                }
                 m_requestedSitTargetID = part.LocalId;
+                m_requestedSitOffset = offset;
+            }
+            else
+            {
+                
+                m_log.Warn("Sit requested on unknown object: " + targetID.ToString());
+            }
+            SendSitResponse(remoteClient, targetID, offset);
+        }
+        
+        public void HandleAgentRequestSit(IClientAPI remoteClient, UUID agentID, UUID targetID, Vector3 offset, string sitAnimation)
+        {
+            if (m_parentID != 0)
+            {
+                StandUp();
+            }
+            if (!String.IsNullOrEmpty(sitAnimation))
+            {
+                m_nextSitAnimation = sitAnimation;
+            }
+            else
+            {
+                m_nextSitAnimation = "SIT";
+            }
+
+            //SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
+            SceneObjectPart part =  FindNextAvailableSitTarget(targetID);
+            if (part != null)
+            {
+                m_requestedSitTargetID = part.LocalId; 
                 m_requestedSitOffset = offset;
             }
             else
@@ -1340,6 +1379,18 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID)
+        {
+            if (!String.IsNullOrEmpty(m_nextSitAnimation))
+            {
+                HandleAgentSit(remoteClient, agentID, m_nextSitAnimation);
+            }
+            else
+            {
+                HandleAgentSit(remoteClient, agentID, "SIT");
+            }
+        }
+        
+        public void HandleAgentSit(IClientAPI remoteClient, UUID agentID, string sitAnimation)
         {
             SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
 
@@ -1381,7 +1432,7 @@ namespace OpenSim.Region.Environment.Scenes
             Velocity = new Vector3(0, 0, 0);
             RemoveFromPhysicalScene();
 
-            TrySetMovementAnimation("SIT");
+            TrySetMovementAnimation(sitAnimation);
             SendFullUpdateToAllClients();
             // This may seem stupid, but Our Full updates don't send avatar rotation :P
             // So we're also sending a terse update (which has avatar rotation)
@@ -1897,6 +1948,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             SendAppearanceToAllOtherAgents();
             SendWearables();
+            if (!m_startAnimationSet)
+            {
+                UpdateMovementAnimations();
+                m_startAnimationSet = true;
+            }
         }
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
