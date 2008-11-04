@@ -642,7 +642,7 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                dbm.Manager.insertUserRow(user.ID, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
+                dbm.Manager.insertUserRow(user.ID, user.FirstName, user.SurName, user.Email, user.PasswordHash, user.PasswordSalt,
                                           user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y,
                                           user.HomeLocation.Z,
                                           user.HomeLookAt.X, user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created,
@@ -697,7 +697,7 @@ namespace OpenSim.Data.MySQL
             MySQLSuperManager dbm = GetLockedConnection("UpdateUserProfile");
             try
             {
-                dbm.Manager.updateUserRow(user.ID, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
+                dbm.Manager.updateUserRow(user.ID, user.FirstName, user.SurName, user.Email, user.PasswordHash, user.PasswordSalt,
                                           user.HomeRegion, user.HomeRegionID, user.HomeLocation.X, user.HomeLocation.Y,
                                           user.HomeLocation.Z, user.HomeLookAt.X,
                                           user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created, user.LastLogin,

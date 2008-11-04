@@ -135,6 +135,9 @@ namespace OpenSim.Data.Tests
             Assert.That(user1,Is.EqualTo(u1a.ID));
             Assert.That(user2,Is.EqualTo(u2a.ID));
             Assert.That(user3,Is.EqualTo(u3a.ID));
+
+            // and one email test
+            Assert.That(u1.Email, Is.EqualTo(u1a.Email));
         }
         
         [Test]
@@ -296,7 +299,8 @@ namespace OpenSim.Data.Tests
             u.FirstName = fname;
             u.SurName = lname;
             u.PasswordHash = "NOTAHASH";
-            u.PasswordSalt = "NOTSALT";                     
+            u.PasswordSalt = "NOTSALT";               
+            u.Email = "nobody@nodomain.nocc";
             // MUST specify at least these 5 parameters or an exception is raised
 
             return u;

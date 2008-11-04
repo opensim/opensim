@@ -124,7 +124,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// A valid email address for the account.  Useful for password reset requests.
         /// </summary>
-        private string _email;
+        private string _email = String.Empty;
 
         /// <summary>
         /// A URI to the users asset server, used for foreigners and large grids.

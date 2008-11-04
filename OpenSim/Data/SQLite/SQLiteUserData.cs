@@ -710,6 +710,7 @@ namespace OpenSim.Data.SQLite
             SQLiteUtil.createCol(users, "UUID", typeof (String));
             SQLiteUtil.createCol(users, "username", typeof (String));
             SQLiteUtil.createCol(users, "surname", typeof (String));
+            SQLiteUtil.createCol(users, "email", typeof (String));
             SQLiteUtil.createCol(users, "passwordHash", typeof (String));
             SQLiteUtil.createCol(users, "passwordSalt", typeof (String));
 
@@ -812,6 +813,7 @@ namespace OpenSim.Data.SQLite
             user.ID = tmp;
             user.FirstName = (String) row["username"];
             user.SurName = (String) row["surname"];
+            user.Email = (String) row["email"];
             user.PasswordHash = (String) row["passwordHash"];
             user.PasswordSalt = (String) row["passwordSalt"];
 
@@ -864,6 +866,7 @@ namespace OpenSim.Data.SQLite
             row["UUID"] = Util.ToRawUuidString(user.ID);
             row["username"] = user.FirstName;
             row["surname"] = user.SurName;
+            row["email"] = user.Email;
             row["passwordHash"] = user.PasswordHash;
             row["passwordSalt"] = user.PasswordSalt;
 

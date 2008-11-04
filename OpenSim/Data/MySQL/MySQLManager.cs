@@ -540,6 +540,7 @@ namespace OpenSim.Data.MySQL
                 retval.ID = id;
                 retval.FirstName = (string) reader["username"];
                 retval.SurName = (string) reader["lastname"];
+                retval.Email = (string) reader["email"];
 
                 retval.PasswordHash = (string) reader["passwordHash"];
                 retval.PasswordSalt = (string) reader["passwordSalt"];
@@ -768,7 +769,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="firstImage">UUID for firstlife image</param>
         /// <param name="webLoginKey">Ignored</param>
         /// <returns>Success?</returns>
-        public bool insertUserRow(UUID uuid, string username, string lastname, string passwordHash,
+        public bool insertUserRow(UUID uuid, string username, string lastname, string email, string passwordHash,
                                   string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
                                   float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
                                   string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
@@ -777,14 +778,14 @@ namespace OpenSim.Data.MySQL
         {
             m_log.Debug("[MySQLManager]: Fetching profile for " + uuid.ToString());
             string sql =
-                "INSERT INTO users (`UUID`, `username`, `lastname`, `passwordHash`, `passwordSalt`, `homeRegion`, ";
+                "INSERT INTO users (`UUID`, `username`, `lastname`, `email`, `passwordHash`, `passwordSalt`, `homeRegion`, ";
             sql +=
                 "`homeLocationX`, `homeLocationY`, `homeLocationZ`, `homeLookAtX`, `homeLookAtY`, `homeLookAtZ`, `created`, ";
             sql +=
                 "`lastLogin`, `userInventoryURI`, `userAssetURI`, `profileCanDoMask`, `profileWantDoMask`, `profileAboutText`, ";
             sql += "`profileFirstText`, `profileImage`, `profileFirstImage`, `webLoginKey`, `userFlags`, `godLevel`, `customType`, `partner`) VALUES ";
 
-            sql += "(?UUID, ?username, ?lastname, ?passwordHash, ?passwordSalt, ?homeRegion, ";
+            sql += "(?UUID, ?username, ?lastname, ?email, ?passwordHash, ?passwordSalt, ?homeRegion, ";
             sql +=
                 "?homeLocationX, ?homeLocationY, ?homeLocationZ, ?homeLookAtX, ?homeLookAtY, ?homeLookAtZ, ?created, ";
             sql +=
@@ -793,10 +794,11 @@ namespace OpenSim.Data.MySQL
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters["?UUID"] = uuid.ToString();
-            parameters["?username"] = username.ToString();
-            parameters["?lastname"] = lastname.ToString();
-            parameters["?passwordHash"] = passwordHash.ToString();
-            parameters["?passwordSalt"] = passwordSalt.ToString();
+            parameters["?username"] = username;
+            parameters["?lastname"] = lastname;
+            parameters["?email"] = email;
+            parameters["?passwordHash"] = passwordHash;
+            parameters["?passwordSalt"] = passwordSalt;
             parameters["?homeRegion"] = homeRegion.ToString();
             parameters["?homeLocationX"] = homeLocX.ToString();
             parameters["?homeLocationY"] = homeLocY.ToString();
@@ -869,14 +871,14 @@ namespace OpenSim.Data.MySQL
         /// <param name="firstImage">UUID for firstlife image</param>
         /// <param name="webLoginKey">UUID for weblogin Key</param>
         /// <returns>Success?</returns>
-        public bool updateUserRow(UUID uuid, string username, string lastname, string passwordHash,
+        public bool updateUserRow(UUID uuid, string username, string lastname, string email, string passwordHash,
                                   string passwordSalt, UInt64 homeRegion, UUID homeRegionID, float homeLocX, float homeLocY, float homeLocZ,
                                   float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
                                   string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
                                   string aboutText, string firstText,
                                   UUID profileImage, UUID firstImage, UUID webLoginKey, int userFlags, int godLevel, string customType, UUID partner)
         {
-            string sql = "UPDATE users SET `username` = ?username , `lastname` = ?lastname ";
+            string sql = "UPDATE users SET `username` = ?username , `lastname` = ?lastname, `email` = ?email ";
             sql += ", `passwordHash` = ?passwordHash , `passwordSalt` = ?passwordSalt , ";
             sql += "`homeRegion` = ?homeRegion , `homeRegionID` = ?homeRegionID, `homeLocationX` = ?homeLocationX , ";
             sql += "`homeLocationY`  = ?homeLocationY , `homeLocationZ` = ?homeLocationZ , ";
@@ -892,10 +894,11 @@ namespace OpenSim.Data.MySQL
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters["?UUID"] = uuid.ToString();
-            parameters["?username"] = username.ToString();
-            parameters["?lastname"] = lastname.ToString();
-            parameters["?passwordHash"] = passwordHash.ToString();
-            parameters["?passwordSalt"] = passwordSalt.ToString();
+            parameters["?username"] = username;
+            parameters["?lastname"] = lastname;
+            parameters["?email"] = email;
+            parameters["?passwordHash"] = passwordHash;
+            parameters["?passwordSalt"] = passwordSalt;
             parameters["?homeRegion"] = homeRegion.ToString();
             parameters["?homeRegionID"] = homeRegionID.ToString();
             parameters["?homeLocationX"] = homeLocX.ToString();
