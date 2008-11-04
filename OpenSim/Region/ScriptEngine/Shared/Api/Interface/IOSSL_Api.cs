@@ -26,6 +26,11 @@
  */
 using System.Collections;
 using OpenSim.Region.ScriptEngine.Interfaces;
+
+using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
+
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
     public enum ThreatLevel
@@ -88,6 +93,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osGetSimulatorVersion();
         void osSetParcelMediaTime(double time);
         Hashtable osParseJSON(string JSON);
+        
+        void osMessageObject(key objectUUID,string message);
         
     }
 }

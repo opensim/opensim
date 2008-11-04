@@ -35,9 +35,9 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
 using integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
-using key = System.String;
 using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
@@ -230,6 +230,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public Hashtable osParseJSON(string JSON)
         {
             return m_OSSL_Functions.osParseJSON(JSON);
+        }
+    
+        public void osMessageObject(key objectUUID,string message)
+        {
+            m_OSSL_Functions.osMessageObject(objectUUID,message);
         }
 
         public OSSLPrim Prim;

@@ -31,6 +31,7 @@ using System.Runtime.Remoting.Lifetime;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -41,6 +42,13 @@ using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 
+using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
+using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
+using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
+using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
@@ -91,6 +99,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
     {
         internal IEventReceiver m_ScriptEngine;
+        internal ILSL_Api m_LSL_Api; // get a reference to the LSL API so we can call methods housed there
         internal SceneObjectPart m_host;
         internal uint m_localID;
         internal UUID m_itemID;
@@ -106,6 +115,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host = host;
             m_localID = localID;
             m_itemID = itemID;
+            
+            
 
             if (m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
                 m_OSFunctionsEnabled = true;
@@ -932,5 +943,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             return jsondata;                        
         }     
+        
+        // send a message to to object identified by the given UUID, a script in the object must implement the dataserver function
+	    // the dataserver function is passed the ID of the calling function and a string message
+	    public void osMessageObject(LSL_Key objectUUID,string message)
+	    {
+	        CheckThreatLevel(ThreatLevel.Low,"osMessageObject");
+	        m_host.AddScriptLPS(1);
+	        
+	        
+	        object[] resobj = new object[] { new LSL_Types.LSLString(m_host.UUID.ToString()),new LSL_Types.LSLString(message) };
+	        
+	        SceneObjectPart sceneOP = World.GetSceneObjectPart(new UUID(objectUUID));
+	        
+	        m_ScriptEngine.PostObjectEvent(
+	                                sceneOP.LocalId, new EventParams(
+	                                    "dataserver", resobj,
+	                                    new DetectParams[0]));
+	                      
+	    }
+        
     }
+    
+    
 }
