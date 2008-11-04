@@ -390,32 +390,40 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         /// </summary>
         public void process()
         {
-            while (true)
+            try
             {
-                MapRequestState st = requests.Dequeue();
-                
-                // end gracefully
-                if (st.agentID == UUID.Zero)
+                while (true)
                 {
-                    ThreadTracker.Remove(mapItemReqThread);
-                    break;
-                }
-                
-                bool dorequest = true;
-                lock (m_rootAgents)
-                {
-                    if (!m_rootAgents.Contains(st.agentID))
-                        dorequest = false;
-                }
+                    MapRequestState st = requests.Dequeue();
+                    
+                    // end gracefully
+                    if (st.agentID == UUID.Zero)
+                    {
+                        ThreadTracker.Remove(mapItemReqThread);
+                        break;
+                    }
+                    
+                    bool dorequest = true;
+                    lock (m_rootAgents)
+                    {
+                        if (!m_rootAgents.Contains(st.agentID))
+                            dorequest = false;
+                    }
 
-                if (dorequest)
-                {
-                    LLSDMap response = RequestMapItemsAsync("", st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
-                    RequestMapItemsCompleted(response);
+                    if (dorequest)
+                    {
+                        LLSDMap response = RequestMapItemsAsync("", st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
+                        RequestMapItemsCompleted(response);
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[WorldMap]: Map item request thread terminated abnormally with exception {0}", e);
+            }
+            
             threadrunning = false;
-            m_log.Warn("[WorldMap]: Remote request thread exiting");
+            m_log.Debug("[WorldMap]: Remote request thread exiting");
         }
 
         /// <summary>
