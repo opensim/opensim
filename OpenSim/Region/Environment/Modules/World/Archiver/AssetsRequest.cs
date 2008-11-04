@@ -25,15 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading;
+using OpenMetaverse;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using System.Collections.Generic;
-//using System.Reflection;
-using System.Threading;
-using OpenMetaverse;
-//using log4net;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
@@ -42,7 +43,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// </summary>
     class AssetsRequest
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// uuids to request
@@ -123,7 +124,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         protected void PerformAssetsRequestCallback()
         {
-            m_assetsRequestCallback(m_assets, m_notFoundAssetUuids);
+            try
+            {
+                m_assetsRequestCallback(m_assets, m_notFoundAssetUuids);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[ARCHIVER]: Terminating archive creation since asset requster callback failed with {0}", e);
+            }
         }
     }
 }
