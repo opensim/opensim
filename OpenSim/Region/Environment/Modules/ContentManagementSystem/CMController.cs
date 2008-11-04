@@ -162,43 +162,53 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         /// </summary>
         private void MainLoop()
         {
-            CMModel model = m_model; CMView view = m_view; int channel = m_channel;
-            Work currentJob = new Work();
-            while (true)
+            try
             {
-                currentJob = m_WorkQueue.Dequeue();
-                m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- DeQueued a request");
-                m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- Work type: " + currentJob.Type);
-                switch (currentJob.Type)
+                CMModel model = m_model; CMView view = m_view; int channel = m_channel;
+                Work currentJob = new Work();
+                while (true)
                 {
-                case WorkType.NONE:
-                    break;
-                case WorkType.OBJECTATTRIBUTECHANGE:
-                    ObjectAttributeChanged(model, view, currentJob.LocalId);
-                    break;
-                case WorkType.PRIMITIVEADDED:
-                    PrimitiveAdded(model, view, currentJob);
-                    break;
-                case WorkType.OBJECTDUPLICATED:
-                    ObjectDuplicated(model, view, currentJob.LocalId);
-                    break;
-                case WorkType.OBJECTKILLED:
-                    ObjectKilled(model, view, (SceneObjectGroup) currentJob.Data1);
-                    break;
-                case WorkType.UNDODID:
-                    UndoDid(model, view, currentJob.UUID);
-                    break;
-                case WorkType.NEWCLIENT:
-                    NewClient(view, (IClientAPI) currentJob.Data1);
-                    break;
-                case WorkType.SIMCHAT:
-                    m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- Message received:  " + ((OSChatMessage) currentJob.Data1).Message);
-                    SimChat(model, view, (OSChatMessage) currentJob.Data1, channel);
-                    break;
-                default:
-                    m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- uuuuuuuuuh, what?");
-                    break;
+                    currentJob = m_WorkQueue.Dequeue();
+                    m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- DeQueued a request");
+                    m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- Work type: " + currentJob.Type);
+                    switch (currentJob.Type)
+                    {
+                    case WorkType.NONE:
+                        break;
+                    case WorkType.OBJECTATTRIBUTECHANGE:
+                        ObjectAttributeChanged(model, view, currentJob.LocalId);
+                        break;
+                    case WorkType.PRIMITIVEADDED:
+                        PrimitiveAdded(model, view, currentJob);
+                        break;
+                    case WorkType.OBJECTDUPLICATED:
+                        ObjectDuplicated(model, view, currentJob.LocalId);
+                        break;
+                    case WorkType.OBJECTKILLED:
+                        ObjectKilled(model, view, (SceneObjectGroup) currentJob.Data1);
+                        break;
+                    case WorkType.UNDODID:
+                        UndoDid(model, view, currentJob.UUID);
+                        break;
+                    case WorkType.NEWCLIENT:
+                        NewClient(view, (IClientAPI) currentJob.Data1);
+                        break;
+                    case WorkType.SIMCHAT:
+                        m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- Message received:  " + ((OSChatMessage) currentJob.Data1).Message);
+                        SimChat(model, view, (OSChatMessage) currentJob.Data1, channel);
+                        break;
+                    default:
+                        m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- uuuuuuuuuh, what?");
+                        break;
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                // TODO: Let users in the sim and those entering it and possibly an external watchdog know what has happened
+                m_log.ErrorFormat(
+                    "[CONTENT MANAGEMENT]: Content management thread terminating with exception.  PLEASE REBOOT YOUR SIM - CONTENT MANAGEMENT WILL NOT BE AVAILABLE UNTIL YOU DO.  Exception is {0}", 
+                    e);                                   
             }
         }
 
