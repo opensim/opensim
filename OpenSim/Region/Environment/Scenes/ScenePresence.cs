@@ -1902,11 +1902,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.DebugFormat("[APPEARANCE]: Sending wearables to {0}", Name);
             
             ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
-            //ControllingClient.SendAppearance(
-            //                                 m_appearance.Owner,
-            //                                 m_appearance.VisualParams,
-            //                                 m_appearance.Texture.ToBytes()
-            // );
         }
 
         /// <summary>
@@ -1953,7 +1948,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
 
             SendAppearanceToAllOtherAgents();
-            SendWearables();
+            //SendWearables();
             if (!m_startAnimationSet)
             {
                 UpdateMovementAnimations();
