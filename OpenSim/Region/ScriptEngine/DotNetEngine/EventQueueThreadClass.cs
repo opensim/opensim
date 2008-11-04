@@ -211,6 +211,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             catch (ThreadAbortException)
             {
             }
+            catch (Exception e)
+            {
+                // TODO: Let users in the sim and those entering it and possibly an external watchdog know what has happened
+                if (lastScriptEngine != null)
+                    lastScriptEngine.Log.ErrorFormat(
+                        "[{0}]: Event queue thread terminating with exception.  PLEASE REBOOT YOUR SIM - SCRIPT EVENTS WILL NOT WORK UNTIL YOU DO.  Exception is {1}", 
+                        ScriptEngineName, e);                
+            }
         }
 
         public void DoProcessQueue()
