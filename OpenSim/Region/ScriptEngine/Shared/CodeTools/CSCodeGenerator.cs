@@ -985,7 +985,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private string CheckName(string s)
         {
             if (CSReservedWords.IsReservedWord(s))
-                return "_" + s;
+                return "@" + s;
             else
                 return s;
         }
