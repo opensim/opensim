@@ -206,7 +206,7 @@ namespace OpenSim.Data.Tests
         }
         
         [Test]
-        public void T013_DatabaseConsistency()
+        public void T013_DatabasePersistency()
         {
             // Sets all ScenePart parameters, stores and retrieves them, then check for consistency with initial data
             // The commented Asserts are the ones that are unchangeable (when storing on the database, their "Set" values are ignored
@@ -587,7 +587,7 @@ namespace OpenSim.Data.Tests
             Assert.That(t.Flags,Is.EqualTo(flags));
             Assert.That(t.GroupID,Is.EqualTo(sog.RootPart.GroupID));
             // Where is this group permissions??
-            //Assert.That(t.GroupPermissions,Is.EqualTo());
+            // Assert.That(t.GroupPermissions,Is.EqualTo());
             Assert.That(t.InvType,Is.EqualTo(invtype));
             Assert.That(t.ItemID,Is.EqualTo(id));
             Assert.That(t.LastOwnerID, Is.EqualTo(sog.RootPart.LastOwnerID));

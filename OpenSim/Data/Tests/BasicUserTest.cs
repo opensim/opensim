@@ -48,7 +48,7 @@ namespace OpenSim.Data.Tests
         public UUID user4;
         public UUID webkey;
         public UUID zero = UUID.Zero;
-        public Random random;
+        public static Random random;
 
         public UUID agent1;
         public UUID agent2;
@@ -87,14 +87,14 @@ namespace OpenSim.Data.Tests
             agent4 = UUID.Random();
             webkey = UUID.Random();
             region1 = UUID.Random();
-            fname0 = RandomName(random);
-            lname0 = RandomName(random);
-            fname1 = RandomName(random);
-            lname1 = RandomName(random);
-            fname2 = RandomName(random);
-            lname2 = RandomName(random);
-            fname3 = RandomName(random);
-            lname3 = RandomName(random);
+            fname0 = RandomName();
+            lname0 = RandomName();
+            fname1 = RandomName();
+            lname1 = RandomName();
+            fname2 = RandomName();
+            lname2 = RandomName();
+            fname3 = RandomName();
+            lname3 = RandomName();
         }
 
         [Test]
@@ -182,6 +182,96 @@ namespace OpenSim.Data.Tests
             Assert.That(db.GetUserByUUID(zero),Is.Null);
             Assert.That(db.GetUserByUUID(user4),Is.Null);
         }        
+        
+        [Test]
+        public void T015_UserPersistency()
+        {
+            UserProfileData u = new UserProfileData();
+            UUID id = UUID.Random();
+            string fname = RandomName();
+            string lname = RandomName();
+            string passhash =  RandomName();
+            string passsalt =  RandomName();
+            UUID homeregion = UUID.Random();
+            UUID webloginkey = UUID.Random();
+            uint homeregx = (uint) random.Next();
+            uint homeregy = (uint) random.Next();
+            Vector3 homeloc = new Vector3((float) random.NextDouble(),(float) random.NextDouble(),(float) random.NextDouble());
+            Vector3 homelookat = new Vector3((float)random.NextDouble(),(float)random.NextDouble(),(float)random.NextDouble());            
+            int created = random.Next();
+            int lastlogin = random.Next();
+            UUID rootinvfolder = UUID.Random();
+            string userinvuri = RandomName();
+            string userasseturi = RandomName();
+            uint candomask = (uint) random.Next();
+            uint wantdomask = (uint) random.Next();
+            string abouttext = RandomName();
+            string flabouttext = RandomName();
+            UUID image = UUID.Random();
+            UUID firstimage = UUID.Random();
+            UserAgentData agent = NewAgent(id,UUID.Random());
+            int userflags = random.Next();
+            int godlevel = random.Next();
+            string customtype = RandomName();
+            UUID partner = UUID.Random();
+            
+            u.ID = id;
+            u.WebLoginKey = webloginkey;
+            u.HomeRegionID = homeregion;
+            u.FirstName = fname;
+            u.SurName = lname;
+            u.PasswordHash = passhash;
+            u.PasswordSalt = passsalt;
+            u.HomeRegionX = homeregx;
+            u.HomeRegionY = homeregy;
+            u.HomeLocation = homeloc;
+            u.HomeLookAt = homelookat;
+            u.Created = created;
+            u.LastLogin = lastlogin;
+            u.RootInventoryFolderID = rootinvfolder;
+            u.UserInventoryURI = userinvuri;
+            u.UserAssetURI = userasseturi;
+            u.CanDoMask = candomask;
+            u.WantDoMask = wantdomask;
+            u.AboutText = abouttext;
+            u.FirstLifeAboutText = flabouttext;
+            u.Image = image;
+            u.FirstLifeImage = firstimage;
+            u.CurrentAgent = agent;
+            u.UserFlags = userflags;
+            u.GodLevel = godlevel;
+            u.CustomType = customtype;
+            u.Partner = partner;
+            
+            db.AddNewUserProfile(u);
+            UserProfileData u1a = db.GetUserByUUID(id);
+            Assert.That(u1a,Is.Not.Null);
+            Assert.That(homeregion,Is.EqualTo(u.HomeRegionID));
+            Assert.That(webloginkey,Is.EqualTo(u.WebLoginKey));
+            Assert.That(fname,Is.EqualTo(u.FirstName));
+            Assert.That(lname,Is.EqualTo(u.SurName));
+            Assert.That(passhash,Is.EqualTo(u.PasswordHash));
+            Assert.That(passsalt,Is.EqualTo(u.PasswordSalt));
+            Assert.That(homeregx,Is.EqualTo(u.HomeRegionX));
+            Assert.That(homeregy,Is.EqualTo(u.HomeRegionY));
+            Assert.That(homeloc,Is.EqualTo(u.HomeLocation));
+            Assert.That(homelookat,Is.EqualTo(u.HomeLookAt));
+            Assert.That(created,Is.EqualTo(u.Created));
+            Assert.That(lastlogin,Is.EqualTo(u.LastLogin));
+            Assert.That(rootinvfolder,Is.EqualTo(u.RootInventoryFolderID));
+            Assert.That(userinvuri,Is.EqualTo(u.UserInventoryURI));
+            Assert.That(userasseturi,Is.EqualTo(u.UserAssetURI));
+            Assert.That(candomask,Is.EqualTo(u.CanDoMask));
+            Assert.That(abouttext,Is.EqualTo(u.AboutText));
+            Assert.That(flabouttext,Is.EqualTo(u.FirstLifeAboutText));
+            Assert.That(image,Is.EqualTo(u.Image));
+            Assert.That(firstimage,Is.EqualTo(u.FirstLifeImage));
+            Assert.That(agent,Is.EqualTo(u.CurrentAgent));
+            Assert.That(userflags,Is.EqualTo(u.UserFlags));
+            Assert.That(godlevel,Is.EqualTo(u.GodLevel));
+            Assert.That(customtype,Is.EqualTo(u.CustomType));
+            Assert.That(partner,Is.EqualTo(u.Partner));
+        }
 
         [Test]
         public void T020_CreateAgent()
@@ -312,11 +402,11 @@ namespace OpenSim.Data.Tests
             a.ProfileID = user_profile;
             a.SessionID = agent;
             a.SecureSessionID = UUID.Random();
-            a.AgentIP = RandomName(random);
+            a.AgentIP = RandomName();
             return a;
         }
         
-        public static string RandomName(Random random)
+        public static string RandomName()
         {
             StringBuilder name = new StringBuilder();
             int size = random.Next(5,12); 
