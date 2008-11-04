@@ -122,6 +122,11 @@ namespace OpenSim.Framework
         private string _surname;
 
         /// <summary>
+        /// A valid email address for the account.  Useful for password reset requests.
+        /// </summary>
+        private string _email;
+
+        /// <summary>
         /// A URI to the users asset server, used for foreigners and large grids.
         /// </summary>
         private string _userAssetURI = String.Empty;
@@ -172,196 +177,202 @@ namespace OpenSim.Framework
         }
 
         // Property wrappers
-        public virtual UUID ID
+        public UUID ID
         {
             get { return _id; }
             set { _id = value; }
         }
 
-        public virtual UUID WebLoginKey
+        public UUID WebLoginKey
         {
             get { return _webLoginKey; }
             set { _webLoginKey = value; }
         }
 
-        public virtual string FirstName
+        public string FirstName
         {
             get { return _firstname; }
             set { _firstname = value; }
         }
 
-        public virtual string SurName
+        public string SurName
         {
             get { return _surname; }
             set { _surname = value; }
         }
 
-        public virtual string PasswordHash
+        public string Email
+        {
+            get { return _email; }
+            set { _email = value; }
+        }
+
+        public string PasswordHash
         {
             get { return _passwordHash; }
             set { _passwordHash = value; }
         }
 
-        public virtual string PasswordSalt
+        public string PasswordSalt
         {
             get { return _passwordSalt; }
             set { _passwordSalt = value; }
         }
 
-        public virtual uint HomeRegionX
+        public uint HomeRegionX
         {
             get { return _homeRegionX; }
             set { _homeRegionX = value; }
         }
 
-        public virtual uint HomeRegionY
+        public uint HomeRegionY
         {
             get { return _homeRegionY; }
             set { _homeRegionY = value; }
         }
 
-        public virtual Vector3 HomeLocation
+        public Vector3 HomeLocation
         {
             get { return _homeLocation; }
             set { _homeLocation = value; }
         }
 
         // for handy serialization
-        public virtual float HomeLocationX
+        public float HomeLocationX
         {
             get { return _homeLocation.X; }
             set { _homeLocation.X = value; }
         }
 
-        public virtual float HomeLocationY
+        public float HomeLocationY
         {
             get { return _homeLocation.Y; }
             set { _homeLocation.Y = value; }
         }
 
-        public virtual float HomeLocationZ
+        public float HomeLocationZ
         {
             get { return _homeLocation.Z; }
             set { _homeLocation.Z = value; }
         }
 
 
-        public virtual Vector3 HomeLookAt
+        public Vector3 HomeLookAt
         {
             get { return _homeLookAt; }
             set { _homeLookAt = value; }
         }
 
         // for handy serialization
-        public virtual float HomeLookAtX
+        public float HomeLookAtX
         {
             get { return _homeLookAt.X; }
             set { _homeLookAt.X = value; }
         }
 
-        public virtual float HomeLookAtY
+        public float HomeLookAtY
         {
             get { return _homeLookAt.Y; }
             set { _homeLookAt.Y = value; }
         }
 
-        public virtual float HomeLookAtZ
+        public float HomeLookAtZ
         {
             get { return _homeLookAt.Z; }
             set { _homeLookAt.Z = value; }
         }
 
-        public virtual int Created
+        public int Created
         {
             get { return _created; }
             set { _created = value; }
         }
 
-        public virtual int LastLogin
+        public int LastLogin
         {
             get { return _lastLogin; }
             set { _lastLogin = value; }
         }
 
-        public virtual UUID RootInventoryFolderID
+        public UUID RootInventoryFolderID
         {
             get { return _rootInventoryFolderID; }
             set { _rootInventoryFolderID = value; }
         }
 
-        public virtual string UserInventoryURI
+        public string UserInventoryURI
         {
             get { return _userInventoryURI; }
             set { _userInventoryURI = value; }
         }
 
-        public virtual string UserAssetURI
+        public string UserAssetURI
         {
             get { return _userAssetURI; }
             set { _userAssetURI = value; }
         }
 
-        public virtual uint CanDoMask
+        public uint CanDoMask
         {
             get { return _profileCanDoMask; }
             set { _profileCanDoMask = value; }
         }
 
-        public virtual uint WantDoMask
+        public uint WantDoMask
         {
             get { return _profileWantDoMask; }
             set { _profileWantDoMask = value; }
         }
 
-        public virtual string AboutText
+        public string AboutText
         {
             get { return _profileAboutText; }
             set { _profileAboutText = value; }
         }
 
-        public virtual string FirstLifeAboutText
+        public string FirstLifeAboutText
         {
             get { return _profileFirstText; }
             set { _profileFirstText = value; }
         }
 
-        public virtual UUID Image
+        public UUID Image
         {
             get { return _profileImage; }
             set { _profileImage = value; }
         }
 
-        public virtual UUID FirstLifeImage
+        public UUID FirstLifeImage
         {
             get { return _profileFirstImage; }
             set { _profileFirstImage = value; }
         }
 
-        public virtual UserAgentData CurrentAgent
+        public UserAgentData CurrentAgent
         {
             get { return _currentAgent; }
             set { _currentAgent = value; }
         }
 
-        public virtual int UserFlags
+        public int UserFlags
         {
             get { return _userFlags; }
             set { _userFlags = value; }
         }
 
-        public virtual int GodLevel
+        public int GodLevel
         {
             get { return _godLevel; }
             set { _godLevel = value; }
         }
 
-        public virtual string CustomType
+        public string CustomType
         {
             get { return _customType; }
             set { _customType = value; }
         }
 
-        public virtual UUID Partner
+        public UUID Partner
         {
             get { return _partner; }
             set { _partner = value; }
