@@ -753,7 +753,7 @@ namespace OpenSim.Region.Communications.OGS1
                     m_log.WarnFormat("[OGS1 USER SERVICES]: Contacting MessagingServer about user-regions resulted in error: {0}",
                                      respData == null ? "<unknown error>" : respData["faultMessage"]);
                 }
-                else if(!respData.ContainsKey("count"))
+                else if (!respData.ContainsKey("count"))
                 {
                     m_log.WarnFormat("[OGS1 USER SERVICES]: Wrong format in response for MessagingServer request get_presence_info_bulk: missing 'count' field");
                 }
@@ -763,7 +763,7 @@ namespace OpenSim.Region.Communications.OGS1
                     m_log.DebugFormat("[OGS1 USER SERVICES]: Request returned {0} results.", count);
                     for (int i = 0; i < count; ++i)
                     {
-                        if(respData.ContainsKey("uuid_" + i) && respData.ContainsKey("isOnline_" + i) && respData.ContainsKey("regionHandle_" + i))
+                        if (respData.ContainsKey("uuid_" + i) && respData.ContainsKey("isOnline_" + i) && respData.ContainsKey("regionHandle_" + i))
                         {
                             UUID uuid;
                             if (UUID.TryParse((string)respData["uuid_" + i], out uuid))
