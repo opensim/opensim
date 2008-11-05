@@ -127,7 +127,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             TotalThrottle 
                 = new LLPacketThrottle(
-                    totalThrottleSettings.Min, totalThrottleSettings.Max, totalThrottleSettings.Current, userSettings.ClientThrottleMultipler);
+                    totalThrottleSettings.Min, totalThrottleSettings.Max, totalThrottleSettings.Current,
+                    userSettings.ClientThrottleMultipler);
 
             throttleTimer = new Timer((int) (throttletimems/throttleTimeDivisor));
             throttleTimer.Elapsed += new ElapsedEventHandler(ThrottleTimerElapsed);

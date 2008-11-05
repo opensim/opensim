@@ -149,7 +149,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AssetCache assetCache, AgentCircuitManager circuitManager)
         {
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
-            userSettings.ClientThrottleMultipler = 8;
+            userSettings.ClientThrottleMultipler = 2;  // default.  TODO: Should be a constant somewhere
             
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             

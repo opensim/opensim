@@ -36,7 +36,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_currentBitsSent;
         
         /// <value>
-        /// Temporary field
+        /// Value with which to multiply all the throttle fields
         /// </value>
         private float m_throttleMultiplier;
 
@@ -47,8 +47,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="max"></param>
         /// <param name="throttle"></param>
         /// <param name="throttleMultiplier">
-        /// A temporary parameter that's ends up multiplying all throttle settings.  This only exists as a path to 
-        /// using real throttle values instead of the *8 multipler that we had been using (bytes instead of btis)
+        /// A parameter that's ends up multiplying all throttle settings.  An alternative solution would have been 
+        /// to multiply all the parameters by this before giving them to the constructor.  But doing it this way
+        /// represents the fact that the multiplier is a hack that pumps data to clients much faster than the actual
+        /// settings that we are given.
         /// </param>
         public LLPacketThrottle(int min, int max, int throttle, float throttleMultiplier)
         {
@@ -81,7 +83,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return m_currentBitsSent;
         }
 
-        // Properties
         public int Max
         {
             get { return m_maxAllowableThrottle; }

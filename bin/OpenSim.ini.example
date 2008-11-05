@@ -205,11 +205,24 @@ inventory_server_url = "http://127.0.0.1:8004"
 messaging_server_url = "http://127.0.0.1:8006"
 
 [ClientStack.LindenUDP]
-; Adjust the multiplier applied to all client throttles
-; This setting only exists because we're probably over throttling by a factor of 8.  Setting this to
-; 1 uses the real throttle values, but this may be revealing other bugs, so is currently included as test setting
-; You probably don't want to change this.
-client_throttle_multiplier = 8;
+; This is the multiplier applied to all client throttles for outgoing UDP network data
+; If it is set to 1, then we obey the throttle settings as given to us by the client.  If it is set to 3, for example, then we 
+; multiply that setting by 3 (e.g. if the client gives us a setting of 250 kilobits per second then we
+; will actually push down data at a maximum rate of 750 kilobits per second).
+; 
+; In principle, setting a multiplier greater than 1 will allow data to be pushed down to a client much faster
+; than its UI allows the setting to go.  This may be okay in some situations, such as standalone OpenSim
+; applications on a LAN.  However, the greater the multipler, the higher the risk of packet drop, resulting
+; in symptoms such as missing terrain or objects.  A much better solution is to change the client UI to allow
+; higher network bandwidth settings directly, though this isn't always possible.
+;
+; Currently this setting is 2 by default because we currently send much more texture data than is strictly
+; necessary.  A setting of 1 could result in slow texture transfer.  This will be fixed when the transfer
+; of textures at different levels of quality is improved.
+; 
+; Pre r7113, this setting was not exposed but was effectively 8.  You may want to try this if you encounter
+; unexpected difficulties
+client_throttle_multiplier = 2;
 
 [Chat]
 whisper_distance = 10
