@@ -121,6 +121,15 @@ namespace PrimMesher
             return (float)Math.Sqrt(this.X * this.X + this.Y * this.Y + this.Z * this.Z);
         }
 
+        public Coord Invert()
+        {
+            this.X = -this.X;
+            this.Y = -this.Y;
+            this.Z = -this.Z;
+
+            return this;
+        }
+
         public Coord Normalize()
         {
             const float MAG_THRESHOLD = 0.0000001f;
@@ -369,6 +378,14 @@ namespace PrimMesher
             new Angle(1.0f, 1.0f, 0.0f)
         };
 
+        private Coord[] normals3 =
+        {
+            new Coord(0.25f, 0.4330127019f, 0.0f).Normalize(),
+            new Coord(-0.5f, 0.0f, 0.0f).Normalize(),
+            new Coord(0.25f, -0.4330127019f, 0.0f).Normalize(),
+            new Coord(0.25f, 0.4330127019f, 0.0f).Normalize()
+        };
+
         private Angle[] angles4 =
         {
             new Angle(0.0f, 1.0f, 0.0f),
@@ -376,6 +393,15 @@ namespace PrimMesher
             new Angle(0.5f, -1.0f, 0.0f),
             new Angle(0.75f, 0.0f, -1.0f),
             new Angle(1.0f, 1.0f, 0.0f)
+        };
+
+        private Coord[] normals4 = 
+        {
+            new Coord(0.5f, 0.5f, 0.0f).Normalize(),
+            new Coord(-0.5f, 0.5f, 0.0f).Normalize(),
+            new Coord(-0.5f, -0.5f, 0.0f).Normalize(),
+            new Coord(0.5f, -0.5f, 0.0f).Normalize(),
+            new Coord(0.5f, 0.5f, 0.0f).Normalize()
         };
 
         private Angle[] angles24 =
@@ -427,10 +453,13 @@ namespace PrimMesher
         }
 
         internal List<Angle> angles;
+        internal List<Coord> normals;
 
         internal void makeAngles(int sides, float startAngle, float stopAngle)
         {
             angles = new List<Angle>();
+            normals = new List<Coord>();
+
             double twoPi = System.Math.PI * 2.0;
             float twoPiInv = 1.0f / (float)twoPi;
 
@@ -459,7 +488,13 @@ namespace PrimMesher
                     endAngleIndex++;
 
                 for (int angleIndex = startAngleIndex; angleIndex < endAngleIndex + 1; angleIndex++)
+                {
                     angles.Add(sourceAngles[angleIndex]);
+                    if (sides == 3)
+                        normals.Add(normals3[angleIndex]);
+                    else if (sides == 4)
+                        normals.Add(normals4[angleIndex]);
+                }
 
                 if (startAngle > 0.0f)
                     angles[0] = interpolatePoints(startAngle, angles[0], angles[1]);
@@ -639,8 +674,12 @@ namespace PrimMesher
                     hollowCoords.Add(newVert);
                     if (this.calcVertexNormals)
                     {
-                        hollowNormals.Add(new Coord(-angle.X, -angle.Y, 0.0f));
-                        hollowUs.Add(angle.angle);
+                        if (sides < 5)
+                            hollowNormals.Add(hollowAngles.normals[i].Invert());
+                        else
+                            hollowNormals.Add(new Coord(-angle.X, -angle.Y, 0.0f));
+
+                        hollowUs.Add(angle.angle * hollow);
                     }
                 }
             }
@@ -650,6 +689,7 @@ namespace PrimMesher
 
             for (int i = 0; i < numAngles; i++)
             {
+                int iNext = i == numAngles ? i + 1 : 0;
                 angle = angles.angles[i];
                 newVert.X = angle.X * xScale;
                 newVert.Y = angle.Y * yScale;
@@ -657,14 +697,18 @@ namespace PrimMesher
                 this.coords.Add(newVert);
                 if (this.calcVertexNormals)
                 {
-                    this.vertexNormals.Add(new Coord(angle.X, angle.Y, 0.0f));
+
                     if (sides < 5)
                     {
+                        this.vertexNormals.Add(angles.normals[i]);
                         float u = angle.angle;
                         this.us.Add(u);
                     }
                     else
+                    {
+                        this.vertexNormals.Add(new Coord(angle.X, angle.Y, 0.0f));
                         this.us.Add(angle.angle);
+                    }
                 }
 
                 if (hollow > 0.0f)
@@ -677,8 +721,15 @@ namespace PrimMesher
                         hollowCoords.Add(newVert);
                         if (this.calcVertexNormals)
                         {
-                            hollowNormals.Add(new Coord(-angle.X, -angle.Y, 0.0f));
-                            hollowUs.Add(angle.angle);
+                            if (sides < 5)
+                            {
+                                hollowNormals.Add(angles.normals[i].Invert());
+                            }
+
+                            else
+                                hollowNormals.Add(new Coord(-angle.X, -angle.Y, 0.0f));
+
+                            hollowUs.Add(angle.angle * hollow);
                         }
                     }
                 }
@@ -805,20 +856,22 @@ namespace PrimMesher
             {
                 if (hasHollow)
                 {
-                    this.cutNormal1.X = -this.vertexNormals[0].Y - this.vertexNormals[this.vertexNormals.Count - 1].Y;
-                    this.cutNormal1.Y = this.vertexNormals[0].X - this.vertexNormals[this.vertexNormals.Count - 1].X;
-
                     int lastOuterVertIndex = this.numOuterVerts - 1;
-                    this.cutNormal2.X = -this.vertexNormals[lastOuterVertIndex].Y - this.vertexNormals[lastOuterVertIndex + 1].Y;
-                    this.cutNormal2.Y = this.vertexNormals[lastOuterVertIndex].X - this.vertexNormals[lastOuterVertIndex + 1].X;
+
+                    this.cutNormal1.X = this.coords[0].Y - this.coords[this.coords.Count - 1].Y;
+                    this.cutNormal1.Y = -(this.coords[0].X - this.coords[this.coords.Count - 1].X);
+
+                    this.cutNormal2.X = this.coords[lastOuterVertIndex + 1].Y - this.coords[lastOuterVertIndex].Y;
+                    this.cutNormal2.Y = -(this.coords[lastOuterVertIndex + 1].X - this.coords[lastOuterVertIndex].X);
                 }
+
                 else
                 {
                     this.cutNormal1.X = this.vertexNormals[1].Y;
                     this.cutNormal1.Y = -this.vertexNormals[1].X;
 
-                    this.cutNormal2.X = -this.vertexNormals[this.vertexNormals.Count - 1].Y;
-                    this.cutNormal2.Y = this.vertexNormals[this.vertexNormals.Count - 1].X;
+                    this.cutNormal2.X = -this.vertexNormals[this.vertexNormals.Count - 2].Y;
+                    this.cutNormal2.Y = this.vertexNormals[this.vertexNormals.Count - 2].X;
 
                 }
                 this.cutNormal1.Normalize();
@@ -837,7 +890,7 @@ namespace PrimMesher
         {
             this.faceUVs = new List<UVCoord>();
             foreach (Coord c in this.coords)
-                this.faceUVs.Add(new UVCoord(0.5f + c.X, 0.5f - c.Y));
+                this.faceUVs.Add(new UVCoord(1.0f - (0.5f + c.X), 1.0f - (0.5f - c.Y)));
         }
 
         public Profile Clone()
@@ -963,7 +1016,7 @@ namespace PrimMesher
             for (i = 0; i < numfaceUVs; i++)
             {
                 UVCoord uv = this.faceUVs[i];
-                uv.U = 1.0f - uv.U;
+                uv.V = 1.0f - uv.V;
                 this.faceUVs[i] = uv;
             }
         }
@@ -1250,8 +1303,7 @@ namespace PrimMesher
                     if (this.viewerMode)
                     {
                         Coord faceNormal = newLayer.faceNormal;
-                        ViewerFace newViewerFace = new ViewerFace();
-                        newViewerFace.primFaceNumber = 0;
+                        ViewerFace newViewerFace = new ViewerFace(0);
                         foreach (Face face in newLayer.faces)
                         {
                             newViewerFace.v1 = newLayer.coords[face.v1];
@@ -1325,27 +1377,28 @@ namespace PrimMesher
                                 primFaceNum = 2;
                             ViewerFace newViewerFace1 = new ViewerFace(primFaceNum);
                             ViewerFace newViewerFace2 = new ViewerFace(primFaceNum);
+
                             float u1 = newLayer.us[whichVert];
                             float u2 = 1.0f;
                             if (whichVert < newLayer.us.Count - 1)
                                 u2 = newLayer.us[whichVert + 1];
-                            int whichOuterVert = (hasProfileCut && hasHollow) ? whichVert - 1 : whichVert;
-                            if (sides < 5 && whichOuterVert < sides)
-                            {
-                                u1 *= sides;
-                                u2 *= sides;
-                                u1 -= whichOuterVert;
-                                u2 -= whichOuterVert;
-                                if (u2 < 0.1f)
-                                    u2 = 1.0f;
-
-                                newViewerFace2.primFaceNumber = newViewerFace1.primFaceNumber = whichVert + 1;
-                            }
 
                             if (whichVert == cut1Vert || whichVert == cut2Vert)
                             {
                                 u1 = 0.0f;
                                 u2 = 1.0f;
+                            }
+                            else if (sides < 5)
+                            { // boxes and prisms have one texture face per side of the prim, so the U values have to be scaled
+                                // to reflect the entire texture width
+                                u1 *= sides;
+                                u2 *= sides;
+                                u2 -= (int)u1;
+                                u1 -= (int)u1;
+                                if (u2 < 0.1f)
+                                    u2 = 1.0f;
+
+                                newViewerFace2.primFaceNumber = newViewerFace1.primFaceNumber = whichVert + 1;
                             }
 
                             newViewerFace1.uv1.U = u1;
@@ -1375,27 +1428,24 @@ namespace PrimMesher
                             // profile cut faces
                             if (whichVert == cut1Vert)
                             {
+                                newViewerFace1.n1 = newLayer.cutNormal1;
+                                newViewerFace1.n2 = newViewerFace1.n3 = lastCutNormal1;
 
-                                newViewerFace1.n2 = newViewerFace1.n1 = lastCutNormal1;
-                                newViewerFace1.n3 = newLayer.cutNormal1;
-
-                                newViewerFace2.n3 = newViewerFace2.n1 = newLayer.cutNormal1;
+                                newViewerFace2.n1 = newViewerFace2.n3 = newLayer.cutNormal1;
                                 newViewerFace2.n2 = lastCutNormal1;
                             }
                             else if (whichVert == cut2Vert)
                             {
+                                newViewerFace1.n1 = newLayer.cutNormal2;
+                                newViewerFace1.n2 = newViewerFace1.n3 = lastCutNormal2;
 
-                                newViewerFace1.n2 = newViewerFace1.n1 = lastCutNormal2;
-                                newViewerFace1.n3 = newLayer.cutNormal2;
-
-                                newViewerFace2.n3 = newViewerFace2.n1 = newLayer.cutNormal2;
+                                newViewerFace2.n1 = newViewerFace2.n3 = newLayer.cutNormal2;
                                 newViewerFace2.n2 = lastCutNormal2;
                             }
 
                             else // outer and hollow faces
                             {
-                                //if ((sides < 5 && whichVert < newLayer.numOuterVerts) || (hollowSides < 5 && whichVert >= newLayer.numOuterVerts))
-                                if (sides < 5)
+                                if ((sides < 5 && whichVert < newLayer.numOuterVerts) || (hollowSides < 5 && whichVert >= newLayer.numOuterVerts))
                                 {
                                     newViewerFace1.CalcSurfaceNormal();
                                     newViewerFace2.CalcSurfaceNormal();
@@ -1727,6 +1777,18 @@ namespace PrimMesher
                                 u1 = 0.0f;
                                 u2 = 1.0f;
                             }
+                            else if (sides < 5)
+                            { // boxes and prisms have one texture face per side of the prim, so the U values have to be scaled
+                                // to reflect the entire texture width
+                                u1 *= sides;
+                                u2 *= sides;
+                                u2 -= (int)u1;
+                                u1 -= (int)u1;
+                                if (u2 < 0.1f)
+                                    u2 = 1.0f;
+
+                                newViewerFace2.primFaceNumber = newViewerFace1.primFaceNumber = whichVert + 1;
+                            }
 
                             newViewerFace1.uv1.U = u1;
                             newViewerFace1.uv2.U = u1;
@@ -1752,32 +1814,44 @@ namespace PrimMesher
                             newViewerFace2.v2 = this.coords[iNext - numVerts];
                             newViewerFace2.v3 = this.coords[iNext];
 
+                            // profile cut faces
                             if (whichVert == cut1Vert)
                             {
+                                newViewerFace1.n1 = newLayer.cutNormal1;
+                                newViewerFace1.n2 = newViewerFace1.n3 = lastCutNormal1;
 
-                                newViewerFace1.n2 = newViewerFace1.n1 = lastCutNormal1;
-                                newViewerFace1.n3 = newLayer.cutNormal1;
-
-                                newViewerFace2.n3 = newViewerFace2.n1 = newLayer.cutNormal1;
+                                newViewerFace2.n1 = newViewerFace2.n3 = newLayer.cutNormal1;
                                 newViewerFace2.n2 = lastCutNormal1;
                             }
                             else if (whichVert == cut2Vert)
                             {
+                                newViewerFace1.n1 = newLayer.cutNormal2;
+                                newViewerFace1.n2 = newViewerFace1.n3 = lastCutNormal2;
 
-                                newViewerFace1.n2 = newViewerFace1.n1 = lastCutNormal2;
-                                newViewerFace1.n3 = newLayer.cutNormal2;
-
-                                newViewerFace2.n3 = newViewerFace2.n1 = newLayer.cutNormal2;
+                                newViewerFace2.n1 = newViewerFace2.n3 = newLayer.cutNormal2;
                                 newViewerFace2.n2 = lastCutNormal2;
                             }
-
                             else // periphery faces
                             {
-                                //if ((sides < 5 && whichVert < newLayer.numOuterVerts) || (hollowSides < 5 && whichVert >= newLayer.numOuterVerts))
-                                if (sides < 5)
+                                if (sides < 5 && whichVert < newLayer.numOuterVerts)
                                 {
-                                    newViewerFace1.CalcSurfaceNormal();
-                                    newViewerFace2.CalcSurfaceNormal();
+                                    newViewerFace1.n1 = this.normals[i];
+                                    newViewerFace1.n2 = this.normals[i - numVerts];
+                                    newViewerFace1.n3 = this.normals[i - numVerts];
+
+                                    newViewerFace2.n1 = this.normals[i];
+                                    newViewerFace2.n2 = this.normals[i - numVerts];
+                                    newViewerFace2.n3 = this.normals[i];
+                                }
+                                else if (hollowSides < 5 && whichVert >= newLayer.numOuterVerts)
+                                {
+                                    newViewerFace1.n1 = this.normals[iNext];
+                                    newViewerFace1.n2 = this.normals[iNext - numVerts];
+                                    newViewerFace1.n3 = this.normals[iNext - numVerts];
+
+                                    newViewerFace2.n1 = this.normals[iNext];
+                                    newViewerFace2.n2 = this.normals[iNext - numVerts];
+                                    newViewerFace2.n3 = this.normals[iNext];
                                 }
                                 else
                                 {
