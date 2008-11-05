@@ -126,6 +126,9 @@ namespace OpenSim.Data.Tests
             UserProfileData u1 = NewUser(user1,fname1,lname1);
             UserProfileData u2 = NewUser(user2,fname2,lname2);
             UserProfileData u3 = NewUser(user3,fname3,lname3);
+            // this is used to check whether null works here
+            u3.Email = null;
+
             db.AddNewUserProfile(u1);
             db.AddNewUserProfile(u2);
             db.AddNewUserProfile(u3);
@@ -138,6 +141,7 @@ namespace OpenSim.Data.Tests
 
             // and one email test
             Assert.That(u1.Email, Is.EqualTo(u1a.Email));
+            Assert.That(u3.Email, Is.Null);
         }
         
         [Test]
