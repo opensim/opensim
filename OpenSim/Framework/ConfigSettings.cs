@@ -148,5 +148,13 @@ namespace OpenSim.Framework
             get { return m_estateConnectionString; }
             set { m_estateConnectionString = value; }
         }
+
+        protected bool m_dumpAssetsToFile;
+
+        public bool DumpAssetsToFile
+        {
+            get { return m_dumpAssetsToFile; }
+            set { m_dumpAssetsToFile = value; }
+        }
     }
 }

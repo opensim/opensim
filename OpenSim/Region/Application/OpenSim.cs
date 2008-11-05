@@ -67,7 +67,7 @@ namespace OpenSim
         {
         }
 
-        protected override void ReadConfigSettings()
+        protected override void ReadExtraConfigSettings()
         {
             IConfig startupConfig = m_config.Source.Configs["Startup"];
 
@@ -78,7 +78,6 @@ namespace OpenSim
 
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
             }
-            base.ReadConfigSettings();
         }
 
         /// <summary>
