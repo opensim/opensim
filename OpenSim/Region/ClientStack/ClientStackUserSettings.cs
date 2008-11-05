@@ -41,9 +41,8 @@ namespace OpenSim.Region.ClientStack
         public ThrottleSettings TotalThrottleSettings;
         
         /// <summary>
-        /// A multiplier applied to all client throttle settings.  This is hopefully a temporary setting to iron out
-        /// bugs that appear if the existing incorrect * 8 throttle (bytes instead of bits) is corrected.
+        /// A multiplier applied to all client throttle settings.  Default value is x2 (temporarily)
         /// </summary>
-        public float ClientThrottleMultipler;
+        public float ClientThrottleMultipler = 2;
     }
 }

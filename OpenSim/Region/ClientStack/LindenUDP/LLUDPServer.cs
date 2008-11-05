@@ -149,16 +149,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AssetCache assetCache, AgentCircuitManager circuitManager)
         {
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
-            userSettings.ClientThrottleMultipler = 2;  // default.  TODO: Should be a constant somewhere
             
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             
             if (config != null)
             {
-                userSettings.ClientThrottleMultipler = config.GetFloat("client_throttle_multiplier"); 
+                if (config.Contains("client_throttle_multiplier"))
+                    userSettings.ClientThrottleMultipler = config.GetFloat("client_throttle_multiplier"); 
             }   
             
-            //m_log.DebugFormat("[CLIENT]: client_throttle_multiplier = {0}", userSettings.ClientThrottleMultipler);
+            m_log.DebugFormat("[CLIENT]: client_throttle_multiplier = {0}", userSettings.ClientThrottleMultipler);
                 
             proxyPortOffset = proxyPortOffsetParm;
             listenPort = (uint) (port + proxyPortOffsetParm);
