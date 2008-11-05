@@ -209,7 +209,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="assetId"></param>
         /// <param name="asset"></param>
         /// <returns>true if the asset was in the cache, false if it was not</returns>
-        private bool TryGetCachedAsset(UUID assetId, out AssetBase asset)
+        public bool TryGetCachedAsset(UUID assetId, out AssetBase asset)
         {
             if (Textures.ContainsKey(assetId))
             {
