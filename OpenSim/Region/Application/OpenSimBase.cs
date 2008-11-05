@@ -286,9 +286,9 @@ namespace OpenSim
                     Console.WriteLine("WARNING: OpenSim.DataStore.MonoSqlite.dll is deprecated. Set storage_plugin to OpenSim.Data.SQLite.dll.");
                     Thread.Sleep(3000);
                 }
-                
-                m_storageConnectionString  = startupConfig.GetString("storage_connection_string");
-                m_estateConnectionString = startupConfig.GetString("estate_connection_string", m_storageConnectionString);
+
+                m_configSettings.StorageConnectionString = startupConfig.GetString("storage_connection_string");
+                m_configSettings.EstateConnectionString = startupConfig.GetString("estate_connection_string", m_configSettings.StorageConnectionString);
                 m_configSettings.AssetStorage = startupConfig.GetString("asset_database");
                 m_configSettings.ClientstackDll = startupConfig.GetString("clientstack_plugin");
             }
@@ -589,9 +589,14 @@ namespace OpenSim
             Scene target;
             if (m_sceneManager.TryGetScene(name, out target))
                 RemoveRegion(target, cleanUp);
-        } 
+        }
 
-        protected override StorageManager CreateStorageManager(string connectionstring, string estateconnectionstring)
+        protected override StorageManager CreateStorageManager()
+        {
+            return CreateStorageManager(m_configSettings.StorageConnectionString, m_configSettings.EstateConnectionString);
+        }
+
+        protected StorageManager CreateStorageManager(string connectionstring, string estateconnectionstring)
         {
             return new StorageManager(m_configSettings.StorageDll, connectionstring, estateconnectionstring);
         }

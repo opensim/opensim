@@ -132,5 +132,21 @@ namespace OpenSim.Framework
             get { return m_assetStorage; }
             set { m_assetStorage = value; }
         }
+
+        protected string m_storageConnectionString;
+
+        public string StorageConnectionString
+        {
+            get { return m_storageConnectionString; }
+            set { m_storageConnectionString = value; }
+        }
+
+        protected string m_estateConnectionString;
+
+        public string EstateConnectionString
+        {
+            get { return m_estateConnectionString; }
+            set { m_estateConnectionString = value; }
+        }
     }
 }

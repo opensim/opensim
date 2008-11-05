@@ -61,9 +61,7 @@ namespace OpenSim.Region.ClientStack
         protected SceneManager m_sceneManager = new SceneManager();
 
         protected StorageManager m_storageManager;
-        protected string m_storageConnectionString;
-        protected string m_estateConnectionString;
-
+        
         protected ClientStackManager m_clientStackManager;
 
         public SceneManager SceneManager
@@ -73,14 +71,14 @@ namespace OpenSim.Region.ClientStack
         
         protected abstract void Initialize();
         protected abstract PhysicsScene GetPhysicsScene();
-        protected abstract StorageManager CreateStorageManager(string connectionstring, string estateconnectionstring);
+        protected abstract StorageManager CreateStorageManager();
         protected abstract ClientStackManager CreateClientStackManager();
         protected abstract Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
                                              AgentCircuitManager circuitManager);        
 
         protected override void StartupSpecific()
         {
-            m_storageManager = CreateStorageManager(m_storageConnectionString, m_estateConnectionString);
+            m_storageManager = CreateStorageManager();
 
             m_clientStackManager = CreateClientStackManager();
 
