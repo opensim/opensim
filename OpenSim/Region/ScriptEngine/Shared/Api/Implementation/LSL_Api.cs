@@ -3486,14 +3486,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence presence = World.GetScenePresence(avatar);
             if (m_host.RegionHandle == presence.RegionHandle)
             {
-                Dictionary<UUID, string> animationNames = AnimationSet.Animations.AnimsNames;
+                Dictionary<UUID, string> animationstateNames = AnimationSet.Animations.AnimStateNames;
 
                 if (presence != null)
                 {
                     AnimationSet currentAnims = presence.Animations;
-                    string currentAnimation = String.Empty;
-                    if (animationNames.TryGetValue(currentAnims.DefaultAnimation.AnimID, out currentAnimation))
-                        return currentAnimation;
+                    string currentAnimationState = String.Empty;
+                    if (animationstateNames.TryGetValue(currentAnims.DefaultAnimation.AnimID, out currentAnimationState))
+                        return currentAnimationState;
                 }
             }
             return String.Empty;
