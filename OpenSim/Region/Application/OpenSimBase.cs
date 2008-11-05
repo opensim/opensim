@@ -271,7 +271,7 @@ namespace OpenSim
 
             if (startupConfig != null)
             {
-                m_configSettings.Sandbox = !startupConfig.GetBoolean("gridmode");
+                m_configSettings.Standalone = !startupConfig.GetBoolean("gridmode");
                m_configSettings.PhysicsEngine = startupConfig.GetString("physics");
                m_configSettings.MeshEngineName = startupConfig.GetString("meshing");
 
@@ -333,44 +333,10 @@ namespace OpenSim
             
             LibraryRootFolder libraryRootFolder = new LibraryRootFolder();
 
-            // StandAlone mode? m_sandbox is determined by !startupConfig.GetBoolean("gridmode", false)
-            if (m_configSettings.Sandbox)
+            // StandAlone mode? is determined by !startupConfig.GetBoolean("gridmode", false)
+            if (m_configSettings.Standalone)
             {
-                LocalInventoryService inventoryService = new LocalInventoryService();
-                inventoryService.AddPlugin(m_configSettings.StandaloneInventoryPlugin, m_configSettings.StandaloneInventorySource);
-
-                LocalUserServices userService =
-                    new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
-                                          m_networkServersInfo.DefaultHomeLocY, inventoryService);
-                userService.AddPlugin(m_configSettings.StandaloneUserPlugin, m_configSettings.StandaloneUserSource);                
-
-                LocalBackEndServices backendService = new LocalBackEndServices();
-                
-                LocalLoginService loginService =
-                    new LocalLoginService(
-                        userService, m_configSettings.StandaloneWelcomeMessage, inventoryService, backendService, m_networkServersInfo,
-                        m_configSettings.StandaloneAuthenticate, libraryRootFolder);              
-                
-                m_commsManager 
-                    = new CommunicationsLocal(
-                        m_networkServersInfo, m_httpServer, m_assetCache, userService, userService,
-                        inventoryService, backendService, backendService, userService,
-                        libraryRootFolder, m_dumpAssetsToFile);  
-
-                // set up XMLRPC handler for client's initial login request message
-                m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
-
-                // provides the web form login
-                m_httpServer.AddHTTPHandler("login", loginService.ProcessHTMLLogin);
-
-                // Provides the LLSD login
-                m_httpServer.SetDefaultLLSDHandler(loginService.LLSDLoginMethod);
-
-                // provide grid info
-                // m_gridInfoService = new GridInfoService(m_config.Source.Configs["Startup"].GetString("inifile", Path.Combine(Util.configDir(), "OpenSim.ini")));
-                m_gridInfoService = new GridInfoService(m_config.Source);
-                m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
-                m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
+                InitialiseStandaloneServices(libraryRootFolder);
             }
             else
             {
@@ -393,6 +359,49 @@ namespace OpenSim
             m_commsManager.GridService.RegionLoginsEnabled = true;
         }
 
+        /// <summary>
+        /// Initialises the backend services for standalone mode, and registers some http handlers
+        /// </summary>
+        /// <param name="libraryRootFolder"></param>
+        protected void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
+        {
+            LocalInventoryService inventoryService = new LocalInventoryService();
+            inventoryService.AddPlugin(m_configSettings.StandaloneInventoryPlugin, m_configSettings.StandaloneInventorySource);
+
+            LocalUserServices userService =
+                new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
+                                      m_networkServersInfo.DefaultHomeLocY, inventoryService);
+            userService.AddPlugin(m_configSettings.StandaloneUserPlugin, m_configSettings.StandaloneUserSource);
+
+            LocalBackEndServices backendService = new LocalBackEndServices();
+
+            LocalLoginService loginService =
+                new LocalLoginService(
+                    userService, m_configSettings.StandaloneWelcomeMessage, inventoryService, backendService, m_networkServersInfo,
+                    m_configSettings.StandaloneAuthenticate, libraryRootFolder);
+
+            m_commsManager
+                = new CommunicationsLocal(
+                    m_networkServersInfo, m_httpServer, m_assetCache, userService, userService,
+                    inventoryService, backendService, backendService, userService,
+                    libraryRootFolder, m_dumpAssetsToFile);
+
+            // set up XMLRPC handler for client's initial login request message
+            m_httpServer.AddXmlRPCHandler("login_to_simulator", loginService.XmlRpcLoginMethod);
+
+            // provides the web form login
+            m_httpServer.AddHTTPHandler("login", loginService.ProcessHTMLLogin);
+
+            // Provides the LLSD login
+            m_httpServer.SetDefaultLLSDHandler(loginService.LLSDLoginMethod);
+
+            // provide grid info
+            // m_gridInfoService = new GridInfoService(m_config.Source.Configs["Startup"].GetString("inifile", Path.Combine(Util.configDir(), "OpenSim.ini")));
+            m_gridInfoService = new GridInfoService(m_config.Source);
+            m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
+            m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
+        }
+
         protected override void Initialize()
         {
             //
@@ -401,6 +410,16 @@ namespace OpenSim
 
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
 
+            InitialiseAssetCache();
+
+            m_sceneManager.OnRestartSim += handleRestartRegion;
+        }
+
+        /// <summary>
+        /// Initialises the assetcache
+        /// </summary>
+        protected void InitialiseAssetCache()
+        {
             IAssetServer assetServer;
             if (m_configSettings.AssetStorage == "grid")
             {
@@ -428,8 +447,6 @@ namespace OpenSim
             }
 
             m_assetCache = new AssetCache(assetServer);
-
-            m_sceneManager.OnRestartSim += handleRestartRegion;
         }
 
         public UUID CreateUser(string tempfirstname, string templastname, string tempPasswd, uint regX, uint regY)

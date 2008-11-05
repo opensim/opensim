@@ -21,12 +21,12 @@ namespace OpenSim.Framework
             set { m_meshEngineName = value; }
         }
 
-        private bool m_sandbox;
+        private bool m_standalone;
 
-        public bool Sandbox
+        public bool Standalone
         {
-            get { return m_sandbox; }
-            set { m_sandbox = value; }
+            get { return m_standalone; }
+            set { m_standalone = value; }
         }
 
         private bool m_see_into_region_from_neighbor;
