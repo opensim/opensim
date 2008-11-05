@@ -945,25 +945,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }     
         
         // send a message to to object identified by the given UUID, a script in the object must implement the dataserver function
-	    // the dataserver function is passed the ID of the calling function and a string message
-	    public void osMessageObject(LSL_Key objectUUID,string message)
-	    {
-	        CheckThreatLevel(ThreatLevel.Low,"osMessageObject");
-	        m_host.AddScriptLPS(1);
-	        
-	        
-	        object[] resobj = new object[] { new LSL_Types.LSLString(m_host.UUID.ToString()),new LSL_Types.LSLString(message) };
-	        
-	        SceneObjectPart sceneOP = World.GetSceneObjectPart(new UUID(objectUUID));
-	        
-	        m_ScriptEngine.PostObjectEvent(
-	                                sceneOP.LocalId, new EventParams(
-	                                    "dataserver", resobj,
-	                                    new DetectParams[0]));
-	                      
-	    }
-        
+        // the dataserver function is passed the ID of the calling function and a string message
+        public void osMessageObject(LSL_Key objectUUID, string message)
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osMessageObject");
+            m_host.AddScriptLPS(1);
+            
+            object[] resobj = new object[] { new LSL_Types.LSLString(m_host.UUID.ToString()), new LSL_Types.LSLString(message) };
+            
+            SceneObjectPart sceneOP = World.GetSceneObjectPart(new UUID(objectUUID));
+            
+            m_ScriptEngine.PostObjectEvent(
+                sceneOP.LocalId, new EventParams(
+                    "dataserver", resobj, new DetectParams[0]));
+        }
     }
-    
-    
 }
