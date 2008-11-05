@@ -3482,7 +3482,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // This should only return a value if the avatar is in the same region
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetAnimation");
+            UUID avatar = (UUID)id;
+            ScenePresence presence = World.GetScenePresence(avatar);
+            if (m_host.RegionHandle == presence.RegionHandle)
+            {
+                Dictionary<UUID, string> animationNames = AnimationSet.Animations.AnimsNames;
+
+                if (presence != null)
+                {
+                    AnimationSet currentAnims = presence.Animations;
+                    string currentAnimation = String.Empty;
+                    if (animationNames.TryGetValue(currentAnims.DefaultAnimation.AnimID, out currentAnimation))
+                        return currentAnimation;
+                }
+            }
             return String.Empty;
         }
 
