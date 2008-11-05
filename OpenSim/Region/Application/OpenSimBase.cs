@@ -76,34 +76,18 @@ namespace OpenSim
         /// </summary>
         protected const string DEFAULT_INV_BACKUP_FILENAME = "opensim_inv.tar.gz";
 
-        public string m_physicsEngine;
-        public string m_meshEngineName;
-        public bool m_sandbox;
-        public bool user_accounts;
-        public bool m_gridLocalAsset;
-        public bool m_see_into_region_from_neighbor;
+        protected ConfigSettings m_configSettings = new ConfigSettings();
+
+        public ConfigSettings ConfigurationSettings
+        {
+            get { return m_configSettings; }
+            set { m_configSettings = value; }
+        }
 
         protected GridInfoService m_gridInfoService;
 
-        protected string m_storageDll;
-        protected string m_clientstackDll;
-
         protected List<IClientNetworkServer> m_clientServers = new List<IClientNetworkServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
-
-        protected bool m_physicalPrim;
-
-        protected bool m_standaloneAuthenticate = false;
-        protected string m_standaloneWelcomeMessage = null;
-        protected string m_standaloneInventoryPlugin;
-        protected string m_standaloneAssetPlugin;
-        protected string m_standaloneUserPlugin;
-
-        private string m_standaloneInventorySource;
-        private string m_standaloneAssetSource;
-        private string m_standaloneUserSource;
-
-        protected string m_assetStorage = "local";
 
         public ConsoleCommand CreateAccount = null;
         protected bool m_dumpAssetsToFile;
@@ -154,8 +138,13 @@ namespace OpenSim
         /// <param name="configSource"></param>
         public OpenSimBase(IConfigSource configSource) : base()
         {
+            LoadConfigSettings(configSource);
+        }
+
+        protected void LoadConfigSettings(IConfigSource configSource)
+        {
             bool iniFileExists = false;
-            
+
             IConfig startupConfig = configSource.Configs["Startup"];
 
             string iniFileName = startupConfig.GetString("inifile", "OpenSim.ini");
@@ -166,8 +155,8 @@ namespace OpenSim
 
             m_config = new OpenSimConfigSource();
             m_config.Source = new IniConfigSource();
-            m_config.Source.Merge(DefaultConfig());            
-            
+            m_config.Source.Merge(DefaultConfig());
+
             //check for .INI file (either default or name passed in command line)
             if (File.Exists(masterfilePath))
             {
@@ -177,24 +166,24 @@ namespace OpenSim
             if (File.Exists(Application.iniFilePath))
             {
                 iniFileExists = true;
-                
+
                 // From reading Nini's code, it seems that later merged keys replace earlier ones.                
                 m_config.Source.Merge(new IniConfigSource(Application.iniFilePath));
             }
-            else 
-            {   
+            else
+            {
                 // check for a xml config file                
                 Application.iniFilePath = Path.Combine(Util.configDir(), "OpenSim.xml");
-                
+
                 if (File.Exists(Application.iniFilePath))
                 {
                     iniFileExists = true;
-                    
+
                     m_config.Source = new XmlConfigSource();
                     m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
                 }
             }
-            
+
             m_config.Source.Merge(configSource);
 
             if (!iniFileExists)
@@ -282,40 +271,40 @@ namespace OpenSim
 
             if (startupConfig != null)
             {
-                m_sandbox = !startupConfig.GetBoolean("gridmode");
-                m_physicsEngine = startupConfig.GetString("physics");
-                m_meshEngineName = startupConfig.GetString("meshing");
+                m_configSettings.Sandbox = !startupConfig.GetBoolean("gridmode");
+               m_configSettings.PhysicsEngine = startupConfig.GetString("physics");
+               m_configSettings.MeshEngineName = startupConfig.GetString("meshing");
 
-                m_physicalPrim = startupConfig.GetBoolean("physical_prim");
+               m_configSettings.PhysicalPrim = startupConfig.GetBoolean("physical_prim");
 
-                m_see_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor");
+                m_configSettings.See_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor");
 
-                m_storageDll = startupConfig.GetString("storage_plugin");
-                if (m_storageDll == "OpenSim.DataStore.MonoSqlite.dll")
+                m_configSettings.StorageDll = startupConfig.GetString("storage_plugin");
+                if (m_configSettings.StorageDll == "OpenSim.DataStore.MonoSqlite.dll")
                 {
-                    m_storageDll = "OpenSim.Data.SQLite.dll";
+                    m_configSettings.StorageDll = "OpenSim.Data.SQLite.dll";
                     Console.WriteLine("WARNING: OpenSim.DataStore.MonoSqlite.dll is deprecated. Set storage_plugin to OpenSim.Data.SQLite.dll.");
                     Thread.Sleep(3000);
                 }
                 
                 m_storageConnectionString  = startupConfig.GetString("storage_connection_string");
                 m_estateConnectionString = startupConfig.GetString("estate_connection_string", m_storageConnectionString);
-                m_assetStorage = startupConfig.GetString("asset_database");
-                m_clientstackDll = startupConfig.GetString("clientstack_plugin");
+                m_configSettings.AssetStorage = startupConfig.GetString("asset_database");
+                m_configSettings.ClientstackDll = startupConfig.GetString("clientstack_plugin");
             }
 
             IConfig standaloneConfig = m_config.Source.Configs["StandAlone"];
             if (standaloneConfig != null)
             {
-                m_standaloneAuthenticate = standaloneConfig.GetBoolean("accounts_authenticate");
-                m_standaloneWelcomeMessage = standaloneConfig.GetString("welcome_message");
-                
-                m_standaloneInventoryPlugin = standaloneConfig.GetString("inventory_plugin");
-                m_standaloneInventorySource = standaloneConfig.GetString("inventory_source");
-                m_standaloneUserPlugin = standaloneConfig.GetString("userDatabase_plugin");
-                m_standaloneUserSource = standaloneConfig.GetString("user_source");
-                m_standaloneAssetPlugin = standaloneConfig.GetString("asset_plugin");
-                m_standaloneAssetSource = standaloneConfig.GetString("asset_source");
+                m_configSettings.StandaloneAuthenticate = standaloneConfig.GetBoolean("accounts_authenticate");
+                m_configSettings.StandaloneWelcomeMessage = standaloneConfig.GetString("welcome_message");
+
+                m_configSettings.StandaloneInventoryPlugin = standaloneConfig.GetString("inventory_plugin");
+                m_configSettings.StandaloneInventorySource = standaloneConfig.GetString("inventory_source");
+                m_configSettings.StandaloneUserPlugin = standaloneConfig.GetString("userDatabase_plugin");
+                m_configSettings.StandaloneUserSource = standaloneConfig.GetString("user_source");
+                m_configSettings.StandaloneAssetPlugin = standaloneConfig.GetString("asset_plugin");
+                m_configSettings.StandaloneAssetSource = standaloneConfig.GetString("asset_source");
 
                 m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file");
             }
@@ -345,22 +334,22 @@ namespace OpenSim
             LibraryRootFolder libraryRootFolder = new LibraryRootFolder();
 
             // StandAlone mode? m_sandbox is determined by !startupConfig.GetBoolean("gridmode", false)
-            if (m_sandbox)
+            if (m_configSettings.Sandbox)
             {
                 LocalInventoryService inventoryService = new LocalInventoryService();
-                inventoryService.AddPlugin(m_standaloneInventoryPlugin, m_standaloneInventorySource);
+                inventoryService.AddPlugin(m_configSettings.StandaloneInventoryPlugin, m_configSettings.StandaloneInventorySource);
 
                 LocalUserServices userService =
                     new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
                                           m_networkServersInfo.DefaultHomeLocY, inventoryService);
-                userService.AddPlugin(m_standaloneUserPlugin, m_standaloneUserSource);                
+                userService.AddPlugin(m_configSettings.StandaloneUserPlugin, m_configSettings.StandaloneUserSource);                
 
                 LocalBackEndServices backendService = new LocalBackEndServices();
                 
                 LocalLoginService loginService =
                     new LocalLoginService(
-                        userService, m_standaloneWelcomeMessage, inventoryService, backendService, m_networkServersInfo,
-                        m_standaloneAuthenticate, libraryRootFolder);              
+                        userService, m_configSettings.StandaloneWelcomeMessage, inventoryService, backendService, m_networkServersInfo,
+                        m_configSettings.StandaloneAuthenticate, libraryRootFolder);              
                 
                 m_commsManager 
                     = new CommunicationsLocal(
@@ -413,27 +402,27 @@ namespace OpenSim
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
 
             IAssetServer assetServer;
-            if (m_assetStorage == "grid")
+            if (m_configSettings.AssetStorage == "grid")
             {
                 assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
             }
-            else if (m_assetStorage == "cryptogrid") // Decrypt-Only
+            else if (m_configSettings.AssetStorage == "cryptogrid") // Decrypt-Only
             {
                 assetServer = new CryptoGridAssetClient(m_networkServersInfo.AssetURL,
                                                         Environment.CurrentDirectory, true);
             }
-            else if (m_assetStorage == "cryptogrid_eou") // Encrypts All Assets
+            else if (m_configSettings.AssetStorage == "cryptogrid_eou") // Encrypts All Assets
             {
                 assetServer = new CryptoGridAssetClient(m_networkServersInfo.AssetURL,
                                                         Environment.CurrentDirectory, false);
             }
-            else if (m_assetStorage == "file")
+            else if (m_configSettings.AssetStorage == "file")
             {
                 assetServer = new FileAssetClient(m_networkServersInfo.AssetURL);
             }
             else
             {
-                SQLAssetServer sqlAssetServer = new SQLAssetServer(m_standaloneAssetPlugin, m_standaloneAssetSource);
+                SQLAssetServer sqlAssetServer = new SQLAssetServer(m_configSettings.StandaloneAssetPlugin, m_configSettings.StandaloneAssetSource);
                 sqlAssetServer.LoadDefaultAssets();
                 assetServer = sqlAssetServer;
             }
@@ -587,12 +576,12 @@ namespace OpenSim
 
         protected override StorageManager CreateStorageManager(string connectionstring, string estateconnectionstring)
         {
-            return new StorageManager(m_storageDll, connectionstring, estateconnectionstring);
+            return new StorageManager(m_configSettings.StorageDll, connectionstring, estateconnectionstring);
         }
 
         protected override ClientStackManager CreateClientStackManager()
         {
-            return new ClientStackManager(m_clientstackDll);
+            return new ClientStackManager(m_configSettings.ClientstackDll);
         }
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
@@ -602,7 +591,7 @@ namespace OpenSim
             return
                 new Scene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache,
                           storageManager, m_httpServer,
-                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor, m_config.Source,
+                          m_moduleLoader, m_dumpAssetsToFile, m_configSettings.PhysicalPrim, m_configSettings.See_into_region_from_neighbor, m_config.Source,
                           m_version);
         }
 
@@ -650,7 +639,7 @@ namespace OpenSim
 
         protected override PhysicsScene GetPhysicsScene()
         {
-            return GetPhysicsScene(m_physicsEngine, m_meshEngineName, m_config.Source);
+            return GetPhysicsScene(m_configSettings.PhysicsEngine, m_configSettings.MeshEngineName, m_config.Source);
         }
 
         /// <summary>

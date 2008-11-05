@@ -56,7 +56,7 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
-            m_log.InfoFormat("[OPENSIM MAIN]: Running in background {0} mode", m_sandbox ? "sandbox" : "grid");
+            m_log.InfoFormat("[OPENSIM MAIN]: Running in background {0} mode", ConfigurationSettings.Sandbox ? "sandbox" : "grid");
 
             base.Startup();
 

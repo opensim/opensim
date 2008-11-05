@@ -90,7 +90,7 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
-            m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (m_sandbox ? "sandbox" : "grid"));
+            m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (ConfigurationSettings.Sandbox ? "sandbox" : "grid"));
 
             m_console = new ConsoleBase("Region", this);
             MainConsole.Instance = m_console;
@@ -642,7 +642,7 @@ namespace OpenSim
 
             ShowPluginCommandsHelp(CombineParams(helpArgs, 0), m_console);
 
-            if (m_sandbox)
+            if (ConfigurationSettings.Sandbox)
             {
                 m_console.Notice("");
                 m_console.Notice("create user - adds a new user.");
