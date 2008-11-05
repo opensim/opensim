@@ -56,8 +56,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_throttleMultiplier = throttleMultiplier;
             m_maxAllowableThrottle = (int)(max * throttleMultiplier);
-            m_minAllowableThrottle = (int)(Min * throttleMultiplier);
-            m_currentThrottle = (int)(Throttle * throttleMultiplier);
+            m_minAllowableThrottle = (int)(min * throttleMultiplier);
+            m_currentThrottle = (int)(throttle * throttleMultiplier);
             m_currentBitsSent = 0;
         }
 
