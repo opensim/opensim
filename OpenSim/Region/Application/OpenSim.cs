@@ -78,7 +78,6 @@ namespace OpenSim
 
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
             }
-
             base.ReadConfigSettings();
         }
 
@@ -373,15 +372,21 @@ namespace OpenSim
                                 }
                                 else
                                 {
-                                    IConfig c = DefaultConfig().Configs[cmdparams[1]];
-                                    if (c == null)
-                                        c = DefaultConfig().AddConfig(cmdparams[1]);
-                                    string _value = String.Join(" ", cmdparams, 3, cmdparams.Length - 3);
-                                    c.Set(cmdparams[2], _value);
-                                    m_config.Source.Merge(c.ConfigSource);
+                                   // IConfig c = DefaultConfig().Configs[cmdparams[1]];
+                                   // if (c == null)
+                                   //     c = DefaultConfig().AddConfig(cmdparams[1]);
+                                    IConfig c;
+                                    IConfigSource source = new IniConfigSource();
+                                    c = source.AddConfig(cmdparams[1]);
+                                    if (c != null)
+                                    {
+                                        string _value = String.Join(" ", cmdparams, 3, cmdparams.Length - 3);
+                                        c.Set(cmdparams[2], _value);
+                                        m_config.Source.Merge(source);
 
-                                    m_console.Error(n, n + " " + n + " " + cmdparams[1] + " " + cmdparams[2] + " " +
-                                                    _value);
+                                        m_console.Error(n, n + " " + n + " " + cmdparams[1] + " " + cmdparams[2] + " " +
+                                                        _value);
+                                    }
                                 }
                                 break;
                             case "get":
@@ -392,7 +397,7 @@ namespace OpenSim
                                 }
                                 else
                                 {
-                                    IConfig c = DefaultConfig().Configs[cmdparams[1]];
+                                    IConfig c = m_config.Source.Configs[cmdparams[1]]; // DefaultConfig().Configs[cmdparams[1]]; 
                                     if (c == null)
                                     {
                                         m_console.Notice(n, "Section \"" + cmdparams[1] + "\" does not exist.");
