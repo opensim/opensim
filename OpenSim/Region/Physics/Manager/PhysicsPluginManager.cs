@@ -124,7 +124,7 @@ namespace OpenSim.Region.Physics.Manager
             }
             catch (Exception ex)
             {
-                m_log.Error("Failed to load plugin from " + FileName, ex);
+                m_log.Error("[PHYSICS]: Failed to load plugin from " + FileName, ex);
             }
 
             if (pluginAssembly != null)

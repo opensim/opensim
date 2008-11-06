@@ -334,9 +334,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "DotNetEngine");
             }
-            catch (Exception)
+            catch
             {
-                m_log.Warn("Failed to load StartupConfig");
+                m_log.Warn("[SCENE]: Failed to load StartupConfig");
             }
         }
 
@@ -1307,6 +1307,7 @@ namespace OpenSim.Region.Environment.Scenes
                     //tc = System.Environment.TickCount - tc;
                     //m_log.Info("[MAPTILE]: Completed One row in " + tc + " ms");
                 }
+                
                 m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (System.Environment.TickCount - tc) + " ms");
 
                 bool drawPrimVolume = true;
@@ -1316,9 +1317,9 @@ namespace OpenSim.Region.Environment.Scenes
                     IConfig startupConfig = m_config.Configs["Startup"];
                     drawPrimVolume = startupConfig.GetBoolean("DrawPrimOnMapTile", true);
                 }
-                catch (Exception)
+                catch
                 {
-                    m_log.Warn("Failed to load StartupConfig");
+                    m_log.Warn("[MAPTILE]: Failed to load StartupConfig");
                 }
 
                 if (drawPrimVolume)

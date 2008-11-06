@@ -40,6 +40,19 @@ namespace OpenSim.Region.Environment.Scenes.Tests
     [TestFixture]
     public class SceneTests
     {
+        [SetUp]
+        public void Init()
+        {
+            try
+            {
+                log4net.Config.XmlConfigurator.Configure();
+            }
+            catch
+            {
+                // I don't care, just leave log4net off
+            }            
+        }
+        
         /// <summary>
         /// Test adding an object to a scene.  Doesn't yet do what it says on the tin.
         /// </summary>
@@ -56,7 +69,11 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
             IConfigSource configSource = new IniConfigSource();
             
-            new Scene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);  
+            Scene scene 
+                = new Scene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);
+            
+            SceneObjectGroup sceneObject = new SceneObjectGroup();
+            scene.AddNewSceneObject(sceneObject, false);
         }
     }
 }

@@ -85,9 +85,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 drawPrimVolume = startupConfig.GetBoolean("DrawPrimOnMapTile", drawPrimVolume);
                 textureTerrain = startupConfig.GetBoolean("TextureOnMapTile", textureTerrain);
             }
-            catch (Exception)
+            catch
             {
-                m_log.Warn("Failed to load StartupConfig");
+                m_log.Warn("[MAPTILE]: Failed to load StartupConfig");
             }
 
             if (textureTerrain)
