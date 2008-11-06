@@ -113,6 +113,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         }
         
         /// <summary>
+        /// Build an object name packet for test purposes
+        /// </summary>
+        /// <param name="objectLocalId"></param>
+        /// <param name="objectName"></param>
+        protected ObjectNamePacket BuildTestObjectNamePacket(uint objectLocalId, string objectName)
+        {
+            ObjectNamePacket onp = new ObjectNamePacket();
+            ObjectNamePacket.ObjectDataBlock odb = new ObjectNamePacket.ObjectDataBlock();
+            odb.LocalID = objectLocalId;
+            odb.Name = Utils.StringToBytes(objectName);
+            onp.ObjectData = new ObjectNamePacket.ObjectDataBlock[] { odb };
+            onp.Header.Zerocoded = false;
+            
+            return onp;            
+        }
+        
+        /// <summary>
         /// Test adding a client to the stack
         /// </summary>
         [Test]        
@@ -209,19 +226,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             
             // Check that sending a valid packet to same circuit still succeeds
             Assert.That(scene.ObjectNameCallsReceived, Is.EqualTo(0));
-
-            ObjectNamePacket onp = new ObjectNamePacket();
-            ObjectNamePacket.ObjectDataBlock odb = new ObjectNamePacket.ObjectDataBlock();
-            odb.LocalID = 1;
-            odb.Name = Utils.StringToBytes("helloooo");
-            onp.ObjectData = new ObjectNamePacket.ObjectDataBlock[] { odb };
-            onp.Header.Zerocoded = false;
             
-            testLLUDPServer.LoadReceive(onp, testEp);
+            testLLUDPServer.LoadReceive(BuildTestObjectNamePacket(1, "helloooo"), testEp);
             testLLUDPServer.ReceiveData(null);
             
             Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(1));  
             Assert.That(testLLPacketServer.GetPacketsReceivedFor(PacketType.ObjectName), Is.EqualTo(1));
+        }
+        
+        /// <summary>
+        /// Test that the stack continues to work even if some client has caused a 
+        /// SocketException on Socket.BeginReceive()
+        /// </summary>
+        [Test]
+        public void TestExceptionOnBeginReceive()
+        {
+            /*
+            MockScene scene = new MockScene();
+            
+            uint circuitCodeA = 130000;
+            EndPoint epA = new IPEndPoint(IPAddress.Loopback, 1300);
+            uint circuitCodeB = 130001;
+            EndPoint epB = new IPEndPoint(IPAddress.Loopback, 1301);
+            
+            TestLLUDPServer testLLUDPServer;
+            TestLLPacketServer testLLPacketServer;
+            AgentCircuitManager acm;
+            SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);            
+            AddClient(circuitCodeA, epA, testLLUDPServer, acm);
+            AddClient(circuitCodeB, epB, testLLUDPServer, acm);
+            */
         }
     }
 }

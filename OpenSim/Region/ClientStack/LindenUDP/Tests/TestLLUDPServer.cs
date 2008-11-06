@@ -48,7 +48,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         
         protected override void BeginReceive()
         {
-            // Do nothing
+            if (m_chunksToLoad.Count > 0 && m_chunksToLoad.Peek().BeginReceiveException)
+            {
+                ChunkSenderTuple tuple = m_chunksToLoad.Dequeue();
+                reusedEpSender = tuple.Sender;
+                throw new SocketException();
+            }
         }
         
         protected override bool EndReceive(out int numBytes, IAsyncResult result, ref EndPoint epSender)
@@ -69,6 +74,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public override void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode) 
         {
             // Don't do anything just yet
+        }
+        
+        /// <summary>
+        /// Signal that this chunk should throw an exception on Socket.BeginReceive()
+        /// </summary>
+        /// <param name="epSender"></param>
+        public void LoadReceiveWithBeginException(EndPoint epSender)
+        {
+            ChunkSenderTuple tuple = new ChunkSenderTuple(epSender);
+            tuple.BeginReceiveException = true;
+            m_chunksToLoad.Enqueue(tuple);
         }
         
         /// <summary>
@@ -118,13 +134,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
     /// Record the data and sender tuple
     /// </summary>
     public class ChunkSenderTuple
-    {
+    {        
         public byte[] Data;
         public EndPoint Sender;
+        public bool BeginReceiveException;
         
         public ChunkSenderTuple(byte[] data, EndPoint sender)
         {
             Data = data;
+            Sender = sender;
+        }
+        
+        public ChunkSenderTuple(EndPoint sender)
+        {
             Sender = sender;
         }
     }
