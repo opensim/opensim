@@ -474,7 +474,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <returns>String containing C# code for JumpLabel jl.</returns>
         private string GenerateJumpLabel(JumpLabel jl)
         {
-            return Generate(String.Format("{0}:\n", jl.LabelName), jl);
+            return Generate(String.Format("{0}:", CheckName(jl.LabelName)), jl) + " NoOp();\n";
         }
 
         /// <summary>
@@ -484,7 +484,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <returns>String containing C# code for JumpStatement js.</returns>
         private string GenerateJumpStatement(JumpStatement js)
         {
-            return Generate(String.Format("goto {0}", js.TargetName), js);
+            return Generate(String.Format("goto {0}", CheckName(js.TargetName)), js);
         }
 
         /// <summary>

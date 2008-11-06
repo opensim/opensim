@@ -194,5 +194,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             SetVars(m_InitialValues);
         }
+
+        public void NoOp()
+        {
+            // Does what is says on the packet. Nowt, nada, nothing.
+            // Required for insertion after a jump label to do what it says on the packet!
+            // With a bit of luck the compiler may even optimize it out.
+        }
     }
 }
