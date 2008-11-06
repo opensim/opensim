@@ -53,7 +53,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                 ChunkSenderTuple tuple = m_chunksToLoad.Dequeue();
                 reusedEpSender = tuple.Sender;
                 throw new SocketException();
-                ReceiveData(null);
             }
         }
         

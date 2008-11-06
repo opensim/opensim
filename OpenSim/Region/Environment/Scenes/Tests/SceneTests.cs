@@ -73,6 +73,9 @@ namespace OpenSim.Region.Environment.Scenes.Tests
                 = new Scene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);
             
             SceneObjectGroup sceneObject = new SceneObjectGroup();
+            SceneObjectPart part = new SceneObjectPart();
+            sceneObject.AddPart(part);
+            
             scene.AddNewSceneObject(sceneObject, false);
         }
     }
