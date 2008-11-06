@@ -231,7 +231,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
             
-            BeginReceive(); 
+            BeginRobustReceive(); 
 
             if (packet != null)
             {
@@ -274,16 +274,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_log.Error("[CLIENT]: Exception in processing packet - ignoring: ", e);
             }           
         }
-
+        
         /// <summary>
         /// Begin an asynchronous receive of the next bit of raw data
         /// </summary>
         protected virtual void BeginReceive()
         {
+            m_socket.BeginReceiveFrom(
+                RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);            
+        }
+
+        /// <summary>
+        /// Begin a robust asynchronous receive of the next bit of raw data.  Robust means that SocketExceptions are
+        /// automatically dealt with until the next set of valid UDP data is received.
+        /// </summary>
+        private void BeginRobustReceive()
+        {
             try
             {
-                m_socket.BeginReceiveFrom(
-                     RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
+                BeginReceive();
             }
             catch (SocketException e)
             {
@@ -293,7 +302,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // the next set of UDP data is for a valid client.         
                 ResetServerEndPoint(e);
             }
-        }
+        }       
 
         /// <summary>
         /// Reset the server endpoint
@@ -301,7 +310,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="e">
         /// The exception that has triggered the reset.  Can be null if there was no exception.
         /// </param>
-        protected void ResetServerEndPoint(Exception e)
+        private void ResetServerEndPoint(Exception e)
         {
             try
             {
@@ -315,8 +324,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // ENDLESS LOOP ON PURPOSE!            
             // We need to purge the UDP stream of crap from the client that disconnected nastily or the UDP server will die
-            // The only way to do that is to beginreceive again!
-            BeginReceive();
+            // The only way to do that is to BeginRobustReceive again!
+            BeginRobustReceive();
         }
 
         /// <summary>
@@ -470,8 +479,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_log.Info("[UDPSERVER]: UDP socket bound, getting ready to listen");
 
             ReceivedData = OnReceivedData;
-            m_socket.BeginReceiveFrom(
-                RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
+            BeginReceive();
 
             m_log.Info("[UDPSERVER]: Listening on port " + newPort);
         }
