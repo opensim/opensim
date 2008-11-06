@@ -283,6 +283,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             testLLUDPServer.LoadReceiveWithBeginException(epA);
             testLLUDPServer.LoadReceive(BuildTestObjectNamePacket(2, "packet3"), epB);
             testLLUDPServer.ReceiveData(null);
+            
+            Assert.IsFalse(testLLUDPServer.HasCircuit(circuitCodeA));
          
             Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(3));  
             Assert.That(testLLPacketServer.GetPacketsReceivedFor(PacketType.ObjectName), Is.EqualTo(3));            

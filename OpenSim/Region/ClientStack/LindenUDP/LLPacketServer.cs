@@ -179,13 +179,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        ///
+        /// Close a client circuit only
         /// </summary>
         /// <param name="circuitcode"></param>
         public virtual void CloseCircuit(uint circuitcode)
         {
             m_networkHandler.RemoveClientCircuit(circuitcode);
 
+            // XXX: Why is this commented out?  Possibly because close mechanisms are so tangled right now
             //m_scene.ClientManager.CloseAllAgents(circuitcode);
         }
 
