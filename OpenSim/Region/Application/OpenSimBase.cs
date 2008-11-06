@@ -146,10 +146,15 @@ namespace OpenSim
 
         protected virtual void ReadExtraConfigSettings()
         {
-
+            IConfig networkConfig = m_config.Source.Configs["Network"];
+            if (networkConfig != null)
+            {
+                proxyUrl = networkConfig.GetString("proxy_url", "");
+                proxyOffset = Int32.Parse(networkConfig.GetString("proxy_offset", "0"));
+            }
         }
 
-        protected void LoadPlugins()
+        protected virtual void LoadPlugins()
         {
             PluginLoader<IApplicationPlugin> loader =
                 new PluginLoader<IApplicationPlugin>(new ApplicationPluginInitialiser(this));
@@ -180,9 +185,6 @@ namespace OpenSim
                 // We are in grid mode
                 InitialiseGridServices(libraryRootFolder);
             }
-
-            proxyUrl = ConfigSource.Source.Configs["Network"].GetString("proxy_url", "");
-            proxyOffset = Int32.Parse(ConfigSource.Source.Configs["Network"].GetString("proxy_offset", "0"));
 
             // Create a ModuleLoader instance
             m_moduleLoader = new ModuleLoader(m_config.Source);
@@ -260,7 +262,7 @@ namespace OpenSim
         /// <summary>
         /// Initialises the assetcache
         /// </summary>
-        protected void InitialiseAssetCache()
+        protected virtual void InitialiseAssetCache()
         {
             IAssetServer assetServer;
             if (m_configSettings.AssetStorage == "grid")

@@ -69,6 +69,8 @@ namespace OpenSim
 
         protected override void ReadExtraConfigSettings()
         {
+            base.ReadExtraConfigSettings();
+
             IConfig startupConfig = m_config.Source.Configs["Startup"];
 
             if (startupConfig != null)
