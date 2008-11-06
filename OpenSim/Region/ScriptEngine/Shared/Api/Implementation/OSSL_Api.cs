@@ -28,6 +28,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
+using System.Text;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim;
@@ -959,5 +960,57 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 sceneOP.LocalId, new EventParams(
                     "dataserver", resobj, new DetectParams[0]));
         }
+
+
+	public void osMakeNotecard(string notecardName, LSL_Types.list contents)
+	{
+	    CheckThreatLevel(ThreatLevel.None, "osMakeNotecard");
+	    m_host.AddScriptLPS(1);
+
+	    // Create new asset
+	    AssetBase asset = new AssetBase();
+	    asset.Name = notecardName;
+	    asset.Description = "Script Generated Notecard";
+	    asset.Type = 7;
+	    asset.FullID = UUID.Random();
+	    string notecardData = "";
+
+	    for (int i = 0; i < contents.Length; i++) {
+		notecardData += contents.GetLSLStringItem(i) + "\n";
+	    }
+
+	    int textLength = notecardData.Length;
+	    notecardData = "Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length " 
+		+ textLength.ToString() + "\n" + notecardData + "}\n";
+
+	    asset.Data = Encoding.ASCII.GetBytes(notecardData);
+	    World.AssetCache.AddAsset(asset);
+
+	    // Create Task Entry
+	    TaskInventoryItem taskItem=new TaskInventoryItem();
+
+	    taskItem.ResetIDs(m_host.UUID);
+	    taskItem.ParentID = m_host.UUID;
+	    taskItem.CreationDate = (uint)Util.UnixTimeSinceEpoch();
+	    taskItem.Name = asset.Name;
+	    taskItem.Description = asset.Description;
+	    taskItem.Type = 7;
+	    taskItem.InvType = 7;
+	    taskItem.OwnerID = m_host.OwnerID;
+	    taskItem.CreatorID = m_host.OwnerID;
+	    taskItem.BasePermissions = (uint)PermissionMask.All;
+	    taskItem.CurrentPermissions = (uint)PermissionMask.All;
+	    taskItem.EveryonePermissions = (uint)PermissionMask.All;
+	    taskItem.NextPermissions = (uint)PermissionMask.All;
+	    taskItem.GroupID = m_host.GroupID;
+	    taskItem.GroupPermissions = 0;
+	    taskItem.Flags = 0;
+	    taskItem.PermsGranter = UUID.Zero;
+	    taskItem.PermsMask = 0;
+	    taskItem.AssetID = asset.FullID;
+
+	    m_host.AddInventoryItem(taskItem);
+
+	}
     }
 }

@@ -237,6 +237,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osMessageObject(objectUUID,message);
         }
 
+        public void osMakeNotecard(string notecardName, LSL_Types.list contents)
+        {
+            m_OSSL_Functions.osMakeNotecard(notecardName, contents);
+        }
+
         public OSSLPrim Prim;
 
         [Serializable]

@@ -95,6 +95,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         Hashtable osParseJSON(string JSON);
         
         void osMessageObject(key objectUUID,string message);
-        
+
+	void osMakeNotecard(string notecardName, LSL_Types.list contents);
     }
 }
