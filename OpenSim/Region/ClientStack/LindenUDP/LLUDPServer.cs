@@ -305,7 +305,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             try
             {
-                CloseCircuit(reusedEpSender, e);
+                CloseCircuit(e);
             }
             catch (Exception e2)
             {
@@ -323,19 +323,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Close a client circuit.  This is done in response to an exception on receive, and should not be called
         /// normally.
         /// </summary>
-        /// <param name="sender"></param>
         /// <param name="e">The exception that caused the close.  Can be null if there was no exception</param>
-        private void CloseCircuit(EndPoint sender, Exception e)
+        private void CloseCircuit(Exception e)
         {
             uint circuit;
             lock (clientCircuits)
             {
-                if (clientCircuits.TryGetValue(sender, out circuit))
+                if (clientCircuits.TryGetValue(reusedEpSender, out circuit))
                 {
                     m_packetServer.CloseCircuit(circuit);
                     
                     if (e != null)                    
-                        m_log.ErrorFormat("[CLIENT]: Closed circuit {0} {1} due to exception {2}", circuit, sender, e);                                    
+                        m_log.ErrorFormat(
+                            "[CLIENT]: Closed circuit {0} {1} due to exception {2}", circuit, reusedEpSender, e);                                    
                 }
             }
         }       
