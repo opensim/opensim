@@ -45,6 +45,11 @@ namespace OpenSim.Framework.Communications.Cache
         protected Thread m_localAssetServerThread;
         protected IAssetProviderPlugin m_assetProvider;
 
+        public IAssetProviderPlugin AssetProviderPlugin
+        {
+            get { return m_assetProvider; }
+        }
+
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
 

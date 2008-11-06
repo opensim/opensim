@@ -85,6 +85,11 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         private readonly IAssetServer m_assetServer;
 
+        public IAssetServer AssetServer
+        {
+            get { return m_assetServer; }
+        }
+
         /// <summary>
         /// Report statistical data.
         /// </summary>
