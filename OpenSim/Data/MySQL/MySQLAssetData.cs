@@ -45,6 +45,7 @@ namespace OpenSim.Data.MySQL
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private MySQLManager _dbConnection;
+        private long TicksToEpoch; 
 
         #region IPlugin Members
 
@@ -61,6 +62,8 @@ namespace OpenSim.Data.MySQL
         /// <param name="connect">connect string</param>
         override public void Initialise(string connect)
         {
+            TicksToEpoch = new System.DateTime(1970,1,1).Ticks;
+
             // TODO: This will let you pass in the connect string in
             // the config, though someone will need to write that.
             if (connect == String.Empty)
@@ -146,6 +149,8 @@ namespace OpenSim.Data.MySQL
                         dbReader.Close();
                         cmd.Dispose();
                     }
+                    if (asset != null)
+                        UpdateAccessTime(asset);
                 }
                 catch (Exception e)
                 {
@@ -178,8 +183,8 @@ namespace OpenSim.Data.MySQL
 
                 MySqlCommand cmd =
                     new MySqlCommand(
-                        "REPLACE INTO assets(id, name, description, assetType, local, temporary, data)" +
-                        "VALUES(?id, ?name, ?description, ?assetType, ?local, ?temporary, ?data)",
+                        "insert INTO assets(id, name, description, assetType, local, temporary, create_time, access_time, data)" +
+                        "VALUES(?id, ?name, ?description, ?assetType, ?local, ?temporary, ?create_time, ?access_time, ?data)",
                         _dbConnection.Connection);
 
                 // need to ensure we dispose
@@ -187,12 +192,16 @@ namespace OpenSim.Data.MySQL
                 {
                     using (cmd)
                     {
+                        // create unix epoch time
+                        int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
                         cmd.Parameters.AddWithValue("?id", asset.FullID.ToString());
                         cmd.Parameters.AddWithValue("?name", asset.Name);
                         cmd.Parameters.AddWithValue("?description", asset.Description);
                         cmd.Parameters.AddWithValue("?assetType", asset.Type);
                         cmd.Parameters.AddWithValue("?local", asset.Local);
                         cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
+                        cmd.Parameters.AddWithValue("?create_time", now);
+                        cmd.Parameters.AddWithValue("?access_time", now);
                         cmd.Parameters.AddWithValue("?data", asset.Data);
                         cmd.ExecuteNonQuery();
                         cmd.Dispose();
@@ -207,6 +216,41 @@ namespace OpenSim.Data.MySQL
                     _dbConnection.Reconnect();
                 }
             }
+        }
+
+        private void UpdateAccessTime(AssetBase asset)
+        {
+            lock (_dbConnection)
+            {
+                _dbConnection.CheckConnection();
+
+                MySqlCommand cmd =
+                    new MySqlCommand("update assets set access_time=?access_time where id=?id",
+                                     _dbConnection.Connection);
+
+                // need to ensure we dispose
+                try
+                {
+                    using (cmd)
+                    {
+                        // create unix epoch time
+                        int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
+                        cmd.Parameters.AddWithValue("?id", asset.FullID.ToString());
+                        cmd.Parameters.AddWithValue("?access_time", now);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[ASSETS DB]: " +
+                        "MySql failure updating access_time for asset {0} with name {1}" + Environment.NewLine + e.ToString()
+                        + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
+                    _dbConnection.Reconnect();
+                }
+            }
+            
         }
 
         /// <summary>
