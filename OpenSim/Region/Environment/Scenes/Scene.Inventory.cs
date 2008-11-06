@@ -1815,8 +1815,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public UUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, UUID AgentId)
+        public UUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, UUID AgentId, out UUID itemID)
         {
+            itemID = UUID.Zero;
             if (grp != null)
             {
                 string sceneObjectXml = grp.ToXmlString();
@@ -1866,6 +1867,7 @@ namespace OpenSim.Region.Environment.Scenes
                     userInfo.AddItem(item);
                     remoteClient.SendInventoryItemCreateUpdate(item);
 
+                    itemID = item.ID;
                     return item.AssetID;
                 }
                 return UUID.Zero;
@@ -2354,6 +2356,39 @@ namespace OpenSim.Region.Environment.Scenes
         public void AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos)
         {
             m_innerScene.AttachObject(controllingClient, localID, attachPoint, rot, pos);
+        }
+
+        public void AttachObject(IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
+        {
+            if (null == itemID)
+            {
+                m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error inventory item ID.");
+                return;
+            }
+
+            if (0 == AttachmentPt)
+            {
+                m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error attachment point.");
+                return;
+            }
+
+            if (null == att.RootPart)
+            {
+                m_log.Error("[SCENE INVENTORY]: Unable to save attachment for a prim without the rootpart!");
+                return;
+            }
+
+            ScenePresence presence;
+            if (TryGetAvatar(remoteClient.AgentId, out presence))
+            {
+                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, att.UUID);
+                IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
+                if (ava != null)
+                {
+                    m_log.InfoFormat("[SCENE INVENTORY]: Saving avatar attachment. AgentID:{0} ItemID:{1} AttachmentPoint:{2}", remoteClient.AgentId, itemID, AttachmentPt);
+                    ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
+            }
         }
 
         public void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient)

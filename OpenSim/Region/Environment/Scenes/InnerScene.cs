@@ -542,12 +542,21 @@ namespace OpenSim.Region.Environment.Scenes
                             }
 
                             group.SetAttachmentPoint(Convert.ToByte(AttachmentPt));
+                            group.AbsolutePosition = attachPos;
 
                             // Saves and gets assetID
+                            UUID itemId;
                             if (group.GetFromAssetID() == UUID.Zero)
                             {
-                                m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId);
+                                m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId, out itemId);
                             }
+                            else
+                            {
+                                itemId = group.GetFromAssetID();
+                            }
+
+                            m_parentScene.AttachObject(remoteClient, AttachmentPt, itemId, group);
+
                             group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos);
                             // In case it is later dropped again, don't let
                             // it get cleaned up
