@@ -35,7 +35,7 @@ namespace OpenSim.Region.Examples.SimpleModule
     public class FileSystemObject : SceneObjectGroup
     {
         public FileSystemObject(Scene world, FileInfo fileInfo, Vector3 pos)
-            : base(world, world.RegionInfo.RegionHandle, UUID.Zero, world.NextLocalId, pos, PrimitiveBaseShape.Default)
+            : base(UUID.Zero, world.NextLocalId, pos, PrimitiveBaseShape.Default)
         {
             Text = fileInfo.Name;
         }

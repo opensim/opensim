@@ -216,9 +216,9 @@ namespace OpenSim.Region.Environment.Scenes
             Rezzed = DateTime.Now;
         }
 
-        public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, UUID ownerID, uint localID,
+        public SceneObjectPart(SceneObjectGroup parent, UUID ownerID, uint localID,
             PrimitiveBaseShape shape, Vector3 groupPosition, Vector3 offsetPosition)
-            : this(regionHandle, parent, ownerID, localID, shape, groupPosition, Quaternion.Identity, offsetPosition)
+            : this(parent, ownerID, localID, shape, groupPosition, Quaternion.Identity, offsetPosition)
         {
         }
 
@@ -231,12 +231,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="shape"></param>
         /// <param name="position"></param>
-        public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, UUID ownerID, uint localID,
+        /// <param name="rotationOffset"></param>
+        /// <param name="offsetPosition"></param>
+        public SceneObjectPart(SceneObjectGroup parent, UUID ownerID, uint localID,
             PrimitiveBaseShape shape, Vector3 groupPosition, Quaternion rotationOffset,
             Vector3 offsetPosition)
         {
             m_name = "Primitive";
-            m_regionHandle = regionHandle;
             m_parentGroup = parent;
 
             Rezzed = DateTime.Now;
@@ -259,14 +260,9 @@ namespace OpenSim.Region.Environment.Scenes
             RotationOffset = rotationOffset;
             Velocity = new Vector3(0, 0, 0);
             AngularVelocity = new Vector3(0, 0, 0);
-            Acceleration = new Vector3(0, 0, 0);
-
-            
-
+            Acceleration = new Vector3(0, 0, 0);          
             m_TextureAnimation = new byte[0];
-            m_particleSystem = new byte[0];
-
-            
+            m_particleSystem = new byte[0];            
 
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
@@ -277,8 +273,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             TrimPermissions();
             //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
-
-            ScheduleFullUpdate();
         }
 
         /// <summary>
@@ -291,11 +285,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="shape"></param>
         /// <param name="position"></param>
-        public SceneObjectPart(ulong regionHandle, SceneObjectGroup parent, int creationDate, UUID ownerID,
+        public SceneObjectPart(SceneObjectGroup parent, int creationDate, UUID ownerID,
             UUID creatorID, UUID lastOwnerID, uint localID, PrimitiveBaseShape shape,
             Vector3 position, Quaternion rotation, uint flags)
         {
-            m_regionHandle = regionHandle;
             m_parentGroup = parent;
             TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
             _creationDate = creationDate;
@@ -324,8 +317,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             TrimPermissions();
             // ApplyPhysics();
-
-            ScheduleFullUpdate();
         }
 
         protected SceneObjectPart(SerializationInfo info, StreamingContext context)
@@ -370,7 +361,8 @@ namespace OpenSim.Region.Environment.Scenes
         private DateTime m_expires;
         private DateTime m_rezzed;
 
-        public UUID CreatorID {
+        public UUID CreatorID 
+        {
             get
             {
                 return _creatorID;
@@ -553,17 +545,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 StoreUndoState();
                 m_offsetPosition = value;
-                //try
-                //{
-                    // Hack to get the child prim to update world positions in the physics engine
-                //    ParentGroup.ResetChildPrimPhysicsPositions();
-
-                //}
-                //catch (NullReferenceException)
-                //{
-                    // Ignore, and skip over.
-                //}
-                //m_log.Info("[PART]: OFFSET:" + m_offsetPosition.ToString());
 
                 if (ParentGroup != null && ParentGroup.RootPart != null)
                 {
@@ -778,6 +759,7 @@ namespace OpenSim.Region.Environment.Scenes
                     TriggerScriptChangedEvent(Changed.SHAPE);
             }
         }
+        
         public Vector3 Scale
         {
             get { return m_shape.Scale; }
@@ -812,7 +794,6 @@ if (m_shape != null) {
 
 //---------------
 #region Public Properties with only Get
-
 
         public Vector3 AbsolutePosition
         {
@@ -3418,6 +3399,16 @@ if (m_shape != null) {
         }        
 
         #endregion Public Methods
+        
+        /// <summary>
+        /// Attach this part to a scene such that it appears to avatars
+        /// </summary>
+        protected internal void AttachToScene(ulong regionHandle)
+        {
+            m_regionHandle = regionHandle;
+            
+            ScheduleFullUpdate();
+        }
 
         private byte GetAttachPointEncoded()
         {

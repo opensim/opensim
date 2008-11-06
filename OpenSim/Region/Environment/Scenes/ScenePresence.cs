@@ -1107,20 +1107,22 @@ namespace OpenSim.Region.Environment.Scenes
             //proxy.PCode = (byte)PCode.ParticleSystem;
             uint nextUUID = m_scene.NextLocalId;
 
-            proxyObjectGroup = new SceneObjectGroup(m_scene, m_scene.RegionInfo.RegionHandle, UUID, nextUUID, Pos, Rotation, proxy);
-            if (proxyObjectGroup != null)
-            {
+            proxyObjectGroup = new SceneObjectGroup(UUID, nextUUID, Pos, Rotation, proxy);
+            proxyObjectGroup.AttachToScene(m_scene);
+            
+            // Commented out this code since it could never have executed, but might still be informative.
+//            if (proxyObjectGroup != null)
+//            {
                 proxyObjectGroup.SendGroupFullUpdate();
                 remote_client.SendSitResponse(proxyObjectGroup.UUID, Vector3.Zero, Quaternion.Identity, true, Vector3.Zero, Vector3.Zero, false);
                 m_scene.DeleteSceneObject(proxyObjectGroup);
-            }
-            else
-            {
-                m_autopilotMoving = false;
-                m_autoPilotTarget = Vector3.Zero;
-                ControllingClient.SendAlertMessage("Autopilot cancelled");
-            }
-
+//            }
+//            else
+//            {
+//                m_autopilotMoving = false;
+//                m_autoPilotTarget = Vector3.Zero;
+//                ControllingClient.SendAlertMessage("Autopilot cancelled");
+//            }
         }
 
         private void CheckAtSitTarget()

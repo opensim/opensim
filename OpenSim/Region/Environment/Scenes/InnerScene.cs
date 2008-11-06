@@ -197,9 +197,6 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal bool AddRestoredSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
         {
-            sceneObject.RegionHandle = m_regInfo.RegionHandle;
-            sceneObject.SetScene(m_parentScene);
-
             foreach (SceneObjectPart part in sceneObject.Children.Values)
             {
                 part.LocalId = m_parentScene.PrimIDAllocate();
@@ -251,9 +248,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (sceneObject == null || sceneObject.RootPart == null || sceneObject.RootPart.UUID == UUID.Zero)
                 return false;
-
-            sceneObject.ApplyPhysics(m_parentScene.m_physicalPrim);
-            sceneObject.ScheduleGroupForFullUpdate();
+            
+            sceneObject.AttachToScene(m_parentScene);
 
             lock (Entities)
             {

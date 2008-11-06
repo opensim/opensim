@@ -1735,8 +1735,7 @@ namespace OpenSim.Region.Environment.Scenes
             //m_log.DebugFormat(
             //    "[SCENE]: Scene.AddNewPrim() called for agent {0} in {1}", ownerID, RegionInfo.RegionName);
 
-            SceneObjectGroup sceneOb =
-                new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
+            SceneObjectGroup sceneOb = new SceneObjectGroup(ownerID, PrimIDAllocate(), pos, rot, shape);
 
             SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
             // if grass or tree, make phantom

@@ -508,35 +508,23 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Constructor.  This object is added to the scene later via AttachToScene()
         /// </summary>
-        public SceneObjectGroup(Scene scene, ulong regionHandle, UUID ownerID, uint localID, Vector3 pos,
-                                Quaternion rot, PrimitiveBaseShape shape)
+        public SceneObjectGroup(UUID ownerID, uint localID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
         {
-            m_regionHandle = regionHandle;
-            m_scene = scene;
-
-            // this.Pos = pos;
             Vector3 rootOffset = new Vector3(0, 0, 0);
             SceneObjectPart newPart =
-                new SceneObjectPart(m_regionHandle, this, ownerID, localID, shape, pos, rot, rootOffset);
+                new SceneObjectPart(this, ownerID, localID, shape, pos, rot, rootOffset);
             newPart.LinkNum = 0;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
-
-            // one of these is a proxy.
-            if (shape.PCode != (byte)PCode.None && shape.PCode != (byte)PCode.ParticleSystem)
-                AttachToBackup();
-
-            //ApplyPhysics(scene.m_physicalPrim);
         }
 
         /// <summary>
-        ///
+        /// Constructor.
         /// </summary>
-        public SceneObjectGroup(Scene scene, ulong regionHandle, UUID ownerID, uint localID, Vector3 pos,
-                                PrimitiveBaseShape shape)
-            : this(scene, regionHandle, ownerID, localID, pos, Quaternion.Identity, shape)
+        public SceneObjectGroup(UUID ownerID, uint localID, Vector3 pos, PrimitiveBaseShape shape)
+            : this(ownerID, localID, pos, Quaternion.Identity, shape)
         {
         }
 
@@ -574,6 +562,31 @@ namespace OpenSim.Region.Environment.Scenes
                     m_scene.EventManager.OnBackup += ProcessBackup;
                 m_isBackedUp = true;
             }
+        }
+        
+        /// <summary>
+        /// Attach the given group to a scene.  It will appear to agents.
+        /// </summary>
+        /// <param name="scene"></param>
+        public void AttachToScene(Scene scene)
+        {
+            m_scene = scene;
+            
+            ApplyPhysics(m_scene.m_physicalPrim);            
+            
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    part.AttachToScene(scene.RegionInfo.RegionHandle);
+                }
+            }
+            
+            // one of these is a proxy.
+            if (m_rootPart.Shape.PCode != (byte)PCode.None && m_rootPart.Shape.PCode != (byte)PCode.ParticleSystem)
+                AttachToBackup();
+            
+            ScheduleGroupForFullUpdate();            
         }
 
         public Vector3 GroupScale()

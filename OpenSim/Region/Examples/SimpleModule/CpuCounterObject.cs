@@ -45,8 +45,8 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         private PerformanceCounter m_counter;
 
-        public CpuCounterObject(Scene world, ulong regionHandle, UUID ownerID, uint localID, Vector3 pos)
-            : base(world, regionHandle, ownerID, localID, pos, PrimitiveBaseShape.Default)
+        public CpuCounterObject(UUID ownerID, uint localID, Vector3 pos)
+            : base(ownerID, localID, pos, PrimitiveBaseShape.Default)
         {
             String objectName = "Processor";
             String counterName = "% Processor Time";
