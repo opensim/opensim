@@ -52,7 +52,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             {
                 ChunkSenderTuple tuple = m_chunksToLoad.Dequeue();
                 reusedEpSender = tuple.Sender;
-                throw new SocketException();
+                ResetServerEndPoint(new SocketException());
+                ReceiveData(null);
             }
         }
         
@@ -60,13 +61,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         {
             numBytes = 0;
             
+            //System.Console.WriteLine("Queue size " + m_chunksToLoad.Count);
+            
             if (m_chunksToLoad.Count <= 0)
                 return false;
             
             ChunkSenderTuple tuple = m_chunksToLoad.Dequeue();
             RecvBuffer = tuple.Data;
             numBytes   = tuple.Data.Length;
-            epSender   = tuple.Sender;
+            epSender   = tuple.Sender;                       
             
             return true;
         }

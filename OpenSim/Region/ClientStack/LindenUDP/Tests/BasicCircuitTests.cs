@@ -26,6 +26,7 @@
  */
 
 using System.Net;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using NUnit.Framework;
@@ -81,7 +82,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         }
         
         /// <summary>
-        /// Set up a client for tests which aren't concerned with this process itself
+        /// Set up a client for tests which aren't concerned with this process itself and where only one client is being
+        /// tested
         /// </summary>
         /// <param name="circuitCode"></param>
         /// <param name="epSender"></param>
@@ -92,18 +94,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         {
             UUID myAgentUuid   = UUID.Parse("00000000-0000-0000-0000-000000000001");
             UUID mySessionUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
-
+            
+            AddClient(circuitCode, epSender, myAgentUuid, mySessionUuid, testLLUDPServer, acm);
+        }
+        
+        /// <summary>
+        /// Set up a client for tests which aren't concerned with this process itself
+        /// </summary>
+        /// <param name="circuitCode"></param>
+        /// <param name="epSender"></param>
+        /// <param name="agentId"></param>
+        /// <param name="sessionId"></param>
+        /// <param name="testLLUDPServer"></param>
+        /// <param name="acm"></param>
+        protected void AddClient(
+            uint circuitCode, EndPoint epSender, UUID agentId, UUID sessionId, 
+            TestLLUDPServer testLLUDPServer, AgentCircuitManager acm)
+        {
             AgentCircuitData acd = new AgentCircuitData();
-            acd.AgentID = myAgentUuid;
-            acd.SessionID = mySessionUuid; 
+            acd.AgentID = agentId;
+            acd.SessionID = sessionId; 
             
             UseCircuitCodePacket uccp = new UseCircuitCodePacket();
             
             UseCircuitCodePacket.CircuitCodeBlock uccpCcBlock 
                 = new OpenMetaverse.Packets.UseCircuitCodePacket.CircuitCodeBlock();
             uccpCcBlock.Code = circuitCode;
-            uccpCcBlock.ID = myAgentUuid;
-            uccpCcBlock.SessionID = mySessionUuid;
+            uccpCcBlock.ID = agentId;
+            uccpCcBlock.SessionID = sessionId;
             uccp.CircuitCode = uccpCcBlock;
 
             acm.AddNewCircuit(circuitCode, acd);
@@ -181,7 +199,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [Test]        
         public void TestRemoveClient()
         {
-            uint myCircuitCode = 123457;
+            uint myCircuitCode = 123457;     
             
             TestLLUDPServer testLLUDPServer;
             TestLLPacketServer testLLPacketServer;
@@ -241,21 +259,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [Test]
         public void TestExceptionOnBeginReceive()
         {
-            /*
             MockScene scene = new MockScene();
             
             uint circuitCodeA = 130000;
             EndPoint epA = new IPEndPoint(IPAddress.Loopback, 1300);
+            UUID agentIdA   = UUID.Parse("00000000-0000-0000-0000-000000001300");
+            UUID sessionIdA = UUID.Parse("00000000-0000-0000-0000-000000002300");   
+            
             uint circuitCodeB = 130001;
             EndPoint epB = new IPEndPoint(IPAddress.Loopback, 1301);
+            UUID agentIdB   = UUID.Parse("00000000-0000-0000-0000-000000001301");
+            UUID sessionIdB = UUID.Parse("00000000-0000-0000-0000-000000002301");            
             
             TestLLUDPServer testLLUDPServer;
             TestLLPacketServer testLLPacketServer;
             AgentCircuitManager acm;
             SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);            
-            AddClient(circuitCodeA, epA, testLLUDPServer, acm);
-            AddClient(circuitCodeB, epB, testLLUDPServer, acm);
-            */
+            AddClient(circuitCodeA, epA, agentIdA, sessionIdA, testLLUDPServer, acm);
+            AddClient(circuitCodeB, epB, agentIdB, sessionIdB, testLLUDPServer, acm);
+            
+            testLLUDPServer.LoadReceive(BuildTestObjectNamePacket(1, "packet1"), epA);
+            testLLUDPServer.LoadReceive(BuildTestObjectNamePacket(1, "packet2"), epB);
+            testLLUDPServer.LoadReceiveWithBeginException(epA);
+            testLLUDPServer.LoadReceive(BuildTestObjectNamePacket(2, "packet3"), epB);
+            testLLUDPServer.ReceiveData(null);
+         
+            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(3));  
+            Assert.That(testLLPacketServer.GetPacketsReceivedFor(PacketType.ObjectName), Is.EqualTo(3));            
         }
     }
 }

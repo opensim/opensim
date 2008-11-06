@@ -263,7 +263,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (ret)
                 {
                     //if so then send packet to the packetserver
-                    //m_log.DebugFormat("[UDPSERVER]: For endpoint {0} got packet {1}", epSender, packet.Type);
+                    //m_log.DebugFormat(
+                    //    "[UDPSERVER]: For circuit {0} {1} got packet {2}", circuit, epSender, packet.Type);
 
                     m_packetServer.InPacket(circuit, packet);
                 }
@@ -300,7 +301,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="e">
         /// The exception that has triggered the reset.  Can be null if there was no exception.
         /// </param>
-        private void ResetServerEndPoint(Exception e)
+        protected void ResetServerEndPoint(Exception e)
         {
             try
             {
