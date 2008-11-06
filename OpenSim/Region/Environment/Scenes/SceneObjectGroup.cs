@@ -571,16 +571,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void AttachToScene(Scene scene)
         {
             m_scene = scene;
+            RegionHandle = scene.RegionInfo.RegionHandle;
             
             ApplyPhysics(m_scene.m_physicalPrim);            
-            
-            lock (m_parts)
-            {
-                foreach (SceneObjectPart part in m_parts.Values)
-                {
-                    part.AttachToScene(scene.RegionInfo.RegionHandle);
-                }
-            }
             
             // one of these is a proxy.
             if (m_rootPart.Shape.PCode != (byte)PCode.None && m_rootPart.Shape.PCode != (byte)PCode.ParticleSystem)

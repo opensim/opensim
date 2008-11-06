@@ -3399,14 +3399,7 @@ if (m_shape != null) {
         }        
 
         #endregion Public Methods
-        
-        /// <summary>
-        /// Attach this part to a scene such that it appears to avatars
-        /// </summary>
-        protected internal void AttachToScene(ulong regionHandle)
-        {
-            m_regionHandle = regionHandle;
-        }
+
 
         private byte GetAttachPointEncoded()
         {
