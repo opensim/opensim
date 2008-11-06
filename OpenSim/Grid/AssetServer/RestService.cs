@@ -52,7 +52,7 @@ namespace OpenSim.Grid.AssetServer
         /// </summary>
         /// <param name="assetManager"></param>
         /// <param name="assetProvider"></param>
-        public GetAssetStreamHandler(OpenAsset_Main assetManager, IAssetProviderPlugin assetProvider)
+        public GetAssetStreamHandler(IAssetProviderPlugin assetProvider)
             : base("GET", "/assets")
         {
             m_log.Info("[REST]: In Get Request");
@@ -142,7 +142,7 @@ namespace OpenSim.Grid.AssetServer
             return new byte[] {};
         }
 
-        public PostAssetStreamHandler(OpenAsset_Main assetManager, IAssetProviderPlugin assetProvider)
+        public PostAssetStreamHandler(IAssetProviderPlugin assetProvider)
             : base("POST", "/assets")
         {
             // m_assetManager = assetManager;

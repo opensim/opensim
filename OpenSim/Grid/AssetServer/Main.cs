@@ -102,8 +102,8 @@ namespace OpenSim.Grid.AssetServer
 
         protected void AddHttpHandlers()
         {
-            m_httpServer.AddStreamHandler(new GetAssetStreamHandler(this, m_assetProvider));
-            m_httpServer.AddStreamHandler(new PostAssetStreamHandler(this, m_assetProvider));
+            m_httpServer.AddStreamHandler(new GetAssetStreamHandler(m_assetProvider));
+            m_httpServer.AddStreamHandler(new PostAssetStreamHandler(m_assetProvider));
         }
 
         public byte[] GetAssetData(UUID assetID, bool isTexture)
