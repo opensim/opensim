@@ -114,7 +114,7 @@ namespace OpenSim.Region.Environment.Scenes
         private static readonly Vector3 m_sitTargetCorrectionOffset = new Vector3(0.1f, 0.0f, 0.3f);
         private float m_godlevel = 0;
 
-        private bool m_attachmentsTransported = false;
+        private bool m_attachmentsTransported = true;
 
         private bool m_invulnerable = true;
 
