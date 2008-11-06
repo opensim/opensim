@@ -2360,7 +2360,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AttachObject(IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
         {
-            if (null == itemID)
+            if (UUID.Zero == itemID)
             {
                 m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error inventory item ID.");
                 return;

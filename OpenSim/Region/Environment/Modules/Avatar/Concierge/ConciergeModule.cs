@@ -53,7 +53,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
         private List<IScene> _scenes = new List<IScene>();
         private List<IScene> _conciergedScenes = new List<IScene>();
-        private Dictionary<IScene, List<ScenePresence>> _sceneAttendees = new Dictionary<IScene, List<ScenePresence>>();
+        private Dictionary<IScene, List<UUID>> _sceneAttendees = new Dictionary<IScene, List<UUID>>();
         private bool _replacingChatModule = false;
 
         private IConfig _config;
@@ -271,10 +271,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             if (_conciergedScenes.Contains(client.Scene))
             {
                 _log.DebugFormat("[Concierge]: {0} logs off from {1}", client.Name, client.Scene.RegionInfo.RegionName);
-                ScenePresence agent = (client.Scene as Scene).GetScenePresence(client.AgentId);
-                RemoveFromAttendeeList(agent, agent.Scene);
-                AnnounceToAgentsRegion(agent, String.Format(_announceLeaving, agent.Name, agent.Scene.RegionInfo.RegionName,
-                                                            _sceneAttendees[agent.Scene].Count));
+                RemoveFromAttendeeList(client.AgentId, client.Name, client.Scene);
+                AnnounceToAgentsRegion(client.Scene, String.Format(_announceLeaving, client.Name, client.Scene.RegionInfo.RegionName,
+                                                                   _sceneAttendees[client.Scene].Count));
             }
         }
 
@@ -284,10 +283,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             if (_conciergedScenes.Contains(agent.Scene))
             {
                 _log.DebugFormat("[Concierge]: {0} enters {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
-                AddToAttendeeList(agent, agent.Scene);
+                AddToAttendeeList(agent.UUID, agent.Scene);
                 WelcomeAvatar(agent, agent.Scene);
-                AnnounceToAgentsRegion(agent, String.Format(_announceEntering, agent.Name, agent.Scene.RegionInfo.RegionName,
-                                                            _sceneAttendees[agent.Scene].Count));
+                AnnounceToAgentsRegion(agent.Scene, String.Format(_announceEntering, agent.Name, agent.Scene.RegionInfo.RegionName,
+                                                                  _sceneAttendees[agent.Scene].Count));
             }
         }
 
@@ -297,25 +296,25 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             if (_conciergedScenes.Contains(agent.Scene))
             {
                 _log.DebugFormat("[Concierge]: {0} leaves {1}", agent.Name, agent.Scene.RegionInfo.RegionName);
-                RemoveFromAttendeeList(agent, agent.Scene);
-                AnnounceToAgentsRegion(agent, String.Format(_announceLeaving, agent.Name, agent.Scene.RegionInfo.RegionName,
-                                                            _sceneAttendees[agent.Scene].Count));
+                RemoveFromAttendeeList(agent.UUID, agent.Name, agent.Scene);
+                AnnounceToAgentsRegion(agent.Scene, String.Format(_announceLeaving, agent.Name, agent.Scene.RegionInfo.RegionName,
+                                                                  _sceneAttendees[agent.Scene].Count));
             }
         }
 
-        protected void AddToAttendeeList(ScenePresence agent, Scene scene)
+        protected void AddToAttendeeList(UUID agentID, Scene scene)
         {
             lock (_sceneAttendees)
             {
                 if (!_sceneAttendees.ContainsKey(scene))
-                    _sceneAttendees[scene] = new List<ScenePresence>();
-                List<ScenePresence> attendees = _sceneAttendees[scene];
-                if (!attendees.Contains(agent))
-                    attendees.Add(agent);
+                    _sceneAttendees[scene] = new List<UUID>();
+                List<UUID> attendees = _sceneAttendees[scene];
+                if (!attendees.Contains(agentID))
+                    attendees.Add(agentID);
             }
         }
 
-        protected void RemoveFromAttendeeList(ScenePresence agent, Scene scene)
+        protected void RemoveFromAttendeeList(UUID agentID, String name, IScene scene)
         {
             lock (_sceneAttendees)
             {
@@ -324,14 +323,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
                     _log.WarnFormat("[Concierge]: attendee list missing for region {0}", scene.RegionInfo.RegionName);
                     return;
                 }
-                List<ScenePresence> attendees = _sceneAttendees[scene];
-                if (!attendees.Contains(agent))
+                List<UUID> attendees = _sceneAttendees[scene];
+                if (!attendees.Contains(agentID))
                 {
                     _log.WarnFormat("[Concierge]: avatar {0} sneaked in (not on attendee list of region {1})",
-                                    agent.Name, scene.RegionInfo.RegionName);
+                                    name, scene.RegionInfo.RegionName);
                     return;
                 }
-                attendees.Remove(agent);
+                attendees.Remove(agentID);
             }
         }
 
@@ -375,16 +374,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
 
         static private Vector3 PosOfGod = new Vector3(128, 128, 9999);
 
-        protected void AnnounceToAgentsRegion(IClientAPI client, string msg)
-        {
-            ScenePresence agent = null;
-            if ((client.Scene is Scene) && (client.Scene as Scene).TryGetAvatar(client.AgentId, out agent)) 
-                AnnounceToAgentsRegion(agent, msg);
-            else
-                _log.DebugFormat("[Concierge]: could not find an agent for client {0}", client.Name);
-        }
+        // protected void AnnounceToAgentsRegion(Scene scene, string msg)
+        // {
+        //     ScenePresence agent = null;
+        //     if ((client.Scene is Scene) && (client.Scene as Scene).TryGetAvatar(client.AgentId, out agent)) 
+        //         AnnounceToAgentsRegion(agent, msg);
+        //     else
+        //         _log.DebugFormat("[Concierge]: could not find an agent for client {0}", client.Name);
+        // }
 
-        protected void AnnounceToAgentsRegion(ScenePresence scenePresence, string msg)
+        protected void AnnounceToAgentsRegion(IScene scene, string msg)
         {
             OSChatMessage c = new OSChatMessage();
             c.Message = msg;
@@ -394,9 +393,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Concierge
             c.From = _whoami;
             c.Sender = null;
             c.SenderUUID = UUID.Zero;
-            c.Scene = scenePresence.Scene;
+            c.Scene = scene;
 
-            scenePresence.Scene.EventManager.TriggerOnChatBroadcast(this, c);
+            if (scene is Scene)
+                (scene as Scene).EventManager.TriggerOnChatBroadcast(this, c);
         }
 
         protected void AnnounceToAgent(ScenePresence agent, string msg)

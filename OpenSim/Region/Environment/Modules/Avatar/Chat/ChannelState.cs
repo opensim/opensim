@@ -486,10 +486,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
 
             m_log.InfoFormat("[IRC-Channel-{0}] Closing channel <{1} to server <{2}:{3}>",
-                    idn, IrcChannel, Server, Port);
+                             idn, IrcChannel, Server, Port);
 
             m_log.InfoFormat("[IRC-Channel-{0}] There are {1} active clients",
-                    idn, clientregions.Count);
+                             idn, clientregions.Count);
 
             irc.Close();
 
@@ -498,7 +498,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         public void Open()
         {
             m_log.InfoFormat("[IRC-Channel-{0}] Opening channel <{1} to server <{2}:{3}>",
-                    idn, IrcChannel, Server, Port);
+                             idn, IrcChannel, Server, Port);
 
             irc.Open();
 
@@ -524,7 +524,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         public void AddRegion(RegionState rs)
         {
             m_log.InfoFormat("[IRC-Channel-{0}] Adding region {1} to channel <{2} to server <{3}:{4}>",
-                    idn, rs.Region, IrcChannel, Server, Port);
+                             idn, rs.Region, IrcChannel, Server, Port);
             if (!clientregions.Contains(rs))
             {
                 clientregions.Add(rs);
@@ -540,7 +540,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
 
             m_log.InfoFormat("[IRC-Channel-{0}] Removing region {1} from channel <{2} to server <{3}:{4}>",
-                    idn, rs.Region, IrcChannel, Server, Port);
+                             idn, rs.Region, IrcChannel, Server, Port);
 
             if (clientregions.Contains(rs))
             {

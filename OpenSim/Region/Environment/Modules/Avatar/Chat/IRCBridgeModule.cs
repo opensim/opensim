@@ -241,7 +241,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     if (rs.Region == region)
                     {
                         responseData["server"]    = rs.cs.Server;
-                        responseData["port"]      = rs.cs.Port;
+                        responseData["port"]      = (int)rs.cs.Port;
                         responseData["user"]      = rs.cs.User;
                         responseData["channel"]   = rs.cs.IrcChannel;
                         responseData["enabled"]   = rs.cs.irc.Enabled;

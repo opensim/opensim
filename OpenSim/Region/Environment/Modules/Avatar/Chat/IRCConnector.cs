@@ -183,7 +183,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             m_baseNick      = cs.BaseNickname;
             m_randomizeNick = cs.RandomizeNickname;
             m_ircChannel    = cs.IrcChannel;
-            m_port          = (uint) cs.Port;
+            m_port          = cs.Port;
             m_user          = cs.User;
 
             if (m_watchdog == null)
