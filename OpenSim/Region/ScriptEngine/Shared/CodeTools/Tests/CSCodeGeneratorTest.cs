@@ -1220,7 +1220,7 @@ default
                 "\n        {" +
                 "\n            goto here;" +
                 "\n            llOwnerSay(new LSL_Types.LSLString(\"Uh oh, the jump didn't work\"));" +
-                "\n            here:" +
+                "\n            here: NoOp();" +
                 "\n            llOwnerSay(new LSL_Types.LSLString(\"After the jump\"));" +
                 "\n        }\n";
 
