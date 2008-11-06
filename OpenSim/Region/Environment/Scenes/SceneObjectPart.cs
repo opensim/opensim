@@ -3406,8 +3406,6 @@ if (m_shape != null) {
         protected internal void AttachToScene(ulong regionHandle)
         {
             m_regionHandle = regionHandle;
-            
-            ScheduleFullUpdate();
         }
 
         private byte GetAttachPointEncoded()
