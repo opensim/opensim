@@ -46,6 +46,7 @@ namespace OpenSim.Data.Tests
         public UUID user2;
         public UUID user3;
         public UUID user4;
+        public UUID user5;
         public UUID webkey;
         public UUID zero = UUID.Zero;
         public static Random random;
@@ -81,6 +82,7 @@ namespace OpenSim.Data.Tests
             user2 = UUID.Random();
             user3 = UUID.Random();
             user4 = UUID.Random();
+            user5 = UUID.Random();
             agent1 = UUID.Random();
             agent2 = UUID.Random();
             agent3 = UUID.Random();
@@ -191,20 +193,20 @@ namespace OpenSim.Data.Tests
         public void T015_UserPersistency()
         {
             UserProfileData u = new UserProfileData();
-            UUID id = UUID.Random();
+            UUID id = user5;
             string fname = RandomName();
             string lname = RandomName();
+            string email = RandomName();
             string passhash =  RandomName();
             string passsalt =  RandomName();
             UUID homeregion = UUID.Random();
             UUID webloginkey = UUID.Random();
             uint homeregx = (uint) random.Next();
             uint homeregy = (uint) random.Next();
-            Vector3 homeloc = new Vector3((float) random.NextDouble(),(float) random.NextDouble(),(float) random.NextDouble());
-            Vector3 homelookat = new Vector3((float)random.NextDouble(),(float)random.NextDouble(),(float)random.NextDouble());            
+            Vector3 homeloc = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
+            Vector3 homelookat = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
             int created = random.Next();
             int lastlogin = random.Next();
-            UUID rootinvfolder = UUID.Random();
             string userinvuri = RandomName();
             string userasseturi = RandomName();
             uint candomask = (uint) random.Next();
@@ -219,20 +221,25 @@ namespace OpenSim.Data.Tests
             string customtype = RandomName();
             UUID partner = UUID.Random();
             
+            //HomeRegionX and HomeRegionY must only use 24 bits
+            homeregx = ((homeregx << 8) >> 8);
+            homeregy = ((homeregy << 8) >> 8);            
+
             u.ID = id;
             u.WebLoginKey = webloginkey;
             u.HomeRegionID = homeregion;
             u.FirstName = fname;
             u.SurName = lname;
+            u.Email = email;
             u.PasswordHash = passhash;
             u.PasswordSalt = passsalt;
             u.HomeRegionX = homeregx;
             u.HomeRegionY = homeregy;
+            ulong homereg = u.HomeRegion;
             u.HomeLocation = homeloc;
             u.HomeLookAt = homelookat;
             u.Created = created;
             u.LastLogin = lastlogin;
-            u.RootInventoryFolderID = rootinvfolder;
             u.UserInventoryURI = userinvuri;
             u.UserAssetURI = userasseturi;
             u.CanDoMask = candomask;
@@ -250,33 +257,137 @@ namespace OpenSim.Data.Tests
             db.AddNewUserProfile(u);
             UserProfileData u1a = db.GetUserByUUID(id);
             Assert.That(u1a,Is.Not.Null);
-            Assert.That(homeregion,Is.EqualTo(u.HomeRegionID));
-            Assert.That(webloginkey,Is.EqualTo(u.WebLoginKey));
-            Assert.That(fname,Is.EqualTo(u.FirstName));
-            Assert.That(lname,Is.EqualTo(u.SurName));
-            Assert.That(passhash,Is.EqualTo(u.PasswordHash));
-            Assert.That(passsalt,Is.EqualTo(u.PasswordSalt));
-            Assert.That(homeregx,Is.EqualTo(u.HomeRegionX));
-            Assert.That(homeregy,Is.EqualTo(u.HomeRegionY));
-            Assert.That(homeloc,Is.EqualTo(u.HomeLocation));
-            Assert.That(homelookat,Is.EqualTo(u.HomeLookAt));
-            Assert.That(created,Is.EqualTo(u.Created));
-            Assert.That(lastlogin,Is.EqualTo(u.LastLogin));
-            Assert.That(rootinvfolder,Is.EqualTo(u.RootInventoryFolderID));
-            Assert.That(userinvuri,Is.EqualTo(u.UserInventoryURI));
-            Assert.That(userasseturi,Is.EqualTo(u.UserAssetURI));
-            Assert.That(candomask,Is.EqualTo(u.CanDoMask));
-            Assert.That(abouttext,Is.EqualTo(u.AboutText));
-            Assert.That(flabouttext,Is.EqualTo(u.FirstLifeAboutText));
-            Assert.That(image,Is.EqualTo(u.Image));
-            Assert.That(firstimage,Is.EqualTo(u.FirstLifeImage));
-            Assert.That(agent,Is.EqualTo(u.CurrentAgent));
-            Assert.That(userflags,Is.EqualTo(u.UserFlags));
-            Assert.That(godlevel,Is.EqualTo(u.GodLevel));
-            Assert.That(customtype,Is.EqualTo(u.CustomType));
-            Assert.That(partner,Is.EqualTo(u.Partner));
+            Assert.That(id,Is.EqualTo(u1a.ID));
+            Assert.That(homeregion,Is.EqualTo(u1a.HomeRegionID));
+            Assert.That(webloginkey,Is.EqualTo(u1a.WebLoginKey));
+            Assert.That(fname,Is.EqualTo(u1a.FirstName));
+            Assert.That(lname,Is.EqualTo(u1a.SurName));
+            Assert.That(email,Is.EqualTo(u1a.Email));
+            Assert.That(passhash,Is.EqualTo(u1a.PasswordHash));
+            Assert.That(passsalt,Is.EqualTo(u1a.PasswordSalt));
+            Assert.That(homeregx,Is.EqualTo(u1a.HomeRegionX));
+            Assert.That(homeregy,Is.EqualTo(u1a.HomeRegionY));
+            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion));
+            Assert.That(homeloc,Is.EqualTo(u1a.HomeLocation));
+            Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt));
+            Assert.That(created,Is.EqualTo(u1a.Created));
+            Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin));
+            // RootInventoryFolderID is not tested because it is saved in SQLite,
+            // but not in MySQL
+            Assert.That(userinvuri,Is.EqualTo(u1a.UserInventoryURI));
+            Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI));
+            Assert.That(candomask,Is.EqualTo(u1a.CanDoMask));
+            Assert.That(wantdomask,Is.EqualTo(u1a.WantDoMask));
+            Assert.That(abouttext,Is.EqualTo(u1a.AboutText));
+            Assert.That(flabouttext,Is.EqualTo(u1a.FirstLifeAboutText));
+            Assert.That(image,Is.EqualTo(u1a.Image));
+            Assert.That(firstimage,Is.EqualTo(u1a.FirstLifeImage));
+            Assert.That(u1a.CurrentAgent,Is.Null);
+            Assert.That(userflags,Is.EqualTo(u1a.UserFlags));
+            Assert.That(godlevel,Is.EqualTo(u1a.GodLevel));
+            Assert.That(customtype,Is.EqualTo(u1a.CustomType));
+            Assert.That(partner,Is.EqualTo(u1a.Partner));
         }
 
+        [Test]
+        public void T016_UserUpdatePersistency()
+        {
+            UUID id = user5;
+            UserProfileData u = db.GetUserByUUID(id);
+            string fname = RandomName();
+            string lname = RandomName();
+            string email = RandomName();
+            string passhash =  RandomName();
+            string passsalt =  RandomName();
+            UUID homeregionid = UUID.Random();
+            UUID webloginkey = UUID.Random();
+            uint homeregx = (uint) random.Next();
+            uint homeregy = (uint) random.Next();
+            Vector3 homeloc = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
+            Vector3 homelookat = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));            
+            int created = random.Next();
+            int lastlogin = random.Next();
+            string userinvuri = RandomName();
+            string userasseturi = RandomName();
+            uint candomask = (uint) random.Next();
+            uint wantdomask = (uint) random.Next();
+            string abouttext = RandomName();
+            string flabouttext = RandomName();
+            UUID image = UUID.Random();
+            UUID firstimage = UUID.Random();
+            UserAgentData agent = NewAgent(id,UUID.Random());
+            int userflags = random.Next();
+            int godlevel = random.Next();
+            string customtype = RandomName();
+            UUID partner = UUID.Random();
+            
+            //HomeRegionX and HomeRegionY must only use 24 bits
+            homeregx = ((homeregx << 8) >> 8);
+            homeregy = ((homeregy << 8) >> 8);
+       
+            u.WebLoginKey = webloginkey;
+            u.HomeRegionID = homeregionid;
+            u.FirstName = fname;
+            u.SurName = lname;
+            u.Email = email;
+            u.PasswordHash = passhash;
+            u.PasswordSalt = passsalt;
+            u.HomeRegionX = homeregx;
+            u.HomeRegionY = homeregy;
+            ulong homereg = u.HomeRegion;
+            u.HomeLocation = homeloc;
+            u.HomeLookAt = homelookat;
+            u.Created = created;
+            u.LastLogin = lastlogin;
+            u.UserInventoryURI = userinvuri;
+            u.UserAssetURI = userasseturi;
+            u.CanDoMask = candomask;
+            u.WantDoMask = wantdomask;
+            u.AboutText = abouttext;
+            u.FirstLifeAboutText = flabouttext;
+            u.Image = image;
+            u.FirstLifeImage = firstimage;
+            u.CurrentAgent = agent;
+            u.UserFlags = userflags;
+            u.GodLevel = godlevel;
+            u.CustomType = customtype;
+            u.Partner = partner;
+            
+            db.UpdateUserProfile(u);
+            UserProfileData u1a = db.GetUserByUUID(id);
+            Assert.That(u1a,Is.Not.Null);
+            Assert.That(id,Is.EqualTo(u1a.ID));
+            Assert.That(homeregionid,Is.EqualTo(u1a.HomeRegionID));
+            Assert.That(webloginkey,Is.EqualTo(u1a.WebLoginKey));
+            Assert.That(fname,Is.EqualTo(u1a.FirstName));
+            Assert.That(lname,Is.EqualTo(u1a.SurName));
+            Assert.That(email,Is.EqualTo(u1a.Email));
+            Assert.That(passhash,Is.EqualTo(u1a.PasswordHash));
+            Assert.That(passsalt,Is.EqualTo(u1a.PasswordSalt));
+            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion));            
+            Assert.That(homeregx,Is.EqualTo(u1a.HomeRegionX));
+            Assert.That(homeregy,Is.EqualTo(u1a.HomeRegionY));
+            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion));
+            Assert.That(homeloc,Is.EqualTo(u1a.HomeLocation));
+            Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt));
+            Assert.That(created,Is.EqualTo(u1a.Created));
+            Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin));
+            // RootInventoryFolderID is not tested because it is saved in SQLite,
+            // but not in MySQL
+            Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI));
+            Assert.That(candomask,Is.EqualTo(u1a.CanDoMask));
+            Assert.That(wantdomask,Is.EqualTo(u1a.WantDoMask));
+            Assert.That(abouttext,Is.EqualTo(u1a.AboutText));
+            Assert.That(flabouttext,Is.EqualTo(u1a.FirstLifeAboutText));
+            Assert.That(image,Is.EqualTo(u1a.Image));
+            Assert.That(firstimage,Is.EqualTo(u1a.FirstLifeImage));
+            Assert.That(u1a.CurrentAgent,Is.Null);
+            Assert.That(userflags,Is.EqualTo(u1a.UserFlags));
+            Assert.That(godlevel,Is.EqualTo(u1a.GodLevel));
+            Assert.That(customtype,Is.EqualTo(u1a.CustomType));
+            Assert.That(partner,Is.EqualTo(u1a.Partner));
+        }
+        
         [Test]
         public void T020_CreateAgent()
         {
@@ -394,7 +505,6 @@ namespace OpenSim.Data.Tests
             u.SurName = lname;
             u.PasswordHash = "NOTAHASH";
             u.PasswordSalt = "NOTSALT";               
-            u.Email = "nobody@nodomain.nocc";
             // MUST specify at least these 5 parameters or an exception is raised
 
             return u;

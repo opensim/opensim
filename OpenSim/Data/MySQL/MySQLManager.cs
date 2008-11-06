@@ -561,7 +561,7 @@ namespace OpenSim.Data.MySQL
 
                 retval.Created = Convert.ToInt32(reader["created"].ToString());
                 retval.LastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
-
+                
                 retval.UserInventoryURI = (string) reader["userInventoryURI"];
                 retval.UserAssetURI = (string) reader["userAssetURI"];
 
@@ -751,6 +751,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="passwordHash">A salted hash of the users password</param>
         /// <param name="passwordSalt">The salt used for the password hash</param>
         /// <param name="homeRegion">A regionHandle of the users home region</param>
+        /// <param name="homeRegionID"> The UUID of the user's home region</param>
         /// <param name="homeLocX">Home region position vector</param>
         /// <param name="homeLocY">Home region position vector</param>
         /// <param name="homeLocZ">Home region position vector</param>
@@ -770,22 +771,22 @@ namespace OpenSim.Data.MySQL
         /// <param name="webLoginKey">Ignored</param>
         /// <returns>Success?</returns>
         public bool insertUserRow(UUID uuid, string username, string lastname, string email, string passwordHash,
-                                  string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
+                                  string passwordSalt, UInt64 homeRegion, UUID homeRegionID, float homeLocX, float homeLocY, float homeLocZ,
                                   float homeLookAtX, float homeLookAtY, float homeLookAtZ, int created, int lastlogin,
                                   string inventoryURI, string assetURI, uint canDoMask, uint wantDoMask,
                                   string aboutText, string firstText,
-                                  UUID profileImage, UUID firstImage, UUID webLoginKey)
+                                  UUID profileImage, UUID firstImage, UUID webLoginKey, int userFlags, int godLevel, string customType, UUID partner)
         {
             m_log.Debug("[MySQLManager]: Fetching profile for " + uuid.ToString());
             string sql =
-                "INSERT INTO users (`UUID`, `username`, `lastname`, `email`, `passwordHash`, `passwordSalt`, `homeRegion`, ";
+                "INSERT INTO users (`UUID`, `username`, `lastname`, `email`, `passwordHash`, `passwordSalt`, `homeRegion`, `homeRegionID`, ";
             sql +=
                 "`homeLocationX`, `homeLocationY`, `homeLocationZ`, `homeLookAtX`, `homeLookAtY`, `homeLookAtZ`, `created`, ";
             sql +=
                 "`lastLogin`, `userInventoryURI`, `userAssetURI`, `profileCanDoMask`, `profileWantDoMask`, `profileAboutText`, ";
             sql += "`profileFirstText`, `profileImage`, `profileFirstImage`, `webLoginKey`, `userFlags`, `godLevel`, `customType`, `partner`) VALUES ";
 
-            sql += "(?UUID, ?username, ?lastname, ?email, ?passwordHash, ?passwordSalt, ?homeRegion, ";
+            sql += "(?UUID, ?username, ?lastname, ?email, ?passwordHash, ?passwordSalt, ?homeRegion, ?homeRegionID, ";
             sql +=
                 "?homeLocationX, ?homeLocationY, ?homeLocationZ, ?homeLookAtX, ?homeLookAtY, ?homeLookAtZ, ?created, ";
             sql +=
@@ -800,6 +801,7 @@ namespace OpenSim.Data.MySQL
             parameters["?passwordHash"] = passwordHash;
             parameters["?passwordSalt"] = passwordSalt;
             parameters["?homeRegion"] = homeRegion.ToString();
+            parameters["?homeRegionID"] = homeRegionID.ToString();
             parameters["?homeLocationX"] = homeLocX.ToString();
             parameters["?homeLocationY"] = homeLocY.ToString();
             parameters["?homeLocationZ"] = homeLocZ.ToString();
@@ -808,23 +810,21 @@ namespace OpenSim.Data.MySQL
             parameters["?homeLookAtZ"] = homeLookAtZ.ToString();
             parameters["?created"] = created.ToString();
             parameters["?lastLogin"] = lastlogin.ToString();
-            parameters["?userInventoryURI"] = String.Empty;
-            parameters["?userAssetURI"] = String.Empty;
-            parameters["?profileCanDoMask"] = "0";
-            parameters["?profileWantDoMask"] = "0";
+            parameters["?userInventoryURI"] = inventoryURI;
+            parameters["?userAssetURI"] = assetURI;
+            parameters["?profileCanDoMask"] = canDoMask.ToString();
+            parameters["?profileWantDoMask"] = wantDoMask.ToString();
             parameters["?profileAboutText"] = aboutText;
             parameters["?profileFirstText"] = firstText;
             parameters["?profileImage"] = profileImage.ToString();
             parameters["?profileFirstImage"] = firstImage.ToString();
-            parameters["?webLoginKey"] = string.Empty;
-            parameters["?userFlags"] = "0";
-            parameters["?godLevel"] = "0";
-            parameters["?customType"] = "";
-            parameters["?partner"] = "";
-
-
+            parameters["?webLoginKey"] = webLoginKey.ToString();
+            parameters["?userFlags"] = userFlags.ToString();
+            parameters["?godLevel"] = godLevel.ToString();
+            parameters["?customType"] = customType == null ? "" : customType;
+            parameters["?partner"] = partner.ToString();
             bool returnval = false;
-
+                
             try
             {
                 IDbCommand result = Query(sql, parameters);
@@ -911,8 +911,8 @@ namespace OpenSim.Data.MySQL
             parameters["?lastLogin"] = lastlogin.ToString();
             parameters["?userInventoryURI"] = inventoryURI;
             parameters["?userAssetURI"] = assetURI;
-            parameters["?profileCanDoMask"] = "0";
-            parameters["?profileWantDoMask"] = "0";
+            parameters["?profileCanDoMask"] = canDoMask.ToString();
+            parameters["?profileWantDoMask"] = wantDoMask.ToString();
             parameters["?profileAboutText"] = aboutText;
             parameters["?profileFirstText"] = firstText;
             parameters["?profileImage"] = profileImage.ToString();
