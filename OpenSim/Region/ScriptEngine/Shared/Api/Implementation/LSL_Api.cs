@@ -3444,7 +3444,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // agent must be over the owners land
                     if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
+                    {
+                        presence.ControllingClient.SendTeleportLocationStart();
                         World.TeleportClientHome(agentId, presence.ControllingClient);
+                    }
                 }
             }
             // ScriptSleep(5000);

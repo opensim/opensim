@@ -479,6 +479,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // agent must be over owners land to avoid abuse
                     if (m_host.OwnerID == World.GetLandOwner(presence.AbsolutePosition.X, presence.AbsolutePosition.Y))
                     {
+                        presence.ControllingClient.SendTeleportLocationStart();
                         World.RequestTeleportLocation(presence.ControllingClient, regionName,
                             new Vector3((float)position.x, (float)position.y, (float)position.z),
                             new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation);
