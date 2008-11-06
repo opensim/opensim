@@ -64,11 +64,11 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         private OpenSim.Framework.BlockingQueue<MapRequestState> requests = new OpenSim.Framework.BlockingQueue<MapRequestState>();
 
         //private IConfig m_config;
-        private Scene m_scene;
+        protected Scene m_scene;
         private List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
         private int cachedTime = 0;
         private byte[] myMapImageJPEG;
-        private bool m_Enabled = false;
+        protected bool m_Enabled = false;
         private Dictionary<UUID, MapRequestState> m_openRequests = new Dictionary<UUID, MapRequestState>();
         private Dictionary<string, int> m_blacklistedurls = new Dictionary<string, int>();
         private Dictionary<ulong, int> m_blacklistedregions = new Dictionary<ulong, int>();
@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         #region IRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public virtual void Initialise(Scene scene, IConfigSource config)
         {
             IConfig startupConfig = config.Configs["Startup"];
             if (startupConfig.GetString("WorldMapModule", "WorldMap") ==
@@ -91,35 +91,20 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             if (!m_Enabled)
                 return;
 
-            myMapImageJPEG = new byte[0];
-
             m_scene = scene;
-            string regionimage = "regionImage" + scene.RegionInfo.RegionID.ToString();
-            regionimage = regionimage.Replace("-", "");
-            m_log.Warn("[WEBMAP]: JPEG Map location: http://" + m_scene.RegionInfo.ExternalEndPoint.Address.ToString() + ":" + m_scene.RegionInfo.HttpPort.ToString() + "/index.php?method=" + regionimage);
-
-
-            m_scene.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
-            m_scene.AddLLSDHandler("/MAP/MapItems/" + scene.RegionInfo.RegionHandle.ToString(),HandleRemoteMapItemRequest);
-
-
-            scene.EventManager.OnRegisterCaps += OnRegisterCaps;
-            scene.EventManager.OnNewClient += OnNewClient;
-            scene.EventManager.OnClientClosed += ClientLoggedOut;
-            scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-            scene.EventManager.OnMakeRootAgent += MakeRootAgent;
-
-
         }
-        public void PostInitialise()
+
+        public virtual void PostInitialise()
         {
-
+            if (m_Enabled)
+                AddHandlers();
         }
 
-        public void Close()
+        public virtual void Close()
         {
         }
-        public string Name
+
+        public virtual string Name
         {
             get { return "WorldMapModule"; }
         }
@@ -130,6 +115,24 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         }
 
         #endregion
+
+        protected virtual void AddHandlers()
+        {
+            myMapImageJPEG = new byte[0];
+
+            string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
+            regionimage = regionimage.Replace("-", "");
+            m_log.Warn("[WEBMAP]: JPEG Map location: http://" + m_scene.RegionInfo.ExternalEndPoint.Address.ToString() + ":" + m_scene.RegionInfo.HttpPort.ToString() + "/index.php?method=" + regionimage);
+
+            m_scene.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
+            m_scene.AddLLSDHandler("/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest);
+
+            m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+            m_scene.EventManager.OnNewClient += OnNewClient;
+            m_scene.EventManager.OnClientClosed += ClientLoggedOut;
+            m_scene.EventManager.OnMakeChildAgent += MakeChildAgent;
+            m_scene.EventManager.OnMakeRootAgent += MakeRootAgent;
+        }
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
@@ -155,7 +158,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         /// <param name="caps"></param>
         /// <returns></returns>
         public string MapLayerRequest(string request, string path, string param,
-                                                   UUID agentID, Caps caps)
+                                      UUID agentID, Caps caps)
         {
             //try
             //{
@@ -249,7 +252,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         /// <param name="AgentId">AgentID that logged out</param>
         private void ClientLoggedOut(UUID AgentId)
         {
-          
             List<ScenePresence> presences = m_scene.GetAvatars();
             int rootcount = 0;
             for (int i=0;i<presences.Count;i++)
@@ -270,7 +272,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     m_rootAgents.Remove(AgentId);
                 }
             }
-
         }
         #endregion
 
@@ -310,11 +311,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             requests.Enqueue(st);
         }
 
-
         public virtual void HandleMapItemRequest(IClientAPI remoteClient, uint flags, 
             uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
-
             lock (m_rootAgents)
             {
                 if (!m_rootAgents.Contains(remoteClient.AgentId))
@@ -345,7 +344,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     }
                     else
                     {
-                        
                         foreach (ScenePresence av in avatars)
                         {
                             // Don't send a green dot for yourself
@@ -368,7 +366,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 {
                     // Remote Map Item Request
 
-
                     // ensures that the blockingqueue doesn't get borked if the GetAgents() timing changes.
                     // Note that we only start up a remote mapItem Request thread if there's users who could 
                     // be making requests
@@ -379,10 +376,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     }
 
                     RequestMapItems("",remoteClient.AgentId,flags,EstateID,godlike,itemtype,regionhandle);
-                    
                 }
             }
-
         }
 
         /// <summary>
@@ -441,7 +436,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         /// <param name="response">The LLSDMap Response for the mapitem</param>
         private void RequestMapItemsCompleted(LLSDMap response)
         {
-
             UUID requestID = response["requestID"].AsUUID();
 
             if (requestID != UUID.Zero)
@@ -481,9 +475,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                             }
                             av.ControllingClient.SendMapItemReply(returnitems.ToArray(), mrs.itemtype, mrs.flags);
                         }
-                        
                     }
-
                 }
             }
         }
@@ -509,7 +501,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             st.itemtype = itemtype; 
             st.regionhandle = regionhandle;
             EnqueueMapItemRequest(st);
-           
         }
 
         /// <summary>
@@ -534,7 +525,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             {
                 if (m_blacklistedregions.ContainsKey(regionhandle))
                     blacklisted = true;
-
             }
 
             if (blacklisted)
@@ -645,7 +635,6 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 }
                 catch (WebException)
                 {
-                    
                     responseMap["connect"] = LLSD.FromBoolean(false);
                     lock (m_blacklistedurls)
                     {
@@ -675,6 +664,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             }
             return responseMap;
         }
+
         /// <summary>
         /// Requests map blocks in area of minX, maxX, minY, MaxY in world cordinates
         /// </summary>
@@ -789,6 +779,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             return reply;
         }
+
         // From msdn
         private static ImageCodecInfo GetEncoderInfo(String mimeType)
         {
@@ -801,6 +792,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             }
             return null;
         }
+
         public LLSD HandleRemoteMapItemRequest(string path, LLSD request, string endpoint)
         {
             uint xstart = 0;
@@ -858,11 +850,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             }
             return responsemap;
         }
-        
 
         private void MakeRootAgent(ScenePresence avatar)
         { 
-            
             // You may ask, why this is in a threadpool to start with..   
             // The reason is so we don't cause the thread to freeze waiting 
             // for the 1 second it costs to start a thread manually.
@@ -914,5 +904,4 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         public uint itemtype;
         public ulong regionhandle;
     }
-    
 }
