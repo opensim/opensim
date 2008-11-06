@@ -178,10 +178,7 @@ namespace OpenSim
             else
             {
                 // We are in grid mode
-                m_commsManager 
-                    = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache, libraryRootFolder);
-                
-                m_httpServer.AddStreamHandler(new SimStatusHandler());
+                InitialiseGridServices(libraryRootFolder);
             }
 
             proxyUrl = ConfigSource.Source.Configs["Network"].GetString("proxy_url", "");
@@ -200,7 +197,7 @@ namespace OpenSim
         /// Initialises the backend services for standalone mode, and registers some http handlers
         /// </summary>
         /// <param name="libraryRootFolder"></param>
-        protected void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
+        protected virtual void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
         {
             LocalInventoryService inventoryService = new LocalInventoryService();
             inventoryService.AddPlugin(m_configSettings.StandaloneInventoryPlugin, m_configSettings.StandaloneInventorySource);
@@ -237,6 +234,14 @@ namespace OpenSim
             m_gridInfoService = new GridInfoService(m_config.Source);
             m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
             m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
+        }
+
+        protected virtual void InitialiseGridServices(LibraryRootFolder libraryRootFolder)
+        {
+            m_commsManager
+                = new CommunicationsOGS1(m_networkServersInfo, m_httpServer, m_assetCache, libraryRootFolder);
+
+            m_httpServer.AddStreamHandler(new SimStatusHandler());
         }
 
         protected override void Initialize()
