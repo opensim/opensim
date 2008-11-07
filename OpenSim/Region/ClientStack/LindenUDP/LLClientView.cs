@@ -4690,7 +4690,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (handlerUpdatePrimFlags != null)
                     {
-                        handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, Pack, this);
+                        byte[] data = Pack.ToBytes();
+                        int i = 46;
+                        bool UsePhysics = (data[i++] != 0) ? true : false;
+                        bool IsTemporary = (data[i++] != 0) ? true : false;
+                        bool IsPhantom = (data[i++] != 0) ? true : false;
+                        handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, UsePhysics, IsTemporary, IsPhantom, this);
                     }
                     break;
                 case PacketType.ObjectImage:

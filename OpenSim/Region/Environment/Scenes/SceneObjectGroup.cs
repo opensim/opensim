@@ -1407,34 +1407,23 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ScriptSetPhysicsStatus(bool UsePhysics)
         {
-            if (m_scene.m_physicalPrim)
-            {
-                lock (m_parts)
-                {
-                    foreach (SceneObjectPart part in m_parts.Values)
-                    {
-                        if (UsePhysics)
-                            part.AddFlag(PrimFlags.Physics);
-                        else
-                            part.RemFlag(PrimFlags.Physics);
+            bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
+            bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
+            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, IsPhantom);
+        }
 
-                        part.DoPhysicsPropertyUpdate(UsePhysics, false);
-                        IsSelected = false;
-                    }
-                }
-            }
+        public void ScriptSetTemporaryStatus(bool TemporaryStatus)
+        {
+            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
+            bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
+            UpdatePrimFlags(RootPart.LocalId, UsePhysics, TemporaryStatus, IsPhantom);
         }
 
         public void ScriptSetPhantomStatus(bool PhantomStatus)
         {
-            byte[] flags = new byte[50];
-            // only the following 3 flags are updated by UpdatePrimFlags
-            flags[46] = (byte)((RootPart.Flags & PrimFlags.Physics) != 0 ? 1 : 0);
-            flags[47] = (byte)((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0 ? 1 : 0);
-            flags[48] = (byte)(PhantomStatus ? 1 : 0);
-            // 94 is the packet type that comes from the ll viewer when selecting/unselecting
-            // so pretend we are from the viewer
-            UpdatePrimFlags(RootPart.LocalId, (ushort)94, true, flags);
+            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
+            bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
+            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, PhantomStatus);
         }
 
         public void applyImpulse(PhysicsVector impulse)
@@ -2160,11 +2149,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="type"></param>
         /// <param name="inUse"></param>
         /// <param name="data"></param>
-        public void UpdatePrimFlags(uint localID, ushort type, bool inUse, byte[] data)
+        public void UpdatePrimFlags(uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom)
         {
             SceneObjectPart selectionPart = GetChildPart(localID);
 
-            if (data[47] != 0) // Temporary
+            if (IsTemporary)
             {
                 DetachFromBackup();
                 // Remove from database and parcel prim count
@@ -2181,14 +2170,14 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         if (part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
                         {
-                            data[46] = 0; // Reset physics
+                            UsePhysics = false; // Reset physics
                             break;
                         }
                     }
 
                     foreach (SceneObjectPart part in m_parts.Values)
                     {
-                        part.UpdatePrimFlags(type, inUse, data);
+                        part.UpdatePrimFlags(UsePhysics, IsTemporary, IsPhantom);
                     }
                 }
             }

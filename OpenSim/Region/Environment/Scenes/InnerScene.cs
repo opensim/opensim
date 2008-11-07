@@ -1194,14 +1194,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         /// <param name="packet"></param>
         /// <param name="remoteClient"></param>
-        protected internal void UpdatePrimFlags(uint localID, Packet packet, IClientAPI remoteClient)
+        protected internal void UpdatePrimFlags(uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
                 if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
                 {
-                    group.UpdatePrimFlags(localID, (ushort)packet.Type, true, packet.ToBytes());
+                    group.UpdatePrimFlags(localID, UsePhysics, IsTemporary, IsPhantom);
                 }
             }
         }

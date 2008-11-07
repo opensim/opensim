@@ -2031,6 +2031,14 @@ if (m_shape != null) {
             }
         }
 
+        public void ScriptSetTemporaryStatus(bool Temporary)
+        {
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.ScriptSetTemporaryStatus(Temporary);
+            }
+        }
+
         public void ScriptSetPhysicsStatus(bool UsePhysics)
         {
             if (m_parentGroup == null)
@@ -3046,45 +3054,17 @@ if (m_shape != null) {
             }
         }
 
-        public void UpdatePrimFlags(ushort type, bool inUse, byte[] data)
+        public void UpdatePrimFlags(bool UsePhysics, bool IsTemporary, bool IsPhantom)
         {
-            //m_log.Info("TSomething1:" + ((type & (ushort)ExtraParamType.Something1) == (ushort)ExtraParamType.Something1));
-            //m_log.Info("TSomething2:" + ((type & (ushort)ExtraParamType.Something2) == (ushort)ExtraParamType.Something2));
-            //m_log.Info("TSomething3:" + ((type & (ushort)ExtraParamType.Something3) == (ushort)ExtraParamType.Something3));
-            //m_log.Info("TSomething4:" + ((type & (ushort)ExtraParamType.Something4) == (ushort)ExtraParamType.Something4));
-            //m_log.Info("TSomething5:" + ((type & (ushort)ExtraParamType.Something5) == (ushort)ExtraParamType.Something5));
-            //m_log.Info("TSomething6:" + ((type & (ushort)ExtraParamType.Something6) == (ushort)ExtraParamType.Something6));
 
-            bool usePhysics = false;
-            bool IsTemporary = false;
-            bool IsPhantom = false;
-            // bool castsShadows = false;
             bool wasUsingPhysics = ((ObjectFlags & (uint) PrimFlags.Physics) != 0);
-            //bool IsLocked = false;
-            int i = 0;
 
-            try
-            {
-                i += 46;
-                //IsLocked = (data[i++] != 0) ? true : false;
-                usePhysics = ((data[i++] != 0) && m_parentGroup.Scene.m_physicalPrim) ? true : false;
-                //System.Console.WriteLine("U" + packet.ToBytes().Length.ToString());
-                IsTemporary = (data[i++] != 0) ? true : false;
-                IsPhantom = (data[i++] != 0) ? true : false;
-                // castsShadows = (data[i++] != 0) ? true : false;
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Ignoring invalid Packet:");
-                //Silently ignore it - TODO: FIXME Quick
-            }
-
-            if (usePhysics)
+            if (UsePhysics)
             {
                 AddFlag(PrimFlags.Physics);
                 if (!wasUsingPhysics)
                 {
-                    DoPhysicsPropertyUpdate(usePhysics, false);
+                    DoPhysicsPropertyUpdate(UsePhysics, false);
                     if (m_parentGroup != null)
                     {
                         if (m_parentGroup.RootPart != null)
@@ -3102,7 +3082,7 @@ if (m_shape != null) {
                 RemFlag(PrimFlags.Physics);
                 if (wasUsingPhysics)
                 {
-                    DoPhysicsPropertyUpdate(usePhysics, false);
+                    DoPhysicsPropertyUpdate(UsePhysics, false);
                 }
             }
 
@@ -3127,12 +3107,12 @@ if (m_shape != null) {
                         new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z),
                         new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
                         RotationOffset,
-                        usePhysics);
+                        UsePhysics);
 
                     if (PhysActor != null)
                     {
                         PhysActor.LocalID = LocalId;
-                        DoPhysicsPropertyUpdate(usePhysics, true);
+                        DoPhysicsPropertyUpdate(UsePhysics, true);
                         if (m_parentGroup != null)
                         {
                             if (m_parentGroup.RootPart != null)
@@ -3147,8 +3127,8 @@ if (m_shape != null) {
                 }
                 else
                 {
-                    PhysActor.IsPhysical = usePhysics;
-                    DoPhysicsPropertyUpdate(usePhysics, false);
+                    PhysActor.IsPhysical = UsePhysics;
+                    DoPhysicsPropertyUpdate(UsePhysics, false);
                     if (m_parentGroup != null)
                     {
                         if (m_parentGroup.RootPart != null)
