@@ -51,9 +51,9 @@ namespace OpenSim.Region.Examples.SimpleModule
             {
             }
 
-            public RotatingWheel(SceneObjectGroup parent, UUID ownerID, uint localID,
+            public RotatingWheel(SceneObjectGroup parent, UUID ownerID,
                                  Vector3 groupPosition, Vector3 offsetPosition, Quaternion rotationDirection)
-                : base(parent, ownerID, localID, PrimitiveBaseShape.Default, groupPosition, offsetPosition)
+                : base(parent, ownerID, PrimitiveBaseShape.Default, groupPosition, offsetPosition)
             {
                 m_rotationDirection = rotationDirection;
 
@@ -78,29 +78,29 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public ComplexObject(Scene scene, ulong regionHandle, UUID ownerID, uint localID, Vector3 pos)
-            : base(ownerID, localID, pos, PrimitiveBaseShape.Default)
+            : base(ownerID, pos, PrimitiveBaseShape.Default)
         {
             m_rotationDirection = new Quaternion(0.05f, 0.1f, 0.15f);
 
             AddPart(
-                new RotatingWheel(this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(0, 0, 0.75f),
+                new RotatingWheel(this, ownerID, pos, new Vector3(0, 0, 0.75f),
                                   new Quaternion(0.05f, 0, 0)));
             AddPart(
-                new RotatingWheel(this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(0, 0, -0.75f),
+                new RotatingWheel(this, ownerID, pos, new Vector3(0, 0, -0.75f),
                                   new Quaternion(-0.05f, 0, 0)));
 
             AddPart(
-                new RotatingWheel(this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(0, 0.75f, 0),
+                new RotatingWheel(this, ownerID, pos, new Vector3(0, 0.75f, 0),
                                   new Quaternion(0.5f, 0, 0.05f)));
             AddPart(
-                new RotatingWheel(this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(0, -0.75f, 0),
+                new RotatingWheel(this, ownerID, pos, new Vector3(0, -0.75f, 0),
                                   new Quaternion(-0.5f, 0, -0.05f)));
 
             AddPart(
-                new RotatingWheel(this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(0.75f, 0, 0),
+                new RotatingWheel(this, ownerID, pos, new Vector3(0.75f, 0, 0),
                                   new Quaternion(0, 0.5f, 0.05f)));
             AddPart(
-                new RotatingWheel(this, ownerID, scene.PrimIDAllocate(), pos, new Vector3(-0.75f, 0, 0),
+                new RotatingWheel(this, ownerID, pos, new Vector3(-0.75f, 0, 0),
                                   new Quaternion(0, -0.5f, -0.05f)));
 
             RootPart.Flags |= PrimFlags.Touch;

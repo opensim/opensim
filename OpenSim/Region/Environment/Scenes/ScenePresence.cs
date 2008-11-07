@@ -1118,9 +1118,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_sitAtAutoTarget = false;
             PrimitiveBaseShape proxy = PrimitiveBaseShape.Default;
             //proxy.PCode = (byte)PCode.ParticleSystem;
-            uint nextUUID = m_scene.NextLocalId;
 
-            proxyObjectGroup = new SceneObjectGroup(UUID, nextUUID, Pos, Rotation, proxy);
+            proxyObjectGroup = new SceneObjectGroup(UUID, Pos, Rotation, proxy);
             proxyObjectGroup.AttachToScene(m_scene);
             
             // Commented out this code since it could never have executed, but might still be informative.

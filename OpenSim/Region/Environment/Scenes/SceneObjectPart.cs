@@ -216,9 +216,9 @@ namespace OpenSim.Region.Environment.Scenes
             Rezzed = DateTime.Now;
         }
 
-        public SceneObjectPart(SceneObjectGroup parent, UUID ownerID, uint localID,
+        public SceneObjectPart(SceneObjectGroup parent, UUID ownerID,
             PrimitiveBaseShape shape, Vector3 groupPosition, Vector3 offsetPosition)
-            : this(parent, ownerID, localID, shape, groupPosition, Quaternion.Identity, offsetPosition)
+            : this(parent, ownerID, shape, groupPosition, Quaternion.Identity, offsetPosition)
         {
         }
 
@@ -228,14 +228,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionHandle"></param>
         /// <param name="parent"></param>
         /// <param name="ownerID"></param>
-        /// <param name="localID"></param>
         /// <param name="shape"></param>
         /// <param name="position"></param>
         /// <param name="rotationOffset"></param>
         /// <param name="offsetPosition"></param>
-        public SceneObjectPart(SceneObjectGroup parent, UUID ownerID, uint localID,
-            PrimitiveBaseShape shape, Vector3 groupPosition, Quaternion rotationOffset,
-            Vector3 offsetPosition)
+        public SceneObjectPart(
+            SceneObjectGroup parent, UUID ownerID, PrimitiveBaseShape shape, Vector3 groupPosition, 
+            Quaternion rotationOffset, Vector3 offsetPosition)
         {
             m_name = "Primitive";
             m_parentGroup = parent;
@@ -246,7 +245,6 @@ namespace OpenSim.Region.Environment.Scenes
             _creatorID = _ownerID;
             _lastOwnerID = UUID.Zero;
             UUID = UUID.Random();
-            LocalId = (uint) (localID);
             Shape = shape;
             // Todo: Add More Object Parameter from above!
             _ownershipCost = 0;
@@ -286,7 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="shape"></param>
         /// <param name="position"></param>
         public SceneObjectPart(SceneObjectGroup parent, int creationDate, UUID ownerID,
-            UUID creatorID, UUID lastOwnerID, uint localID, PrimitiveBaseShape shape,
+            UUID creatorID, UUID lastOwnerID, PrimitiveBaseShape shape,
             Vector3 position, Quaternion rotation, uint flags)
         {
             m_parentGroup = parent;
@@ -296,7 +294,6 @@ namespace OpenSim.Region.Environment.Scenes
             _creatorID = creatorID;
             _lastOwnerID = lastOwnerID;
             UUID = UUID.Random();
-            LocalId = (uint) (localID);
             Shape = shape;
             _ownershipCost = 0;
             _objectSaleType = (byte) 0;

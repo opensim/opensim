@@ -504,11 +504,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Constructor.  This object is added to the scene later via AttachToScene()
         /// </summary>
-        public SceneObjectGroup(UUID ownerID, uint localID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
+        public SceneObjectGroup(UUID ownerID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
         {
             Vector3 rootOffset = new Vector3(0, 0, 0);
-            SceneObjectPart newPart =
-                new SceneObjectPart(this, ownerID, localID, shape, pos, rot, rootOffset);
+            SceneObjectPart newPart = new SceneObjectPart(this, ownerID, shape, pos, rot, rootOffset);
             newPart.LinkNum = 0;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
@@ -517,8 +516,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Constructor.
         /// </summary>
-        public SceneObjectGroup(UUID ownerID, uint localID, Vector3 pos, PrimitiveBaseShape shape)
-            : this(ownerID, localID, pos, Quaternion.Identity, shape)
+        public SceneObjectGroup(UUID ownerID, Vector3 pos, PrimitiveBaseShape shape)
+            : this(ownerID, pos, Quaternion.Identity, shape)
         {
         }
 
@@ -1927,6 +1926,12 @@ namespace OpenSim.Region.Environment.Scenes
             DelinkFromGroup(partID, true);
         }
 
+        /// <summary>
+        /// Delink the given prim from this group.  The delinked prim is established as
+        /// an independent SceneObjectGroup.
+        /// </summary>
+        /// <param name="partID"></param>
+        /// <param name="sendEvents"></param>
         public void DelinkFromGroup(uint partID, bool sendEvents)
         {
             SceneObjectPart linkPart = GetChildPart(partID);
@@ -2006,6 +2011,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_isBackedUp)
                 m_scene.EventManager.OnBackup -= ProcessBackup;
+            
             m_isBackedUp = false;
         }
 

@@ -1735,12 +1735,13 @@ namespace OpenSim.Region.Environment.Scenes
             //m_log.DebugFormat(
             //    "[SCENE]: Scene.AddNewPrim() called for agent {0} in {1}", ownerID, RegionInfo.RegionName);
 
-            SceneObjectGroup sceneOb = new SceneObjectGroup(ownerID, PrimIDAllocate(), pos, rot, shape);
+            SceneObjectGroup sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
 
-            SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
+            SceneObjectPart rootPart = sceneObject.GetChildPart(sceneObject.UUID);
             // if grass or tree, make phantom
             //rootPart.TrimPermissions();
-            if ((rootPart.Shape.PCode == (byte)PCode.Grass) || (rootPart.Shape.PCode == (byte)PCode.Tree) || (rootPart.Shape.PCode == (byte)PCode.NewTree))
+            if ((rootPart.Shape.PCode == (byte)PCode.Grass) 
+                || (rootPart.Shape.PCode == (byte)PCode.Tree) || (rootPart.Shape.PCode == (byte)PCode.NewTree))
             {
                 rootPart.AddFlag(PrimFlags.Phantom);
                 //rootPart.ObjectFlags += (uint)PrimFlags.Phantom;
@@ -1748,9 +1749,9 @@ namespace OpenSim.Region.Environment.Scenes
                     AdaptTree(ref shape);
             }
 
-            AddNewSceneObject(sceneOb, true);
+            AddNewSceneObject(sceneObject, true);
 
-            return sceneOb;
+            return sceneObject;
         }
 
         void AdaptTree(ref PrimitiveBaseShape tree)
