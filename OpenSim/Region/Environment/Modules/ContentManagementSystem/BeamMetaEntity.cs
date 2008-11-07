@@ -56,14 +56,14 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
     {
         #region Constructors
 
-        public BeamMetaEntity(Scene scene, uint LocalId, Vector3 groupPos, float transparency, SceneObjectPart To, Vector3 color)
-            : base(scene, LocalId, groupPos, transparency)
+        public BeamMetaEntity(Scene scene, Vector3 groupPos, float transparency, SceneObjectPart To, Vector3 color)
+            : base(scene, groupPos, transparency)
         {
             SetBeamToUUID(To, color);
         }
 
-        public BeamMetaEntity(Scene scene, UUID uuid, uint LocalId, Vector3 groupPos, float transparency, SceneObjectPart To, Vector3 color)
-            : base(scene, uuid, LocalId, groupPos, transparency)
+        public BeamMetaEntity(Scene scene, UUID uuid, Vector3 groupPos, float transparency, SceneObjectPart To, Vector3 color)
+            : base(scene, uuid, groupPos, transparency)
         {
             SetBeamToUUID(To, color);
         }

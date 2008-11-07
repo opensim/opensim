@@ -56,17 +56,17 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
     {
         #region Constructors
 
-        public PointMetaEntity(Scene scene, uint LocalId, Vector3 groupPos, float transparency)
+        public PointMetaEntity(Scene scene, Vector3 groupPos, float transparency)
             : base()
         {
-            CreatePointEntity(scene, UUID.Random(), LocalId, groupPos);
+            CreatePointEntity(scene, UUID.Random(), groupPos);
             SetPartTransparency(m_Entity.RootPart, transparency);
         }
 
-        public PointMetaEntity(Scene scene, UUID uuid, uint LocalId, Vector3 groupPos, float transparency)
+        public PointMetaEntity(Scene scene, UUID uuid, Vector3 groupPos, float transparency)
             : base()
         {
-            CreatePointEntity(scene, uuid, LocalId, groupPos);
+            CreatePointEntity(scene, uuid, groupPos);
             SetPartTransparency(m_Entity.RootPart, transparency);
         }
 
@@ -74,7 +74,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         #region Private Methods
 
-        private void CreatePointEntity(Scene scene, UUID uuid, uint LocalId, Vector3 groupPos)
+        private void CreatePointEntity(Scene scene, UUID uuid, Vector3 groupPos)
         {
             SceneObjectGroup x = new SceneObjectGroup();
             SceneObjectPart y = new SceneObjectPart();
@@ -87,8 +87,6 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             y.CreatorID = UUID.Zero;
             y.LastOwnerID = UUID.Zero;
             y.UUID = uuid;
-
-            y.LocalId = LocalId;
 
             y.Shape = PrimitiveBaseShape.CreateBox();
             y.Scale = new Vector3(0.01f,0.01f,0.01f);

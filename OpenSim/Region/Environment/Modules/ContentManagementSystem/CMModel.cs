@@ -110,7 +110,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             {
                 if (m_MetaEntityCollection.Auras.ContainsKey(((SceneObjectPart)missingPart).UUID))
                     continue;
-                newList.Add(m_MetaEntityCollection.CreateAuraForNewlyCreatedEntity((SceneObjectPart)missingPart));
+                newList.Add(m_MetaEntityCollection.CreateAuraForNewlyCreatedEntity((SceneObjectPart)missingPart));                
             }
             m_log.Info("Number of missing objects found: " + newList.Count);
             return newList;

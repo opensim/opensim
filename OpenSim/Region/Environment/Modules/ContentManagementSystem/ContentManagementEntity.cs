@@ -153,7 +153,6 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                         else
                         {
                             AuraMetaEntity auraGroup = new AuraMetaEntity(m_Entity.Scene,
-                                                                          m_Entity.Scene.AllocateLocalPrimId(),
                                                                           part.GetWorldPosition(),
                                                                           MetaEntity.TRANSLUCENT,
                                                                           new Vector3(254,0,0),
@@ -260,7 +259,6 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                                 m_BeamEntities.Remove(m_UnchangedEntity.RootPart.UUID);
                             }
                             BeamMetaEntity beamGroup = new BeamMetaEntity(m_Entity.Scene,
-                                                                          m_Entity.Scene.AllocateLocalPrimId(),
                                                                           m_UnchangedEntity.RootPart.GetWorldPosition(),
                                                                           MetaEntity.TRANSLUCENT,
                                                                           sceneEntityPart,
@@ -275,7 +273,6 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                             m_AuraEntities.Remove(UnchangedPart.UUID);
                         }
                         AuraMetaEntity auraGroup = new AuraMetaEntity(m_Entity.Scene,
-                                                                      m_Entity.Scene.AllocateLocalPrimId(),
                                                                       UnchangedPart.GetWorldPosition(),
                                                                       MetaEntity.TRANSLUCENT,
                                                                       new Vector3(0,0,254),
@@ -309,7 +306,6 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                         m_AuraEntities.Remove(UnchangedPart.UUID);
                     }
                     AuraMetaEntity auraGroup = new AuraMetaEntity(m_Entity.Scene,
-                                                                  m_Entity.Scene.AllocateLocalPrimId(),
                                                                   UnchangedPart.GetWorldPosition(),
                                                                   MetaEntity.TRANSLUCENT,
                                                                   new Vector3(254,0,0),
@@ -317,7 +313,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                                                                   );
                     m_AuraEntities.Add(UnchangedPart.UUID, auraGroup);
                     SetPartTransparency(metaEntityPart, MetaEntity.TRANSLUCENT);
-
+                   
                     DiffersFromSceneGroup = true;
                 }
             }

@@ -104,8 +104,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         //     {
         //         Vector3 posOffset = new Vector3((i % objs) * 4, ((i % (objs*objs)) / (objs)) * 4, (i / (objs*objs)) * 4);
         //         ComplexObject complexObject =
-        //             new ComplexObject(m_scene, regionInfo.RegionHandle, UUID.Zero, m_scene.AllocateLocalPrimId(),
-        //                               pos + posOffset);
+        //             new ComplexObject(m_scene, regionInfo.RegionHandle, UUID.Zero, pos + posOffset);
         //         m_scene.AddNewSceneObject(complexObject, true);
         //     }
         // }
@@ -113,8 +112,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         // private void AddCpuCounter(RegionInfo regionInfo, Vector3 pos)
         // {
         //     SceneObjectGroup sceneObject =
-        //         new CpuCounterObject(m_scene, regionInfo.RegionHandle, UUID.Zero, m_scene.AllocateLocalPrimId(),
-        //                              pos + new Vector3(1f, 1f, 1f));
+        //         new CpuCounterObject(m_scene, regionInfo.RegionHandle, UUID.Zero, pos + new Vector3(1f, 1f, 1f));
         //     m_scene.AddNewSceneObject(sceneObject, true);
         // }
 

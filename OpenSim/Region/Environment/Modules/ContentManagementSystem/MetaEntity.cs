@@ -166,10 +166,6 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 parts.Add(part.UUID, part);
             }
 
-            // make new localids
-            foreach (SceneObjectPart part in m_Entity.Children.Values)
-                part.LocalId = m_Entity.Scene.AllocateLocalPrimId();
-
             //finalize
             m_Entity.RootPart.PhysActor = null;
             m_Entity.Children = parts;

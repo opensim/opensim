@@ -57,14 +57,14 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         #region Constructors
 
         //transparency of root part, NOT particle system. Should probably add support for changing particle system transparency.
-        public AuraMetaEntity(Scene scene, uint LocalId, Vector3 groupPos, float transparency, Vector3 color, Vector3 scale)
-            : base(scene, LocalId, groupPos, transparency)
+        public AuraMetaEntity(Scene scene, Vector3 groupPos, float transparency, Vector3 color, Vector3 scale)
+            : base(scene, groupPos, transparency)
         {
             SetAura(color, scale);
         }
 
-        public AuraMetaEntity(Scene scene, UUID uuid, uint LocalId, Vector3 groupPos, float transparency, Vector3 color, Vector3 scale)
-            : base(scene, uuid, LocalId, groupPos, transparency)
+        public AuraMetaEntity(Scene scene, UUID uuid, Vector3 groupPos, float transparency, Vector3 color, Vector3 scale)
+            : base(scene, uuid, groupPos, transparency)
         {
             SetAura(color, scale);
         }

@@ -1606,6 +1606,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.ErrorFormat("[SCENE] Found a SceneObjectGroup with m_rootPart == null and {0} children",
                                       group.Children == null ? 0 : group.Children.Count);
                 }
+                
                 AddRestoredSceneObject(group, true, true);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.ObjectFlags &= ~(uint)PrimFlags.Scripted;
@@ -1621,7 +1622,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Returns a new unallocated local primitive ID
         /// </summary>
         /// <returns>A brand new local primitive ID</returns>
-        public uint AllocateLocalPrimId()
+        protected internal uint AllocateLocalPrimId()
         {
             uint myID;
 
