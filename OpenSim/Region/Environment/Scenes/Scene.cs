@@ -72,14 +72,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public InnerScene m_innerScene;
 
-        /// <summary>
-        /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is
-        /// dispenced.
-        /// </summary>
-        private uint m_lastAllocatedLocalId = 720000;
-
-        private readonly Mutex _primAllocateMutex = new Mutex(false);
-
         private int m_timePhase = 24;
 
         /// <summary>
@@ -1616,21 +1608,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
-        }
-
-        /// <summary>
-        /// Returns a new unallocated local primitive ID
-        /// </summary>
-        /// <returns>A brand new local primitive ID</returns>
-        protected internal uint AllocateLocalPrimId()
-        {
-            uint myID;
-
-            _primAllocateMutex.WaitOne();
-            myID = ++m_lastAllocatedLocalId;
-            _primAllocateMutex.ReleaseMutex();
-
-            return myID;
         }
 
         public Vector3 GetNewRezLocation(Vector3 RayStart, Vector3 RayEnd, UUID RayTargetID, Quaternion rot, byte bypassRayCast, byte RayEndIsIntersection, bool frontFacesOnly, Vector3 scale, bool FaceCenter)

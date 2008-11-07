@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
@@ -48,6 +49,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Fields
 
+        /// <summary>
+        /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is
+        /// dispensed.
+        /// </summary>
+        private uint m_lastAllocatedLocalId = 720000;
+
+        private readonly Mutex _primAllocateMutex = new Mutex(false);
+        
         private readonly ClientManager m_clientManager = new ClientManager();
 
         public ClientManager ClientManager
@@ -212,6 +221,21 @@ namespace OpenSim.Region.Environment.Scenes
 
             return null;
         }
+        
+        /// <summary>
+        /// Returns a new unallocated local ID
+        /// </summary>
+        /// <returns>A brand new local ID</returns>
+        protected internal uint AllocateLocalId()
+        {
+            uint myID;
+
+            _primAllocateMutex.WaitOne();
+            myID = ++m_lastAllocatedLocalId;
+            _primAllocateMutex.ReleaseMutex();
+
+            return myID;
+        }        
 
         public virtual T RequestModuleInterface<T>()
         {
