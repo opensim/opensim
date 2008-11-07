@@ -3186,7 +3186,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (att.ParentGroup != null && !att.IsAttachment)
                         m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, (uint)0, att.ParentGroup.GroupRotation, Vector3.Zero);
                 }
-                catch (System.NullReferenceException e)
+                catch
                 {
                 }
             }
