@@ -563,7 +563,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
         
         /// <summary>
-        /// Attach the given group to a scene.  It will appear to agents.
+        /// Attach this object to a scene.  It will also now appear to agents.
         /// </summary>
         /// <param name="scene"></param>
         public void AttachToScene(Scene scene)
@@ -586,10 +586,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
             ApplyPhysics(m_scene.m_physicalPrim);            
-            
-            // one of these is a proxy.
-            if (m_rootPart.Shape.PCode != (byte)PCode.None && m_rootPart.Shape.PCode != (byte)PCode.ParticleSystem)
-                AttachToBackup();
             
             ScheduleGroupForFullUpdate();            
         }
