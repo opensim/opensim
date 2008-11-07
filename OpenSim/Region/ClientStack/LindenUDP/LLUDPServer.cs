@@ -453,6 +453,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
             ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
             ack_it.Packets[0].ID = useCircuit.Header.Sequence;
+            // ((useCircuit.Header.Sequence < uint.MaxValue) ? useCircuit.Header.Sequence : 0) is just a failsafe to ensure that we don't overflow.
+            ack_it.Header.Sequence = ((useCircuit.Header.Sequence < uint.MaxValue) ? useCircuit.Header.Sequence : 0) + 1;
             ack_it.Header.Reliable = false;
             SendPacketTo(ack_it.ToBytes(), ack_it.ToBytes().Length, SocketFlags.None, useCircuit.CircuitCode.Code);
             
