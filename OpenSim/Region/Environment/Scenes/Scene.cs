@@ -1890,7 +1890,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void LoadPrimsFromXml(string fileName, bool newIdsFlag, Vector3 loadOffset)
         {
-            m_log.InfoFormat("[SCENE]: Loading prims in xml format to region {0} from {1}", RegionInfo.RegionName);
+            m_log.InfoFormat("[SCENE]: Loading prims in xml format to region {0} from {1}", RegionInfo.RegionName, fileName);
 
             m_serialiser.LoadPrimsFromXml(this, fileName, newIdsFlag, loadOffset);
         }

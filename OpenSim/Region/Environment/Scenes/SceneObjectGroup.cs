@@ -381,10 +381,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Create an object using serialized data in OpenSim's original xml format.
         /// </summary>
-        public SceneObjectGroup(Scene scene, ulong regionHandle, string xmlData)
+        /// <param name="xmlData"></param>
+        /// <param name="isOriginalXmlFormat">
+        /// This parameter only exists to separate the two different xml constructors.  In the future, versions should
+        /// be specified within the xml itself.
+        /// </param>
+        public SceneObjectGroup(string xmlData, bool isOriginalXmlFormat)
         {
-            m_scene = scene;
-            m_regionHandle = regionHandle;
+            if (!isOriginalXmlFormat)
+                throw new Exception("This constructor must specify the xml is in OpenSim's original format");
+            
             // libomv.types changes UUID to Guid
             xmlData = xmlData.Replace("<UUID>", "<Guid>");
             xmlData = xmlData.Replace("</UUID>", "</Guid>");
@@ -416,16 +422,15 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 reader.Read();
                                 SceneObjectPart part = SceneObjectPart.FromXml(reader);
-                                part.LocalId = m_scene.PrimIDAllocate();
                                 linkNum = part.LinkNum;
                                 AddPart(part);
                                 part.LinkNum = linkNum;
-                                part.RegionHandle = m_regionHandle;
 
                                 part.TrimPermissions();
                                 part.StoreUndoState();
                             }
                             break;
+                        
                         case XmlNodeType.EndElement:
                             break;
                     }
@@ -440,11 +445,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             reader.Close();
             sr.Close();
-
-            m_rootPart.LocalId = m_scene.PrimIDAllocate();
-            m_rootPart.ParentID = 0;
-            m_rootPart.RegionHandle = m_regionHandle;
-            UpdateParentIDs();
         }
 
         /// <summary>
@@ -570,8 +570,24 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="scene"></param>
         public void AttachToScene(Scene scene)
         {
-            m_scene = scene;
-            RegionHandle = scene.RegionInfo.RegionHandle;
+            m_scene = scene;                        
+            RegionHandle = m_scene.RegionInfo.RegionHandle;
+            
+            m_rootPart.ParentID = 0;
+            m_rootPart.LocalId = m_scene.PrimIDAllocate();
+            
+            //UpdateParentIDs();
+            
+            // No need to lock here since part isn't yet in a scene
+            foreach (SceneObjectPart part in m_parts.Values)
+            {
+                if (Object.ReferenceEquals(part, m_rootPart))
+                    continue;
+                
+                part.LocalId = m_scene.PrimIDAllocate();
+                part.ParentID = m_rootPart.LocalId;
+                m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
+            }
             
             ApplyPhysics(m_scene.m_physicalPrim);            
             

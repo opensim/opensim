@@ -176,7 +176,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             if (null != objectAsset)
             {
                 string xml = Utils.BytesToString(objectAsset.Data);
-                SceneObjectGroup sog = new SceneObjectGroup(m_scene, m_scene.RegionInfo.RegionHandle, xml);
+                SceneObjectGroup sog = new SceneObjectGroup(xml, true);
                 GetSceneObjectAssetUuids(sog, assetUuids);
             }
         }

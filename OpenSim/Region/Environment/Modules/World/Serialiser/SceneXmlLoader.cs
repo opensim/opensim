@@ -58,7 +58,7 @@ namespace OpenSim.Region.Environment.Scenes
                 rootNode = doc.FirstChild;
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
-                    SceneObjectGroup obj = new SceneObjectGroup(scene, scene.RegionInfo.RegionHandle, aPrimNode.OuterXml);
+                    SceneObjectGroup obj = new SceneObjectGroup(aPrimNode.OuterXml, true);
 
                     if (newIDS)
                     {

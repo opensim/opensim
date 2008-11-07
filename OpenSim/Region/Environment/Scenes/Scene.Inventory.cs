@@ -1953,8 +1953,10 @@ namespace OpenSim.Region.Environment.Scenes
                         if (rezAsset != null)
                         {
                             string xmlData = Utils.BytesToString(rezAsset.Data);
-                            SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
-                            if (!ExternalChecks.ExternalChecksCanRezObject(group.Children.Count, remoteClient.AgentId, pos) && !attachment)
+                            SceneObjectGroup group = new SceneObjectGroup(xmlData, true);
+                            if (!ExternalChecks.ExternalChecksCanRezObject(
+                                group.Children.Count, remoteClient.AgentId, pos) 
+                                && !attachment)
                             {
                                 return null;
                             }
@@ -2091,7 +2093,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (rezAsset != null)
                 {
                     string xmlData = Utils.BytesToString(rezAsset.Data);
-                    SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
+                    SceneObjectGroup group = new SceneObjectGroup(xmlData, true);
 
                     if (!ExternalChecks.ExternalChecksCanRezObject(group.Children.Count, ownerID, pos))
                     {
