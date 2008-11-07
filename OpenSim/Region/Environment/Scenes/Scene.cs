@@ -1621,7 +1621,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Returns a new unallocated local primitive ID
         /// </summary>
         /// <returns>A brand new local primitive ID</returns>
-        public uint PrimIDAllocate()
+        public uint AllocateLocalPrimId()
         {
             uint myID;
 

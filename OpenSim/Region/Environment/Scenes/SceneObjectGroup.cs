@@ -567,7 +567,7 @@ namespace OpenSim.Region.Environment.Scenes
             RegionHandle = m_scene.RegionInfo.RegionHandle;
             
             m_rootPart.ParentID = 0;
-            m_rootPart.LocalId = m_scene.PrimIDAllocate();
+            m_rootPart.LocalId = m_scene.AllocateLocalPrimId();
             
             // No need to lock here since the object isn't yet in a scene
             foreach (SceneObjectPart part in m_parts.Values)
@@ -575,7 +575,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (Object.ReferenceEquals(part, m_rootPart))
                     continue;
                 
-                part.LocalId = m_scene.PrimIDAllocate();
+                part.LocalId = m_scene.AllocateLocalPrimId();
                 part.ParentID = m_rootPart.LocalId;
                 //m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
             }
@@ -1394,7 +1394,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="cGroupID"></param>
         public void CopyRootPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
-            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID, m_parts.Count, userExposed);
+            SceneObjectPart newPart = part.Copy(m_scene.AllocateLocalPrimId(), OwnerID, GroupID, m_parts.Count, userExposed);
             newPart.SetParent(this);
 
             lock (m_parts)
@@ -1514,7 +1514,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="cGroupID"></param>
         public void CopyPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
-            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID, m_parts.Count, userExposed);
+            SceneObjectPart newPart = part.Copy(m_scene.AllocateLocalPrimId(), OwnerID, GroupID, m_parts.Count, userExposed);
             newPart.SetParent(this);
 
             lock (m_parts)
@@ -2676,13 +2676,14 @@ namespace OpenSim.Region.Environment.Scenes
             scriptPosTarget waypoint = new scriptPosTarget();
             waypoint.targetPos = target;
             waypoint.tolerance = tolerance;
-            uint handle = m_scene.PrimIDAllocate();
+            uint handle = m_scene.AllocateLocalPrimId();
             lock (m_targets)
             {
                 m_targets.Add(handle, waypoint);
             }
             return (int)handle;
         }
+        
         public void unregisterTargetWaypoint(int handle)
         {
             lock (m_targets)

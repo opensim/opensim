@@ -146,7 +146,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public AuraMetaEntity CreateAuraForNewlyCreatedEntity(SceneObjectPart part)
         {
             AuraMetaEntity ent = new AuraMetaEntity(part.ParentGroup.Scene,
-                                                    part.ParentGroup.Scene.PrimIDAllocate(),
+                                                    part.ParentGroup.Scene.AllocateLocalPrimId(),
                                                     part.GetWorldPosition(),
                                                     MetaEntity.TRANSLUCENT,
                                                     new Vector3(0,254,0),
