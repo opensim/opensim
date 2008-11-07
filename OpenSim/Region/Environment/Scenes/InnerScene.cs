@@ -197,13 +197,6 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal bool AddRestoredSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
         {
-            foreach (SceneObjectPart part in sceneObject.Children.Values)
-            {
-                part.LocalId = m_parentScene.PrimIDAllocate();
-            }
-
-            sceneObject.UpdateParentIDs();
-
             if (!alreadyPersisted)
             {
                 sceneObject.ForceInventoryPersistence();

@@ -578,7 +578,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             //UpdateParentIDs();
             
-            // No need to lock here since part isn't yet in a scene
+            // No need to lock here since the object isn't yet in a scene
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 if (Object.ReferenceEquals(part, m_rootPart))
@@ -586,7 +586,7 @@ namespace OpenSim.Region.Environment.Scenes
                 
                 part.LocalId = m_scene.PrimIDAllocate();
                 part.ParentID = m_rootPart.LocalId;
-                m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
+                //m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
             }
             
             ApplyPhysics(m_scene.m_physicalPrim);            
