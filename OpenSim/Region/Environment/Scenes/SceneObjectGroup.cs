@@ -503,8 +503,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             reader.Close();
             sr.Close();
-
-            UpdateParentIDs();
         }
 
         /// <summary>
@@ -575,8 +573,6 @@ namespace OpenSim.Region.Environment.Scenes
             
             m_rootPart.ParentID = 0;
             m_rootPart.LocalId = m_scene.PrimIDAllocate();
-            
-            //UpdateParentIDs();
             
             // No need to lock here since the object isn't yet in a scene
             foreach (SceneObjectPart part in m_parts.Values)
@@ -904,7 +900,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Add a new part to this scene object
         /// </summary>
         /// <param name="part"></param>
         public void AddPart(SceneObjectPart part)
@@ -933,7 +929,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Make sure that every non root part has the proper parent root part local id
         /// </summary>
-        public void UpdateParentIDs()
+        private void UpdateParentIDs()
         {
             lock (m_parts)
             {

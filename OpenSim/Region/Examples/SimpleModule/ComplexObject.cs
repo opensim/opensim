@@ -104,8 +104,6 @@ namespace OpenSim.Region.Examples.SimpleModule
                                   new Quaternion(0, -0.5f, -0.05f)));
 
             RootPart.Flags |= PrimFlags.Touch;
-
-            UpdateParentIDs();
         }
 
         public override void OnGrabPart(SceneObjectPart part, Vector3 offsetPos, IClientAPI remoteClient)

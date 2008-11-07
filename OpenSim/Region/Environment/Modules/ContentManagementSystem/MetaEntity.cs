@@ -171,7 +171,6 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                 part.LocalId = m_Entity.Scene.PrimIDAllocate();
 
             //finalize
-            m_Entity.UpdateParentIDs();
             m_Entity.RootPart.PhysActor = null;
             m_Entity.Children = parts;
         }
