@@ -198,7 +198,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                                 lastLocalID);
                         if (part != null && part.ParentGroup != null)
                             lastScriptEngine.World.DeleteSceneObject(
-                                    part.ParentGroup);
+                                    part.ParentGroup, false);
                     }
                     catch (Exception e)
                     {

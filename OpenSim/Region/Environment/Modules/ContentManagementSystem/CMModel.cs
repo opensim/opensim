@@ -262,7 +262,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
                     scene.PhysicsScene.RemovePrim(((SceneObjectGroup)scene.Entities[uuid]).RootPart.PhysActor);
                     scene.SendKillObject(scene.Entities[uuid].LocalId);
                     scene.m_innerScene.DeleteSceneObject(uuid, false);
-                    ((SceneObjectGroup)scene.Entities[uuid]).DeleteGroup();
+                    ((SceneObjectGroup)scene.Entities[uuid]).DeleteGroup(false);
                 }
                 catch(Exception e)
                 {

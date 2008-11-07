@@ -114,8 +114,6 @@ namespace OpenSim.Region.Environment.Scenes
         private static readonly Vector3 m_sitTargetCorrectionOffset = new Vector3(0.1f, 0.0f, 0.3f);
         private float m_godlevel = 0;
 
-        private bool m_attachmentsTransported = true;
-
         private bool m_invulnerable = true;
 
         private Vector3 m_LastChildAgentUpdatePosition = new Vector3();
@@ -611,8 +609,10 @@ namespace OpenSim.Region.Environment.Scenes
                     }
 
                     foreach (EntityBase e in ents)
+                    {
                         if (e is SceneObjectGroup)
                             m_pendingObjects.Enqueue((SceneObjectGroup)e);
+                    }
                 }
             }
 
@@ -626,7 +626,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // So it's not implemented now.
                 //
 
-                // Don't even queue if we have seent this one
+                // Don't even queue if we have sent this one
                 //
                 if (!m_updateTimes.ContainsKey(g.UUID))
                     g.ScheduleFullUpdateToAvatar(this);
@@ -637,6 +637,8 @@ namespace OpenSim.Region.Environment.Scenes
             while (m_partsUpdateQueue.Count > 0)
             {
                 SceneObjectPart part = m_partsUpdateQueue.Dequeue();
+                if (part.ParentGroup == null || part.ParentGroup.RootPart == null)
+                    continue;
                 if (m_updateTimes.ContainsKey(part.UUID))
                 {
                     ScenePartUpdate update = m_updateTimes[part.UUID];
@@ -680,12 +682,25 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     //never been sent to client before so do full update
 
-                    part.SendFullUpdate(ControllingClient,
-                            GenerateClientFlags(part.UUID));
+
+                    // Attachment handling
+                    //
+                    if (part.ParentGroup.RootPart.Shape.PCode == 9 && part.ParentGroup.RootPart.Shape.State != 0)
+                    {
+                        if (part != part.ParentGroup.RootPart)
+                            continue;
+
+                        part.ParentGroup.SendFullUpdateToClient(ControllingClient);
+                        continue;
+                    }
+
                     ScenePartUpdate update = new ScenePartUpdate();
                     update.FullID = part.UUID;
                     update.LastFullUpdateTime = part.TimeStampFull;
                     m_updateTimes.Add(part.UUID, update);
+
+                    part.SendFullUpdate(ControllingClient,
+                            GenerateClientFlags(part.UUID));
                     updateCount++;
                 }
 
@@ -1115,7 +1130,7 @@ namespace OpenSim.Region.Environment.Scenes
 //            {
                 proxyObjectGroup.SendGroupFullUpdate();
                 remote_client.SendSitResponse(proxyObjectGroup.UUID, Vector3.Zero, Quaternion.Identity, true, Vector3.Zero, Vector3.Zero, false);
-                m_scene.DeleteSceneObject(proxyObjectGroup);
+                m_scene.DeleteSceneObject(proxyObjectGroup, false);
 //            }
 //            else
 //            {
@@ -2206,9 +2221,9 @@ namespace OpenSim.Region.Environment.Scenes
                     // now we have a child agent in this region. Request all interesting data about other (root) agents
                     SendInitialFullUpdateToAllClients();
 
-                    CrossAttachmentsIntoNewRegion(neighbourHandle);
+                    CrossAttachmentsIntoNewRegion(neighbourHandle, true);
 
-                    m_scene.SendKillObject(m_localId);
+//                    m_scene.SendKillObject(m_localId);
 
                     m_scene.NotifyMyCoarseLocationChange();
                     // the user may change their profile information in other region,
@@ -2473,22 +2488,19 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_attachments)
             {
-                if (!m_attachmentsTransported)
+                try
                 {
-                    try
+                    foreach (SceneObjectGroup grp in m_attachments)
                     {
-                        foreach (SceneObjectGroup grp in m_attachments)
-                        {
-                            // ControllingClient may be null at this point!
-                            m_scene.m_innerScene.DetachSingleAttachmentToInv(grp.GetFromAssetID(), ControllingClient);
-                        }
+                        // ControllingClient may be null at this point!
+                        m_scene.m_innerScene.DetachSingleAttachmentToInv(grp.GetFromAssetID(), ControllingClient);
                     }
-                    catch (InvalidOperationException)
-                    {
-                        m_log.Info("[CLIENT]: Couldn't save attachments. :(");
-                    }
-                    m_attachments.Clear();
                 }
+                catch (InvalidOperationException)
+                {
+                    m_log.Info("[CLIENT]: Couldn't save attachments. :(");
+                }
+                m_attachments.Clear();
             }
             lock (m_knownChildRegions)
             {
@@ -2582,9 +2594,8 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        public bool CrossAttachmentsIntoNewRegion(ulong regionHandle)
+        public bool CrossAttachmentsIntoNewRegion(ulong regionHandle, bool silent)
         {
-            m_attachmentsTransported = true;
             lock (m_attachments)
             {
                 // Validate
@@ -2604,7 +2615,8 @@ namespace OpenSim.Region.Environment.Scenes
                         gobj.RootPart.IsAttachment = false;
                         gobj.AbsolutePosition = gobj.RootPart.AttachedPos;
                         gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
-                        m_scene.CrossPrimGroupIntoNewRegion(regionHandle, gobj);
+                        m_log.DebugFormat("[ATTACHMENT]: Sending attachment {0} to region {1}", gobj.UUID, regionHandle);
+                        m_scene.CrossPrimGroupIntoNewRegion(regionHandle, gobj, silent);
                     }
                 }
                 m_attachments.Clear();
@@ -3130,6 +3142,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void ItemReceived(UUID itemID)
         {
+            if (IsChildAgent)
+                return;
+
             if (null == m_appearance)
             {
                 m_log.Warn("[ATTACHMENT] Appearance has not been initialized");
@@ -3143,14 +3158,20 @@ namespace OpenSim.Region.Environment.Scenes
             UUID asset = m_appearance.GetAttachedAsset(attachpoint);
             if (UUID.Zero == asset) // We have just logged in
             {
-                m_log.InfoFormat("[ATTACHMENT] Rez attachment {0}",
-                        itemID.ToString());
-
                 try
                 {
                     // Rez from inventory
-                    m_scene.RezSingleAttachment(ControllingClient, itemID,
-                            (uint)attachpoint);
+                    asset = m_scene.RezSingleAttachment(ControllingClient,
+                            itemID, (uint)attachpoint);
+                    // Corner case: We are not yet a Scene Entity
+                    // Setting attachment info in RezSingleAttachment will fail
+                    // Set it here
+                    //
+                    m_appearance.SetAttachment((int)attachpoint, itemID,
+                            asset);
+                    m_log.InfoFormat("[ATTACHMENT] Rezzed attachment {0}, inworld asset {1}",
+                            itemID.ToString(), asset);
+
                 }
                 catch (Exception e)
                 {
@@ -3160,20 +3181,28 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            SceneObjectPart att = m_scene.GetSceneObjectPart(m_appearance.GetAttachedAsset(attachpoint));
+            SceneObjectPart att = m_scene.GetSceneObjectPart(asset);
 
 
             // If this is null, then the asset has not yet appeared in world
             // so we revisit this when it does
             //
-            if (att != null)
+            if (att != null && att.UUID != asset) // Yes. It's really needed
             {
-                m_log.InfoFormat("[ATTACHEMENT] Attach from world {0}",
-                        itemID.ToString());
+                m_log.DebugFormat("[ATTACHMENT]: Attach from in world: ItemID {0}, Asset ID {1}, Attachment inworld: {2}", itemID.ToString(), asset.ToString(), att.UUID.ToString());
 
-                // Attach from world, if not already attached
-                if (att.ParentGroup != null && !att.IsAttachment)
-                    m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, (uint)0, att.ParentGroup.GroupRotation, Vector3.Zero);
+                // This will throw if crossing katty-korner
+                // So catch it here to avoid the noid
+                //
+                try
+                {
+                    // Attach from world, if not already attached
+                    if (att.ParentGroup != null && !att.IsAttachment)
+                        m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, (uint)0, att.ParentGroup.GroupRotation, Vector3.Zero);
+                }
+                catch (System.NullReferenceException e)
+                {
+                }
             }
         }
     }

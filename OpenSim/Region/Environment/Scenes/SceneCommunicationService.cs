@@ -675,8 +675,6 @@ namespace OpenSim.Region.Environment.Scenes
                         // the avatar.Close below will clear the child region list. We need this below for (possibly)
                         // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
                         List<ulong> childRegions = new List<ulong>(avatar.GetKnownRegionList());
-                        avatar.Close();
-
                         // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
                         // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
                         // once we reach here...
@@ -712,11 +710,14 @@ namespace OpenSim.Region.Environment.Scenes
 
                         avatar.MakeChildAgent();
                         Thread.Sleep(5000);
-                        avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle);
+                        avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
                         if (KiPrimitive != null)
                         {
                             KiPrimitive(avatar.LocalId);
                         }
+
+                        avatar.Close();
+
                         uint newRegionX = (uint)(reg.RegionHandle >> 40);
                         uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
                         uint oldRegionX = (uint)(m_regionInfo.RegionHandle >> 40);

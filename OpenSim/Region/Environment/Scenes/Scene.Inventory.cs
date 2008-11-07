@@ -1601,7 +1601,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else if (permissionToDelete)
             {
-                DeleteSceneObject(grp);
+                DeleteSceneObject(grp, false);
             }
         }
 
@@ -1735,7 +1735,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Finally remove the item, for reals this time.
             if (permissionToDelete)
-                DeleteSceneObject(objectGroup);
+                DeleteSceneObject(objectGroup, false);
         }
 
         public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, UUID assetID, UUID agentID)
@@ -2279,7 +2279,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         returnobjects[i] = null;
 
-                        DeleteSceneObject(ObjectDeleting);
+                        DeleteSceneObject(ObjectDeleting, false);
                         ObjectDeleting = null;
                     }
                     else
@@ -2320,7 +2320,7 @@ namespace OpenSim.Region.Environment.Scenes
                 EventManager.TriggerStopScript(part.LocalId, itemID);
         }
 
-        public void RezSingleAttachment(IClientAPI remoteClient, UUID itemID,
+        public UUID RezSingleAttachment(IClientAPI remoteClient, UUID itemID,
                 uint AttachmentPt)
         {
             SceneObjectGroup att = m_innerScene.RezSingleAttachment(remoteClient, itemID, AttachmentPt);
@@ -2328,13 +2328,13 @@ namespace OpenSim.Region.Environment.Scenes
             if (att == null)
             {
                 DetachSingleAttachmentToInv(itemID, remoteClient);
-                return;
+                return UUID.Zero;
             }
 
-            RezSingleAttachment(att, remoteClient, itemID, AttachmentPt);
+            return RezSingleAttachment(att, remoteClient, itemID, AttachmentPt);
         }
 
-        public void RezSingleAttachment(SceneObjectGroup att,
+        public UUID RezSingleAttachment(SceneObjectGroup att,
                 IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
             if (att.RootPart != null)
@@ -2351,11 +2351,12 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
             }
+            return att.UUID;
         }
 
         public void AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos)
         {
-            m_innerScene.AttachObject(controllingClient, localID, attachPoint, rot, pos);
+            m_innerScene.AttachObject(controllingClient, localID, attachPoint, rot, pos, false);
         }
 
         public void AttachObject(IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)

@@ -227,7 +227,7 @@ namespace OpenSim.Region.Environment.Scenes
                 
                 if ((val.X > 257f || val.X < -1f || val.Y > 257f || val.Y < -1f) && !IsAttachment)
                 {                                       
-                    m_scene.CrossPrimGroupIntoNewRegion(val, this);
+                    m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
                 }
 
                 lock (m_parts)
@@ -319,7 +319,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_isSelected = value;
                 // Tell physics engine that group is selected
-                if (m_rootPart.PhysActor != null)
+                if (m_rootPart != null && m_rootPart.PhysActor != null)
                 {
                     m_rootPart.PhysActor.Selected = value;
                     // Pass it on to the children.
@@ -746,7 +746,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentID"></param>
         /// <param name="attachmentpoint"></param>
         /// <param name="AttachOffset"></param>
-        public void AttachToAgent(UUID agentID, uint attachmentpoint, Vector3 AttachOffset)
+        public void AttachToAgent(UUID agentID, uint attachmentpoint, Vector3 AttachOffset, bool silent)
         {
             ScenePresence avatar = m_scene.GetScenePresence(agentID);
             if (avatar != null)
@@ -777,19 +777,24 @@ namespace OpenSim.Region.Environment.Scenes
                 SetAttachmentPoint(Convert.ToByte(attachmentpoint));
 
                 avatar.AddAttachment(this);
-                // Killing it here will cause the client to deselect it
-                // It then reappears on the avatar, deselected
-                // through the full update below
-                //
-                if (IsSelected)
-                {
-                    m_scene.SendKillObject(m_rootPart.LocalId);
-                }
 
-                IsSelected = false; // fudge....
-                ScheduleGroupForFullUpdate();
+                if(!silent)
+                {
+                    // Killing it here will cause the client to deselect it
+                    // It then reappears on the avatar, deselected
+                    // through the full update below
+                    //
+                    if (IsSelected)
+                    {
+                        m_scene.SendKillObject(m_rootPart.LocalId);
+                    }
+
+                    IsSelected = false; // fudge....
+                    ScheduleGroupForFullUpdate();
+                }
             }
         }
+
         public byte GetAttachmentPoint()
         {
             if (m_rootPart != null)
@@ -994,7 +999,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Delete this group from its scene and tell all the scene presences about that deletion.
         /// </summary>
-        public void DeleteGroup()
+        public void DeleteGroup(bool silent)
         {
             // We need to keep track of this state in case this group is still queued for backup.
             // FIXME: This is a poor temporary solution, since it still leaves plenty of scope for race
@@ -1018,8 +1023,11 @@ namespace OpenSim.Region.Environment.Scenes
                             avatars[i].StandUp();
                         }
 
-                        if (m_rootPart != null && part == m_rootPart)
-                            avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
+                        if (!silent)
+                        {
+                            if (m_rootPart != null && part == m_rootPart)
+                                avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
+                        }
                     }
                 }
 
@@ -1257,13 +1265,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Client Updating
 
-        public void SendFullUpdateToClient(IClientAPI remoteClient, uint clientFlags)
+        public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
+            SendPartFullUpdate(remoteClient, RootPart, m_scene.ExternalChecks.ExternalChecksGenerateClientFlags(remoteClient.AgentId, RootPart.UUID));
+
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    SendPartFullUpdate(remoteClient, part, clientFlags);
+                    if (part != RootPart)
+                        SendPartFullUpdate(remoteClient, part, m_scene.ExternalChecks.ExternalChecksGenerateClientFlags(remoteClient.AgentId, part.UUID));
                 }
             }
         }
@@ -1626,11 +1637,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ScheduleFullUpdateToAvatar(ScenePresence presence)
         {
+            RootPart.AddFullUpdateToAvatar(presence);
+
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.AddFullUpdateToAvatar(presence);
+                    if (part != RootPart)
+                        part.AddFullUpdateToAvatar(presence);
                 }
             }
         }
@@ -1652,11 +1666,14 @@ namespace OpenSim.Region.Environment.Scenes
         public void ScheduleGroupForFullUpdate()
         {
             checkAtTargets();
+            RootPart.ScheduleFullUpdate();
+
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.ScheduleFullUpdate();
+                    if (part != RootPart)
+                        part.ScheduleFullUpdate();
                 }
             }
         }
@@ -1680,11 +1697,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupFullUpdate()
         {
+            RootPart.SendFullUpdateToAllClients();
+
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.SendFullUpdateToAllClients();
+                    if (part != RootPart)
+                        part.SendFullUpdateToAllClients();
                 }
             }
         }

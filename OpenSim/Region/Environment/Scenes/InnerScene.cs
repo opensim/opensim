@@ -433,7 +433,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="objectLocalID"></param>
         /// <param name="AttachmentPt"></param>
         /// <param name="rot"></param>
-        protected internal void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot)
+        protected internal void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, bool silent)
         {
             // If we can't take it, we can't attach it!
             //
@@ -447,7 +447,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Calls attach with a Zero position
             //
-            AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero);
+            AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false);
         }
 
         public SceneObjectGroup RezSingleAttachment(
@@ -464,7 +464,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
                     tainted = true;
 
-                AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition);
+                AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false);
                 objatt.ScheduleGroupForFullUpdate();
                 if (tainted)
                     objatt.HasGroupChanged = true;
@@ -491,14 +491,14 @@ namespace OpenSim.Region.Environment.Scenes
                         group.DetachToInventoryPrep();
                         m_log.Debug("[DETACH]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
                         m_parentScene.updateKnownAsset(remoteClient, group, group.GetFromAssetID(), group.OwnerID);
-                        m_parentScene.DeleteSceneObject(group);
+                        m_parentScene.DeleteSceneObject(group, false);
                     }
                 }
             }
         }
 
         protected internal void AttachObject(
-            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos)
+            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent)
         {
             List<EntityBase> EntityList = GetEntities();
             foreach (EntityBase obj in EntityList)
@@ -553,7 +553,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                             m_parentScene.AttachObject(remoteClient, AttachmentPt, itemId, group);
 
-                            group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos);
+                            group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos, silent);
                             // In case it is later dropped again, don't let
                             // it get cleaned up
                             //

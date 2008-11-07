@@ -4293,7 +4293,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             if (att.ObjectData.Length > 0)
                             {
-                                handlerObjectAttach(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, att.ObjectData[0].Rotation);
+                                handlerObjectAttach(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, att.ObjectData[0].Rotation, false);
                             }
                         }
                     }

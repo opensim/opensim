@@ -122,7 +122,7 @@ namespace OpenSim.Region.Examples.SimpleModule
             if (m_parts.Count == 1)
             {
                 m_parts.Remove(m_rootPart.UUID);
-                m_scene.DeleteSceneObject(this);
+                m_scene.DeleteSceneObject(this, false);
                 remoteClient.SendKillObject(m_regionHandle, m_rootPart.LocalId);
                 remoteClient.AddMoney(50);
                 remoteClient.SendChatMessage("KABLAM!!!", 1, AbsolutePosition, "Groupie Groupie", UUID.Zero, (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);

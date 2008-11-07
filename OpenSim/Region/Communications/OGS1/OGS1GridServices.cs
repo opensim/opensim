@@ -1116,7 +1116,9 @@ namespace OpenSim.Region.Communications.OGS1
 
                         if (remObject != null)
                         {
+                            m_log.DebugFormat("[INTERREGION]: Sending prim crossing message for prim {0}", primID.ToString());
                             retValue = remObject.InformRegionOfPrimCrossing(regionHandle, primID.Guid, objData, XMLMethod);
+                            m_log.DebugFormat("[INTERREGION]: Return from prim crossing message for prim {0}: {1}", primID.ToString(), retValue.ToString());
                         }
                         else
                         {
@@ -1497,6 +1499,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public bool IncomingPrim(ulong regionHandle, UUID primID, string objData, int XMLMethod)
         {
+            m_log.DebugFormat("[INTERREGION]: Got prim crosssing request for {0}", primID);
             m_localBackend.TriggerExpectPrim(regionHandle, primID, objData, XMLMethod);
             
             return true;

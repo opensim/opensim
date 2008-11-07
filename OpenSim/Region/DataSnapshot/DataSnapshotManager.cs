@@ -32,7 +32,6 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using System.Timers;
 using System.Xml;
 using OpenMetaverse;
 using log4net;
@@ -71,12 +70,10 @@ namespace OpenSim.Region.DataSnapshot
         public string m_hostname = "127.0.0.1";
 
         //Update timers
-        private Timer m_periodic = null;
         private int m_period = 20; // in seconds
         private int m_maxStales = 500;
         private int m_stales = 0;
-        private Timer m_passedCheck = null;
-        private bool m_periodPassed = false;
+        private int m_lastUpdate = 0;
 
         //Program objects
         private SnapshotStore m_snapStore = null;
@@ -126,6 +123,7 @@ namespace OpenSim.Region.DataSnapshot
                         {
                             m_disabledModules.Add(bloody_wanker);
                         }
+                        m_lastUpdate = System.Environment.TickCount;
                     }
                     catch (Exception)
                     {
@@ -137,17 +135,6 @@ namespace OpenSim.Region.DataSnapshot
 
                 if (m_enabled)
                 {
-                    //Create update timer
-                    m_periodic = new Timer();
-                    m_periodic.Interval = m_period * 1000;
-                    m_periodic.Elapsed += SnapshotTimerCallback;
-
-                    //Create update eligibility timer
-                    m_passedCheck = new Timer();
-                    m_passedCheck.Interval = m_period * 1000;
-                    m_passedCheck.Elapsed += UpdateEligibilityCallback;
-                    m_passedCheck.Start();
-
                     //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
                     new DataRequestHandler(scene, this);
 
@@ -253,6 +240,8 @@ namespace OpenSim.Region.DataSnapshot
          */
         public XmlDocument GetSnapshot(string regionName)
         {
+            CheckStale();
+
             XmlDocument requestedSnap = new XmlDocument();
             requestedSnap.AppendChild(requestedSnap.CreateXmlDeclaration("1.0", null, null));
             requestedSnap.AppendChild(requestedSnap.CreateWhitespace("\r\n"));
@@ -369,38 +358,34 @@ namespace OpenSim.Region.DataSnapshot
             //Behavior here: Wait m_period seconds, then update if there has not been a request in m_period seconds
             //or m_maxStales has been exceeded
             m_stales++;
+        }
 
-            if ((m_stales >= m_maxStales) && m_periodPassed)
-                SnapshotTimerCallback(m_periodic, null);
-            else if (m_periodic.Enabled == false)
-                m_periodic.Start();
+        private void CheckStale()
+        {
+            // Wrap check
+            if (System.Environment.TickCount < m_lastUpdate)
+            {
+                m_lastUpdate = System.Environment.TickCount;
+            }
+
+            if (m_stales >= m_maxStales)
+            {
+                if (System.Environment.TickCount - m_lastUpdate >= 20000)
+                {
+                    m_stales = 0;
+                    m_lastUpdate = System.Environment.TickCount;
+                    MakeEverythingStale();
+                }
+            }
             else
             {
-                m_periodic.Stop();
-                m_periodic.Start();
+                if (m_lastUpdate + 1000 * m_period < System.Environment.TickCount)
+                {
+                    m_stales = 0;
+                    m_lastUpdate = System.Environment.TickCount;
+                    MakeEverythingStale();
+                }
             }
-        }
-
-        private void SnapshotTimerCallback(object timer, ElapsedEventArgs args)
-        {
-            m_log.Debug("[DATASNAPSHOT]: Marking scenes for snapshot updates.");
-
-            //Finally generate those snapshot updates
-            MakeEverythingStale();
-
-            //Stop the update delay timer
-            m_periodic.Stop();
-
-            //Reset the eligibility flag and timer
-            m_periodPassed = false;
-            m_passedCheck.Stop();
-            m_passedCheck.Start();
-        }
-
-        private void UpdateEligibilityCallback(object timer, ElapsedEventArgs args)
-        {
-            //Set eligibility, so we can start making updates
-            m_periodPassed = true;
         }
 
         public void MakeEverythingStale()

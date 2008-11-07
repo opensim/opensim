@@ -211,14 +211,13 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
         public void SendFullUpdate(IClientAPI client, uint clientFlags)
         {
-            m_Entity.SendFullUpdateToClient(client, clientFlags);
+            m_Entity.SendFullUpdateToClient(client);
         }
 
         public void SendFullUpdateToAll()
         {
-            uint clientFlags = 0;
             m_Entity.Scene.ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                                       { m_Entity.SendFullUpdateToClient(controller, clientFlags); }
+                                                       { m_Entity.SendFullUpdateToClient(controller); }
             );
         }
 

@@ -1831,7 +1831,7 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (EntityBase e in entities)
                 {
                     if (e is SceneObjectGroup)
-                        DeleteSceneObject((SceneObjectGroup)e);
+                        DeleteSceneObject((SceneObjectGroup)e, false);
                 }
             }
         }
@@ -1840,7 +1840,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Delete the given object from the scene.
         /// </summary>
         /// <param name="group"></param>
-        public void DeleteSceneObject(SceneObjectGroup group)
+        public void DeleteSceneObject(SceneObjectGroup group, bool silent)
         {
             //SceneObjectPart rootPart = group.GetChildPart(group.UUID);
 
@@ -1866,7 +1866,7 @@ namespace OpenSim.Region.Environment.Scenes
                 EventManager.TriggerParcelPrimCountTainted();
             }
 
-            group.DeleteGroup();
+            group.DeleteGroup(silent);
         }
 
         /// <summary>
@@ -1982,7 +1982,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="attemptedPosition">the attempted out of region position of the scene object</param>
         /// <param name="grp">the scene object that we're crossing</param>
-        public void CrossPrimGroupIntoNewRegion(Vector3 attemptedPosition, SceneObjectGroup grp)
+        public void CrossPrimGroupIntoNewRegion(Vector3 attemptedPosition, SceneObjectGroup grp, bool silent)
         {
             if (grp == null)
                 return;
@@ -1994,7 +1994,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // We remove the object here
                 try
                 {
-                    DeleteSceneObject(grp);
+                    DeleteSceneObject(grp, false);
                 }
                 catch (Exception)
                 {
@@ -2044,7 +2044,7 @@ namespace OpenSim.Region.Environment.Scenes
             grp.OffsetForNewRegion(pos);
 
             // If we fail to cross the border, then reset the position of the scene object on that border.
-            if (!CrossPrimGroupIntoNewRegion(newRegionHandle, grp))
+            if (!CrossPrimGroupIntoNewRegion(newRegionHandle, grp, silent))
             {
                 grp.OffsetForNewRegion(oldGroupPosition);
             }
@@ -2059,7 +2059,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// true if the crossing itself was successful, false on failure
         /// FIMXE: we still return true if the crossing object was not successfully deleted from the originating region
         /// </returns>
-        public bool CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp)
+        public bool CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp, bool silent)
         {
             bool successYN = false;
             int primcrossingXMLmethod = 0;
@@ -2075,7 +2075,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // We remove the object here
                     try
                     {
-                        DeleteSceneObject(grp);
+                        DeleteSceneObject(grp, silent);
                     }
                     catch (Exception e)
                     {
@@ -2115,7 +2115,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool IncomingInterRegionPrimGroup(ulong regionHandle, UUID primID, string objXMLData, int XMLMethod)
         {
-            m_log.Warn("{[INTERREGION]: A new prim arrived from a neighbor");
+            m_log.Warn("[INTERREGION]: A new prim arrived from a neighbor");
             if (XMLMethod == 0)
             {
                 SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
@@ -2129,7 +2129,7 @@ namespace OpenSim.Region.Environment.Scenes
                         SceneObjectGroup grp = RootPrim.ParentGroup;
                         if (grp != null)
                         {
-                            DeleteSceneObject(grp);
+                            DeleteSceneObject(grp, false);
                         }
 
                         m_log.Info("[INTERREGION]: Denied prim crossing for banned avatar");
@@ -2145,6 +2145,8 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 // Never persist
 
+                                m_log.DebugFormat("[ATTACHMENT]: Received attachment {0}, inworld asset id {1}", grp.RootPart.LastOwnerID.ToString(), grp.UUID.ToString());
+
                                 grp.DetachFromBackup();
 
                                 // Attachment
@@ -2156,6 +2158,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     // with the deeded object, it goes back to them
 
                                     grp.SetFromAssetID(grp.RootPart.LastOwnerID);
+                                    m_log.DebugFormat("[ATTACHMENT]: Attach to avatar {0}", sp.UUID.ToString());
                                     AttachObject(sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition);
                                 }
                                 else
@@ -4354,7 +4357,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if ((grp.RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
                         {
                             if (grp.RootPart.Expires <= DateTime.Now)
-                                DeleteSceneObject(grp);
+                                DeleteSceneObject(grp, false);
                         }
                     }
                 }
