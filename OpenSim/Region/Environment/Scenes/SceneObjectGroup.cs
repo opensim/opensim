@@ -363,10 +363,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// The original SceneObjectPart will be used rather than a copy, preserving
         /// its existing localID and UUID.
         /// </summary>
-        public SceneObjectGroup(Scene scene, ulong regionHandle, SceneObjectPart part)
+        public SceneObjectGroup(SceneObjectPart part)
         {
-            m_scene = scene;
-
             part.SetParent(this);
             part.ParentID = 0;
             part.LinkNum = 0;
@@ -374,8 +372,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_parts.Add(part.UUID, part);
 
             SetPartAsRoot(part);
-
-            RegionHandle = regionHandle;
         }
 
         /// <summary>
@@ -1982,7 +1978,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 linkPart.RotationOffset = worldRot;
 
-                SceneObjectGroup objectGroup = new SceneObjectGroup(m_scene, m_regionHandle, linkPart);
+                SceneObjectGroup objectGroup = new SceneObjectGroup(linkPart);
 
                 m_scene.AddNewSceneObject(objectGroup, true);
 
