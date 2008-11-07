@@ -45,6 +45,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
         public string region_owner;
         public string region_owner_id;
         public uint region_http_port;
+        public uint region_port;
         public string region_server_uri;
         public string region_external_hostname;
 
@@ -65,6 +66,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             region_http_port = regInfo.HttpPort;
             region_server_uri = regInfo.ServerURI;
             region_external_hostname = regInfo.ExternalHostName;
+
+            Uri uri = new Uri(region_server_uri);
+            region_port = (uint)uri.Port;
 
             if (!String.IsNullOrEmpty(regInfo.MasterAvatarFirstName))
                 region_owner = String.Format("{0} {1}", regInfo.MasterAvatarFirstName,
