@@ -684,7 +684,7 @@ namespace OpenSim.Region.Environment.Scenes
                         
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
                                                                      position, false);
-                        Thread.Sleep(4000);
+                        Thread.Sleep(2000);
                         AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();
 
                         // TODO Should construct this behind a method
@@ -709,7 +709,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
 
                         avatar.MakeChildAgent();
-                        Thread.Sleep(5000);
+                        Thread.Sleep(7000);
                         avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
                         if (KiPrimitive != null)
                         {
