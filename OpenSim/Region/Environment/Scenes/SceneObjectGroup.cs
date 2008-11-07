@@ -1440,28 +1440,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ScriptSetPhantomStatus(bool PhantomStatus)
         {
-            lock (m_parts)
-            {
-                foreach (SceneObjectPart part in m_parts.Values)
-                {
-                    if (PhantomStatus)
-                    {
-                        part.AddFlag(PrimFlags.Phantom);
-                        if (part.PhysActor != null)
-                        {
-                            m_scene.PhysicsScene.RemovePrim(part.PhysActor);
-                        }
-                    }
-                    else
-                    {
-                        part.RemFlag(PrimFlags.Phantom);
-                        if ((part.GetEffectiveObjectFlags() & (int) PrimFlags.Physics) != 0)
-                        {
-                            part.DoPhysicsPropertyUpdate(true, false);
-                        }
-                    }
-                }
-            }
+            byte[] flags = new byte[50];
+            // only the following 3 flags are updated by UpdatePrimFlags
+            flags[46] = (byte)((RootPart.Flags & PrimFlags.Physics) != 0 ? 1 : 0);
+            flags[47] = (byte)((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0 ? 1 : 0);
+            flags[48] = (byte)(PhantomStatus ? 1 : 0);
+            // 94 is the packet type that comes from the ll viewer when selecting/unselecting
+            // so pretend we are from the viewer
+            UpdatePrimFlags(RootPart.LocalId, (ushort)94, true, flags);
         }
 
         public void applyImpulse(PhysicsVector impulse)
