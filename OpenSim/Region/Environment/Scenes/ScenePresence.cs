@@ -1172,6 +1172,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //m_scene.DeleteSceneObject(proxyObjectGroup);
                     //}
                 }
+                
                 m_autoPilotTarget = Vector3.Zero;
                 m_autopilotMoving = false;
             }
@@ -2077,13 +2078,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                 //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString());
                 cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
-
-
-
-
-
                 cadu.Velocity = new sLLVector3(Velocity);
                 m_scene.SendOutChildAgentUpdates(cadu,this);
+                
                 m_LastChildAgentUpdatePosition.X = AbsolutePosition.X;
                 m_LastChildAgentUpdatePosition.Y = AbsolutePosition.Y;
                 m_LastChildAgentUpdatePosition.Z = AbsolutePosition.Z;
@@ -2195,8 +2192,7 @@ namespace OpenSim.Region.Environment.Scenes
                         "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
                          + "/CAPS/" + circuitdata.CapsPath + "0000/";
 
-                    m_log.DebugFormat(
-                        "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, m_uuid);
+                    m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, m_uuid);
 
                     IEventQueue eq = m_scene.RequestModuleInterface<IEventQueue>();
                     if (eq != null)
@@ -2210,9 +2206,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath);
-                    }
-                    
-
+                    }                    
                    
                     MakeChildAgent();
                     // now we have a child agent in this region. Request all interesting data about other (root) agents
@@ -2227,7 +2221,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // so the userinfo in UserProfileCache is not reliable any more, delete it
                     if (m_scene.NeedSceneCacheClear(UUID))
                         m_scene.CommsManager.UserProfileCacheService.RemoveUser(UUID);
-                    m_log.InfoFormat("User {0} is going to another region, profile cache removed", UUID);
+                    m_log.InfoFormat("[AVATAR]: User {0} is going to another region, profile cache removed", UUID);
                 }
                 else
                 {
@@ -2291,8 +2285,6 @@ namespace OpenSim.Region.Environment.Scenes
             //SetHeight(cAgentData.AVHeight);
 
             ControllingClient.SetChildAgentThrottle(cAgentData.throttles);
-
-
 
             // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
             if (m_scene.m_seeIntoRegionFromNeighbor)
