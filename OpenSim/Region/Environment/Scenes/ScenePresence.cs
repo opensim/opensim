@@ -681,7 +681,10 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     //never been sent to client before so do full update
-
+                    ScenePartUpdate update = new ScenePartUpdate();
+                    update.FullID = part.UUID;
+                    update.LastFullUpdateTime = part.TimeStampFull;
+                    m_updateTimes.Add(part.UUID, update);
 
                     // Attachment handling
                     //
@@ -693,11 +696,6 @@ namespace OpenSim.Region.Environment.Scenes
                         part.ParentGroup.SendFullUpdateToClient(ControllingClient);
                         continue;
                     }
-
-                    ScenePartUpdate update = new ScenePartUpdate();
-                    update.FullID = part.UUID;
-                    update.LastFullUpdateTime = part.TimeStampFull;
-                    m_updateTimes.Add(part.UUID, update);
 
                     part.SendFullUpdate(ControllingClient,
                             GenerateClientFlags(part.UUID));
