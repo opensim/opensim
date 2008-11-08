@@ -100,7 +100,7 @@
       <Reference name="Mono.Addins.dll" />
       <Files>
         <Match pattern="*.cs" recurse="false"/>
-		<Match pattern="Client/*.cs" recurse="true"/>
+        <Match path="Client" pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 
