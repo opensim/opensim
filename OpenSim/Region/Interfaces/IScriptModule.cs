@@ -34,5 +34,8 @@ namespace OpenSim.Region.Interfaces
     public interface IScriptModule
     {
         string ScriptEngineName { get; }
+
+        string GetAssemblyName(UUID itemID);
+        string GetXMLState(UUID itemID);
     }
 }

@@ -72,8 +72,5 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         string ScriptEngineName { get; }
         ILog Log { get; }
         IScriptApi GetApi(UUID itemID, string name);
-
-        string GetAssemblyName(UUID itemID);
-        string GetXMLState(UUID itemID);
     }
 }

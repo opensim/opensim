@@ -32,6 +32,7 @@ using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 
@@ -762,6 +763,31 @@ namespace OpenSim.Region.Environment.Scenes
                 ret.Add(item.ItemID);
 
             return ret;
+        }
+        
+        string[] GetScriptAssemblies()
+        {
+            IScriptModule[] engines = m_parentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+
+            List<string> ret = new List<string>();
+
+            foreach (TaskInventoryItem item in m_taskInventory.Values)
+            {
+                if (item.InvType == 10)
+                {
+                    foreach (IScriptModule e in engines)
+                    {
+                        string n = e.GetAssemblyName(item.ItemID);
+                        if (n != "")
+                        {
+                            if (!ret.Contains(n))
+                                ret.Add(n);
+                            break;
+                        }
+                    }
+                }
+            }
+            return ret.ToArray();
         }
     }
 }
