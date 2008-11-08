@@ -54,16 +54,22 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
             // New region is being created
             // Create a new script engine
             // Make sure we have config
-            if (ConfigSource.Configs["SECS"] == null)
-                ConfigSource.AddConfig("SECS");
-            ScriptConfigSource = ConfigSource.Configs["SECS"];
-
-            // Is SECS enabled?
-            if (ScriptConfigSource.GetBoolean("Enabled", false))
+            try
             {
-                LoadEngine();
-                if (scriptEngine != null)
-                    scriptEngine.Initialise(scene, source);
+                if (ConfigSource.Configs["SECS"] == null)
+                    ConfigSource.AddConfig("SECS");
+                ScriptConfigSource = ConfigSource.Configs["SECS"];
+
+                // Is SECS enabled?
+                if (ScriptConfigSource.GetBoolean("Enabled", false))
+                {
+                    LoadEngine();
+                    if (scriptEngine != null)
+                        scriptEngine.Initialise(scene, source);
+                }
+            }
+            catch (NullReferenceException)
+            {
             }
         }
 
