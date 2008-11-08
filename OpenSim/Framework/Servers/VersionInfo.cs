@@ -32,6 +32,6 @@ namespace OpenSim
     /// </summary>
     public class VersionInfo
     {
-        public readonly static string Version = "OpenSimulator Server 0.5.11";  // stay with 27 chars (used in regioninfo)
+        public readonly static string Version = "OpenSimulator Server  0.6.0";  // stay with 27 chars (used in regioninfo)
     }
 }
