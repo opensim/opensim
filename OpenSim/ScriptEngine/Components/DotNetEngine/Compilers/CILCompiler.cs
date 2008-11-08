@@ -41,8 +41,9 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Compilers
         internal static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private string ScriptEnginesPath = "ScriptEngines";
         private string Name { get { return "SECS.DotNetEngine.CILCompiler"; } }
-        internal string ScriptAssemblyName { get; set; }
-        
+        private string m_scriptAssemblyName;
+        internal string ScriptAssemblyName { get { return m_scriptAssemblyName; } set { m_scriptAssemblyName = value; } }
+
         // Default inherit
         protected string ScriptInheritFrom = typeof(ScriptAssemblies.ScriptBase).Name;
         private readonly System.Security.Cryptography.MD5CryptoServiceProvider MD5Sum = new System.Security.Cryptography.MD5CryptoServiceProvider();
