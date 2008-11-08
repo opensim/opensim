@@ -792,55 +792,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llDetectedName(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
-            if (d == null)
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (detectedParams == null)
                 return String.Empty;
-            return d.Name;
+            return detectedParams.Name;
         }
 
         public LSL_String llDetectedKey(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
-            if (d == null)
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (detectedParams == null)
                 return String.Empty;
-            return d.Key.ToString();
+            return detectedParams.Key.ToString();
         }
 
         public LSL_String llDetectedOwner(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
-            if (d == null)
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (detectedParams == null)
                 return String.Empty;
-            return d.Owner.ToString();
+            return detectedParams.Owner.ToString();
         }
 
         public LSL_Integer llDetectedType(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
-            if (d == null)
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (detectedParams == null)
                 return 0;
-            return new LSL_Integer(d.Type);
+            return new LSL_Integer(detectedParams.Type);
         }
 
         public LSL_Vector llDetectedPos(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
-            if (d == null)
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (detectedParams == null)
                 return new LSL_Vector();
-            return d.Position;
+            return detectedParams.Position;
         }
 
         public LSL_Vector llDetectedVel(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
-            if (d == null)
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (detectedParams == null)
                 return new LSL_Vector();
-            return d.Velocity;
+            return detectedParams.Velocity;
         }
 
         public LSL_Vector llDetectedGrab(int number)
@@ -856,19 +856,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Rotation llDetectedRot(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
-            if (d == null)
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (detectedParams == null)
                 return new LSL_Rotation();
-            return d.Rotation;
+            return detectedParams.Rotation;
         }
 
         public LSL_Integer llDetectedGroup(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
-            if (d == null)
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (detectedParams == null)
                 return new LSL_Integer(0);
-            if (m_host.GroupID == d.Group)
+            if (m_host.GroupID == detectedParams.Group)
                 return new LSL_Integer(1);
             return new LSL_Integer(0);
         }
@@ -8057,10 +8057,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llMapDestination(string simname, LSL_Vector pos, LSL_Vector lookAt)
         {
             m_host.AddScriptLPS(1);
-            DetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, 0);
-            if (d == null) return; // only works on the first detected avatar
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, 0);
+            if (detectedParams == null) return; // only works on the first detected avatar
 
-            ScenePresence avatar = World.GetScenePresence(d.Key);
+            ScenePresence avatar = World.GetScenePresence(detectedParams.Key);
             if (avatar != null)
             {
                 avatar.ControllingClient.SendScriptTeleportRequest(m_host.Name, simname,
@@ -8428,10 +8428,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_List ret = new LSL_List();
             if (land != null)
             {
-                foreach (KeyValuePair<UUID, int> d in land.getLandObjectOwners())
+                foreach (KeyValuePair<UUID, int> detectedParams in land.getLandObjectOwners())
                 {
-                    ret.Add(d.Key.ToString());
-                    ret.Add(d.Value);
+                    ret.Add(detectedParams.Key.ToString());
+                    ret.Add(detectedParams.Value);
                 }
             }
             // ScriptSleep(2000);
