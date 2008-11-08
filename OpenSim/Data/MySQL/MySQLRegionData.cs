@@ -999,7 +999,7 @@ namespace OpenSim.Data.MySQL
             createCol(land, "GroupUUID", typeof (String));
             createCol(land, "SalePrice", typeof (Int32));
             createCol(land, "LandStatus", typeof (Int32)); //Enum. libsecondlife.Parcel.ParcelStatus
-            createCol(land, "LandFlags", typeof (Int32));
+            createCol(land, "LandFlags", typeof (UInt32));
             createCol(land, "LandingType", typeof (Int32));
             createCol(land, "MediaAutoScale", typeof (Int32));
             createCol(land, "MediaTextureUUID", typeof (String));
