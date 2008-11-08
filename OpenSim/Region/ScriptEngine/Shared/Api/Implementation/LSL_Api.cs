@@ -4642,18 +4642,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 for (int i = 0; i < length; i++)
                 {
-                   if (src.Data[i].Equals(test.Data[0]))
-                   {
-                       int j;
-                       for (j = 1; j < test.Length; j++)
-                           if (!src.Data[i+j].Equals(test.Data[j]))
-                               break;
-                       if (j == test.Length)
-                       {
-                           index = i;
-                           break;
-                       }
-                   }
+                    if (src.Data[i].Equals(test.Data[0]))
+                    {
+                        int j;
+                        for (j = 1; j < test.Length; j++)
+                            if (!src.Data[i+j].Equals(test.Data[j]))
+                                break;
+                        if (j == test.Length)
+                        {
+                            index = i;
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -4939,14 +4939,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (cindex > 0)
                     {
-                        ret.Add(str.Substring(0, cindex));
+                        ret.Add(new LSL_String(str.Substring(0, cindex)));
                     }
                     // Cannot use spacers.Contains() because spacers may be either type String or LSLString
                     for (int j = 0; j < spacers.Length; j++)
                     {
                         if (spacers.Data[j].ToString() == cdeli)
                         {
-                            ret.Add(cdeli);
+                            ret.Add(new LSL_String(cdeli));
                             break;
                         }
                     }
@@ -4955,7 +4955,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             } while (dfound);
             if (str != "")
             {
-                ret.Add(str);
+                ret.Add(new LSL_String(str));
             }
             return ret;
         }
@@ -7291,14 +7291,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // no markers were found on this pass
                     // so we're pretty much done
-                    tokens.Add(src.Substring(beginning, srclen - beginning));
+                    tokens.Add(new LSL_String(src.Substring(beginning, srclen - beginning)));
                     break;
                 }
 
                 //    Otherwise we just add the newly delimited token
                 //    and recalculate where the search should continue.
 
-                tokens.Add(src.Substring(beginning,offset[best]-beginning));
+                tokens.Add(new LSL_String(src.Substring(beginning,offset[best]-beginning)));
 
                 if (best < seplen)
                 {
@@ -7307,7 +7307,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                 {
                     beginning = offset[best] + (spcarray[best - seplen].ToString()).Length;
-                    tokens.Add(spcarray[best - seplen]);
+                    tokens.Add(new LSL_String(spcarray[best - seplen].ToString()));
                 }
             }
 
@@ -7320,7 +7320,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (beginning == srclen)
             {
                 if (srclen != 0)
-                    tokens.Add("");
+                    tokens.Add(new LSL_String(""));
             }
 
             return tokens;
