@@ -1547,7 +1547,16 @@ namespace OpenSim.Region.Communications.OGS1
 
             IPAddress ia;
             IPAddress.TryParse(address, out ia);
-            IPEndPoint m_EndPoint = new IPEndPoint(ia, (int)port);
+            IPEndPoint m_EndPoint;
+            try
+            {
+                m_EndPoint = new IPEndPoint(ia, (int)port);
+            }
+            catch (Exception)
+            {
+                m_log.Debug("[OGS1 GRID SERVICES]: Invalid remoting address: " + address);
+                return false;
+            }
 
             AsyncCallback callback = delegate(IAsyncResult iar)
             {
