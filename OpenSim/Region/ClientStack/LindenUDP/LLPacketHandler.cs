@@ -768,35 +768,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // If we sent a killpacket
             if (packet is KillPacket)
-            {
                 Abort();
 
-                // Actually make the byte array and send it
-                byte[] sendbuffer = packet.ToBytes();
+            // Actually make the byte array and send it
+            byte[] sendbuffer = packet.ToBytes();
 
-                //m_log.DebugFormat(
-                //    "[CLIENT]: In {0} sending packet {1}",
-                //    m_Client.Scene.RegionInfo.ExternalEndPoint.Port, packet.Header.Sequence);
+            //m_log.DebugFormat(
+            //    "[CLIENT]: In {0} sending packet {1}",
+            //    m_Client.Scene.RegionInfo.ExternalEndPoint.Port, packet.Header.Sequence);
 
-                if (packet.Header.Zerocoded)
-                {
-                    int packetsize = Helpers.ZeroEncode(sendbuffer,
-                            sendbuffer.Length, m_ZeroOutBuffer);
-                    m_PacketServer.SendPacketTo(m_ZeroOutBuffer, packetsize,
-                            SocketFlags.None, m_Client.CircuitCode);
-                }
-                else
-                {
-                    // Need some extra space in case we need to add proxy
-                    // information to the message later
-                    Buffer.BlockCopy(sendbuffer, 0, m_ZeroOutBuffer, 0,
-                            sendbuffer.Length);
-                    m_PacketServer.SendPacketTo(m_ZeroOutBuffer,
-                            sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
-                }
-
-                PacketPool.Instance.ReturnPacket(packet);
+            if (packet.Header.Zerocoded)
+            {
+                int packetsize = Helpers.ZeroEncode(sendbuffer,
+                        sendbuffer.Length, m_ZeroOutBuffer);
+                m_PacketServer.SendPacketTo(m_ZeroOutBuffer, packetsize,
+                        SocketFlags.None, m_Client.CircuitCode);
             }
+            else
+            {
+                // Need some extra space in case we need to add proxy
+                // information to the message later
+                Buffer.BlockCopy(sendbuffer, 0, m_ZeroOutBuffer, 0,
+                        sendbuffer.Length);
+                m_PacketServer.SendPacketTo(m_ZeroOutBuffer,
+                        sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
+            }
+
+            PacketPool.Instance.ReturnPacket(packet);
         }
 
         private void Abort()
