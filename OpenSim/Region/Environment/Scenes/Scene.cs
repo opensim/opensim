@@ -2100,8 +2100,6 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
                 AddRestoredSceneObject(sceneObject, true, false);
 
-                sceneObject.CreateScriptInstances(0, false, DefaultScriptEngine);
-
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                 if (RootPrim != null)
                 {
