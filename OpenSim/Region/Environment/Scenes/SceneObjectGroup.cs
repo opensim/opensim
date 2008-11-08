@@ -781,7 +781,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 avatar.AddAttachment(this);
 
-                if(!silent)
+                if (!silent)
                 {
                     // Killing it here will cause the client to deselect it
                     // It then reappears on the avatar, deselected
