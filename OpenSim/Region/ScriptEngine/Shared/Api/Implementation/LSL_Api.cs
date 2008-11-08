@@ -6045,6 +6045,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetPrimitiveParams(LSL_List rules)
         {
+            m_host.AddScriptLPS(1);
             SetPrimParams(m_host, rules);
         }
 
@@ -6329,16 +6330,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                      case (int)ScriptBaseClass.PRIM_MATERIAL:
                          if (remain < 1)
                              return;
-                        if (part != null)
-                        {
-                            /* Unhandled at this time - sends "Unhandled" message
-                               will enable when available
-                            byte material = Convert.ToByte((int)rules.GetLSLIntegerItem(idx++));
-                            part.Material =  material;
-                            */
-                            return;
-                        }
-                        break;
+                         int mat = rules.GetLSLIntegerItem(idx++);
+                         if (mat < 0 || mat > 7)
+                             return;
+
+                         part.Material = Convert.ToByte(mat);
+                         break;
                      case (int)ScriptBaseClass.PRIM_PHANTOM:
                         if (remain < 1)
                              return;
@@ -6352,8 +6349,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                              phantom = false;
 
                          part.ScriptSetPhantomStatus(phantom);
-                        part.ScheduleFullUpdate();
-                        break;
+                         break;
                      case (int)ScriptBaseClass.PRIM_PHYSICS:
                         if (remain < 1)
                              return;
@@ -6365,8 +6361,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                          else
                              physics = false;
 
-                         m_host.ScriptSetPhysicsStatus(physics);
-                        part.ScheduleFullUpdate();
+                         part.ScriptSetPhysicsStatus(physics);
+                         break;
+                    case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                        if (remain < 1)
+                            return;
+                        string temp = rules.Data[idx++].ToString();
+                        bool tempOnRez;
+
+                        if (temp.Equals("1"))
+                            tempOnRez = true;
+                        else
+                            tempOnRez = false;
+
+                        part.ScriptSetTemporaryStatus(tempOnRez);
                         break;
                 }
             }
@@ -7999,17 +8007,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Rotation();
         }
 
+        /// <summary>
+        /// The SL implementation does nothing, it is deprecated
+        /// This duplicates SL
+        /// </summary>
         public void llSetPrimURL(string url)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetPrimURL");
             // ScriptSleep(2000);
         }
 
+        /// <summary>
+        /// The SL implementation shouts an error, it is deprecated
+        /// This duplicates SL
+        /// </summary>
         public void llRefreshPrimURL()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRefreshPrimURL");
+            ShoutError("llRefreshPrimURL - not yet supported");
             // ScriptSleep(20000);
         }
 
