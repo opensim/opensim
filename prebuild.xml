@@ -54,6 +54,27 @@
           </Files>
         </Project>
 -->
+
+    <Project name="OpenSim.Framework.Client" path="OpenSim/Framework/Client" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="log4net.dll"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Framework.Console" path="OpenSim/Framework/Console" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -966,6 +987,7 @@
       <Reference name="OpenSim.Region.Interfaces"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Client"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Statistics"/>
