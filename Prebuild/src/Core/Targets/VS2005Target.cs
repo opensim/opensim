@@ -719,98 +719,99 @@ namespace Prebuild.Core.Targets
 
             kernel.Log.Write("");
             string solutionFile = Helper.MakeFilePath(solution.FullPath, solution.Name, "sln");
-            StreamWriter ss = new StreamWriter(solutionFile);
-
-            kernel.CurrentWorkingDirectory.Push();
-            Helper.SetCurrentDir(Path.GetDirectoryName(solutionFile));
-
-            using (ss)
+            using (StreamWriter ss = new StreamWriter(solutionFile))
             {
-                ss.WriteLine("Microsoft Visual Studio Solution File, Format Version {0}", this.SolutionVersion);
-                ss.WriteLine(SolutionTag);
-                foreach (ProjectNode project in solution.Projects)
+                kernel.CurrentWorkingDirectory.Push();
+                Helper.SetCurrentDir(Path.GetDirectoryName(solutionFile));
+
+                using (ss)
                 {
-                    if (!tools.ContainsKey(project.Language))
+                    ss.WriteLine("Microsoft Visual Studio Solution File, Format Version {0}", this.SolutionVersion);
+                    ss.WriteLine(SolutionTag);
+                    foreach (ProjectNode project in solution.Projects)
                     {
-                        throw new UnknownLanguageException("Unknown .NET language: " + project.Language);
-                    }
-
-                    ToolInfo toolInfo = (ToolInfo)tools[project.Language];
-
-                    string path = Helper.MakePathRelativeTo(solution.FullPath, project.FullPath);
-                    ss.WriteLine("Project(\"{0}\") = \"{1}\", \"{2}\", \"{{{3}}}\"",
-                        toolInfo.Guid, project.Name, Helper.MakeFilePath(path, project.Name,
-                        toolInfo.FileExtension), project.Guid.ToString().ToUpper());
-
-                    //ss.WriteLine("  ProjectSection(ProjectDependencies) = postProject");
-                    //ss.WriteLine("  EndProjectSection");
-
-                    ss.WriteLine("EndProject");
-                }
-
-                if (solution.Files != null)
-                {
-                    ss.WriteLine("Project(\"{0}\") = \"Solution Items\", \"Solution Items\", \"{1}\"", "{2150E333-8FDC-42A3-9474-1A3956D46DE8}", "{468F1D07-AD17-4CC3-ABD0-2CA268E4E1A6}");
-                    ss.WriteLine("\tProjectSection(SolutionItems) = preProject");
-                    foreach (string file in solution.Files)
-                        ss.WriteLine("\t\t{0} = {0}", file);
-                    ss.WriteLine("\tEndProjectSection");
-                    ss.WriteLine("EndProject");
-                }
-
-                ss.WriteLine("Global");
-
-                ss.WriteLine("  GlobalSection(SolutionConfigurationPlatforms) = preSolution");
-                foreach (ConfigurationNode conf in solution.Configurations)
-                {
-                    ss.WriteLine("    {0}|Any CPU = {0}|Any CPU", conf.Name);
-                }
-                ss.WriteLine("  EndGlobalSection");
-
-                if (solution.Projects.Count > 1)
-                {
-                    ss.WriteLine("  GlobalSection(ProjectDependencies) = postSolution");
-                }
-                foreach (ProjectNode project in solution.Projects)
-                {
-                    for (int i = 0; i < project.References.Count; i++)
-                    {
-                        ReferenceNode refr = (ReferenceNode)project.References[i];
-                        if (solution.ProjectsTable.ContainsKey(refr.Name))
+                        if (!tools.ContainsKey(project.Language))
                         {
-                            ProjectNode refProject = (ProjectNode)solution.ProjectsTable[refr.Name];
-                            ss.WriteLine("    ({{{0}}}).{1} = ({{{2}}})",
-                                project.Guid.ToString().ToUpper()
-                                , i,
-                                refProject.Guid.ToString().ToUpper()
-                                );
+                            throw new UnknownLanguageException("Unknown .NET language: " + project.Language);
                         }
+
+                        ToolInfo toolInfo = (ToolInfo)tools[project.Language];
+
+                        string path = Helper.MakePathRelativeTo(solution.FullPath, project.FullPath);
+                        ss.WriteLine("Project(\"{0}\") = \"{1}\", \"{2}\", \"{{{3}}}\"",
+                                     toolInfo.Guid, project.Name, Helper.MakeFilePath(path, project.Name,
+                                                                                      toolInfo.FileExtension), project.Guid.ToString().ToUpper());
+
+                        //ss.WriteLine("  ProjectSection(ProjectDependencies) = postProject");
+                        //ss.WriteLine("  EndProjectSection");
+
+                        ss.WriteLine("EndProject");
                     }
-                }
-                if (solution.Projects.Count > 1)
-                {
-                    ss.WriteLine("  EndGlobalSection");
-                }
-                ss.WriteLine("  GlobalSection(ProjectConfigurationPlatforms) = postSolution");
-                foreach (ProjectNode project in solution.Projects)
-                {
+
+                    if (solution.Files != null)
+                    {
+                        ss.WriteLine("Project(\"{0}\") = \"Solution Items\", \"Solution Items\", \"{1}\"", "{2150E333-8FDC-42A3-9474-1A3956D46DE8}", "{468F1D07-AD17-4CC3-ABD0-2CA268E4E1A6}");
+                        ss.WriteLine("\tProjectSection(SolutionItems) = preProject");
+                        foreach (string file in solution.Files)
+                            ss.WriteLine("\t\t{0} = {0}", file);
+                        ss.WriteLine("\tEndProjectSection");
+                        ss.WriteLine("EndProject");
+                    }
+
+                    ss.WriteLine("Global");
+
+                    ss.WriteLine("  GlobalSection(SolutionConfigurationPlatforms) = preSolution");
                     foreach (ConfigurationNode conf in solution.Configurations)
                     {
-                        ss.WriteLine("    {{{0}}}.{1}|Any CPU.ActiveCfg = {1}|Any CPU",
-                            project.Guid.ToString().ToUpper(),
-                            conf.Name);
-
-                        ss.WriteLine("    {{{0}}}.{1}|Any CPU.Build.0 = {1}|Any CPU",
-                            project.Guid.ToString().ToUpper(),
-                            conf.Name);
+                        ss.WriteLine("    {0}|Any CPU = {0}|Any CPU", conf.Name);
                     }
-                }
-                ss.WriteLine("  EndGlobalSection");
-                ss.WriteLine("  GlobalSection(SolutionProperties) = preSolution");
-                ss.WriteLine("    HideSolutionNode = FALSE");
-                ss.WriteLine("  EndGlobalSection");
+                    ss.WriteLine("  EndGlobalSection");
 
-                ss.WriteLine("EndGlobal");
+                    if (solution.Projects.Count > 1)
+                    {
+                        ss.WriteLine("  GlobalSection(ProjectDependencies) = postSolution");
+                    }
+                    foreach (ProjectNode project in solution.Projects)
+                    {
+                        for (int i = 0; i < project.References.Count; i++)
+                        {
+                            ReferenceNode refr = (ReferenceNode)project.References[i];
+                            if (solution.ProjectsTable.ContainsKey(refr.Name))
+                            {
+                                ProjectNode refProject = (ProjectNode)solution.ProjectsTable[refr.Name];
+                                ss.WriteLine("    ({{{0}}}).{1} = ({{{2}}})",
+                                             project.Guid.ToString().ToUpper()
+                                             , i,
+                                             refProject.Guid.ToString().ToUpper()
+                                    );
+                            }
+                        }
+                    }
+                    if (solution.Projects.Count > 1)
+                    {
+                        ss.WriteLine("  EndGlobalSection");
+                    }
+                    ss.WriteLine("  GlobalSection(ProjectConfigurationPlatforms) = postSolution");
+                    foreach (ProjectNode project in solution.Projects)
+                    {
+                        foreach (ConfigurationNode conf in solution.Configurations)
+                        {
+                            ss.WriteLine("    {{{0}}}.{1}|Any CPU.ActiveCfg = {1}|Any CPU",
+                                         project.Guid.ToString().ToUpper(),
+                                         conf.Name);
+
+                            ss.WriteLine("    {{{0}}}.{1}|Any CPU.Build.0 = {1}|Any CPU",
+                                         project.Guid.ToString().ToUpper(),
+                                         conf.Name);
+                        }
+                    }
+                    ss.WriteLine("  EndGlobalSection");
+                    ss.WriteLine("  GlobalSection(SolutionProperties) = preSolution");
+                    ss.WriteLine("    HideSolutionNode = FALSE");
+                    ss.WriteLine("  EndGlobalSection");
+
+                    ss.WriteLine("EndGlobal");
+                }
             }
 
             kernel.CurrentWorkingDirectory.Pop();
