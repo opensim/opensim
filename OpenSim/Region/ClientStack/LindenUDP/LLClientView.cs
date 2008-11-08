@@ -52,7 +52,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
     /// </summary>
-    public class LLClientView : IClientAPI, IClientCore, IClientIM
+    public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -1046,26 +1046,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(mov, ThrottleOutPacketType.Unknown);
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="type"></param>
-        /// <param name="fromPos"></param>
-        /// <param name="fromName"></param>
-        /// <param name="fromAgentID"></param>
         public void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName,
-                                    UUID fromAgentID, byte source, byte audible)
-        {
-            SendChatMessage(Utils.StringToBytes(message), type, fromPos, fromName, fromAgentID, source, audible);
-        }
-
-        public void SendChatMessage(byte[] message, byte type, Vector3 fromPos, string fromName,
                                     UUID fromAgentID, byte source, byte audible)
         {
             ChatFromSimulatorPacket reply = (ChatFromSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.ChatFromSimulator);
             reply.ChatData.Audible = audible;
-            reply.ChatData.Message = message;
+            reply.ChatData.Message = Utils.StringToBytes(message);
             reply.ChatData.ChatType = type;
             reply.ChatData.SourceType = source;
             reply.ChatData.Position = fromPos;
@@ -7678,6 +7664,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void RegisterInterfaces()
         {
             RegisterInterface<IClientIM>(this);
+            RegisterInterface<IClientChat>(this);
         }
 
         public bool TryGet<T>(out T iface)
