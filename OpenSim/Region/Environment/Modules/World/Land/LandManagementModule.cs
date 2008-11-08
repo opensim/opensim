@@ -59,11 +59,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         private LandChannel landChannel;
         private Scene m_scene;
 
-        private readonly int[,] landIDList = new int[64, 64];
-        private readonly Dictionary<int, ILandObject> landList = new Dictionary<int, ILandObject>();
+        private readonly int[,] m_landIDList = new int[64, 64];
+        private readonly Dictionary<int, ILandObject> m_landList = new Dictionary<int, ILandObject>();
 
-        private bool landPrimCountTainted;
-        private int lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
+        private bool m_landPrimCountTainted;
+        private int m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
 
         private bool m_allowedForcefulBans = true;
 
@@ -75,7 +75,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
-            landIDList.Initialize();
+            m_landIDList.Initialize();
             landChannel = new LandChannel(scene, this);
 
             parcelInfoCache = new Cache();
@@ -154,13 +154,18 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             AllowedForcefulBans = forceful;
         }
 
-        public void UpdateLandObject(int local_id, LandData newData)
+        public void UpdateLandObject(int local_id, LandData data)
         {
-            if (landList.ContainsKey(local_id))
+            LandData newData = data.Copy();
+            newData.LocalID = local_id;
+
+            lock (m_landList)
             {
-                newData.LocalID = local_id;
-                landList[local_id].landData = newData.Copy();
-                m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, landList[local_id]);
+                if (m_landList.ContainsKey(local_id))
+                {
+                    m_landList[local_id].landData = newData;
+                    m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, m_landList[local_id]);
+                }
             }
         }
 
@@ -176,9 +181,12 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void ResetSimLandObjects()
         {
             //Remove all the land objects in the sim and add a blank, full sim land object set to public
-            landList.Clear();
-            lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
-            landIDList.Initialize();
+            lock (m_landList)
+            {
+                m_landList.Clear();
+                m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
+                m_landIDList.Initialize();
+            }
 
             ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);
 
@@ -193,7 +201,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public List<ILandObject> AllParcels()
         {
-            return new List<ILandObject>(landList.Values);
+            lock (m_landList)
+            {
+                return new List<ILandObject>(m_landList.Values);
+            }
         }
 
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
@@ -240,9 +251,14 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             if (m_scene.RegionInfo.RegionID == regionID)
             {
-                if (landList[localLandID] != null)
+                ILandObject parcelAvatarIsEntering;
+                lock (m_landList)
                 {
-                    ILandObject parcelAvatarIsEntering = landList[localLandID];
+                    parcelAvatarIsEntering = m_landList[localLandID];
+                }
+
+                if (parcelAvatarIsEntering != null)
+                {
                     if (avatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT)
                     {
                         if (parcelAvatarIsEntering.isBannedFromLand(avatar.UUID))
@@ -279,12 +295,12 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     {
                         if (checkBan.isBannedFromLand(avatar.AgentId))
                         {
-                            checkBan.sendLandProperties(-30000, false, (int)ParcelResult.Single, avatar);
+                            checkBan.sendLandProperties((int)ParcelStatus.CollisionBanned, false, (int)ParcelResult.Single, avatar);
                             return; //Only send one
                         }
                         if (checkBan.isRestrictedFromLand(avatar.AgentId))
                         {
-                            checkBan.sendLandProperties(-40000, false, (int)ParcelResult.Single, avatar);
+                            checkBan.sendLandProperties((int)ParcelStatus.CollisionNotOnAccessList, false, (int)ParcelResult.Single, avatar);
                             return; //Only send one
                         }
                     }
@@ -376,9 +392,15 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void handleParcelAccessRequest(UUID agentID, UUID sessionID, uint flags, int sequenceID,
                                               int landLocalID, IClientAPI remote_client)
         {
-            if (landList.ContainsKey(landLocalID))
+            ILandObject land;
+            lock (m_landList)
             {
-                landList[landLocalID].sendAccessList(agentID, sessionID, flags, sequenceID, remote_client);
+                m_landList.TryGetValue(landLocalID, out land);
+            }
+
+            if (land != null)
+            {
+                m_landList[landLocalID].sendAccessList(agentID, sessionID, flags, sequenceID, remote_client);
             }
         }
 
@@ -386,16 +408,22 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                                                     List<ParcelManager.ParcelAccessEntry> entries,
                                                     IClientAPI remote_client)
         {
-            if (landList.ContainsKey(landLocalID))
+            ILandObject land;
+            lock (m_landList)
             {
-                if (agentID == landList[landLocalID].landData.OwnerID)
+                m_landList.TryGetValue(landLocalID, out land);
+            }
+
+            if (land != null)
+            {
+                if (agentID == land.landData.OwnerID)
                 {
-                    landList[landLocalID].updateAccessList(flags, entries, remote_client);
+                    land.updateAccessList(flags, entries, remote_client);
                 }
             }
             else
             {
-                Console.WriteLine("INVALID LOCAL LAND ID");
+                m_log.WarnFormat("[LAND]: Invalid local land ID {0}", landLocalID);
             }
         }
 
@@ -412,24 +440,31 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// Adds a land object to the stored list and adds them to the landIDList to what they own
         /// </summary>
         /// <param name="new_land">The land object being added</param>
-        public ILandObject AddLandObject(ILandObject new_land)
+        public ILandObject AddLandObject(ILandObject land)
         {
-            lastLandLocalID++;
-            new_land.landData.LocalID = lastLandLocalID;
-            landList.Add(lastLandLocalID, new_land.Copy());
+            ILandObject new_land = land.Copy();
 
-            bool[,] landBitmap = new_land.getLandBitmap();
-            for (int x = 0; x < 64; x++)
+            lock (m_landList)
             {
-                for (int y = 0; y < 64; y++)
+                int newLandLocalID = ++m_lastLandLocalID;
+                new_land.landData.LocalID = newLandLocalID;
+
+                bool[,] landBitmap = new_land.getLandBitmap();
+                for (int x = 0; x < 64; x++)
                 {
-                    if (landBitmap[x, y])
+                    for (int y = 0; y < 64; y++)
                     {
-                        landIDList[x, y] = lastLandLocalID;
+                        if (landBitmap[x, y])
+                        {
+                            m_landIDList[x, y] = newLandLocalID;
+                        }
                     }
                 }
+
+                m_landList.Add(newLandLocalID, new_land);
             }
-            landList[lastLandLocalID].forceUpdateLandInfo();
+
+            new_land.forceUpdateLandInfo();
             m_scene.EventManager.TriggerLandObjectAdded(new_land);
             return new_land;
         }
@@ -440,32 +475,40 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// <param name="local_id">Land.localID of the peice of land to remove.</param>
         public void removeLandObject(int local_id)
         {
-            for (int x = 0; x < 64; x++)
+            lock (m_landList)
             {
-                for (int y = 0; y < 64; y++)
+                for (int x = 0; x < 64; x++)
                 {
-                    if (landIDList[x, y] == local_id)
+                    for (int y = 0; y < 64; y++)
                     {
-                        return;
-                        //throw new Exception("Could not remove land object. Still being used at " + x + ", " + y);
+                        if (m_landIDList[x, y] == local_id)
+                        {
+                            m_log.WarnFormat("[LAND]: Not removing land object {0}; still being used at {1}, {2}",
+                                             local_id, x, y);
+                            return;
+                            //throw new Exception("Could not remove land object. Still being used at " + x + ", " + y);
+                        }
                     }
                 }
-            }
 
-            m_scene.EventManager.TriggerLandObjectRemoved(landList[local_id].landData.GlobalID);
-            landList.Remove(local_id);
+                m_scene.EventManager.TriggerLandObjectRemoved(m_landList[local_id].landData.GlobalID);
+                m_landList.Remove(local_id);
+            }
         }
 
         private void performFinalLandJoin(ILandObject master, ILandObject slave)
         {
             bool[,] landBitmapSlave = slave.getLandBitmap();
-            for (int x = 0; x < 64; x++)
+            lock (m_landList)
             {
-                for (int y = 0; y < 64; y++)
+                for (int x = 0; x < 64; x++)
                 {
-                    if (landBitmapSlave[x, y])
+                    for (int y = 0; y < 64; y++)
                     {
-                        landIDList[x, y] = master.landData.LocalID;
+                        if (landBitmapSlave[x, y])
+                        {
+                            m_landIDList[x, y] = master.landData.LocalID;
+                        }
                     }
                 }
             }
@@ -476,11 +519,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public ILandObject GetLandObject(int parcelLocalID)
         {
-            lock (landList)
+            lock (m_landList)
             {
-                if (landList.ContainsKey(parcelLocalID))
+                if (m_landList.ContainsKey(parcelLocalID))
                 {
-                    return landList[parcelLocalID];
+                    return m_landList[parcelLocalID];
                 }
             }
             return null;
@@ -511,7 +554,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 return null;
             }
-            return landList[landIDList[x, y]];
+            lock (m_landList)
+            {
+                return m_landList[m_landIDList[x, y]];
+            }
         }
 
         public ILandObject GetLandObject(int x, int y)
@@ -522,7 +568,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 // they happen every time at border crossings
                 throw new Exception("Error: Parcel not found at point " + x + ", " + y);
             }
-            return landList[landIDList[x / 4, y / 4]];
+            lock (m_landIDList)
+            {
+                return m_landList[m_landIDList[x / 4, y / 4]];
+            }
         }
 
         #endregion
@@ -531,20 +580,23 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void ResetAllLandPrimCounts()
         {
-            foreach (LandObject p in landList.Values)
+            lock (m_landList)
             {
-                p.resetLandPrimCounts();
+                foreach (LandObject p in m_landList.Values)
+                {
+                    p.resetLandPrimCounts();
+                }
             }
         }
 
         public void SetPrimsTainted()
         {
-            landPrimCountTainted = true;
+            m_landPrimCountTainted = true;
         }
 
         public bool IsLandPrimCountTainted()
         {
-            return landPrimCountTainted;
+            return m_landPrimCountTainted;
         }
 
         public void AddPrimToLandPrimCounts(SceneObjectGroup obj)
@@ -559,32 +611,46 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void RemovePrimFromLandPrimCounts(SceneObjectGroup obj)
         {
-            foreach (LandObject p in landList.Values)
+            
+            lock (m_landList)
             {
-                p.removePrimFromCount(obj);
+                foreach (LandObject p in m_landList.Values)
+                {
+                    p.removePrimFromCount(obj);
+                }
             }
         }
 
         public void FinalizeLandPrimCountUpdate()
         {
+            m_log.Debug("Called FinalizeLandPrimCountUpdate start");
             //Get Simwide prim count for owner
             Dictionary<UUID, List<LandObject>> landOwnersAndParcels = new Dictionary<UUID, List<LandObject>>();
-            foreach (LandObject p in landList.Values)
+            lock (m_landList)
             {
-                if (!landOwnersAndParcels.ContainsKey(p.landData.OwnerID))
+                m_log.DebugFormat("[LAND]: Got {0} parcels", m_landList.Count);
+                foreach (LandObject p in m_landList.Values)
                 {
-                    List<LandObject> tempList = new List<LandObject>();
-                    tempList.Add(p);
-                    landOwnersAndParcels.Add(p.landData.OwnerID, tempList);
-                }
-                else
-                {
-                    landOwnersAndParcels[p.landData.OwnerID].Add(p);
+                    m_log.DebugFormat("processing land {0}", p.GetHashCode());
+                    if (!landOwnersAndParcels.ContainsKey(p.landData.OwnerID))
+                    {
+                        m_log.DebugFormat("adding new owner {0} to landlist", p.landData.OwnerID);
+                        List<LandObject> tempList = new List<LandObject>();
+                        tempList.Add(p);
+                        landOwnersAndParcels.Add(p.landData.OwnerID, tempList);
+                    }
+                    else
+                    {
+                        m_log.DebugFormat("adding to owner {0}", p.landData.OwnerID);
+                        landOwnersAndParcels[p.landData.OwnerID].Add(p);
+                    }
                 }
             }
 
+            m_log.DebugFormat("got {0} owners of land", landOwnersAndParcels.Count); 
             foreach (UUID owner in landOwnersAndParcels.Keys)
             {
+                m_log.DebugFormat("processing owner {0}", owner);
                 int simArea = 0;
                 int simPrims = 0;
                 foreach (LandObject p in landOwnersAndParcels[owner])
@@ -592,18 +658,23 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     simArea += p.landData.Area;
                     simPrims += p.landData.OwnerPrims + p.landData.OtherPrims + p.landData.GroupPrims +
                                 p.landData.SelectedPrims;
+                    m_log.DebugFormat("added {0} m² of land, total {1}", p.landData.Area, simArea);
                 }
 
+                m_log.DebugFormat("setting total area of {0} to {1} for {2} parcels", owner, simArea, landOwnersAndParcels[owner].Count);
                 foreach (LandObject p in landOwnersAndParcels[owner])
                 {
+                    m_log.DebugFormat("... in land {0}", p.GetHashCode());
                     p.landData.SimwideArea = simArea;
                     p.landData.SimwidePrims = simPrims;
                 }
             }
+            m_log.Debug("Called FinalizeLandPrimCountUpdate end");
         }
 
         public void UpdateLandPrimCounts()
         {
+            m_log.Debug("Called UpdateLandPrimCounts");
             ResetAllLandPrimCounts();
             lock (m_scene.Entities)
             {
@@ -619,15 +690,16 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 }
             }
             FinalizeLandPrimCountUpdate();
-            landPrimCountTainted = false;
+            m_landPrimCountTainted = false;
         }
 
         public void PerformParcelPrimCountUpdate()
         {
+            m_log.Debug("Called PerformParcelPrimCountUpdate");
             ResetAllLandPrimCounts();
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
             FinalizeLandPrimCountUpdate();
-            landPrimCountTainted = false;
+            m_landPrimCountTainted = false;
         }
 
         /// <summary>
@@ -684,9 +756,12 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             //Now, lets set the subdivision area of the original to false
             int startLandObjectIndex = startLandObject.landData.LocalID;
-            landList[startLandObjectIndex].setLandBitmap(
-                newLand.modifyLandBitmapSquare(startLandObject.getLandBitmap(), start_x, start_y, end_x, end_y, false));
-            landList[startLandObjectIndex].forceUpdateLandInfo();
+            lock (m_landList)
+            {
+                m_landList[startLandObjectIndex].setLandBitmap(
+                    newLand.modifyLandBitmapSquare(startLandObject.getLandBitmap(), start_x, start_y, end_x, end_y, false));
+                m_landList[startLandObjectIndex].forceUpdateLandInfo();
+            }
 
             SetPrimsTainted();
 
@@ -746,13 +821,16 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     return;
                 }
             }
-            foreach (ILandObject slaveLandObject in selectedLandObjects)
+            
+            lock (m_landList)
             {
-                landList[masterLandObject.landData.LocalID].setLandBitmap(
-                    slaveLandObject.mergeLandBitmaps(masterLandObject.getLandBitmap(), slaveLandObject.getLandBitmap()));
-                performFinalLandJoin(masterLandObject, slaveLandObject);
+                foreach (ILandObject slaveLandObject in selectedLandObjects)
+                {
+                    m_landList[masterLandObject.landData.LocalID].setLandBitmap(
+                        slaveLandObject.mergeLandBitmaps(masterLandObject.getLandBitmap(), slaveLandObject.getLandBitmap()));
+                    performFinalLandJoin(masterLandObject, slaveLandObject);
+                }
             }
-
             SetPrimsTainted();
 
             masterLandObject.sendLandUpdateToAvatarsOverMe();
@@ -892,10 +970,13 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void handleParcelPropertiesUpdateRequest(LandUpdateArgs args, int localID, IClientAPI remote_client)
         {
-            if (landList.ContainsKey(localID))
+            ILandObject land;
+            lock (m_landList)
             {
-                landList[localID].updateLandProperties(args, remote_client);
+                m_landList.TryGetValue(localID, out land);
             }
+
+            if (land != null) land.updateLandProperties(args, remote_client);
         }
 
         public void handleParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client)
@@ -910,67 +991,88 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void handleParcelSelectObjectsRequest(int local_id, int request_type, IClientAPI remote_client)
         {
-            landList[local_id].sendForceObjectSelect(local_id, request_type, remote_client);
+            m_landList[local_id].sendForceObjectSelect(local_id, request_type, remote_client);
         }
 
         public void handleParcelObjectOwnersRequest(int local_id, IClientAPI remote_client)
         {
-            lock (landList)
+            ILandObject land;
+            lock (m_landList)
             {
-                if (landList.ContainsKey(local_id))
-                {
-                    landList[local_id].sendLandObjectOwners(remote_client);
-                }
-                else
-                {
-                    System.Console.WriteLine("[PARCEL]: Invalid land object passed for parcel object owner request");
-                }
+                m_landList.TryGetValue(local_id, out land);
+            }
+
+            if (land != null)
+            {
+                m_landList[local_id].sendLandObjectOwners(remote_client);
+            }
+            else
+            {
+                m_log.WarnFormat("[PARCEL]: Invalid land object {0} passed for parcel object owner request", local_id);
             }
         }
 
         public void handleParcelGodForceOwner(int local_id, UUID ownerID, IClientAPI remote_client)
         {
-            if (landList.ContainsKey(local_id))
+            ILandObject land;
+            lock (m_landList)
+            {
+                m_landList.TryGetValue(local_id, out land);
+            }
+
+            if (land != null)
             {
                 if (m_scene.ExternalChecks.ExternalChecksCanBeGodLike(remote_client.AgentId))
                 {
-                    landList[local_id].landData.OwnerID = ownerID;
+                    land.landData.OwnerID = ownerID;
 
                     m_scene.Broadcast(SendParcelOverlay);
-                    landList[local_id].sendLandUpdateToClient(remote_client);
+                    land.sendLandUpdateToClient(remote_client);
                 }
             }
         }
 
         public void handleParcelAbandonRequest(int local_id, IClientAPI remote_client)
         {
-            if (landList.ContainsKey(local_id))
+            ILandObject land;
+            lock (m_landList)
             {
-                if (m_scene.ExternalChecks.ExternalChecksCanAbandonParcel(remote_client.AgentId, landList[local_id]))
+                m_landList.TryGetValue(local_id, out land);
+            }
+
+            if (land != null)
+            {
+                if (m_scene.ExternalChecks.ExternalChecksCanAbandonParcel(remote_client.AgentId, land))
                 {
                     if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                        landList[local_id].landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                        land.landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     else
-                        landList[local_id].landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                        land.landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                     m_scene.Broadcast(SendParcelOverlay);
-                    landList[local_id].sendLandUpdateToClient(remote_client);
+                    land.sendLandUpdateToClient(remote_client);
                 }
             }
         }
 
         public void handleParcelReclaim(int local_id, IClientAPI remote_client)
         {
-            if (landList.ContainsKey(local_id))
+            ILandObject land;
+            lock (m_landList)
             {
-                if (m_scene.ExternalChecks.ExternalChecksCanReclaimParcel(remote_client.AgentId, landList[local_id]))
+                m_landList.TryGetValue(local_id, out land);
+            }
+
+            if (land != null)
+            {
+                if (m_scene.ExternalChecks.ExternalChecksCanReclaimParcel(remote_client.AgentId, land))
                 {
                     if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                        landList[local_id].landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                        land.landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     else
-                        landList[local_id].landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-                    landList[local_id].landData.ClaimDate = Util.UnixTimeSinceEpoch();
+                        land.landData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    land.landData.ClaimDate = Util.UnixTimeSinceEpoch();
                     m_scene.Broadcast(SendParcelOverlay);
-                    landList[local_id].sendLandUpdateToClient(remote_client);
+                    land.sendLandUpdateToClient(remote_client);
                 }
             }
         }
@@ -984,13 +1086,15 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             if (e.economyValidated && e.landValidated)
             {
-                lock (landList)
+                ILandObject land;
+                lock (m_landList)
                 {
-                    if (landList.ContainsKey(e.parcelLocalID))
-                    {
-                        landList[e.parcelLocalID].updateLandSold(e.agentId, e.groupId, e.groupOwned, (uint)e.transactionID, e.parcelPrice, e.parcelArea);
-                        return;
-                    }
+                    m_landList.TryGetValue(e.parcelLocalID, out land);
+                }
+
+                if (land != null)
+                {
+                    land.updateLandSold(e.agentId, e.groupId, e.groupOwned, (uint)e.transactionID, e.parcelPrice, e.parcelArea);
                 }
             }
         }
@@ -1004,13 +1108,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             if (e.landValidated == false)
             {
                 ILandObject lob = null;
-                lock (landList)
+                lock (m_landList)
                 {
-                    if (landList.ContainsKey(e.parcelLocalID))
-                    {
-                        lob = landList[e.parcelLocalID];
-                    }
+                    m_landList.TryGetValue(e.parcelLocalID, out lob);
                 }
+
                 if (lob != null)
                 {
                     UUID AuthorizedID = lob.landData.AuthBuyerID;
@@ -1021,11 +1123,12 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                                          (uint)(Parcel.ParcelFlags.ForSale | Parcel.ParcelFlags.ForSaleObjects | Parcel.ParcelFlags.SellParcelObjects)) != 0);
                     if ((AuthorizedID == UUID.Zero || AuthorizedID == e.agentId) && e.parcelPrice >= saleprice && landforsale)
                     {
-                        lock (e)
-                        {
+                        // TODO I don't think we have to lock it here, no?
+                        //lock (e)
+                        //{
                             e.parcelOwnerID = pOwnerID;
                             e.landValidated = true;
-                        }
+                        //}
                     }
                 }
             }
@@ -1037,20 +1140,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             for (int i = 0; i < data.Count; i++)
             {
-                //try
-                //{
                 IncomingLandObjectFromStorage(data[i]);
-                //}
-                //catch (Exception ex)
-                //{
-                //m_log.Error("[LandManager]: IncomingLandObjectsFromStorage: Exception: " + ex.ToString());
-                //throw ex;
-                //}
             }
-            //foreach (LandData parcel in data)
-            //{
-            //    IncomingLandObjectFromStorage(parcel);
-            //}
         }
 
         public void IncomingLandObjectFromStorage(LandData data)
@@ -1064,13 +1155,12 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
         {
             ILandObject selectedParcel = null;
-            lock (landList)
+            lock (m_landList)
             {
-                if (landList.ContainsKey(localID))
-                    selectedParcel = landList[localID];
+                m_landList.TryGetValue(localID, out selectedParcel);
             }
-            if (selectedParcel == null)
-                return;
+
+            if (selectedParcel == null) return;
 
             if (returnType == 16) // parcel return
             {
@@ -1087,9 +1177,12 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel)
         {
-            foreach (LandObject obj in landList.Values)
+            lock (m_landList)
             {
-                obj.setParcelObjectMaxOverride(overrideDel);
+                foreach (LandObject obj in m_landList.Values)
+                {
+                    obj.setParcelObjectMaxOverride(overrideDel);
+                }
             }
         }
 
@@ -1234,19 +1327,22 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 m_log.Debug("[LAND] got no parcelinfo; not sending");
         }
 
-        public void setParcelOtherCleanTime(IClientAPI remoteClient, int localID,int otherCleanTime)
+        public void setParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime)
         {
-            if (!landList.ContainsKey(localID))
+            ILandObject land;
+            lock (m_landList)
+            {
+                m_landList.TryGetValue(localID, out land);
+            }
+
+            if(land == null) return;
+
+            if (!m_scene.ExternalChecks.ExternalChecksCanEditParcel(remoteClient.AgentId, land))
                 return;
 
-            ILandObject landObject = landList[localID];
+            land.landData.OtherCleanTime = otherCleanTime;
 
-            if (!m_scene.ExternalChecks.ExternalChecksCanEditParcel(remoteClient.AgentId, landObject))
-                return;
-
-            landObject.landData.OtherCleanTime = otherCleanTime;
-
-            UpdateLandObject(localID, landObject.landData);
+            UpdateLandObject(localID, land.landData);
         }
     }
 }
