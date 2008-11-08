@@ -379,9 +379,7 @@ namespace Prebuild.Core.Targets
                         ss.WriteLine("            <fileset basedir=\"${project::get-base-directory()}/${build.dir}/\" >");
                         ss.WriteLine("                <include name=\"*.dll\"/>");
                         ss.WriteLine("                <include name=\"*.exe\"/>");
-                    //    ss.WriteLine("                <if test=\"${build.debug=='true'}\">");
-                    //    ss.WriteLine("                  <include name=\"*.mdb\"/>");
-                    //    ss.WriteLine("                </if>");
+                        ss.WriteLine("                <include name=\"*.mdb\" if='${build.debug}'/>");
                         ss.WriteLine("            </fileset>");
                         ss.WriteLine("        </copy>");
                         break;
