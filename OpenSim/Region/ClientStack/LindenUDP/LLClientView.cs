@@ -37,6 +37,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Client;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Interfaces;
@@ -51,34 +52,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
     /// </summary>
-    public class LLClientView : IClientAPI
+    public class LLClientView : IClientAPI, IClientCore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        //                ~ClientView()
-        //                {
-        //                    m_log.Info("[CLIENT]: LLClientView destructor called");
-        //                }
 
         /* static variables */
         public static SynchronizeClientHandler SynchronizeClient;
         /* private variables */
         private readonly UUID m_sessionId;
         private readonly UUID m_secureSessionId = UUID.Zero;
-        //private AgentAssetUpload UploadAssets;
         
         private int m_debugPacketLevel;
         
         private readonly AssetCache m_assetCache;
-        // private InventoryCache m_inventoryCache;
         private int m_cachedTextureSerial;
         private Timer m_clientPingTimer;
 
         private bool m_clientBlocked;
 
         private int m_probesWithNoIngressPackets;
-        //private int m_lastPacketsReceived = 0;
-        //private byte[] ZeroOutBuffer = new byte[4096];
 
         private readonly UUID m_agentId;
         private readonly uint m_circuitCode;
@@ -553,7 +545,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler.Clear();
 
             m_clientPingTimer = new Timer(5000);
-            m_clientPingTimer.Elapsed += new ElapsedEventHandler(CheckClientConnectivity);
+            m_clientPingTimer.Elapsed += CheckClientConnectivity;
             m_clientPingTimer.Enabled = true;
         }
 
@@ -608,7 +600,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual bool ProcessPacketMethod(Packet packet)
         {
             bool result = false;
-            bool found = false;
+            bool found;
             PacketMethod method;
             if (m_packetHandlers.TryGetValue(packet.Type, out method))
             {
@@ -7676,5 +7668,40 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             KillPacket kp = new KillPacket();
             OutPacket(kp, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
         }
+
+        #region IClientCore
+
+        private readonly Dictionary<Type, object> m_clientInterfaces = new Dictionary<Type, object>();
+
+        /// <summary>
+        /// Register an interface on this client, should only be called in the constructor.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="iface"></param>
+        protected void RegisterInterface<T>(T iface)
+        {
+            lock(m_clientInterfaces)
+            {
+                m_clientInterfaces.Add(typeof(T), iface);
+            }
+        }
+
+        public bool TryGet<T>(out T iface)
+        {
+            if (m_clientInterfaces.ContainsKey(typeof(T)))
+            {
+                iface = (T)m_clientInterfaces[typeof(T)];
+                return true;
+            }
+            iface = default(T);
+            return false;
+        }
+
+        public T Get<T>()
+        {
+            return (T)m_clientInterfaces[typeof(T)];
+        }
+
+        #endregion
     }
 }
