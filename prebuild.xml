@@ -55,26 +55,6 @@
         </Project>
 -->
 
-    <Project name="OpenSim.Framework.Client" path="OpenSim/Framework/Client" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="log4net.dll"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project name="OpenSim.Framework.Console" path="OpenSim/Framework/Console" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -120,6 +100,7 @@
       <Reference name="Mono.Addins.dll" />
       <Files>
         <Match pattern="*.cs" recurse="false"/>
+		<Match pattern="Client/*.cs" recurse="true"/>
       </Files>
     </Project>
 
