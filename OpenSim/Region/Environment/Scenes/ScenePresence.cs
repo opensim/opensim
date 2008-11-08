@@ -870,7 +870,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RemoveNeighbourRegion(ulong regionHandle)
         {
-            if (!m_knownChildRegions.Contains(regionHandle))
+            if (m_knownChildRegions.Contains(regionHandle))
             {
                 m_knownChildRegions.Remove(regionHandle);
             }
