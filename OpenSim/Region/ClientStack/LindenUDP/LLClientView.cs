@@ -52,7 +52,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
     /// </summary>
-    public class LLClientView : IClientAPI, IClientCore
+    public class LLClientView : IClientAPI, IClientCore, IClientIM
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -394,6 +394,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AuthenticateResponse sessionInfo, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP,
             ClientStackUserSettings userSettings)
         {
+            // Should be called first?
+            RegisterInterfaces();
+
             m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
             m_moneyBalance = 1000;
 
@@ -1076,19 +1079,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Send an instant message to this client
         /// </summary>
-        public void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
-                                       UUID imSessionID, string fromName, byte dialog, uint timeStamp)
+        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp)
         {
-            SendInstantMessage(
-                fromAgent, fromAgentSession, message, toAgent,
-                imSessionID, fromName, dialog, timeStamp, false, new byte[0]);
+            SendInstantMessage(fromAgent, message, toAgent, fromName, dialog, timeStamp, false, new byte[0]);
         }
 
         /// <summary>
         /// Send an instant message to this client
         /// </summary>
-        public void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
-                                       UUID imSessionID, string fromName, byte dialog, uint timeStamp,
+        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent,
+                                       string fromName, byte dialog, uint timeStamp,
                                        bool fromGroup, byte[] binaryBucket)
         {
             if (((Scene)(m_scene)).ExternalChecks.ExternalChecksCanInstantMessage(fromAgent, toAgent))
@@ -1097,15 +1097,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     = (ImprovedInstantMessagePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedInstantMessage);
 
                 msg.AgentData.AgentID = fromAgent;
-                msg.AgentData.SessionID = fromAgentSession;
+                msg.AgentData.SessionID = UUID.Zero;
                 msg.MessageBlock.FromAgentName = Utils.StringToBytes(fromName);
                 msg.MessageBlock.Dialog = dialog;
                 msg.MessageBlock.FromGroup = fromGroup;
-                msg.MessageBlock.ID = imSessionID;
+                msg.MessageBlock.ID = fromAgent ^ toAgent;
                 msg.MessageBlock.Offline = 0;
                 msg.MessageBlock.ParentEstateID = 0;
                 msg.MessageBlock.Position = new Vector3();
-                msg.MessageBlock.RegionID = UUID.Random();
+                msg.MessageBlock.RegionID = UUID.Zero;
                 msg.MessageBlock.Timestamp = timeStamp;
                 msg.MessageBlock.ToAgentID = toAgent;
                 msg.MessageBlock.Message = Utils.StringToBytes(message);
@@ -6919,10 +6919,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="fromSessionID"></param>
         /// <param name="FromAvatarName"></param>
         /// <param name="Message"></param>
-        public void SendBlueBoxMessage(UUID FromAvatarID, UUID fromSessionID, String FromAvatarName, String Message)
+        public void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message)
         {
             if (!ChildAgentStatus())
-                SendInstantMessage(FromAvatarID, fromSessionID, Message, AgentId, SessionId, FromAvatarName, 1, (uint)Util.UnixTimeSinceEpoch());
+                SendInstantMessage(FromAvatarID, Message, AgentId, FromAvatarName, 1, (uint)Util.UnixTimeSinceEpoch());
 
             //SendInstantMessage(FromAvatarID, fromSessionID, Message, AgentId, SessionId, FromAvatarName, (byte)21,(uint) Util.UnixTimeSinceEpoch());
         }
@@ -7673,6 +7673,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_clientInterfaces.Add(typeof(T), iface);
             }
+        }
+
+        protected virtual void RegisterInterfaces()
+        {
+            RegisterInterface<IClientIM>(this);
         }
 
         public bool TryGet<T>(out T iface)

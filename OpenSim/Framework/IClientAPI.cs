@@ -638,7 +638,6 @@ namespace OpenSim.Framework
         /// <summary>
         /// Tell this client what items it should be wearing now
         /// </summary>
-        /// <param name="wearables"></param>        
         void SendWearables(AvatarWearable[] wearables, int serial);
         
         /// <summary>
@@ -660,15 +659,18 @@ namespace OpenSim.Framework
         
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId);
         void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);
-        void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source, byte audible);
-        void SendChatMessage(byte[] message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source, byte audible);
 
-        void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
-                                UUID imSessionID, string fromName, byte dialog, uint timeStamp);
+        void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source,
+                             byte audible);
 
-        void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
-                                UUID imSessionID, string fromName, byte dialog, uint timeStamp,
-                                bool fromGroup, byte[] binaryBucket);
+        void SendChatMessage(byte[] message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source,
+                             byte audible);
+
+        void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
+                                uint timeStamp);
+
+        void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
+                                uint timeStamp, bool fromGroup, byte[] binaryBucket);
 
         void SendGenericMessage(string method, List<string> message);
 
@@ -833,7 +835,6 @@ namespace OpenSim.Framework
         /// <summary>
         /// Tell the client that the requested texture cannot be found
         /// </summary>
-        /// <param name="imageId"></param>
         void SendImageNotFound(UUID imageid);
 
         void SendShutdownConnectionNotice();
@@ -880,7 +881,6 @@ namespace OpenSim.Framework
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.
         /// </summary>
-        /// <param name="newDebugPacketLevel"></param>
         void SetDebugPacketLevel(int newDebug);
         
         void InPacket(object NewPack);
@@ -892,7 +892,7 @@ namespace OpenSim.Framework
         event Action<IClientAPI> OnLogout;
         event Action<IClientAPI> OnConnectionClosed;
 
-        void SendBlueBoxMessage(UUID FromAvatarID, UUID fromSessionID, String FromAvatarName, String Message);
+        void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message);
 
         void SendLogoutPacket();
         ClientInfo GetClientInfo();

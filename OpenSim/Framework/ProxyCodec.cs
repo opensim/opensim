@@ -26,10 +26,7 @@
  */
 
 using System;
-using System.Collections;
 using System.Net;
-using OpenMetaverse;
-using OpenMetaverse.Packets;
 
 namespace OpenSim.Framework
 {

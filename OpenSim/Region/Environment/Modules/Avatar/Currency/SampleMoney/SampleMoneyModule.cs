@@ -819,9 +819,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             Hashtable retparam = new Hashtable();
             Hashtable requestData = (Hashtable) request.Params[0];
 
-            UUID agentId = UUID.Zero;
-            UUID soundId = UUID.Zero;
-            UUID regionId = UUID.Zero;
+            UUID agentId;
+            UUID soundId;
+            UUID regionId;
 
             UUID.TryParse((string) requestData["agentId"], out agentId);
             UUID.TryParse((string) requestData["soundId"], out soundId);
@@ -832,7 +832,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             Scene userScene = GetSceneByUUID(regionId);
             if (userScene != null)
             {
-                if (userScene.RegionInfo.regionSecret.ToString() == secret)
+                if (userScene.RegionInfo.regionSecret == secret)
                 {
 
                     IClientAPI client = LocateClientObject(agentId);
@@ -842,7 +842,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                            if (soundId != UUID.Zero)
                                client.SendPlayAttachedSound(soundId, UUID.Zero, UUID.Zero, 1.0f, 0);
 
-                           client.SendBlueBoxMessage(UUID.Zero, UUID.Zero, "", text);
+                           client.SendBlueBoxMessage(UUID.Zero, "", text);
 
                            retparam.Add("success", true);
                        }

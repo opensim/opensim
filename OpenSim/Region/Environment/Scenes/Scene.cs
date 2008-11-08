@@ -3424,7 +3424,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (ScenePresence presence in presenceList)
             {
                 if (!presence.IsChildAgent)
-                    presence.ControllingClient.SendBlueBoxMessage(FromAvatarID, fromSessionID, FromAvatarName, Message);
+                    presence.ControllingClient.SendBlueBoxMessage(FromAvatarID, FromAvatarName, Message);
             }
         }
 
@@ -3441,7 +3441,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             ClientManager.ForEachClient(delegate(IClientAPI controller)
                                         {
-                                            controller.SendBlueBoxMessage(FromAvatarID, fromSessionID, FromAvatarName, Message);
+                                            controller.SendBlueBoxMessage(FromAvatarID, FromAvatarName, Message);
                                         }
                 );
         }

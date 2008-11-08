@@ -471,15 +471,14 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
-                                               UUID imSessionID, string fromName, byte dialog, uint timeStamp)
+        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp)
         {
+            
         }
 
-        public virtual void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
-                                               UUID imSessionID, string fromName, byte dialog, uint timeStamp,
-                                               bool fromGroup, byte[] binaryBucket)
+        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp, bool fromGroup, byte[] binaryBucket)
         {
+            
         }
 
         public void SendGenericMessage(string method, List<string> message)
@@ -793,7 +792,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             set { m_circuitCode = value; }
         }
 
-        public void SendBlueBoxMessage(UUID FromAvatarID, UUID fromSessionID, String FromAvatarName, String Message)
+        public void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message)
         {
 
         }

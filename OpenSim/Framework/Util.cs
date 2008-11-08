@@ -39,10 +39,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
-using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {

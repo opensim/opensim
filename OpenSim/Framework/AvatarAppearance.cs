@@ -28,13 +28,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
-using log4net;
 using OpenMetaverse;
-using OpenMetaverse.Packets;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {

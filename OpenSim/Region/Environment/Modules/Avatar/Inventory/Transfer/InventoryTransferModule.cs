@@ -135,7 +135,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                         m_pendingOffers[imSessionID] = itemId;
 
                         user.ControllingClient.SendInstantMessage(
-                            fromAgentID, fromAgentSession, message, toAgentID, imSessionID, fromAgentName,
+                            fromAgentID, message, toAgentID, fromAgentName,
                             dialog, timestamp, false, binaryBucket);
 
                         return;
@@ -167,7 +167,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                     if (!user.IsChildAgent)
                     {
                         user.ControllingClient.SendInstantMessage(
-                            fromAgentID, fromAgentSession, message, toAgentID, imSessionID, fromAgentName,
+                            fromAgentID, message, toAgentID, fromAgentName,
                             dialog, timestamp, false, binaryBucket);
 
                         if (m_pendingOffers.ContainsKey(imSessionID))
@@ -213,7 +213,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                     if (!user.IsChildAgent)
                     {
                         user.ControllingClient.SendInstantMessage(
-                            fromAgentID, fromAgentSession, message, toAgentID, imSessionID, fromAgentName,
+                            fromAgentID, message, toAgentID, fromAgentName,
                             dialog, timestamp, false, binaryBucket);
 
                         if (m_pendingOffers.ContainsKey(imSessionID))

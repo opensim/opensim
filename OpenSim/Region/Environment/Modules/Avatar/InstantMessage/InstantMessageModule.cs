@@ -155,8 +155,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
                         if (!user.IsChildAgent)
                         {
-                            user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
-                                                                      toAgentID, imSessionID, fromAgentName, dialog,
+                            user.ControllingClient.SendInstantMessage(fromAgentID, message,
+                                                                      toAgentID, fromAgentName, dialog,
                                                                       timestamp, fromGroup, binaryBucket);
                             // Message sent
                             return;
@@ -172,8 +172,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         // Local message
                         ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
 
-                        user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
-                                                                  toAgentID, imSessionID, fromAgentName, dialog,
+                        user.ControllingClient.SendInstantMessage(fromAgentID, message,
+                                                                  toAgentID, fromAgentName, dialog,
                                                                   timestamp, fromGroup, binaryBucket);
                         // Message sent
                         return;
@@ -199,7 +199,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     if (client != null)
                     {
                         if (dialog != (byte)InstantMessageDialog.StartTyping && dialog != (byte)InstantMessageDialog.StopTyping && dialog != (byte)InstantMessageDialog.SessionDrop)
-                            client.SendInstantMessage(toAgentID, fromAgentSession, "Unable to send instant message.  User is not logged in.", fromAgentID, imSessionID, "System", (byte)InstantMessageDialog.BusyAutoResponse, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
+                            client.SendInstantMessage(toAgentID, "Unable to send instant message.  User is not logged in.", fromAgentID, "System", (byte)InstantMessageDialog.BusyAutoResponse, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
                     }
                 }
             }
@@ -551,7 +551,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         if (client != null)
                         {
                             if (dialog != (byte)InstantMessageDialog.StartTyping && dialog != (byte)InstantMessageDialog.StopTyping && dialog != (byte)InstantMessageDialog.SessionDrop)
-                                client.SendInstantMessage(toAgentID, fromAgentSession, "Unable to send instant message", fromAgentID, imSessionID, "System", (byte)InstantMessageDialog.BusyAutoResponse, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
+                                client.SendInstantMessage(toAgentID, "Unable to send instant message", fromAgentID, "System", (byte)InstantMessageDialog.BusyAutoResponse, (uint)Util.UnixTimeSinceEpoch());
                         }
                         return;
                     }
@@ -562,7 +562,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     if (client != null)
                     {
                         if (dialog != (byte)InstantMessageDialog.StartTyping && dialog != (byte)InstantMessageDialog.StopTyping && dialog != (byte)InstantMessageDialog.SessionDrop)
-                            client.SendInstantMessage(toAgentID, fromAgentSession, "Unable to send instant message", fromAgentID, imSessionID, "System", (byte)InstantMessageDialog.BusyAutoResponse, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
+                            client.SendInstantMessage(toAgentID, "Unable to send instant message", fromAgentID, "System", (byte)InstantMessageDialog.BusyAutoResponse, (uint)Util.UnixTimeSinceEpoch());
                     }
                     return;
                 }
@@ -635,7 +635,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     if (client != null)
                     {
                         if (dialog != (byte)InstantMessageDialog.StartTyping && dialog != (byte)InstantMessageDialog.StopTyping && dialog != (byte)InstantMessageDialog.SessionDrop)
-                            client.SendInstantMessage(toAgentID, fromAgentSession, "Unable to send instant message: Agent Offline", fromAgentID, imSessionID, "System", (byte)InstantMessageDialog.BusyAutoResponse, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
+                            client.SendInstantMessage(toAgentID, "Unable to send instant message: Agent Offline", fromAgentID, "System", (byte)InstantMessageDialog.BusyAutoResponse, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
                     }
                 }
             }
@@ -643,7 +643,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             {
                 // send Agent doesn't exist message
                 if (client != null)
-                    client.SendInstantMessage(toAgentID, fromAgentSession, "Unable to send instant message: Are you sure this agent exists anymore?", fromAgentID, imSessionID, "System", (byte)InstantMessageDialog.MessageFromObject, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
+                    client.SendInstantMessage(toAgentID, "Unable to send instant message: Are you sure this agent exists anymore?", fromAgentID, "System", (byte)InstantMessageDialog.MessageFromObject, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
             }
 
         }

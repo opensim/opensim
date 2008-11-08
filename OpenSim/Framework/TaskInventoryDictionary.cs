@@ -27,12 +27,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using OpenMetaverse;
-using log4net;
 
 namespace OpenSim.Framework
 {

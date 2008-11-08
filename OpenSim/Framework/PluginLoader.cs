@@ -26,13 +26,11 @@
  */
 
 using System;
-using System.IO;
-using System.Xml;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using log4net;
 using Mono.Addins;
-
 
 namespace OpenSim.Framework
 {

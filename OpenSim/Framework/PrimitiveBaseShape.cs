@@ -28,8 +28,8 @@
 using System;
 using System.Reflection;
 using System.Xml.Serialization;
-using OpenMetaverse;
 using log4net;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
