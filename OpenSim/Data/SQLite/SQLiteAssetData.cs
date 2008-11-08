@@ -125,10 +125,10 @@ namespace OpenSim.Data.SQLite
         /// <param name="asset">Asset Base</param>
         override public void CreateAsset(AssetBase asset)
         {
-            m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
+            //m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
             if (ExistsAsset(asset.FullID))
             {
-                m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
+                //m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
             }
             else
             {

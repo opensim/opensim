@@ -28,26 +28,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.ApplicationPlugins.ScriptEngine.Components
+namespace OpenSim.ScriptEngine.Shared
 {
-    /// <summary>
-    /// Generic baseclass for component providers
-    /// </summary>
-    public abstract class ComponentBase //: iProviderBase
+    public interface IScriptEngineComponent
     {
-        //public abstract iProviderBase CreateInstance();
-        public abstract void Start();
-        public abstract void Close();
-        public RegionScriptEngineBase scriptEngine;
-        public void Initialize(RegionScriptEngineBase ScriptEngine)
-        {
-            scriptEngine = ScriptEngine;
-        }
-
-        static ComponentBase()
-        {
-            // We got loaded -- should we register now?
-            //OpenSim.ApplicationPlugins.ScriptEngine.ComponentProviders.providers.Add(GetType());
-        }
     }
 }

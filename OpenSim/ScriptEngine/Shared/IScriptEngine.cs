@@ -27,19 +27,23 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Nini.Config;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.ApplicationPlugins.ScriptEngine.Components
+namespace OpenSim.ScriptEngine.Shared
 {
-    public abstract class SchedulerBase: ComponentBase
+    public interface IScriptEngine
     {
-        //public override iProviderBase CreateInstance()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public override void Start()
-        //{
-        //    throw new NotImplementedException();
-        //}
+        //string[] ComponentNames { get; }
+        //Dictionary<string, IScriptEngineComponent> Components { get; }
+        //void InitializeComponents();
+        void Initialise(Scene scene, IConfigSource source);
+        void PostInitialise();
+        void Close();
+        string Name { get; }
+        //        string Name { get; }
+        //void Initialize();
+        //void Close();
     }
 }

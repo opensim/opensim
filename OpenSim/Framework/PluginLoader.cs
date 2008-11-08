@@ -171,6 +171,7 @@ namespace OpenSim.Framework
                 if (filters.ContainsKey (ext))
                     filter = filters [ext];
 
+                List<T> loadedPlugins = new List<T>();
                 foreach (PluginExtensionNode node in AddinManager.GetExtensionNodes (ext))
                 {
                     log.Info("[PLUGINS]: Trying plugin " + node.Path);
@@ -179,8 +180,15 @@ namespace OpenSim.Framework
                         continue;
 
                     T plugin = (T) node.CreateInstance();
-                    Initialiser.Initialise (plugin);
-                    Plugins.Add (plugin);
+                    loadedPlugins.Add(plugin);
+                }
+                // We do Initialise() in a second loop after CreateInstance
+                // So that modules who need init before others can do it
+                // Example: Script Engine Component System needs to load its components before RegionLoader starts
+                foreach (T plugin in loadedPlugins)
+                {
+                    Initialiser.Initialise(plugin);
+                    Plugins.Add(plugin);
                 }
             }
         }

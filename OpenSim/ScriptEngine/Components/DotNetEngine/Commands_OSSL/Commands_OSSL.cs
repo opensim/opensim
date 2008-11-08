@@ -28,18 +28,17 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.ApplicationPlugins.ScriptEngine.Components;
+using OpenSim.ScriptEngine.Shared;
 
 namespace OpenSim.ScriptEngine.Components.DotNetEngine.Commands_OSSL
 {
-    public class Commands_OSSL: CommandBase
+    public class Commands_OSSL : IScriptEngineComponent
     {
-        public override void Start()
+        private RegionInfoStructure CurrentRegion;
+        public void Initialize(RegionInfoStructure currentRegion)
         {
+            CurrentRegion = currentRegion;
         }
 
-        public override void Close()
-        {
-        }
     }
 }

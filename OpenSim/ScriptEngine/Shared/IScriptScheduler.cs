@@ -27,42 +27,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.ApplicationPlugins.ScriptEngine;
-using OpenSim.ApplicationPlugins.ScriptEngine.Components;
+using OpenMetaverse;
+using OpenSim.ScriptEngine.Shared;
 
-namespace OpenSim.ApplicationPlugins.ScriptEngine
+namespace OpenSim.ScriptEngine.Shared
 {
-    /// <summary>
-    /// Component providers
-    /// This is where any component (any part) of the Script Engine Component System (SECS) registers.
-    /// Nothing is instanciated at this point. The modules just need to register here to be available for any script engine.
-    /// </summary>
-    public static class ComponentRegistry
+    public interface IScriptScheduler : IScriptEngineComponent
     {
-        // Component providers are registered here wit a name (string)
-        // When a script engine is created the components are instanciated
-        public static Dictionary<string, Type> providers = new Dictionary<string, Type>();
-        public static Dictionary<string, Type> scriptEngines = new Dictionary<string, Type>();
-
-        ///// <summary>
-        ///// Returns a list of ProviderBase objects which has been instanciated by their name
-        ///// </summary>
-        ///// <param name="Providers">List of Script Engine Components</param>
-        ///// <returns></returns>
-        //public static List<ComponentBase> GetComponents(string[] Providers)
-        //{
-        //    List<ComponentBase> pbl = new List<ComponentBase>();
-        //    if (Providers != null)
-        //    {
-        //        foreach (string p in Providers)
-        //        {
-        //            if (providers.ContainsKey(p))
-        //                pbl.Add(Activator.CreateInstance(providers[p]) as ComponentBase);
-        //        }
-        //    }
-
-        //    return pbl;
-        //}
-
+        void AddScript(ScriptStructure script);
+        void Removecript(uint id, UUID itemID);
+        void Close();
     }
 }

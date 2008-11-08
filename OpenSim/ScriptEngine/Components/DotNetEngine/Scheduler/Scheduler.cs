@@ -27,18 +27,29 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.ApplicationPlugins.ScriptEngine.Components;
+using OpenMetaverse;
+using OpenSim.ScriptEngine.Shared;
 
 namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
 {
-    public class Scheduler: SchedulerBase
+    public class Scheduler : IScriptScheduler
     {
-        public override void Start()
+
+        private ScriptManager m_ScriptManager = new ScriptManager();
+        public void AddScript(ScriptStructure scriptStructure)
         {
+            m_ScriptManager.AddScript(scriptStructure);
         }
 
-        public override void Close()
+        public void Removecript(uint id, UUID itemID)
         {
+            m_ScriptManager.RemoveScript(id, itemID);
         }
+
+        public void Close()
+        {
+            m_ScriptManager.Close();
+        }
+
     }
 }

@@ -27,19 +27,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenSim.ScriptEngine.Shared;
 
-namespace OpenSim.ApplicationPlugins.ScriptEngine.Components
+namespace OpenSim.ScriptEngine.Shared
 {
-    public abstract class CompilerBase: ComponentBase
+    public interface IScriptExecutor : IScriptEngineComponent, IScriptEngineRegionComponent
     {
-        //public override iProviderBase CreateInstance()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public override void Start()
-        //{
-        //    throw new NotImplementedException();
-        //}
+        void ExecuteCommand(ref ScriptStructure scriptContainer, EventParams p);
+        void ExecuteCommand(EventParams p);
     }
 }

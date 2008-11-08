@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -9,7 +9,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
+ *     * Neither the name of the OpenSim Project nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
@@ -24,17 +24,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.ScriptEngine.Shared;
 
-namespace OpenSim.ScriptEngine.Components.DotNetEngine.Commands_LSL
+namespace OpenSim.ScriptEngine.Components.DotNetEngine.Compilers.YP
 {
-    public class Commands_LSL : IScriptEngineComponent
+    public class YP2CS
     {
+        public static string Convert(ref string script)
+        {
+            return script;
+        }
 
-        
+        public string PreProcessScript(ref string script)
+        {
+            return 
+                "using OpenSim.Region.ScriptEngine.Shared.YieldProlog; " +
+                "using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\r\n" +
+                String.Empty + "namespace SecondLife { " +
+                String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass  { \r\n" +
+                //@"public Script() { } " +
+                @"static OpenSim.Region.ScriptEngine.Shared.YieldProlog.YP YP=null; " +
+                @"public Script() {  YP= new OpenSim.Region.ScriptEngine.Shared.YieldProlog.YP(); } " +
+                script +
+                "} }\r\n";
+        }
     }
 }

@@ -25,20 +25,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.ApplicationPlugins.ScriptEngine.Components;
+using Microsoft.CSharp;
+using OpenSim.ScriptEngine.Shared;
 
 namespace OpenSim.ScriptEngine.Components.DotNetEngine.Compilers
 {
-    public class Compiler_CS: CompilerBase
+    public class Compiler_CS : CILCompiler, IScriptCompiler
     {
-        public override void Start()
+        private string[] ScriptUsing = new string[]
+            {
+                "System",
+                "OpenSim.ScriptEngine.Shared", 
+                "OpenSim.Region.ScriptEngine.Shared",
+                "System.Collections.Generic"
+    };
+
+        public Compiler_CS()
         {
+            CompileProvider = new CSharpCodeProvider();
         }
 
-        public override void Close()
+        public override string PreProcessScript(ref string script)
         {
+            string s = "";
+            foreach (string u in ScriptUsing)
+            {
+                s += "using " + u + ";";
+            }
+
+            s += "\r\n"
+                + String.Empty + "namespace ScriptAssemblies { "
+                + String.Empty + "public class UserScript" + " : " + ScriptInheritFrom + " { \r\n" +
+                @"public Script() { } " +
+                script +
+                "} }\r\n";
+
+            return s;
         }
+
     }
 }

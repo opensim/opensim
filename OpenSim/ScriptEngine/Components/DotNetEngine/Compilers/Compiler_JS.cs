@@ -25,20 +25,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.ApplicationPlugins.ScriptEngine.Components;
+using Microsoft.JScript;
+using OpenSim.ScriptEngine.Shared;
 
 namespace OpenSim.ScriptEngine.Components.DotNetEngine.Compilers
 {
-    public class Compiler_JS : CompilerBase
+    public class Compiler_JS : CILCompiler, IScriptCompiler
     {
-        public override void Start()
+
+        public Compiler_JS()
         {
+            CompileProvider = new JScriptCodeProvider() as CodeDomProvider;
         }
 
-        public override void Close()
+        public override string PreProcessScript(ref string script)
         {
+            return
+                "import OpenSim.Region.ScriptEngine.Shared; import System.Collections.Generic;\r\n" +
+                "package SecondLife {\r\n" +
+                "class Script extends OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass { \r\n" +
+                script +
+                "} }\r\n";
+
         }
+
     }
 }

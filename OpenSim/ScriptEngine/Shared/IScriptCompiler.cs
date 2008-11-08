@@ -26,20 +26,15 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
+using ScriptAssemblies;
 
-namespace OpenSim.ApplicationPlugins.ScriptEngine.Components
+namespace OpenSim.ScriptEngine.Shared
 {
-    public abstract class CommandBase: ComponentBase
+    public interface IScriptCompiler : IScriptEngineComponent
     {
-        //public override iProviderBase CreateInstance()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public override void Start()
-        //{
-        //    throw new NotImplementedException();
-        //}
+        string Compile(ScriptMetaData scriptMetaData, ref string script);
+        string PreProcessScript(ref string script);
     }
 }

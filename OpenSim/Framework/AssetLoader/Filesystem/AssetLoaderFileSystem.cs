@@ -52,7 +52,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
             if (!String.IsNullOrEmpty(path))
             {
-                m_log.InfoFormat("[ASSETS]: Loading: [{0}][{1}]", name, path);
+                //m_log.InfoFormat("[ASSETS]: Loading: [{0}][{1}]", name, path);
 
                 LoadAsset(asset, isImage, path);
             }
@@ -131,7 +131,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         /// <param name="assets"></param>
         protected static void LoadXmlAssetSet(string assetSetPath, List<AssetBase> assets)
         {
-            m_log.InfoFormat("[ASSETS]: Loading asset set {0}", assetSetPath);
+            //m_log.InfoFormat("[ASSETS]: Loading asset set {0}", assetSetPath);
 
             if (File.Exists(assetSetPath))
             {

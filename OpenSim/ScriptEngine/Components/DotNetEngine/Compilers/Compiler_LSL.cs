@@ -26,19 +26,32 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
-using OpenSim.ApplicationPlugins.ScriptEngine.Components;
+using OpenSim.ScriptEngine.Components.DotNetEngine.Compilers.LSL;
+using OpenSim.ScriptEngine.Shared;
 
 namespace OpenSim.ScriptEngine.Components.DotNetEngine.Compilers
 {
-    public class Compiler_LSL : CompilerBase
+    public class Compiler_LSL : IScriptCompiler
     {
-        public override void Start()
+
+
+        private readonly Compiler_CS m_Compiler_CS = new Compiler_CS();
+        private readonly LSL2CS m_LSL2CS = new LSL2CS();
+
+        public string Compile(ScriptMetaData scriptMetaData, ref string script)
         {
+            // Convert script to CS
+            string scriptCS = m_LSL2CS.Convert(ref script);
+            // Use CS compiler to compile it
+            return m_Compiler_CS.Compile(scriptMetaData, ref scriptCS);
         }
 
-        public override void Close()
+        public string PreProcessScript(ref string script)
         {
+            // This is handled by our converter
+            return script;
         }
     }
 }

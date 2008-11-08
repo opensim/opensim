@@ -66,6 +66,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             throw new PluginNotInitialisedException (Name);
         }
 
+
         public void Initialise(OpenSimBase openSim)
         {
             m_configSource = openSim.ConfigSource.Source;

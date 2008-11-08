@@ -26,45 +26,51 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
+using log4net;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.ScriptEngine.Shared;
 
 namespace OpenSim.ApplicationPlugins.ScriptEngine
 {
-    public class RegionScriptEnginePlugin : IRegionModule
+    public class RegionEngineLoader : IRegionModule
     {
         // This is a region module.
         // This means: Every time a new region is created, a new instance of this module is also created.
         // This module is responsible for starting the script engine for this region.
+        public string Name { get { return "SECS.DotNetEngine.Scheduler.RegionLoader"; } }
+        public bool IsSharedModule { get { return true; } }
 
+        internal static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private string tempScriptEngineName = "DotNetEngine";
-        public RegionScriptEngineBase scriptEngine;
+        public IScriptEngine scriptEngine;
+        public IConfigSource ConfigSource;
+        public IConfig ScriptConfigSource;
         public void Initialise(Scene scene, IConfigSource source)
         {
-            return;
             // New region is being created
             // Create a new script engine
-//            try
-//            {
-//                lock (ComponentRegistry.scriptEngines)
-//                {
-//                    scriptEngine =
-//                        Activator.CreateInstance(ComponentRegistry.scriptEngines[tempScriptEngineName]) as
-//                        RegionScriptEngineBase;
-//                }
-//                scriptEngine.Initialize(scene, source);
-//            }
-//            catch (Exception ex)
-//            {
-//                scriptEngine.m_log.Error("[ScriptEngine]: Unable to load engine \"" + tempScriptEngineName + "\": " + ex.ToString());
-//            }
+            // Make sure we have config
+            if (ConfigSource.Configs["SECS"] == null)
+                ConfigSource.AddConfig("SECS");
+            ScriptConfigSource = ConfigSource.Configs["SECS"];
+
+            // Is SECS enabled?
+            if (ScriptConfigSource.GetBoolean("Enabled", false))
+            {
+                LoadEngine();
+                if (scriptEngine != null)
+                    scriptEngine.Initialise(scene, source);
+            }
         }
 
         public void PostInitialise()
         {
-            // Nothing
+            if (scriptEngine != null)
+                scriptEngine.PostInitialise();
         }
 
         public void Close()
@@ -76,18 +82,34 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
             }
             catch (Exception ex)
             {
-                scriptEngine.m_log.Error("[ScriptEngine]: Unable to close engine \"" + tempScriptEngineName + "\": " + ex.ToString());
+                m_log.ErrorFormat("[{0}] Unable to close engine \"{1}\": {2}", Name, tempScriptEngineName, ex.ToString());
             }
         }
 
-        public string Name
+        private void LoadEngine()
         {
-            get { return "ScriptEngine Region Loader"; }
+            m_log.DebugFormat("[{0}] Loading region script engine engine \"{1}\".", Name, tempScriptEngineName);
+            try
+            {
+                lock (ScriptEnginePlugin.scriptEngines)
+                {
+                    if (!ScriptEnginePlugin.scriptEngines.ContainsKey(tempScriptEngineName))
+                    {
+                        m_log.ErrorFormat("[{0}] Unable to load region script engine: Script engine \"{1}\" does not exist.", Name, tempScriptEngineName);
+                    }
+                    else
+                    {
+                        scriptEngine =
+                            Activator.CreateInstance(ScriptEnginePlugin.scriptEngines[tempScriptEngineName]) as
+                            IScriptEngine;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                m_log.ErrorFormat("[{0}] Internal error loading region script engine \"{1}\": {2}", Name, tempScriptEngineName, ex.ToString());
+            }
         }
 
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
     }
 }

@@ -26,10 +26,8 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using OpenSim.Region.ScriptEngine.Interfaces;
-using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {

@@ -313,7 +313,6 @@ namespace OpenSim
         /// Execute the region creation process.  This includes setting up scene infrastructure.
         /// </summary>
         /// <param name="regionInfo"></param>
-        /// <param name="portadd_flag"></param>
         /// <returns></returns>
         public IClientNetworkServer CreateRegion(RegionInfo regionInfo)
         {

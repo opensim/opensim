@@ -27,19 +27,18 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 
-namespace OpenSim.ApplicationPlugins.ScriptEngine.Components
+namespace OpenSim.ScriptEngine.Components.DotNetEngine.Compilers.LSL
 {
-    public abstract class EventBase : ComponentBase
+    public class LSL2CS
     {
-        //public override iProviderBase CreateInstance()
-        //{
-        //    throw new NotImplementedException();
-        //}
+        private ICodeConverter Converter = new CSCodeGenerator();
 
-        //public override void Start()
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public string Convert(ref string script)
+        {
+            //m_positionMap = ((CSCodeGenerator) LSL_Converter).PositionMap;
+            return Converter.Convert(script);
+        }
     }
 }
