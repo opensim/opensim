@@ -111,5 +111,14 @@ namespace OpenSim.Framework
                 return m_queue.ToArray();
             }
         }
+
+        public void Clear()
+        {
+            lock(m_queueSync)
+            {
+                m_pqueue.Clear();
+                m_queue.Clear();
+            }
+        }
     }
 }

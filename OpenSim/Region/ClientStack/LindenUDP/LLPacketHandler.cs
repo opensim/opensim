@@ -98,8 +98,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         // A list of the packets we haven't acked yet
         //
-        private Dictionary<uint,uint> m_PendingAcks = new Dictionary<uint,uint>();
-        
+        private Dictionary<uint, uint> m_PendingAcks = new Dictionary<uint, uint>();
+
         // Dictionary of the packets that need acks from the client.
         //
         private class AckData
@@ -117,7 +117,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             public int TickCount;
             public int Resends;
         }
-        
+
         private Dictionary<uint, AckData> m_NeedAck =
                 new Dictionary<uint, AckData>();
 
@@ -234,6 +234,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_AckTimer.Stop();
 
             m_PacketQueue.Enqueue(null);
+            m_PacketQueue.Close();
         }
 
         // Send one packet. This actually doesn't send anything, it queues
@@ -362,7 +363,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if ((now - data.TickCount) > m_ResendTimeout)
                     {
                         m_NeedAck[packet.Header.Sequence].Resends++;
-                        
+
                         // The client needs to be told that a packet is being resent, otherwise it appears to believe
                         // that it should reset its sequence to that packet number.
                         packet.Header.Resent = true;
@@ -767,33 +768,41 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // If we sent a killpacket
             if (packet is KillPacket)
-                Thread.CurrentThread.Abort();
-
-            // Actually make the byte array and send it
-            byte[] sendbuffer = packet.ToBytes();
-
-            //m_log.DebugFormat(
-            //    "[CLIENT]: In {0} sending packet {1}",
-            //    m_Client.Scene.RegionInfo.ExternalEndPoint.Port, packet.Header.Sequence);
-
-            if (packet.Header.Zerocoded)
             {
-                int packetsize = Helpers.ZeroEncode(sendbuffer,
-                        sendbuffer.Length, m_ZeroOutBuffer);
-                m_PacketServer.SendPacketTo(m_ZeroOutBuffer, packetsize,
-                        SocketFlags.None, m_Client.CircuitCode);
-            }
-            else
-            {
-                // Need some extra space in case we need to add proxy
-                // information to the message later
-                Buffer.BlockCopy(sendbuffer, 0, m_ZeroOutBuffer, 0,
-                        sendbuffer.Length);
-                m_PacketServer.SendPacketTo(m_ZeroOutBuffer,
-                        sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
-            }
+                Abort();
 
-            PacketPool.Instance.ReturnPacket(packet);
+                // Actually make the byte array and send it
+                byte[] sendbuffer = packet.ToBytes();
+
+                //m_log.DebugFormat(
+                //    "[CLIENT]: In {0} sending packet {1}",
+                //    m_Client.Scene.RegionInfo.ExternalEndPoint.Port, packet.Header.Sequence);
+
+                if (packet.Header.Zerocoded)
+                {
+                    int packetsize = Helpers.ZeroEncode(sendbuffer,
+                            sendbuffer.Length, m_ZeroOutBuffer);
+                    m_PacketServer.SendPacketTo(m_ZeroOutBuffer, packetsize,
+                            SocketFlags.None, m_Client.CircuitCode);
+                }
+                else
+                {
+                    // Need some extra space in case we need to add proxy
+                    // information to the message later
+                    Buffer.BlockCopy(sendbuffer, 0, m_ZeroOutBuffer, 0,
+                            sendbuffer.Length);
+                    m_PacketServer.SendPacketTo(m_ZeroOutBuffer,
+                            sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
+                }
+
+                PacketPool.Instance.ReturnPacket(packet);
+            }
+        }
+
+        private void Abort()
+        {
+            m_PacketQueue.Close();
+            Thread.CurrentThread.Abort();
         }
     }
 }

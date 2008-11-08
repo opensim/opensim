@@ -131,7 +131,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     userSettings.ClientThrottleMultipler);
 
             throttleTimer = new Timer((int) (throttletimems/throttleTimeDivisor));
-            throttleTimer.Elapsed += new ElapsedEventHandler(ThrottleTimerElapsed);
+            throttleTimer.Elapsed += ThrottleTimerElapsed;
             throttleTimer.Start();
 
             // TIMERS needed for this
@@ -256,9 +256,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public void WipeClean()
+        {
+            m_log.Info("[PACKETQUEUE] Wiping Packet Queues Clean");
+            lock(this)
+            {
+                ResendOutgoingPacketQueue.Clear();
+                LandOutgoingPacketQueue.Clear();
+                WindOutgoingPacketQueue.Clear();
+                CloudOutgoingPacketQueue.Clear();
+                TaskOutgoingPacketQueue.Clear();
+                TaskLowpriorityPacketQueue.Clear();
+                TextureOutgoingPacketQueue.Clear();
+                AssetOutgoingPacketQueue.Clear();
+                SendQueue.Clear();
+            }
+        }
+
         public void Close()
         {
+            m_log.Info("[PACKETQUEUE] Close called");
             Flush();
+            WipeClean(); // I'm sure there's a dirty joke in here somewhere. -AFrisby
 
             m_enabled = false;
             throttleTimer.Stop();
