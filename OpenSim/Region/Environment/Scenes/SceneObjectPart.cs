@@ -3058,6 +3058,13 @@ if (m_shape != null) {
         {
 
             bool wasUsingPhysics = ((ObjectFlags & (uint) PrimFlags.Physics) != 0);
+            bool wasTemporary = ((ObjectFlags & (uint)PrimFlags.TemporaryOnRez) != 0);
+            bool wasPhantom = ((ObjectFlags & (uint)PrimFlags.Phantom) != 0);
+
+            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == IsTemporary) && (wasPhantom == IsPhantom))
+            {
+                return;
+            }
 
             if (UsePhysics)
             {
@@ -3151,6 +3158,7 @@ if (m_shape != null) {
                 RemFlag(PrimFlags.TemporaryOnRez);
             }
             //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
+            ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
 
