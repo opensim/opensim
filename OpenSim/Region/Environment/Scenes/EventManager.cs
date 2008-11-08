@@ -28,6 +28,7 @@
 using System;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Client;
 using OpenSim.Region.Environment.Interfaces;
 using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 using System.Collections.Generic;
@@ -55,8 +56,16 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnBackupDelegate OnBackup;
 
+        public delegate void OnClientConnectCoreDelegate(IClientCore client);
+
+        public event OnClientConnectCoreDelegate OnClientConnect;
+
         public delegate void OnNewClientDelegate(IClientAPI client);
 
+        /// <summary>
+        /// Depreciated in favour of OnClientConnect.
+        /// Will be marked Obsolete after IClientCore has 100% of IClientAPI interfaces.
+        /// </summary>
         public event OnNewClientDelegate OnNewClient;
 
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
@@ -323,6 +332,7 @@ namespace OpenSim.Region.Environment.Scenes
         private OnPluginConsoleDelegate handlerPluginConsole = null; //OnPluginConsole;
         private OnFrameDelegate handlerFrame = null; //OnFrame;
         private OnNewClientDelegate handlerNewClient = null; //OnNewClient;
+        private OnClientConnectCoreDelegate handlerClientConnect = null; //OnClientConnect
         private OnNewPresenceDelegate handlerNewPresence = null; //OnNewPresence;
         private OnRemovePresenceDelegate handlerRemovePresence = null; //OnRemovePresence;
         private OnBackupDelegate handlerBackup = null; //OnBackup;
@@ -426,6 +436,12 @@ namespace OpenSim.Region.Environment.Scenes
             handlerNewClient = OnNewClient;
             if (handlerNewClient != null)
                 handlerNewClient(client);
+
+            if (client is IClientCore)
+            {
+                handlerClientConnect = OnClientConnect;
+                handlerClientConnect((IClientCore) client);
+            }
         }
 
         public void TriggerOnNewPresence(ScenePresence presence)
