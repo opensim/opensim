@@ -26,14 +26,12 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Xml;
@@ -63,7 +61,7 @@ namespace OpenSim.Framework.Servers
 
         protected uint m_port;
         protected uint m_sslport;
-        protected bool m_ssl = false;
+        protected bool m_ssl;
         protected bool m_firstcaps = true;
         protected string m_SSLCommonName = "";
 

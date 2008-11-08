@@ -263,7 +263,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private MapItemRequest handlerMapItemRequest;
 
-        private IGroupsModule m_GroupsModule;
+        private readonly IGroupsModule m_GroupsModule;
 
         //private TerrainUnacked handlerUnackedTerrain = null;
 
@@ -600,7 +600,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual bool ProcessPacketMethod(Packet packet)
         {
             bool result = false;
-            bool found;
             PacketMethod method;
             if (m_packetHandlers.TryGetValue(packet.Type, out method))
             {
@@ -610,6 +609,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
             {
                 //there is not a local handler so see if there is a Global handler
+                bool found;
                 lock (PacketHandlers)
                 {
                     found = PacketHandlers.TryGetValue(packet.Type, out method);
@@ -661,7 +661,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_log.DebugFormat(
                 "[CLIENT]: Entered main packet processing loop for {0} {1}", FirstName, LastName);
 
-            while (true)
+            while (IsActive)
             {
                 LLQueItem nextPacket = m_PacketHandler.PacketQueue.Dequeue();
                 
@@ -1076,8 +1076,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Send an instant message to this client
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="target"></param>
         public void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
                                        UUID imSessionID, string fromName, byte dialog, uint timeStamp)
         {
@@ -1089,13 +1087,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Send an instant message to this client
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="target"></param>
         public void SendInstantMessage(UUID fromAgent, UUID fromAgentSession, string message, UUID toAgent,
                                        UUID imSessionID, string fromName, byte dialog, uint timeStamp,
                                        bool fromGroup, byte[] binaryBucket)
         {
-            if (((Scene)(this.m_scene)).ExternalChecks.ExternalChecksCanInstantMessage(fromAgent, toAgent))
+            if (((Scene)(m_scene)).ExternalChecks.ExternalChecksCanInstantMessage(fromAgent, toAgent))
             {
                 ImprovedInstantMessagePacket msg
                     = (ImprovedInstantMessagePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedInstantMessage);
@@ -1530,6 +1526,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="ownerID">The owner of the folder</param>
         /// <param name="folderID">The id of the folder</param>
         /// <param name="items">The items contained in the folder identified by folderID</param>
+        /// <param name="folders"></param>
         /// <param name="fetchFolders">Do we need to send folder information?</param>
         /// <param name="fetchItems">Do we need to send item information?</param>
         public void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,
@@ -2272,12 +2269,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// send a objectupdate packet with information about the clients avatar
         /// </summary>
-        /// <param name="regionInfo"></param>
-        /// <param name="firstName"></param>
-        /// <param name="lastName"></param>
-        /// <param name="avatarID"></param>
-        /// <param name="avatarLocalID"></param>
-        /// <param name="Pos"></param>
         public void SendAvatarData(ulong regionHandle, string firstName, string lastName, string grouptitle, UUID avatarID,
                                    uint avatarLocalID, Vector3 Pos, byte[] textureEntry, uint parentID, Quaternion rotation)
         {
@@ -2295,7 +2286,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objupdate.ObjectData[0].NameValue =
                 Utils.StringToBytes("FirstName STRING RW SV " + firstName + "\nLastName STRING RW SV " + lastName + "\nTitle STRING RW SV " + grouptitle);
 
-            Vector3 pos2 = new Vector3((float)Pos.X, (float)Pos.Y, (float)Pos.Z);
+            Vector3 pos2 = new Vector3(Pos.X, Pos.Y, Pos.Z);
             byte[] pb = pos2.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
 
@@ -2401,7 +2392,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, vel,
                                   acc, rotation, rvel, flags,
                                   objectID, ownerID, text, color, parentID, particleSystem,
-                                  clickAction, material, textureanim, false, (uint)0, UUID.Zero, UUID.Zero, 0, 0, 0);
+                                  clickAction, material, textureanim, false, 0, UUID.Zero, UUID.Zero, 0, 0, 0);
         }
 
         public void SendPrimitiveToClient(
@@ -3409,9 +3400,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandleMoneyTransferRequest(IClientAPI sender, Packet Pack)
         {
-            MoneyTransferRequestPacket money = (MoneyTransferRequestPacket)Pack;
+            MoneyTransferRequestPacket money = (MoneyTransferRequestPacket) Pack;
             // validate the agent owns the agentID and sessionID
-            if (money.MoneyData.SourceID == sender.AgentId && money.AgentData.AgentID == sender.AgentId && money.AgentData.SessionID == sender.SessionId)
+            if (money.MoneyData.SourceID == sender.AgentId && money.AgentData.AgentID == sender.AgentId &&
+                money.AgentData.SessionID == sender.SessionId)
             {
                 handlerMoneyTransferRequest = OnMoneyTransferRequest;
                 if (handlerMoneyTransferRequest != null)
@@ -3423,30 +3415,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 return true;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         private bool HandleParcelBuyRequest(IClientAPI sender, Packet Pack)
         {
-            ParcelBuyPacket parcel = (ParcelBuyPacket)Pack;
-            if (parcel.AgentData.AgentID == AgentId && parcel.AgentData.SessionID == this.SessionId)
+            ParcelBuyPacket parcel = (ParcelBuyPacket) Pack;
+            if (parcel.AgentData.AgentID == AgentId && parcel.AgentData.SessionID == SessionId)
             {
                 handlerParcelBuy = OnParcelBuy;
                 if (handlerParcelBuy != null)
                 {
-                    handlerParcelBuy(parcel.AgentData.AgentID, parcel.Data.GroupID, parcel.Data.Final, parcel.Data.IsGroupOwned,
-                                     parcel.Data.RemoveContribution, parcel.Data.LocalID, parcel.ParcelData.Area, parcel.ParcelData.Price,
+                    handlerParcelBuy(parcel.AgentData.AgentID, parcel.Data.GroupID, parcel.Data.Final,
+                                     parcel.Data.IsGroupOwned,
+                                     parcel.Data.RemoveContribution, parcel.Data.LocalID, parcel.ParcelData.Area,
+                                     parcel.ParcelData.Price,
                                      false);
                 }
                 return true;
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         private bool HandleUUIDGroupNameRequest(IClientAPI sender, Packet Pack)
