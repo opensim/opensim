@@ -35,6 +35,7 @@ using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
+using OpenSim.Framework.Client;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -74,9 +75,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 if (!m_scenes.Contains(scene))
                 {
                     m_scenes.Add(scene);
-                    scene.EventManager.OnNewClient += OnNewClient;
+                    scene.EventManager.OnClientConnect += OnClientConnect;
                     scene.EventManager.OnGridInstantMessage += OnGridInstantMessage;
                 }
+            }
+        }
+
+        void OnClientConnect(IClientCore client)
+        {
+            IClientIM clientIM;
+            if(client.TryGet(out clientIM))
+            {
+                clientIM.OnInstantMessage += OnInstantMessage;
             }
         }
 
@@ -108,11 +118,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         }
 
         #endregion
-
-        private void OnNewClient(IClientAPI client)
-        {
-            client.OnInstantMessage += OnInstantMessage;
-        }
 
         private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
                                       UUID fromAgentSession, UUID toAgentID,
