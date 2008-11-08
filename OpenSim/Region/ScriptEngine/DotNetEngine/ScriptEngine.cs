@@ -44,7 +44,7 @@ using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     [Serializable]
-    public class ScriptEngine : IRegionModule, IEventReceiver, IScriptModule
+    public class ScriptEngine : IRegionModule, IScriptEngine, IScriptModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -387,6 +387,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         public IScriptApi GetApi(UUID itemID, string name)
         {
             return m_ScriptManager.GetApi(itemID, name);
+        }
+
+        public IScriptWorkItem QueueEventHandler(Object o)
+        {
+            return null;
+        }
+
+        public string GetAssemblyName(UUID itemID)
+        {
+            return "";
+        }
+
+        public string GetXMLState(UUID itemID)
+        {
+            return "";
         }
     }
 }

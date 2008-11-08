@@ -848,5 +848,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             return e.ToString();
         }
+
+        public string GetAssemblyName()
+        {
+            return m_Assembly;
+        }
+
+        public string GetXMLState()
+        {
+            Stop(100);
+            return ScriptSerializer.Serialize(this);
+        }
     }
 }

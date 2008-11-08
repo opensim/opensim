@@ -66,7 +66,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
-        protected IEventReceiver m_ScriptEngine;
+        protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
         protected uint m_localID;
         protected UUID m_itemID;
@@ -80,7 +80,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public void Initialize(IEventReceiver ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;

@@ -985,5 +985,21 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                            controllingClient.AgentId);
             }
         }
+
+        public string GetAssemblyName(UUID itemID)
+        {
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return null;
+            return instance.GetAssemblyName();
+        }
+
+        public string GetXMLState(UUID itemID)
+        {
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return null;
+            return instance.GetXMLState();
+        }
     }
 }

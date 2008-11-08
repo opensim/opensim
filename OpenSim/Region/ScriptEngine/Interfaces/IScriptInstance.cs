@@ -99,5 +99,8 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> LineMap
                 { get; set; }
+
+        string GetAssemblyName();
+        string GetXMLState();
     }
 }

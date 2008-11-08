@@ -77,7 +77,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     new LSL_Types.LSLString(httpInfo.response_body)
                 };
 
-                foreach (IEventReceiver e in m_CmdManager.ScriptEngines)
+                foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
                 {
                     if (e.PostObjectEvent(httpInfo.localID,
                             new EventParams("http_response",

@@ -67,7 +67,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         new LSL_Types.LSLString(lInfo.GetMessage())
                     };
 
-                    foreach (IEventReceiver e in m_CmdManager.ScriptEngines)
+                    foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
                     {
                         e.PostScriptEvent(
                                 lInfo.GetItemID(), new EventParams(

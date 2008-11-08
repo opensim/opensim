@@ -38,6 +38,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         // Each API has an identifier, which is used to load the
         // proper runtime assembly at load time.
         //
-        void Initialize(IEventReceiver engine, SceneObjectPart part, uint localID, UUID item);
+        void Initialize(IScriptEngine engine, SceneObjectPart part, uint localID, UUID item);
     }
 }

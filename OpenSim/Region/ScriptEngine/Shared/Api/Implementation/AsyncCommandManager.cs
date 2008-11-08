@@ -48,24 +48,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private static int cmdHandlerThreadCycleSleepms;
 
         private static List<IScene> m_Scenes = new List<IScene>();
-        private static List<IEventReceiver> m_ScriptEngines =
-                new List<IEventReceiver>();
+        private static List<IScriptEngine> m_ScriptEngines =
+                new List<IScriptEngine>();
 
-        public IEventReceiver m_ScriptEngine;
+        public IScriptEngine m_ScriptEngine;
         private IScene m_Scene;
 
-        private static Dictionary<IEventReceiver, Dataserver> m_Dataserver =
-                new Dictionary<IEventReceiver, Dataserver>();
-        private static Dictionary<IEventReceiver, Timer> m_Timer =
-                new Dictionary<IEventReceiver, Timer>();
-        private static Dictionary<IEventReceiver, Listener> m_Listener =
-                new Dictionary<IEventReceiver, Listener>();
-        private static Dictionary<IEventReceiver, HttpRequest> m_HttpRequest =
-                new Dictionary<IEventReceiver, HttpRequest>();
-        private static Dictionary<IEventReceiver, SensorRepeat> m_SensorRepeat =
-                new Dictionary<IEventReceiver, SensorRepeat>();
-        private static Dictionary<IEventReceiver, XmlRequest> m_XmlRequest =
-                new Dictionary<IEventReceiver, XmlRequest>();
+        private static Dictionary<IScriptEngine, Dataserver> m_Dataserver =
+                new Dictionary<IScriptEngine, Dataserver>();
+        private static Dictionary<IScriptEngine, Timer> m_Timer =
+                new Dictionary<IScriptEngine, Timer>();
+        private static Dictionary<IScriptEngine, Listener> m_Listener =
+                new Dictionary<IScriptEngine, Listener>();
+        private static Dictionary<IScriptEngine, HttpRequest> m_HttpRequest =
+                new Dictionary<IScriptEngine, HttpRequest>();
+        private static Dictionary<IScriptEngine, SensorRepeat> m_SensorRepeat =
+                new Dictionary<IScriptEngine, SensorRepeat>();
+        private static Dictionary<IScriptEngine, XmlRequest> m_XmlRequest =
+                new Dictionary<IScriptEngine, XmlRequest>();
 
         public Dataserver DataserverPlugin
         {
@@ -97,12 +97,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             get { return m_XmlRequest[m_ScriptEngine]; }
         }
 
-        public IEventReceiver[] ScriptEngines
+        public IScriptEngine[] ScriptEngines
         {
             get { return m_ScriptEngines.ToArray(); }
         }
 
-        public AsyncCommandManager(IEventReceiver _ScriptEngine)
+        public AsyncCommandManager(IScriptEngine _ScriptEngine)
         {
             m_ScriptEngine = _ScriptEngine;
             m_Scene = m_ScriptEngine.World;
@@ -202,7 +202,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Check XMLRPCRequests
             m_XmlRequest[m_ScriptEngines[0]].CheckXMLRPCRequests();
 
-            foreach (IEventReceiver s in m_ScriptEngines)
+            foreach (IScriptEngine s in m_ScriptEngines)
             {
                 // Check Listeners
                 m_Listener[s].CheckListeners();
@@ -223,7 +223,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="itemID"></param>
-        public static void RemoveScript(IEventReceiver engine, uint localID, UUID itemID)
+        public static void RemoveScript(IScriptEngine engine, uint localID, UUID itemID)
         {
             // Remove a specific script
 
@@ -250,7 +250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
-        public static Object[] GetSerializationData(IEventReceiver engine, UUID itemID)
+        public static Object[] GetSerializationData(IScriptEngine engine, UUID itemID)
         {
             List<Object> data = new List<Object>();
 
@@ -281,7 +281,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return data.ToArray();
         }
 
-        public static void CreateFromData(IEventReceiver engine, uint localID,
+        public static void CreateFromData(IScriptEngine engine, uint localID,
                 UUID itemID, UUID hostID, Object[] data)
         {
             int idx = 0;
