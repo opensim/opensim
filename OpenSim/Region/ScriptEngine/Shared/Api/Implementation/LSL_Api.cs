@@ -7940,7 +7940,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (inv.Value.Name == name)
                 {
-                    return inv.Value.InvType;
+                    return inv.Value.Type;
                 }
             }
             return -1;
