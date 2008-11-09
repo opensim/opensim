@@ -38,7 +38,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.ScriptEngine.Components.DotNetEngine.Events;
 using OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler;
 using OpenSim.ScriptEngine.Shared;
-using ComponentProviders = OpenSim.ApplicationPlugins.ScriptEngine;
+using ComponentFactory = OpenSim.ApplicationPlugins.ScriptEngine.ComponentFactory;
 
 namespace OpenSim.ScriptEngine.Engines.DotNetEngine
 {
@@ -128,12 +128,12 @@ namespace OpenSim.ScriptEngine.Engines.DotNetEngine
                 cname = "ScriptManager";
                 m_log.DebugFormat("[{0}] Executor: {1}", Name, cname);
                 RegionInfo.Executors.Add(cname,
-                                         ScriptEnginePlugin.GetComponentInstance(RegionInfo, cname) as IScriptExecutor);
+                                         ComponentFactory.GetComponentInstance(RegionInfo, cname) as IScriptExecutor);
 
                 cname = "ScriptLoader";
                 m_log.DebugFormat("[{0}] ScriptLoader: {1}", Name, cname);
                 RegionInfo.ScriptLoader =
-                    ScriptEnginePlugin.GetComponentInstance(RegionInfo, cname) as IScriptExecutor as ScriptLoader;
+                    ComponentFactory.GetComponentInstance(RegionInfo, cname) as IScriptExecutor as ScriptLoader;
 
                 // CommandProviders
                 foreach (string cn in commandNames)
@@ -141,7 +141,7 @@ namespace OpenSim.ScriptEngine.Engines.DotNetEngine
                     cname = cn;
                     m_log.DebugFormat("[{0}] CommandProvider: {1}", Name, cname);
                     RegionInfo.CommandProviders.Add(cname,
-                                             ScriptEnginePlugin.GetComponentInstance(RegionInfo, cname) as
+                                             ComponentFactory.GetComponentInstance(RegionInfo, cname) as
                                              IScriptCommandProvider);
                 }
 
@@ -151,7 +151,7 @@ namespace OpenSim.ScriptEngine.Engines.DotNetEngine
                     cname = cn;
                     m_log.DebugFormat("[{0}] Compiler: {1}", Name, cname);
                     RegionInfo.Compilers.Add(cname,
-                                             ScriptEnginePlugin.GetComponentInstance(RegionInfo, cname) as
+                                             ComponentFactory.GetComponentInstance(RegionInfo, cname) as
                                              IScriptCompiler);
                 }
 
@@ -161,14 +161,14 @@ namespace OpenSim.ScriptEngine.Engines.DotNetEngine
                     cname = cn;
                     m_log.DebugFormat("[{0}] Scheduler: {1}", Name, cname);
                     RegionInfo.Schedulers.Add(cname,
-                                              ScriptEnginePlugin.GetComponentInstance(RegionInfo, cname) as
+                                              ComponentFactory.GetComponentInstance(RegionInfo, cname) as
                                               IScriptScheduler);
                 }
 
                 // Event provider
                 cname = "LSLEventProvider";
                 m_log.DebugFormat("[{0}] EventProvider: {1}", Name, cname);
-                IScriptEventProvider sep = ScriptEnginePlugin.GetComponentInstance(RegionInfo, cname) as IScriptEventProvider;
+                IScriptEventProvider sep = ComponentFactory.GetComponentInstance(RegionInfo, cname) as IScriptEventProvider;
                 RegionInfo.EventProviders.Add(cname, sep);
                 m_LSLEventProvider = sep as LSLEventProvider;
 

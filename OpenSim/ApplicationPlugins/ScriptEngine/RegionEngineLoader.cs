@@ -97,16 +97,16 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
             m_log.DebugFormat("[{0}] Loading region script engine engine \"{1}\".", Name, tempScriptEngineName);
             try
             {
-                lock (ScriptEnginePlugin.scriptEngines)
+                lock (ComponentFactory.scriptEngines)
                 {
-                    if (!ScriptEnginePlugin.scriptEngines.ContainsKey(tempScriptEngineName))
+                    if (!ComponentFactory.scriptEngines.ContainsKey(tempScriptEngineName))
                     {
                         m_log.ErrorFormat("[{0}] Unable to load region script engine: Script engine \"{1}\" does not exist.", Name, tempScriptEngineName);
                     }
                     else
                     {
                         scriptEngine =
-                            Activator.CreateInstance(ScriptEnginePlugin.scriptEngines[tempScriptEngineName]) as
+                            Activator.CreateInstance(ComponentFactory.scriptEngines[tempScriptEngineName]) as
                             IScriptEngine;
                     }
                 }
