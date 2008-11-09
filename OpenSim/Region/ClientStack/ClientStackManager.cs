@@ -48,22 +48,32 @@ namespace OpenSim.Region.Environment
         {
             m_log.Info("[CLIENTSTACK]: Attempting to load " + dllName);
 
-            plugin = null;
-            pluginAssembly = Assembly.LoadFrom(dllName);
-
-            foreach (Type pluginType in pluginAssembly.GetTypes())
+            try
             {
-                if (pluginType.IsPublic)
-                {
-                    Type typeInterface = pluginType.GetInterface("IClientNetworkServer", true);
+                plugin = null;
+                pluginAssembly = Assembly.LoadFrom(dllName);
 
-                    if (typeInterface != null)
+                foreach (Type pluginType in pluginAssembly.GetTypes())
+                {
+                    if (pluginType.IsPublic)
                     {
-                        m_log.Info("[CLIENTSTACK]: Added IClientNetworkServer Interface");
-                        plugin = pluginType;
-                        return;
+                        Type typeInterface = pluginType.GetInterface("IClientNetworkServer", true);
+
+                        if (typeInterface != null)
+                        {
+                            m_log.Info("[CLIENTSTACK]: Added IClientNetworkServer Interface");
+                            plugin = pluginType;
+                            return;
+                        }
                     }
                 }
+            } catch (ReflectionTypeLoadException e)
+            {
+                foreach(Exception e2 in e.LoaderExceptions)
+                {
+                    m_log.Error(e2.ToString());
+                }
+                throw e;
             }
         }
         

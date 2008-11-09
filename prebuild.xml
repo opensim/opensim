@@ -743,6 +743,7 @@
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
+	  <Reference name="GlynnTucker.Cache.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -968,7 +969,6 @@
       <Reference name="OpenSim.Region.Interfaces"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Client"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Statistics"/>

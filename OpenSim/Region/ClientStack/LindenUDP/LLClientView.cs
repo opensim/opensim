@@ -664,7 +664,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_log.DebugFormat(
                 "[CLIENT]: Entered main packet processing loop for {0} {1}", FirstName, LastName);
 
-            while (true)
+            while (IsActive)
             {
                 LLQueItem nextPacket = m_PacketHandler.PacketQueue.Dequeue();
                 
