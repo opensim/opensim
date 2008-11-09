@@ -741,7 +741,7 @@ namespace OpenSim.Framework
                                 uint timeStamp);
 
         void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
-                                uint timeStamp, bool fromGroup, byte[] binaryBucket);
+                                uint timeStamp, UUID transactionID, bool fromGroup, byte[] binaryBucket);
 
         void SendGenericMessage(string method, List<string> message);
 

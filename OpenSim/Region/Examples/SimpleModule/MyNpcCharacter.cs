@@ -388,7 +388,7 @@ namespace OpenSim.Region.Examples.SimpleModule
             
         }
 
-        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp, bool fromGroup, byte[] binaryBucket)
+        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp, UUID transactionID, bool fromGroup, byte[] binaryBucket)
         {
             
         }

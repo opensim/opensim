@@ -39,7 +39,9 @@ namespace OpenSim.Framework.Client
 
         void SendInstantMessage(UUID fromAgent, string message, UUID toAgent,
                                 string fromName, byte dialog, uint timeStamp,
-                                bool fromGroup, byte[] binaryBucket);
+                                UUID transactionID, bool fromGroup,
+                                byte[] binaryBucket);
+
         event ImprovedInstantMessage OnInstantMessage;
     }
 }

@@ -1067,15 +1067,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp)
         {
-            SendInstantMessage(fromAgent, message, toAgent, fromName, dialog, timeStamp, false, new byte[0]);
+            SendInstantMessage(fromAgent, message, toAgent, fromName, dialog, timeStamp, UUID.Zero, false, new byte[0]);
         }
 
         /// <summary>
         /// Send an instant message to this client
         /// </summary>
+        //
+        // Don't remove transaction ID! Groups and item gives need to set it!
+        //
         public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent,
                                        string fromName, byte dialog, uint timeStamp,
-                                       bool fromGroup, byte[] binaryBucket)
+                                       UUID transactionID, bool fromGroup, byte[] binaryBucket)
         {
             if (((Scene)(m_scene)).ExternalChecks.ExternalChecksCanInstantMessage(fromAgent, toAgent))
             {
@@ -1087,7 +1090,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 msg.MessageBlock.FromAgentName = Utils.StringToBytes(fromName);
                 msg.MessageBlock.Dialog = dialog;
                 msg.MessageBlock.FromGroup = fromGroup;
-                msg.MessageBlock.ID = fromAgent ^ toAgent;
+                if (transactionID == UUID.Zero)
+                    msg.MessageBlock.ID = fromAgent ^ toAgent;
+                else
+                    msg.MessageBlock.ID = transactionID;
                 msg.MessageBlock.Offline = 0;
                 msg.MessageBlock.ParentEstateID = 0;
                 msg.MessageBlock.Position = new Vector3();

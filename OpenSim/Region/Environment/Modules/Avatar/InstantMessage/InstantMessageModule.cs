@@ -162,7 +162,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         {
                             user.ControllingClient.SendInstantMessage(fromAgentID, message,
                                                                       toAgentID, fromAgentName, dialog,
-                                                                      timestamp, fromGroup, binaryBucket);
+                                                                      timestamp, UUID.Zero, fromGroup, binaryBucket);
                             // Message sent
                             return;
                         }
@@ -179,7 +179,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
                         user.ControllingClient.SendInstantMessage(fromAgentID, message,
                                                                   toAgentID, fromAgentName, dialog,
-                                                                  timestamp, fromGroup, binaryBucket);
+                                                                  timestamp, UUID.Zero, fromGroup, binaryBucket);
                         // Message sent
                         return;
                     }

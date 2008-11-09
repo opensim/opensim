@@ -476,7 +476,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
             
         }
 
-        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp, bool fromGroup, byte[] binaryBucket)
+        public void SendInstantMessage(UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog, uint timeStamp, UUID transationID, bool fromGroup, byte[] binaryBucket)
         {
             
         }

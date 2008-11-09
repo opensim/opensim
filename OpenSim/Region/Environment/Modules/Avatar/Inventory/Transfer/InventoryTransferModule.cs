@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
 
                         user.ControllingClient.SendInstantMessage(
                             fromAgentID, message, toAgentID, fromAgentName,
-                            dialog, timestamp, false, binaryBucket);
+                            dialog, timestamp, UUID.Zero, false, binaryBucket);
 
                         return;
                     }
@@ -168,7 +168,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                     {
                         user.ControllingClient.SendInstantMessage(
                             fromAgentID, message, toAgentID, fromAgentName,
-                            dialog, timestamp, false, binaryBucket);
+                            dialog, timestamp, UUID.Zero, false, binaryBucket);
 
                         if (m_pendingOffers.ContainsKey(imSessionID))
                         {
@@ -214,7 +214,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                     {
                         user.ControllingClient.SendInstantMessage(
                             fromAgentID, message, toAgentID, fromAgentName,
-                            dialog, timestamp, false, binaryBucket);
+                            dialog, timestamp, UUID.Zero, false, binaryBucket);
 
                         if (m_pendingOffers.ContainsKey(imSessionID))
                         {
