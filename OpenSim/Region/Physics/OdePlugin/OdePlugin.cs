@@ -769,9 +769,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             // Use the movement terrain contact
                             AvatarMovementTerrainContact.geom = contacts[i];
-                            
                             _perloopContact.Add(contacts[i]);
-
                             joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
                         }
                         else
@@ -800,17 +798,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                             //contacts[i].pos = new d.Vector3(0, 0, contacts[i].pos.Z - 5f);
                         }
                         WaterContact.geom = contacts[i];
-
                         _perloopContact.Add(contacts[i]);
-                        
                         joint = d.JointCreateContact(world, contactgroup, ref WaterContact);
 
                         //m_log.Info("[PHYSICS]: Prim Water Contact" + contacts[i].depth);
                     }
                     else
-                    {
-                        // we're colliding with prim or avatar
-
+                    {   // we're colliding with prim or avatar
                         // check if we're moving
                         if ((p2.PhysicsActorType == (int)ActorTypes.Agent) &&
                             (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
@@ -821,8 +815,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
                         }
                         else
-                        {
-                            // Use the non movement contact
+                        {   // Use the non movement contact
                             contact.geom = contacts[i];
                             _perloopContact.Add(contacts[i]);
                             joint = d.JointCreateContact(world, contactgroup, ref contact);
@@ -834,8 +827,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (count > geomContactPointsStartthrottle)
                 {
                     // If there are more then 3 contact points, it's likely
-                    // that we've got a pile of objects
-                    //
+                    // that we've got a pile of objects, so ...
                     // We don't want to send out hundreds of terse updates over and over again
                     // so lets throttle them and send them again after it's somewhat sorted out.
                     p2.ThrottleUpdates = true;
