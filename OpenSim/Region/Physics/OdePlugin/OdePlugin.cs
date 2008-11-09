@@ -387,8 +387,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             staticPrimspace = new IntPtr[(int)(300 / metersInSpace), (int)(300 / metersInSpace)];
 
             // Centeral contact friction and bounce
+            // ckrinke 11/10/08 Enabling soft_erp but not soft_cfm until I figure out why
+            // an avatar falls through in Z but not in X or Y when walking on a prim.
+            contact.surface.mode |= d.ContactFlags.SoftERP;
             contact.surface.mu = nmAvatarObjectContactFriction;
             contact.surface.bounce = nmAvatarObjectContactBounce;
+            contact.surface.soft_cfm = 0.010f;
+            contact.surface.soft_erp = 0.010f;
 
             // Terrain contact friction and Bounce
             // This is the *non* moving version.   Use this when an avatar
@@ -401,7 +406,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             WaterContact.surface.mode |= (d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM);
             WaterContact.surface.mu = 0f; // No friction
             WaterContact.surface.bounce = 0.0f; // No bounce
-            WaterContact.surface.soft_cfm = 0.01f;
+            WaterContact.surface.soft_cfm = 0.010f;
             WaterContact.surface.soft_erp = 0.010f;
 
             // Prim contact friction and bounce
