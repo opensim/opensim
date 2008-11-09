@@ -604,7 +604,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 volume = (float)volume * ((taperFactorY / 3f) + 0.001f);
             }
             returnMass = m_density*volume;
-
+            if (returnMass <= 0) returnMass = 0.0001f;//ckrinke: Mass must be greater then zero.
             return returnMass;
         }
 
@@ -617,7 +617,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float newmass = CalculateMass();
                 //m_log.Info("[PHYSICS]: New Mass: " + newmass.ToString());
 
-                if (newmass <= 0) newmass = 0.0001f;
                 d.MassSetBoxTotal(out pMass, newmass, _size.X, _size.Y, _size.Z);
                 d.BodySetMass(Body, ref pMass);
             }
