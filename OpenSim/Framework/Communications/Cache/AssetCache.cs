@@ -484,7 +484,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
 
             // It has an entry in our cache
-            AssetInfo asset = (AssetInfo)m_memcache[requestID];
+            AssetBase asset = (AssetBase)m_memcache[requestID];
 
             // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
             if (null == asset)
@@ -504,7 +504,7 @@ namespace OpenSim.Framework.Communications.Cache
             req.TransferRequestID = transferRequest.TransferInfo.TransferID;
             req.AssetRequestSource = source;
             req.Params = transferRequest.TransferInfo.Params;
-            req.AssetInf = asset;
+            req.AssetInf = new AssetInfo(asset);
             req.NumPackets = CalculateNumPackets(asset.Data);
             AssetRequests.Add(req);
         }
