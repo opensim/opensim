@@ -7661,7 +7661,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="iface"></param>
         protected void RegisterInterface<T>(T iface)
         {
-            lock(m_clientInterfaces)
+            lock (m_clientInterfaces)
             {
                 m_clientInterfaces.Add(typeof(T), iface);
             }

@@ -1335,7 +1335,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 m_landList.TryGetValue(localID, out land);
             }
 
-            if(land == null) return;
+            if (land == null) return;
 
             if (!m_scene.ExternalChecks.ExternalChecksCanEditParcel(remoteClient.AgentId, land))
                 return;

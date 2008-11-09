@@ -84,7 +84,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         void OnClientConnect(IClientCore client)
         {
             IClientIM clientIM;
-            if(client.TryGet(out clientIM))
+            if (client.TryGet(out clientIM))
             {
                 clientIM.OnInstantMessage += OnInstantMessage;
             }

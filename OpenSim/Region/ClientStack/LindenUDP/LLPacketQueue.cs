@@ -259,7 +259,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void WipeClean()
         {
             m_log.Info("[PACKETQUEUE] Wiping Packet Queues Clean");
-            lock(this)
+            lock (this)
             {
                 ResendOutgoingPacketQueue.Clear();
                 LandOutgoingPacketQueue.Clear();

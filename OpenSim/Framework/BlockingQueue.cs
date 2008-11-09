@@ -114,7 +114,7 @@ namespace OpenSim.Framework
 
         public void Clear()
         {
-            lock(m_queueSync)
+            lock (m_queueSync)
             {
                 m_pqueue.Clear();
                 m_queue.Clear();
