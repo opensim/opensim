@@ -26,11 +26,14 @@
  */
 
 using System;
+using System.IO;
 using System.Reflection;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
+using System.Collections.Generic;
+using System.Xml;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -56,14 +59,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// Start the scripts contained in all the prims in this group.
         /// </summary>
         public void CreateScriptInstances(int startParam, bool postOnRez,
-                string engine)
+                string engine, int stateSource)
         {
             // Don't start scripts if they're turned off in the region!
             if (!m_scene.RegionInfo.RegionSettings.DisableScripts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.CreateScriptInstances(startParam, postOnRez, engine);
+                    part.CreateScriptInstances(startParam, postOnRez, engine,
+                            stateSource);
                 }
             }
         }
@@ -276,6 +280,90 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (SceneObjectPart part in m_parts.Values)
                 part.ApplyNextOwnerPermissions();
+        }
+
+        public string GetStateSnapshot()
+        {
+            List<string> assemblies = new List<string>();
+            Dictionary<UUID, string> states = new Dictionary<UUID, string>();
+
+            foreach (SceneObjectPart part in m_parts.Values)
+            {
+                foreach (string a in part.GetScriptAssemblies())
+                {
+                    if (a != "" && !assemblies.Contains(a))
+                        assemblies.Add(a);
+                }
+
+                foreach (KeyValuePair<UUID, string> s in part.GetScriptStates())
+                {
+                    states[s.Key] = s.Value;
+                }
+            }
+
+            if (states.Count < 1 || assemblies.Count < 1)
+                return "";
+
+            XmlDocument xmldoc = new XmlDocument();
+
+            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            xmldoc.AppendChild(xmlnode);
+            XmlElement rootElement = xmldoc.CreateElement("", "ScriptData",
+                    "");
+            
+            xmldoc.AppendChild(rootElement);
+
+            XmlElement wrapper = xmldoc.CreateElement("", "Assemblies",
+                    "");
+            
+            rootElement.AppendChild(wrapper);
+
+            foreach (string assembly in assemblies)
+            {
+                string fn = Path.GetFileName(assembly);
+                FileInfo fi = new FileInfo(assembly);
+                Byte[] data = new Byte[fi.Length];
+
+                FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read);
+                fs.Read(data, 0, data.Length);
+                fs.Close();
+
+                XmlElement assemblyData = xmldoc.CreateElement("", "Assembly", "");
+                XmlAttribute assemblyName = xmldoc.CreateAttribute("", "Filename", "");
+                assemblyName.Value = fn;
+                assemblyData.Attributes.Append(assemblyName);
+
+                assemblyData.InnerText = System.Convert.ToBase64String(data);
+
+                wrapper.AppendChild(assemblyData);
+            }
+
+            wrapper = xmldoc.CreateElement("", "ScriptStates",
+                    "");
+            
+            rootElement.AppendChild(wrapper);
+
+            foreach (KeyValuePair<UUID, string> state in states)
+            {
+                XmlElement stateData = xmldoc.CreateElement("", "State", "");
+
+                XmlAttribute stateID = xmldoc.CreateAttribute("", "UUID", "");
+                stateID.Value = state.Key.ToString();
+                stateData.Attributes.Append(stateID);
+
+                XmlDocument sdoc = new XmlDocument();
+                sdoc.LoadXml(state.Value);
+                XmlNodeList rootL = sdoc.GetElementsByTagName("ScriptState");
+                XmlNode rootNode = rootL[0];
+
+                XmlNode newNode = xmldoc.ImportNode(rootNode, true);
+                stateData.AppendChild(newNode);
+                wrapper.AppendChild(stateData);
+            }
+
+            return xmldoc.InnerXml;
         }
     }
 }

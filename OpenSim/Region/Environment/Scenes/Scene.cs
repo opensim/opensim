@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Xml;
 using System.Threading;
 using System.Timers;
 using OpenMetaverse;
@@ -591,7 +592,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             if (ent is SceneObjectGroup)
                             {
-                                ((SceneObjectGroup)ent).CreateScriptInstances(0, false, DefaultScriptEngine);
+                                ((SceneObjectGroup)ent).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
                             }
                         }
                     }

@@ -126,7 +126,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Start all the scripts contained in this prim's inventory
         /// </summary>
-        public void CreateScriptInstances(int startParam, bool postOnRez, string engine)
+        public void CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource)
         {
             lock (m_taskInventory)
             {
@@ -134,7 +134,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if ((int)InventoryType.LSL == item.InvType)
                     {
-                        CreateScriptInstance(item, startParam, postOnRez, engine);
+                        CreateScriptInstance(item, startParam, postOnRez, engine, stateSource);
                     }
                 }
             }
@@ -163,7 +163,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public void CreateScriptInstance(TaskInventoryItem item, int startParam, bool postOnRez, string engine)
+        public void CreateScriptInstance(TaskInventoryItem item, int startParam, bool postOnRez, string engine, int stateSource)
         {
             // m_log.InfoFormat(
             //     "[PRIM INVENTORY]: " +
@@ -194,7 +194,7 @@ namespace OpenSim.Region.Environment.Scenes
                                        m_taskInventory[item.ItemID].PermsGranter = UUID.Zero;
                                        string script = Utils.BytesToString(asset.Data);
                                        m_parentGroup.Scene.EventManager.TriggerRezScript(LocalId, item.ItemID, script, 
-                                                                                         startParam, postOnRez, engine);
+                                                                                         startParam, postOnRez, engine, stateSource);
                                        m_parentGroup.AddActiveScriptCount(1);
                                        ScheduleFullUpdate();
                                    }
@@ -208,13 +208,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemId">
         /// A <see cref="UUID"/>
         /// </param>
-        public void CreateScriptInstance(UUID itemId, int startParam, bool postOnRez, string engine)
+        public void CreateScriptInstance(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource)
         {
             lock (m_taskInventory)
             {
                 if (m_taskInventory.ContainsKey(itemId))
                 {
-                    CreateScriptInstance(m_taskInventory[itemId], startParam, postOnRez, engine);
+                    CreateScriptInstance(m_taskInventory[itemId], startParam, postOnRez, engine, stateSource);
                 }
                 else
                 {
@@ -765,7 +765,7 @@ namespace OpenSim.Region.Environment.Scenes
             return ret;
         }
         
-        string[] GetScriptAssemblies()
+        public string[] GetScriptAssemblies()
         {
             IScriptModule[] engines = m_parentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
 
@@ -788,6 +788,30 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             return ret.ToArray();
+        }
+        
+        public Dictionary<UUID, string> GetScriptStates()
+        {
+            IScriptModule[] engines = m_parentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+            Dictionary<UUID, string> ret = new Dictionary<UUID, string>();
+
+            foreach (TaskInventoryItem item in m_taskInventory.Values)
+            {
+                if (item.InvType == 10)
+                {
+                    foreach (IScriptModule e in engines)
+                    {
+                        string n = e.GetXMLState(item.ItemID);
+                        if (n != "")
+                        {
+                            if (!ret.ContainsKey(item.ItemID))
+                                ret[item.ItemID] = n;
+                            break;
+                        }
+                    }
+                }
+            }
+            return ret;
         }
     }
 }

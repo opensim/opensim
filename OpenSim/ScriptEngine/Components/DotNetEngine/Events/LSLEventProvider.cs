@@ -77,7 +77,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Events
                 RemoveScript(localID, itemID);
         }
 
-        private void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
+        private void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
         {
             // New script being created, fire event
             if (RezScript != null)

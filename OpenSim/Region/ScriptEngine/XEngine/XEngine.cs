@@ -333,7 +333,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return false; }
         }
 
-        public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine)
+        public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
         {
             List<IScriptModule> engines = new List<IScriptModule>(m_Scene.RequestModuleInterfaces<IScriptModule>());
 
@@ -388,7 +388,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (engine != ScriptEngineName)
                 return;
 
-            Object[] parms = new Object[]{localID, itemID, script, startParam, postOnRez};
+            Object[] parms = new Object[]{localID, itemID, script, startParam, postOnRez, (StateSource)stateSource};
 
             lock (m_CompileQueue)
             {
@@ -471,6 +471,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             string script =(string)p[2];
             int startParam = (int)p[3];
             bool postOnRez = (bool)p[4];
+            StateSource stateSource = (StateSource)p[5];
 
             // Get the asset ID of the script, so we can check if we
             // already have it.
@@ -505,8 +506,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 assembly = m_Compiler.PerformScriptCompile(script,
                                                            assetID.ToString());
-                if (presence != null && (!postOnRez))
-                    presence.ControllingClient.SendAgentAlertMessage("Compile successful", false);
             }
             catch (Exception e)
             {
@@ -584,7 +583,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                            m_AppDomains[appDomain],
                                            part.ParentGroup.RootPart.Name,
                                            item.Name, startParam, postOnRez,
-                                           StateSource.NewRez, m_MaxScriptQueue);
+                                           stateSource, m_MaxScriptQueue);
 
                     m_log.DebugFormat("[XEngine] Loaded script {0}.{1}",
                             part.ParentGroup.RootPart.Name, item.Name);

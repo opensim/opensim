@@ -286,6 +286,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                 PostEvent(new EventParams("changed",
                                     new Object[] {new LSL_Types.LSLInteger(256)}, new DetectParams[0]));
                             }
+                            else if (stateSource == StateSource.PrimCrossing)
+                            {
+                                // CHANGED_REGION
+                                PostEvent(new EventParams("changed",
+                                    new Object[] {new LSL_Types.LSLInteger(512)}, new DetectParams[0]));
+                            }
                         }
                     }
                     else
@@ -313,6 +319,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
             else
             {
+                ScenePresence presence = m_Engine.World.GetScenePresence(part.OwnerID);
+
+                if (presence != null && (!postOnRez))
+                    presence.ControllingClient.SendAgentAlertMessage("Compile successful", false);
+
 //                m_Engine.Log.ErrorFormat("[Script] Unable to load script state, file not found");
                 Start();
                 PostEvent(new EventParams("state_entry",
@@ -856,8 +867,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public string GetXMLState()
         {
+            bool run = Running;
             Stop(100);
+            Running = run;
             return ScriptSerializer.Serialize(this);
+            Running = false;
         }
     }
 }

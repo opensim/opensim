@@ -232,7 +232,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         }
 
         public void OnRezScript(uint localID, UUID itemID, string script,
-                int startParam, bool postOnRez, string engine)
+                int startParam, bool postOnRez, string engine, int stateSource)
         {
             List<IScriptModule> engines =
                 new List<IScriptModule>(

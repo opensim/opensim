@@ -61,7 +61,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (group is SceneObjectGroup)
                 {
-                    ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine);
+                    ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
                 }
             }
         }
@@ -292,7 +292,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // Needs to determine which engine was running it and use that
                 //
-                part.CreateScriptInstance(item.ItemID, 0, false, DefaultScriptEngine);
+                part.CreateScriptInstance(item.ItemID, 0, false, DefaultScriptEngine, 0);
             }
             else
             {
@@ -1343,7 +1343,7 @@ namespace OpenSim.Region.Environment.Scenes
                             part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
                             // TODO: switch to posting on_rez here when scripts
                             // have state in inventory
-                            part.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine);
+                            part.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine, 0);
 
                             //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
                             //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
@@ -1407,7 +1407,7 @@ namespace OpenSim.Region.Environment.Scenes
                 part.AddInventoryItem(taskItem);
                 part.GetProperties(remoteClient);
 
-                part.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine);
+                part.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
             }
         }
 
@@ -1503,7 +1503,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (running > 0)
             {
-                destPart.CreateScriptInstance(destTaskItem, 0, false, DefaultScriptEngine);
+                destPart.CreateScriptInstance(destTaskItem, 0, false, DefaultScriptEngine, 0);
             }
 
             ScenePresence avatar;
@@ -2050,7 +2050,7 @@ namespace OpenSim.Region.Environment.Scenes
                             }
 
                             // Fire on_rez
-                            group.CreateScriptInstances(0, true, DefaultScriptEngine);
+                            group.CreateScriptInstances(0, true, DefaultScriptEngine, 0);
 
                             if (!attachment)
                                 rootPart.ScheduleFullUpdate();
@@ -2154,7 +2154,7 @@ namespace OpenSim.Region.Environment.Scenes
                     group.UpdateGroupRotation(rot);
                     //group.ApplyPhysics(m_physicalPrim);
                     group.Velocity = vel;
-                    group.CreateScriptInstances(param, true, DefaultScriptEngine);
+                    group.CreateScriptInstances(param, true, DefaultScriptEngine, 0);
                     rootPart.ScheduleFullUpdate();
 
                     if (!ExternalChecks.ExternalChecksBypassPermissions())
