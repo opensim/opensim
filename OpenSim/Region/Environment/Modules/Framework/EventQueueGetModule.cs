@@ -153,8 +153,9 @@ namespace OpenSim.Region.Environment.Modules.Framework
             {
                 BlockingLLSDQueue queue = GetQueue(avatarID);
                 queue.Enqueue(ev);
-            } catch(NullReferenceException)
+            } catch(NullReferenceException e)
             {
+                m_log.Debug("[EVENTQUEUE] Caught exception: " + e);
                 return false;
             }
             return true;
