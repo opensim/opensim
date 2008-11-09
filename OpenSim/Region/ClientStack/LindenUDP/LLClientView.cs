@@ -2395,6 +2395,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             byte clickAction, byte material, byte[] textureanim, bool attachment, uint AttachPoint, UUID AssetId, UUID SoundId, double SoundGain, byte SoundFlags, double SoundRadius)
         {
 
+            if (AttachPoint > 30 && ownerID != AgentId) // Someone else's HUD
+                return;
+
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = Quaternion.Identity;
 
