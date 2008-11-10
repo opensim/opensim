@@ -139,6 +139,11 @@ namespace OpenSim
         /// <param name="configSource"></param>
         public OpenSimBase(IConfigSource configSource) : base()
         {
+            LoadConfigSettings(configSource);
+        }
+
+        protected virtual void LoadConfigSettings(IConfigSource configSource)
+        {
             m_configLoader = new ConfigurationLoader();
             m_config = m_configLoader.LoadConfigSettings(configSource, out m_configSettings, out m_networkServersInfo);
             ReadExtraConfigSettings();
