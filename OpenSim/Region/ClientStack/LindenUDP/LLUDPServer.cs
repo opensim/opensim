@@ -219,18 +219,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }    
             
             EndPoint epProxy = null;
-            
-            // If we've received a use circuit packet, then we need to decode an endpoint proxy, if one exists, before 
-            // allowing the RecvBuffer to be overwritten by the next packet. 
-            if (packet != null && packet.Type == PacketType.UseCircuitCode)
+
+            if (proxyPortOffset != 0)
             {
-                epProxy = epSender;
-                if (proxyPortOffset != 0)
+                // If we've received a use circuit packet, then we need to decode an endpoint proxy, if one exists,
+                // before allowing the RecvBuffer to be overwritten by the next packet. 
+                if (packet != null && packet.Type == PacketType.UseCircuitCode)
                 {
-                    epSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
+                    epProxy = epSender;
                 }
+
+                // Now decode the message from the proxy server
+                epSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
             }
-            
+
             BeginRobustReceive(); 
 
             if (packet != null)
@@ -456,8 +458,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // ((useCircuit.Header.Sequence < uint.MaxValue) ? useCircuit.Header.Sequence : 0) is just a failsafe to ensure that we don't overflow.
             ack_it.Header.Sequence = ((useCircuit.Header.Sequence < uint.MaxValue) ? useCircuit.Header.Sequence : 0) + 1;
             ack_it.Header.Reliable = false;
-            SendPacketTo(ack_it.ToBytes(), ack_it.ToBytes().Length, SocketFlags.None, useCircuit.CircuitCode.Code);
-            
+
+            byte[] ackmsg=ack_it.ToBytes();
+
+            // Need some extra space in case we need to add proxy
+            // information to the message later
+            byte[] msg = new byte[4096];
+            Buffer.BlockCopy(ackmsg, 0, msg, 0, ackmsg.Length);
+
+            SendPacketTo(msg, ackmsg.Length, SocketFlags.None, useCircuit.CircuitCode.Code);
+
             PacketPool.Instance.ReturnPacket(useCircuit);
         }
 

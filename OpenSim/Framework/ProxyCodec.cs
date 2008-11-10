@@ -47,12 +47,6 @@ namespace OpenSim.Framework
             {
                 bytes[numBytes++] = b;
             }
-
-            int x = numBytes;
-
-            DecodeProxyMessage(bytes, ref numBytes);
-
-            numBytes = x;
         }
 
         public static IPEndPoint DecodeProxyMessage(byte[] bytes, ref int numBytes)
