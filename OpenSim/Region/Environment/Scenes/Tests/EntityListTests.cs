@@ -87,7 +87,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             //part.UpdatePrimFlags(false, false, true);
             part.ObjectFlags |= (uint)PrimFlags.Phantom;
             
-            sceneObject.RootPart = part;
             sceneObject.AddPart(part);
             
             scene.AddNewSceneObject(sceneObject, false);
@@ -226,7 +225,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             sop.ObjectFlags |= (uint)PrimFlags.Phantom;
             
             sog.AddPart(sop);
-            sog.RootPart = sop; 
 
             scene.AddNewSceneObject(sog, false);
             
@@ -246,7 +244,6 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             sop.ObjectFlags |= (uint)PrimFlags.Phantom;
             
             sog.AddPart(sop);
-            sog.RootPart = sop; 
 
             scene.AddNewSceneObject(sog, false);
             
