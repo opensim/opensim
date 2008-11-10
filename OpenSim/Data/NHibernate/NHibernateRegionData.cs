@@ -195,8 +195,7 @@ namespace OpenSim.Data.NHibernate
                 // root part
                 if (p.UUID == uuid)
                 {
-                    group.AddPart(p);
-                    group.RootPart = p;
+                    group.SetRootPart(p);
                 }
                 else
                 {
@@ -244,8 +243,7 @@ namespace OpenSim.Data.NHibernate
                 if (p.UUID == p.ParentUUID)
                 {
                     SceneObjectGroup group = new SceneObjectGroup();
-                    group.AddPart(p);
-                    group.RootPart = p;
+                    group.SetRootPart(p);
                     SOG.Add(p.ParentUUID, group);
                 }
                 else

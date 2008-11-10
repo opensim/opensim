@@ -132,7 +132,6 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
         public SceneObjectPart RootPart
         {
             get { return m_Entity.RootPart; }
-            set { m_Entity.RootPart = value; }
         }
 
         public Scene Scene

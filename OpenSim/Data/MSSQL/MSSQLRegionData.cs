@@ -210,8 +210,8 @@ namespace OpenSim.Data.MSSQL
                                     "No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
-                            group.AddPart(prim);
-                            group.RootPart = prim;
+                            
+                            group.SetRootPart(prim);
 
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);

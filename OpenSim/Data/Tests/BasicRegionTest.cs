@@ -315,8 +315,7 @@ namespace OpenSim.Data.Tests
             sop.ObjectFlags = 0;            
                         
             SceneObjectGroup sog = new SceneObjectGroup();
-            sog.AddPart(sop);
-            sog.RootPart = sop;
+            sog.SetRootPart(sop);
             
             // Inserts group in DB
             db.StoreObject(sog,region3);
@@ -795,8 +794,7 @@ namespace OpenSim.Data.Tests
             sop.Shape = PrimitiveBaseShape.Default;
             
             SceneObjectGroup sog = new SceneObjectGroup();
-            sog.AddPart(sop);
-            sog.RootPart = sop; 
+            sog.SetRootPart(sop); 
             return sog;
         }
         

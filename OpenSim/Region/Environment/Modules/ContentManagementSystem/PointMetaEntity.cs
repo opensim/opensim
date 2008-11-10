@@ -104,11 +104,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
 
             //Initialize group and add part as root part
             x.SetScene(scene);
-            y.SetParent(x);
-            y.ParentID = 0;
-            y.LinkNum = 0;
-            x.Children.Add(y.UUID, y);
-            x.RootPart = y;
+            x.SetRootPart(y);
             x.RegionHandle = scene.RegionInfo.RegionHandle;
             x.SetScene(scene);
 

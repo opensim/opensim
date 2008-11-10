@@ -78,10 +78,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             SceneObjectPart part 
                 = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
             //part.UpdatePrimFlags(false, false, true);           
-            part.ObjectFlags |= (uint)PrimFlags.Phantom;
-            
-            sceneObject.RootPart = part;
-            sceneObject.AddPart(part);
+            part.ObjectFlags |= (uint)PrimFlags.Phantom;            
+            sceneObject.SetRootPart(part);
             
             scene.AddNewSceneObject(sceneObject, false);
             

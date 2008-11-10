@@ -184,10 +184,12 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_parts = value; }
         }
 
+        /// <value>
+        /// The root part of this scene object
+        /// </value>
         public SceneObjectPart RootPart
         {
             get { return m_rootPart; }
-            set { m_rootPart = value; }
         }
 
         public ulong RegionHandle
@@ -877,7 +879,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Set a part to act as the root part for this scene object
         /// </summary>
         /// <param name="part"></param>
-        private void SetRootPart(SceneObjectPart part)
+        public void SetRootPart(SceneObjectPart part)
         {            
             part.SetParent(this);
             part.ParentID = 0;
@@ -1886,7 +1888,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_scene.UnlinkSceneObject(objectGroup.UUID, true);
             objectGroup.Children.Clear();
-            objectGroup.RootPart = null;
+            objectGroup.m_rootPart = null;
 
             // TODO Deleting the original group object may cause problems later on if they have already
             // made it into the update queue.  However, sending out updates for those parts is now
