@@ -421,6 +421,31 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             }
         }
 
+        private void handleTerrainRequest(IClientAPI remote_client, string clientFileName)
+        {
+            // Save terrain here
+            OpenSim.Region.Environment.Modules.World.Terrain.ITerrainModule terr = m_scene.RequestModuleInterface<OpenSim.Region.Environment.Modules.World.Terrain.ITerrainModule>();
+            
+            if (terr != null)
+            {
+                m_log.Warn("[CLIENT]: Got Request to Send Terrain in region " + m_scene.RegionInfo.RegionName);
+                if (System.IO.File.Exists(Util.dataDir() + "/terrain.raw"))
+                {
+                    System.IO.File.Delete(Util.dataDir() + "/terrain.raw");
+                }
+                terr.SaveToFile(Util.dataDir() + "/terrain.raw");
+
+                System.IO.FileStream input = new System.IO.FileStream(Util.dataDir() + "/terrain.raw", System.IO.FileMode.Open);
+                byte[] bdata = new byte[input.Length];
+                input.Read(bdata, 0, (int)input.Length);
+                remote_client.SendAlertMessage("Terrain file written, starting download...");
+                m_scene.XferManager.AddNewFile("terrain.raw", bdata);
+                // Tell client about it
+                m_log.Warn("[CLIENT]: Sending Terrain to " + remote_client.Name);
+                remote_client.SendInitiateDownload("terrain.raw", clientFileName);
+            }
+        }
+
         private void HandleRegionInfoRequest(IClientAPI remote_client)
         {
 
@@ -767,6 +792,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             client.OnEstateDebugRegionRequest += handleEstateDebugRegionRequest;
             client.OnEstateTeleportOneUserHomeRequest += handleEstateTeleportOneUserHomeRequest;
             client.OnEstateTeleportAllUsersHomeRequest += handleEstateTeleportAllUsersHomeRequest;
+            client.OnRequestTerrain += handleTerrainRequest;
 
             client.OnRegionInfoRequest += HandleRegionInfoRequest;
             client.OnEstateCovenantRequest += HandleEstateCovenantRequest;

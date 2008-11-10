@@ -136,6 +136,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event CopyInventoryItem OnCopyInventoryItem;
         public event MoveInventoryItem OnMoveInventoryItem;
         public event UDPAssetUploadRequest OnAssetUploadRequest;
+        public event RequestTerrain OnRequestTerrain;
         public event XferReceive OnXferReceive;
         public event RequestXfer OnRequestXfer;
         public event ConfirmXfer OnConfirmXfer;
@@ -612,6 +613,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public void SendXferRequest(ulong XferID, short AssetType, UUID vFileID, byte FilePath, byte[] FileName)
+        {
+        }
+
+        public void SendInitiateDownload(string simFileName, string clientFileName)
         {
         }
 

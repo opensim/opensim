@@ -205,6 +205,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ParcelAbandonRequest handlerParcelAbandonRequest;
         private ParcelGodForceOwner handlerParcelGodForceOwner;
         private ParcelReclaim handlerParcelReclaim;
+        private RequestTerrain handlerRequestTerrain;
         private ParcelReturnObjectsRequest handlerParcelReturnObjectsRequest;
         private RegionInfoRequest handlerRegionInfoRequest; //OnRegionInfoRequest;
         private EstateCovenantRequest handlerEstateCovenantRequest; //OnEstateCovenantRequest;
@@ -895,6 +896,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event XferReceive OnXferReceive;
         public event RequestXfer OnRequestXfer;
         public event ConfirmXfer OnConfirmXfer;
+        public event RequestTerrain OnRequestTerrain;
         public event RezScript OnRezScript;
         public event UpdateTaskInventory OnUpdateTaskInventory;
         public event MoveTaskInventory OnMoveTaskItem;
@@ -2527,7 +2529,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             newPack.Header.Zerocoded = true;
             OutPacket(newPack, ThrottleOutPacketType.Asset);
         }
-
+        public void SendInitiateDownload(string simFileName, string clientFileName)
+        {
+            InitiateDownloadPacket newPack = new InitiateDownloadPacket();
+            newPack.AgentData.AgentID = AgentId;
+            newPack.FileData.SimFilename = Utils.StringToBytes(simFileName);
+            newPack.FileData.ViewerFilename = Utils.StringToBytes(clientFileName);
+            OutPacket(newPack, ThrottleOutPacketType.Asset);
+        }
         public void SendImageFirstPart(
             ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
         {
@@ -5756,7 +5765,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 case PacketType.EstateOwnerMessage:
                     EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
-
+                    
                     switch (Utils.BytesToString(messagePacket.MethodData.Method))
                     {
                         case "getinfo":
@@ -5975,11 +5984,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         case "terrain":
                             if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
                             {
-                                handlerBakeTerrain = OnBakeTerrain;
-                                if (handlerBakeTerrain != null)
+                                if (messagePacket.ParamList.Length > 0)
                                 {
-                                    handlerBakeTerrain(this);
+                                    if (Utils.BytesToString(messagePacket.ParamList[0].Parameter) == "bake")
+                                    {
+                                        handlerBakeTerrain = OnBakeTerrain;
+                                        if (handlerBakeTerrain != null)
+                                        {
+                                            handlerBakeTerrain(this);
+                                        }
+                                    }
+                                    if (Utils.BytesToString(messagePacket.ParamList[0].Parameter) == "download filename")
+                                    {
+                                        if (messagePacket.ParamList.Length > 1)
+                                        {
+                                            handlerRequestTerrain = OnRequestTerrain;
+                                            if (handlerRequestTerrain != null)
+                                            {
+                                                handlerRequestTerrain(this, Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+                                            }
+                                        }
+                                    }
                                 }
+
+
                             }
                             break;
 

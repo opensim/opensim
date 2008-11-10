@@ -268,7 +268,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event ObjectDeselect OnObjectDeselect;
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
-
+        public event RequestTerrain OnRequestTerrain;
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
 
         public event FriendActionDelegate OnApproveFriendRequest;
@@ -695,6 +695,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
 
         public void SendXferRequest(ulong XferID, short AssetType, UUID vFileID, byte FilePath, byte[] FileName)
+        {
+        }
+
+        public void SendInitiateDownload(string simFileName, string clientFileName)
         {
         }
 

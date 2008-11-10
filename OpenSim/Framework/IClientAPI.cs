@@ -340,6 +340,8 @@ namespace OpenSim.Framework
 
     public delegate void EstateChangeInfo(IClientAPI client, UUID invoice, UUID senderID, UInt32 param1, UInt32 param2);
 
+    public delegate void RequestTerrain(IClientAPI remoteClient, string clientFileName);
+
     public delegate void BakeTerrain(IClientAPI remoteClient);
 
     public delegate void EstateRestartSimRequest(IClientAPI remoteClient, int secondsTilReboot);
@@ -651,6 +653,8 @@ namespace OpenSim.Framework
         event ObjectBuy OnObjectBuy;
         event BuyObjectInventory OnBuyObjectInventory;
 
+        event RequestTerrain OnRequestTerrain;
+
         event ObjectIncludeInSearch OnObjectIncludeInSearch;
 
         event UUIDNameRequest OnTeleportHomeRequest;
@@ -905,6 +909,8 @@ namespace OpenSim.Framework
         void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID);
         void SendConfirmXfer(ulong xferID, uint PacketID);
         void SendXferRequest(ulong XferID, short AssetType, UUID vFileID, byte FilePath, byte[] FileName);
+
+        void SendInitiateDownload(string simFileName, string clientFileName);
 
         /// <summary>
         /// Send the first part of a texture.  For sufficiently small textures, this may be the only packet.

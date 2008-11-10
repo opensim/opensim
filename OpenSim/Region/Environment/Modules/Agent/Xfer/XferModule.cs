@@ -105,6 +105,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
         /// <param name="fileName"></param>
         public void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName)
         {
+            
             lock (NewFiles)
             {
                 if (NewFiles.ContainsKey(fileName))
