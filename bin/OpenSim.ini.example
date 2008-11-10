@@ -392,6 +392,12 @@ access_password = unknown
 
 region_file_template = "{0}x{1}-{2}.xml"
 
+; we can limit the number of regions that XmlRpcCreateRegion will
+;allow by setting this to a positive, non-0 number: as long as the
+;number of regions is below region_limits, XmlRpcCreateRegion will
+;succeed. setting region_limits to 0 disables the check.
+;region_limits = 0
+
 [RestPlugins]
 ; Change this to true to enable REST Plugins. This must be true if you wish to use
 ; REST Region or REST Asset and Inventory Plugins
@@ -471,7 +477,6 @@ msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
 ; work-in-progress IRCBridge capabable of supporting multiple IRC channels
 ; [XIRC]
 ; enabled = false
-
 
 ; Uncomment the following for experiment in world versioning
 ; support.  This is so experimental at this point that I'm not going

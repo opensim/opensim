@@ -378,6 +378,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
+            int m_regionLimit = m_config.GetInt("region_limit", 0);
+
             try {
                 Hashtable requestData = (Hashtable) request.Params[0];
 
@@ -391,6 +393,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 // check password
                 if (!String.IsNullOrEmpty(requiredPassword) &&
                     (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                // check whether we still have space left (iff we are using limits)
+                if (m_regionLimit != 0 && m_app.SceneManager.Scenes.Count >= m_regionLimit)
+                    throw new Exception(String.Format("cannot instantiate new region, server capacity {0} already reached; delete regions first", m_regionLimit));
+
 
                 // extract or generate region ID now
                 Scene scene = null;
