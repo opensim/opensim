@@ -55,19 +55,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             catch
             {
                 // I don't care, just leave log4net off
-            }            
-        }
-        
-        static public Random random;
-        SceneObjectGroup found;
-        Scene scene;
-
-        /// <summary>
-        /// Test adding an object to a scene.  Doesn't yet do what it says on the tin.
-        /// </summary>
-        [Test]
-        public void T001_TestAddSceneObject()
-        {               
+            }
+            
             RegionInfo regInfo = new RegionInfo(1000, 1000, null, null);
             regInfo.RegionName = "Unit test region";
             AgentCircuitManager acm = new AgentCircuitManager();
@@ -79,24 +68,12 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             IConfigSource configSource = new IniConfigSource();
             
             scene 
-                = new Scene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);
-            
-            SceneObjectGroup sceneObject = new SceneObjectGroup();
-            SceneObjectPart part 
-                = new SceneObjectPart(UUID.Random(), PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
-            //part.UpdatePrimFlags(false, false, true);
-            part.ObjectFlags |= (uint)PrimFlags.Phantom;
-            
-            sceneObject.SetRootPart(part);
-            
-            scene.AddNewSceneObject(sceneObject, false);
-            
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-            
-            //System.Console.WriteLine("retrievedPart : {0}", retrievedPart);
-            // If the parts have the same UUID then we will consider them as one and the same
-            Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));
+                = new Scene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);            
         }
+        
+        static public Random random;
+        SceneObjectGroup found;
+        Scene scene;
 
         [Test]
         public void T010_AddObjects()
@@ -181,8 +158,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         {
             EntityList entlist = new EntityList();
             UUID id = UUID.Random();
-            int exceptions = 0;
-            Dictionary<UUID, uint> dict = new Dictionary<UUID,uint>();
+            //int exceptions = 0;
+            //Dictionary<UUID, uint> dict = new Dictionary<UUID,uint>();
             List<Thread> trdlist = new List<Thread>();
             SceneObjectGroup sog = NewSOG(id);
             uint lid = sog.LocalId;
