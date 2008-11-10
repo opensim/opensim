@@ -828,6 +828,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             HasGroupChanged = true;
             RootPart.Rezzed = DateTime.Now;
+            RootPart.RemFlag(PrimFlags.TemporaryOnRez);
             AttachToBackup();
             m_scene.EventManager.TriggerParcelPrimCountTainted();
             m_rootPart.ScheduleFullUpdate();
