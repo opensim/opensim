@@ -365,13 +365,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public SceneObjectGroup(SceneObjectPart part)
         {
-            part.SetParent(this);
-            part.ParentID = 0;
-            part.LinkNum = 0;
-
-            m_parts.Add(part.UUID, part);
-
-            SetPartAsRoot(part);
+            SetRootPart(part);
         }
 
         /// <summary>
@@ -506,11 +500,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public SceneObjectGroup(UUID ownerID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
         {
-            Vector3 rootOffset = new Vector3(0, 0, 0);
-            SceneObjectPart newPart = new SceneObjectPart(ownerID, shape, pos, rot, rootOffset);
-            newPart.LinkNum = 0;
-            AddPart(newPart);
-            SetPartAsRoot(newPart);
+            Vector3 rootOffset = new Vector3(0, 0, 0);   
+            SetRootPart(new SceneObjectPart(ownerID, shape, pos, rot, rootOffset));
         }
 
         /// <summary>
@@ -735,15 +726,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
-        /// </summary>
-        /// <param name="part"></param>
-        private void SetPartAsRoot(SceneObjectPart part)
-        {
-            m_rootPart = part;
-        }
-
-        /// <summary>
         /// Attach this scene object to the given avatar.
         /// </summary>
         /// <param name="agentID"></param>
@@ -890,9 +872,22 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_scene = scene;
         }
+        
+        /// <summary>
+        /// Set a part to act as the root part for this scene object
+        /// </summary>
+        /// <param name="part"></param>
+        private void SetRootPart(SceneObjectPart part)
+        {            
+            part.SetParent(this);
+            part.ParentID = 0;
+            part.LinkNum = 0;           
+            m_rootPart = part;
+            m_parts.Add(m_rootPart.UUID, m_rootPart);
+        }        
 
         /// <summary>
-        /// Add a new part to this scene object
+        /// Add a new part to this scene object.  The part must already be correctly configured.
         /// </summary>
         /// <param name="part"></param>
         public void AddPart(SceneObjectPart part)
@@ -1394,15 +1389,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="cGroupID"></param>
         public void CopyRootPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
-            SceneObjectPart newPart = part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, m_parts.Count, userExposed);
-            newPart.SetParent(this);
-
-            lock (m_parts)
-            {
-                m_parts.Add(newPart.UUID, newPart);
-            }
-
-            SetPartAsRoot(newPart);
+            SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, m_parts.Count, userExposed));
         }
 
         public void ScriptSetPhysicsStatus(bool UsePhysics)
