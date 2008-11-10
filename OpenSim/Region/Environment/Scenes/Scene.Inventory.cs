@@ -2356,9 +2356,9 @@ namespace OpenSim.Region.Environment.Scenes
             return att.UUID;
         }
 
-        public void AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos)
+        public void AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos, bool silent)
         {
-            m_innerScene.AttachObject(controllingClient, localID, attachPoint, rot, pos, false);
+            m_innerScene.AttachObject(controllingClient, localID, attachPoint, rot, pos, silent);
         }
 
         public void AttachObject(IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)

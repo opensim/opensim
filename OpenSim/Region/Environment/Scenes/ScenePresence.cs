@@ -646,7 +646,8 @@ namespace OpenSim.Region.Environment.Scenes
                     // We deal with the possibility that two updates occur at
                     // the same unix time at the update point itself.
 
-                    if (update.LastFullUpdateTime < part.TimeStampFull)
+                    if ((update.LastFullUpdateTime < part.TimeStampFull) ||
+                            part.IsAttachment)
                     {
 //                            m_log.DebugFormat(
 //                                "[SCENE PRESENCE]: Fully   updating prim {0}, {1} - part timestamp {2}",
@@ -693,6 +694,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (part != part.ParentGroup.RootPart)
                             continue;
 
+                        System.Threading.Thread.Sleep(1000);
                         part.ParentGroup.SendFullUpdateToClient(ControllingClient);
                         continue;
                     }
@@ -3184,7 +3186,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     // Attach from world, if not already attached
                     if (att.ParentGroup != null && !att.IsAttachment)
-                        m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, (uint)0, att.ParentGroup.GroupRotation, Vector3.Zero);
+                        m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, (uint)0, att.ParentGroup.GroupRotation, Vector3.Zero, false);
                 }
                 catch (NullReferenceException)
                 {

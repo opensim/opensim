@@ -1575,6 +1575,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             lock (m_parts)
             {
+                bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
+
                 //if (IsAttachment)
                 //{
                     //foreach (SceneObjectPart part in m_parts.Values)
@@ -1584,7 +1586,7 @@ namespace OpenSim.Region.Environment.Scenes
                     //return;
                 //}
 
-                if (Util.GetDistanceTo(lastPhysGroupPos, AbsolutePosition) > 0.02)
+                if ((Util.GetDistanceTo(lastPhysGroupPos, AbsolutePosition) > 0.02) && UsePhysics)
                 {
                     m_rootPart.UpdateFlag = 1;
                     lastPhysGroupPos = AbsolutePosition;
@@ -1596,10 +1598,11 @@ namespace OpenSim.Region.Environment.Scenes
 
                 checkAtTargets();
 
-                if ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
+                if (((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.Y - GroupRotation.Y) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.Z - GroupRotation.Z) > 0.1))
+                    && UsePhysics)
                 {
                     m_rootPart.UpdateFlag = 1;
 

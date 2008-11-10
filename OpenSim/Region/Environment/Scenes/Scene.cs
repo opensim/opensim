@@ -2042,6 +2042,7 @@ namespace OpenSim.Region.Environment.Scenes
         public bool CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp, bool silent)
         {
             bool successYN = false;
+            grp.RootPart.UpdateFlag = 0;
             int primcrossingXMLmethod = 0;
 
             if (newRegionHandle != 0)
@@ -2139,7 +2140,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                                     grp.SetFromAssetID(grp.RootPart.LastOwnerID);
                                     m_log.DebugFormat("[ATTACHMENT]: Attach to avatar {0}", sp.UUID.ToString());
-                                    AttachObject(sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition);
+                                    AttachObject(sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false);
                                 }
                                 else
                                 {
