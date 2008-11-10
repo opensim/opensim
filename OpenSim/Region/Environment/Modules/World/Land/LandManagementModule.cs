@@ -623,34 +623,27 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void FinalizeLandPrimCountUpdate()
         {
-            m_log.Debug("Called FinalizeLandPrimCountUpdate start");
             //Get Simwide prim count for owner
             Dictionary<UUID, List<LandObject>> landOwnersAndParcels = new Dictionary<UUID, List<LandObject>>();
             lock (m_landList)
             {
-                m_log.DebugFormat("[LAND]: Got {0} parcels", m_landList.Count);
                 foreach (LandObject p in m_landList.Values)
                 {
-                    m_log.DebugFormat("processing land {0}", p.GetHashCode());
                     if (!landOwnersAndParcels.ContainsKey(p.landData.OwnerID))
                     {
-                        m_log.DebugFormat("adding new owner {0} to landlist", p.landData.OwnerID);
                         List<LandObject> tempList = new List<LandObject>();
                         tempList.Add(p);
                         landOwnersAndParcels.Add(p.landData.OwnerID, tempList);
                     }
                     else
                     {
-                        m_log.DebugFormat("adding to owner {0}", p.landData.OwnerID);
                         landOwnersAndParcels[p.landData.OwnerID].Add(p);
                     }
                 }
             }
 
-            m_log.DebugFormat("got {0} owners of land", landOwnersAndParcels.Count); 
             foreach (UUID owner in landOwnersAndParcels.Keys)
             {
-                m_log.DebugFormat("processing owner {0}", owner);
                 int simArea = 0;
                 int simPrims = 0;
                 foreach (LandObject p in landOwnersAndParcels[owner])
@@ -658,23 +651,18 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     simArea += p.landData.Area;
                     simPrims += p.landData.OwnerPrims + p.landData.OtherPrims + p.landData.GroupPrims +
                                 p.landData.SelectedPrims;
-                    m_log.DebugFormat("added {0} m² of land, total {1}", p.landData.Area, simArea);
                 }
 
-                m_log.DebugFormat("setting total area of {0} to {1} for {2} parcels", owner, simArea, landOwnersAndParcels[owner].Count);
                 foreach (LandObject p in landOwnersAndParcels[owner])
                 {
-                    m_log.DebugFormat("... in land {0}", p.GetHashCode());
                     p.landData.SimwideArea = simArea;
                     p.landData.SimwidePrims = simPrims;
                 }
             }
-            m_log.Debug("Called FinalizeLandPrimCountUpdate end");
         }
 
         public void UpdateLandPrimCounts()
         {
-            m_log.Debug("Called UpdateLandPrimCounts");
             ResetAllLandPrimCounts();
             lock (m_scene.Entities)
             {
@@ -695,7 +683,6 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void PerformParcelPrimCountUpdate()
         {
-            m_log.Debug("Called PerformParcelPrimCountUpdate");
             ResetAllLandPrimCounts();
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
             FinalizeLandPrimCountUpdate();
