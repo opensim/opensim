@@ -694,7 +694,6 @@ namespace OpenSim.Region.Environment.Scenes
                         if (part != part.ParentGroup.RootPart)
                             continue;
 
-                        System.Threading.Thread.Sleep(1000);
                         part.ParentGroup.SendFullUpdateToClient(ControllingClient);
                         continue;
                     }
