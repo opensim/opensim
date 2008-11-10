@@ -74,6 +74,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected AsyncCommandManager AsyncCommands = null;
         protected float m_ScriptDelayFactor = 1.0f;
         protected float m_ScriptDistanceFactor = 1.0f;
+        protected float m_MinTimerInterval = 0.5f;
 
         private DateTime m_timer = DateTime.Now;
         private bool m_waitingForScriptAnswer=false;
@@ -91,6 +92,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
             m_ScriptDistanceFactor =
                     m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
+            m_MinTimerInterval =
+                    m_ScriptEngine.Config.GetFloat("MinTimerInterval", 0.5f);
 
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
@@ -2464,6 +2467,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetTimerEvent(double sec)
         {
+            if (sec < m_MinTimerInterval)
+                sec = m_MinTimerInterval;
             m_host.AddScriptLPS(1);
             // Setting timer repeat
             AsyncCommands.TimerPlugin.SetTimerEvent(m_localID, m_itemID, sec);
