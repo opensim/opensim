@@ -454,11 +454,7 @@ namespace OpenSim.Region.Environment.Scenes
             reader.Read();
 
             reader.ReadStartElement("SceneObjectGroup");
-            m_rootPart = SceneObjectPart.FromXml(reader);
-            m_rootPart.SetParent(this);
-            m_parts.Add(m_rootPart.UUID, m_rootPart);
-            m_rootPart.ParentID = 0;
-            m_rootPart.LinkNum = 0;
+            SetRootPart(SceneObjectPart.FromXml(reader));
 
             reader.Read();
             bool more = true;
@@ -470,12 +466,9 @@ namespace OpenSim.Region.Environment.Scenes
                     case XmlNodeType.Element:
                         if (reader.Name == "SceneObjectPart")
                         {
-                            SceneObjectPart Part = SceneObjectPart.FromXml(reader);
-                            if (m_rootPart.LinkNum == 0)
-                                m_rootPart.LinkNum++;
-                            AddPart(Part);
-                            Part.LinkNum = m_parts.Count;
-                            Part.StoreUndoState();
+                            SceneObjectPart part = SceneObjectPart.FromXml(reader);
+                            AddPart(part);
+                            part.StoreUndoState();
                         }
                         else
                         {

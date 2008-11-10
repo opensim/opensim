@@ -2414,8 +2414,6 @@ if (m_shape != null) {
                             }
                         }
 
-
-
                         if (m_parentGroup.GetSceneMaxUndo() > 0)
                         {
                             UndoState nUndo = new UndoState(this);
