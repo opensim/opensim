@@ -109,7 +109,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Compilers
 
             CompilerParameters parameters = new CompilerParameters();
             parameters.IncludeDebugInformation = true;
-            string rootPath = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
+            //string rootPath = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
 
             foreach (string file in AppDomainAssemblies)
             {

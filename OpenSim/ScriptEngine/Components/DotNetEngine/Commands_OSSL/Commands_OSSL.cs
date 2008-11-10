@@ -34,10 +34,10 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Commands_OSSL
 {
     public class Commands_OSSL : IScriptEngineComponent
     {
-        private RegionInfoStructure CurrentRegion;
+        //private RegionInfoStructure CurrentRegion;
         public void Initialize(RegionInfoStructure currentRegion)
         {
-            CurrentRegion = currentRegion;
+            //CurrentRegion = currentRegion;
         }
 
     }

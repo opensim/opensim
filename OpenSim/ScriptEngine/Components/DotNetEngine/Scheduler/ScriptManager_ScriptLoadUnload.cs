@@ -142,10 +142,10 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
                 return;
             }
 
-            UUID assetID = UUID.Zero;
+            //UUID assetID = UUID.Zero;
             TaskInventoryItem taskInventoryItem = new TaskInventoryItem();
-            if (m_host.TaskInventory.TryGetValue(ScriptObject.Script.ItemID, out taskInventoryItem))
-                assetID = taskInventoryItem.AssetID;
+            //if (m_host.TaskInventory.TryGetValue(ScriptObject.Script.ItemID, out taskInventoryItem))
+            //    assetID = taskInventoryItem.AssetID;
 
             ScenePresence presence =
                     ScriptObject.Script.RegionInfo.Scene.GetScenePresence(taskInventoryItem.OwnerID);
@@ -168,7 +168,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
                 {
                     IScriptCompiler compiler =
                         ScriptObject.Script.RegionInfo.FindCompiler(ScriptObject.Script.ScriptMetaData);
-                    RegionInfoStructure currentRegionInfo = ScriptObject.Script.RegionInfo;
+                    //RegionInfoStructure currentRegionInfo = ScriptObject.Script.RegionInfo;
                     fileName = compiler.Compile(ScriptObject.Script.ScriptMetaData, 
                                                 ref ScriptObject.Script.Source);
                     ScriptObject.Script.AssemblyFileName = fileName;
@@ -263,7 +263,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
                 // Tell script not to accept new requests
                 ss.Running = false;
                 ss.Disabled = true;
-                AppDomain ad = ss.AppDomain;
+                //AppDomain ad = ss.AppDomain;
 
                 // Remove from internal structure
                 MemRemoveScript(localID, itemID);

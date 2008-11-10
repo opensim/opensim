@@ -65,10 +65,11 @@ namespace OpenSim.ApplicationPlugins.ScriptEngine
                 {
                     componentAssembly = Assembly.LoadFrom(file);
                 }
-                catch (Exception e)
+                catch
                 {
                     m_log.ErrorFormat("[{0}] Error loading: \"{1}\".", Name, file);
                 }
+                
                 if (componentAssembly != null)
                 {
                     try

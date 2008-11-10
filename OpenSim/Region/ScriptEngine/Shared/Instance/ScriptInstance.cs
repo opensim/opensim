@@ -871,7 +871,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             Stop(100);
             Running = run;
             return ScriptSerializer.Serialize(this);
-            Running = false;
         }
     }
 }

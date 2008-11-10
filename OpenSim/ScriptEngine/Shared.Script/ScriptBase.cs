@@ -55,7 +55,7 @@ namespace ScriptAssemblies
         public delegate void ExecuteFunctionEventDelegate(string functionName, params object[] args);
         public event ExecuteFunctionEventDelegate OnExecuteFunction;
 
-        private List<ICommandProvider> CommandProviders = new List<ICommandProvider>();
+        //private List<ICommandProvider> CommandProviders = new List<ICommandProvider>();
 
         public ScriptBase()
         {

@@ -60,7 +60,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
             TypeBuilder classBuilder = modBuilder.DefineType(ClassID, TypeAttributes.Class | TypeAttributes.Public);
 
             // The default constructor
-            ConstructorBuilder ctorBuilder = classBuilder.DefineDefaultConstructor(MethodAttributes.Public);
+            //ConstructorBuilder ctorBuilder = classBuilder.DefineDefaultConstructor(MethodAttributes.Public);
 
 
             Type[] paramsTypeArray = new Type[] {typeof (System.ParamArrayAttribute)};
@@ -81,9 +81,9 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
                     //ilgen.Emit(OpCodes.Ldelem_Ref);
                     //ilgen.MarkSequencePoint(doc, 6, 1, 6, 100);
 
-                        MethodInfo ExecuteFunction = typeof(ScriptAssemblies.IScript).GetMethod(
-                         "ExecuteFunction",
-                         executeFunctionTypeArray);
+                        //MethodInfo ExecuteFunction = typeof(ScriptAssemblies.IScript).GetMethod(
+                        // "ExecuteFunction",
+                        // executeFunctionTypeArray);
 
                         ilgen.DeclareLocal(typeof(string));
                         ilgen.Emit(OpCodes.Nop);
@@ -234,7 +234,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
                 File.Delete(toFile);
             File.Move(asmFileName, toFile);
 
-            string a = "";
+            //string a = "";
         }
     }
 }
