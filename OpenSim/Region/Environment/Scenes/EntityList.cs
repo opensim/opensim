@@ -130,7 +130,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public SceneObjectGroup FindObject(int local)
+        public SceneObjectGroup FindObject(uint local)
         {
             try
             {
