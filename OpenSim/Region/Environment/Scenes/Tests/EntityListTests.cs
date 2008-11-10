@@ -87,7 +87,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             //part.UpdatePrimFlags(false, false, true);
             part.ObjectFlags |= (uint)PrimFlags.Phantom;
             
-            sceneObject.AddPart(part);
+            sceneObject.SetRootPart(part);
             
             scene.AddNewSceneObject(sceneObject, false);
             
@@ -224,7 +224,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             sop.TouchName = RandomName();
             sop.ObjectFlags |= (uint)PrimFlags.Phantom;
             
-            sog.AddPart(sop);
+            sog.SetRootPart(sop);
 
             scene.AddNewSceneObject(sog, false);
             
@@ -243,7 +243,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             sop.TouchName = RandomName();
             sop.ObjectFlags |= (uint)PrimFlags.Phantom;
             
-            sog.AddPart(sop);
+            sog.SetRootPart(sop);
 
             scene.AddNewSceneObject(sog, false);
             
