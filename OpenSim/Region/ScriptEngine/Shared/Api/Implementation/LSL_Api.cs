@@ -3492,6 +3492,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             UUID avatar = (UUID)id;
             ScenePresence presence = World.GetScenePresence(avatar);
+            if (presence == null)
+                return "";
+
             if (m_host.RegionHandle == presence.RegionHandle)
             {
                 Dictionary<UUID, string> animationstateNames = AnimationSet.Animations.AnimStateNames;
