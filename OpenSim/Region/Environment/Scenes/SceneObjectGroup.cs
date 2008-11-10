@@ -897,15 +897,7 @@ namespace OpenSim.Region.Environment.Scenes
             lock (m_parts)
             {
                 part.SetParent(this);
-
-                try
-                {
-                    m_parts.Add(part.UUID, part);
-                }
-                catch (Exception e)
-                {
-                    m_log.Error("Failed to add scene object part", e);
-                }
+                m_parts.Add(part.UUID, part);
 
                 part.LinkNum = m_parts.Count;
 

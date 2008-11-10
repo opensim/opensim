@@ -56,7 +56,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         }
         
         /// <summary>
-        /// Test adding an object to a scene.  Doesn't yet do what it says on the tin.
+        /// Test adding an object to a scene.
         /// </summary>
         [Test]        
         public void TestAddSceneObject()
