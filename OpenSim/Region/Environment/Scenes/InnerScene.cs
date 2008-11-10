@@ -784,10 +784,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>null if no scene object group containing that prim is found</returns>
         private SceneObjectGroup GetGroupByPrim(uint localID)
         {
+            //m_log.DebugFormat("Entered GetGroupByPrim with localID {0}", localID);
             List<EntityBase> EntityList = GetEntities();
-
             foreach (EntityBase ent in EntityList)
             {
+                //m_log.DebugFormat("Looking at entity {0}", ent.UUID);
                 if (ent is SceneObjectGroup)
                 {
                     if (((SceneObjectGroup)ent).HasChildPrim(localID))
@@ -891,6 +892,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected internal SceneObjectPart GetSceneObjectPart(UUID fullID)
         {
             SceneObjectGroup group = GetGroupByPrim(fullID);
+            
             if (group != null)
                 return group.GetChildPart(fullID);
             else

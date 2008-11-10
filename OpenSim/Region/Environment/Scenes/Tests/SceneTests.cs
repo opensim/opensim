@@ -28,6 +28,7 @@
 using System;
 using Nini.Config;
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
@@ -74,9 +75,21 @@ namespace OpenSim.Region.Environment.Scenes.Tests
                 = new Scene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);
             
             SceneObjectGroup sceneObject = new SceneObjectGroup();
-            new SceneObjectPart(sceneObject, UUID.Zero, null, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
+            SceneObjectPart part 
+                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
+            //part.UpdatePrimFlags(false, false, true);           
+            part.ObjectFlags |= (uint)PrimFlags.Phantom;
+            
+            sceneObject.RootPart = part;
+            sceneObject.AddPart(part);
             
             scene.AddNewSceneObject(sceneObject, false);
+            
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+            
+            //System.Console.WriteLine("retrievedPart : {0}", retrievedPart);
+            // If the parts have the same UUID then we will consider them as one and the same
+            Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));         
         }
     }
 }

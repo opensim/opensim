@@ -164,7 +164,7 @@ namespace OpenSim.Region.Environment.Scenes
         private Thread HeartbeatThread;
         private volatile bool shuttingdown = false;
 
-	private object m_deleting_scene_object = new object();
+        private object m_deleting_scene_object = new object();
 
         #endregion
 
@@ -4009,7 +4009,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Get a prim via its local id
         /// </summary>
         /// <param name="localID"></param>
         /// <returns></returns>
@@ -4019,7 +4019,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Get a prim via its UUID
         /// </summary>
         /// <param name="fullID"></param>
         /// <returns></returns>

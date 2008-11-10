@@ -216,28 +216,19 @@ namespace OpenSim.Region.Environment.Scenes
             Rezzed = DateTime.Now;
         }
 
-        public SceneObjectPart(SceneObjectGroup parent, UUID ownerID,
-            PrimitiveBaseShape shape, Vector3 groupPosition, Vector3 offsetPosition)
-            : this(parent, ownerID, shape, groupPosition, Quaternion.Identity, offsetPosition)
-        {
-        }
-
         /// <summary>
-        /// Create a completely new SceneObjectPart (prim)
+        /// Create a completely new SceneObjectPart (prim).  This will need to be added separately to a SceneObjectGroup
         /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="parent"></param>
         /// <param name="ownerID"></param>
         /// <param name="shape"></param>
         /// <param name="position"></param>
         /// <param name="rotationOffset"></param>
         /// <param name="offsetPosition"></param>
         public SceneObjectPart(
-            SceneObjectGroup parent, UUID ownerID, PrimitiveBaseShape shape, Vector3 groupPosition, 
+            UUID ownerID, PrimitiveBaseShape shape, Vector3 groupPosition, 
             Quaternion rotationOffset, Vector3 offsetPosition)
         {
             m_name = "Primitive";
-            m_parentGroup = parent;
 
             Rezzed = DateTime.Now;
             _creationDate = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
@@ -271,49 +262,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             TrimPermissions();
             //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
-        }
-
-        /// <summary>
-        /// Re/create a SceneObjectPart (prim)
-        /// currently not used, and maybe won't be
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="parent"></param>
-        /// <param name="ownerID"></param>
-        /// <param name="localID"></param>
-        /// <param name="shape"></param>
-        /// <param name="position"></param>
-        public SceneObjectPart(SceneObjectGroup parent, int creationDate, UUID ownerID,
-            UUID creatorID, UUID lastOwnerID, PrimitiveBaseShape shape,
-            Vector3 position, Quaternion rotation, uint flags)
-        {
-            m_parentGroup = parent;
-            TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
-            _creationDate = creationDate;
-            _ownerID = ownerID;
-            _creatorID = creatorID;
-            _lastOwnerID = lastOwnerID;
-            UUID = UUID.Random();
-            Shape = shape;
-            _ownershipCost = 0;
-            _objectSaleType = (byte) 0;
-            _salePrice = 0;
-            _category = (uint) 0;
-            _lastOwnerID = _creatorID;
-            OffsetPosition = position;
-            RotationOffset = rotation;
-            ObjectFlags = flags;
-
-            Rezzed = DateTime.Now;
-
-            m_TextureAnimation = new byte[0];
-            m_particleSystem = new byte[0];
-            // Since we don't store script state, this is only a 'temporary' objectflag now
-            // If the object is scripted, the script will get loaded and this will be set again
-            ObjectFlags &= ~(uint)(PrimFlags.Scripted | PrimFlags.Touch);
-
-            TrimPermissions();
-            // ApplyPhysics();
         }
 
         protected SceneObjectPart(SerializationInfo info, StreamingContext context)
@@ -3056,7 +3004,6 @@ if (m_shape != null) {
 
         public void UpdatePrimFlags(bool UsePhysics, bool IsTemporary, bool IsPhantom)
         {
-
             bool wasUsingPhysics = ((ObjectFlags & (uint) PrimFlags.Physics) != 0);
             bool wasTemporary = ((ObjectFlags & (uint)PrimFlags.TemporaryOnRez) != 0);
             bool wasPhantom = ((ObjectFlags & (uint)PrimFlags.Phantom) != 0);

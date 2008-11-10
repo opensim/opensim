@@ -507,9 +507,9 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectGroup(UUID ownerID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
         {
             Vector3 rootOffset = new Vector3(0, 0, 0);
-            SceneObjectPart newPart = new SceneObjectPart(this, ownerID, shape, pos, rot, rootOffset);
+            SceneObjectPart newPart = new SceneObjectPart(ownerID, shape, pos, rot, rootOffset);
             newPart.LinkNum = 0;
-            m_parts.Add(newPart.UUID, newPart);
+            AddPart(newPart);
             SetPartAsRoot(newPart);
         }
 
@@ -904,7 +904,6 @@ namespace OpenSim.Region.Environment.Scenes
                 try
                 {
                     m_parts.Add(part.UUID, part);
-
                 }
                 catch (Exception e)
                 {
@@ -1757,10 +1756,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>null if a child part with the local ID was not found</returns>
         public SceneObjectPart GetChildPart(uint localID)
         {
+            //m_log.DebugFormat("Entered looking for {0}", localID);
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
+                    //m_log.DebugFormat("Found {0}", part.LocalId);
                     if (part.LocalId == localID)
                     {
                         return part;
@@ -1795,10 +1796,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public bool HasChildPrim(uint localID)
         {
+            //m_log.DebugFormat("Entered HasChildPrim looking for {0}", localID);
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
+                    //m_log.DebugFormat("Found {0}", part.LocalId);
                     if (part.LocalId == localID)
                     {
                         return true;
