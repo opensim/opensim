@@ -55,7 +55,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     }
     public class OdeCharacter : PhysicsActor
     {
-        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private PhysicsVector _position;
         private d.Vector3 _zeroPosition;
@@ -145,7 +145,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_colliderarr[i] = false;
             }
-            CAPSULE_LENGTH = (size.Z - ((size.Z * height_fudge_factor)));
+            CAPSULE_LENGTH = (size.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
+            //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
 
             lock (_parent_scene.OdeLock)
             {
@@ -395,7 +396,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // float capsuleradius = CAPSULE_RADIUS;
                     //capsuleradius = 0.2f;
 
-                    CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z * heightFudgeFactor))); // subtract 43% of the size
+                    CAPSULE_LENGTH = (SetSize.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
                     //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
                     d.BodyDestroy(Body);
 

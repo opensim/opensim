@@ -267,22 +267,15 @@ namespace OpenSim.Framework
         {
             Primitive.TextureEntry textureEnt = new Primitive.TextureEntry(texture, 0, texture.Length);
             m_texture = textureEnt;
-            
-//            m_log.DebugFormat("[APPEARANCE]: Setting an avatar appearance with {0} faces", m_texture.FaceTextures.Length);
-//            for (int i = 0; i < m_texture.FaceTextures.Length; i++)
-//            {
-//                Primitive.TextureEntryFace face = m_texture.FaceTextures[i];  
-//                String textureIdString = (face != null ? face.TextureID.ToString() : "none");
-//                m_log.DebugFormat("[APPEARANCE]: Texture {0} is {1}", i, textureIdString);
-//            }
-            
             m_visualparams = visualParam.ToArray();
+            m_avatarHeight = 1.23077f  // Shortest possible avatar height
+                           + 0.516945f * (float)m_visualparams[25] / 255.0f   // Body height
+                           + 0.072514f * (float)m_visualparams[120] / 255.0f  // Head size
+                           + 0.3836f * (float)m_visualparams[125] / 255.0f    // Leg length
+                           + 0.08f * (float)m_visualparams[77] / 255.0f    // Shoe heel height
+                           + 0.07f * (float)m_visualparams[78] / 255.0f    // Shoe platform height
+                           + 0.076f * (float)m_visualparams[148] / 255.0f;    // Neck length
 
-            // Teravus : Nifty AV Height Getting Maaaaagical formula.  Oh how we love turning 0-255 into meters.
-            // (float)m_visualParams[25] = Height
-            // (float)m_visualParams[125] = LegLength
-            m_avatarHeight = (1.50856f + (((float) m_visualparams[25]/255.0f)*(2.525506f - 1.50856f)))
-                + (((float) m_visualparams[125]/255.0f)/1.5f);
         }
 
         public virtual void SetWearable(int wearableId, AvatarWearable wearable)
