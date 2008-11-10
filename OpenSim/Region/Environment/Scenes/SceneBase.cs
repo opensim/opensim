@@ -80,6 +80,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_eventManager; }
         }
 
+
         protected SceneExternalChecks m_externalChecks;
         public SceneExternalChecks ExternalChecks
         {
@@ -87,6 +88,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         protected string m_datastore;
+
+        private uint m_nextAvatarLocalId = 8880000;
 
         private AssetCache m_assetCache;
 
@@ -159,6 +162,11 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual RegionInfo RegionInfo
         {
             get { return m_regInfo; }
+        }
+
+        public uint NextAvatarLocalId
+        {
+            get { return m_nextAvatarLocalId++; }
         }
 
         #region admin stuff
