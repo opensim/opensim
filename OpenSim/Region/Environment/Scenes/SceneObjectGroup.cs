@@ -398,10 +398,7 @@ namespace OpenSim.Region.Environment.Scenes
                 reader.Read();
                 reader.ReadStartElement("SceneObjectGroup");
                 reader.ReadStartElement("RootPart");
-                m_rootPart = SceneObjectPart.FromXml(reader);
-                int linkNum = m_rootPart.LinkNum;
-                AddPart(m_rootPart);
-                m_rootPart.LinkNum = linkNum;
+                SetRootPart(SceneObjectPart.FromXml(reader));
 
                 reader.ReadEndElement();
 
@@ -414,7 +411,9 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 reader.Read();
                                 SceneObjectPart part = SceneObjectPart.FromXml(reader);
-                                linkNum = part.LinkNum;
+                            
+                                // We reset the link number in order to make sure that the persisted linkset order is 
+                                int linkNum = part.LinkNum;
                                 AddPart(part);
                                 part.LinkNum = linkNum;
 
@@ -428,11 +427,9 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            catch (XmlException)
+            catch (XmlException e)
             {
-                m_log.ErrorFormat("[SCENE OBJECT GROUP]: Deserialization of following xml failed, {0}", xmlData);
-
-                // Let's see if carrying on does anything for us
+                m_log.ErrorFormat("[SCENE]: Deserialization of xml failed with {0}.  xml was {1}", e, xmlData);
             }
 
             reader.Close();
@@ -885,6 +882,9 @@ namespace OpenSim.Region.Environment.Scenes
             part.ParentID = 0;
             part.LinkNum = 0;           
             m_rootPart = part;
+            
+            // No locking required since the SOG should not be in the scene yet - one can't change root parts after
+            // the scene object has been attached to the scene
             m_parts.Add(m_rootPart.UUID, m_rootPart);
         }        
 
@@ -1460,6 +1460,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Set the owner of the root part.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="cAgentID"></param>
+        /// <param name="cGroupID"></param>
         public void SetRootPartOwner(SceneObjectPart part, UUID cAgentID, UUID cGroupID)
         {
             part.LastOwnerID = part.OwnerID;
