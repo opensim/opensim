@@ -81,6 +81,7 @@ namespace OpenSim.Region.Environment.Scenes
         public bool m_physicalPrim;
         public float m_maxNonphys = 65536;
         public float m_maxPhys = 10;
+        public bool m_clampPrimSize = false;
 
         public bool m_seeIntoRegionFromNeighbor;
         public int MaxUndoCount = 5;
@@ -326,6 +327,7 @@ namespace OpenSim.Region.Environment.Scenes
                 IConfig startupConfig = m_config.Configs["Startup"];
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", 65536.0f);
                 m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
+                m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", false);
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "DotNetEngine");
             }

@@ -37,6 +37,7 @@ TextureOnMapTile = false
 ; Maximum total size, and maximum size where a prim can be physical
 NonPhysicalPrimMax = 256
 PhysicalPrimMax = 10
+ClampPrimSize = false
 
 ; ##
 ; ## STORAGE
