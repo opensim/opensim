@@ -245,15 +245,13 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Synchronously retreive an asset.  If the asset isn't in the cache, a request will be made to the persistent store to
         /// load it into the cache.
+        /// </summary>
         ///
         /// XXX We'll keep polling the cache until we get the asset or we exceed
         /// the allowed number of polls.  This isn't a very good way of doing things since a single thread
         /// is processing inbound packets, so if the asset server is slow, we could block this for up to
-        /// the timeout period.  What we might want to do is register asynchronous callbacks on asset
-        /// receipt in the same manner as the TextureDownloadModule.  Of course,
-        /// a timeout before asset receipt usually isn't fatal, the operation will work on the retry when the
-        /// asset is much more likely to have made it into the cache.
-        /// </summary>
+        /// the timeout period.  Whereever possible we want to use the asynchronous callback GetAsset()
+        ///  
         /// <param name="assetID"></param>
         /// <param name="isTexture"></param>
         /// <returns>null if the asset could not be retrieved</returns>
@@ -270,6 +268,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 return asset;
             }
+            
             m_assetServer.RequestAsset(assetID, isTexture);
 
             do
@@ -280,7 +279,8 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     return asset;
                 }
-            } while (--maxPolls > 0);
+            } 
+            while (--maxPolls > 0);
 
             m_log.WarnFormat("[ASSET CACHE]: {0} {1} was not received before the retrieval timeout was reached",
                              isTexture ? "texture" : "asset", assetID.ToString());
@@ -400,6 +400,9 @@ namespace OpenSim.Framework.Communications.Cache
         {
 //            m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
 
+            // Remember the fact that this asset could not be found to prevent delays from repeated requests
+            m_memcache.Add(assetID, null, TimeSpan.FromHours(24));
+                
             // Notify requesters for this asset
             AssetRequestsList reqList;
             lock (RequestLists)
