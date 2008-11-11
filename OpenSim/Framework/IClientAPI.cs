@@ -781,7 +781,7 @@ namespace OpenSim.Framework
 
         void SendCoarseLocationUpdate(List<Vector3> CoarseLocations);
 
-        void AttachObject(uint localID, Quaternion rotation, byte attachPoint);
+        void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID);
         void SetChildAgentThrottle(byte[] throttle);
 
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
@@ -802,7 +802,7 @@ namespace OpenSim.Framework
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
                                  Quaternion rotation, Vector3 velocity, Vector3 rotationalvelocity, byte state,
-                                 UUID AssetId);
+                                 UUID AssetId, UUID owner, int attachPoint);
 
         void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,
                                         List<InventoryFolderBase> folders, bool fetchFolders,

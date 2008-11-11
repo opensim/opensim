@@ -473,7 +473,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public virtual void AttachObject(uint localID, Quaternion rotation, byte attachPoint)
+        public virtual void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID)
         {
         }
 
@@ -500,7 +500,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
                                                 Vector3 position, Quaternion rotation, Vector3 velocity,
-                                                Vector3 rotationalvelocity, byte state, UUID AssetId)
+                                                Vector3 rotationalvelocity, byte state, UUID AssetId,
+                                                UUID ownerID, int attachPoint)
         {
         }
 

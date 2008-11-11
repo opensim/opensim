@@ -3362,7 +3362,8 @@ if (m_shape != null) {
                     (ushort)(m_parentGroup.GetTimeDilation() *
                     (float)ushort.MaxValue), LocalId, lPos,
                     RotationOffset, Velocity,
-                    RotationalVelocity, state, FromAssetID);
+                    RotationalVelocity, state, FromAssetID,
+                    OwnerID, (int)AttachmentPoint);
         }
     }
 }

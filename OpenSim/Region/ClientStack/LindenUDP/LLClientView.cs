@@ -2332,8 +2332,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="localID"></param>
         /// <param name="rotation"></param>
         /// <param name="attachPoint"></param>
-        public void AttachObject(uint localID, Quaternion rotation, byte attachPoint)
+        public void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID)
         {
+            if (attachPoint > 30 && ownerID != AgentId) // Someone else's HUD
+                return;
 
             ObjectAttachPacket attach = (ObjectAttachPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAttach);
             Console.WriteLine("Attach object!");
@@ -2458,8 +2460,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         ///
         /// </summary>
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-                                        Quaternion rotation, Vector3 velocity, Vector3 rotationalvelocity, byte state, UUID AssetId)
+                                        Quaternion rotation, Vector3 velocity, Vector3 rotationalvelocity, byte state, UUID AssetId, UUID ownerID, int attachPoint)
         {
+            if (attachPoint > 30 && ownerID != AgentId) // Someone else's HUD
+                return;
+
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = Quaternion.Identity;
             ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
