@@ -106,5 +106,13 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             // If the parts have the same UUID then we will consider them as one and the same
             Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));         
         }
+        
+        /*
+        public void TestRemoveSceneObject()
+        {
+            Scene scene = SetupScene();
+            SceneObjectPart part = AddSceneObject(scene);            
+        }
+        */
     }
 }

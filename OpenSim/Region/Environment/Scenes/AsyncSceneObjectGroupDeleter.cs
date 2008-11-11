@@ -54,9 +54,14 @@ namespace OpenSim.Region.Environment.Scenes
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
+        /// <value>
+        /// Is the deleter currently enabled?
+        /// </value>
+        public bool Enabled;
+        
         private Timer m_inventoryTicker = new Timer(2000);       
         private readonly Queue<DeleteToInventoryHolder> m_inventoryDeletes = new Queue<DeleteToInventoryHolder>();        
-        private Scene m_scene;
+        private Scene m_scene;        
         
         public AsyncSceneObjectGroupDeleter(Scene scene)
         {
@@ -73,7 +78,8 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectGroup objectGroup, IClientAPI remoteClient, 
                 bool permissionToDelete)
         {
-            m_inventoryTicker.Stop();
+            if (Enabled)
+                m_inventoryTicker.Stop();
 
             lock (m_inventoryDeletes)
             {
@@ -87,7 +93,8 @@ namespace OpenSim.Region.Environment.Scenes
                 m_inventoryDeletes.Enqueue(dtis);
             }
 
-            m_inventoryTicker.Start();
+            if (Enabled)
+                m_inventoryTicker.Start();
         
             // Visually remove it, even if it isnt really gone yet.
             if (permissionToDelete)
@@ -132,6 +139,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 m_log.DebugFormat("Exception background deleting object: "+e.ToString());
                             }
                         }
+                        
                         return true;
                     }
                 }

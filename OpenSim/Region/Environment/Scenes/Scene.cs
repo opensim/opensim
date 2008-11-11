@@ -281,7 +281,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_eventManager = new EventManager();
             m_externalChecks = new SceneExternalChecks(this);
+            
             m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
+            m_asyncSceneObjectDeleter.Enabled = true;
 
             // Load region settings
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
