@@ -4156,7 +4156,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 if (handlerModifyTerrain != null)
                                 {
                                     modify.ModifyBlock.Height = -1; // Hack, i don't know why the value is wrong
-                                    handlerModifyTerrain(modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
+                                    handlerModifyTerrain(AgentId, modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
                                                          modify.ModifyBlock.BrushSize,
                                                          modify.ModifyBlock.Action, modify.ParcelData[i].North,
                                                          modify.ParcelData[i].West, modify.ParcelData[i].South,

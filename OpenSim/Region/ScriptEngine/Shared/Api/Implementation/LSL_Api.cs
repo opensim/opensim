@@ -3470,7 +3470,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ITerrainModule tm = m_ScriptEngine.World.RequestModuleInterface<ITerrainModule>();
             if (tm != null)
             {
-                tm.ModifyTerrain(m_host.AbsolutePosition, (byte) brush, (byte) action, m_host.OwnerID);
+                tm.ModifyTerrain(m_host.OwnerID, m_host.AbsolutePosition, (byte) brush, (byte) action, m_host.OwnerID);
             }
         }
 

@@ -279,9 +279,9 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         /// <param name="size">The size of the brush (0=small, 1=medium, 2=large)</param>
         /// <param name="action">0=LAND_LEVEL, 1=LAND_RAISE, 2=LAND_LOWER, 3=LAND_SMOOTH, 4=LAND_NOISE, 5=LAND_REVERT</param>
         /// <param name="agentId">UUID of script-owner</param>
-        public void ModifyTerrain(Vector3 pos, byte size, byte action, UUID agentId)
+        public void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action, UUID agentId)
         {
-            client_OnModifyTerrain((float)pos.Z, (float)0.25, size, action, pos.Y, pos.X, pos.Y, pos.X, agentId);
+            client_OnModifyTerrain(user, (float)pos.Z, (float)0.25, size, action, pos.Y, pos.X, pos.Y, pos.X, agentId);
         }        
 
         /// <summary>
@@ -613,9 +613,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             );
         }
 
-        private void client_OnModifyTerrain(float height, float seconds, byte size, byte action,
+        private void client_OnModifyTerrain(UUID user, float height, float seconds, byte size, byte action,
                                             float north, float west, float south, float east, UUID agentId)
         {
+            bool god = m_scene.ExternalChecks.ExternalChecksCanBeGodLike(user);
             bool allowed = false;
             if (north == south && east == west)
             {
@@ -653,7 +654,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                         m_painteffects[(StandardTerrainEffects) action].PaintEffect(
                             m_channel, allowMask, west, south, height, size, seconds);
 
-                        CheckForTerrainUpdates(true); //revert changes outside estate limits
+                        CheckForTerrainUpdates(!god); //revert changes outside estate limits
                     }
                 }
                 else
@@ -693,7 +694,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                         m_floodeffects[(StandardTerrainEffects) action].FloodEffect(
                             m_channel, fillArea, size);
 
-                        CheckForTerrainUpdates(true); //revert changes outside estate limits
+                        CheckForTerrainUpdates(!god); //revert changes outside estate limits
                     }
                 }
                 else
@@ -708,7 +709,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             // Not a good permissions check (see client_OnModifyTerrain above), need to check the entire area.
             // for now check a point in the centre of the region
 
-            if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(remoteClient.AgentId, new Vector3(127, 127, 0)))
+            if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remoteClient.AgentId, true))
             {
                 InterfaceBakeTerrain(null); //bake terrain does not use the passed in parameter
             }
