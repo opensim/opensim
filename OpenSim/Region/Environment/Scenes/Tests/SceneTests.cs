@@ -56,11 +56,10 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         }
         
         /// <summary>
-        /// Test adding an object to a scene.
+        /// Set up a test scene
         /// </summary>
-        [Test]        
-        public void TestAddSceneObject()
-        {               
+        private Scene SetupScene()
+        {
             RegionInfo regInfo = new RegionInfo(1000, 1000, null, null);
             regInfo.RegionName = "Unit test region";
             AgentCircuitManager acm = new AgentCircuitManager();
@@ -71,9 +70,16 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
             IConfigSource configSource = new IniConfigSource();
             
-            Scene scene 
-                = new Scene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);
-            
+            return new Scene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);            
+        }
+        
+        /// <summary>
+        /// Add a test object
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        private SceneObjectPart AddSceneObject(Scene scene)
+        {
             SceneObjectGroup sceneObject = new SceneObjectGroup();
             SceneObjectPart part 
                 = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
@@ -83,6 +89,17 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             scene.AddNewSceneObject(sceneObject, false);
             
+            return part;
+        }
+                
+        /// <summary>
+        /// Test adding an object to a scene.
+        /// </summary>
+        [Test]        
+        public void TestAddSceneObject()
+        {              
+            Scene scene = SetupScene();
+            SceneObjectPart part = AddSceneObject(scene);
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             
             //System.Console.WriteLine("retrievedPart : {0}", retrievedPart);
