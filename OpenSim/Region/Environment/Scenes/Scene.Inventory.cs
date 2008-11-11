@@ -158,7 +158,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public UUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, UUID itemID, byte[] data)
+        public virtual UUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, UUID itemID, byte[] data)
         {
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
@@ -405,7 +405,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="recipientClient"></param>
         /// <param name="senderId">ID of the sender of the item</param>
         /// <param name="itemId"></param>
-        public void GiveInventoryItem(IClientAPI recipientClient, UUID senderId, UUID itemId)
+        public virtual void GiveInventoryItem(IClientAPI recipientClient, UUID senderId, UUID itemId)
         {
             // Retrieve the item from the sender
             CachedUserInfo senderUserInfo = CommsManager.UserProfileCacheService.GetUserDetails(senderId);
@@ -1607,6 +1607,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         /// <summary>
         /// Delete a scene object from a scene and place in the given avatar's inventory.
+        /// Returns the UUID of the newly created asset.
         /// </summary>
         /// <param name="DeRezPacket"></param>
         /// <param name="selectedEnt"></param>
@@ -1614,10 +1615,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="objectGroup"></param>
         /// <param name="folderID"></param>
         /// <param name="permissionToDelete"></param>
-        public void DeleteToInventory(int destination, UUID folderID,
+        public virtual UUID DeleteToInventory(int destination, UUID folderID,
                 SceneObjectGroup objectGroup, IClientAPI remoteClient,
                 bool permissionToDelete)
         {
+            UUID assetID = UUID.Zero;
+
             string sceneObjectXml = objectGroup.ToXmlString();
 
             CachedUserInfo userInfo;
@@ -1661,7 +1664,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             CommsManager.UserProfileCacheService.RequestInventoryForUser(objectGroup.RootPart.OwnerID);
                             m_log.WarnFormat("[SCENE] Can't find root folder for user, requesting inventory");
-                            return;
+                            return assetID;
                         }
                     }
                 }
@@ -1672,6 +1675,7 @@ namespace OpenSim.Region.Environment.Scenes
                     (sbyte)AssetType.Object,
                     Utils.StringToBytes(sceneObjectXml));
                 AssetCache.AddAsset(asset);
+                assetID = asset.FullID;
 
                 InventoryItemBase item = new InventoryItemBase();
                 item.Creator = objectGroup.RootPart.CreatorID;
@@ -1736,6 +1740,8 @@ namespace OpenSim.Region.Environment.Scenes
             // Finally remove the item, for reals this time.
             if (permissionToDelete)
                 DeleteSceneObject(objectGroup, false);
+
+            return assetID;
         }
 
         public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, UUID assetID, UUID agentID)
