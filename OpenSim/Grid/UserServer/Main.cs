@@ -115,8 +115,6 @@ namespace OpenSim.Grid.UserServer
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
             AddHttpHandlers();
             m_httpServer.Start();
-
-            m_log.Info("[SERVER]: Userserver 0.5 - Startup complete");
         }
 
         protected void AddHttpHandlers()
