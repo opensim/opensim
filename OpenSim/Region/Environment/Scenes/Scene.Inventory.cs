@@ -48,7 +48,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Allows asynchronous derezzing of objects from the scene into a client's inventory.
         /// </summary>
-        private AsyncSceneObjectGroupDeleter m_asyncSceneObjectDeleter;    
+        protected AsyncSceneObjectGroupDeleter m_asyncSceneObjectDeleter;    
 
         /// <summary>
         /// Start all the scripts in the scene which should be started.

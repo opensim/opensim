@@ -58,7 +58,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         /// <summary>
         /// Set up a test scene
         /// </summary>
-        private Scene SetupScene()
+        private TestScene SetupScene()
         {
             RegionInfo regInfo = new RegionInfo(1000, 1000, null, null);
             regInfo.RegionName = "Unit test region";
@@ -70,7 +70,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
             IConfigSource configSource = new IniConfigSource();
             
-            return new Scene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);            
+            return new TestScene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);            
         }
         
         /// <summary>
