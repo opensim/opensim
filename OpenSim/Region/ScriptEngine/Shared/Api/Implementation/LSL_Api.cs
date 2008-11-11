@@ -4167,12 +4167,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             try
             {
                 if (src.Data[index] is LSL_Integer)
-                    return Convert.ToInt32(((LSL_Integer) src.Data[index]).value);
+                    return (LSL_Integer) src.Data[index];
                 else if (src.Data[index] is LSL_Float)
                     return Convert.ToInt32(((LSL_Float) src.Data[index]).value);
-                else if (src.Data[index] is LSL_String)
-                    return Convert.ToInt32(((LSL_String) src.Data[index]).m_string);
-                return Convert.ToInt32(src.Data[index]);
+                return new LSL_Integer(src.Data[index].ToString());
             }
             catch (FormatException)
             {
