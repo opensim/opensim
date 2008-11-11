@@ -1826,11 +1826,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             //SceneObjectPart rootPart = group.GetChildPart(group.UUID);
 
-	    // Serialise calls to RemoveScriptInstances to avoid
-	    // deadlocking on m_parts inside SceneObjectGroup
-	    lock (m_deleting_scene_object) {
-		group.RemoveScriptInstances();
-	    }
+            // Serialise calls to RemoveScriptInstances to avoid
+            // deadlocking on m_parts inside SceneObjectGroup
+            lock (m_deleting_scene_object)
+            {
+                group.RemoveScriptInstances();
+            }
 
             foreach (SceneObjectPart part in group.Children.Values)
             {

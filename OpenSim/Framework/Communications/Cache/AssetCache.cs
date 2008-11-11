@@ -177,7 +177,7 @@ namespace OpenSim.Framework.Communications.Cache
         public bool TryGetCachedAsset(UUID assetId, out AssetBase asset)
         {
             Object tmp;
-            if(m_memcache.TryGet(assetId, out tmp))
+            if (m_memcache.TryGet(assetId, out tmp))
             {
                 asset = (AssetBase)tmp;
                 //m_log.Info("Retrieved from cache " + assetId);
@@ -337,7 +337,7 @@ namespace OpenSim.Framework.Communications.Cache
             // in the 2 caches differently.  Also, locks are probably
             // needed in all of this, or move to synchronized non
             // generic forms for Dictionaries.
-            if(m_memcache.Contains(uuid))
+            if (m_memcache.Contains(uuid))
             {
                 m_memcache.Remove(uuid);
             }

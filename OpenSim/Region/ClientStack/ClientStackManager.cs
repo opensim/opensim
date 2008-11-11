@@ -69,7 +69,7 @@ namespace OpenSim.Region.Environment
                 }
             } catch (ReflectionTypeLoadException e)
             {
-                foreach(Exception e2 in e.LoaderExceptions)
+                foreach (Exception e2 in e.LoaderExceptions)
                 {
                     m_log.Error(e2.ToString());
                 }
