@@ -323,7 +323,14 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (string assembly in assemblies)
             {
                 string fn = Path.GetFileName(assembly);
+                if (fn == String.Empty)
+                    continue;
+
                 FileInfo fi = new FileInfo(assembly);
+
+                if (fi == null)
+                    continue;
+
                 Byte[] data = new Byte[fi.Length];
 
                 FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read);
