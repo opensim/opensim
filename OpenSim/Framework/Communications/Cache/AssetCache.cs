@@ -193,6 +193,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="assetId"></param>
         /// <param name="callback">
+        /// <param name="isTexture"></param>
         /// A callback invoked when the asset has either been found or not found.
         /// If the asset was found this is called with the asset UUID and the asset data
         /// If the asset was not found this is still called with the asset UUID but with a null asset data reference</param>
@@ -260,7 +261,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             // I'm not going over 3 seconds since this will be blocking processing of all the other inbound
             // packets from the client.
-            int pollPeriod = 200;
+            const int pollPeriod = 200;
             int maxPolls = 15;
 
             AssetBase asset;
@@ -528,18 +529,18 @@ namespace OpenSim.Framework.Communications.Cache
             AssetRequestToClient req2 = null;
             for (int i = 0; i < num; i++)
             {
-                req = (AssetRequest)AssetRequests[i];
+                req = AssetRequests[i];
                 if (req2 == null)
                 {
                     req2 = new AssetRequestToClient();
                 }
                 // Trying to limit memory usage by only creating AssetRequestToClient if needed
                 //req2 = new AssetRequestToClient();
-                req2.AssetInf = (AssetBase)req.AssetInf;
+                req2.AssetInf = req.AssetInf;
                 req2.AssetRequestSource = req.AssetRequestSource;
                 req2.DataPointer = req.DataPointer;
                 req2.DiscardLevel = req.DiscardLevel;
-                req2.ImageInfo = (AssetBase)req.ImageInfo;
+                req2.ImageInfo = req.ImageInfo;
                 req2.IsTextureRequest = req.IsTextureRequest;
                 req2.NumPackets = req.NumPackets;
                 req2.PacketCounter = req.PacketCounter;
