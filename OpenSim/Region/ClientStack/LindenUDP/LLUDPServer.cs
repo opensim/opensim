@@ -199,6 +199,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     RecvBuffer[z] = 0;
 
                 int packetEnd = numBytes - 1;
+                if (proxyPortOffset != 0) packetEnd -= 6;
 
                 try
                 {
