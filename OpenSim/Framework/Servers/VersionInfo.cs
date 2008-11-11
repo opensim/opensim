@@ -27,11 +27,27 @@
 
 namespace OpenSim
 {
-    /// <summary>
-    /// This is the OpenSim version string.  Change this if you are releasing a new OpenSim version.
-    /// </summary>
     public class VersionInfo
     {
+        /// <value>
+        /// This is the OpenSim version string.  Change this if you are releasing a new OpenSim version.
+        /// </value>        
         public readonly static string Version = "OpenSimulator Server  0.6.0";  // stay with 27 chars (used in regioninfo)
+        
+        /// <value>
+        /// This is the external interface version.  It is separate from the OpenSimulator project version.  
+        /// 
+        /// This version number should be 
+        /// increased by 1 every time a code change makes the previous OpenSimulator revision incompatible
+        /// with the new revision.  This will usually be due to interregion or grid facing interface changes.
+        /// 
+        /// Changes which are compatible with an older revision (e.g. older revisions experience degraded functionality
+        /// but not outright failure) do not need a version number increment.
+        /// 
+        /// Having this version number allows the grid service to reject connections from regions running a version
+        /// of the code that is too old. 
+        ///   
+        /// </value>
+        public readonly static int MajorInterfaceVersion = 0;
     }
 }

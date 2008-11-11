@@ -53,6 +53,22 @@ namespace OpenSim.Grid.GridServer
         private List<MessageServerInfo> _MessageServers = new List<MessageServerInfo>();
 
         public GridConfig Config;
+        
+        /// <value>
+        /// Used to notify old regions as to which OpenSim version to upgrade to
+        /// </value>
+        private string m_opensimVersion;
+        
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="opensimVersion">
+        /// Used to notify old regions as to which OpenSim version to upgrade to
+        /// </param>
+        public GridManager(string opensimVersion)
+        {
+            m_opensimVersion = opensimVersion;
+        }
 
         /// <summary>
         /// Adds a new grid server plugin - grid servers will be requested in the order they were loaded.
@@ -360,7 +376,7 @@ namespace OpenSim.Grid.GridServer
 
             if (!requestData.ContainsKey("UUID") || !UUID.TryParse((string)requestData["UUID"], out uuid))
             {
-                m_log.Warn("[LOGIN PRELUDE]: Region connected without a UUID, sending back error response.");
+                m_log.Debug("[LOGIN PRELUDE]: Region connected without a UUID, sending back error response.");
                 return ErrorResponse("No UUID passed to grid server - unable to connect you");
             }
 
@@ -370,20 +386,32 @@ namespace OpenSim.Grid.GridServer
             }
             catch (FormatException e)
             {
-                m_log.Warn("[LOGIN PRELUDE]: Invalid login parameters, sending back error response.");
+                m_log.Debug("[LOGIN PRELUDE]: Invalid login parameters, sending back error response.");
                 return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString());
             }
+            
+            m_log.InfoFormat("[LOGIN BEGIN]: Received login request from simulator: {0}", sim.regionName);            
 
             if (!Config.AllowRegionRegistration)
             {
-                m_log.InfoFormat(
+                m_log.DebugFormat(
                     "[LOGIN END]: Disabled region registration blocked login request from simulator: {0}",
                     sim.regionName);
 
-                return ErrorResponse("The grid is currently not accepting region registrations.");
+                return ErrorResponse("This grid is currently not accepting region registrations.");
+            }            
+            
+            int majorInterfaceVersion = 0;
+            if (requestData.ContainsKey("major_interface_version"))
+                int.TryParse((string)requestData["major_interface_version"], out majorInterfaceVersion);
+            
+            if (majorInterfaceVersion != VersionInfo.MajorInterfaceVersion)
+            {
+                return ErrorResponse(
+                    String.Format(
+                        "Your region is the wrong version to connect to this grid.  Try changing to version {0} (interface version {1})",
+                        m_opensimVersion, VersionInfo.MajorInterfaceVersion));
             }
-
-            m_log.InfoFormat("[LOGIN BEGIN]: Received login request from simulator: {0}", sim.regionName);
 
             existingSim = GetRegion(sim.regionHandle);
 

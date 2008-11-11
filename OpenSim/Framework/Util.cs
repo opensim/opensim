@@ -799,6 +799,33 @@ namespace OpenSim.Framework
             x += rx;
             y += ry;
         }
+        
+        /// <summary>
+        /// Get operating system information if available.  Returns only the first 45 characters of information
+        /// </summary>
+        /// <returns>
+        /// Operating system information.  Returns an empty string if none was available.
+        /// </returns>
+        public static string GetOperatingSystemInformation()
+        {
+            string os = String.Empty;
+
+            if (System.Environment.OSVersion.Platform != PlatformID.Unix)
+            {
+                os = System.Environment.OSVersion.ToString();
+            }
+            else
+            {
+                os = ReadEtcIssue();
+            }         
+                      
+            if (os.Length > 45)
+            {
+                os = os.Substring(0, 45);
+            }
+            
+            return os;
+        }
 
         /// <summary>
         /// Is the given string a UUID?

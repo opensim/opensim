@@ -428,25 +428,6 @@ namespace OpenSim.Framework.Servers
             }
 
             m_version += string.IsNullOrEmpty(buildVersion) ? "      " : ("." + buildVersion + "     ").Substring(0, 6);
-
-            // Add operating system information if available
-            string OSString = "";
-
-            if (System.Environment.OSVersion.Platform != PlatformID.Unix)
-            {
-                OSString = System.Environment.OSVersion.ToString();
-            }
-            else
-            {
-                OSString = Util.ReadEtcIssue();
-            }
-
-            if (OSString.Length > 45)
-            {
-                OSString = OSString.Substring(0, 45);
-            }
-
-            m_version += " (OS " + OSString + ")";
         }
     }
 }

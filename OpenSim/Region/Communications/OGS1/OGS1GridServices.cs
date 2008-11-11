@@ -130,6 +130,7 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["originUUID"] = regionInfo.originRegionID.ToString();
             GridParams["server_uri"] = regionInfo.ServerURI;
             GridParams["region_secret"] = regionInfo.regionSecret;
+            GridParams["major_interface_version"] = VersionInfo.MajorInterfaceVersion.ToString();
 
             if (regionInfo.MasterAvatarAssignedUUID != UUID.Zero)
                 GridParams["master_avatar_uuid"] = regionInfo.MasterAvatarAssignedUUID.ToString();

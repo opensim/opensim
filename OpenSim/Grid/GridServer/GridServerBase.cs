@@ -153,7 +153,7 @@ namespace OpenSim.Grid.GridServer
         protected virtual void SetupGridManager()
         {
             m_log.Info("[DATA]: Connecting to Storage Server");
-            m_gridManager = new GridManager();
+            m_gridManager = new GridManager(m_version);
             m_gridManager.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
             m_gridManager.Config = m_config;
         }
