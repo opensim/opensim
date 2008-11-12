@@ -2467,7 +2467,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetTimerEvent(double sec)
         {
-            if (sec < m_MinTimerInterval)
+            if (sec != 0.0 && sec < m_MinTimerInterval)
                 sec = m_MinTimerInterval;
             m_host.AddScriptLPS(1);
             // Setting timer repeat
