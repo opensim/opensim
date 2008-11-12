@@ -118,7 +118,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             LanguageMapping.Add(enumCompileType.yp.ToString(), enumCompileType.yp);
 
             // Allowed compilers
-            string allowComp = m_scriptEngine.Config.GetString("AllowedCompilers", "lsl,cs,vb,js,yp");
+            string allowComp = m_scriptEngine.Config.GetString("AllowedCompilers", "lsl");
             AllowedCompilers.Clear();
 
 #if DEBUG
