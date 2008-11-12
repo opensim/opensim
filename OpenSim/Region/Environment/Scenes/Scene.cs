@@ -1830,7 +1830,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Delete the given object from the scene.
+        /// Synchronously delete the given object from the scene.
         /// </summary>
         /// <param name="group"></param>
         public void DeleteSceneObject(SceneObjectGroup group, bool silent)

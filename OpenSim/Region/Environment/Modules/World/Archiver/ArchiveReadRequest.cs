@@ -139,8 +139,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
                 // otherwise, use the master avatar uuid instead
                 UUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                
                 if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                     masterAvatarId = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
                     if (!resolveUserUuid(part.CreatorID))
@@ -153,8 +155,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                         part.LastOwnerID = masterAvatarId;
 
                     // And zap any troublesome sit target information
-                    part.SitTargetOrientation = new Quaternion(0,0,0,1);
-                    part.SitTargetPosition    = new Vector3(0,0,0);
+                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
+                    part.SitTargetPosition    = new Vector3(0, 0, 0);
 
                     // Fix ownership/creator of inventory items
                     // Not doing so results in inventory items

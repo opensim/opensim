@@ -107,12 +107,18 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));         
         }
         
-        /*
+        /// <summary>
+        /// Test removing an object from a scene.
+        /// </summary>
         public void TestRemoveSceneObject()
         {
-            Scene scene = SetupScene();
-            SceneObjectPart part = AddSceneObject(scene);            
+            TestScene scene = SetupScene();;            
+            SceneObjectPart part = AddSceneObject(scene);
+            scene.DeleteSceneObject(part.ParentGroup, false);
+            
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+            
+            Assert.That(retrievedPart, Is.Null);
         }
-        */
     }
 }
