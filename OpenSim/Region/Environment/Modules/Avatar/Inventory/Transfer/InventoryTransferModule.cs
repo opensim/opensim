@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenMetaverse;
@@ -33,6 +35,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
 {
@@ -42,14 +45,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// We need to keep track of the pending item offers between clients since the itemId offered only
-        /// occurs in the initial offer message, not the accept message.  So this dictionary links
-        /// IM Session Ids to ItemIds
-        /// </summary>
-        private IDictionary<UUID, UUID> m_pendingOffers = new Dictionary<UUID, UUID>();
-
         private List<Scene> m_Scenelist = new List<Scene>();
-        private Dictionary<UUID, Scene> m_AgentRegions = new Dictionary<UUID, Scene>();
+        private Dictionary<UUID, Scene> m_AgentRegions =
+                new Dictionary<UUID, Scene>();
 
         #region IRegionModule Members
 
@@ -64,6 +62,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                         "InventoryTransferModule")
                     return;
             }
+
             if (!m_Scenelist.Contains(scene))
             {
                 m_Scenelist.Add(scene);
@@ -101,135 +100,154 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
             client.OnInstantMessage += OnInstantMessage;
         }
 
-        private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
-                                      UUID fromAgentSession, UUID toAgentID,
-                                      UUID imSessionID, uint timestamp, string fromAgentName,
-                                      string message, byte dialog, bool fromGroup, byte offline,
-                                      uint ParentEstateID, Vector3 Position, UUID RegionID,
-                                      byte[] binaryBucket)
+        private Scene FindClientScene(UUID agentId)
         {
+            lock (m_Scenelist)
+            {
+                foreach (Scene scene in m_Scenelist)
+                {
+                    ScenePresence presence = scene.GetScenePresence(agentId);
+                    if (presence != null)
+                    {
+                        if (!presence.IsChildAgent)
+                            return scene;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
+                  UUID fromAgentSession, UUID toAgentID,
+                  UUID imSessionID, uint timestamp, string fromAgentName,
+                  string message, byte dialog, bool fromGroup, byte offline,
+                  uint ParentEstateID, Vector3 Position, UUID RegionID,
+                  byte[] binaryBucket)
+        {
+            Scene scene = FindClientScene(client.AgentId);
+
+            if (scene == null) // Something seriously wrong here.
+                return;
+
             if (dialog == (byte) InstantMessageDialog.InventoryOffered)
             {
-                m_log.DebugFormat(
-                    "[AGENT INVENTORY]: Routing inventory offering message from {0}, {1} to {2}",
-                    client.AgentId, client.Name, toAgentID);
+                ScenePresence user =
+                        scene.GetScenePresence(toAgentID);
 
-                if (((Scene)(client.Scene)).Entities.ContainsKey(toAgentID) && ((Scene)(client.Scene)).Entities[toAgentID] is ScenePresence)
+                // First byte of the array is probably the item type
+                // Next 16 bytes are the UUID
+
+                UUID itemID = new UUID(binaryBucket, 1);
+
+                m_log.DebugFormat("[AGENT INVENTORY]: Inserting item {0} "+
+                        "into agent {1}'s inventory",
+                        itemID, toAgentID);
+
+                InventoryItemBase itemCopy = scene.GiveInventoryItem(toAgentID,
+                        client.AgentId, itemID);
+
+                byte[] itemCopyID = itemCopy.ID.GetBytes();
+
+                Array.Copy(itemCopyID, 0, binaryBucket, 1, 16);
+
+                // Send the IM to the recipient. The item is already
+                // in their inventory, so it will not be lost if
+                // they are offline.
+                //
+                if (user != null && !user.IsChildAgent)
                 {
-                    ScenePresence user = (ScenePresence) ((Scene)(client.Scene)).Entities[toAgentID];
+                    // User is online. So, let's make the item visible
+                    //
+                    user.ControllingClient.SendBulkUpdateInventory(itemCopy);
 
-                    if (!user.IsChildAgent)
-                    {
-                        //byte[] rawId = new byte[16];
-
-                        // First byte of the array is probably the item type
-                        // Next 16 bytes are the UUID
-                        //Array.Copy(binaryBucket, 1, rawId, 0, 16);
-
-                        //UUID itemId = new UUID(new Guid(rawId));
-                        UUID itemId = new UUID(binaryBucket, 1);
-
-                        m_log.DebugFormat(
-                            "[AGENT INVENTORY]: ItemId for giving is {0}", itemId);
-
-                        m_pendingOffers[imSessionID] = itemId;
-
-                        user.ControllingClient.SendInstantMessage(
+                    // And notify. Transaction ID is the item ID. We get that
+                    // same ID back on the reply so we know what to act on
+                    //
+                    user.ControllingClient.SendInstantMessage(
                             fromAgentID, message, toAgentID, fromAgentName,
-                            dialog, timestamp, UUID.Zero, false, binaryBucket);
+                            dialog, timestamp, itemCopy.ID, false,
+                            binaryBucket);
 
-                        return;
-                    }
-                    else
-                    {
-                        m_log.WarnFormat(
-                            "[AGENT INVENTORY]: Agent {0} targeted for inventory give by {1}, {2} of {3} was a child agent!",
-                            toAgentID, client.AgentId, client.Name, message);
-                    }
+                    return;
                 }
                 else
                 {
-                    m_log.WarnFormat(
-                        "[AGENT INVENTORY]: Could not find agent {0} for user {1}, {2} to give {3}",
-                        toAgentID, client.AgentId, client.Name, message);
+                    // Send via grid services
+                    //
+                    // TODO: Implement grid sending
                 }
             }
             else if (dialog == (byte) InstantMessageDialog.InventoryAccepted)
             {
-                m_log.DebugFormat(
-                    "[AGENT INVENTORY]: Routing inventory accepted message from {0}, {1} to {2}",
-                    client.AgentId, client.Name, toAgentID);
+                ScenePresence user = scene.GetScenePresence(toAgentID);
 
-                if (((Scene)(client.Scene)).Entities.ContainsKey(toAgentID) && ((Scene)(client.Scene)).Entities[toAgentID] is ScenePresence)
+                if (user != null) // Local
                 {
-                    ScenePresence user = (ScenePresence) ((Scene)(client.Scene)).Entities[toAgentID];
-
-                    if (!user.IsChildAgent)
-                    {
-                        user.ControllingClient.SendInstantMessage(
+                    user.ControllingClient.SendInstantMessage(
                             fromAgentID, message, toAgentID, fromAgentName,
                             dialog, timestamp, UUID.Zero, false, binaryBucket);
-
-                        if (m_pendingOffers.ContainsKey(imSessionID))
-                        {
-                            m_log.DebugFormat(
-                                "[AGENT INVENTORY]: Accepted item id {0}", m_pendingOffers[imSessionID]);
-
-                            // Since the message originates from the accepting client, the toAgentID is
-                            // the agent giving the item.
-                            ((Scene)(client.Scene)).GiveInventoryItem(client, toAgentID, m_pendingOffers[imSessionID]);
-
-                            m_pendingOffers.Remove(imSessionID);
-                        }
-                        else
-                        {
-                            m_log.ErrorFormat(
-                                "[AGENT INVENTORY]: Could not find an item associated with session id {0} to accept",
-                                imSessionID);
-                        }
-
-                        return;
-                    }
-                    else
-                    {
-                        m_log.WarnFormat(
-                            "[AGENT INVENTORY]: Agent {0} targeted for inventory give by {1}, {2} of {3} was a child agent!",
-                            toAgentID, client.AgentId, client.Name, message);
-                    }
                 }
                 else
                 {
-                    m_log.WarnFormat(
-                        "[AGENT INVENTORY]: Could not find agent {0} for user {1}, {2} to give {3}",
-                        toAgentID, client.AgentId, client.Name, message);
+                    // Send via grid
+                    //
+                    // TODO: Implement sending via grid
                 }
             }
             else if (dialog == (byte) InstantMessageDialog.InventoryDeclined)
             {
-                if (((Scene)(client.Scene)).Entities.ContainsKey(toAgentID) && ((Scene)(client.Scene)).Entities[toAgentID] is ScenePresence)
-                {
-                    ScenePresence user = (ScenePresence) ((Scene)(client.Scene)).Entities[toAgentID];
+                UUID itemID = imSessionID; // The item, back from it's trip
 
-                    if (!user.IsChildAgent)
+                // Here, the recipient is local and we can assume that the
+                // inventory is loaded. Courtesy of the above bulk update,
+                // It will have been pushed to the client, too
+                //
+                
+                CachedUserInfo userInfo =
+                        scene.CommsManager.UserProfileCacheService.
+                        GetUserDetails(client.AgentId);
+
+                if (userInfo != null)
+                {
+                    InventoryFolderImpl trashFolder =
+                        userInfo.FindFolderForType((int)AssetType.TrashFolder);
+
+                    InventoryItemBase item =
+                            userInfo.RootFolder.FindItem(itemID);
+
+                    if (trashFolder != null && item != null)
                     {
-                        user.ControllingClient.SendInstantMessage(
+                        item.Folder = trashFolder.ID;
+
+                        userInfo.DeleteItem(itemID);
+
+                        scene.AddInventoryItem(client, item);
+                    }
+                    else
+                    {
+                        string reason = "";
+                        if (trashFolder == null)
+                            reason += " Trash folder not found.";
+                        if (item == null)
+                            reason += " Item not found.";
+                        client.SendAgentAlertMessage("Unable to delete "+
+                                "received item"+reason, false);
+                    }
+                }
+
+                ScenePresence user = scene.GetScenePresence(toAgentID);
+
+                if (user != null) // Local
+                {
+                    user.ControllingClient.SendInstantMessage(
                             fromAgentID, message, toAgentID, fromAgentName,
                             dialog, timestamp, UUID.Zero, false, binaryBucket);
-
-                        if (m_pendingOffers.ContainsKey(imSessionID))
-                        {
-                            m_log.DebugFormat(
-                                "[AGENT INVENTORY]: Declined item id {0}", m_pendingOffers[imSessionID]);
-
-                            m_pendingOffers.Remove(imSessionID);
-                        }
-                        else
-                        {
-                            m_log.ErrorFormat(
-                                "[AGENT INVENTORY]: Could not find an item associated with session id {0} to decline",
-                                imSessionID);
-                        }
-                    }
+                }
+                else
+                {
+                    // Send via grid
+                    //
+                    // TODO: Implement sending via grid
                 }
             }
         }
