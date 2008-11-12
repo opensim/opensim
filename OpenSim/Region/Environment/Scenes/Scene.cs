@@ -2863,7 +2863,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Triggered when an agent crosses into this sim.  Also happens on initial login.
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
@@ -2873,21 +2873,29 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (regionHandle == m_regInfo.RegionHandle)
             {
+                ScenePresence presence;
+                
                 lock (m_scenePresences)
                 {
-                    if (m_scenePresences.ContainsKey(agentID))
+                    m_scenePresences.TryGetValue(agentID, out presence);
+                }
+                
+                if (presence != null)
+                {
+                    try
                     {
-                        try
-                        {
-                            m_scenePresences[agentID].MakeRootAgent(position, isFlying);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Info("[SCENE]: Unable to do Agent Crossing.");
-                            m_log.Debug("[SCENE]: " + e.ToString());
-                        }
-                        //m_innerScene.SwapRootChildAgent(false);
+                        presence.MakeRootAgent(position, isFlying);
                     }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[SCENE]: Unable to do agent crossing, exception {0}", e);
+                    }
+                }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "[SCENE]: Could not find presence for agent {0} crossing into scene {1}",
+                        agentID, RegionInfo.RegionName);
                 }
             }
         }

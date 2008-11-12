@@ -740,8 +740,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             //this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
 
-            // Establish our two timers.  We could probably get this down to one
-
             // Ping the client regularly to check that it's still there
             m_clientPingTimer = new Timer(5000);
             m_clientPingTimer.Elapsed += CheckClientConnectivity;
