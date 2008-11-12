@@ -37,10 +37,10 @@ using OpenSim.Region.Environment.Scenes;
 namespace OpenSim.Region.Environment.Scenes.Tests
 {
     /// <summary>
-    /// Scene oriented tests
+    /// Scene object tests
     /// </summary>
     [TestFixture]
-    public class SceneTests
+    public class SceneObjectTests
     {
         [SetUp]
         public void Init()
