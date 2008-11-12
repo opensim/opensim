@@ -2106,9 +2106,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="objXMLData"></param>
         /// <param name="XMLMethod"></param>
         /// <returns></returns>
-        public bool IncomingInterRegionPrimGroup(ulong regionHandle, UUID primID, string objXMLData, int XMLMethod)
+        public bool IncomingInterRegionPrimGroup(UUID primID, string objXMLData, int XMLMethod)
         {
-            m_log.Warn("[INTERREGION]: A new prim arrived from a neighbor");
+            m_log.DebugFormat("[INTERREGION]: A new prim {0} arrived from a neighbor", primID);
+            
             if (XMLMethod == 0)
             {
                 SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
@@ -2702,51 +2703,42 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agent"></param>
-        public void NewUserConnection(ulong regionHandle, AgentCircuitData agent)
+        public void NewUserConnection(AgentCircuitData agent)
         {
-            if (regionHandle == m_regInfo.RegionHandle)
+            if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
             {
-                if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
+                m_log.WarnFormat(
+               "[CONNECTION DEBUGGING]: Denied access to: {0} at {1} because the user is on the region banlist",
+               agent.AgentID, RegionInfo.RegionName);
+            }
+
+            capsPaths[agent.AgentID] = agent.CapsPath;
+
+            if (!agent.child)
+            {
+                AddCapsHandler(agent.AgentID);
+
+                // Honor parcel landing type and position.
+                ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
+                if (land != null)
                 {
-                    m_log.WarnFormat(
-                   "[CONNECTION DEBUGGING]: Denied access to: {0} [{1}] at {2} because the user is on the region banlist",
-                   agent.AgentID, regionHandle, RegionInfo.RegionName);
-                }
-
-                capsPaths[agent.AgentID] = agent.CapsPath;
-
-                if (!agent.child)
-                {
-                    AddCapsHandler(agent.AgentID);
-
-                    // Honor parcel landing type and position.
-                    ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
-                    if (land != null)
+                    if (land.landData.LandingType == (byte)1 && land.landData.UserLocation != Vector3.Zero)
                     {
-                        if (land.landData.LandingType == (byte)1 && land.landData.UserLocation != Vector3.Zero)
-                        {
-                            agent.startpos = land.landData.UserLocation;
-                        }
+                        agent.startpos = land.landData.UserLocation;
                     }
                 }
+            }
 
-                m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
-                // rewrite session_id
-                CachedUserInfo userinfo = CommsManager.UserProfileCacheService.GetUserDetails(agent.AgentID);
-                if (userinfo != null)
-                {
-                    userinfo.SessionID = agent.SessionID;
-                }
-                else
-                {
-                    m_log.WarnFormat("[USERINFO CACHE]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
-                }
+            m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+            // rewrite session_id
+            CachedUserInfo userinfo = CommsManager.UserProfileCacheService.GetUserDetails(agent.AgentID);
+            if (userinfo != null)
+            {
+                userinfo.SessionID = agent.SessionID;
             }
             else
             {
-                m_log.WarnFormat(
-                    "[CONNECTION DEBUGGING]: Skipping this region for welcoming avatar {0} [{1}] at {2}",
-                    agent.AgentID, regionHandle, RegionInfo.RegionName);
+                m_log.WarnFormat("[USERINFO CACHE]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
             }
         }
 
@@ -2760,30 +2752,27 @@ namespace OpenSim.Region.Environment.Scenes
             return m_authenticateHandler.TryChangeCiruitCode(oldcc, newcc);
         }
 
-        protected void HandleLogOffUserFromGrid(ulong regionHandle, UUID AvatarID, UUID RegionSecret, string message)
+        protected void HandleLogOffUserFromGrid(UUID AvatarID, UUID RegionSecret, string message)
         {
-            if (RegionInfo.RegionHandle == regionHandle)
+            ScenePresence loggingOffUser = null;
+            loggingOffUser = GetScenePresence(AvatarID);
+            if (loggingOffUser != null)
             {
-                ScenePresence loggingOffUser = null;
-                loggingOffUser = GetScenePresence(AvatarID);
-                if (loggingOffUser != null)
+                if (RegionSecret == loggingOffUser.ControllingClient.SecureSessionId)
                 {
-                    if (RegionSecret == loggingOffUser.ControllingClient.SecureSessionId)
-                    {
-                        loggingOffUser.ControllingClient.Kick(message);
-                        // Give them a second to receive the message!
-                        System.Threading.Thread.Sleep(1000);
-                        loggingOffUser.ControllingClient.Close(true);
-                    }
-                    else
-                    {
-                        m_log.Info("[USERLOGOFF]: System sending the LogOff user message failed to sucessfully authenticate");
-                    }
+                    loggingOffUser.ControllingClient.Kick(message);
+                    // Give them a second to receive the message!
+                    System.Threading.Thread.Sleep(1000);
+                    loggingOffUser.ControllingClient.Close(true);
                 }
                 else
                 {
-                    m_log.InfoFormat("[USERLOGOFF]: Got a logoff request for {0} but the user isn't here.  The user might already have been logged out", AvatarID.ToString());
+                    m_log.Info("[USERLOGOFF]: System sending the LogOff user message failed to sucessfully authenticate");
                 }
+            }
+            else
+            {
+                m_log.InfoFormat("[USERLOGOFF]: Got a logoff request for {0} but the user isn't here.  The user might already have been logged out", AvatarID.ToString());
             }
         }
 
@@ -2865,42 +2854,38 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Triggered when an agent crosses into this sim.  Also happens on initial login.
         /// </summary>
-        /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
         /// <param name="position"></param>
         /// <param name="isFlying"></param>
-        public virtual void AgentCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
+        public virtual void AgentCrossing(UUID agentID, Vector3 position, bool isFlying)
         {
-            if (regionHandle == m_regInfo.RegionHandle)
+            ScenePresence presence;
+            
+            lock (m_scenePresences)
             {
-                ScenePresence presence;
-                
-                lock (m_scenePresences)
+                m_scenePresences.TryGetValue(agentID, out presence);
+            }
+            
+            if (presence != null)
+            {
+                try
                 {
-                    m_scenePresences.TryGetValue(agentID, out presence);
+                    presence.MakeRootAgent(position, isFlying);
                 }
-                
-                if (presence != null)
+                catch (Exception e)
                 {
-                    try
-                    {
-                        presence.MakeRootAgent(position, isFlying);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat("[SCENE]: Unable to do agent crossing, exception {0}", e);
-                    }
+                    m_log.ErrorFormat("[SCENE]: Unable to do agent crossing, exception {0}", e);
                 }
-                else
-                {
-                    m_log.ErrorFormat(
-                        "[SCENE]: Could not find presence for agent {0} crossing into scene {1}",
-                        agentID, RegionInfo.RegionName);
-                }
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[SCENE]: Could not find presence for agent {0} crossing into scene {1}",
+                    agentID, RegionInfo.RegionName);
             }
         }
 
-        public virtual bool IncomingChildAgentDataUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        public virtual bool IncomingChildAgentDataUpdate(ChildAgentDataUpdate cAgentData)
         {
             ScenePresence childAgentUpdate = GetScenePresence(new UUID(cAgentData.AgentID));
             if (childAgentUpdate != null)
@@ -2918,8 +2903,10 @@ namespace OpenSim.Region.Environment.Scenes
                     // Not Implemented:
                     //TODO: Do we need to pass the message on to one of our neighbors?
                 }
+                
                 return true;
             }
+            
             return false;
         }
 
@@ -2928,29 +2915,28 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
-        public bool CloseConnection(ulong regionHandle, UUID agentID)
+        public bool CloseConnection(UUID agentID)
         {
-            if (regionHandle == m_regionHandle)
+            ScenePresence presence = m_innerScene.GetScenePresence(agentID);
+            
+            if (presence != null)
             {
-                ScenePresence presence = m_innerScene.GetScenePresence(agentID);
-                if (presence != null)
-                {
-                    // Nothing is removed here, so down count it as such
-                    // if (presence.IsChildAgent)
-                    // {
-                    //    m_innerScene.removeUserCount(false);
-                    // }
-                    // else
-                    // {
-                    //    m_innerScene.removeUserCount(true);
-                    // }
+                // Nothing is removed here, so down count it as such
+                // if (presence.IsChildAgent)
+                // {
+                //    m_innerScene.removeUserCount(false);
+                // }
+                // else
+                // {
+                //    m_innerScene.removeUserCount(true);
+                // }
 
-                    // Tell a single agent to disconnect from the region.
-                    presence.ControllingClient.SendShutdownConnectionNotice();
+                // Tell a single agent to disconnect from the region.
+                presence.ControllingClient.SendShutdownConnectionNotice();
 
-                    presence.ControllingClient.Close(true);
-                }
+                presence.ControllingClient.Close(true);
             }
+            
             return true;
         }
 

@@ -31,6 +31,9 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Sandbox mode region comms listener.  There is one of these per region
+    /// </summary>
     public class RegionCommsListener : IRegionCommsListener
     {
         public string debugRegionName = String.Empty;
@@ -71,12 +74,12 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="agent"></param>
         /// <returns></returns>
-        public virtual bool TriggerExpectUser(ulong regionHandle, AgentCircuitData agent)
+        public virtual bool TriggerExpectUser(AgentCircuitData agent)
         {
             handlerExpectUser = OnExpectUser;
             if (handlerExpectUser != null)
             {
-                handlerExpectUser(regionHandle, agent);
+                handlerExpectUser(agent);
                 return true;
             }
 
@@ -84,23 +87,22 @@ namespace OpenSim.Framework
         }
 
         // From User Server
-        public virtual void TriggerLogOffUser(ulong regionHandle, UUID agentID, UUID RegionSecret, string message)
+        public virtual void TriggerLogOffUser(UUID agentID, UUID RegionSecret, string message)
         {
             handlerLogOffUser = OnLogOffUser;
             if (handlerLogOffUser != null)
             {
-                handlerLogOffUser(regionHandle, agentID, RegionSecret, message);
+                handlerLogOffUser(agentID, RegionSecret, message);
             }
 
         }
 
-
-        public virtual bool TriggerExpectPrim(ulong regionHandle, UUID primID, string objData, int XMLMethod)
+        public virtual bool TriggerExpectPrim(UUID primID, string objData, int XMLMethod)
         {
             handlerExpectPrim = OnExpectPrim;
             if (handlerExpectPrim != null)
             {
-                handlerExpectPrim(regionHandle, primID, objData, XMLMethod);
+                handlerExpectPrim(primID, objData, XMLMethod);
                 return true;
             }
             return false;
@@ -117,69 +119,68 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public virtual bool TriggerChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        public virtual bool TriggerChildAgentUpdate(ChildAgentDataUpdate cAgentData)
         {
             handlerChildAgentUpdate = OnChildAgentUpdate;
             if (handlerChildAgentUpdate != null)
             {
-                handlerChildAgentUpdate(regionHandle, cAgentData);
+                handlerChildAgentUpdate(cAgentData);
                 return true;
             }
             return false;
         }
 
-        public virtual bool TriggerExpectAvatarCrossing(ulong regionHandle, UUID agentID, Vector3 position,
-                                                        bool isFlying)
+        public virtual bool TriggerExpectAvatarCrossing(UUID agentID, Vector3 position, bool isFlying)
         {
             handlerAvatarCrossingIntoRegion = OnAvatarCrossingIntoRegion;
             if (handlerAvatarCrossingIntoRegion != null)
             {
-                handlerAvatarCrossingIntoRegion(regionHandle, agentID, position, isFlying);
+                handlerAvatarCrossingIntoRegion(agentID, position, isFlying);
                 return true;
             }
             return false;
         }
 
-        public virtual bool TriggerExpectPrimCrossing(ulong regionHandle, UUID primID, Vector3 position,
+        public virtual bool TriggerExpectPrimCrossing(UUID primID, Vector3 position,
                                                       bool isPhysical)
         {
             handlerPrimCrossingIntoRegion = OnPrimCrossingIntoRegion;
             if (handlerPrimCrossingIntoRegion != null)
             {
-                handlerPrimCrossingIntoRegion(regionHandle, primID, position, isPhysical);
+                handlerPrimCrossingIntoRegion(primID, position, isPhysical);
                 return true;
             }
             return false;
         }
 
-        public virtual bool TriggerAcknowledgeAgentCrossed(ulong regionHandle, UUID agentID)
+        public virtual bool TriggerAcknowledgeAgentCrossed(UUID agentID)
         {
             handlerAcknowledgeAgentCrossed = OnAcknowledgeAgentCrossed;
             if (handlerAcknowledgeAgentCrossed != null)
             {
-                handlerAcknowledgeAgentCrossed(regionHandle, agentID);
+                handlerAcknowledgeAgentCrossed(agentID);
                 return true;
             }
             return false;
         }
 
-        public virtual bool TriggerAcknowledgePrimCrossed(ulong regionHandle, UUID primID)
+        public virtual bool TriggerAcknowledgePrimCrossed(UUID primID)
         {
             handlerAcknowledgePrimCrossed = OnAcknowledgePrimCrossed;
             if (handlerAcknowledgePrimCrossed != null)
             {
-                handlerAcknowledgePrimCrossed(regionHandle, primID);
+                handlerAcknowledgePrimCrossed(primID);
                 return true;
             }
             return false;
         }
 
-        public virtual bool TriggerCloseAgentConnection(ulong regionHandle, UUID agentID)
+        public virtual bool TriggerCloseAgentConnection(UUID agentID)
         {
             handlerCloseAgentConnection = OnCloseAgentConnection;
             if (handlerCloseAgentConnection != null)
             {
-                handlerCloseAgentConnection(regionHandle, agentID);
+                handlerCloseAgentConnection(agentID);
                 return true;
             }
             return false;
@@ -220,11 +221,11 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public bool TriggerTellRegionToCloseChildConnection(ulong regionHandle, UUID agentID)
+        public bool TriggerTellRegionToCloseChildConnection(UUID agentID)
         {
             handlerCloseAgentConnection = OnCloseAgentConnection;
             if (handlerCloseAgentConnection != null)
-                return handlerCloseAgentConnection(regionHandle, agentID);
+                return handlerCloseAgentConnection(agentID);
 
             return false;
         }

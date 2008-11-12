@@ -155,22 +155,22 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="regionHandle"></param>
         /// <param name="agent"></param>
         ///
-        protected void NewUserConnection(ulong regionHandle, AgentCircuitData agent)
+        protected void NewUserConnection(AgentCircuitData agent)
         {
             handlerExpectUser = OnExpectUser;
             if (handlerExpectUser != null)
             {
                 //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: OnExpectUser Fired for User:" + agent.firstname + " " + agent.lastname);
-                handlerExpectUser(regionHandle, agent);
+                handlerExpectUser(agent);
             }
         }
 
-        protected void GridLogOffUser(ulong regionHandle, UUID AgentID, UUID RegionSecret, string message)
+        protected void GridLogOffUser(UUID AgentID, UUID RegionSecret, string message)
         {
             handlerLogOffUser = OnLogOffUser;
             if (handlerLogOffUser != null)
             {
-                handlerLogOffUser(regionHandle, AgentID, RegionSecret, message);
+                handlerLogOffUser(AgentID, RegionSecret, message);
             }
         }
 
@@ -185,31 +185,31 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        protected bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData)
+        protected bool ChildAgentUpdate(ChildAgentDataUpdate cAgentData)
         {
             handlerChildAgentUpdate = OnChildAgentUpdate;
             if (handlerChildAgentUpdate != null)
-                handlerChildAgentUpdate(regionHandle, cAgentData);
+                handlerChildAgentUpdate(cAgentData);
 
 
             return true;
         }
 
-        protected void AgentCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying)
+        protected void AgentCrossing(UUID agentID, Vector3 position, bool isFlying)
         {
             handlerAvatarCrossingIntoRegion = OnAvatarCrossingIntoRegion;
             if (handlerAvatarCrossingIntoRegion != null)
             {
-                handlerAvatarCrossingIntoRegion(regionHandle, agentID, position, isFlying);
+                handlerAvatarCrossingIntoRegion(agentID, position, isFlying);
             }
         }
 
-        protected bool IncomingPrimCrossing(ulong regionHandle, UUID primID, String objXMLData, int XMLMethod)
+        protected bool IncomingPrimCrossing(UUID primID, String objXMLData, int XMLMethod)
         {
             handlerExpectPrim = OnExpectPrim;
             if (handlerExpectPrim != null)
             {
-                return handlerExpectPrim(regionHandle, primID, objXMLData, XMLMethod);
+                return handlerExpectPrim(primID, objXMLData, XMLMethod);
             }
             else
             {
@@ -218,23 +218,25 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
-        protected void PrimCrossing(ulong regionHandle, UUID primID, Vector3 position, bool isPhysical)
+        protected void PrimCrossing(UUID primID, Vector3 position, bool isPhysical)
         {
             handlerPrimCrossingIntoRegion = OnPrimCrossingIntoRegion;
             if (handlerPrimCrossingIntoRegion != null)
             {
-                handlerPrimCrossingIntoRegion(regionHandle, primID, position, isPhysical);
+                handlerPrimCrossingIntoRegion(primID, position, isPhysical);
             }
         }
 
-        protected bool CloseConnection(ulong regionHandle, UUID agentID)
+        protected bool CloseConnection(UUID agentID)
         {
-            m_log.Info("[INTERREGION]: Incoming Agent Close Request for agent: " + agentID.ToString());
+            m_log.Debug("[INTERREGION]: Incoming Agent Close Request for agent: " + agentID);
+            
             handlerCloseAgentConnection = OnCloseAgentConnection;
             if (handlerCloseAgentConnection != null)
             {
-                return handlerCloseAgentConnection(regionHandle, agentID);
+                return handlerCloseAgentConnection(agentID);
             }
+            
             return false;
         }
 
@@ -416,8 +418,6 @@ namespace OpenSim.Region.Environment.Scenes
                 // yes, we're notifying ourselves.
                 if (handlerRegionUp != null)
                     handlerRegionUp(region);
-
-
             }
             else
             {
@@ -726,7 +726,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             SendCloseChildAgentConnections(avatar.UUID,avatar.GetKnownRegionList());
                             SendCloseChildAgentConnections(avatar.UUID, childRegions);
-                            CloseConnection(m_regionInfo.RegionHandle, avatar.UUID);
+                            CloseConnection(avatar.UUID);
                         }
                         // if (teleport success) // seems to be always success here
                         // the user may change their profile information in other region,
@@ -763,7 +763,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Inform a neighbouring region that an avatar is about to cross into it.
         /// </summary>
         /// <param name="regionhandle"></param>
         /// <param name="agentID"></param>
@@ -777,7 +777,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return m_commsProvider.InterRegion.InformRegionOfPrimCrossing(regionhandle, primID, objData, XMLMethod);
         }
-
 
         public Dictionary<string, string> GetGridSettings()
         {

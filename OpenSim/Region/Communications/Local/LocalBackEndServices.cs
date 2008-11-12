@@ -167,7 +167,7 @@ namespace OpenSim.Region.Communications.Local
         }
 
         /// <summary>
-        ///
+        /// Get information about a neighbouring region
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <returns></returns>
@@ -177,9 +177,15 @@ namespace OpenSim.Region.Communications.Local
             {
                 return m_regions[regionHandle];
             }
+            
             return null;
         }
 
+        /// <summary>
+        /// Get information about a neighbouring region
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <returns></returns>        
         public RegionInfo RequestNeighbourInfo(UUID regionID)
         {
             // TODO add a dictionary for faster lookup
@@ -188,9 +194,15 @@ namespace OpenSim.Region.Communications.Local
                 if (info.RegionID == regionID)
                     return info;
             }
+            
             return null;
         }
 
+        /// <summary>
+        /// Get information about the closet region given a region name.
+        /// </summary>
+        /// <param name="regionName"></param>
+        /// <returns></returns>
         public RegionInfo RequestClosestRegion(string regionName)
         {
             foreach (RegionInfo regInfo in m_regions.Values)
@@ -236,7 +248,7 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                return m_regionListeners[regionHandle].TriggerTellRegionToCloseChildConnection(regionHandle, agentID);
+                return m_regionListeners[regionHandle].TriggerTellRegionToCloseChildConnection(agentID);
             }
             return false;
         }
@@ -263,7 +275,7 @@ namespace OpenSim.Region.Communications.Local
             if (m_regionListeners.ContainsKey(regionHandle))
             {
                 // Console.WriteLine("CommsManager- Informing a region to expect child agent");
-                m_regionListeners[regionHandle].TriggerChildAgentUpdate(regionHandle, cAgentData);
+                m_regionListeners[regionHandle].TriggerChildAgentUpdate(cAgentData);
                 //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Got Listener trigginering local event: " + agentData.firstname + " " + agentData.lastname);
 
                 return true;
@@ -285,7 +297,7 @@ namespace OpenSim.Region.Communications.Local
             return returnGridSettings;
         }
 
-        public virtual void SetForcefulBanlistsDisallowed(ulong regionHandle)
+        public virtual void SetForcefulBanlistsDisallowed()
         {
             m_queuedGridSettings.Add("allow_forceful_banlines", "FALSE");
         }
@@ -304,8 +316,9 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                return m_regionListeners[regionHandle].TriggerChildAgentUpdate(regionHandle, cAgentData);
+                return m_regionListeners[regionHandle].TriggerChildAgentUpdate(cAgentData);
             }
+            
             return false;
         }
 
@@ -313,8 +326,9 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                return m_regionListeners[regionHandle].TriggerTellRegionToCloseChildConnection(regionHandle, agentID);
+                return m_regionListeners[regionHandle].TriggerTellRegionToCloseChildConnection(agentID);
             }
+            
             return false;
         }
 
@@ -333,7 +347,7 @@ namespace OpenSim.Region.Communications.Local
             if (m_regionListeners.ContainsKey(regionHandle))
             {
                 // Console.WriteLine("CommsManager- Informing a region to expect child agent");
-                m_regionListeners[regionHandle].TriggerExpectUser(regionHandle, agentData);
+                m_regionListeners[regionHandle].TriggerExpectUser(agentData);
                 //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: Got Listener trigginering local event: " + agentData.firstname + " " + agentData.lastname);
 
                 return true;
@@ -345,14 +359,15 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                m_regionListeners[regionHandle].TriggerExpectPrim(regionHandle, primID, objData, XMLMethod);
+                m_regionListeners[regionHandle].TriggerExpectPrim(primID, objData, XMLMethod);
                 return true;
             }
+            
             return false;
         }
 
         /// <summary>
-        ///
+        /// Tell a region to get prepare for an avatar to cross into it.
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
@@ -363,7 +378,7 @@ namespace OpenSim.Region.Communications.Local
             if (m_regionListeners.ContainsKey(regionHandle))
             {
                 // Console.WriteLine("CommsManager- Informing a region to expect avatar crossing");
-                m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position, isFlying);
+                m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(agentID, position, isFlying);
                 return true;
             }
             return false;
@@ -373,9 +388,10 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                m_regionListeners[regionHandle].TriggerExpectPrimCrossing(regionHandle, primID, position, isPhysical);
+                m_regionListeners[regionHandle].TriggerExpectPrimCrossing(primID, position, isPhysical);
                 return true;
             }
+            
             return false;
         }
 
@@ -429,7 +445,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: FoundLocalRegion To send it to: " + agent.firstname + " " + agent.lastname);
 
-                m_regionListeners[regionHandle].TriggerExpectUser(regionHandle, agent);
+                m_regionListeners[regionHandle].TriggerExpectUser(agent);
             }
         }
 
@@ -439,7 +455,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: FoundLocalRegion To send it to: " + agent.firstname + " " + agent.lastname);
 
-                m_regionListeners[regionHandle].TriggerLogOffUser(regionHandle, agentID, RegionSecret, message);
+                m_regionListeners[regionHandle].TriggerLogOffUser(agentID, RegionSecret, message);
             }
         }
 
@@ -447,7 +463,7 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                m_regionListeners[regionHandle].TriggerExpectPrim(regionHandle, primID, objData, XMLMethod);
+                m_regionListeners[regionHandle].TriggerExpectPrim(primID, objData, XMLMethod);
             }
         }
 
@@ -468,8 +484,7 @@ namespace OpenSim.Region.Communications.Local
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                return m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(regionHandle, agentID, position,
-                                                                                   isFlying);
+                return m_regionListeners[regionHandle].TriggerExpectAvatarCrossing(agentID, position, isFlying);
             }
 
             return false;
@@ -480,7 +495,7 @@ namespace OpenSim.Region.Communications.Local
             if (m_regionListeners.ContainsKey(regionHandle))
             {
                 return
-                    m_regionListeners[regionHandle].TriggerExpectPrimCrossing(regionHandle, primID, position, isPhysical);
+                    m_regionListeners[regionHandle].TriggerExpectPrimCrossing(primID, position, isPhysical);
             }
             return false;
         }

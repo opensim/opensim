@@ -30,27 +30,27 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
-    public delegate void ExpectUserDelegate(ulong regionHandle, AgentCircuitData agent);
+    public delegate void ExpectUserDelegate(AgentCircuitData agent);
 
-    public delegate bool ExpectPrimDelegate(ulong regionHandle, UUID primID, string objData, int XMLMethod);
+    public delegate bool ExpectPrimDelegate(UUID primID, string objData, int XMLMethod);
 
     public delegate void UpdateNeighbours(List<RegionInfo> neighbours);
 
-    public delegate void AgentCrossing(ulong regionHandle, UUID agentID, Vector3 position, bool isFlying);
+    public delegate void AgentCrossing(UUID agentID, Vector3 position, bool isFlying);
 
-    public delegate void PrimCrossing(ulong regionHandle, UUID primID, Vector3 position, bool isPhysical);
+    public delegate void PrimCrossing(UUID primID, Vector3 position, bool isPhysical);
 
-    public delegate void AcknowledgeAgentCross(ulong regionHandle, UUID agentID);
+    public delegate void AcknowledgeAgentCross(UUID agentID);
 
-    public delegate void AcknowledgePrimCross(ulong regionHandle, UUID PrimID);
+    public delegate void AcknowledgePrimCross(UUID PrimID);
 
-    public delegate bool CloseAgentConnection(ulong regionHandle, UUID agentID);
+    public delegate bool CloseAgentConnection(UUID agentID);
 
     public delegate bool RegionUp(RegionInfo region);
 
-    public delegate bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData);
+    public delegate bool ChildAgentUpdate(ChildAgentDataUpdate cAgentData);
 
-    public delegate void LogOffUser(ulong regionHandle, UUID agentID, UUID regionSecret, string message);
+    public delegate void LogOffUser(UUID agentID, UUID regionSecret, string message);
 
     public delegate LandData GetLandData(uint x, uint y);
 

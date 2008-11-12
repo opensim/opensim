@@ -546,7 +546,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(agentData.AgentID, userProfile);
 
             // Call 'new user' event handler
-            homeScene.NewUserConnection(reg.RegionHandle, agentData);
+            homeScene.NewUserConnection(agentData);
 
             //string raCap = string.Empty;
 
