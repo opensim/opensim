@@ -1364,7 +1364,7 @@ namespace OpenSim.Framework.Servers
 
                 m_httpListener2.RequestHandler += OnHandleRequestIOThread;
                 //m_httpListener.Start();
-                m_httpListener2.Start(5);
+                m_httpListener2.Start(64);
 
                 //HttpListenerContext context;
                 //while (true)
