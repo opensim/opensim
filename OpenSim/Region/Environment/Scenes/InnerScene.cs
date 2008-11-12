@@ -242,6 +242,23 @@ namespace OpenSim.Region.Environment.Scenes
             if (sceneObject == null || sceneObject.RootPart == null || sceneObject.RootPart.UUID == UUID.Zero)
                 return false;
             
+            if (m_parentScene.m_clampPrimSize)
+            {
+                foreach (SceneObjectPart part in sceneObject.Children.Values)
+                {
+                    Vector3 scale = part.Shape.Scale;
+
+                    if (scale.X > m_parentScene.m_maxNonphys)
+                        scale.X = m_parentScene.m_maxNonphys;
+                    if (scale.Y > m_parentScene.m_maxNonphys)
+                        scale.Y = m_parentScene.m_maxNonphys;
+                    if (scale.Z > m_parentScene.m_maxNonphys)
+                        scale.Z = m_parentScene.m_maxNonphys;
+
+                    part.Shape.Scale = scale;
+                }
+            }
+
             sceneObject.AttachToScene(m_parentScene);
 
             lock (Entities)
