@@ -490,7 +490,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             }
             else if (reportType == 0)
             {
-                SceneData = m_scene.m_innerScene.GetTopScripts();
+                SceneData = m_scene.m_sceneGraph.GetTopScripts();
             }
 
             List<LandStatReportItem> SceneReport = new List<LandStatReportItem>();

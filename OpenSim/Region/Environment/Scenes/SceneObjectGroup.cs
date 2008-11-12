@@ -1051,13 +1051,13 @@ namespace OpenSim.Region.Environment.Scenes
                 scriptScore = 0;
 
             scriptScore += (float)count;
-            InnerScene d = m_scene.m_innerScene;
+            SceneGraph d = m_scene.m_sceneGraph;
             d.AddToScriptLPS(count);
         }
 
         public void AddActiveScriptCount(int count)
         {
-            InnerScene d = m_scene.m_innerScene;
+            SceneGraph d = m_scene.m_sceneGraph;
             d.AddActiveScripts(count);
         }
 
@@ -1672,7 +1672,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void QueueForUpdateCheck()
         {
-            m_scene.m_innerScene.AddToUpdateList(this);
+            m_scene.m_sceneGraph.AddToUpdateList(this);
         }
 
         /// <summary>

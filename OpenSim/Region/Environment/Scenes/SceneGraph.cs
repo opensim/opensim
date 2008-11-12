@@ -39,7 +39,11 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public delegate void PhysicsCrash();
 
-    public class InnerScene
+    /// <summary>
+    /// This class used to be called InnerScene and may not yet truly be a SceneGraph.  The non scene graph components
+    /// should be migrated out over time.
+    /// </summary>
+    public class SceneGraph
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -77,7 +81,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        protected internal InnerScene(Scene parent, RegionInfo regInfo)
+        protected internal SceneGraph(Scene parent, RegionInfo regInfo)
         {
             m_parentScene = parent;
             m_regInfo = regInfo;
@@ -1698,6 +1702,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return null;
         }
+        
         /// <summary>
         /// Calculates the distance between two Vector3s
         /// </summary>

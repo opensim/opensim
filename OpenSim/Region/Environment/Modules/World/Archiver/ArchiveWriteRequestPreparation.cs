@@ -260,7 +260,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
 
             // Filter entities so that we only have scene objects.
-            // FIXME: Would be nicer to have this as a proper list in InnerScene, since lots of methods
+            // FIXME: Would be nicer to have this as a proper list in SceneGraph, since lots of methods
             // end up having to do this
             foreach (EntityBase entity in entities)
             {

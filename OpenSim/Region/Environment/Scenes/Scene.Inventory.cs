@@ -2342,7 +2342,7 @@ namespace OpenSim.Region.Environment.Scenes
         public UUID RezSingleAttachment(IClientAPI remoteClient, UUID itemID,
                 uint AttachmentPt)
         {
-            SceneObjectGroup att = m_innerScene.RezSingleAttachment(remoteClient, itemID, AttachmentPt);
+            SceneObjectGroup att = m_sceneGraph.RezSingleAttachment(remoteClient, itemID, AttachmentPt);
 
             if (att == null)
             {
@@ -2375,7 +2375,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos, bool silent)
         {
-            m_innerScene.AttachObject(controllingClient, localID, attachPoint, rot, pos, silent);
+            m_sceneGraph.AttachObject(controllingClient, localID, attachPoint, rot, pos, silent);
         }
 
         public void AttachObject(IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
@@ -2455,7 +2455,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
             }
-            m_innerScene.DetachSingleAttachmentToInv(itemID, remoteClient);
+            
+            m_sceneGraph.DetachSingleAttachmentToInv(itemID, remoteClient);
         }
 
         public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)

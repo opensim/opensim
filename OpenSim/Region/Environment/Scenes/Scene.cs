@@ -71,7 +71,11 @@ namespace OpenSim.Region.Environment.Scenes
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
         protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
 
-        public InnerScene m_innerScene;
+        /// <value>
+        /// The scene graph for this scene
+        /// </value>
+        /// TODO: Possibly stop other classes being able to manipulate this directly.
+        public SceneGraph m_sceneGraph;
 
         private int m_timePhase = 24;
 
@@ -179,14 +183,14 @@ namespace OpenSim.Region.Environment.Scenes
         // an instance to the physics plugin's Scene object.
         public PhysicsScene PhysicsScene
         {
-            set { m_innerScene.PhysicsScene = value; }
-            get { return (m_innerScene.PhysicsScene); }
+            set { m_sceneGraph.PhysicsScene = value; }
+            get { return (m_sceneGraph.PhysicsScene); }
         }
 
         // This gets locked so things stay thread safe.
         public object SyncRoot
         {
-            get { return m_innerScene.m_syncRoot; }
+            get { return m_sceneGraph.m_syncRoot; }
         }
 
         public float TimeDilation
@@ -212,23 +216,23 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_defaultScriptEngine; }
         }
 
-        // Local reference to the objects in the scene (which are held in innerScene)
+        // Local reference to the objects in the scene (which are held in the scenegraph)
         //        public Dictionary<UUID, SceneObjectGroup> Objects
         //        {
-        //            get { return m_innerScene.SceneObjects; }
+        //            get { return m_sceneGraph.SceneObjects; }
         //        }
 
         // Reference to all of the agents in the scene (root and child)
         protected Dictionary<UUID, ScenePresence> m_scenePresences
         {
-            get { return m_innerScene.ScenePresences; }
-            set { m_innerScene.ScenePresences = value; }
+            get { return m_sceneGraph.ScenePresences; }
+            set { m_sceneGraph.ScenePresences = value; }
         }
 
         //        protected Dictionary<UUID, SceneObjectGroup> m_sceneObjects
         //        {
-        //            get { return m_innerScene.SceneObjects; }
-        //            set { m_innerScene.SceneObjects = value; }
+        //            get { return m_sceneGraph.SceneObjects; }
+        //            set { m_sceneGraph.SceneObjects = value; }
         //        }
 
         /// <summary>
@@ -241,14 +245,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public Dictionary<UUID, EntityBase> Entities
         {
-            get { return m_innerScene.Entities; }
-            set { m_innerScene.Entities = value; }
+            get { return m_sceneGraph.Entities; }
+            set { m_sceneGraph.Entities = value; }
         }
 
         public Dictionary<UUID, ScenePresence> m_restorePresences
         {
-            get { return m_innerScene.RestorePresences; }
-            set { m_innerScene.RestorePresences = value; }
+            get { return m_sceneGraph.RestorePresences; }
+            set { m_sceneGraph.RestorePresences = value; }
         }
 
         public int objectCapacity = 45000;
@@ -296,15 +300,15 @@ namespace OpenSim.Region.Environment.Scenes
             EventManager.OnLandObjectRemoved +=
                 new EventManager.LandObjectRemoved(m_storageManager.DataStore.RemoveLandObject);
 
-            m_innerScene = new InnerScene(this, m_regInfo);
+            m_sceneGraph = new SceneGraph(this, m_regInfo);
 
-            // If the Inner scene has an Unrecoverable error, restart this sim.
+            // If the scene graph has an Unrecoverable error, restart this sim.
             // Currently the only thing that causes it to happen is two kinds of specific
             // Physics based crashes.
             //
             // Out of memory
             // Operating system has killed the plugin
-            m_innerScene.UnRecoverableError += RestartNow;
+            m_sceneGraph.UnRecoverableError += RestartNow;
 
             RegisterDefaultSceneEvents();
 
@@ -644,11 +648,13 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Stop all client threads.
             ForEachScenePresence(delegate(ScenePresence avatar) { avatar.ControllingClient.Close(true); });
+            
             // Stop updating the scene objects and agents.
             //m_heartbeatTimer.Close();
             shuttingdown = true;
-            // close the inner scene
-            m_innerScene.Close();
+
+            m_sceneGraph.Close();
+            
             // De-register with region communications (events cleanup)
             UnRegisterRegionWithComms();
 
@@ -726,7 +732,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //updateLock.WaitOne();
                 float physicsFPS = 0;
                 //m_log.Info("sadfadf" + m_neighbours.Count.ToString());
-                int agentsInScene = m_innerScene.GetRootAgentCount() + m_innerScene.GetChildAgentCount();
+                int agentsInScene = m_sceneGraph.GetRootAgentCount() + m_sceneGraph.GetChildAgentCount();
 
                 if (agentsInScene > 21)
                 {
@@ -757,15 +763,15 @@ namespace OpenSim.Region.Environment.Scenes
 
                     physicsMS2 = System.Environment.TickCount;
                     if ((m_frame % m_update_physics == 0) && m_physics_enabled)
-                        m_innerScene.UpdatePreparePhysics();
+                        m_sceneGraph.UpdatePreparePhysics();
                     physicsMS2 = System.Environment.TickCount - physicsMS2;
 
                     if (m_frame % m_update_entitymovement == 0)
-                        m_innerScene.UpdateEntityMovement();
+                        m_sceneGraph.UpdateEntityMovement();
 
                     physicsMS = System.Environment.TickCount;
                     if ((m_frame % m_update_physics == 0) && m_physics_enabled)
-                        physicsFPS = m_innerScene.UpdatePhysics(
+                        physicsFPS = m_sceneGraph.UpdatePhysics(
                             Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
                             );
                     if (m_frame % m_update_physics == 0 && SynchronizeScene != null)
@@ -777,16 +783,16 @@ namespace OpenSim.Region.Environment.Scenes
                     otherMS = System.Environment.TickCount;
                     // run through all entities looking for updates (slow)
                     if (m_frame % m_update_entities == 0)
-                        m_innerScene.UpdateEntities();
+                        m_sceneGraph.UpdateEntities();
 
                     // run through entities that have scheduled themselves for
                     // updates looking for updates(faster)
                     if (m_frame % m_update_entitiesquick == 0)
-                        m_innerScene.ProcessUpdates();
+                        m_sceneGraph.ProcessUpdates();
 
                     // Run through scenepresences looking for updates
                     if (m_frame % m_update_presences == 0)
-                        m_innerScene.UpdatePresences();
+                        m_sceneGraph.UpdatePresences();
 
                     // Delete temp-on-rez stuff
                     if (m_frame % m_update_backup == 0)
@@ -814,16 +820,16 @@ namespace OpenSim.Region.Environment.Scenes
                         m_statsReporter.AddTimeDilation(m_timedilation);
                         m_statsReporter.AddFPS(1);
                         m_statsReporter.AddInPackets(0);
-                        m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());
-                        m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
-                        m_statsReporter.SetObjects(m_innerScene.GetTotalObjectsCount());
-                        m_statsReporter.SetActiveObjects(m_innerScene.GetActiveObjectsCount());
+                        m_statsReporter.SetRootAgents(m_sceneGraph.GetRootAgentCount());
+                        m_statsReporter.SetChildAgents(m_sceneGraph.GetChildAgentCount());
+                        m_statsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
+                        m_statsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
                         frameMS = System.Environment.TickCount - frameMS;
                         m_statsReporter.addFrameMS(frameMS);
                         m_statsReporter.addPhysicsMS(physicsMS);
                         m_statsReporter.addOtherMS(otherMS);
-                        m_statsReporter.SetActiveScripts(m_innerScene.GetActiveScriptsCount());
-                        m_statsReporter.addScriptLines(m_innerScene.GetScriptLPS());
+                        m_statsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
+                        m_statsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
                     }
                 }
                 catch (NotImplementedException)
@@ -1163,7 +1169,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //AXdirection = new Vector3(direction.X, direction.Y, direction.Z);
 
                         //testRay = new Ray(AXOrigin, AXdirection);
-                        //rt = m_innerScene.GetClosestIntersectingPrim(testRay);
+                        //rt = m_sceneGraph.GetClosestIntersectingPrim(testRay);
 
                         //if (rt.HitTF)
                         //{
@@ -1642,7 +1648,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     // TODO: Raytrace better here
 
-                    //EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
+                    //EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
                     Ray NewRay = new Ray(AXOrigin, AXdirection);
 
                     // Ray Trace against target here
@@ -1676,7 +1682,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     // We don't have a target here, so we're going to raytrace all the objects in the scene.
 
-                    EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection), true, false);
+                    EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection), true, false);
 
                     // Un-comment the following line to print the raytrace results to the console.
                     //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
@@ -1790,7 +1796,7 @@ namespace OpenSim.Region.Environment.Scenes
         public bool AddRestoredSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
         {
-            return m_innerScene.AddRestoredSceneObject(sceneObject, attachToBackup, alreadyPersisted);
+            return m_sceneGraph.AddRestoredSceneObject(sceneObject, attachToBackup, alreadyPersisted);
         }
 
         /// <summary>
@@ -1803,7 +1809,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </param>
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
-            return m_innerScene.AddNewSceneObject(sceneObject, attachToBackup);
+            return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup);
         }
 
         /// <summary>
@@ -1869,7 +1875,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>true if the object was in the scene, false if it was not</returns>
         public bool UnlinkSceneObject(UUID uuid, bool resultOfLinkingObjects)
         {
-            if (m_innerScene.DeleteSceneObject(uuid, resultOfLinkingObjects))
+            if (m_sceneGraph.DeleteSceneObject(uuid, resultOfLinkingObjects))
             {
                 if (!resultOfLinkingObjects)
                     m_storageManager.DataStore.RemoveObject(uuid,
@@ -2203,7 +2209,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 presence.initializeScenePresence(client, RegionInfo, this);
 
-                m_innerScene.AddScenePresence(presence);
+                m_sceneGraph.AddScenePresence(presence);
 
                 lock (m_restorePresences)
                 {
@@ -2228,40 +2234,40 @@ namespace OpenSim.Region.Environment.Scenes
         {
             client.OnRegionHandShakeReply += SendLayerData;
             client.OnAddPrim += AddNewPrim;
-            client.OnUpdatePrimGroupPosition += m_innerScene.UpdatePrimPosition;
-            client.OnUpdatePrimSinglePosition += m_innerScene.UpdatePrimSinglePosition;
-            client.OnUpdatePrimGroupRotation += m_innerScene.UpdatePrimRotation;
-            client.OnUpdatePrimGroupMouseRotation += m_innerScene.UpdatePrimRotation;
-            client.OnUpdatePrimSingleRotation += m_innerScene.UpdatePrimSingleRotation;
-            client.OnUpdatePrimScale += m_innerScene.UpdatePrimScale;
-            client.OnUpdatePrimGroupScale += m_innerScene.UpdatePrimGroupScale;
-            client.OnUpdateExtraParams += m_innerScene.UpdateExtraParam;
-            client.OnUpdatePrimShape += m_innerScene.UpdatePrimShape;
+            client.OnUpdatePrimGroupPosition += m_sceneGraph.UpdatePrimPosition;
+            client.OnUpdatePrimSinglePosition += m_sceneGraph.UpdatePrimSinglePosition;
+            client.OnUpdatePrimGroupRotation += m_sceneGraph.UpdatePrimRotation;
+            client.OnUpdatePrimGroupMouseRotation += m_sceneGraph.UpdatePrimRotation;
+            client.OnUpdatePrimSingleRotation += m_sceneGraph.UpdatePrimSingleRotation;
+            client.OnUpdatePrimScale += m_sceneGraph.UpdatePrimScale;
+            client.OnUpdatePrimGroupScale += m_sceneGraph.UpdatePrimGroupScale;
+            client.OnUpdateExtraParams += m_sceneGraph.UpdateExtraParam;
+            client.OnUpdatePrimShape += m_sceneGraph.UpdatePrimShape;
             //client.OnRequestMapBlocks += RequestMapBlocks; // handled in a module now.
-            client.OnUpdatePrimTexture += m_innerScene.UpdatePrimTexture;
+            client.OnUpdatePrimTexture += m_sceneGraph.UpdatePrimTexture;
             client.OnTeleportLocationRequest += RequestTeleportLocation;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
             client.OnObjectSelect += SelectPrim;
             client.OnObjectDeselect += DeselectPrim;
-            client.OnGrabUpdate += m_innerScene.MoveObject;
+            client.OnGrabUpdate += m_sceneGraph.MoveObject;
             client.OnDeRezObject += DeRezObject;
             client.OnRezObject += RezObject;
             client.OnRezSingleAttachmentFromInv += RezSingleAttachment;
             client.OnDetachAttachmentIntoInv += DetachSingleAttachmentToInv;
-            client.OnObjectAttach += m_innerScene.AttachObject;
-            client.OnObjectDetach += m_innerScene.DetachObject;
-            client.OnObjectDrop += m_innerScene.DropObject;
+            client.OnObjectAttach += m_sceneGraph.AttachObject;
+            client.OnObjectDetach += m_sceneGraph.DetachObject;
+            client.OnObjectDrop += m_sceneGraph.DropObject;
             client.OnNameFromUUIDRequest += CommsManager.HandleUUIDNameRequest;
-            client.OnObjectDescription += m_innerScene.PrimDescription;
-            client.OnObjectName += m_innerScene.PrimName;
-            client.OnObjectClickAction += m_innerScene.PrimClickAction;
-            client.OnObjectMaterial += m_innerScene.PrimMaterial;
-            client.OnLinkObjects += m_innerScene.LinkObjects;
-            client.OnDelinkObjects += m_innerScene.DelinkObjects;
-            client.OnObjectDuplicate += m_innerScene.DuplicateObject;
+            client.OnObjectDescription += m_sceneGraph.PrimDescription;
+            client.OnObjectName += m_sceneGraph.PrimName;
+            client.OnObjectClickAction += m_sceneGraph.PrimClickAction;
+            client.OnObjectMaterial += m_sceneGraph.PrimMaterial;
+            client.OnLinkObjects += m_sceneGraph.LinkObjects;
+            client.OnDelinkObjects += m_sceneGraph.DelinkObjects;
+            client.OnObjectDuplicate += m_sceneGraph.DuplicateObject;
             client.OnObjectDuplicateOnRay += doObjectDuplicateOnRay;
-            client.OnUpdatePrimFlags += m_innerScene.UpdatePrimFlags;
-            client.OnRequestObjectPropertiesFamily += m_innerScene.RequestObjectPropertiesFamily;
+            client.OnUpdatePrimFlags += m_sceneGraph.UpdatePrimFlags;
+            client.OnRequestObjectPropertiesFamily += m_sceneGraph.RequestObjectPropertiesFamily;
             client.OnRequestGodlikePowers += handleRequestGodlikePowers;
             client.OnGodKickUser += HandleGodlikeKickUser;
             client.OnObjectPermissions += HandleObjectPermissionsUpdate;
@@ -2287,11 +2293,11 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
             client.OnParcelBuy += ProcessParcelBuy;
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
-            client.OnObjectIncludeInSearch += m_innerScene.MakeObjectSearchable;
+            client.OnObjectIncludeInSearch += m_sceneGraph.MakeObjectSearchable;
             client.OnTeleportHomeRequest += TeleportClientHome;
             client.OnSetStartLocationRequest += SetHomeRezPoint;
-            client.OnUndo += m_innerScene.HandleUndo;
-            client.OnObjectGroupRequest += m_innerScene.HandleObjectGroupUpdate;
+            client.OnUndo += m_sceneGraph.HandleUndo;
+            client.OnObjectGroupRequest += m_sceneGraph.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
             client.OnParcelSetOtherCleanTime += LandChannel.SetParcelOtherCleanTime;
             client.OnObjectSaleInfo += ObjectSaleInfo;
@@ -2403,7 +2409,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     // TODO: Raytrace better here
 
-                    //EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
+                    //EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
                     Ray NewRay = new Ray(AXOrigin, AXdirection);
 
                     // Ray Trace against target here
@@ -2433,14 +2439,14 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             Quaternion worldRot = target2.GetWorldRotation();
 
-                            // SceneObjectGroup obj = m_innerScene.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
-                            m_innerScene.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
+                            // SceneObjectGroup obj = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
+                            m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
                             //obj.Rotation = worldRot;
                             //obj.UpdateGroupRotation(worldRot);
                         }
                         else
                         {
-                            m_innerScene.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID);
+                            m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID);
                         }
                     }
 
@@ -2486,7 +2492,7 @@ namespace OpenSim.Region.Environment.Scenes
             AvatarAppearance appearance = null;
             GetAvatarAppearance(client, out appearance);
 
-            ScenePresence avatar = m_innerScene.CreateAndAddScenePresence(client, child, appearance);
+            ScenePresence avatar = m_sceneGraph.CreateAndAddScenePresence(client, child, appearance);
 
             return avatar;
         }
@@ -2538,11 +2544,11 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (avatar.IsChildAgent)
                 {
-                    m_innerScene.removeUserCount(false);
+                    m_sceneGraph.removeUserCount(false);
                 }
                 else
                 {
-                    m_innerScene.removeUserCount(true);
+                    m_sceneGraph.removeUserCount(true);
                     m_sceneGridService.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle, avatar.AbsolutePosition, avatar.Lookat);
                     List<ulong> childknownRegions = new List<ulong>();
                     List<ulong> ckn = avatar.GetKnownRegionList();
@@ -2587,7 +2593,7 @@ namespace OpenSim.Region.Environment.Scenes
                 agentTransactions.RemoveAgentAssetTransactions(agentID);
             }
 
-            m_innerScene.RemoveScenePresence(agentID);
+            m_sceneGraph.RemoveScenePresence(agentID);
 
             try
             {
@@ -2807,7 +2813,7 @@ namespace OpenSim.Region.Environment.Scenes
             cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
             cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
             cap.CAPSFetchInventoryDescendents = CommsManager.UserProfileCacheService.HandleFetchInventoryDescendentsCAPS;
-            cap.GetClient = m_innerScene.GetControllingClient;
+            cap.GetClient = m_sceneGraph.GetControllingClient;
             m_capsHandlers[agentId] = cap;
         }
 
@@ -2917,18 +2923,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentID"></param>
         public bool CloseConnection(UUID agentID)
         {
-            ScenePresence presence = m_innerScene.GetScenePresence(agentID);
+            ScenePresence presence = m_sceneGraph.GetScenePresence(agentID);
             
             if (presence != null)
             {
                 // Nothing is removed here, so down count it as such
                 // if (presence.IsChildAgent)
                 // {
-                //    m_innerScene.removeUserCount(false);
+                //    m_sceneGraph.removeUserCount(false);
                 // }
                 // else
                 // {
-                //    m_innerScene.removeUserCount(true);
+                //    m_sceneGraph.removeUserCount(true);
                 // }
 
                 // Tell a single agent to disconnect from the region.
@@ -3501,7 +3507,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else
                         {
-                            m_innerScene.removeUserCount(!m_scenePresences[agentID].IsChildAgent);
+                            m_sceneGraph.removeUserCount(!m_scenePresences[agentID].IsChildAgent);
 
                             m_scenePresences[agentID].ControllingClient.Kick(Utils.BytesToString(reason));
                             m_scenePresences[agentID].ControllingClient.Close(true);
@@ -3872,7 +3878,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        #region InnerScene wrapper methods
+        #region SceneGraph wrapper methods
 
         /// <summary>
         ///
@@ -3881,22 +3887,22 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public UUID ConvertLocalIDToFullID(uint localID)
         {
-            return m_innerScene.ConvertLocalIDToFullID(localID);
+            return m_sceneGraph.ConvertLocalIDToFullID(localID);
         }
 
         public void SwapRootAgentCount(bool rootChildChildRootTF)
         {
-            m_innerScene.SwapRootChildAgent(rootChildChildRootTF);
+            m_sceneGraph.SwapRootChildAgent(rootChildChildRootTF);
         }
 
         public void AddPhysicalPrim(int num)
         {
-            m_innerScene.AddPhysicalPrim(num);
+            m_sceneGraph.AddPhysicalPrim(num);
         }
 
         public void RemovePhysicalPrim(int num)
         {
-            m_innerScene.RemovePhysicalPrim(num);
+            m_sceneGraph.RemovePhysicalPrim(num);
         }
 
         //The idea is to have a group of method that return a list of avatars meeting some requirement
@@ -3909,7 +3915,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public List<ScenePresence> GetAvatars()
         {
-            return m_innerScene.GetAvatars();
+            return m_sceneGraph.GetAvatars();
         }
 
         /// <summary>
@@ -3919,7 +3925,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public List<ScenePresence> GetScenePresences()
         {
-            return m_innerScene.GetScenePresences();
+            return m_sceneGraph.GetScenePresences();
         }
 
         /// <summary>
@@ -3930,7 +3936,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public List<ScenePresence> GetScenePresences(FilterAvatarList filter)
         {
-            return m_innerScene.GetScenePresences(filter);
+            return m_sceneGraph.GetScenePresences(filter);
         }
 
         /// <summary>
@@ -3940,7 +3946,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public ScenePresence GetScenePresence(UUID avatarID)
         {
-            return m_innerScene.GetScenePresence(avatarID);
+            return m_sceneGraph.GetScenePresence(avatarID);
         }
 
         /// <summary>
@@ -4005,7 +4011,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public SceneObjectPart GetSceneObjectPart(string name)
         {
-            return m_innerScene.GetSceneObjectPart(name);
+            return m_sceneGraph.GetSceneObjectPart(name);
         }
 
         /// <summary>
@@ -4015,7 +4021,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public SceneObjectPart GetSceneObjectPart(uint localID)
         {
-            return m_innerScene.GetSceneObjectPart(localID);
+            return m_sceneGraph.GetSceneObjectPart(localID);
         }
 
         /// <summary>
@@ -4025,22 +4031,22 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public SceneObjectPart GetSceneObjectPart(UUID fullID)
         {
-            return m_innerScene.GetSceneObjectPart(fullID);
+            return m_sceneGraph.GetSceneObjectPart(fullID);
         }
 
         internal bool TryGetAvatar(UUID avatarId, out ScenePresence avatar)
         {
-            return m_innerScene.TryGetAvatar(avatarId, out avatar);
+            return m_sceneGraph.TryGetAvatar(avatarId, out avatar);
         }
 
         internal bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)
         {
-            return m_innerScene.TryGetAvatarByName(avatarName, out avatar);
+            return m_sceneGraph.TryGetAvatarByName(avatarName, out avatar);
         }
 
         internal void ForEachClient(Action<IClientAPI> action)
         {
-            m_innerScene.ForEachClient(action);
+            m_sceneGraph.ForEachClient(action);
         }
 
         /// <summary>
@@ -4050,7 +4056,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public List<EntityBase> GetEntities()
         {
-            return m_innerScene.GetEntities();
+            return m_sceneGraph.GetEntities();
         }
 
         #endregion

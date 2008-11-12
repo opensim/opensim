@@ -40,7 +40,7 @@ namespace OpenSim.Region.Physics.Manager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // The only thing that should register for this event is the InnerScene
+        // The only thing that should register for this event is the SceneGraph
         // Anything else could cause problems.
 
         public event physicsCrash OnPhysicsCrash;

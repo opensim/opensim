@@ -2483,7 +2483,7 @@ namespace OpenSim.Region.Environment.Scenes
                     foreach (SceneObjectGroup grp in m_attachments)
                     {
                         // ControllingClient may be null at this point!
-                        m_scene.m_innerScene.DetachSingleAttachmentToInv(grp.GetFromAssetID(), ControllingClient);
+                        m_scene.m_sceneGraph.DetachSingleAttachmentToInv(grp.GetFromAssetID(), ControllingClient);
                     }
                 }
                 catch (InvalidOperationException)
