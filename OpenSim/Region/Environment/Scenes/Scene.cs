@@ -653,6 +653,16 @@ namespace OpenSim.Region.Environment.Scenes
             //m_heartbeatTimer.Close();
             shuttingdown = true;
 
+            m_log.Debug("[SCENE]: Persisting changed objects");
+            List<EntityBase> entities = GetEntities();
+            foreach (EntityBase entity in entities)
+            {
+                if (!entity.IsDeleted && entity is SceneObjectGroup && ((SceneObjectGroup)entity).HasGroupChanged)
+                {
+                    ((SceneObjectGroup)entity).ProcessBackup(m_storageManager.DataStore);
+                }
+            }
+
             m_sceneGraph.Close();
             
             // De-register with region communications (events cleanup)
