@@ -77,7 +77,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 #pragma warning restore 414
         private int m_EventLimit;
         private bool m_KillTimedOutScripts;
-//        bool m_firstStart = true;
 
         private static List<XEngine> m_ScriptEngines =
                 new List<XEngine>();
@@ -390,46 +389,24 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             Object[] parms = new Object[]{localID, itemID, script, startParam, postOnRez, (StateSource)stateSource};
 
-            lock (m_CompileQueue)
+            if (stateSource == (int)StateSource.ScriptedRez)
             {
-                m_CompileQueue.Enqueue(parms);
-
-                if (m_CurrentCompile == null)
+                DoOnRezScript(parms);
+            }
+            else
+            {
+                lock (m_CompileQueue)
                 {
-//                    if (m_firstStart)
-//                    {
-//                        m_firstStart = false;
-//                        m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-//                            new WorkItemCallback(this.DoScriptWait),
-//                            new Object[0]);
-//                        return;
-//                    }
+                    m_CompileQueue.Enqueue(parms);
 
-                    m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                            new WorkItemCallback(this.DoOnRezScriptQueue),
-                            new Object[0]);
+                    if (m_CurrentCompile == null)
+                    {
+                        m_CurrentCompile = m_ThreadPool.QueueWorkItem(
+                                new WorkItemCallback(this.DoOnRezScriptQueue),
+                                new Object[0]);
+                    }
                 }
             }
-        }
-
-        public Object DoScriptWait(Object dummy)
-        {
-            Thread.Sleep(10000);
-
-            lock (m_CompileQueue)
-            {
-                if (m_CompileQueue.Count > 0)
-                {
-                    m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                            new WorkItemCallback(this.DoOnRezScriptQueue),
-                            new Object[0]);
-                }
-                else
-                {
-                    m_CurrentCompile = null;
-                }
-            }
-            return null;
         }
 
         public Object DoOnRezScriptQueue(Object dummy)

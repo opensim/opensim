@@ -39,7 +39,8 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     public enum StateSource
     {
         NewRez = 0,
-        PrimCrossing = 1
+        PrimCrossing = 1,
+        ScriptedRez= 2
     }
 
     public interface IScriptWorkItem

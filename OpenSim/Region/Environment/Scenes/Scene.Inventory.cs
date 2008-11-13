@@ -2171,7 +2171,7 @@ namespace OpenSim.Region.Environment.Scenes
                     group.UpdateGroupRotation(rot);
                     //group.ApplyPhysics(m_physicalPrim);
                     group.Velocity = vel;
-                    group.CreateScriptInstances(param, true, DefaultScriptEngine, 0);
+                    group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
                     rootPart.ScheduleFullUpdate();
 
                     if (!ExternalChecks.ExternalChecksBypassPermissions())
