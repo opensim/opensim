@@ -1070,51 +1070,63 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        public delegate bool CanCreateInventory(int invType, UUID objectID, UUID userID);
-        private List<CanCreateInventory> CanCreateInventoryCheckFunctions = new List<CanCreateInventory>();
+        public delegate bool CanCreateObjectInventory(int invType, UUID objectID, UUID userID);
+        private List<CanCreateObjectInventory> CanCreateObjectInventoryCheckFunctions 
+            = new List<CanCreateObjectInventory>();
 
-        public void addCheckCanCreateInventory(CanCreateInventory delegateFunc)
+        
+        public void addCheckCanCreateObjectInventory(CanCreateObjectInventory delegateFunc)
         {
-            if (!CanCreateInventoryCheckFunctions.Contains(delegateFunc))
-                CanCreateInventoryCheckFunctions.Add(delegateFunc);
+            if (!CanCreateObjectInventoryCheckFunctions.Contains(delegateFunc))
+                CanCreateObjectInventoryCheckFunctions.Add(delegateFunc);
         }
 
-        public void removeCheckCanCreateInventory(CanCreateInventory delegateFunc)
+        public void removeCheckCanCreateObjectInventory(CanCreateObjectInventory delegateFunc)
         {
-            if (CanCreateInventoryCheckFunctions.Contains(delegateFunc))
-                CanCreateInventoryCheckFunctions.Remove(delegateFunc);
+            if (CanCreateObjectInventoryCheckFunctions.Contains(delegateFunc))
+                CanCreateObjectInventoryCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanCreateInventory(int invType, UUID objectID, UUID userID)
+        /// <summary>
+        /// Check whether the specified user is allowed to directly create the given inventory type in a prim's
+        /// inventory (e.g. the New Script button in the 1.21 Linden Lab client).  This permission check does not 
+        /// apply to existing items that are being dragged in to that prim's inventory.
+        /// </summary>
+        /// <param name="invType"></param>
+        /// <param name="objectID"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>         
+        public bool ExternalChecksCanCreateObjectInventory(int invType, UUID objectID, UUID userID)
         {
-            foreach (CanCreateInventory check in CanCreateInventoryCheckFunctions)
+            foreach (CanCreateObjectInventory check in CanCreateObjectInventoryCheckFunctions)
             {
                 if (check(invType, objectID, userID) == false)
                 {
                     return false;
                 }
             }
+            
             return true;
         }
 
-        public delegate bool CanCopyInventory(UUID itemID, UUID objectID, UUID userID);
-        private List<CanCopyInventory> CanCopyInventoryCheckFunctions = new List<CanCopyInventory>();
+        public delegate bool CanCopyObjectInventory(UUID itemID, UUID objectID, UUID userID);
+        private List<CanCopyObjectInventory> CanCopyObjectInventoryCheckFunctions = new List<CanCopyObjectInventory>();
 
-        public void addCheckCanCopyInventory(CanCopyInventory delegateFunc)
+        public void addCheckCanCopyObjectInventory(CanCopyObjectInventory delegateFunc)
         {
-            if (!CanCopyInventoryCheckFunctions.Contains(delegateFunc))
-                CanCopyInventoryCheckFunctions.Add(delegateFunc);
+            if (!CanCopyObjectInventoryCheckFunctions.Contains(delegateFunc))
+                CanCopyObjectInventoryCheckFunctions.Add(delegateFunc);
         }
 
-        public void removeCheckCanCopyInventory(CanCopyInventory delegateFunc)
+        public void removeCheckCanCopyObjectInventory(CanCopyObjectInventory delegateFunc)
         {
-            if (CanCopyInventoryCheckFunctions.Contains(delegateFunc))
-                CanCopyInventoryCheckFunctions.Remove(delegateFunc);
+            if (CanCopyObjectInventoryCheckFunctions.Contains(delegateFunc))
+                CanCopyObjectInventoryCheckFunctions.Remove(delegateFunc);
         }
-
-        public bool ExternalChecksCanCopyInventory(UUID itemID, UUID objectID, UUID userID)
+       
+        public bool ExternalChecksCanCopyObjectInventory(UUID itemID, UUID objectID, UUID userID)
         {
-            foreach (CanCopyInventory check in CanCopyInventoryCheckFunctions)
+            foreach (CanCopyObjectInventory check in CanCopyObjectInventoryCheckFunctions)
             {
                 if (check(itemID, objectID, userID) == false)
                 {
@@ -1124,30 +1136,32 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
 
-        public delegate bool CanDeleteInventory(UUID itemID, UUID objectID, UUID userID);
-        private List<CanDeleteInventory> CanDeleteInventoryCheckFunctions = new List<CanDeleteInventory>();
+        public delegate bool CanDeleteObjectInventory(UUID itemID, UUID objectID, UUID userID);
+        private List<CanDeleteObjectInventory> CanDeleteObjectInventoryCheckFunctions 
+            = new List<CanDeleteObjectInventory>();
 
-        public void addCheckCanDeleteInventory(CanDeleteInventory delegateFunc)
+        public void addCheckCanDeleteObjectInventory(CanDeleteObjectInventory delegateFunc)
         {
-            if (!CanDeleteInventoryCheckFunctions.Contains(delegateFunc))
-                CanDeleteInventoryCheckFunctions.Add(delegateFunc);
+            if (!CanDeleteObjectInventoryCheckFunctions.Contains(delegateFunc))
+                CanDeleteObjectInventoryCheckFunctions.Add(delegateFunc);
         }
 
-        public void removeCheckCanDeleteInventory(CanDeleteInventory delegateFunc)
+        public void removeCheckCanDeleteObjectInventory(CanDeleteObjectInventory delegateFunc)
         {
-            if (CanDeleteInventoryCheckFunctions.Contains(delegateFunc))
-                CanDeleteInventoryCheckFunctions.Remove(delegateFunc);
+            if (CanDeleteObjectInventoryCheckFunctions.Contains(delegateFunc))
+                CanDeleteObjectInventoryCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanDeleteInventory(UUID itemID, UUID objectID, UUID userID)
+        public bool ExternalChecksCanDeleteObjectInventory(UUID itemID, UUID objectID, UUID userID)
         {
-            foreach (CanDeleteInventory check in CanDeleteInventoryCheckFunctions)
+            foreach (CanDeleteObjectInventory check in CanDeleteObjectInventoryCheckFunctions)
             {
                 if (check(itemID, objectID, userID) == false)
                 {
                     return false;
                 }
             }
+            
             return true;
         }
 

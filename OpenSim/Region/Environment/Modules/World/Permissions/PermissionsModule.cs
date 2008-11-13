@@ -184,11 +184,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckCanLinkObject(CanLinkObject); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanDelinkObject(CanDelinkObject); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanBuyLand(CanBuyLand); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanCopyInventory(CanCopyInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanDeleteInventory(CanDeleteInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanCreateInventory(CanCreateInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanCopyObjectInventory(CanCopyObjectInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanDeleteObjectInventory(CanDeleteObjectInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanCreateObjectInventory(CanCreateObjectInventory); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanTeleport(CanTeleport); //NOT YET IMPLEMENTED
-
 
             //Register Debug Commands
             Command bypassCommand = new Command("bypass", CommandIntentions.COMMAND_HAZARDOUS, InterfaceBypassPermissions, "Force the permissions a specific way to test permissions");
@@ -1202,7 +1201,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return true;
         }
 
-        public bool CanCopyInventory(UUID itemID, UUID objectID, UUID userID)
+        public bool CanCopyObjectInventory(UUID itemID, UUID objectID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1210,7 +1209,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return true;
         }
 
-        public bool CanDeleteInventory(UUID itemID, UUID objectID, UUID userID)
+        public bool CanDeleteObjectInventory(UUID itemID, UUID objectID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1227,7 +1226,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <param name="objectID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>
-        public bool CanCreateInventory(int invType, UUID objectID, UUID userID)
+        public bool CanCreateObjectInventory(int invType, UUID objectID, UUID userID)
         {
             m_log.Debug("[PERMISSIONS]: CanCreateInventory called");
             

@@ -1387,7 +1387,8 @@ namespace OpenSim.Region.Environment.Scenes
                 if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return;
                 
-                if (!ExternalChecks.ExternalChecksCanCreateInventory(itemBase.InvType, part.UUID, remoteClient.AgentId))               
+                if (!ExternalChecks.ExternalChecksCanCreateObjectInventory(
+                    itemBase.InvType, part.UUID, remoteClient.AgentId))               
                     return;             
 
                 AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType, Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"));
