@@ -1089,8 +1089,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         /// <summary>
         /// Check whether the specified user is allowed to directly create the given inventory type in a prim's
-        /// inventory (e.g. the New Script button in the 1.21 Linden Lab client).  This permission check does not 
-        /// apply to existing items that are being dragged in to that prim's inventory.
+        /// inventory (e.g. the New Script button in the 1.21 Linden Lab client).
         /// </summary>
         /// <param name="invType"></param>
         /// <param name="objectID"></param>
@@ -1164,7 +1163,147 @@ namespace OpenSim.Region.Environment.Scenes
             
             return true;
         }
+        
+        public delegate bool CanCreateAvatarInventory(int invType, UUID userID);
+        private List<CanCreateAvatarInventory> CanCreateAvatarInventoryCheckFunctions 
+            = new List<CanCreateAvatarInventory>();
+        
+        public void addCheckCanCreateAvatarInventory(CanCreateAvatarInventory delegateFunc)
+        {
+            if (!CanCreateAvatarInventoryCheckFunctions.Contains(delegateFunc))
+                CanCreateAvatarInventoryCheckFunctions.Add(delegateFunc);
+        }
 
+        public void removeCheckCanCreateAvatarInventory(CanCreateAvatarInventory delegateFunc)
+        {
+            if (CanCreateAvatarInventoryCheckFunctions.Contains(delegateFunc))
+                CanCreateAvatarInventoryCheckFunctions.Remove(delegateFunc);
+        }
+
+        /// <summary>
+        /// Check whether the specified user is allowed to create the given inventory type in their inventory.
+        /// </summary>
+        /// <param name="invType"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>         
+        public bool ExternalChecksCanCreateAvatarInventory(int invType, UUID userID)
+        {
+            foreach (CanCreateAvatarInventory check in CanCreateAvatarInventoryCheckFunctions)
+            {
+                if (check(invType, userID) == false)
+                {
+                    return false;
+                }
+            }
+            
+            return true;
+        } 
+        
+        public delegate bool CanEditAvatarInventory(UUID itemID, UUID userID);
+        private List<CanEditAvatarInventory> CanEditAvatarInventoryCheckFunctions 
+            = new List<CanEditAvatarInventory>();
+        
+        public void addCheckCanEditAvatarInventory(CanEditAvatarInventory delegateFunc)
+        {
+            if (!CanEditAvatarInventoryCheckFunctions.Contains(delegateFunc))
+                CanEditAvatarInventoryCheckFunctions.Add(delegateFunc);
+        }
+
+        public void removeCheckCanEditAvatarInventory(CanEditAvatarInventory delegateFunc)
+        {
+            if (CanEditAvatarInventoryCheckFunctions.Contains(delegateFunc))
+                CanEditAvatarInventoryCheckFunctions.Remove(delegateFunc);
+        }
+
+        /// <summary>
+        /// Check whether the specified user is allowed to edit the given inventory item within their own inventory.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>         
+        public bool ExternalChecksCanEditAvatarInventory(UUID itemID, UUID userID)
+        {
+            foreach (CanEditAvatarInventory check in CanEditAvatarInventoryCheckFunctions)
+            {
+                if (check(itemID, userID) == false)
+                {
+                    return false;
+                }
+            }
+            
+            return true;
+        }         
+        
+        public delegate bool CanCopyAvatarInventory(UUID itemID, UUID userID);
+        private List<CanCopyAvatarInventory> CanCopyAvatarInventoryCheckFunctions 
+            = new List<CanCopyAvatarInventory>();
+        
+        public void addCheckCanCopyAvatarInventory(CanCopyAvatarInventory delegateFunc)
+        {
+            if (!CanCopyAvatarInventoryCheckFunctions.Contains(delegateFunc))
+                CanCopyAvatarInventoryCheckFunctions.Add(delegateFunc);
+        }
+
+        public void removeCheckCanCopyAvatarInventory(CanCopyAvatarInventory delegateFunc)
+        {
+            if (CanCopyAvatarInventoryCheckFunctions.Contains(delegateFunc))
+                CanCopyAvatarInventoryCheckFunctions.Remove(delegateFunc);
+        }        
+                
+        /// <summary>
+        /// Check whether the specified user is allowed to copy the given inventory item from their own inventory.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>         
+        public bool ExternalChecksCanCopyAvatarInventory(UUID itemID, UUID userID)
+        {
+            foreach (CanCopyAvatarInventory check in CanCopyAvatarInventoryCheckFunctions)
+            {
+                if (check(itemID, userID) == false)
+                {
+                    return false;
+                }
+            }
+            
+            return true;
+        }         
+        
+        public delegate bool CanDeleteAvatarInventory(UUID itemID, UUID userID);
+        private List<CanDeleteAvatarInventory> CanDeleteAvatarInventoryCheckFunctions 
+            = new List<CanDeleteAvatarInventory>();
+        
+        public void addCheckCanDeleteAvatarInventory(CanDeleteAvatarInventory delegateFunc)
+        {
+            if (!CanDeleteAvatarInventoryCheckFunctions.Contains(delegateFunc))
+                CanDeleteAvatarInventoryCheckFunctions.Add(delegateFunc);
+        }
+
+        public void removeCheckCanDeleteAvatarInventory(CanDeleteAvatarInventory delegateFunc)
+        {
+            if (CanDeleteAvatarInventoryCheckFunctions.Contains(delegateFunc))
+                CanDeleteAvatarInventoryCheckFunctions.Remove(delegateFunc);
+        }
+
+        /// <summary>
+        /// Check whether the specified user is allowed to edit the given inventory item within their own inventory.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>         
+        public bool ExternalChecksCanDeleteAvatarInventory(UUID itemID, UUID userID)
+        {
+            foreach (CanDeleteAvatarInventory check in CanDeleteAvatarInventoryCheckFunctions)
+            {
+                if (check(itemID, userID) == false)
+                {
+                    return false;
+                }
+            }
+            
+            return true;
+        }         
+        
         public delegate bool CanTeleport(UUID userID);
         private List<CanTeleport> CanTeleportCheckFunctions = new List<CanTeleport>();
 

@@ -186,7 +186,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckCanBuyLand(CanBuyLand); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanCopyObjectInventory(CanCopyObjectInventory); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanDeleteObjectInventory(CanDeleteObjectInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanCreateObjectInventory(CanCreateObjectInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanCreateAvatarInventory(CanCreateAvatarInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanCopyAvatarInventory(CanCopyAvatarInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanEditAvatarInventory(CanEditAvatarInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanDeleteAvatarInventory(CanDeleteAvatarInventory); //NOT YET IMPLEMENTED            
             m_scene.ExternalChecks.addCheckCanTeleport(CanTeleport); //NOT YET IMPLEMENTED
 
             //Register Debug Commands
@@ -1219,8 +1222,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         /// <summary>
         /// Check whether the specified user is allowed to directly create the given inventory type in a prim's
-        /// inventory (e.g. the New Script button in the 1.21 Linden Lab client).  This permission check does not 
-        /// apply to existing items that are being dragged in to that prim's inventory.
+        /// inventory (e.g. the New Script button in the 1.21 Linden Lab client).
         /// </summary>
         /// <param name="invType"></param>
         /// <param name="objectID"></param>
@@ -1228,13 +1230,71 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <returns></returns>
         public bool CanCreateObjectInventory(int invType, UUID objectID, UUID userID)
         {
-            m_log.Debug("[PERMISSIONS]: CanCreateInventory called");
+            //m_log.Debug("[PERMISSIONS]: CanCreateObjectInventory called");
             
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
             return true;
         }
+        
+        /// <summary>
+        /// Check whether the specified user is allowed to create the given inventory type in their inventory.
+        /// </summary>
+        /// <param name="invType"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>           
+        public bool CanCreateAvatarInventory(int invType, UUID userID)
+        {
+            //m_log.Debug("[PERMISSIONS]: CanCreateAvatarInventory called");
+            
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return true;            
+        }
+        
+        /// <summary>
+        /// Check whether the specified user is allowed to copy the given inventory type in their inventory.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>           
+        public bool CanCopyAvatarInventory(UUID itemID, UUID userID)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return true;            
+        }        
+        
+        /// <summary>
+        /// Check whether the specified user is allowed to edit the given inventory item within their own inventory.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>           
+        public bool CanEditAvatarInventory(UUID itemID, UUID userID)
+        {            
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return true;            
+        }
+        
+        /// <summary>
+        /// Check whether the specified user is allowed to delete the given inventory item from their own inventory.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>           
+        public bool CanDeleteAvatarInventory(UUID itemID, UUID userID)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return true;            
+        }        
 
         public bool CanTeleport(UUID userID)
         {

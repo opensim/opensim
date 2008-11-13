@@ -759,8 +759,11 @@ namespace OpenSim.Region.Environment.Scenes
                                            sbyte assetType,
                                            byte wearableType, uint nextOwnerMask, int creationDate)
         {
-//            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
+            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
 
+            if (!ExternalChecks.ExternalChecksCanCreateAvatarInventory(invType, remoteClient.AgentId))
+                return;
+                
             if (transactionID == UUID.Zero)
             {
                 CachedUserInfo userInfo
@@ -771,14 +774,16 @@ namespace OpenSim.Region.Environment.Scenes
                     ScenePresence presence;
                     TryGetAvatar(remoteClient.AgentId, out presence);
                     byte[] data = null;
+                    
                     if (invType == 3 && presence != null) // OpenMetaverse.asset.assettype.landmark = 3 - needs to be turned into an enum
                     {
-                        Vector3 pos=presence.AbsolutePosition;
-                        string strdata=String.Format("Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
+                        Vector3 pos = presence.AbsolutePosition;
+                        string strdata = String.Format(
+                            "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
                             presence.Scene.RegionInfo.RegionID,
                             pos.X, pos.Y, pos.Z,
                             presence.RegionHandle);
-                        data=Encoding.ASCII.GetBytes(strdata);
+                        data = Encoding.ASCII.GetBytes(strdata);
                     }
 
                     AssetBase asset = CreateAsset(name, description, assetType, data);
@@ -1245,9 +1250,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 if (!ExternalChecks.ExternalChecksCanEditObjectInventory(part.UUID, remoteClient.AgentId))
-                {
                     return;
-                }
 
                 TaskInventoryItem currentItem = part.GetInventoryItem(itemID);
 
@@ -1344,9 +1347,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (part != null)
                         {
                             if (!ExternalChecks.ExternalChecksCanEditObjectInventory(part.UUID, remoteClient.AgentId))
-                            {
                                 return;
-                            }
 
                             part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
                             // TODO: switch to posting on_rez here when scripts
@@ -1573,7 +1574,6 @@ namespace OpenSim.Region.Environment.Scenes
                 //If they can take, they can delete!
                 permissionToDelete = permissionToTake;
             }
-
             else if (destination == 6) //Delete
             {
                 permissionToTake =
