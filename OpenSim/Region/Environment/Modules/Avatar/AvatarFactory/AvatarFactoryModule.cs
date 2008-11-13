@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.AvatarFactory
 
         public bool IsSharedModule
         {
-            get { return true; }
+            get { return false; }
         }
 
         public void NewClient(IClientAPI client)
