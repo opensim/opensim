@@ -1164,20 +1164,20 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }
         
-        public delegate bool CanCreateAvatarInventory(int invType, UUID userID);
-        private List<CanCreateAvatarInventory> CanCreateAvatarInventoryCheckFunctions 
-            = new List<CanCreateAvatarInventory>();
+        public delegate bool CanCreateUserInventory(int invType, UUID userID);
+        private List<CanCreateUserInventory> CanCreateUserInventoryCheckFunctions 
+            = new List<CanCreateUserInventory>();
         
-        public void addCheckCanCreateAvatarInventory(CanCreateAvatarInventory delegateFunc)
+        public void addCheckCanCreateUserInventory(CanCreateUserInventory delegateFunc)
         {
-            if (!CanCreateAvatarInventoryCheckFunctions.Contains(delegateFunc))
-                CanCreateAvatarInventoryCheckFunctions.Add(delegateFunc);
+            if (!CanCreateUserInventoryCheckFunctions.Contains(delegateFunc))
+                CanCreateUserInventoryCheckFunctions.Add(delegateFunc);
         }
 
-        public void removeCheckCanCreateAvatarInventory(CanCreateAvatarInventory delegateFunc)
+        public void removeCheckCanCreateUserInventory(CanCreateUserInventory delegateFunc)
         {
-            if (CanCreateAvatarInventoryCheckFunctions.Contains(delegateFunc))
-                CanCreateAvatarInventoryCheckFunctions.Remove(delegateFunc);
+            if (CanCreateUserInventoryCheckFunctions.Contains(delegateFunc))
+                CanCreateUserInventoryCheckFunctions.Remove(delegateFunc);
         }
 
         /// <summary>
@@ -1186,9 +1186,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="invType"></param>
         /// <param name="userID"></param>
         /// <returns></returns>         
-        public bool ExternalChecksCanCreateAvatarInventory(int invType, UUID userID)
+        public bool ExternalChecksCanCreateUserInventory(int invType, UUID userID)
         {
-            foreach (CanCreateAvatarInventory check in CanCreateAvatarInventoryCheckFunctions)
+            foreach (CanCreateUserInventory check in CanCreateUserInventoryCheckFunctions)
             {
                 if (check(invType, userID) == false)
                 {
@@ -1199,20 +1199,20 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         } 
         
-        public delegate bool CanEditAvatarInventory(UUID itemID, UUID userID);
-        private List<CanEditAvatarInventory> CanEditAvatarInventoryCheckFunctions 
-            = new List<CanEditAvatarInventory>();
+        public delegate bool CanEditUserInventory(UUID itemID, UUID userID);
+        private List<CanEditUserInventory> CanEditUserInventoryCheckFunctions 
+            = new List<CanEditUserInventory>();
         
-        public void addCheckCanEditAvatarInventory(CanEditAvatarInventory delegateFunc)
+        public void addCheckCanEditUserInventory(CanEditUserInventory delegateFunc)
         {
-            if (!CanEditAvatarInventoryCheckFunctions.Contains(delegateFunc))
-                CanEditAvatarInventoryCheckFunctions.Add(delegateFunc);
+            if (!CanEditUserInventoryCheckFunctions.Contains(delegateFunc))
+                CanEditUserInventoryCheckFunctions.Add(delegateFunc);
         }
 
-        public void removeCheckCanEditAvatarInventory(CanEditAvatarInventory delegateFunc)
+        public void removeCheckCanEditUserInventory(CanEditUserInventory delegateFunc)
         {
-            if (CanEditAvatarInventoryCheckFunctions.Contains(delegateFunc))
-                CanEditAvatarInventoryCheckFunctions.Remove(delegateFunc);
+            if (CanEditUserInventoryCheckFunctions.Contains(delegateFunc))
+                CanEditUserInventoryCheckFunctions.Remove(delegateFunc);
         }
 
         /// <summary>
@@ -1221,9 +1221,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>         
-        public bool ExternalChecksCanEditAvatarInventory(UUID itemID, UUID userID)
+        public bool ExternalChecksCanEditUserInventory(UUID itemID, UUID userID)
         {
-            foreach (CanEditAvatarInventory check in CanEditAvatarInventoryCheckFunctions)
+            foreach (CanEditUserInventory check in CanEditUserInventoryCheckFunctions)
             {
                 if (check(itemID, userID) == false)
                 {
@@ -1234,20 +1234,20 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }         
         
-        public delegate bool CanCopyAvatarInventory(UUID itemID, UUID userID);
-        private List<CanCopyAvatarInventory> CanCopyAvatarInventoryCheckFunctions 
-            = new List<CanCopyAvatarInventory>();
+        public delegate bool CanCopyUserInventory(UUID itemID, UUID userID);
+        private List<CanCopyUserInventory> CanCopyUserInventoryCheckFunctions 
+            = new List<CanCopyUserInventory>();
         
-        public void addCheckCanCopyAvatarInventory(CanCopyAvatarInventory delegateFunc)
+        public void addCheckCanCopyUserInventory(CanCopyUserInventory delegateFunc)
         {
-            if (!CanCopyAvatarInventoryCheckFunctions.Contains(delegateFunc))
-                CanCopyAvatarInventoryCheckFunctions.Add(delegateFunc);
+            if (!CanCopyUserInventoryCheckFunctions.Contains(delegateFunc))
+                CanCopyUserInventoryCheckFunctions.Add(delegateFunc);
         }
 
-        public void removeCheckCanCopyAvatarInventory(CanCopyAvatarInventory delegateFunc)
+        public void removeCheckCanCopyUserInventory(CanCopyUserInventory delegateFunc)
         {
-            if (CanCopyAvatarInventoryCheckFunctions.Contains(delegateFunc))
-                CanCopyAvatarInventoryCheckFunctions.Remove(delegateFunc);
+            if (CanCopyUserInventoryCheckFunctions.Contains(delegateFunc))
+                CanCopyUserInventoryCheckFunctions.Remove(delegateFunc);
         }        
                 
         /// <summary>
@@ -1256,9 +1256,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>         
-        public bool ExternalChecksCanCopyAvatarInventory(UUID itemID, UUID userID)
+        public bool ExternalChecksCanCopyUserInventory(UUID itemID, UUID userID)
         {
-            foreach (CanCopyAvatarInventory check in CanCopyAvatarInventoryCheckFunctions)
+            foreach (CanCopyUserInventory check in CanCopyUserInventoryCheckFunctions)
             {
                 if (check(itemID, userID) == false)
                 {
@@ -1269,20 +1269,20 @@ namespace OpenSim.Region.Environment.Scenes
             return true;
         }         
         
-        public delegate bool CanDeleteAvatarInventory(UUID itemID, UUID userID);
-        private List<CanDeleteAvatarInventory> CanDeleteAvatarInventoryCheckFunctions 
-            = new List<CanDeleteAvatarInventory>();
+        public delegate bool CanDeleteUserInventory(UUID itemID, UUID userID);
+        private List<CanDeleteUserInventory> CanDeleteUserInventoryCheckFunctions 
+            = new List<CanDeleteUserInventory>();
         
-        public void addCheckCanDeleteAvatarInventory(CanDeleteAvatarInventory delegateFunc)
+        public void addCheckCanDeleteUserInventory(CanDeleteUserInventory delegateFunc)
         {
-            if (!CanDeleteAvatarInventoryCheckFunctions.Contains(delegateFunc))
-                CanDeleteAvatarInventoryCheckFunctions.Add(delegateFunc);
+            if (!CanDeleteUserInventoryCheckFunctions.Contains(delegateFunc))
+                CanDeleteUserInventoryCheckFunctions.Add(delegateFunc);
         }
 
-        public void removeCheckCanDeleteAvatarInventory(CanDeleteAvatarInventory delegateFunc)
+        public void removeCheckCanDeleteUserInventory(CanDeleteUserInventory delegateFunc)
         {
-            if (CanDeleteAvatarInventoryCheckFunctions.Contains(delegateFunc))
-                CanDeleteAvatarInventoryCheckFunctions.Remove(delegateFunc);
+            if (CanDeleteUserInventoryCheckFunctions.Contains(delegateFunc))
+                CanDeleteUserInventoryCheckFunctions.Remove(delegateFunc);
         }
 
         /// <summary>
@@ -1291,9 +1291,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>         
-        public bool ExternalChecksCanDeleteAvatarInventory(UUID itemID, UUID userID)
+        public bool ExternalChecksCanDeleteUserInventory(UUID itemID, UUID userID)
         {
-            foreach (CanDeleteAvatarInventory check in CanDeleteAvatarInventoryCheckFunctions)
+            foreach (CanDeleteUserInventory check in CanDeleteUserInventoryCheckFunctions)
             {
                 if (check(itemID, userID) == false)
                 {

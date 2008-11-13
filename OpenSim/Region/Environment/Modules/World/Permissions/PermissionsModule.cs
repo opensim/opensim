@@ -186,10 +186,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckCanBuyLand(CanBuyLand); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanCopyObjectInventory(CanCopyObjectInventory); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanDeleteObjectInventory(CanDeleteObjectInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanCreateAvatarInventory(CanCreateAvatarInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanCopyAvatarInventory(CanCopyAvatarInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanEditAvatarInventory(CanEditAvatarInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanDeleteAvatarInventory(CanDeleteAvatarInventory); //NOT YET IMPLEMENTED            
+            m_scene.ExternalChecks.addCheckCanCreateUserInventory(CanCreateUserInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanCopyUserInventory(CanCopyUserInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanEditUserInventory(CanEditUserInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanDeleteUserInventory(CanDeleteUserInventory); //NOT YET IMPLEMENTED            
             m_scene.ExternalChecks.addCheckCanTeleport(CanTeleport); //NOT YET IMPLEMENTED
 
             //Register Debug Commands
@@ -1244,7 +1244,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <param name="invType"></param>
         /// <param name="userID"></param>
         /// <returns></returns>           
-        public bool CanCreateAvatarInventory(int invType, UUID userID)
+        public bool CanCreateUserInventory(int invType, UUID userID)
         {
             //m_log.Debug("[PERMISSIONS]: CanCreateAvatarInventory called");
             
@@ -1260,7 +1260,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>           
-        public bool CanCopyAvatarInventory(UUID itemID, UUID userID)
+        public bool CanCopyUserInventory(UUID itemID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1274,7 +1274,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>           
-        public bool CanEditAvatarInventory(UUID itemID, UUID userID)
+        public bool CanEditUserInventory(UUID itemID, UUID userID)
         {            
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1288,7 +1288,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>           
-        public bool CanDeleteAvatarInventory(UUID itemID, UUID userID)
+        public bool CanDeleteUserInventory(UUID itemID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;

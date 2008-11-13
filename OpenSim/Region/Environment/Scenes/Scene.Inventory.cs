@@ -761,7 +761,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
 
-            if (!ExternalChecks.ExternalChecksCanCreateAvatarInventory(invType, remoteClient.AgentId))
+            if (!ExternalChecks.ExternalChecksCanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
                 
             if (transactionID == UUID.Zero)
