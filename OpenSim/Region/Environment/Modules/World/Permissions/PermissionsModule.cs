@@ -552,317 +552,417 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 #endregion
 
         #region Permission Checks
-            private bool CanAbandonParcel(UUID user, ILandObject parcel, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+        private bool CanAbandonParcel(UUID user, ILandObject parcel, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return GenericParcelPermission(user, parcel);
+            return GenericParcelPermission(user, parcel);
+        }
+
+        private bool CanReclaimParcel(UUID user, ILandObject parcel, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return GenericParcelPermission(user, parcel);
+        }
+
+        private bool CanBeGodLike(UUID user, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return IsAdministrator(user);
+        }
+
+        private bool CanDuplicateObject(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (!GenericObjectPermission(owner, objectID, true))
+            {
+                //They can't even edit the object
+                return false;
             }
+            //If they can rez, they can duplicate
+            return CanRezObject(objectCount, owner, objectPosition, scene);
+        }
 
-            private bool CanReclaimParcel(UUID user, ILandObject parcel, Scene scene)
+        private bool CanDeleteObject(UUID objectID, UUID deleter, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return GenericObjectPermission(deleter, objectID, false);
+        }
+
+        private bool CanEditObject(UUID objectID, UUID editorID, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+
+            return GenericObjectPermission(editorID, objectID, false);
+        }
+
+        private bool CanEditObjectInventory(UUID objectID, UUID editorID, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
+
+            // TODO: add group support!
+            //
+            if (part.OwnerID != editorID)
+                return false;
+
+            return GenericObjectPermission(editorID, objectID, false);
+        }
+
+        private bool CanEditParcel(UUID user, ILandObject parcel, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return GenericParcelPermission(user, parcel);
+        }
+
+        private bool CanEditScript(UUID script, UUID objectID, UUID user, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            // If you can view it, you can edit it
+            // There is no viewing a no mod script
+            //
+            return CanViewScript(script, objectID, user, scene);
+        }
+
+        private bool CanEditNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (objectID == UUID.Zero) // User inventory
             {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                return GenericParcelPermission(user, parcel);
-            }
-
-            private bool CanBeGodLike(UUID user, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                return IsAdministrator(user);
-            }
-
-            private bool CanDuplicateObject(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                if (!GenericObjectPermission(owner, objectID, true))
+                CachedUserInfo userInfo =
+                        scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
+            
+                if (userInfo == null)
                 {
-                    //They can't even edit the object
+                    m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for edit notecard check", user);
                     return false;
+                }                    
+            
+
+                if (userInfo.RootFolder == null)
+                    return false;
+
+                InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(notecard);
+                if (assetRequestItem == null) // Library item
+                {
+                    assetRequestItem = scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
+
+                    if (assetRequestItem != null) // Implicitly readable
+                        return true;
                 }
-                //If they can rez, they can duplicate
-                return CanRezObject(objectCount, owner, objectPosition, scene);
-            }
 
-            private bool CanDeleteObject(UUID objectID, UUID deleter, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                return GenericObjectPermission(deleter, objectID, false);
-            }
-
-            private bool CanEditObject(UUID objectID, UUID editorID, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-
-                return GenericObjectPermission(editorID, objectID, false);
-            }
-
-            private bool CanEditObjectInventory(UUID objectID, UUID editorID, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
-
-                // TODO: add group support!
+                // Notecards must be both mod and copy to be saveable
+                // This is because of they're not copy, you can't read
+                // them, and if they're not mod, well, then they're
+                // not mod. Duh.
                 //
-                if (part.OwnerID != editorID)
+                if ((assetRequestItem.CurrentPermissions &
+                        ((uint)PermissionMask.Modify |
+                        (uint)PermissionMask.Copy)) !=
+                        ((uint)PermissionMask.Modify |
+                        (uint)PermissionMask.Copy))
+                    return false;
+            }
+            else // Prim inventory
+            {
+                SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+
+                if (part == null)
                     return false;
 
-                return GenericObjectPermission(editorID, objectID, false);
+                if (part.OwnerID != user)
+                    return false;
+
+                if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                    return false;
+
+                TaskInventoryItem ti = part.GetInventoryItem(notecard);
+
+                if (ti == null)
+                    return false;
+
+                if (ti.OwnerID != user)
+                    return false;
+
+                // Require full perms
+                if ((ti.CurrentPermissions &
+                        ((uint)PermissionMask.Modify |
+                        (uint)PermissionMask.Copy)) !=
+                        ((uint)PermissionMask.Modify |
+                        (uint)PermissionMask.Copy))
+                    return false;
             }
 
-            private bool CanEditParcel(UUID user, ILandObject parcel, Scene scene)
+            return true;
+        }
+
+        private bool CanInstantMessage(UUID user, UUID target, Scene startScene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+
+            return GenericCommunicationPermission(user, target);
+        }
+
+        private bool CanInventoryTransfer(UUID user, UUID target, Scene startScene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return GenericCommunicationPermission(user, target);
+        }
+
+        private bool CanIssueEstateCommand(UUID user, Scene requestFromScene, bool ownerCommand)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (IsAdministrator(user))
+                return true;
+
+            if (m_scene.RegionInfo.EstateSettings.IsEstateOwner(user))
+                return true;
+
+            if (ownerCommand)
+                return false;
+
+            return GenericEstatePermission(user);
+        }
+
+        private bool CanMoveObject(UUID objectID, UUID moverID, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions)
             {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                return GenericParcelPermission(user, parcel);
-            }
-
-            private bool CanEditScript(UUID script, UUID objectID, UUID user, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                // If you can view it, you can edit it
-                // There is no viewing a no mod script
-                //
-                return CanViewScript(script, objectID, user, scene);
-            }
-
-            private bool CanEditNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                if (objectID == UUID.Zero) // User inventory
+                SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+                if (part.OwnerID != moverID)
                 {
-                    CachedUserInfo userInfo =
-                            scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
-                
-                    if (userInfo == null)
+                    if (part.ParentGroup != null && !part.ParentGroup.IsDeleted)
                     {
-                        m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for edit notecard check", user);
-                        return false;
-                    }                    
-                
-
-                    if (userInfo.RootFolder == null)
-                        return false;
-
-                    InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(notecard);
-                    if (assetRequestItem == null) // Library item
-                    {
-                        assetRequestItem = scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
-
-                        if (assetRequestItem != null) // Implicitly readable
-                            return true;
+                        if (part.ParentGroup.IsAttachment)
+                            return false;
                     }
-
-                    // Notecards must be both mod and copy to be saveable
-                    // This is because of they're not copy, you can't read
-                    // them, and if they're not mod, well, then they're
-                    // not mod. Duh.
-                    //
-                    if ((assetRequestItem.CurrentPermissions &
-                            ((uint)PermissionMask.Modify |
-                            (uint)PermissionMask.Copy)) !=
-                            ((uint)PermissionMask.Modify |
-                            (uint)PermissionMask.Copy))
-                        return false;
                 }
-                else // Prim inventory
+                return m_bypassPermissionsValue;
+            }
+
+            bool permission = GenericObjectPermission(moverID, objectID, true);
+            if (!permission)
+            {
+                if (!m_scene.Entities.ContainsKey(objectID))
                 {
-                    SceneObjectPart part = scene.GetSceneObjectPart(objectID);
-
-                    if (part == null)
-                        return false;
-
-                    if (part.OwnerID != user)
-                        return false;
-
-                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                        return false;
-
-                    TaskInventoryItem ti = part.GetInventoryItem(notecard);
-
-                    if (ti == null)
-                        return false;
-
-                    if (ti.OwnerID != user)
-                        return false;
-
-                    // Require full perms
-                    if ((ti.CurrentPermissions &
-                            ((uint)PermissionMask.Modify |
-                            (uint)PermissionMask.Copy)) !=
-                            ((uint)PermissionMask.Modify |
-                            (uint)PermissionMask.Copy))
-                        return false;
+                    return false;
                 }
 
+                // The client
+                // may request to edit linked parts, and therefore, it needs
+                // to also check for SceneObjectPart
+
+                // If it's not an object, we cant edit it.
+                if ((!(m_scene.Entities[objectID] is SceneObjectGroup)))
+                {
+                    return false;
+                }
+
+
+                SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
+
+
+                // UUID taskOwner = null;
+                // Added this because at this point in time it wouldn't be wise for
+                // the administrator object permissions to take effect.
+                // UUID objectOwner = task.OwnerID;
+
+                // Anyone can move
+                if ((task.RootPart.EveryoneMask & PERM_MOVE) != 0)
+                    permission = true;
+
+                // Locked
+                if ((task.RootPart.OwnerMask & PERM_LOCKED) == 0)
+                    permission = false;
+
+            }
+            else
+            {
+                bool locked = false;
+                if (!m_scene.Entities.ContainsKey(objectID))
+                {
+                    return false;
+                }
+
+                // If it's not an object, we cant edit it.
+                if ((!(m_scene.Entities[objectID] is SceneObjectGroup)))
+                {
+                    return false;
+                }
+
+
+                SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[objectID];
+
+                UUID objectOwner = group.OwnerID;
+                locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
+
+
+                // This is an exception to the generic object permission.
+                // Administrators who lock their objects should not be able to move them,
+                // however generic object permission should return true.
+                // This keeps locked objects from being affected by random click + drag actions by accident
+                // and allows the administrator to grab or delete a locked object.
+
+                // Administrators and estate managers are still able to click+grab locked objects not
+                // owned by them in the scene
+                // This is by design.
+
+                if (locked && (moverID == objectOwner))
+                    return false;
+            }
+            return permission;
+        }
+
+        private bool CanObjectEntry(UUID objectID, Vector3 newPoint, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if ((newPoint.X > 257f || newPoint.X < -1f || newPoint.Y > 257f || newPoint.Y < -1f))
+            {
                 return true;
             }
 
-            private bool CanInstantMessage(UUID user, UUID target, Scene startScene)
+            ILandObject land = m_scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
+
+            if (land == null)
             {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-
-                return GenericCommunicationPermission(user, target);
+                return false;
             }
 
-            private bool CanInventoryTransfer(UUID user, UUID target, Scene startScene)
+            if ((land.landData.Flags & ((int)Parcel.ParcelFlags.AllowAPrimitiveEntry)) != 0)
             {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                return GenericCommunicationPermission(user, target);
+                return true;
             }
 
-            private bool CanIssueEstateCommand(UUID user, Scene requestFromScene, bool ownerCommand)
+            //TODO: check for group rights
+
+            if (!m_scene.Entities.ContainsKey(objectID))
             {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                if (IsAdministrator(user))
-                    return true;
-
-                if (m_scene.RegionInfo.EstateSettings.IsEstateOwner(user))
-                    return true;
-
-                if (ownerCommand)
-                    return false;
-
-                return GenericEstatePermission(user);
+                return false;
             }
 
-            private bool CanMoveObject(UUID objectID, UUID moverID, Scene scene)
+            // If it's not an object, we cant edit it.
+            if (!(m_scene.Entities[objectID] is SceneObjectGroup))
             {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions)
-                {
-                    SceneObjectPart part = scene.GetSceneObjectPart(objectID);
-                    if (part.OwnerID != moverID)
-                    {
-                        if (part.ParentGroup != null && !part.ParentGroup.IsDeleted)
-                        {
-                            if (part.ParentGroup.IsAttachment)
-                                return false;
-                        }
-                    }
-                    return m_bypassPermissionsValue;
-                }
-
-                bool permission = GenericObjectPermission(moverID, objectID, true);
-                if (!permission)
-                {
-                    if (!m_scene.Entities.ContainsKey(objectID))
-                    {
-                        return false;
-                    }
-
-                    // The client
-                    // may request to edit linked parts, and therefore, it needs
-                    // to also check for SceneObjectPart
-
-                    // If it's not an object, we cant edit it.
-                    if ((!(m_scene.Entities[objectID] is SceneObjectGroup)))
-                    {
-                        return false;
-                    }
-
-
-                    SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
-
-
-                    // UUID taskOwner = null;
-                    // Added this because at this point in time it wouldn't be wise for
-                    // the administrator object permissions to take effect.
-                    // UUID objectOwner = task.OwnerID;
-
-                    // Anyone can move
-                    if ((task.RootPart.EveryoneMask & PERM_MOVE) != 0)
-                        permission = true;
-
-                    // Locked
-                    if ((task.RootPart.OwnerMask & PERM_LOCKED) == 0)
-                        permission = false;
-
-                }
-                else
-                {
-                    bool locked = false;
-                    if (!m_scene.Entities.ContainsKey(objectID))
-                    {
-                        return false;
-                    }
-
-                    // If it's not an object, we cant edit it.
-                    if ((!(m_scene.Entities[objectID] is SceneObjectGroup)))
-                    {
-                        return false;
-                    }
-
-
-                    SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[objectID];
-
-                    UUID objectOwner = group.OwnerID;
-                    locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
-
-
-                    // This is an exception to the generic object permission.
-                    // Administrators who lock their objects should not be able to move them,
-                    // however generic object permission should return true.
-                    // This keeps locked objects from being affected by random click + drag actions by accident
-                    // and allows the administrator to grab or delete a locked object.
-
-                    // Administrators and estate managers are still able to click+grab locked objects not
-                    // owned by them in the scene
-                    // This is by design.
-
-                    if (locked && (moverID == objectOwner))
-                        return false;
-                }
-                return permission;
+                return false;
             }
 
-            private bool CanObjectEntry(UUID objectID, Vector3 newPoint, Scene scene)
+            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
+
+            if (GenericParcelPermission(task.OwnerID, newPoint))
             {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+                return true;
+            }
 
-                if ((newPoint.X > 257f || newPoint.X < -1f || newPoint.Y > 257f || newPoint.Y < -1f))
-                {
-                    return true;
-                }
+            //Otherwise, false!
+            return false;
+        }
 
-                ILandObject land = m_scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
+        private bool CanReturnObject(UUID objectID, UUID returnerID, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                if (land == null)
-                {
-                    return false;
-                }
+            return GenericObjectPermission(returnerID, objectID, false);
+        }
 
-                if ((land.landData.Flags & ((int)Parcel.ParcelFlags.AllowAPrimitiveEntry)) != 0)
-                {
-                    return true;
-                }
+        private bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                //TODO: check for group rights
+            bool permission = false;
 
+            ILandObject land = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
+            if (land == null) return false;
+
+            if ((land.landData.Flags & ((int)Parcel.ParcelFlags.CreateObjects)) ==
+                (int)Parcel.ParcelFlags.CreateObjects)
+                permission = true;
+
+            //TODO: check for group rights
+
+            if (IsAdministrator(owner))
+            {
+                permission = true;
+            }
+
+            if (GenericParcelPermission(owner, objectPosition))
+            {
+                permission = true;
+            }
+
+            return permission;
+        }
+
+        private bool CanRunConsoleCommand(UUID user, Scene requestFromScene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+
+            return IsAdministrator(user);
+        }
+
+        private bool CanRunScript(UUID script, UUID objectID, UUID user, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return true;
+        }
+
+        private bool CanSellParcel(UUID user, ILandObject parcel, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return GenericParcelPermission(user, parcel);
+        }
+
+        private bool CanTakeObject(UUID objectID, UUID stealer, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return GenericObjectPermission(stealer,objectID, false);
+        }
+
+        private bool CanTakeCopyObject(UUID objectID, UUID userID, Scene inScene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            bool permission = GenericObjectPermission(userID, objectID,false);
+            if (!permission)
+            {
                 if (!m_scene.Entities.ContainsKey(objectID))
                 {
                     return false;
@@ -875,360 +975,260 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 }
 
                 SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
+                // UUID taskOwner = null;
+                // Added this because at this point in time it wouldn't be wise for
+                // the administrator object permissions to take effect.
+                // UUID objectOwner = task.OwnerID;
 
-                if (GenericParcelPermission(task.OwnerID, newPoint))
-                {
-                    return true;
-                }
 
-                //Otherwise, false!
-                return false;
-            }
-
-            private bool CanReturnObject(UUID objectID, UUID returnerID, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                return GenericObjectPermission(returnerID, objectID, false);
-            }
-
-            private bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                bool permission = false;
-
-                ILandObject land = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
-                if (land == null) return false;
-
-                if ((land.landData.Flags & ((int)Parcel.ParcelFlags.CreateObjects)) ==
-                    (int)Parcel.ParcelFlags.CreateObjects)
+                if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
                     permission = true;
-
-                //TODO: check for group rights
-
-                if (IsAdministrator(owner))
-                {
-                    permission = true;
-                }
-
-                if (GenericParcelPermission(owner, objectPosition))
-                {
-                    permission = true;
-                }
-
-                return permission;
             }
+            return permission;
+        }
 
-            private bool CanRunConsoleCommand(UUID user, Scene requestFromScene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+        private bool CanTerraformLand(UUID user, Vector3 position, Scene requestFromScene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-
-                return IsAdministrator(user);
-            }
-
-            private bool CanRunScript(UUID script, UUID objectID, UUID user, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
+            // Estate override
+            if (GenericEstatePermission(user))
                 return true;
-            }
 
-            private bool CanSellParcel(UUID user, ILandObject parcel, Scene scene)
+            float X = position.X;
+            float Y = position.Y;
+
+            if (X > 255)
+                X = 255;
+            if (Y > 255)
+                Y = 255;
+            if (X < 0)
+                X = 0;
+            if (Y < 0)
+                Y = 0;
+
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(X, Y);
+            if (parcel == null)
+                return false;
+
+            // Others allowed to terraform?
+            if ((parcel.landData.Flags & ((int)Parcel.ParcelFlags.AllowTerraform)) != 0)
+                return true;
+
+            // Land owner can terraform too
+            if (parcel != null && GenericParcelPermission(user, parcel))
+                return true;
+
+            return false;
+        }
+
+        private bool CanViewScript(UUID script, UUID objectID, UUID user, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (objectID == UUID.Zero) // User inventory
             {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                return GenericParcelPermission(user, parcel);
-            }
-
-            private bool CanTakeObject(UUID objectID, UUID stealer, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                return GenericObjectPermission(stealer,objectID, false);
-            }
-
-            private bool CanTakeCopyObject(UUID objectID, UUID userID, Scene inScene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                bool permission = GenericObjectPermission(userID, objectID,false);
-                if (!permission)
+                CachedUserInfo userInfo =
+                        scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
+            
+                if (userInfo == null)
                 {
-                    if (!m_scene.Entities.ContainsKey(objectID))
-                    {
-                        return false;
-                    }
+                    m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for administrator check", user);
+                    return false;
+                }    
 
-                    // If it's not an object, we cant edit it.
-                    if (!(m_scene.Entities[objectID] is SceneObjectGroup))
-                    {
-                        return false;
-                    }
-
-                    SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
-                    // UUID taskOwner = null;
-                    // Added this because at this point in time it wouldn't be wise for
-                    // the administrator object permissions to take effect.
-                    // UUID objectOwner = task.OwnerID;
-
-
-                    if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
-                        permission = true;
-                }
-                return permission;
-            }
-
-            private bool CanTerraformLand(UUID user, Vector3 position, Scene requestFromScene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                // Estate override
-                if (GenericEstatePermission(user))
-                    return true;
-
-                float X = position.X;
-                float Y = position.Y;
-
-                if (X > 255)
-                    X = 255;
-                if (Y > 255)
-                    Y = 255;
-                if (X < 0)
-                    X = 0;
-                if (Y < 0)
-                    Y = 0;
-
-                ILandObject parcel = m_scene.LandChannel.GetLandObject(X, Y);
-                if (parcel == null)
+                if (userInfo.RootFolder == null)
                     return false;
 
-                // Others allowed to terraform?
-                if ((parcel.landData.Flags & ((int)Parcel.ParcelFlags.AllowTerraform)) != 0)
-                    return true;
-
-                // Land owner can terraform too
-                if (parcel != null && GenericParcelPermission(user, parcel))
-                    return true;
-
-                return false;
-            }
-
-            private bool CanViewScript(UUID script, UUID objectID, UUID user, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-                if (objectID == UUID.Zero) // User inventory
+                InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(script);
+                if (assetRequestItem == null) // Library item
                 {
-                    CachedUserInfo userInfo =
-                            scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
-                
-                    if (userInfo == null)
-                    {
-                        m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for administrator check", user);
-                        return false;
-                    }    
+                    assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(script);
 
-                    if (userInfo.RootFolder == null)
-                        return false;
-
-                    InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(script);
-                    if (assetRequestItem == null) // Library item
-                    {
-                        assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(script);
-
-                        if (assetRequestItem != null) // Implicitly readable
-                            return true;
-                    }
-
-                    // SL is rather harebrained here. In SL, a script you
-                    // have mod/copy no trans is readable. This subverts
-                    // permissions, but is used in some products, most
-                    // notably Hippo door plugin and HippoRent 5 networked
-                    // prim counter.
-                    // To enable this broken SL-ism, remove Transfer from
-                    // the below expressions.
-                    // Trying to improve on SL perms by making a script
-                    // readable only if it's really full perms
-                    //
-                    if ((assetRequestItem.CurrentPermissions &
-                            ((uint)PermissionMask.Modify |
-                            (uint)PermissionMask.Copy |
-                            (uint)PermissionMask.Transfer)) !=
-                            ((uint)PermissionMask.Modify |
-                            (uint)PermissionMask.Copy |
-                            (uint)PermissionMask.Transfer))
-                        return false;
-                }
-                else // Prim inventory
-                {
-                    SceneObjectPart part = scene.GetSceneObjectPart(objectID);
-
-                    if (part == null)
-                        return false;
-
-                    if (part.OwnerID != user)
-                        return false;
-
-                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                        return false;
-
-                    TaskInventoryItem ti = part.GetInventoryItem(script);
-
-                    if (ti == null)
-                        return false;
-
-                    if (ti.OwnerID != user)
-                        return false;
-
-                    // Require full perms
-                    if ((ti.CurrentPermissions &
-                            ((uint)PermissionMask.Modify |
-                            (uint)PermissionMask.Copy |
-                            (uint)PermissionMask.Transfer)) !=
-                            ((uint)PermissionMask.Modify |
-                            (uint)PermissionMask.Copy |
-                            (uint)PermissionMask.Transfer))
-                        return false;
+                    if (assetRequestItem != null) // Implicitly readable
+                        return true;
                 }
 
-                return true;
+                // SL is rather harebrained here. In SL, a script you
+                // have mod/copy no trans is readable. This subverts
+                // permissions, but is used in some products, most
+                // notably Hippo door plugin and HippoRent 5 networked
+                // prim counter.
+                // To enable this broken SL-ism, remove Transfer from
+                // the below expressions.
+                // Trying to improve on SL perms by making a script
+                // readable only if it's really full perms
+                //
+                if ((assetRequestItem.CurrentPermissions &
+                        ((uint)PermissionMask.Modify |
+                        (uint)PermissionMask.Copy |
+                        (uint)PermissionMask.Transfer)) !=
+                        ((uint)PermissionMask.Modify |
+                        (uint)PermissionMask.Copy |
+                        (uint)PermissionMask.Transfer))
+                    return false;
+            }
+            else // Prim inventory
+            {
+                SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+
+                if (part == null)
+                    return false;
+
+                if (part.OwnerID != user)
+                    return false;
+
+                if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                    return false;
+
+                TaskInventoryItem ti = part.GetInventoryItem(script);
+
+                if (ti == null)
+                    return false;
+
+                if (ti.OwnerID != user)
+                    return false;
+
+                // Require full perms
+                if ((ti.CurrentPermissions &
+                        ((uint)PermissionMask.Modify |
+                        (uint)PermissionMask.Copy |
+                        (uint)PermissionMask.Transfer)) !=
+                        ((uint)PermissionMask.Modify |
+                        (uint)PermissionMask.Copy |
+                        (uint)PermissionMask.Transfer))
+                    return false;
             }
 
-            private bool CanViewNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+            return true;
+        }
 
-                if (objectID == UUID.Zero) // User inventory
+        private bool CanViewNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (objectID == UUID.Zero) // User inventory
+            {
+                CachedUserInfo userInfo =
+                        scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
+            
+                if (userInfo == null)
                 {
-                    CachedUserInfo userInfo =
-                            scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
-                
-                    if (userInfo == null)
-                    {
-                        m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for view notecard check", user);
-                        return false;
-                    }    
+                    m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for view notecard check", user);
+                    return false;
+                }    
 
-                    if (userInfo.RootFolder == null)
-                        return false;
+                if (userInfo.RootFolder == null)
+                    return false;
 
-                    InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(notecard);
-                    if (assetRequestItem == null) // Library item
-                    {
-                        assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
-
-                        if (assetRequestItem != null) // Implicitly readable
-                            return true;
-                    }
-
-                    // Notecards are always readable unless no copy
-                    //
-                    if ((assetRequestItem.CurrentPermissions &
-                            (uint)PermissionMask.Copy) !=
-                            (uint)PermissionMask.Copy)
-                        return false;
-                }
-                else // Prim inventory
+                InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(notecard);
+                if (assetRequestItem == null) // Library item
                 {
-                    SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+                    assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
 
-                    if (part == null)
-                        return false;
-
-                    if (part.OwnerID != user)
-                        return false;
-
-                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                        return false;
-
-                    TaskInventoryItem ti = part.GetInventoryItem(notecard);
-
-                    if (ti == null)
-                        return false;
-
-                    if (ti.OwnerID != user)
-                        return false;
-
-                    // Notecards are always readable unless no copy
-                    //
-                    if ((ti.CurrentPermissions &
-                            (uint)PermissionMask.Copy) !=
-                            (uint)PermissionMask.Copy)
-                        return false;
+                    if (assetRequestItem != null) // Implicitly readable
+                        return true;
                 }
 
-                return true;
+                // Notecards are always readable unless no copy
+                //
+                if ((assetRequestItem.CurrentPermissions &
+                        (uint)PermissionMask.Copy) !=
+                        (uint)PermissionMask.Copy)
+                    return false;
             }
-
-        #endregion
-
-            public bool CanLinkObject(UUID userID, UUID objectID)
+            else // Prim inventory
             {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+                SceneObjectPart part = scene.GetSceneObjectPart(objectID);
 
-                return true;
+                if (part == null)
+                    return false;
+
+                if (part.OwnerID != user)
+                    return false;
+
+                if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                    return false;
+
+                TaskInventoryItem ti = part.GetInventoryItem(notecard);
+
+                if (ti == null)
+                    return false;
+
+                if (ti.OwnerID != user)
+                    return false;
+
+                // Notecards are always readable unless no copy
+                //
+                if ((ti.CurrentPermissions &
+                        (uint)PermissionMask.Copy) !=
+                        (uint)PermissionMask.Copy)
+                    return false;
             }
 
-            public bool CanDelinkObject(UUID userID, UUID objectID)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+            return true;
+        }
 
-                return true;
-            }
+    #endregion
 
-            public bool CanBuyLand(UUID userID, ILandObject parcel, Scene scene)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+        public bool CanLinkObject(UUID userID, UUID objectID)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return true;
-            }
+            return true;
+        }
 
-            public bool CanCopyInventory(UUID itemID, UUID objectID, UUID userID)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+        public bool CanDelinkObject(UUID userID, UUID objectID)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return true;
-            }
+            return true;
+        }
 
-            public bool CanDeleteInventory(UUID itemID, UUID objectID, UUID userID)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+        public bool CanBuyLand(UUID userID, ILandObject parcel, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return true;
-            }
+            return true;
+        }
 
-            public bool CanCreateInventory(uint invType, UUID objectID, UUID userID)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+        public bool CanCopyInventory(UUID itemID, UUID objectID, UUID userID)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return true;
-            }
+            return true;
+        }
 
-            public bool CanTeleport(UUID userID)
-            {
-                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-                if (m_bypassPermissions) return m_bypassPermissionsValue;
+        public bool CanDeleteInventory(UUID itemID, UUID objectID, UUID userID)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return true;
-            }
+            return true;
+        }
+
+        public bool CanCreateInventory(uint invType, UUID objectID, UUID userID)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return true;
+        }
+
+        public bool CanTeleport(UUID userID)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return true;
+        }
     }
 
 }
