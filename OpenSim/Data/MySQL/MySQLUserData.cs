@@ -422,7 +422,7 @@ namespace OpenSim.Data.MySQL
 
             string[] querysplit;
             querysplit = query.Split(' ');
-            if (querysplit.Length == 2)
+            if (querysplit.Length > 1 && querysplit[1].Trim() != String.Empty)
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], String.Empty) + "%";
@@ -460,7 +460,7 @@ namespace OpenSim.Data.MySQL
                     dbm.Release();
                 }
             }
-            else if (querysplit.Length == 1)
+            else
             {
                 MySQLSuperManager dbm = GetLockedConnection("GeneratePickerResults");
 
