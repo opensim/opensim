@@ -1070,7 +1070,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        public delegate bool CanCreateInventory(uint invType, UUID objectID, UUID userID);
+        public delegate bool CanCreateInventory(int invType, UUID objectID, UUID userID);
         private List<CanCreateInventory> CanCreateInventoryCheckFunctions = new List<CanCreateInventory>();
 
         public void addCheckCanCreateInventory(CanCreateInventory delegateFunc)
@@ -1085,7 +1085,7 @@ namespace OpenSim.Region.Environment.Scenes
                 CanCreateInventoryCheckFunctions.Remove(delegateFunc);
         }
 
-        public bool ExternalChecksCanCreateInventory(uint invType, UUID objectID, UUID userID)
+        public bool ExternalChecksCanCreateInventory(int invType, UUID objectID, UUID userID)
         {
             foreach (CanCreateInventory check in CanCreateInventoryCheckFunctions)
             {

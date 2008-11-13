@@ -799,11 +799,9 @@ namespace OpenSim.Region.Environment.Scenes
                 if (agentTransactions != null)
                 {
                     agentTransactions.HandleItemCreationFromTransaction(
-                    remoteClient, transactionID, folderID, callbackID, description,
-                    name, invType, assetType, wearableType, nextOwnerMask);
+                        remoteClient, transactionID, folderID, callbackID, description,
+                        name, invType, assetType, wearableType, nextOwnerMask);
                 }
-
-
             }
         }
 
@@ -1002,7 +1000,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         public void MoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, SceneObjectPart part, UUID itemId)
         {
-
             InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId);
 
             if (agentItem == null)
@@ -1316,17 +1313,17 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Rez a script into a prim's inventory
+        /// Rez a script into a prim's inventory, either ex nihilo or from an existing avatar inventory
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="itemID"> </param>
         /// <param name="localID"></param>
         public void RezScript(IClientAPI remoteClient, InventoryItemBase itemBase, UUID transactionID, uint localID)
         {
-            UUID itemID=itemBase.ID;
+            UUID itemID = itemBase.ID;
             UUID copyID = UUID.Random();
 
-            if (itemID != UUID.Zero)
+            if (itemID != UUID.Zero)  // transferred from an avatar inventory to the prim's pinventory
             {
                 CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
 
@@ -1378,9 +1375,9 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            else  // If the itemID is zero then the script has been rezzed directly in an object's inventory
-            {
-                SceneObjectPart part=GetSceneObjectPart(itemBase.Folder);
+            else  // script has been rezzed directly into a prim's inventory
+            {                
+                SceneObjectPart part = GetSceneObjectPart(itemBase.Folder);
                 if (part == null)
                     return;
 
@@ -1389,11 +1386,14 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return;
+                
+                if (!ExternalChecks.ExternalChecksCanCreateInventory(itemBase.InvType, part.UUID, remoteClient.AgentId))               
+                    return;             
 
                 AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType, Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"));
                 AssetCache.AddAsset(asset);
 
-                TaskInventoryItem taskItem=new TaskInventoryItem();
+                TaskInventoryItem taskItem = new TaskInventoryItem();
 
                 taskItem.ResetIDs(itemBase.Folder);
                 taskItem.ParentID = itemBase.Folder;

@@ -111,6 +111,7 @@
     ;permissionmodules = "DefaultPermissionsModule"
     serverside_object_permissions = false
     allow_grid_gods = false
+
     ; This allows somne control over permissions
     ; please note that this still doesn't duplicate SL, and is not intended to
     ;region_owner_is_god = true
@@ -211,6 +212,7 @@
     ; The MessagingServer is a companion of the UserServer. It uses
     ; user_send_key and user_recv_key, too
     messaging_server_url = "http://127.0.0.1:8006"
+
 
 [ClientStack.LindenUDP]
     ; This is the multiplier applied to all client throttles for outgoing UDP network data
@@ -431,6 +433,7 @@
   path-fill=true
   dump-line-size=32
   flush-on-error=true
+
 
 ; Uncomment the following for IRC bridge
 ; experimental, so if it breaks... keep both parts... yada yada

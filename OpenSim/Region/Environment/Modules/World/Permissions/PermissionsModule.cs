@@ -142,7 +142,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return;
 
             m_allowGridGods = myConfig.GetBoolean("allow_grid_gods", false);
-
             m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
             m_RegionOwnerIsGod = myConfig.GetBoolean("region_owner_is_god", true);
             m_ParcelOwnerIsGod = myConfig.GetBoolean("parcel_owner_is_god", true);
@@ -236,7 +235,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         protected void DebugPermissionInformation(string permissionCalled)
         {
             if (m_debugPermissions)
-                m_log.Info("[PERMISSIONS]: " + permissionCalled + " was called from " + m_scene.RegionInfo.RegionName);
+                m_log.Debug("[PERMISSIONS]: " + permissionCalled + " was called from " + m_scene.RegionInfo.RegionName);
         }
 
         protected bool IsAdministrator(UUID user)
@@ -408,6 +407,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return objectFlagsMask;
         }
 
+        /// <summary>
+        /// General permissions checks for any operation involving an object.  These supplement more specific checks
+        /// implemented by callers.
+        /// </summary>
+        /// <param name="currentUser"></param>
+        /// <param name="objId"></param>
+        /// <param name="denyOnLocked"></param>
+        /// <returns></returns>
         protected bool GenericObjectPermission(UUID currentUser, UUID objId, bool denyOnLocked)
         {
             // Default: deny
@@ -424,7 +431,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             {
                 return false;
             }
-
 
             SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[objId];
 
@@ -476,7 +482,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             return permission;
         }
-
 
         #endregion
 
@@ -655,8 +660,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 {
                     m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for edit notecard check", user);
                     return false;
-                }                    
-            
+                }                                
 
                 if (userInfo.RootFolder == null)
                     return false;
@@ -1214,8 +1218,19 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return true;
         }
 
-        public bool CanCreateInventory(uint invType, UUID objectID, UUID userID)
+        /// <summary>
+        /// Check whether the specified user is allowed to directly create the given inventory type in a prim's
+        /// inventory (e.g. the New Script button in the 1.21 Linden Lab client).  This permission check does not 
+        /// apply to existing items that are being dragged in to that prim's inventory.
+        /// </summary>
+        /// <param name="invType"></param>
+        /// <param name="objectID"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        public bool CanCreateInventory(int invType, UUID objectID, UUID userID)
         {
+            m_log.Debug("[PERMISSIONS]: CanCreateInventory called");
+            
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
