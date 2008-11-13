@@ -141,8 +141,13 @@ namespace OpenSim.Data.MySQL
                     result.Parameters.AddWithValue("?uuid", folderID.ToString());
                     MySqlDataReader reader = result.ExecuteReader();
 
-                    while (reader.Read())
-                        items.Add(readInventoryItem(reader));
+                    while (reader.Read()) 
+                    {
+                        // A null item (because something went wrong) breaks everything in the folder
+                        InventoryItemBase item = readInventoryItem(reader);
+                        if (item != null)
+                            items.Add(item);
+                    }
 
                     reader.Close();
                     result.Dispose();
@@ -301,24 +306,36 @@ namespace OpenSim.Data.MySQL
             try
             {
                 InventoryItemBase item = new InventoryItemBase();
+                // Be a bit safer in parsing these because the
+                // database doesn't enforce them to be not null, and
+                // the inventory still works if these are weird in the
+                // db
 
+                UUID Owner = UUID.Zero;
+                UUID Creator = UUID.Zero;
+                UUID GroupID = UUID.Zero;
+                UUID.TryParse((string)reader["avatarID"], out Owner);
+                UUID.TryParse((string)reader["creatorID"], out Creator);
+                UUID.TryParse((string)reader["groupID"], out GroupID);
+                item.Owner = Owner;
+                item.Creator = Creator;
+                item.GroupID = GroupID;
+
+                // Rest of the parsing.  If these UUID's fail, we're dead anyway
                 item.ID = new UUID((string) reader["inventoryID"]);
                 item.AssetID = new UUID((string) reader["assetID"]);
                 item.AssetType = (int) reader["assetType"];
                 item.Folder = new UUID((string) reader["parentFolderID"]);
-                item.Owner = new UUID((string) reader["avatarID"]);
                 item.Name = (string) reader["inventoryName"];
                 item.Description = (string) reader["inventoryDescription"];
                 item.NextPermissions = (uint) reader["inventoryNextPermissions"];
                 item.CurrentPermissions = (uint) reader["inventoryCurrentPermissions"];
                 item.InvType = (int) reader["invType"];
-                item.Creator = new UUID((string) reader["creatorID"]);
                 item.BasePermissions = (uint) reader["inventoryBasePermissions"];
                 item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
                 item.SalePrice = (int) reader["salePrice"];
                 item.SaleType = Convert.ToByte(reader["saleType"]);
                 item.CreationDate = (int) reader["creationDate"];
-                item.GroupID = new UUID(reader["groupID"].ToString());
                 item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
                 item.Flags = (uint) reader["flags"];
 
@@ -814,8 +831,11 @@ namespace OpenSim.Data.MySQL
 
                     List<InventoryItemBase> list = new List<InventoryItemBase>();
                     while (result.Read())
-                        list.Add(readInventoryItem(result));
-
+                    {
+                        InventoryItemBase item = readInventoryItem(result);
+                        if (item != null)
+                            list.Add(item);
+                    }
                     return list;
                 }
                 catch (Exception e)
