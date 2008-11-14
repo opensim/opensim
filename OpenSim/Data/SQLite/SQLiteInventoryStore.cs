@@ -151,6 +151,7 @@ namespace OpenSim.Data.SQLite
             item.CurrentPermissions = Convert.ToUInt32(row["inventoryCurrentPermissions"]);
             item.BasePermissions = Convert.ToUInt32(row["inventoryBasePermissions"]);
             item.EveryOnePermissions = Convert.ToUInt32(row["inventoryEveryOnePermissions"]);
+            item.GroupPermissions = Convert.ToUInt32(row["inventoryGroupPermissions"]);
 
             // new fields
             if (!Convert.IsDBNull(row["salePrice"]))
@@ -195,6 +196,7 @@ namespace OpenSim.Data.SQLite
             row["inventoryCurrentPermissions"] = item.CurrentPermissions;
             row["inventoryBasePermissions"] = item.BasePermissions;
             row["inventoryEveryOnePermissions"] = item.EveryOnePermissions;
+            row["inventoryGroupPermissions"] = item.GroupPermissions;
 
             // new fields
             row["salePrice"] = item.SalePrice;
@@ -723,6 +725,7 @@ namespace OpenSim.Data.SQLite
             createCol(inv, "inventoryCurrentPermissions", typeof (Int32));
             createCol(inv, "inventoryBasePermissions", typeof (Int32));
             createCol(inv, "inventoryEveryOnePermissions", typeof (Int32));
+            createCol(inv, "inventoryGroupPermissions", typeof (Int32));
 
             // sale info
             createCol(inv, "salePrice", typeof(Int32));
