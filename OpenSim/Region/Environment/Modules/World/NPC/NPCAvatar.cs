@@ -243,6 +243,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event UDPAssetUploadRequest OnAssetUploadRequest;
         public event XferReceive OnXferReceive;
         public event RequestXfer OnRequestXfer;
+        public event AbortXfer OnAbortXfer;
         public event ConfirmXfer OnConfirmXfer;
         public event RezScript OnRezScript;
         public event UpdateTaskInventory OnUpdateTaskInventory;
@@ -269,6 +270,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
         public event RequestTerrain OnRequestTerrain;
+        public event RequestTerrain OnUploadTerrain;
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
 
         public event FriendActionDelegate OnApproveFriendRequest;

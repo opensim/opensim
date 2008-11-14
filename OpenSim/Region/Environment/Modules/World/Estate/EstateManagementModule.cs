@@ -45,6 +45,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         private Scene m_scene;
 
+        private EstateTerrainXferHandler TerrainUploader = null;
+
         #region Packet Data Responders
 
         private void sendDetailedEstateData(IClientAPI remote_client, UUID invoice)
@@ -420,7 +422,119 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 }
             }
         }
+        private void AbortTerrainXferHandler(IClientAPI remoteClient, ulong XferID)
+        {
+            if (TerrainUploader != null)
+            {
+                lock (TerrainUploader)
+                {
+                    if (XferID == TerrainUploader.XferID)
+                    {
+                        remoteClient.OnXferReceive -= TerrainUploader.XferReceive;
+                        remoteClient.OnAbortXfer -= AbortTerrainXferHandler;
+                        TerrainUploader.TerrainUploadDone -= HandleTerrainApplication;
 
+                        TerrainUploader = null;
+                        remoteClient.SendAlertMessage("Terrain Upload aborted by the client");
+                    }
+                }
+            }
+
+        }
+        private void HandleTerrainApplication(string filename, byte[] terrainData, IClientAPI remoteClient)
+        {
+            lock (TerrainUploader)
+            {
+                remoteClient.OnXferReceive -= TerrainUploader.XferReceive;
+                remoteClient.OnAbortXfer -= AbortTerrainXferHandler;
+                TerrainUploader.TerrainUploadDone -= HandleTerrainApplication;
+
+                TerrainUploader = null;
+            }
+            remoteClient.SendAlertMessage("Terrain Upload Complete. Loading....");
+            OpenSim.Region.Environment.Modules.World.Terrain.ITerrainModule terr = m_scene.RequestModuleInterface<OpenSim.Region.Environment.Modules.World.Terrain.ITerrainModule>();
+
+            if (terr != null)
+            {
+                m_log.Warn("[CLIENT]: Got Request to Send Terrain in region " + m_scene.RegionInfo.RegionName);
+                if (System.IO.File.Exists(Util.dataDir() + "/terrain.raw"))
+                {
+                    System.IO.File.Delete(Util.dataDir() + "/terrain.raw");
+                }
+                try
+                {
+                    System.IO.FileStream input = new System.IO.FileStream(Util.dataDir() + "/terrain.raw", System.IO.FileMode.CreateNew);
+                    input.Write(terrainData, 0, terrainData.Length);
+                    input.Close();
+                }
+                catch (System.IO.IOException e)
+                {
+                    m_log.ErrorFormat("[TERRAIN]: Error Saving a terrain file uploaded via the estate tools.  It gave us the following error: {0}", e.ToString());
+                    remoteClient.SendAlertMessage("There was an IO Exception loading your terrain.  Please check free space");
+
+                    return;
+                }
+                catch (System.Security.SecurityException e)
+                {
+                    m_log.ErrorFormat("[TERRAIN]: Error Saving a terrain file uploaded via the estate tools.  It gave us the following error: {0}", e.ToString());
+                    remoteClient.SendAlertMessage("There was a security Exception loading your terrain.  Please check the security on the simulator drive");
+
+                    return;
+                }
+                catch (System.UnauthorizedAccessException e)
+                {
+                    m_log.ErrorFormat("[TERRAIN]: Error Saving a terrain file uploaded via the estate tools.  It gave us the following error: {0}", e.ToString());
+                    remoteClient.SendAlertMessage("There was a security Exception loading your terrain.  Please check the security on the simulator drive");
+
+                    return;
+                }
+
+
+
+
+                try
+                {
+                    terr.LoadFromFile(Util.dataDir() + "/terrain.raw");
+                    remoteClient.SendAlertMessage("Your terrain was loaded. Give it a minute or two to apply");
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[TERRAIN]: Error loading a terrain file uploaded via the estate tools.  It gave us the following error: {0}", e.ToString());
+                    remoteClient.SendAlertMessage("There was a general error loading your terrain.  Please fix the terrain file and try again");
+                }
+
+            }
+            else
+            {
+                remoteClient.SendAlertMessage("Unable to apply terrain.  Cannot get an instance of the terrain module");
+            }
+
+
+
+        }
+
+        private void handleUploadTerrain(IClientAPI remote_client, string clientFileName)
+        {
+
+            if (TerrainUploader == null)
+            {
+
+                TerrainUploader = new EstateTerrainXferHandler(remote_client, clientFileName);
+                lock (TerrainUploader)
+                {
+                    remote_client.OnXferReceive += TerrainUploader.XferReceive;
+                    remote_client.OnAbortXfer += AbortTerrainXferHandler;
+                    TerrainUploader.TerrainUploadDone += HandleTerrainApplication;
+                }
+                TerrainUploader.RequestStartXfer(remote_client);
+
+            }
+            else
+            {
+                remote_client.SendAlertMessage("Another Terrain Upload is in progress.  Please wait your turn!");
+            }
+
+        }
         private void handleTerrainRequest(IClientAPI remote_client, string clientFileName)
         {
             // Save terrain here
@@ -793,6 +907,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             client.OnEstateTeleportOneUserHomeRequest += handleEstateTeleportOneUserHomeRequest;
             client.OnEstateTeleportAllUsersHomeRequest += handleEstateTeleportAllUsersHomeRequest;
             client.OnRequestTerrain += handleTerrainRequest;
+            client.OnUploadTerrain += handleUploadTerrain;
 
             client.OnRegionInfoRequest += HandleRegionInfoRequest;
             client.OnEstateCovenantRequest += HandleEstateCovenantRequest;

@@ -172,6 +172,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private RequestXfer handlerRequestXfer; //OnRequestXfer;
         private XferReceive handlerXferReceive; //OnXferReceive;
         private ConfirmXfer handlerConfirmXfer; //OnConfirmXfer;
+        private AbortXfer handlerAbortXfer;
         private CreateInventoryFolder handlerCreateInventoryFolder; //OnCreateNewInventoryFolder;
         private UpdateInventoryFolder handlerUpdateInventoryFolder;
         private MoveInventoryFolder handlerMoveInventoryFolder;
@@ -206,6 +207,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ParcelGodForceOwner handlerParcelGodForceOwner;
         private ParcelReclaim handlerParcelReclaim;
         private RequestTerrain handlerRequestTerrain;
+        private RequestTerrain handlerUploadTerrain;
         private ParcelReturnObjectsRequest handlerParcelReturnObjectsRequest;
         private RegionInfoRequest handlerRegionInfoRequest; //OnRegionInfoRequest;
         private EstateCovenantRequest handlerEstateCovenantRequest; //OnEstateCovenantRequest;
@@ -894,6 +896,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event XferReceive OnXferReceive;
         public event RequestXfer OnRequestXfer;
         public event ConfirmXfer OnConfirmXfer;
+        public event AbortXfer OnAbortXfer;
         public event RequestTerrain OnRequestTerrain;
         public event RezScript OnRezScript;
         public event UpdateTaskInventory OnUpdateTaskInventory;
@@ -941,6 +944,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event CommitEstateTerrainTextureRequest OnCommitEstateTerrainTextureRequest;
         public event SetRegionTerrainSettings OnSetRegionTerrainSettings;
         public event BakeTerrain OnBakeTerrain;
+        public event RequestTerrain OnUploadTerrain;
         public event EstateChangeInfo OnEstateChangeInfo;
         public event EstateRestartSimRequest OnEstateRestartSimRequest;
         public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
@@ -4937,7 +4941,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
                 case PacketType.TransferRequest:
                     //Console.WriteLine("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
+                    
                     TransferRequestPacket transfer = (TransferRequestPacket)Pack;
+                    Console.WriteLine("Transfer Request: " + transfer.ToString());
                     // Validate inventory transfers
                     // Has to be done here, because AssetCache can't do it
                     //
@@ -5032,7 +5038,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
                 case PacketType.AssetUploadRequest:
                     AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
-                    // Console.WriteLine("upload request " + Pack.ToString());
+                    // Console.WriteLine("upload request " + request.ToString());
                     // Console.WriteLine("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionId).ToString());
                     UUID temp = UUID.Combine(request.AssetBlock.TransactionID, SecureSessionId);
 
@@ -5073,6 +5079,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         handlerConfirmXfer(this, confirmXfer.XferID.ID, confirmXfer.XferID.Packet);
                     }
+                    break;
+                case PacketType.AbortXfer:
+                    AbortXferPacket abortXfer = (AbortXferPacket)Pack;
+                    handlerAbortXfer = OnAbortXfer;
+                    if (handlerAbortXfer != null)
+                    {
+                        handlerAbortXfer(this, abortXfer.XferID.ID);
+                    }
+
                     break;
                 case PacketType.CreateInventoryFolder:
                     CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
@@ -5738,7 +5753,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 case PacketType.EstateOwnerMessage:
                     EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
-                    
+                    //System.Console.WriteLine(messagePacket.ToString());
                     switch (Utils.BytesToString(messagePacket.MethodData.Method))
                     {
                         case "getinfo":
@@ -5978,6 +5993,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                             }
                                         }
                                     }
+                                    if (Utils.BytesToString(messagePacket.ParamList[0].Parameter) == "upload filename")
+                                    {
+                                        if (messagePacket.ParamList.Length > 1)
+                                        {
+                                            handlerUploadTerrain = OnUploadTerrain;
+                                            if (handlerUploadTerrain != null)
+                                            {
+                                                handlerUploadTerrain(this, Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+                                            }
+                                        }
+                                    }
+
                                 }
 
 

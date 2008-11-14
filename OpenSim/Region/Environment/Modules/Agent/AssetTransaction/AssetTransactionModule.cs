@@ -43,6 +43,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         private Scene m_scene = null;
 
         private AgentAssetTransactionsManager m_transactionManager;
+        
 
         public AssetTransactionModule()
         {
@@ -68,7 +69,13 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
         {
             m_transactionManager.HandleTaskItemUpdateFromTransaction(remoteClient, part, transactionID, item);
-        }        
+        }
+
+        public void RequestXferFromClient(IClientAPI remoteClient, UUID assetID, UUID transaction, sbyte type,
+                                           byte[] data, bool storeLocal, bool tempFile)
+        {
+            m_transactionManager.HandleUDPUploadRequest(remoteClient, assetID, transaction, type, data, storeLocal, tempFile);
+        }
 
         public void RemoveAgentAssetTransactions(UUID userID)
         {

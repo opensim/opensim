@@ -137,9 +137,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event MoveInventoryItem OnMoveInventoryItem;
         public event UDPAssetUploadRequest OnAssetUploadRequest;
         public event RequestTerrain OnRequestTerrain;
+        public event RequestTerrain OnUploadTerrain;
         public event XferReceive OnXferReceive;
         public event RequestXfer OnRequestXfer;
         public event ConfirmXfer OnConfirmXfer;
+        public event AbortXfer OnAbortXfer;
         public event RezScript OnRezScript;
         public event UpdateTaskInventory OnUpdateTaskInventory;
         public event MoveTaskInventory OnMoveTaskItem;

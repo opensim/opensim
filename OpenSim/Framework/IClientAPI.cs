@@ -258,6 +258,8 @@ namespace OpenSim.Framework
 
     public delegate void RequestAsset(IClientAPI remoteClient, RequestAssetArgs transferRequest);
 
+    public delegate void AbortXfer(IClientAPI remoteClient, ulong xferID);
+
     public delegate void RezScript(IClientAPI remoteClient, InventoryItemBase item, UUID transactionID, uint localID);
 
     public delegate void UpdateTaskInventory(
@@ -343,6 +345,7 @@ namespace OpenSim.Framework
     public delegate void RequestTerrain(IClientAPI remoteClient, string clientFileName);
 
     public delegate void BakeTerrain(IClientAPI remoteClient);
+
 
     public delegate void EstateRestartSimRequest(IClientAPI remoteClient, int secondsTilReboot);
 
@@ -614,6 +617,7 @@ namespace OpenSim.Framework
         event XferReceive OnXferReceive;
         event RequestXfer OnRequestXfer;
         event ConfirmXfer OnConfirmXfer;
+        event AbortXfer OnAbortXfer;
         event RezScript OnRezScript;
         event UpdateTaskInventory OnUpdateTaskInventory;
         event MoveTaskInventory OnMoveTaskItem;
@@ -654,6 +658,8 @@ namespace OpenSim.Framework
         event BuyObjectInventory OnBuyObjectInventory;
 
         event RequestTerrain OnRequestTerrain;
+
+        event RequestTerrain OnUploadTerrain;
 
         event ObjectIncludeInSearch OnObjectIncludeInSearch;
 
