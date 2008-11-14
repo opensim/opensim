@@ -736,7 +736,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_ScriptEngine.World.GetSimulatorVersion();
         }
 
-
         //for testing purposes only
         public void osSetParcelMediaTime(double time)
         {
@@ -750,9 +749,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             World.ParcelMediaSetTime((float)time);
         }
-        
-        
-            
+                            
         public Hashtable osParseJSON(string JSON)
         {
             CheckThreatLevel(ThreatLevel.None, "osParseJSON");

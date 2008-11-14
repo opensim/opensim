@@ -123,6 +123,15 @@
     ;region_owner_is_god = true
     ;parcel_owner_is_god = true
 
+    ; Control user types that are allowed to create new scripts
+    ; Only enforced if serviceside_object_permissions is true
+    ;   
+    ; Current possible values are 
+    ;     all - anyone can create scripts (subject to normal permissions)
+    ;     gods - only administrators can create scripts (as long as allow_grid_gods is true)
+    ; Default value is all 
+    ; allowed_script_creators = all
+
     ; ##
     ; ## SCRIPT ENGINE
     ; ##

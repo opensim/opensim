@@ -43,9 +43,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 {
     public class PermissionsModule : IRegionModule, ICommandableModule
     {
-        protected Scene m_scene;
-        private readonly Commander m_commander = new Commander("Permissions");
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+                
+        protected Scene m_scene;
+        private readonly Commander m_commander = new Commander("Permissions");                
 
         #region Constants
         // These are here for testing.  They will be taken out
@@ -55,9 +56,18 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         //private uint PERM_MODIFY = (uint)16384;
         private uint PERM_MOVE = (uint)524288;
         //private uint PERM_TRANS = (uint)8192;
-        private uint PERM_LOCKED = (uint)540672;
-
-        #endregion
+        private uint PERM_LOCKED = (uint)540672;  
+        
+        /// <value>
+        /// Different user set names that come in from the configuration file.
+        /// </value>
+        enum UserSet
+        {
+            All,
+            Administrators
+        };
+        
+        #endregion   
 
         #region Bypass Permissions / Debug Permissions Stuff
 
@@ -69,6 +79,11 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         private bool m_allowGridGods = false;
         private bool m_RegionOwnerIsGod = false;
         private bool m_ParcelOwnerIsGod = false;
+        
+        /// <value>
+        /// The set of users that are allowed to create scripts.
+        /// </value>
+        private UserSet m_allowedScriptCreators = UserSet.All;
 
         #endregion
 
@@ -78,7 +93,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         {
             get { throw new System.NotImplementedException(); }
         }
-
 
         private void InterfaceDebugPermissions(Object[] args)
         {
@@ -147,6 +161,27 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_propagatePermissions = myConfig.GetBoolean("propagate_permissions", true);
             m_RegionOwnerIsGod = myConfig.GetBoolean("region_owner_is_god", true);
             m_ParcelOwnerIsGod = myConfig.GetBoolean("parcel_owner_is_god", true);
+            
+            string allowedScriptCreators = myConfig.GetString("allowed_script_creators", UserSet.All.ToString());
+            
+            // Temporary measure to allow 'gods' to be specified in config for consistency's sake.  In the long term
+            // this should disappear.
+            if ("gods" == allowedScriptCreators.ToLower())
+                allowedScriptCreators = UserSet.Administrators.ToString();
+            
+            // Doing it this was so that we can do a case insensitive conversion
+            try
+            {
+                m_allowedScriptCreators = (UserSet)Enum.Parse(typeof(UserSet), allowedScriptCreators, true);
+            }
+            catch 
+            {
+                m_log.ErrorFormat(
+                    "[PERMISSIONS]: {0} is not a valid allowed_script_creators value, setting to {1}",
+                    allowedScriptCreators, m_allowedScriptCreators);
+            }            
+            
+            m_log.DebugFormat("[PERMISSIONS]: m_allowedScriptCreators {0}", m_allowedScriptCreators);
 
             if (m_bypassPermissions)
                 m_log.Info("[PERMISSIONS]: serviceside_object_permissions = false in ini file so disabling all region service permission checks");
@@ -243,6 +278,11 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 m_log.Debug("[PERMISSIONS]: " + permissionCalled + " was called from " + m_scene.RegionInfo.RegionName);
         }
 
+        /// <summary>
+        /// Is the given user an administrator (in other words, a god)?
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         protected bool IsAdministrator(UUID user)
         {
             if (m_scene.RegionInfo.MasterAvatarAssignedUUID != UUID.Zero)
@@ -250,11 +290,13 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if (m_RegionOwnerIsGod && (m_scene.RegionInfo.MasterAvatarAssignedUUID == user))
                     return true;
             }
+            
             if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
             {
                 if (m_scene.RegionInfo.EstateSettings.EstateOwner == user)
                     return true;
             }
+            
             if (m_allowGridGods)
             {
                 CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
@@ -1232,11 +1274,15 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <returns></returns>
         public bool CanCreateObjectInventory(int invType, UUID objectID, UUID userID)
         {
-            //m_log.Debug("[PERMISSIONS]: CanCreateObjectInventory called");
+            m_log.Debug("[PERMISSIONS]: CanCreateObjectInventory called");
             
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
+            if ((int)InventoryType.LSL == invType)
+                if (m_allowedScriptCreators == UserSet.Administrators && !IsAdministrator(userID))
+                    return false;
+            
             return true;
         }
         
@@ -1248,11 +1294,15 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <returns></returns>           
         public bool CanCreateUserInventory(int invType, UUID userID)
         {
-            //m_log.Debug("[PERMISSIONS]: CanCreateAvatarInventory called");
+            m_log.Debug("[PERMISSIONS]: CanCreateAvatarInventory called");
             
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
+            if ((int)InventoryType.LSL == invType)
+                if (m_allowedScriptCreators == UserSet.Administrators && !IsAdministrator(userID))
+                    return false;
+            
             return true;            
         }
         
@@ -1306,5 +1356,4 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return true;
         }
     }
-
 }
