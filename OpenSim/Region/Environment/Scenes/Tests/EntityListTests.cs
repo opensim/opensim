@@ -55,25 +55,12 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             catch
             {
                 // I don't care, just leave log4net off
-            }
-            
-            RegionInfo regInfo = new RegionInfo(1000, 1000, null, null);
-            regInfo.RegionName = "Unit test region";
-            AgentCircuitManager acm = new AgentCircuitManager();
-            //CommunicationsManager cm = new CommunicationsManager(null, null, null, false, null);
-            CommunicationsManager cm = null;
-            //SceneCommunicationService scs = new SceneCommunicationService(cm);
-            SceneCommunicationService scs = null;
-            StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
-            IConfigSource configSource = new IniConfigSource();
-            
-            scene 
-                = new Scene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);            
+            }          
         }
         
         static public Random random;
         SceneObjectGroup found;
-        Scene scene;
+        Scene scene = SceneTestUtils.SetupScene();
 
         [Test]
         public void T010_AddObjects()
