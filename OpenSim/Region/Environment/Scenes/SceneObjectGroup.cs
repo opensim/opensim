@@ -789,6 +789,11 @@ namespace OpenSim.Region.Environment.Scenes
         public void DetachToGround()
         {
             ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
+            if (avatar == null)
+                return;
+
+            avatar.RemoveAttachment(this);
+
             Vector3 detachedpos = new Vector3(127f,127f,127f);
             if (avatar == null)
                 return;
