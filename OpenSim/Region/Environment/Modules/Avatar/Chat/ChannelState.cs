@@ -256,20 +256,25 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             // values that, while independent of the IRC connetion, do still distinguish 
             // this region's behavior.
 
-            foreach (ChannelState xcs in IRCBridgeModule.m_channels)
+            lock (IRCBridgeModule.m_channels)
             {
-                if (cs.IsAPerfectMatchFor(xcs))
+
+                foreach (ChannelState xcs in IRCBridgeModule.m_channels)
                 {
-                    m_log.DebugFormat("[IRC-Channel-{0}]  Channel state matched", cs.idn);
-                    cs = xcs;
-                    break;
+                    if (cs.IsAPerfectMatchFor(xcs))
+                    {
+                        m_log.DebugFormat("[IRC-Channel-{0}]  Channel state matched", cs.idn);
+                        cs = xcs;
+                        break;
+                    }
+                    if (cs.IsAConnectionMatchFor(xcs))
+                    {
+                        m_log.DebugFormat("[IRC-Channel-{0}]  Channel matched", cs.idn);
+                        cs.irc = xcs.irc;
+                        break;
+                    }
                 }
-                if (cs.IsAConnectionMatchFor(xcs))
-                {
-                    m_log.DebugFormat("[IRC-Channel-{0}]  Channel matched", cs.idn);
-                    cs.irc = xcs.irc;
-                    break;
-                }
+
             }
 
             // No entry was found, so this is going to be a new entry.
@@ -281,6 +286,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                 if ((cs.irc = new IRCConnector(cs)) != null)
                 {
+
                     IRCBridgeModule.m_channels.Add(cs);
 
                     m_log.InfoFormat("[IRC-Channel-{0}] New channel initialized for {1}, nick: {2}, commands {3}, private channels {4}", 
@@ -302,10 +308,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                         cs.idn, rs.Region, cs.IrcChannel, cs.Server, cs.Port);
             }
 
-            m_log.InfoFormat("[IRC-Channel-{0}] Region {1} connected to channel {2} on server {3}:{4}",
+            m_log.InfoFormat("[IRC-Channel-{0}] Region {1} associated with channel {2} on server {3}:{4}",
                         cs.idn, rs.Region, cs.IrcChannel, cs.Server, cs.Port);
 
             // We're finally ready to commit ourselves
+
 
             return cs;
 
@@ -443,6 +450,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             // Repeatedly scan the string until all possible
             // substitutions have been performed.
 
+            // m_log.DebugFormat("[IRC-Channel] Parse[1]: {0}", result);
+
             while (arg.IsMatch(result))
             {
 
@@ -476,28 +485,26 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                         result = result.Replace(vvar, rs.config.GetString(var,var));
                         break;
                 }
+                // m_log.DebugFormat("[IRC-Channel] Parse[2]: {0}", result);
             }
 
+            // m_log.DebugFormat("[IRC-Channel] Parse[3]: {0}", result);
             return result;
 
         }
 
         public void Close()
         {
-
-            m_log.InfoFormat("[IRC-Channel-{0}] Closing channel <{1} to server <{2}:{3}>",
+            m_log.InfoFormat("[IRC-Channel-{0}] Closing channel <{1}> to server <{2}:{3}>",
                              idn, IrcChannel, Server, Port);
-
             m_log.InfoFormat("[IRC-Channel-{0}] There are {1} active clients",
                              idn, clientregions.Count);
-
             irc.Close();
-
         }
 
         public void Open()
         {
-            m_log.InfoFormat("[IRC-Channel-{0}] Opening channel <{1} to server <{2}:{3}>",
+            m_log.InfoFormat("[IRC-Channel-{0}] Opening channel <{1}> to server <{2}:{3}>",
                              idn, IrcChannel, Server, Port);
 
             irc.Open();
@@ -514,16 +521,30 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             Open();
         }
 
+        // Close is called to ensure that the IRC session is terminated if this is the
+        // only client.
+
         public void Close(RegionState rs)
         {
             RemoveRegion(rs);
+            lock (IRCBridgeModule.m_channels)
+            {
+                if (clientregions.Count == 0)
+                {
+                    Close();
+                    IRCBridgeModule.m_channels.Remove(this);
+                    m_log.InfoFormat("[IRC-Channel-{0}] Region {1} is last user of channel <{2}> to server <{3}:{4}>",
+                             idn, rs.Region, IrcChannel, Server, Port);
+                    m_log.InfoFormat("[IRC-Channel-{0}] Removed", idn);
+                }
+            }
         }
 
         // Add a client region to this channel if it is not already known
 
         public void AddRegion(RegionState rs)
         {
-            m_log.InfoFormat("[IRC-Channel-{0}] Adding region {1} to channel <{2} to server <{3}:{4}>",
+            m_log.InfoFormat("[IRC-Channel-{0}] Adding region {1} to channel <{2}> to server <{3}:{4}>",
                              idn, rs.Region, IrcChannel, Server, Port);
             if (!clientregions.Contains(rs))
             {
@@ -568,28 +589,30 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 // Note that this code is responsible for completing some of the
                 // settings for the inbound OSChatMessage
 
-                foreach (ChannelState cs in IRCBridgeModule.m_channels)
+                lock (IRCBridgeModule.m_channels)
                 {
-                    if ( p_irc == cs.irc)
+                    foreach (ChannelState cs in IRCBridgeModule.m_channels)
                     {
-
-                        // This non-IRC differentiator moved to here
-
-                        if (cmsg && !cs.ClientReporting)
-                            continue;
-
-                        // This non-IRC differentiator moved to here
-
-                        c.Channel = (cs.RelayPrivateChannels ? cs.RelayChannel : 0);
-
-                        foreach (RegionState region in cs.clientregions)
+                        if ( p_irc == cs.irc)
                         {
-                            region.OSChat(cs.irc, c);
-                        }
 
+                            // This non-IRC differentiator moved to here
+
+                            if (cmsg && !cs.ClientReporting)
+                                continue;
+
+                            // This non-IRC differentiator moved to here
+
+                            c.Channel = (cs.RelayPrivateChannels ? cs.RelayChannel : 0);
+
+                            foreach (RegionState region in cs.clientregions)
+                            {
+                                region.OSChat(cs.irc, c);
+                            }
+
+                        }
                     }
                 }
-
             }
             catch (Exception ex)
             {

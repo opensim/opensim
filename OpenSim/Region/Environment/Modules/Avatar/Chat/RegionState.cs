@@ -123,6 +123,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         }
 
         // Called by IRCBridgeModule.Close immediately prior to unload
+        // of the module for this region. This happens when the region
+        // is being removed or the server is terminating. The IRC
+        // BridgeModule will remove the region from the region list
+        // when control returns.
 
         public void Close()
         {

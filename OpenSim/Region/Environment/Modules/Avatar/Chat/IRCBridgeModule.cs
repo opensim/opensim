@@ -49,10 +49,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         internal static bool   enabled    = false;
         internal static IConfig m_config  = null;
 
-        internal static List<RegionState>  m_regions  = new List<RegionState>();
         internal static List<ChannelState> m_channels = new List<ChannelState>();
+        internal static List<RegionState>  m_regions  = new List<RegionState>();
 
         internal static string password = String.Empty;
+
+        internal RegionState region = null;
 
         #region IRegionModule Members
 
@@ -63,7 +65,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public bool IsSharedModule
         {
-            get { return true; }
+            get { return false; }
         }
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -110,13 +112,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             // Iff the IRC bridge is enabled, then each new region may be 
             // connected to IRC. But it should NOT be obligatory (and it 
             // is not).
+            // We have to do ALL of the startup here because PostInitialize
+            // is not called when a region gets created in-flight from the
+            // command line.
              
             if (enabled)
             {
                 try
                 {
                     m_log.InfoFormat("[IRC-Bridge] Connecting region {0}", scene.RegionInfo.RegionName);
-                    m_regions.Add(new RegionState(scene, m_config));
+                    region = new RegionState(scene, m_config);
+                    lock(m_regions) m_regions.Add(region);
+                    region.Open();
                 }
                 catch (Exception e)
                 {
@@ -131,37 +138,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         }
 
-        // Called after all region modules have been loaded.
-        // Iff the IRC bridge is enabled, then start all of the
-        // configured channels. The set of channels is a side
-        // effect of RegionState creation.
+        // This module can be called in-flight in which case PostInitialize
+        // is not called following Initialize. So no use is made of this
+        // call.
 
         public void PostInitialise()
         {
 
-            if (!enabled)
-                return;
-
-            foreach (RegionState region in m_regions)
-            {
-                m_log.InfoFormat("[IRC-Bridge] Opening connection for {0}:{1} on IRC server {2}:{3}",
-                            region.Region, region.cs.BaseNickname, region.cs.Server, region.cs.IrcChannel);
-                try
-                {
-                    region.Open();
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[IRC-Bridge] Open failed for {0}:{1} on IRC server {2}:{3} : {4}",
-                            region.Region, region.cs.BaseNickname, region.cs.Server, region.cs.IrcChannel,
-                            e.Message);
-                }
-            }
-
         }
 
-        // Called immediately before the region module is unloaded. Close all
-        // associated channels.
+        // Called immediately before the region module is unloaded. Cleanup
+        // the region.
 
         public void Close()
         {
@@ -169,47 +156,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             if (!enabled)
                 return;
 
-            // Stop each of the region sessions
-
-            foreach (RegionState region in m_regions)
-            {
-                m_log.InfoFormat("[IRC-Bridge] Closing connection for {0}:{1} on IRC server {2}:{3}",
-                            region.Region, region.cs.BaseNickname, region.cs.Server, region.cs.IrcChannel);
-                try
-                {
-                    region.Close();
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[IRC-Bridge] Close failed for {0}:{1} on IRC server {2}:{3} : {4}",
-                            region.Region, region.cs.BaseNickname, region.cs.Server, region.cs.IrcChannel,
-                            e.Message);
-                }
-            }
-
-            // Perform final cleanup of the channels (they now have no active clients)
-
-            foreach (ChannelState channel in m_channels)
-            {
-                m_log.InfoFormat("[IRC-Bridge] Closing connection for {0} on IRC server {1}:{2}",
-                            channel.BaseNickname, channel.Server, channel.IrcChannel);
-                try
-                {
-                    channel.Close();
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[IRC-Bridge] Close failed for {0} on IRC server {1}:{2} : {3}",
-                            channel.BaseNickname, channel.Server, channel.IrcChannel,
-                            e.Message);
-                }
-            }
+            region.Close();
+            lock(m_regions) m_regions.Remove(region);
 
         }
 
         #endregion
 
-        public XmlRpcResponse XmlRpcAdminMethod(XmlRpcRequest request)
+        public static XmlRpcResponse XmlRpcAdminMethod(XmlRpcRequest request)
         {
 
             m_log.Info("[IRC-Bridge]: XML RPC Admin Entry");
