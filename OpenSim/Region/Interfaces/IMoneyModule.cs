@@ -42,6 +42,8 @@ namespace OpenSim.Region.Interfaces
         bool UploadCovered(IClientAPI client);
         void ApplyGroupCreationCharge(UUID agentID);
         bool GroupCreationCovered(IClientAPI client);
+        bool AmountCovered(IClientAPI client, int amount);
+        void ApplyCharge(UUID agentID, int amount, string text);
 
         event ObjectPaid OnObjectPaid;
     }
