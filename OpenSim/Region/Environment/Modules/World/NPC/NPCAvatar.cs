@@ -963,6 +963,18 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public void SendJoinGroupReply(UUID groupID, bool success)
+        {
+        }
+        
+        public void SendEjectGroupMemberReply(UUID agentID, UUID groupID, bool success)
+        {
+        }
+        
+        public void SendLeaveGroupReply(UUID agentID, UUID groupID, bool success)
+        {
+        }
+
         public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
         {
         }

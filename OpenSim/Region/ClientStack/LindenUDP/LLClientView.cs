@@ -6867,6 +6867,60 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
+                case PacketType.JoinGroupRequest:
+                    JoinGroupRequestPacket joinGroupRequest =
+                        (JoinGroupRequestPacket)Pack;
+
+                    if (m_GroupsModule != null)
+                    {
+                        m_GroupsModule.JoinGroupRequest(this,
+                                joinGroupRequest.GroupData.GroupID);
+                    }
+                    break;
+
+                case PacketType.LeaveGroupRequest:
+                    LeaveGroupRequestPacket leaveGroupRequest =
+                        (LeaveGroupRequestPacket)Pack;
+
+                    if (m_GroupsModule != null)
+                    {
+                        m_GroupsModule.LeaveGroupRequest(this,
+                                leaveGroupRequest.GroupData.GroupID);
+                    }
+                    break;
+
+                case PacketType.EjectGroupMemberRequest:
+                    EjectGroupMemberRequestPacket ejectGroupMemberRequest =
+                        (EjectGroupMemberRequestPacket)Pack;
+
+                    if (m_GroupsModule != null)
+                    {
+                        foreach (EjectGroupMemberRequestPacket.EjectDataBlock e
+                                in ejectGroupMemberRequest.EjectData)
+                        {
+                            m_GroupsModule.EjectGroupMemberRequest(this,
+                                    ejectGroupMemberRequest.GroupData.GroupID,
+                                    e.EjecteeID);
+                        }
+                    }
+                    break;
+
+                case PacketType.InviteGroupRequest:
+                    InviteGroupRequestPacket inviteGroupRequest =
+                        (InviteGroupRequestPacket)Pack;
+
+                    if (m_GroupsModule != null)
+                    {
+                        foreach (InviteGroupRequestPacket.InviteDataBlock b in
+                                inviteGroupRequest.InviteData)
+                        {
+                            m_GroupsModule.InviteGroupRequest(this,
+                                    inviteGroupRequest.GroupData.GroupID,
+                                    b.InviteeID,
+                                    b.RoleID);
+                        }
+                    }
+                    break;
                 default:
                     m_log.Warn("[CLIENT]: unhandled packet " + Pack);
                     break;
@@ -7644,6 +7698,50 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             p.NewGroupData = new AvatarGroupsReplyPacket.NewGroupDataBlock();
             p.NewGroupData.ListInProfile = true;
+
+            OutPacket(p, ThrottleOutPacketType.Task);
+        }
+
+        public void SendJoinGroupReply(UUID groupID, bool success)
+        {
+            JoinGroupReplyPacket p = (JoinGroupReplyPacket)PacketPool.Instance.GetPacket(PacketType.JoinGroupReply);
+
+            p.AgentData = new JoinGroupReplyPacket.AgentDataBlock();
+            p.AgentData.AgentID = AgentId;
+
+            p.GroupData = new JoinGroupReplyPacket.GroupDataBlock();
+            p.GroupData.GroupID = groupID;
+            p.GroupData.Success = success;
+
+            OutPacket(p, ThrottleOutPacketType.Task);
+        }
+
+        public void SendEjectGroupMemberReply(UUID agentID, UUID groupID, bool success)
+        {
+            EjectGroupMemberReplyPacket p = (EjectGroupMemberReplyPacket)PacketPool.Instance.GetPacket(PacketType.EjectGroupMemberReply);
+
+            p.AgentData = new EjectGroupMemberReplyPacket.AgentDataBlock();
+            p.AgentData.AgentID = agentID;
+
+            p.GroupData = new EjectGroupMemberReplyPacket.GroupDataBlock();
+            p.GroupData.GroupID = groupID;
+
+            p.EjectData = new EjectGroupMemberReplyPacket.EjectDataBlock();
+            p.EjectData.Success = success;
+
+            OutPacket(p, ThrottleOutPacketType.Task);
+        }
+
+        public void SendLeaveGroupReply(UUID agentID, UUID groupID, bool success)
+        {
+            LeaveGroupReplyPacket p = (LeaveGroupReplyPacket)PacketPool.Instance.GetPacket(PacketType.LeaveGroupReply);
+
+            p.AgentData = new LeaveGroupReplyPacket.AgentDataBlock();
+            p.AgentData.AgentID = agentID;
+
+            p.GroupData = new LeaveGroupReplyPacket.GroupDataBlock();
+            p.GroupData.GroupID = groupID;
+            p.GroupData.Success = success;
 
             OutPacket(p, ThrottleOutPacketType.Task);
         }

@@ -968,6 +968,18 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void SendJoinGroupReply(UUID groupID, bool success)
+        {
+        }
+
+        public void SendEjectGroupMemberReply(UUID agentID, UUID groupID, bool succss)
+        {
+        }
+
+        public void SendLeaveGroupReply(UUID agentID, UUID groupID, bool success)
+        {
+        }
+
         public void SendTerminateFriend(UUID exFriendID)
         {
         }
