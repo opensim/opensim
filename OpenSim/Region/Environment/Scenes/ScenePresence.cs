@@ -759,7 +759,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             float posZLimit = (float)m_scene.GetLandHeight((int)pos.X, (int)pos.Y);
-            float newPosZ = posZLimit + localAVHeight;
+            float newPosZ = posZLimit + localAVHeight / 2;
             if (posZLimit >= (pos.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
             {
                 pos.Z = newPosZ;
@@ -1752,6 +1752,7 @@ namespace OpenSim.Region.Environment.Scenes
             Vector3 pos = m_pos;
             Vector3 vel = Velocity;
             Quaternion rot = m_bodyRot;
+            pos.Z -= m_appearance.HipOffset;
             remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort)(m_scene.TimeDilation * (float)ushort.MaxValue), LocalId, new Vector3(pos.X, pos.Y, pos.Z),
                                                new Vector3(vel.X, vel.Y, vel.Z), rot);
 
@@ -1835,6 +1836,9 @@ namespace OpenSim.Region.Environment.Scenes
             // Note: because Quaternion is a struct, it can't be null
             Quaternion rot = m_bodyRot;
 
+            Vector3 pos = m_pos;
+            pos.Z -= m_appearance.HipOffset;
+
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
                                                             LocalId, m_pos, m_appearance.Texture.ToBytes(),
                                                             m_parentID, rot);
@@ -1899,6 +1903,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Note: because Quaternion is a struct, it can't be null
             Quaternion rot = m_bodyRot;
+
+            Vector3 pos = m_pos;
+            pos.Z -= m_appearance.HipOffset;
 
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
                                                m_pos, m_appearance.Texture.ToBytes(), m_parentID, rot);
