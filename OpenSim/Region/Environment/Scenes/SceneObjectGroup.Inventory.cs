@@ -151,23 +151,42 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.AssetID = item.AssetID;
                 taskItem.Name = item.Name;
                 taskItem.Description = item.Description;
-                taskItem.OwnerID = item.Owner;
+                taskItem.OwnerID = part.OwnerID; // Transfer ownership
                 taskItem.CreatorID = item.Creator;
                 taskItem.Type = item.AssetType;
                 taskItem.InvType = item.InvType;
 
-                taskItem.BasePermissions = item.BasePermissions;
-                taskItem.CurrentPermissions = item.CurrentPermissions;
-                // FIXME: ignoring group permissions for now as they aren't stored in item
-                taskItem.EveryonePermissions = item.EveryOnePermissions;
-                taskItem.NextPermissions = item.NextPermissions;
+		if (remoteClient!=null && remoteClient.AgentId!=part.OwnerID &&
+		    m_scene.ExternalChecks.ExternalChecksPropagatePermissions()) {
+		    taskItem.BasePermissions = item.BasePermissions & item.NextPermissions;
+		    taskItem.CurrentPermissions = item.CurrentPermissions & item.NextPermissions;
+		    taskItem.EveryonePermissions = item.EveryOnePermissions & item.NextPermissions;
+		    taskItem.NextPermissions = item.NextPermissions;
+		    taskItem.CurrentPermissions |= 8;
+		} else {
+		    taskItem.BasePermissions = item.BasePermissions;
+		    taskItem.CurrentPermissions = item.CurrentPermissions;
+		    taskItem.CurrentPermissions |= 8;
+		    taskItem.EveryonePermissions = item.EveryOnePermissions;
+		    taskItem.NextPermissions = item.NextPermissions;
+		}
+
+			
+
                 taskItem.Flags = item.Flags;
                 // TODO: These are pending addition of those fields to TaskInventoryItem
 //                taskItem.SalePrice = item.SalePrice;
 //                taskItem.SaleType = item.SaleType;
                 taskItem.CreationDate = (uint)item.CreationDate;
+		
+		bool addFromAllowedDrop = false;
+		if (remoteClient!=null) 
+		{
+		    addFromAllowedDrop = remoteClient.AgentId!=part.OwnerID &&
+			m_scene.ExternalChecks.ExternalChecksPropagatePermissions();
+		}
 
-                part.AddInventoryItem(taskItem);
+                part.AddInventoryItem(taskItem, addFromAllowedDrop);
 
                 return true;
             }
