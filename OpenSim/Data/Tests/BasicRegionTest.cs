@@ -591,9 +591,7 @@ namespace OpenSim.Data.Tests
             Assert.That(t.ItemID,Is.EqualTo(id));
             Assert.That(t.LastOwnerID, Is.EqualTo(sog.RootPart.LastOwnerID));
             Assert.That(t.NextPermissions, Is.EqualTo(nextperm));
-	    // Ownership changes when you drop an object into an object
-	    // owned by someone else
-            Assert.That(t.OwnerID,Is.EqualTo(sog.RootPart.OwnerID));
+            Assert.That(t.OwnerID,Is.EqualTo(owner));
             Assert.That(t.CurrentPermissions, Is.EqualTo(curperm));
             Assert.That(t.ParentID,Is.EqualTo(sog.RootPart.FolderID));
             Assert.That(t.ParentPartID,Is.EqualTo(sog.RootPart.UUID));

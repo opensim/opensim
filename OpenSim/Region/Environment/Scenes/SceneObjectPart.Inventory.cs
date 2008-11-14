@@ -289,16 +289,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// name is chosen.
         /// </summary>
         /// <param name="item"></param>
-        public void AddInventoryItem(TaskInventoryItem item, bool allowedDrop)
+        public void AddInventoryItem(TaskInventoryItem item)
         {
-            AddInventoryItem(item.Name, item, allowedDrop);
+            AddInventoryItem(item.Name, item);
         }
 
         /// <summary>
         /// Add an item to this prim's inventory.  If an item with the same name already exists, it is replaced.
         /// </summary>
         /// <param name="item"></param>
-        public void AddInventoryItemExclusive(TaskInventoryItem item, bool allowedDrop)
+        public void AddInventoryItemExclusive(TaskInventoryItem item)
         {
             List<TaskInventoryItem> il = new List<TaskInventoryItem>(m_taskInventory.Values);
             foreach (TaskInventoryItem i in il)
@@ -313,7 +313,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            AddInventoryItem(item.Name, item, allowedDrop);
+            AddInventoryItem(item.Name, item);
         }
 
         /// <summary>
@@ -324,10 +324,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// The item itself.  The name within this structure is ignored in favour of the name
         /// given in this method's arguments
         /// </param>
-        /// <param name="allowedDrop">
-	//  Item was only added to inventory because AllowedDrop is set
-        /// </param>
-        protected void AddInventoryItem(string name, TaskInventoryItem item, bool allowedDrop)
+        protected void AddInventoryItem(string name, TaskInventoryItem item)
         {
             name = FindAvailableInventoryName(name);
             if (name == String.Empty)
@@ -340,10 +337,7 @@ namespace OpenSim.Region.Environment.Scenes
             lock (m_taskInventory)
             {
                 m_taskInventory.Add(item.ItemID, item);
-		if (allowedDrop) 
-		    TriggerScriptChangedEvent(Changed.ALLOWED_DROP);
-		else
-		    TriggerScriptChangedEvent(Changed.INVENTORY);
+                TriggerScriptChangedEvent(Changed.INVENTORY);
             }
 
             m_inventorySerial++;

@@ -277,7 +277,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         public bool PropagatePermissions()
         {
-            return !m_bypassPermissions;
+            return false;
         }
 
         public bool BypassPermissions()
