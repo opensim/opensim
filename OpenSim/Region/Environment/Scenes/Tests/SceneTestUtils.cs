@@ -25,62 +25,54 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
+using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
-{
+{        
     /// <summary>
-    /// Scene object tests
+    /// Utilities for constructing and performing operations upon scenes.
     /// </summary>
-    [TestFixture]
-    public class SceneObjectTests
-    {
-        [SetUp]
-        public void Init()
-        {
-            try
-            {
-                log4net.Config.XmlConfigurator.Configure();
-            }
-            catch
-            {
-                // I don't care, just leave log4net off
-            }            
-        }
-                
+    public class SceneTestUtils
+    {        
         /// <summary>
-        /// Test adding an object to a scene.
+        /// Set up a test scene
         /// </summary>
-        [Test]        
-        public void TestAddSceneObject()
-        {              
-            Scene scene = SceneTestUtils.SetupScene();
-            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+        public static TestScene SetupScene()
+        {
+            RegionInfo regInfo = new RegionInfo(1000, 1000, null, null);
+            regInfo.RegionName = "Unit test region";
+            AgentCircuitManager acm = new AgentCircuitManager();
+            //CommunicationsManager cm = new CommunicationsManager(null, null, null, false, null);
+            CommunicationsManager cm = null;
+            //SceneCommunicationService scs = new SceneCommunicationService(cm);
+            SceneCommunicationService scs = null;
+            StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
+            IConfigSource configSource = new IniConfigSource();
             
-            //System.Console.WriteLine("retrievedPart : {0}", retrievedPart);
-            // If the parts have the same UUID then we will consider them as one and the same
-            Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));         
+            return new TestScene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);            
         }
         
         /// <summary>
-        /// Test removing an object from a scene.
+        /// Add a test object
         /// </summary>
-        public void TestRemoveSceneObject()
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        public static SceneObjectPart AddSceneObject(Scene scene)
         {
-            TestScene scene = SceneTestUtils.SetupScene();         
-            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
-            scene.DeleteSceneObject(part.ParentGroup, false);
+            SceneObjectGroup sceneObject = new SceneObjectGroup();
+            SceneObjectPart part 
+                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
+            //part.UpdatePrimFlags(false, false, true);           
+            part.ObjectFlags |= (uint)PrimFlags.Phantom;            
+            sceneObject.SetRootPart(part);
             
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+            scene.AddNewSceneObject(sceneObject, false);
             
-            Assert.That(retrievedPart, Is.Null);
+            return part;
         }
     }
 }

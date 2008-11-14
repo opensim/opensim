@@ -2695,7 +2695,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Deregister this scene from receiving incoming region events
         /// </summary>
         public void UnRegisterRegionWithComms()
         {

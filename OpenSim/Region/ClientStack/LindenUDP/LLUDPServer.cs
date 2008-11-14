@@ -373,7 +373,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // TODO : Actually only handle those states that we have control over, re-throw everything else,
                 // TODO: implement cases as we encounter them.
-                //m_log.Error("[[CLIENT]: ]: Connection Error! - " + e.ToString());
+                //m_log.Error("[CLIENT]: Connection Error! - " + e.ToString());
                 switch (e.SocketErrorCode)
                 {
                     case SocketError.AlreadyInProgress:
