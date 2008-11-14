@@ -333,6 +333,7 @@ namespace OpenSim.Data.MySQL
                 item.InvType = (int) reader["invType"];
                 item.BasePermissions = (uint) reader["inventoryBasePermissions"];
                 item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
+                item.GroupPermissions = (uint) reader["inventoryGroupPermissions"];
                 item.SalePrice = (int) reader["salePrice"];
                 item.SaleType = Convert.ToByte(reader["saleType"]);
                 item.CreationDate = (int) reader["creationDate"];
@@ -455,12 +456,12 @@ namespace OpenSim.Data.MySQL
             string sql =
                 "REPLACE INTO inventoryitems (inventoryID, assetID, assetType, parentFolderID, avatarID, inventoryName"
                     + ", inventoryDescription, inventoryNextPermissions, inventoryCurrentPermissions, invType"
-                    + ", creatorID, inventoryBasePermissions, inventoryEveryOnePermissions, salePrice, saleType"
+                    + ", creatorID, inventoryBasePermissions, inventoryEveryOnePermissions, inventoryGroupPermissions, salePrice, saleType"
                     + ", creationDate, groupID, groupOwned, flags) VALUES ";
             sql +=
                 "(?inventoryID, ?assetID, ?assetType, ?parentFolderID, ?avatarID, ?inventoryName, ?inventoryDescription"
                     + ", ?inventoryNextPermissions, ?inventoryCurrentPermissions, ?invType, ?creatorID"
-                    + ", ?inventoryBasePermissions, ?inventoryEveryOnePermissions, ?salePrice, ?saleType, ?creationDate"
+                    + ", ?inventoryBasePermissions, ?inventoryEveryOnePermissions, ?inventoryGroupPermissions, ?salePrice, ?saleType, ?creationDate"
                     + ", ?groupID, ?groupOwned, ?flags)";
 
             try
@@ -482,6 +483,7 @@ namespace OpenSim.Data.MySQL
                 result.Parameters.AddWithValue("?creatorID", item.Creator.ToString());
                 result.Parameters.AddWithValue("?inventoryBasePermissions", item.BasePermissions);
                 result.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.EveryOnePermissions);
+                result.Parameters.AddWithValue("?inventoryGroupPermissions", item.GroupPermissions);
                 result.Parameters.AddWithValue("?salePrice", item.SalePrice);
                 result.Parameters.AddWithValue("?saleType", item.SaleType);
                 result.Parameters.AddWithValue("?creationDate", item.CreationDate);

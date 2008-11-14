@@ -1329,6 +1329,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             rdata.writer.WriteStartElement(String.Empty, "Permissions", String.Empty);
             rdata.writer.WriteAttributeString("current", String.Empty, i.CurrentPermissions.ToString("X"));
             rdata.writer.WriteAttributeString("next", String.Empty, i.NextPermissions.ToString("X"));
+            rdata.writer.WriteAttributeString("group", String.Empty, i.GroupPermissions.ToString("X"));
             rdata.writer.WriteAttributeString("everyone", String.Empty, i.EveryOnePermissions.ToString("X"));
             rdata.writer.WriteAttributeString("base", String.Empty, i.BasePermissions.ToString("X"));
             rdata.writer.WriteEndElement();
@@ -1950,6 +1951,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     case "next" :
                         ic.NextPermissions     = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
                         break;
+                    case "group" :
+                        ic.GroupPermissions = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
+                        break;
                     case "everyone" :
                         ic.EveryOnePermissions = UInt32.Parse(ic.xml.Value, System.Globalization.NumberStyles.HexNumber);
                         break;
@@ -2061,6 +2065,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             ic.Item.CurrentPermissions  = ic.CurrentPermissions;
             ic.Item.EveryOnePermissions = ic.EveryOnePermissions;
             ic.Item.BasePermissions     = ic.BasePermissions;
+            ic.Item.GroupPermissions    = ic.GroupPermissions;
             ic.Item.NextPermissions     = ic.NextPermissions;
 
             // If no type was specified for this item, we can attempt to
@@ -2258,11 +2263,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             internal /*static*/ const uint DefaultNext     = 0x82000;
             internal /*static*/ const uint DefaultBase     = 0x7FFFFFFF;
             internal /*static*/ const uint DefaultEveryOne = 0x0;
+            internal /*static*/ const uint DefaultGroup    = 0x0;
 
             internal uint      CurrentPermissions  = 0x00;
             internal uint      NextPermissions     = 0x00;
             internal uint      BasePermissions     = 0x00;
             internal uint      EveryOnePermissions = 0x00;
+            internal uint      GroupPermissions    = 0x00;
 
             internal XmlInventoryCollection()
             {
@@ -2286,6 +2293,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 CurrentPermissions  = DefaultCurrent;
                 NextPermissions     = DefaultNext;
                 BasePermissions     = DefaultBase;
+                GroupPermissions    = DefaultGroup;
                 EveryOnePermissions = DefaultEveryOne;
             }
 

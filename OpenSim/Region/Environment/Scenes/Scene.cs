@@ -4301,6 +4301,8 @@ namespace OpenSim.Region.Environment.Scenes
                     item.NextPermissions = part.NextOwnerMask;
                     item.EveryOnePermissions = part.EveryoneMask &
                                                part.NextOwnerMask;
+                    item.GroupPermissions = part.GroupMask &
+                                               part.NextOwnerMask;
                     item.CurrentPermissions |= 8; // Slam!
                     item.CreationDate = Util.UnixTimeSinceEpoch();
 

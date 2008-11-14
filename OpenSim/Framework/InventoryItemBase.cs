@@ -75,6 +75,11 @@ namespace OpenSim.Framework
         private uint _everyOnePermissions;
 
         /// <summary>
+        ///
+        /// </summary>
+        private uint _groupPermissions;
+
+        /// <summary>
         /// The folder this item is contained in
         /// </summary>
         private UUID _folder;
@@ -188,6 +193,12 @@ namespace OpenSim.Framework
         {
             get { return _everyOnePermissions; }
             set { _everyOnePermissions = value; }
+        }
+
+        public uint GroupPermissions
+        {
+            get { return _groupPermissions; }
+            set { _groupPermissions = value; }
         }
 
         public int AssetType

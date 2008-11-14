@@ -1561,10 +1561,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     descend.ItemData[i].OwnerID = item.Owner;
                     descend.ItemData[i].Type = (sbyte)item.AssetType;
 
-                    //descend.ItemData[i].GroupID = new UUID("00000000-0000-0000-0000-000000000000");
                     descend.ItemData[i].GroupID = item.GroupID;
                     descend.ItemData[i].GroupOwned = item.GroupOwned;
-                    descend.ItemData[i].GroupMask = 0;
+                    descend.ItemData[i].GroupMask = item.GroupPermissions;
                     descend.ItemData[i].CreationDate = item.CreationDate;
                     descend.ItemData[i].SalePrice = item.SalePrice;
                     descend.ItemData[i].SaleType = item.SaleType;
@@ -1708,10 +1707,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             inventoryReply.InventoryData[0].OwnerMask = item.CurrentPermissions;
             inventoryReply.InventoryData[0].Type = (sbyte)item.AssetType;
 
-            //inventoryReply.InventoryData[0].GroupID = new UUID("00000000-0000-0000-0000-000000000000");
             inventoryReply.InventoryData[0].GroupID = item.GroupID;
             inventoryReply.InventoryData[0].GroupOwned = item.GroupOwned;
-            inventoryReply.InventoryData[0].GroupMask = 0;
+            inventoryReply.InventoryData[0].GroupMask = item.GroupPermissions;
             inventoryReply.InventoryData[0].Flags = item.Flags;
             inventoryReply.InventoryData[0].SalePrice = item.SalePrice;
             inventoryReply.InventoryData[0].SaleType = item.SaleType;
@@ -1763,10 +1761,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bulkUpdate.ItemData[0].OwnerMask = item.CurrentPermissions;
             bulkUpdate.ItemData[0].Type = (sbyte)item.AssetType;
 
-            //bulkUpdate.ItemData[0].GroupID = new UUID("00000000-0000-0000-0000-000000000000");
             bulkUpdate.ItemData[0].GroupID = item.GroupID;
             bulkUpdate.ItemData[0].GroupOwned = item.GroupOwned;
-            bulkUpdate.ItemData[0].GroupMask = 0;
+            bulkUpdate.ItemData[0].GroupMask = item.GroupPermissions;
             bulkUpdate.ItemData[0].Flags = item.Flags;
             bulkUpdate.ItemData[0].SalePrice = item.SalePrice;
             bulkUpdate.ItemData[0].SaleType = item.SaleType;
@@ -1811,10 +1808,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             InventoryReply.InventoryData[0].OwnerMask = Item.CurrentPermissions;
             InventoryReply.InventoryData[0].Type = (sbyte)Item.AssetType;
 
-            //InventoryReply.InventoryData[0].GroupID = new UUID("00000000-0000-0000-0000-000000000000");
             InventoryReply.InventoryData[0].GroupID = Item.GroupID;
             InventoryReply.InventoryData[0].GroupOwned = Item.GroupOwned;
-            InventoryReply.InventoryData[0].GroupMask = 0;
+            InventoryReply.InventoryData[0].GroupMask = Item.GroupPermissions;
             InventoryReply.InventoryData[0].Flags = Item.Flags;
             InventoryReply.InventoryData[0].SalePrice = Item.SalePrice;
             InventoryReply.InventoryData[0].SaleType = Item.SaleType;
@@ -5213,6 +5209,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 itemUpd.Description = Util.FieldToString(update.InventoryData[i].Description);
                                 itemUpd.GroupID = update.InventoryData[i].GroupID;
                                 itemUpd.GroupOwned = update.InventoryData[i].GroupOwned;
+                                itemUpd.GroupPermissions = update.InventoryData[i].GroupMask;
                                 itemUpd.NextPermissions = update.InventoryData[i].NextOwnerMask;
                                 itemUpd.EveryOnePermissions = update.InventoryData[i].EveryoneMask;
                                 itemUpd.CreationDate = update.InventoryData[i].CreationDate;
@@ -5419,6 +5416,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     item.CurrentPermissions = rezScriptx.InventoryBlock.OwnerMask;
                     item.EveryOnePermissions = rezScriptx.InventoryBlock.EveryoneMask;
                     item.NextPermissions = rezScriptx.InventoryBlock.NextOwnerMask;
+                    item.GroupPermissions = rezScriptx.InventoryBlock.GroupMask;
                     item.GroupOwned = rezScriptx.InventoryBlock.GroupOwned;
                     item.GroupID = rezScriptx.InventoryBlock.GroupID;
                     item.AssetType = rezScriptx.InventoryBlock.Type;

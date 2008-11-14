@@ -355,11 +355,11 @@ namespace OpenSim.Region.Environment.Scenes
                         item.NextPermissions = itemUpd.NextPermissions;
                         item.CurrentPermissions |= 8; // Slam!
                         item.EveryOnePermissions = itemUpd.EveryOnePermissions;
+                        item.GroupPermissions = itemUpd.GroupPermissions;
 
-                        // TODO: Requires sanity checks
-                        //item.GroupID = itemUpd.GroupID;
-                        //item.GroupOwned = itemUpd.GroupOwned;
-                        //item.CreationDate = itemUpd.CreationDate;
+                        item.GroupID = itemUpd.GroupID;
+                        item.GroupOwned = itemUpd.GroupOwned;
+                        item.CreationDate = itemUpd.CreationDate;
                         // The client sends zero if its newly created?
 
                         if (itemUpd.CreationDate == 0)
@@ -480,12 +480,14 @@ namespace OpenSim.Region.Environment.Scenes
 
                             itemCopy.NextPermissions = item.NextPermissions;
                             itemCopy.EveryOnePermissions = item.EveryOnePermissions & item.NextPermissions;
+                            itemCopy.GroupPermissions = item.GroupPermissions & item.NextPermissions;
                         }
                         else
                         {
                             itemCopy.CurrentPermissions = item.CurrentPermissions;
                             itemCopy.NextPermissions = item.NextPermissions;
                             itemCopy.EveryOnePermissions = item.EveryOnePermissions & item.NextPermissions;
+                            itemCopy.GroupPermissions = item.GroupPermissions & item.NextPermissions;
                             itemCopy.BasePermissions = item.BasePermissions;
                         }
                         itemCopy.GroupID = UUID.Zero;
@@ -584,13 +586,13 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     CreateNewInventoryItem(
                         remoteClient, newFolderID, newName, item.Flags, callbackID, asset, (sbyte)item.InvType,
-                        item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions, Util.UnixTimeSinceEpoch());
+                        item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
                 }
                 else
                 {
                     CreateNewInventoryItem(
                         remoteClient, newFolderID, newName, item.Flags, callbackID, asset, (sbyte)item.InvType,
-                        item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions, Util.UnixTimeSinceEpoch());
+                        item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
                 }
             }
             else
@@ -690,7 +692,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             CreateNewInventoryItem(
                 remoteClient, folderID, name, flags, callbackID, asset, invType,
-                (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask, creationDate);
+                (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask, 0, creationDate);
         }
 
         /// <summary>
@@ -705,7 +707,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="creationDate"></param>
         private void CreateNewInventoryItem(
             IClientAPI remoteClient, UUID folderID, string name, uint flags, uint callbackID, AssetBase asset, sbyte invType,
-            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, int creationDate)
+            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate)
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -726,6 +728,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.CurrentPermissions = currentMask;
                 item.NextPermissions = nextOwnerMask;
                 item.EveryOnePermissions = everyoneMask;
+                item.GroupPermissions = groupMask;
                 item.BasePermissions = baseMask;
                 item.CreationDate = creationDate;
 
@@ -978,6 +981,7 @@ namespace OpenSim.Region.Environment.Scenes
                 agentItem.CurrentPermissions = taskItem.NextPermissions | 8;
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions & taskItem.NextPermissions;
+                agentItem.GroupPermissions = taskItem.GroupPermissions & taskItem.NextPermissions;
             }
             else
             {
@@ -985,6 +989,7 @@ namespace OpenSim.Region.Environment.Scenes
                 agentItem.CurrentPermissions = taskItem.CurrentPermissions;
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions;
+                agentItem.GroupPermissions = taskItem.GroupPermissions;
             }
 
             if (!ExternalChecks.ExternalChecksBypassPermissions())
@@ -1416,6 +1421,7 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.BasePermissions = itemBase.BasePermissions;
                 taskItem.CurrentPermissions = itemBase.CurrentPermissions;
                 taskItem.EveryonePermissions = itemBase.EveryOnePermissions;
+                taskItem.GroupPermissions = itemBase.GroupPermissions;
                 taskItem.NextPermissions = itemBase.NextPermissions;
                 taskItem.GroupID = itemBase.GroupID;
                 taskItem.GroupPermissions = 0;
@@ -1728,6 +1734,7 @@ namespace OpenSim.Region.Environment.Scenes
                     item.CurrentPermissions = item.BasePermissions;
                     item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
                     item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
+                    item.GroupPermissions = objectGroup.RootPart.GroupMask & objectGroup.RootPart.NextOwnerMask;
                     item.CurrentPermissions |= 8; // Slam!
                 }
                 else
@@ -1736,6 +1743,7 @@ namespace OpenSim.Region.Environment.Scenes
                     item.CurrentPermissions = objectGroup.GetEffectivePermissions();
                     item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
                     item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
+                    item.GroupPermissions = objectGroup.RootPart.GroupMask;
                 }
 
                 // TODO: add the new fields (Flags, Sale info, etc)
@@ -1876,6 +1884,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.CurrentPermissions = grp.RootPart.NextOwnerMask;
                         item.NextPermissions = grp.RootPart.NextOwnerMask;
                         item.EveryOnePermissions = grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask;
+                        item.GroupPermissions = grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask;
                     }
                     else
                     {
@@ -1883,6 +1892,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.CurrentPermissions = grp.RootPart.OwnerMask;
                         item.NextPermissions = grp.RootPart.NextOwnerMask;
                         item.EveryOnePermissions = grp.RootPart.EveryoneMask;
+                        item.GroupPermissions = grp.RootPart.GroupMask;
                     }
                     item.CreationDate = Util.UnixTimeSinceEpoch();
 
@@ -2041,6 +2051,7 @@ namespace OpenSim.Region.Environment.Scenes
                                         {
                                             part.EveryoneMask = item.EveryOnePermissions;
                                             part.NextOwnerMask = item.NextPermissions;
+                                            part.GroupMask = 0; // DO NOT propagate here
                                         }
                                     }
                                     group.ApplyNextOwnerPermissions();
@@ -2059,6 +2070,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 {
                                     part.EveryoneMask = item.EveryOnePermissions;
                                     part.NextOwnerMask = item.NextPermissions;
+
+                                    part.GroupMask = 0; // DO NOT propagate here
                                 }
                             }
 
@@ -2282,6 +2295,7 @@ namespace OpenSim.Region.Environment.Scenes
                             item.CurrentPermissions = item.BasePermissions;
                             item.NextPermissions = returnobjects[i].RootPart.NextOwnerMask;
                             item.EveryOnePermissions = returnobjects[i].RootPart.EveryoneMask & returnobjects[i].RootPart.NextOwnerMask;
+                            item.GroupPermissions = returnobjects[i].RootPart.GroupMask & returnobjects[i].RootPart.NextOwnerMask;
                             item.CurrentPermissions |= 8; // Slam!
                         }
                         else
@@ -2290,6 +2304,7 @@ namespace OpenSim.Region.Environment.Scenes
                             item.CurrentPermissions = returnobjects[i].GetEffectivePermissions();
                             item.NextPermissions = returnobjects[i].RootPart.NextOwnerMask;
                             item.EveryOnePermissions = returnobjects[i].RootPart.EveryoneMask;
+                            item.GroupPermissions = returnobjects[i].RootPart.GroupMask;
                         }
 
                         // TODO: add the new fields (Flags, Sale info, etc)

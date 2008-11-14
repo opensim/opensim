@@ -293,6 +293,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 item.Folder = InventFolder;
                 item.BasePermissions = 0x7fffffff;
                 item.CurrentPermissions = 0x7fffffff;
+                item.GroupPermissions=0;
                 item.EveryOnePermissions=0;
                 item.NextPermissions = nextPerm;
                 item.Flags = (uint) wearableType;
