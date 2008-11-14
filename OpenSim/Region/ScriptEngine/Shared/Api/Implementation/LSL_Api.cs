@@ -4006,6 +4006,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.ParentGroup.RootPart.AllowedDrop = true;
             else
                 m_host.ParentGroup.RootPart.AllowedDrop = false;
+
+	    // Update the object flags
+	    m_host.ParentGroup.RootPart.aggregateScriptEvents();
         }
 
         public LSL_Vector llGetSunDirection()

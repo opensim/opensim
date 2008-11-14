@@ -1179,7 +1179,7 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.InvType = srcTaskItem.InvType;
             destTaskItem.Type = srcTaskItem.Type;
 
-            destPart.AddInventoryItem(destTaskItem);
+            destPart.AddInventoryItem(destTaskItem, part.OwnerID != destPart.OwnerID);
 
             if ((srcTaskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                 part.RemoveInventoryItem(itemId);
@@ -1249,10 +1249,17 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (part != null)
             {
-                if (!ExternalChecks.ExternalChecksCanEditObjectInventory(part.UUID, remoteClient.AgentId))
-                    return;
-
                 TaskInventoryItem currentItem = part.GetInventoryItem(itemID);
+                bool allowInventoryDrop = (part.GetEffectiveObjectFlags()
+					   & (uint)PrimFlags.AllowInventoryDrop) != 0;
+
+                // Explicity allow anyone to add to the inventory if the
+                // AllowInventoryDrop flag has been set. Don't however let
+                // them update an item unless they pass the external checks
+                //
+                if (!ExternalChecks.ExternalChecksCanEditObjectInventory(part.UUID, remoteClient.AgentId)
+                        && (currentItem != null || !allowInventoryDrop ))
+                    return;
 
                 if (currentItem == null)
                 {
@@ -1417,7 +1424,7 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.PermsMask = 0;
                 taskItem.AssetID = asset.FullID;
 
-                part.AddInventoryItem(taskItem);
+                part.AddInventoryItem(taskItem, false);
                 part.GetProperties(remoteClient);
 
                 part.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
@@ -1512,7 +1519,7 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.InvType = srcTaskItem.InvType;
             destTaskItem.Type = srcTaskItem.Type;
 
-            destPart.AddInventoryItemExclusive(destTaskItem);
+            destPart.AddInventoryItemExclusive(destTaskItem, false);
 
             if (running > 0)
             {

@@ -64,6 +64,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         // Bypasses the permissions engine
         private bool m_bypassPermissions = true;
         private bool m_bypassPermissionsValue = true;
+        private bool m_propagatePermissions = false;
         private bool m_debugPermissions = false;
         private bool m_allowGridGods = false;
         private bool m_RegionOwnerIsGod = false;
@@ -143,6 +144,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             m_allowGridGods = myConfig.GetBoolean("allow_grid_gods", false);
             m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
+            m_propagatePermissions = myConfig.GetBoolean("propagate_permissions", true);
             m_RegionOwnerIsGod = myConfig.GetBoolean("region_owner_is_god", true);
             m_ParcelOwnerIsGod = myConfig.GetBoolean("parcel_owner_is_god", true);
 
@@ -278,7 +280,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         public bool PropagatePermissions()
         {
-            return false;
+            if (m_bypassPermissions)
+                return false;
+
+            return m_propagatePermissions;
         }
 
         public bool BypassPermissions()
