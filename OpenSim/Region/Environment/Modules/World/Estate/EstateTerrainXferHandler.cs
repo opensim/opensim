@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
     
     public class EstateTerrainXferHandler
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private AssetBase m_asset;
         
@@ -48,9 +48,9 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         public event TerrainUploadComplete TerrainUploadDone;
 
-        private string m_description = String.Empty;
-        private string m_name = String.Empty;
-        private UUID TransactionID = UUID.Zero;
+        //private string m_description = String.Empty;
+        //private string m_name = String.Empty;
+        //private UUID TransactionID = UUID.Zero;
         private sbyte type = 0;
         
         public ulong mXferID;

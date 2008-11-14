@@ -55,7 +55,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     }
     public class OdeCharacter : PhysicsActor
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private PhysicsVector _position;
         private d.Vector3 _zeroPosition;
