@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         #region Bypass Permissions / Debug Permissions Stuff
 
         // Bypasses the permissions engine
-        private bool m_bypassPermissions = false;
+        private bool m_bypassPermissions = true;
         private bool m_bypassPermissionsValue = true;
         private bool m_debugPermissions = false;
         private bool m_allowGridGods = false;
@@ -371,8 +371,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             // Estate users should be able to edit anything in the sim
             if (IsEstateManager(user) && m_RegionOwnerIsGod)
                 return objectOwnerMask;
-
-
 
             // Admin should be able to edit anything in the sim (including admin objects)
             if (IsAdministrator(user))
@@ -823,12 +821,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     return false;
                 }
 
-
                 SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[objectID];
 
                 UUID objectOwner = group.OwnerID;
                 locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
-
 
                 // This is an exception to the generic object permission.
                 // Administrators who lock their objects should not be able to move them,

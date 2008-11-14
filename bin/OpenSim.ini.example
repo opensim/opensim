@@ -113,7 +113,8 @@
     ; If set to false, then, in theory, the server never carries out permission checks (allowing anybody to copy
     ; any item, etc.  This may not yet be implemented uniformally.
     ; If set to true, then all permissions checks are carried out
-    serverside_object_permissions = true
+    ; Default is false
+    serverside_object_permissions = false
 
     allow_grid_gods = false
 
