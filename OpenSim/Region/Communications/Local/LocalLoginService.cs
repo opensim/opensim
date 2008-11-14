@@ -176,6 +176,7 @@ namespace OpenSim.Region.Communications.Local
                         regionX, regionY,
                         theUser.HomeLocation.X, theUser.HomeLocation.Y, theUser.HomeLocation.Z,
                         theUser.HomeLookAt.X, theUser.HomeLookAt.Y, theUser.HomeLookAt.Z);
+                
                 m_log.InfoFormat("[LOGIN] Home region of user {0} {1} is not available; using computed region position {2} {3}",
                                  theUser.FirstName, theUser.SurName,
                                  regionX, regionY);
@@ -317,9 +318,6 @@ namespace OpenSim.Region.Communications.Local
             {
                 seedcap = "http://" + regionInfo.ExternalEndPoint.Address.ToString() + ":" + serversInfo.HttpListenerPort + "/CAPS/" + capsPath + "0000/";
             }
-
-
-
 
             response.SeedCapability = seedcap; //regionInfo.ExternalEndPoint.Address.ToString() + ":" + regionInfo.HttpPort + "/CAPS/" + capsPath + "0000/";
 

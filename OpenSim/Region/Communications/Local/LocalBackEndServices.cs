@@ -333,7 +333,7 @@ namespace OpenSim.Region.Communications.Local
         }
 
         /// <summary>
-        ///
+        /// Tell a region to expect a new client connection.
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
@@ -355,6 +355,14 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
+        /// <summary>
+        /// Tell a region to expect the crossing in of a new prim.
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="primID"></param>
+        /// <param name="objData"></param>
+        /// <param name="XMLMethod"></param>
+        /// <returns></returns>
         public bool InformRegionOfPrimCrossing(ulong regionHandle, UUID primID, string objData, int XMLMethod)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
@@ -431,7 +439,6 @@ namespace OpenSim.Region.Communications.Local
             agent.BaseFolder = loginData.BaseFolder;
             agent.InventoryFolder = loginData.InventoryFolder;
             agent.startpos = loginData.StartPos;
-
             agent.CapsPath = loginData.CapsPath;
 
             TriggerExpectUser(regionHandle, agent);

@@ -56,8 +56,6 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         public ulong mXferID;
         private TerrainUploadComplete handlerTerrainUploadDone;
 
-
-
         public EstateTerrainXferHandler(IClientAPI pRemoteClient, string pClientFilename)
         {
             

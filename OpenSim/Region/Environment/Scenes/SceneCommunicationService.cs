@@ -264,7 +264,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Async compnent for informing client of which neighbours exists
+        /// Async component for informing client of which neighbours exist
         /// </summary>
         /// <remarks>
         /// This needs to run asynchronesously, as a network timeout may block the thread for a long while
