@@ -488,11 +488,11 @@ namespace OpenSim.Data.MSSQL
             string sql = "INSERT INTO inventoryitems";
             sql += "([inventoryID], [assetID], [assetType], [parentFolderID], [avatarID], [inventoryName]"
                     + ", [inventoryDescription], [inventoryNextPermissions], [inventoryCurrentPermissions]"
-                    + ", [invType], [creatorID], [inventoryBasePermissions], [inventoryEveryOnePermissions]"
+                    + ", [invType], [creatorID], [inventoryBasePermissions], [inventoryEveryOnePermissions], [inventoryGroupPermissions]"
                     + ", [salePrice], [saleType], [creationDate], [groupID], [groupOwned], [flags]) VALUES ";
             sql += "(@inventoryID, @assetID, @assetType, @parentFolderID, @avatarID, @inventoryName, @inventoryDescription"
                     + ", @inventoryNextPermissions, @inventoryCurrentPermissions, @invType, @creatorID"
-                    + ", @inventoryBasePermissions, @inventoryEveryOnePermissions, @salePrice, @saleType"
+                    + ", @inventoryBasePermissions, @inventoryEveryOnePermissions, @inventoryGroupPermissions, @salePrice, @saleType"
                     + ", @creationDate, @groupID, @groupOwned, @flags);";
 
             using (AutoClosingSqlCommand command = database.Query(sql))
@@ -510,6 +510,7 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(database.CreateParameter("creatorID", item.Creator));
                 command.Parameters.Add(database.CreateParameter("inventoryBasePermissions", item.BasePermissions));
                 command.Parameters.Add(database.CreateParameter("inventoryEveryOnePermissions", item.EveryOnePermissions));
+                command.Parameters.Add(database.CreateParameter("inventoryGroupPermissions", item.GroupPermissions));
                 command.Parameters.Add(database.CreateParameter("salePrice", item.SalePrice));
                 command.Parameters.Add(database.CreateParameter("saleType", item.SaleType));
                 command.Parameters.Add(database.CreateParameter("creationDate", item.CreationDate));
@@ -786,6 +787,7 @@ namespace OpenSim.Data.MSSQL
                 item.Creator = new UUID(reader["creatorID"].ToString());
                 item.BasePermissions = Convert.ToUInt32(reader["inventoryBasePermissions"]);
                 item.EveryOnePermissions = Convert.ToUInt32(reader["inventoryEveryOnePermissions"]);
+                item.GroupPermissions = Convert.ToUInt32(reader["inventoryGroupPermissions"]);
                 item.SalePrice = Convert.ToInt32(reader["salePrice"]);
                 item.SaleType = Convert.ToByte(reader["saleType"]);
                 item.CreationDate = Convert.ToInt32(reader["creationDate"]);
