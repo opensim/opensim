@@ -185,7 +185,7 @@ namespace OpenSim.Region.Environment.Scenes
                 bool addFromAllowedDrop = false;
                 if (remoteClient!=null) 
                 {
-                    addFromAllowedDrop = remoteClient.AgentId!=part.OwnerID;
+                    addFromAllowedDrop = remoteClient.AgentId != part.OwnerID;
                 }
 
                 part.AddInventoryItem(taskItem, addFromAllowedDrop);
