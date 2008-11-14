@@ -162,7 +162,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckDuplicateObject(CanDuplicateObject); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckDeleteObject(CanDeleteObject); //MAYBE FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditObject(CanEditObject);//MAYBE FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckEditObjectInventory(CanEditObjectInventory);//MAYBE FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditParcel(CanEditParcel); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditScript(CanEditScript); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditNotecard(CanEditNotecard); //NOT YET IMPLEMENTED
@@ -184,6 +183,8 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckCanLinkObject(CanLinkObject); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanDelinkObject(CanDelinkObject); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanBuyLand(CanBuyLand); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanCreateObjectInventory(CanCreateObjectInventory); //NOT IMPLEMENTED HERE 
+            m_scene.ExternalChecks.addCheckEditObjectInventory(CanEditObjectInventory);//MAYBE FULLY IMPLEMENTED            
             m_scene.ExternalChecks.addCheckCanCopyObjectInventory(CanCopyObjectInventory); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanDeleteObjectInventory(CanDeleteObjectInventory); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanCreateUserInventory(CanCreateUserInventory); //NOT YET IMPLEMENTED

@@ -1326,7 +1326,7 @@ namespace OpenSim.Region.Environment.Scenes
             UUID itemID = itemBase.ID;
             UUID copyID = UUID.Random();
 
-            if (itemID != UUID.Zero)  // transferred from an avatar inventory to the prim's pinventory
+            if (itemID != UUID.Zero)  // transferred from an avatar inventory to the prim's inventory
             {
                 CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
 
