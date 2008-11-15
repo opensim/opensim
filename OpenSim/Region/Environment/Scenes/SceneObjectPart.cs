@@ -2335,8 +2335,11 @@ if (m_shape != null) {
 
         public void SetPhysicsAxisRotation()
         {
-            PhysActor.LockAngularMotion(RotationAxis);
-            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+            if (PhysActor != null)
+            {
+                PhysActor.LockAngularMotion(RotationAxis);
+                m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+            }
         }
 
         public void SetScriptEvents(UUID scriptid, int events)
