@@ -38,10 +38,8 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 {
-
     public class IRCBridgeModule : IRegionModule
     {
-
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -70,13 +68,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-
             // Do a once-only scan of the configuration file to make
             // sure it's basically intact.
 
             if (!configured)
             {
-
                 configured = true;
 
                 try
@@ -106,7 +102,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     password = config.Configs["RemoteAdmin"].GetString("access_password", password);
                     scene.CommsManager.HttpServer.AddXmlRPCHandler("irc_admin", XmlRpcAdminMethod, false);
                 }
-
             }
 
             // Iff the IRC bridge is enabled, then each new region may be 
@@ -122,7 +117,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 {
                     m_log.InfoFormat("[IRC-Bridge] Connecting region {0}", scene.RegionInfo.RegionName);
                     region = new RegionState(scene, m_config);
-                    lock(m_regions) m_regions.Add(region);
+                    lock (m_regions) m_regions.Add(region);
                     region.Open();
                 }
                 catch (Exception e)
@@ -135,7 +130,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             {
                 m_log.WarnFormat("[IRC-Bridge] Not enabled. Connect for region {0} ignored", scene.RegionInfo.RegionName);
             }
-
         }
 
         // This module can be called in-flight in which case PostInitialize
@@ -144,7 +138,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void PostInitialise()
         {
-
         }
 
         // Called immediately before the region module is unloaded. Cleanup
@@ -152,20 +145,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void Close()
         {
-
             if (!enabled)
                 return;
 
             region.Close();
-            lock(m_regions) m_regions.Remove(region);
-
+            lock (m_regions) m_regions.Remove(region);
         }
 
         #endregion
 
         public static XmlRpcResponse XmlRpcAdminMethod(XmlRpcRequest request)
         {
-
             m_log.Info("[IRC-Bridge]: XML RPC Admin Entry");
 
             XmlRpcResponse response = new XmlRpcResponse();
@@ -173,7 +163,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             try
             {
-
                 Hashtable requestData = (Hashtable)request.Params[0];
                 bool    found = false;
                 string region = String.Empty;
@@ -209,7 +198,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 if (!found) throw new Exception(String.Format("Region <{0}> not found", region));
 
                 responseData["success"] = true;
-
             }
             catch (Exception e)
             {
@@ -217,7 +205,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                 responseData["success"] = "false";
                 responseData["error"]   = e.Message;
-
             }
             finally
             {
@@ -227,9 +214,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             m_log.Debug("[IRC-Bridge]: XML RPC Admin Exit");
 
             return response;
-
         }
-
     }
-
 }

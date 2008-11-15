@@ -184,7 +184,7 @@ namespace OpenSim.Region.Environment.Scenes
 //                taskItem.SalePrice = item.SalePrice;
 //                taskItem.SaleType = item.SaleType;
                 taskItem.CreationDate = (uint)item.CreationDate;
-		
+
                 bool addFromAllowedDrop = false;
                 if (remoteClient!=null) 
                 {

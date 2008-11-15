@@ -1256,14 +1256,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 TaskInventoryItem currentItem = part.GetInventoryItem(itemID);
                 bool allowInventoryDrop = (part.GetEffectiveObjectFlags()
-					   & (uint)PrimFlags.AllowInventoryDrop) != 0;
+                                           & (uint)PrimFlags.AllowInventoryDrop) != 0;
 
                 // Explicity allow anyone to add to the inventory if the
                 // AllowInventoryDrop flag has been set. Don't however let
                 // them update an item unless they pass the external checks
                 //
                 if (!ExternalChecks.ExternalChecksCanEditObjectInventory(part.UUID, remoteClient.AgentId)
-                        && (currentItem != null || !allowInventoryDrop ))
+                    && (currentItem != null || !allowInventoryDrop))
                     return;
 
                 if (currentItem == null)
