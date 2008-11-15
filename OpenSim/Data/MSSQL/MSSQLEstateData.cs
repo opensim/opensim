@@ -56,7 +56,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="connectionString">connectionString.</param>
         public void Initialise(string connectionString)
         {
-            if (string.IsNullOrEmpty(connectionString))
+            if (!string.IsNullOrEmpty(connectionString))
             {
                 _Database = new MSSQLManager(connectionString);
             }

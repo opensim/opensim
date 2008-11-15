@@ -52,6 +52,7 @@ namespace OpenSim.Data.MSSQL
 
         #region IPlugin members
 
+        [Obsolete("Cannot be default-initialized!")]
         public void Initialise()
         {
             m_log.Info("[MSSQLInventoryData]: " + Name + " cannot be default-initialized!");
@@ -65,7 +66,7 @@ namespace OpenSim.Data.MSSQL
         /// <remarks>use mssql_connection.ini</remarks>
         public void Initialise(string connectionString)
         {
-            if (string.IsNullOrEmpty(connectionString))
+            if (!string.IsNullOrEmpty(connectionString))
             {
                 database = new MSSQLManager(connectionString);
             }
@@ -83,93 +84,9 @@ namespace OpenSim.Data.MSSQL
                                      settingPassword);
             }
 
-            //TODO remove this at one point
-            TestTables();
-
             //New migrations check of store
             database.CheckMigration(_migrationStore);
         }
-
-        #region Test and initialization code
-
-        /// <summary>
-        /// Execute "CreateFoldersTable.sql" if tableName == null
-        /// </summary>
-        /// <param name="tableName">the table name</param>
-        private void UpgradeFoldersTable(string tableName)
-        {
-            // null as the version, indicates that the table didn't exist
-            if (tableName == null)
-            {
-                database.ExecuteResourceSql("CreateFoldersTable.sql");
-                //database.ExecuteResourceSql("UpgradeFoldersTableToVersion2.sql");
-                return;
-            }
-        }
-
-        /// <summary>
-        /// Execute "CreateItemsTable.sql" if tableName = null
-        /// </summary>
-        /// <param name="tableName">the table name</param>
-        private void UpgradeItemsTable(string tableName)
-        {
-            // null as the version, indicates that the table didn't exist
-            if (tableName == null)
-            {
-                database.ExecuteResourceSql("CreateItemsTable.sql");
-                //database.ExecuteResourceSql("UpgradeItemsTableToVersion2.sql");
-                return;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void TestTables()
-        {
-            Dictionary<string, string> tableList = new Dictionary<string, string>();
-
-            tableList["inventoryfolders"] = null;
-            tableList["inventoryitems"] = null;
-
-            database.GetTableVersion(tableList);
-
-            UpgradeFoldersTable(tableList["inventoryfolders"]);
-            UpgradeItemsTable(tableList["inventoryitems"]);
-
-            using (AutoClosingSqlCommand cmd = database.Query("select * from migrations where name = '" + _migrationStore + "'"))
-            {
-                //Special for Migrations to create backword compatible
-                try
-                {
-                    bool insert = true;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read()) insert = false;
-                    }
-                    if (insert)
-                    {
-                        cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                catch
-                {
-                    //No migrations table
-                    //HACK create one and add data
-                    cmd.CommandText = "create table migrations(name varchar(100), version int)";
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = "insert into migrations(name, version) values('migrations', 1)";
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
-
-        #endregion
 
         /// <summary>
         /// The name of this DB provider

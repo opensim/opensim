@@ -26,10 +26,7 @@
  */
 
 using System;
-using System.Data.SqlClient;
 using System.Reflection;
-using System.Collections.Generic;
-using System.Data;
 using log4net;
 using OpenSim.Framework;
 
@@ -49,6 +46,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         public MSSQLManager database;
 
+        [Obsolete("Cannot be default-initialized!")]
         public void Initialise()
         {
             m_log.Info("[LOG DB]: " + Name + " cannot be default-initialized!");
@@ -60,7 +58,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         public void Initialise(string connect)
         {
-            if (string.IsNullOrEmpty(connect))
+            if (!string.IsNullOrEmpty(connect))
             {
                 database = new MSSQLManager(connect);
             }
@@ -79,61 +77,10 @@ namespace OpenSim.Data.MSSQL
                                      settingPassword);
             }
 
-            //TODO when can this be removed
-            TestTable();
-
             //Updating mechanisme
             database.CheckMigration(_migrationStore);
         }
 
-        /// <summary>
-        /// Can be removed someday!!!
-        /// </summary>
-        private void TestTable()
-        {
-            using (IDbCommand cmd = database.Query("select top 1 * from logs", new Dictionary<string, string>()))
-            {
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch
-                {
-                    database.ExecuteResourceSql("Mssql-logs.sql");
-                }
-            }
-            using (AutoClosingSqlCommand cmd = database.Query("select * from migrations where name = '" + _migrationStore + "'"))
-            {
-                //Special for Migrations to create backword compatible
-                try
-                {
-                    bool insert = true;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read()) insert = false;
-                    }
-                    if (insert)
-                    {
-                        cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                catch
-                {
-                    //No migrations table
-                    //HACK create one and add data
-                    cmd.CommandText = "create table migrations(name varchar(100), version int)";
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = "insert into migrations(name, version) values('migrations', 1)";
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
-        
         /// <summary>
         /// Saves a log item to the database
         /// </summary>

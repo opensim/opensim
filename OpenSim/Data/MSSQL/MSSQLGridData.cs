@@ -54,6 +54,7 @@ namespace OpenSim.Data.MSSQL
 
         #region IPlugin Members
 
+        [Obsolete("Cannot be default-initialized!")]
         override public void Initialise()
         {
             m_log.Info("[GRID DB]: " + Name + " cannot be default-initialized!");
@@ -67,7 +68,7 @@ namespace OpenSim.Data.MSSQL
         /// <remarks>use mssql_connection.ini</remarks>
         override public void Initialise(string connectionString)
         {
-            if (string.IsNullOrEmpty(connectionString))
+            if (!string.IsNullOrEmpty(connectionString))
             {
                 database = new MSSQLManager(connectionString);
             }
@@ -93,60 +94,8 @@ namespace OpenSim.Data.MSSQL
                                      settingPassword);
             }
 
-            //TODO this can be removed at a certain time
-            TestTables();
-
             //New migrations check of store
             database.CheckMigration(_migrationStore);
-        }
-
-        /// <summary>
-        /// Test is region
-        /// </summary>
-        private void TestTables()
-        {
-            using (AutoClosingSqlCommand cmd = database.Query("SELECT TOP 1 * FROM " + m_regionsTableName, new Dictionary<string, string>()))
-            {
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    m_log.Info("[GRID DB]: MSSQL Database doesn't exist... creating");
-                    database.ExecuteResourceSql("Mssql-regions.sql");
-                }
-            }
-            using (AutoClosingSqlCommand cmd = database.Query("select * from migrations where name = '" + _migrationStore + "'"))
-            {
-                //Special for Migrations to create backword compatible
-                try
-                {
-                    bool insert = true;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read()) insert = false;
-                    }
-                    if (insert)
-                    {
-                        cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                catch
-                {
-                    //No migrations table
-                    //HACK create one and add data
-                    cmd.CommandText = "create table migrations(name varchar(100), version int)";
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = "insert into migrations(name, version) values('migrations', 1)";
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
-                    cmd.ExecuteNonQuery();
-                }
-            }
         }
 
         /// <summary>

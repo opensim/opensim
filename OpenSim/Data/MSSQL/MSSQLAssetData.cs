@@ -26,9 +26,7 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Reflection;
 using OpenMetaverse;
 using log4net;
@@ -57,6 +55,7 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// <para>Initialises asset interface</para>
         /// </summary>
+        [Obsolete("Cannot be default-initialized!")]
         override public void Initialise()
         {
             m_log.Info("[MSSQLUserData]: " + Name + " cannot be default-initialized!");
@@ -72,7 +71,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="connectionString">connect string</param>
         override public void Initialise(string connectionString)
         {
-            if (string.IsNullOrEmpty(connectionString))
+            if (!string.IsNullOrEmpty(connectionString))
             {
                 database = new MSSQLManager(connectionString);
             }
@@ -90,9 +89,6 @@ namespace OpenSim.Data.MSSQL
                     new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
                                      settingPassword);
             }
-
-            //TODO can be removed at some time!!
-            TestTables();
 
             //New migration to check for DB changes
             database.CheckMigration(_migrationStore);
@@ -225,73 +221,6 @@ namespace OpenSim.Data.MSSQL
                 return true;
             }
             return false;
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        /// <summary>
-        /// Migration method
-        /// <list type="bullet">
-        /// <item>Execute "CreateAssetsTable.sql" if tableName == null</item>
-        /// </list>
-        /// </summary>
-        /// <param name="tableName">Name of table</param>
-        private void UpgradeAssetsTable(string tableName)
-        {
-            // null as the version, indicates that the table didn't exist
-            if (tableName == null)
-            {
-                m_log.Info("[ASSET DB]: Creating new database tables");
-                database.ExecuteResourceSql("CreateAssetsTable.sql");
-                return;
-            }
-        }
-
-        /// <summary>
-        /// Ensure that the assets related tables exists and are at the latest version
-        /// </summary>
-        private void TestTables()
-        {
-            Dictionary<string, string> tableList = new Dictionary<string, string>();
-
-            tableList["assets"] = null;
-            database.GetTableVersion(tableList);
-
-            UpgradeAssetsTable(tableList["assets"]);
-
-            //Special for Migrations
-            using (AutoClosingSqlCommand cmd = database.Query("select * from migrations where name = '" + _migrationStore + "'"))
-            {
-                try
-                {
-                    bool insert = true;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read()) insert = false;
-                    }
-                    if (insert)
-                    {
-                        cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                catch
-                {
-                    //No migrations table
-                    //HACK create one and add data
-                    cmd.CommandText = "create table migrations(name varchar(100), version int)";
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = "insert into migrations(name, version) values('migrations', 1)";
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = "insert into migrations(name, version) values('" + _migrationStore + "', 1)";
-                    cmd.ExecuteNonQuery();
-                }
-            }
-
         }
 
         #endregion

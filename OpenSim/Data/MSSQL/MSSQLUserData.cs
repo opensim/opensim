@@ -55,6 +55,7 @@ namespace OpenSim.Data.MSSQL
         private const string m_usersTableName = "users";
         private const string m_userFriendsTableName = "userfriends";
 
+        [Obsolete("Cannot be default-initialized!")]
         override public void Initialise()
         {
             m_log.Info("[MSSQLUserData]: " + Name + " cannot be default-initialized!");
@@ -69,7 +70,7 @@ namespace OpenSim.Data.MSSQL
         override public void Initialise(string connect)
         {
 
-            if (string.IsNullOrEmpty(connect))
+            if (!string.IsNullOrEmpty(connect))
             {
                 database = new MSSQLManager(connect);
             }
@@ -86,27 +87,6 @@ namespace OpenSim.Data.MSSQL
                 database = new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId, settingPassword);
             }
 
-//            m_usersTableName = iniFile.ParseFileReadValue("userstablename");
-//            if (m_usersTableName == null)
-//            {
-//                m_usersTableName = "users";
-//            }
-//
-//            m_userFriendsTableName = iniFile.ParseFileReadValue("userfriendstablename");
-//            if (m_userFriendsTableName == null)
-//            {
-//                m_userFriendsTableName = "userfriends";
-//            }
-//
-//            m_agentsTableName = iniFile.ParseFileReadValue("agentstablename");
-//            if (m_agentsTableName == null)
-//            {
-//                m_agentsTableName = "agents";
-//            }
-
-            //TODO this can be removed at one time!!!!!
-            TestTables();
-
             //Check migration on DB
             database.CheckMigration(_migrationStore);
         }
@@ -115,93 +95,6 @@ namespace OpenSim.Data.MSSQL
         /// Releases unmanaged and - optionally - managed resources
         /// </summary>
         override public void Dispose() { }
-
-        /// <summary>
-        /// Can be deleted at one time!
-        /// </summary>
-        /// <returns></returns>
-        private void TestTables()
-        {
-            using (IDbCommand cmd = database.Query("select top 1 * from " + m_usersTableName))
-            {
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch
-                {
-                    database.ExecuteResourceSql("Mssql-users.sql");
-                }
-            }
-
-            using (IDbCommand cmd = database.Query("select top 1 * from " + m_agentsTableName, new Dictionary<string, string>()))
-            {
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch
-                {
-                    database.ExecuteResourceSql("Mssql-agents.sql");
-                }
-            }
-
-            using (IDbCommand cmd = database.Query("select top 1 * from " + m_userFriendsTableName, new Dictionary<string, string>()))
-            {
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch
-                {
-                    database.ExecuteResourceSql("CreateUserFriendsTable.sql");
-                }
-            }
-
-            using (IDbCommand cmd = database.Query("select top 1 * from avatarappearance", new Dictionary<string, string>()))
-            {
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch
-                {
-                    database.ExecuteResourceSql("AvatarAppearance.sql");
-                }
-            }
-
-            //Special for Migrations
-            using (AutoClosingSqlCommand cmd = database.Query("select * from migrations where name = 'UserStore'"))
-            {
-                try
-                {
-                    bool insert = true;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read()) insert = false;
-                    }
-                    if (insert)
-                    {
-                        cmd.CommandText = "insert into migrations(name, version) values('UserStore', 1)";
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                catch
-                {
-                    //No migrations table
-                    //HACK create one and add data
-                    cmd.CommandText = "create table migrations(name varchar(100), version int)";
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = "insert into migrations(name, version) values('migrations', 1)";
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = "insert into migrations(name, version) values('UserStore', 1)";
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            return;
-        }
 
         #region User table methods
 
@@ -679,7 +572,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="appearance">the appearence</param>
         override public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
-            m_log.Error("[USER DB] updating user appearance for user ID " + user.Guid.ToString());
+            m_log.Error("[USER DB] updating user appearance for user ID " + user.Guid);
             string sql = String.Empty;
             sql += "DELETE FROM avatarappearance WHERE owner=@owner ";
             sql += "INSERT INTO avatarappearance ";
@@ -1112,6 +1005,7 @@ ELSE
         /// <param name="uuid">User ID</param>
         /// <param name="username">First part of the login</param>
         /// <param name="lastname">Second part of the login</param>
+        /// <param name="email">Email of person</param>
         /// <param name="passwordHash">A salted hash of the users password</param>
         /// <param name="passwordSalt">The salt used for the password hash</param>
         /// <param name="homeRegion">A regionHandle of the users home region</param>
