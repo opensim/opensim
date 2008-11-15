@@ -317,6 +317,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        // convert a LSL_Rotation to a Quaternion
+        private Quaternion Rot2Quaternion(LSL_Rotation r)
+        {
+            return new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
+        }
+
         //These are the implementations of the various ll-functions used by the LSL scripts.
         public LSL_Float llSin(double f)
         {
@@ -1791,14 +1797,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            SetRot(m_host, rot);
+            // try to let this work as in SL...
+            if (m_host.ParentID == 0)
+            {
+                // special case: If we are root, rotate complete SOG to new rotation
+                SetRot(m_host, Rot2Quaternion(rot));
+            }
+            else
+            {
+                // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
+                SceneObjectGroup group = m_host.ParentGroup;
+                if (group != null) // a bit paranoid, maybe
+                {
+                    SceneObjectPart rootPart = group.RootPart;
+                    if(rootPart != null) // again, better safe than sorry
+                    {
+                        SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
+                    }
+                }
+            }
 
             ScriptSleep(200);
         }
 
-        private void SetRot(SceneObjectPart part, LSL_Rotation rot)
+        public void llSetLocalRot(LSL_Rotation rot)
         {
-            part.UpdateRotation(new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s));
+            m_host.AddScriptLPS(1);
+            SetRot(m_host, Rot2Quaternion(rot));
+            ScriptSleep(200);
+        }
+
+        private void SetRot(SceneObjectPart part, Quaternion rot)
+        {
+            part.UpdateRotation(rot);
             // Update rotation does not move the object in the physics scene if it's a linkset.
             part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
         }
@@ -2414,7 +2445,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // need the magnitude later
                     float velmag = (float)Util.GetMagnitude(llvel);
 
-                    SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s), llvel, param);
+                    SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, Rot2Quaternion(rot), llvel, param);
 
                     // If either of these are null, then there was an unknown error.
                     if (new_group == null)
@@ -5484,7 +5515,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (m_host.ParentGroup.RootPart != null)
                 {
                     m_host.ParentGroup.RootPart.SetVehicleRotationParam(param,
-                        new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s));
+                        Rot2Quaternion(rot));
                 }
             }
         }
@@ -5509,7 +5540,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 rot.z = 1; // ZERO_ROTATION = 0,0,0,1
 
             m_host.SitTargetPosition = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
-            m_host.SitTargetOrientation = new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
+            m_host.SitTargetOrientation = Rot2Quaternion(rot);
         }
 
         public LSL_String llAvatarOnSitTarget()
@@ -6104,7 +6135,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
 
                         LSL_Rotation q = rules.GetQuaternionItem(idx++);
-                        SetRot(part, q);
+                        SetRot(part, Rot2Quaternion(q));
 
                         break;
 
@@ -7158,13 +7189,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             return System.Environment.MachineName;
-        }
-
-        public void llSetLocalRot(LSL_Rotation rot)
-        {
-            m_host.AddScriptLPS(1);
-            m_host.RotationOffset = new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
-            // ScriptSleep(200);
         }
 
         //  <summary>
