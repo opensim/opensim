@@ -62,6 +62,9 @@ namespace OpenSim.Region.Environment.Scenes
         public SynchronizeSceneHandler SynchronizeScene = null;
         public int splitID = 0;
 
+        private const long DEFAULT_MIN_TIME_FOR_PERSISTENCE = 60L;
+        private const long DEFAULT_MAX_TIME_FOR_PERSISTENCE = 600L;
+
         #region Fields
 
         protected Timer m_restartWaitTimer = new Timer();
@@ -170,6 +173,11 @@ namespace OpenSim.Region.Environment.Scenes
         private volatile bool shuttingdown = false;
 
         private object m_deleting_scene_object = new object();
+
+        // the minimum time that must elapse before a changed object will be considered for persisted
+        public long m_dontPersistBefore = DEFAULT_MIN_TIME_FOR_PERSISTENCE * 10000000L;
+        // the maximum time that must elapse before a changed object will be considered for persisted
+        public long m_persistAfter = DEFAULT_MAX_TIME_FOR_PERSISTENCE * 10000000L;
 
         #endregion
 
@@ -335,6 +343,12 @@ namespace OpenSim.Region.Environment.Scenes
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", 65536.0f);
                 m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
                 m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", false);
+                m_dontPersistBefore =
+                  startupConfig.GetInt("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
+                m_dontPersistBefore *= 10000000;
+                m_persistAfter =
+                  startupConfig.GetInt("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
+                m_persistAfter *= 10000000;
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "DotNetEngine");
             }
@@ -347,6 +361,11 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Startup / Close Methods
+
+        public bool ShuttingDown
+        {
+            get { return shuttingdown; }
+        }
 
         protected virtual void RegisterDefaultSceneEvents()
         {

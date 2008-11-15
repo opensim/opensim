@@ -79,6 +79,15 @@
     asset_database = "local"
     ;asset_database = "grid"
 
+    ; Persistence of changed objects happens during regular sweeps. The following control that behaviour to
+    ; prevent frequently changing objects from heavily loading the region data store.
+    ; If both of these values are set to zero then persistence of all changed objects will happen on every sweep.
+    ; 
+    ; Objects will be considered for persistance in the next sweep when they have not changed for this number of seconds
+    MinimumTimeBeforePersistenceConsidered = 60
+    ; Objects will always be considered for persistance in the next sweep if the first change occurred this number of seconds ago
+    MaximumTimeBeforePersistenceConsidered = 600
+
     ; Should avatars in neighbor sims see objects in this sim?
     see_into_this_sim_from_neighbor = True
 

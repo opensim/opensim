@@ -92,7 +92,39 @@ namespace OpenSim.Region.Environment.Scenes
         /// Signal whether the non-inventory attributes of any prims in the group have changed
         /// since the group's last persistent backup
         /// </summary>
-        public bool HasGroupChanged = false;
+        private bool m_hasGroupChanged = false;
+        private long timeFirstChanged;
+        private long timeLastChanged;
+
+        public bool HasGroupChanged
+        {
+            set
+            {
+                if (value)
+                {
+                    timeLastChanged = DateTime.Now.Ticks;
+                    if (!m_hasGroupChanged)
+                        timeFirstChanged = DateTime.Now.Ticks;
+                }
+                m_hasGroupChanged = value;
+            }
+
+            get { return m_hasGroupChanged; }
+        }
+
+        private bool isTimeToPersist()
+        {
+            if (IsSelected || IsDeleted || IsAttachment)
+                return false;
+            if (!m_hasGroupChanged)
+                return false;
+            if (m_scene.ShuttingDown)
+                return true;
+            long currentTime = DateTime.Now.Ticks;
+            if (currentTime - timeLastChanged > m_scene.m_dontPersistBefore || currentTime - timeFirstChanged > m_scene.m_persistAfter)
+                return true;
+            return false;
+        }
         
         /// <value>
         /// Is this scene object acting as an attachment?
@@ -1190,25 +1222,28 @@ namespace OpenSim.Region.Environment.Scenes
 
             try
             {
-                ILandObject parcel = m_scene.LandChannel.GetLandObject(
-                        m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y);
-
-                if (parcel != null && parcel.landData != null &&
-                        parcel.landData.OtherCleanTime != 0)
+                if (!m_scene.ShuttingDown) // if shutting down then there will be nothing to handle the return so leave till next restart
                 {
-                    if (parcel.landData.OwnerID != OwnerID &&
-                            (parcel.landData.GroupID != GroupID ||
-                            parcel.landData.GroupID == UUID.Zero))
-                    {
-                        if ((DateTime.Now - RootPart.Rezzed).TotalMinutes >
-                                parcel.landData.OtherCleanTime)
-                        {
-                            m_log.InfoFormat("[SCENE] Returning object {0} due to parcel auto return", RootPart.UUID.ToString());
-                            m_scene.AddReturn(OwnerID, Name, AbsolutePosition);
-                            m_scene.DeRezObject(null, RootPart.LocalId,
-                                RootPart.GroupID, 9, UUID.Zero);
+                    ILandObject parcel = m_scene.LandChannel.GetLandObject(
+                            m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y);
 
-                            return;
+                    if (parcel != null && parcel.landData != null &&
+                            parcel.landData.OtherCleanTime != 0)
+                    {
+                        if (parcel.landData.OwnerID != OwnerID &&
+                                (parcel.landData.GroupID != GroupID ||
+                                parcel.landData.GroupID == UUID.Zero))
+                        {
+                            if ((DateTime.Now - RootPart.Rezzed).TotalMinutes >
+                                    parcel.landData.OtherCleanTime)
+                            {
+                                m_log.InfoFormat("[SCENE] Returning object {0} due to parcel auto return", RootPart.UUID.ToString());
+                                m_scene.AddReturn(OwnerID, Name, AbsolutePosition);
+                                m_scene.DeRezObject(null, RootPart.LocalId,
+                                    RootPart.GroupID, 9, UUID.Zero);
+
+                                return;
+                            }
                         }
                     }
                 }
@@ -1216,7 +1251,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (HasGroupChanged)
                 {
                     // don't backup while it's selected or you're asking for changes mid stream.
-                    if (!(IsSelected || IsDeleted || IsAttachment))
+                    if (isTimeToPersist())
                     {
                         m_log.DebugFormat(
                             "[SCENE]: Storing {0}, {1} in {2}",
@@ -1227,9 +1262,9 @@ namespace OpenSim.Region.Environment.Scenes
                         backup_group.RootPart.Acceleration = RootPart.Acceleration;
                         backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;
                         backup_group.RootPart.ParticleSystem = RootPart.ParticleSystem;
+                        HasGroupChanged = false;
 
                         datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
-                        HasGroupChanged = false;
 
                         backup_group.ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
 
