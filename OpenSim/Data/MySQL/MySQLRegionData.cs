@@ -305,8 +305,7 @@ namespace OpenSim.Data.MySQL
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == 0
-                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
+                    if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
                         && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
                     {
                         //m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);

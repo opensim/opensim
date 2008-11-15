@@ -344,10 +344,10 @@ namespace OpenSim.Region.Environment.Scenes
                 m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", 10.0f);
                 m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", false);
                 m_dontPersistBefore =
-                  startupConfig.GetInt("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
+                  startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
                 m_dontPersistBefore *= 10000000;
                 m_persistAfter =
-                  startupConfig.GetInt("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
+                  startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
                 m_persistAfter *= 10000000;
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "DotNetEngine");

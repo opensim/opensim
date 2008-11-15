@@ -345,8 +345,7 @@ namespace OpenSim.Data.MSSQL
 
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == 0
-                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
+                    if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
                         && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
                     {
 
