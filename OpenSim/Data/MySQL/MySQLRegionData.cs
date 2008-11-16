@@ -212,16 +212,23 @@ namespace OpenSim.Data.MySQL
         {
             MySqlCommand cmd = new MySqlCommand(m_waitTimeoutSelect, m_connection);
 
-            using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            lock (m_dataSet)
             {
-                if (dbReader.Read())
+                MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow);
+                try
                 {
-                    m_waitTimeout
-                        = Convert.ToInt32(dbReader["@@wait_timeout"]) * TimeSpan.TicksPerSecond + m_waitTimeoutLeeway;
-                }
+                    if (dbReader.Read())
+                    {
+                        m_waitTimeout
+                            = Convert.ToInt32(dbReader["@@wait_timeout"]) * TimeSpan.TicksPerSecond + m_waitTimeoutLeeway;
+                    }
 
-                dbReader.Close();
-                cmd.Dispose();
+                    cmd.Dispose();
+                }
+                finally
+                {
+                    dbReader.Close();
+                }
             }
 
             m_lastConnectionUse = System.DateTime.Now.Ticks;
@@ -571,7 +578,8 @@ namespace OpenSim.Data.MySQL
             lock (m_dataSet)
             {
                 CheckConnection();
-                using (MySqlDataReader row = cmd.ExecuteReader())
+                MySqlDataReader row = cmd.ExecuteReader();
+                try
                 {
                     int rev = 0;
                     if (row.Read())
@@ -594,6 +602,10 @@ namespace OpenSim.Data.MySQL
                     }
 
                     m_log.Info("[REGION DB]: Loaded terrain revision r" + rev.ToString());
+                }
+                finally
+                {
+                    row.Close();
                 }
             }
             return terret;
