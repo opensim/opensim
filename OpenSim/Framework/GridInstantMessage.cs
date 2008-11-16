@@ -33,26 +33,60 @@ namespace OpenSim.Framework
     [Serializable]
     public class GridInstantMessage
     {
-        public byte[] binaryBucket;
-        public byte dialog;
         public Guid fromAgentID;
         public string fromAgentName;
         public Guid fromAgentSession;
+        public Guid toAgentID;
+        public byte dialog;
         public bool fromGroup;
-        public Guid imSessionID;
-
         public string message;
+        public Guid imSessionID;
         public byte offline;
+        public Vector3 Position;
+        public byte[] binaryBucket;
+
 
         public uint ParentEstateID;
-
-        public Vector3 Position;
-
         public Guid RegionID;
         public uint timestamp;
-        public Guid toAgentID;
 
         public GridInstantMessage()
+        {
+            binaryBucket = new byte[0];
+        }
+
+        public GridInstantMessage(IScene scene, UUID _fromAgentID,
+                string _fromAgentName, UUID _fromAgentSession, UUID _toAgentID,
+                byte _dialog, bool _fromGroup, string _message,
+                UUID _imSessionID, bool _offline, Vector3 _position,
+                byte[] _binaryBucket)
+        {
+            fromAgentID = _fromAgentID.Guid;
+            fromAgentName = _fromAgentName;
+            fromAgentSession = _fromAgentSession.Guid;
+            toAgentID = _toAgentID.Guid;
+            dialog = _dialog;
+            fromGroup = _fromGroup;
+            message = _message;
+            imSessionID = _imSessionID.Guid;
+            if (_offline)
+                offline = 1;
+            else
+                offline = 0;
+            Position = _position;
+            binaryBucket = _binaryBucket;
+            
+            ParentEstateID = scene.RegionInfo.EstateSettings.ParentEstateID;
+            RegionID = scene.RegionInfo.RegionSettings.RegionUUID.Guid;
+            timestamp = (uint)Util.UnixTimeSinceEpoch();
+        }
+
+        public GridInstantMessage(IScene scene, UUID _fromAgentID,
+                string _fromAgentName, UUID _toAgentID, byte _dialog,
+                string _message, bool _offline,
+                Vector3 _position) : this(scene, _fromAgentID, _fromAgentName,
+                UUID.Zero, _toAgentID, _dialog, false, _message,
+                _fromAgentID ^ _toAgentID, _offline, _position, new byte[0])
         {
         }
     }

@@ -993,7 +993,8 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                     msg.message = string.Format("Your object {0} was returned from {1} in region {2} due to parcel auto return", ret.Value.objectName, ret.Value.location.ToString(), RegionInfo.RegionName);
 
-                TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
+// TODO: Send IM
+//                TriggerGridInstantMessage(msg);
             }
         }
 
@@ -3302,21 +3303,6 @@ namespace OpenSim.Region.Environment.Scenes
                 return m_httpRequestModule.MakeHttpRequest(url, type, body);
             }
             return UUID.Zero;
-        }
-
-        /// <summary>
-        /// This method is a way for the Friends Module to create an instant
-        /// message to the avatar and for Instant Messages that travel across
-        /// gridcomms to make it to the Instant Message Module.
-        ///
-        /// Friendship establishment and groups are unfortunately tied with instant messaging and
-        /// there's no way to separate them completely.
-        /// </summary>
-        /// <param name="message">object containing the instant message data</param>
-        /// <returns>void</returns>
-        public void TriggerGridInstantMessage(GridInstantMessage message, InstantMessageReceiver options)
-        {
-            m_eventManager.TriggerGridInstantMessage(message, options);
         }
 
         public virtual void StoreAddFriendship(UUID ownerID, UUID friendID, uint perms)

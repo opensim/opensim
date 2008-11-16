@@ -2645,7 +2645,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.Position = Vector3.Zero;// new Vector3(m_host.AbsolutePosition);
             msg.RegionID = World.RegionInfo.RegionID.Guid;//RegionID.Guid;
             msg.binaryBucket = new byte[0];// binaryBucket;
-            World.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
+// TODO: Send IM
+//            World.TriggerGridInstantMessage(msg);
             // ScriptSleep(2000);
       }
 

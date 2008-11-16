@@ -144,9 +144,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event SignificantClientMovement OnSignificantClientMovement;
 
-        public delegate void NewGridInstantMessage(GridInstantMessage message, InstantMessageReceiver whichModule);
+        public delegate void IncomingInstantMessage(GridInstantMessage message);
 
-        public event NewGridInstantMessage OnGridInstantMessage;
+        public event IncomingInstantMessage OnIncomingInstantMessage;
+
+        public event IncomingInstantMessage OnUnhandledInstantMessage;
 
         public delegate void ClientClosed(UUID clientID);
 
@@ -352,7 +354,8 @@ namespace OpenSim.Region.Environment.Scenes
         private LandObjectAdded handlerLandObjectAdded = null; //OnLandObjectAdded;
         private LandObjectRemoved handlerLandObjectRemoved = null; //OnLandObjectRemoved;
         private AvatarEnteringNewParcel handlerAvatarEnteringNewParcel = null; //OnAvatarEnteringNewParcel;
-        private NewGridInstantMessage handlerGridInstantMessage = null; //OnGridInstantMessage;
+        private IncomingInstantMessage handlerIncomingInstantMessage = null; //OnIncomingInstantMessage;
+        private IncomingInstantMessage handlerUnhandledInstantMessage = null; //OnUnhandledInstantMessage;
         private ClientClosed handlerClientClosed = null; //OnClientClosed;
         private OnMakeChildAgentDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
         private OnMakeRootAgentDelegate handlerMakeRootAgent = null; //OnMakeRootAgent;
@@ -641,15 +644,21 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        ///<summary>Used to pass instnat messages around between the Scene, the Friends Module and the Instant Messsage Module</summary>
-        ///<param name="message">Object containing the Instant Message Data</param>
-        ///<param name="whichModule">A bit vector containing the modules to send the message to</param>
-        public void TriggerGridInstantMessage(GridInstantMessage message, InstantMessageReceiver whichModule)
+        public void TriggerIncomingInstantMessage(GridInstantMessage message)
         {
-            handlerGridInstantMessage = OnGridInstantMessage;
-            if (handlerGridInstantMessage != null)
+            handlerIncomingInstantMessage = OnIncomingInstantMessage;
+            if (handlerIncomingInstantMessage != null)
             {
-                handlerGridInstantMessage(message, whichModule);
+                handlerIncomingInstantMessage(message);
+            }
+        }
+
+        public void TriggerUnhandledInstantMessage(GridInstantMessage message)
+        {
+            handlerUnhandledInstantMessage = OnUnhandledInstantMessage;
+            if (handlerUnhandledInstantMessage != null)
+            {
+                handlerUnhandledInstantMessage(message);
             }
         }
 

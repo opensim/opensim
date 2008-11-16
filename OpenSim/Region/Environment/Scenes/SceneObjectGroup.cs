@@ -1211,6 +1211,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="datastore"></param>
         public void ProcessBackup(IRegionDataStore datastore)
         {
+            if (!m_isBackedUp)
+                return;
+
             // Since this is the top of the section of call stack for backing up a particular scene object, don't let
             // any exception propogate upwards.
 

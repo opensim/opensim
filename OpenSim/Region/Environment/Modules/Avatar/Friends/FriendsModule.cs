@@ -36,6 +36,7 @@ using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -105,6 +106,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
         private Scene m_initialScene; // saves a lookup if we don't have a specific scene
         private Dictionary<ulong, Scene> m_scenes = new Dictionary<ulong,Scene>();
+        private IMessageTransferModule m_TransferModule = null;
 
         #region IRegionModule Members
 
@@ -124,7 +126,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     m_scenes[scene.RegionInfo.RegionHandle] = scene;
             }
             scene.EventManager.OnNewClient += OnNewClient;
-            scene.EventManager.OnGridInstantMessage += OnGridInstantMessage;
+            scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
             scene.EventManager.OnMakeChildAgent += MakeChildAgent;
             scene.EventManager.OnClientClosed += ClientClosed;
@@ -132,6 +134,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
         public void PostInitialise()
         {
+            List<Scene> scenes = new List<Scene>(m_scenes.Values);
+            m_TransferModule = scenes[0].RequestModuleInterface<IMessageTransferModule>();
+            if (m_TransferModule == null)
+                m_log.Error("[FRIENDS]: Unable to find a message transfer module, friendship offers will not work");
         }
 
         public void Close()
@@ -434,11 +440,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     // we don't want to get that new IM into here if we aren't local, as only on the destination
                     // should receive it. If we *are* local, *we* are the destination, so we have to receive it.
                     // As grid-IMs are routed to all modules (in contrast to local IMs), we have to decide here.
-                    InstantMessageReceiver recv = InstantMessageReceiver.IMModule;
-                    if (GetAnyPresenceFromAgentID(toAgentID) != null) recv |= InstantMessageReceiver.FriendsModule;
 
                     // We don't really care which local scene we pipe it through.
-                    m_initialScene.TriggerGridInstantMessage(msg, recv);
+                    if (m_TransferModule != null)
+                    {
+                        m_TransferModule.SendInstantMessage(msg,
+                            delegate(bool success) {}
+                        );
+                    }
                 }
                 else
                 {
@@ -531,17 +540,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             }
         }
 
-        private void OnGridInstantMessage(GridInstantMessage msg, InstantMessageReceiver whichModule)
+        private void OnGridInstantMessage(GridInstantMessage msg)
         {
-            if ((whichModule & InstantMessageReceiver.FriendsModule) == 0)
-                return;
-
-            // Trigger the above event handler
-            OnInstantMessage(null, new UUID(msg.fromAgentID), new UUID(msg.fromAgentSession),
-                             new UUID(msg.toAgentID), new UUID(msg.imSessionID), msg.timestamp, msg.fromAgentName,
-                             msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID,
-                             new Vector3(msg.Position.X, msg.Position.Y, msg.Position.Z), new UUID(msg.RegionID),
-                             msg.binaryBucket);
+            // Just call the IM handler above
+            // This event won't be raised unless we have that agent,
+            // so we can depend on the above not trying to send
+            // via grid again
+            //
+            OnInstantMessage(null, new UUID(msg.fromAgentID),
+                    new UUID(msg.fromAgentSession),
+                    new UUID(msg.toAgentID), new UUID(msg.imSessionID),
+                    msg.timestamp, msg.fromAgentName, msg.message,
+                    msg.dialog, msg.fromGroup, msg.offline,
+                    msg.ParentEstateID, msg.Position,
+                    new UUID(msg.RegionID), msg.binaryBucket);
         }
 
         private void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID transactionID, List<UUID> callingCardFolders)
@@ -607,12 +619,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // we don't want to get that new IM into here if we aren't local, as only on the destination
             // should receive it. If we *are* local, *we* are the destination, so we have to receive it.
             // As grid-IMs are routed to all modules (in contrast to local IMs), we have to decide here.
-            InstantMessageReceiver recv = InstantMessageReceiver.IMModule;
-            if (GetAnyPresenceFromAgentID(friendID) != null) recv |= InstantMessageReceiver.FriendsModule;
 
             // now we have to inform the agent about the friend. For the opposite direction, this happens in the handler
             // of the type 39 IM
-            SceneAgentIn.TriggerGridInstantMessage(msg, recv);
+            if (m_TransferModule != null)
+            {
+                m_TransferModule.SendInstantMessage(msg,
+                    delegate(bool success) {}
+                );
+            }
 
             // tell client that new friend is online
             client.SendAgentOnline(new UUID[] { friendID });
@@ -664,12 +679,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // we don't want to get that new IM into here if we aren't local, as only on the destination
             // should receive it. If we *are* local, *we* are the destination, so we have to receive it.
             // As grid-IMs are routed to all modules (in contrast to local IMs), we have to decide here.
-            InstantMessageReceiver recv = InstantMessageReceiver.IMModule;
-            if (GetAnyPresenceFromAgentID(friendID) != null) recv |= InstantMessageReceiver.FriendsModule;
 
             // now we have to inform the agent about the friend. For the opposite direction, this happens in the handler
             // of the type 39 IM
-            SceneAgentIn.TriggerGridInstantMessage(msg, recv);
+            if (m_TransferModule != null)
+            {
+                m_TransferModule.SendInstantMessage(msg,
+                    delegate(bool success) {}
+                );
+            }
         }
 
         private void OnTerminateFriendship(IClientAPI client, UUID agentID, UUID exfriendID)

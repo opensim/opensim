@@ -4023,6 +4023,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
                 case PacketType.ImprovedInstantMessage:
                     ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
+                    Console.WriteLine(msgpack.ToString());
                     string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
                     string IMmessage = Utils.BytesToString(msgpack.MessageBlock.Message);
                     handlerInstantMessage = OnInstantMessage;
@@ -6171,7 +6172,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.ObjectBuy:
                     ObjectBuyPacket objectBuyPacket = (ObjectBuyPacket)Pack;
                     handlerObjectBuy = OnObjectBuy;
-                    Console.WriteLine(objectBuyPacket.ToString());
+
                     if (handlerObjectBuy != null)
                     {
                         foreach (ObjectBuyPacket.ObjectDataBlock d
