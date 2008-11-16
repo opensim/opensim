@@ -7764,12 +7764,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(p, ThrottleOutPacketType.Task);
         }
 
-        public void SendLeaveGroupReply(UUID agentID, UUID groupID, bool success)
+        public void SendLeaveGroupReply(UUID groupID, bool success)
         {
             LeaveGroupReplyPacket p = (LeaveGroupReplyPacket)PacketPool.Instance.GetPacket(PacketType.LeaveGroupReply);
 
             p.AgentData = new LeaveGroupReplyPacket.AgentDataBlock();
-            p.AgentData.AgentID = agentID;
+            p.AgentData.AgentID = AgentId;
 
             p.GroupData = new LeaveGroupReplyPacket.GroupDataBlock();
             p.GroupData.GroupID = groupID;

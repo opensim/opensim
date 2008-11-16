@@ -977,7 +977,7 @@ namespace OpenSim.Framework
 
         void SendEjectGroupMemberReply(UUID agentID, UUID groupID, bool success);
 
-        void SendLeaveGroupReply(UUID agentID, UUID groupID, bool success);
+        void SendLeaveGroupReply(UUID groupID, bool success);
 
         void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia);
 

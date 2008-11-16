@@ -978,7 +978,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void SendLeaveGroupReply(UUID agentID, UUID groupID, bool success)
+        public void SendLeaveGroupReply(UUID groupID, bool success)
         {
         }
 
