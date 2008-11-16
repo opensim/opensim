@@ -1810,7 +1810,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (group != null) // a bit paranoid, maybe
                 {
                     SceneObjectPart rootPart = group.RootPart;
-                    if(rootPart != null) // again, better safe than sorry
+                    if (rootPart != null) // again, better safe than sorry
                     {
                         SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
                     }
