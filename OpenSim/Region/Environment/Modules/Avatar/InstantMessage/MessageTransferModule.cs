@@ -73,9 +73,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 if (m_Scenes.Count == 0)
                 {
                     scene.AddXmlRPCHandler("grid_instant_message", processXMLRPCGridInstantMessage);
-                    scene.RegisterModuleInterface<IMessageTransferModule>(this);
                 }
 
+                scene.RegisterModuleInterface<IMessageTransferModule>(this);
                 m_Scenes.Add(scene);
             }
         }
