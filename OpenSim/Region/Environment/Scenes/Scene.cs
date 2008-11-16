@@ -2402,8 +2402,11 @@ namespace OpenSim.Region.Environment.Scenes
                 if (regionInfo == null)
                 {
                     regionInfo = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegion);
-                    UserProfile.HomeRegionID = regionInfo.RegionID;
-                    CommsManager.UserService.UpdateUserProfile(UserProfile);
+                    if(regionInfo != null) // home region can be away temporarily, too
+                    {
+                        UserProfile.HomeRegionID = regionInfo.RegionID;
+                        CommsManager.UserService.UpdateUserProfile(UserProfile);
+                    }
                 }
                 if (regionInfo == null)
                 {
