@@ -179,7 +179,8 @@ namespace OpenSim.Region.Physics.Meshing
                     System.Drawing.GraphicsUnit.Pixel);
 
                 grPhoto = System.Drawing.Graphics.FromImage(tile_LOD);
-                grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
+                //grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
+                grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
 
                 grPhoto.DrawImage(tile,
                     new System.Drawing.Rectangle(0, 0, tile_LOD.Width, tile_LOD.Height),
