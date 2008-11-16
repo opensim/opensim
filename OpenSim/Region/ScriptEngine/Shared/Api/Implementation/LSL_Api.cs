@@ -2645,9 +2645,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.Position = Vector3.Zero;// new Vector3(m_host.AbsolutePosition);
             msg.RegionID = World.RegionInfo.RegionID.Guid;//RegionID.Guid;
             msg.binaryBucket = new byte[0];// binaryBucket;
-// TODO: Send IM
-//            World.TriggerGridInstantMessage(msg);
-            // ScriptSleep(2000);
+
+            IMessageTransferModule tr = World.RequestModuleInterface<IMessageTransferModule>();
+
+            if (tr != null)
+            {
+                tr.SendInstantMessage(msg, delegate(bool success) {} );
+            }
+            ScriptSleep(2000);
       }
 
         public void llEmail(string address, string subject, string message)

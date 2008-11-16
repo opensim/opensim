@@ -41,6 +41,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Archiver;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
@@ -993,8 +994,9 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                     msg.message = string.Format("Your object {0} was returned from {1} in region {2} due to parcel auto return", ret.Value.objectName, ret.Value.location.ToString(), RegionInfo.RegionName);
 
-// TODO: Send IM
-//                TriggerGridInstantMessage(msg);
+                IMessageTransferModule tr = RequestModuleInterface<IMessageTransferModule>();
+                if (tr != null)
+                    tr.SendInstantMessage(msg, delegate(bool success) {} );
             }
         }
 
