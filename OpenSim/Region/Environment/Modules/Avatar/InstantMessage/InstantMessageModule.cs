@@ -127,7 +127,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 return;
             }
 
-            GridInstantMessage im = new GridInstantMessage(client.Scene,
+            IScene scene = client == null ? null : client.Scene;
+            GridInstantMessage im = new GridInstantMessage(scene,
                     fromAgentID, fromAgentName, fromAgentSession, toAgentID,
                     dialog, fromGroup, message, imSessionID,
                     offline != 0 ? true : false, Position,

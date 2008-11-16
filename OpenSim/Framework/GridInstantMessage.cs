@@ -75,9 +75,12 @@ namespace OpenSim.Framework
                 offline = 0;
             Position = _position;
             binaryBucket = _binaryBucket;
-            
-            ParentEstateID = scene.RegionInfo.EstateSettings.ParentEstateID;
-            RegionID = scene.RegionInfo.RegionSettings.RegionUUID.Guid;
+
+            if (scene != null)
+            {
+                ParentEstateID = scene.RegionInfo.EstateSettings.ParentEstateID;
+                RegionID = scene.RegionInfo.RegionSettings.RegionUUID.Guid;
+            }
             timestamp = (uint)Util.UnixTimeSinceEpoch();
         }
 
