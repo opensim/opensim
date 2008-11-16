@@ -110,33 +110,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         #endregion
 
-        private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
-                UUID fromAgentSession, UUID toAgentID,
-                UUID imSessionID, uint timestamp, string fromAgentName,
-                string message, byte dialog, bool fromGroup, byte offline,
-                uint ParentEstateID, Vector3 Position, UUID RegionID,
-                byte[] binaryBucket)
-        {
-            // This module handles exclusively private text IM from user
-            // to user. All others will be caught in other modules
-            //
-            if (   dialog != (byte)InstantMessageDialog.MessageFromAgent
-                && dialog != (byte)InstantMessageDialog.StartTyping
-                && dialog != (byte)InstantMessageDialog.StopTyping)
-            {
-                return;
-            }
-
-            GridInstantMessage im = new GridInstantMessage(client.Scene,
-                    fromAgentID, fromAgentName, fromAgentSession, toAgentID,
-                    dialog, fromGroup, message, imSessionID,
-                    offline != 0 ? true : false, Position,
-                    binaryBucket);
-            
-            ProcessInstantMessage(client, im);
-        }
-
-        private void ProcessInstantMessage(IClientAPI client, GridInstantMessage im)
+        public void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
             byte dialog = im.dialog;
 
@@ -183,7 +157,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             // so we can depend on the above not trying to send
             // via grid again
             //
-            ProcessInstantMessage(null, msg);
+            OnInstantMessage(null, msg);
         }
     }
 }

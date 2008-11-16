@@ -178,27 +178,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                     ActiveGroupTitle);
         }
 
-        private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
-                UUID fromAgentSession, UUID toAgentID,
-                UUID imSessionID, uint timestamp, string fromAgentName,
-                string message, byte dialog, bool fromGroup, byte offline,
-                uint ParentEstateID, Vector3 Position, UUID RegionID,
-                byte[] binaryBucket)
+        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
         }
 
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
             // Trigger the above event handler
-            OnInstantMessage(null, new UUID(msg.fromAgentID),
-                    new UUID(msg.fromAgentSession),
-                    new UUID(msg.toAgentID), new UUID(msg.imSessionID),
-                    msg.timestamp, msg.fromAgentName,
-                    msg.message, msg.dialog, msg.fromGroup, msg.offline,
-                    msg.ParentEstateID,
-                    new Vector3(msg.Position.X, msg.Position.Y, msg.Position.Z),
-                    new UUID(msg.RegionID),
-                    msg.binaryBucket);
+            OnInstantMessage(null, msg);
         }
 
         private void HandleUUIDGroupNameRequest(UUID id,IClientAPI remote_client)

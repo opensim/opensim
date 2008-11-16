@@ -46,12 +46,7 @@ namespace OpenSim.Framework
 
     public delegate void AvatarNowWearing(Object sender, AvatarWearingArgs e);
 
-    public delegate void ImprovedInstantMessage(IClientAPI remoteclient,
-                                                UUID fromAgentID, UUID fromAgentSession, UUID toAgentID,
-                                                UUID imSessionID, uint timestamp,
-                                                string fromAgentName, string message, byte dialog, bool fromGroup,
-                                                byte offline, uint ParentEstateID,
-                                                Vector3 Position, UUID RegionID, byte[] binaryBucket);
+    public delegate void ImprovedInstantMessage(IClientAPI remoteclient, GridInstantMessage im);
 
     // This shouldn't be cut down...
     // especially if we're ever going to implement groups, presence, estate message dialogs...

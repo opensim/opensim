@@ -35,7 +35,6 @@ namespace OpenSim.Framework
     {
         public Guid fromAgentID;
         public string fromAgentName;
-        public Guid fromAgentSession;
         public Guid toAgentID;
         public byte dialog;
         public bool fromGroup;
@@ -56,14 +55,13 @@ namespace OpenSim.Framework
         }
 
         public GridInstantMessage(IScene scene, UUID _fromAgentID,
-                string _fromAgentName, UUID _fromAgentSession, UUID _toAgentID,
+                string _fromAgentName, UUID _toAgentID,
                 byte _dialog, bool _fromGroup, string _message,
                 UUID _imSessionID, bool _offline, Vector3 _position,
                 byte[] _binaryBucket)
         {
             fromAgentID = _fromAgentID.Guid;
             fromAgentName = _fromAgentName;
-            fromAgentSession = _fromAgentSession.Guid;
             toAgentID = _toAgentID.Guid;
             dialog = _dialog;
             fromGroup = _fromGroup;
@@ -88,7 +86,7 @@ namespace OpenSim.Framework
                 string _fromAgentName, UUID _toAgentID, byte _dialog,
                 string _message, bool _offline,
                 Vector3 _position) : this(scene, _fromAgentID, _fromAgentName,
-                UUID.Zero, _toAgentID, _dialog, false, _message,
+                _toAgentID, _dialog, false, _message,
                 _fromAgentID ^ _toAgentID, _offline, _position, new byte[0])
         {
         }

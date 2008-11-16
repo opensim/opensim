@@ -84,9 +84,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
 
         public void InstantMessage(UUID target, string message)
         {
-            OnInstantMessage(this, m_uuid, SessionId, target, UUID.Combine(m_uuid, target),
-                             (uint) Util.UnixTimeSinceEpoch(), Name, message, 0, false, 0, 0,
-                             Position, m_scene.RegionInfo.RegionID, new byte[0]);
+            OnInstantMessage(this, new GridInstantMessage(m_scene,
+                    m_uuid, m_firstname + " " + m_lastname,
+                    target, 0, false, message,
+                    UUID.Zero, false, Position, new byte[0]));
         }
 
         public void SendAgentOffline(UUID[] agentIDs)

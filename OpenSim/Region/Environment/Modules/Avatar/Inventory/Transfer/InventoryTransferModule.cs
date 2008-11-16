@@ -117,38 +117,34 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
             return null;
         }
 
-        private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
-                  UUID fromAgentSession, UUID toAgentID,
-                  UUID imSessionID, uint timestamp, string fromAgentName,
-                  string message, byte dialog, bool fromGroup, byte offline,
-                  uint ParentEstateID, Vector3 Position, UUID RegionID,
-                  byte[] binaryBucket)
+        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
             Scene scene = FindClientScene(client.AgentId);
 
             if (scene == null) // Something seriously wrong here.
                 return;
 
-            if (dialog == (byte) InstantMessageDialog.InventoryOffered)
+            if (im.dialog == (byte) InstantMessageDialog.InventoryOffered)
             {
                 ScenePresence user =
-                        scene.GetScenePresence(toAgentID);
+                        scene.GetScenePresence(new UUID(im.toAgentID));
 
                 // First byte of the array is probably the item type
                 // Next 16 bytes are the UUID
 
-                UUID itemID = new UUID(binaryBucket, 1);
+                UUID itemID = new UUID(im.binaryBucket, 1);
 
                 m_log.DebugFormat("[AGENT INVENTORY]: Inserting item {0} "+
                         "into agent {1}'s inventory",
-                        itemID, toAgentID);
+                        itemID, new UUID(im.toAgentID));
 
-                InventoryItemBase itemCopy = scene.GiveInventoryItem(toAgentID,
+                InventoryItemBase itemCopy = scene.GiveInventoryItem(
+                        new UUID(im.toAgentID),
                         client.AgentId, itemID);
 
                 byte[] itemCopyID = itemCopy.ID.GetBytes();
 
-                Array.Copy(itemCopyID, 0, binaryBucket, 1, 16);
+                Array.Copy(itemCopyID, 0, im.binaryBucket, 1, 16);
 
                 // Send the IM to the recipient. The item is already
                 // in their inventory, so it will not be lost if
@@ -164,9 +160,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                     // same ID back on the reply so we know what to act on
                     //
                     user.ControllingClient.SendInstantMessage(
-                            fromAgentID, message, toAgentID, fromAgentName,
-                            dialog, timestamp, itemCopy.ID, false,
-                            binaryBucket);
+                            new UUID(im.fromAgentID), im.message,
+                            new UUID(im.toAgentID),
+                            im.fromAgentName, im.dialog, im.timestamp,
+                            itemCopy.ID, false, im.binaryBucket);
 
                     return;
                 }
@@ -177,15 +174,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                     // TODO: Implement grid sending
                 }
             }
-            else if (dialog == (byte) InstantMessageDialog.InventoryAccepted)
+            else if (im.dialog == (byte) InstantMessageDialog.InventoryAccepted)
             {
-                ScenePresence user = scene.GetScenePresence(toAgentID);
+                ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
 
                 if (user != null) // Local
                 {
                     user.ControllingClient.SendInstantMessage(
-                            fromAgentID, message, toAgentID, fromAgentName,
-                            dialog, timestamp, UUID.Zero, false, binaryBucket);
+                            new UUID(im.fromAgentID), im.message,
+                            new UUID(im.toAgentID),
+                            im.fromAgentName, im.dialog, im.timestamp,
+                            UUID.Zero, false, im.binaryBucket);
                 }
                 else
                 {
@@ -194,9 +193,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                     // TODO: Implement sending via grid
                 }
             }
-            else if (dialog == (byte) InstantMessageDialog.InventoryDeclined)
+            else if (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
             {
-                UUID itemID = imSessionID; // The item, back from it's trip
+                UUID itemID = new UUID(im.imSessionID); // The item, back from it's trip
 
                 // Here, the recipient is local and we can assume that the
                 // inventory is loaded. Courtesy of the above bulk update,
@@ -235,13 +234,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                     }
                 }
 
-                ScenePresence user = scene.GetScenePresence(toAgentID);
+                ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
 
                 if (user != null) // Local
                 {
                     user.ControllingClient.SendInstantMessage(
-                            fromAgentID, message, toAgentID, fromAgentName,
-                            dialog, timestamp, UUID.Zero, false, binaryBucket);
+                            new UUID(im.fromAgentID), im.message,
+                            new UUID(im.toAgentID),
+                            im.fromAgentName, im.dialog, im.timestamp,
+                            UUID.Zero, false, im.binaryBucket);
                 }
                 else
                 {

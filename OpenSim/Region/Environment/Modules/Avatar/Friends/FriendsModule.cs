@@ -263,7 +263,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // to a user to 'add a friend' without causing dialog box spam
 
             // Subscribe to instant messages
-            client.OnInstantMessage += OnInstantMessage;
+//            client.OnInstantMessage += OnInstantMessage;
 
             // Friend list management
             client.OnApproveFriendRequest += OnApproveFriendRequest;
@@ -370,7 +370,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         #region FriendRequestHandling
 
         private void OnInstantMessage(IClientAPI client, UUID fromAgentID,
-                                      UUID fromAgentSession, UUID toAgentID,
+                                      UUID toAgentID,
                                       UUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog, bool fromGroup, byte offline,
                                       uint ParentEstateID, Vector3 Position, UUID RegionID,
@@ -393,86 +393,65 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 // some properties are misused here:
                 // fromAgentName is the *destination* name (the friend we offer friendship to)
 
-                if (fromAgentSession != UUID.Zero)
+                // (1)
+                // send the friendship-offer to the target
+                m_log.InfoFormat("[FRIEND]: Offer(38) - From: {0}, FromName: {1} To: {2}, Session: {3}, Message: {4}, Offline {5}",
+                           fromAgentID, fromAgentName, toAgentID, imSessionID, message, offline);
+
+                UUID transactionID = UUID.Random();
+
+                // 1.20 protocol sends an UUID in the message field, instead of the friendship offer text.
+                // For interoperability, we have to clear that
+                if (Util.isUUID(message)) message = "";
+
+                GridInstantMessage msg = new GridInstantMessage();
+                msg.fromAgentID = fromAgentID.Guid;
+                msg.toAgentID = toAgentID.Guid;
+                msg.imSessionID = transactionID.Guid; // Start new transaction
+                m_log.DebugFormat("[FRIEND]: new transactionID: {0}", msg.imSessionID);
+                msg.timestamp = timestamp;
+                if (client != null)
                 {
-                    // (1)
-                    // send the friendship-offer to the target
-                    m_log.InfoFormat("[FRIEND]: Offer(38) - From: {0}, FromName: {1} To: {2}, Session: {3}, Message: {4}, Offline {5}",
-                               fromAgentID, fromAgentName, toAgentID, imSessionID, message, offline);
-
-                    UUID transactionID = UUID.Random();
-
-                    // 1.20 protocol sends an UUID in the message field, instead of the friendship offer text.
-                    // For interoperability, we have to clear that
-                    if (Util.isUUID(message)) message = "";
-
-                    GridInstantMessage msg = new GridInstantMessage();
-                    msg.fromAgentID = fromAgentID.Guid;
-                    msg.fromAgentSession = UUID.Zero.Guid; // server IMs don't have a session
-                    msg.toAgentID = toAgentID.Guid;
-                    msg.imSessionID = transactionID.Guid; // Start new transaction
-                    m_log.DebugFormat("[FRIEND]: new transactionID: {0}", msg.imSessionID);
-                    msg.timestamp = timestamp;
-                    if (client != null)
-                    {
-                        msg.fromAgentName = client.Name; // fromAgentName;
-                    }
-                    else
-                    {
-                        msg.fromAgentName = "(hippos)"; // Added for posterity.  This means that we can't figure out who sent it
-                    }
-                    msg.message = message;
-                    msg.dialog = dialog;
-                    msg.fromGroup = fromGroup;
-                    msg.offline = offline;
-                    msg.ParentEstateID = ParentEstateID;
-                    msg.Position = Position;
-                    msg.RegionID = RegionID.Guid;
-                    msg.binaryBucket = binaryBucket;
-
-                    m_log.DebugFormat("[FRIEND]: storing transactionID {0} on sender side", transactionID);
-                    lock (m_pendingFriendRequests)
-                    {
-                        m_pendingFriendRequests.Add(transactionID, new Transaction(fromAgentID, fromAgentName));
-                        outPending();
-                    }
-
-                    // we don't want to get that new IM into here if we aren't local, as only on the destination
-                    // should receive it. If we *are* local, *we* are the destination, so we have to receive it.
-                    // As grid-IMs are routed to all modules (in contrast to local IMs), we have to decide here.
-
-                    // We don't really care which local scene we pipe it through.
-                    if (m_TransferModule != null)
-                    {
-                        m_TransferModule.SendInstantMessage(msg,
-                            delegate(bool success) {}
-                        );
-                    }
+                    msg.fromAgentName = client.Name; // fromAgentName;
                 }
                 else
                 {
-                    // (2)
-                    // we are on the receiving end here; just add the transactionID to the stored transactions for later lookup
-                    m_log.DebugFormat("[FRIEND]: storing transactionID {0} on receiver side", imSessionID);
-                    lock (m_pendingFriendRequests)
-                    {
-                        // if both are on the same region-server, the transaction is stored already, but we have to update the name
-                        if (m_pendingFriendRequests.ContainsKey(imSessionID))
-                        {
-                            m_pendingFriendRequests[imSessionID].agentName = fromAgentName;
-                            m_pendingFriendRequests[imSessionID].count++;
-                        }
-                        else m_pendingFriendRequests.Add(imSessionID, new Transaction(fromAgentID, fromAgentName));
-                        outPending();
-                    }
+                    msg.fromAgentName = "(hippos)"; // Added for posterity.  This means that we can't figure out who sent it
+                }
+                msg.message = message;
+                msg.dialog = dialog;
+                msg.fromGroup = fromGroup;
+                msg.offline = offline;
+                msg.ParentEstateID = ParentEstateID;
+                msg.Position = Position;
+                msg.RegionID = RegionID.Guid;
+                msg.binaryBucket = binaryBucket;
+
+                m_log.DebugFormat("[FRIEND]: storing transactionID {0} on sender side", transactionID);
+                lock (m_pendingFriendRequests)
+                {
+                    m_pendingFriendRequests.Add(transactionID, new Transaction(fromAgentID, fromAgentName));
+                    outPending();
+                }
+
+                // we don't want to get that new IM into here if we aren't local, as only on the destination
+                // should receive it. If we *are* local, *we* are the destination, so we have to receive it.
+                // As grid-IMs are routed to all modules (in contrast to local IMs), we have to decide here.
+
+                // We don't really care which local scene we pipe it through.
+                if (m_TransferModule != null)
+                {
+                    m_TransferModule.SendInstantMessage(msg,
+                        delegate(bool success) {}
+                    );
                 }
             }
             else if (dialog == (byte)InstantMessageDialog.FriendshipAccepted) // 39
             {
                 // accepting the friendship offer causes a type 39 IM being sent to the (possibly remote) initiator
                 // toAgentID is initiator, fromAgentID is new friend (which just approved)
-                m_log.DebugFormat("[FRIEND]: 39 - from client {0}, agentSession {1}, agent {2} {3}, imsession {4} to {5}: {6} (dialog {7})",
-                  client != null ? client.AgentId.ToString() : "<null>", fromAgentSession,
+                m_log.DebugFormat("[FRIEND]: 39 - from client {0}, agent {1} {2}, imsession {3} to {4}: {5} (dialog {6})",
+                  client != null ? client.AgentId.ToString() : "<null>",
                   fromAgentID, fromAgentName, imSessionID, toAgentID, message, dialog);
                 lock (m_pendingFriendRequests)
                 {
@@ -520,8 +499,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             {
                 // declining the friendship offer causes a type 40 IM being sent to the (possibly remote) initiator
                 // toAgentID is initiator, fromAgentID declined friendship
-                m_log.DebugFormat("[FRIEND]: 40 - from client {0}, agentSession {1}, agent {2} {3}, imsession {4} to {5}: {6} (dialog {7})",
-                  client != null ? client.AgentId.ToString() : "<null>", fromAgentSession,
+                m_log.DebugFormat("[FRIEND]: 40 - from client {0}, agent {1} {2}, imsession {3} to {4}: {5} (dialog {6})",
+                  client != null ? client.AgentId.ToString() : "<null>",
                   fromAgentID, fromAgentName, imSessionID, toAgentID, message, dialog);
 
                 // not much to do, just clean up the transaction...
@@ -542,13 +521,42 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
+            if (msg.dialog == (byte)InstantMessageDialog.FriendshipOffered)
+            {
+                // we are on the receiving end here; just add the transactionID
+                // to the stored transactions for later lookup
+                //
+                m_log.DebugFormat("[FRIEND]: storing transactionID {0} on "+
+                        "receiver side", msg.imSessionID);
+
+                lock (m_pendingFriendRequests)
+                {
+                    // if both are on the same region-server, the transaction
+                    // is stored already, but we have to update the name
+                    //
+                    if (m_pendingFriendRequests.ContainsKey(
+                            new UUID(msg.imSessionID)))
+                    {
+                        m_pendingFriendRequests[new UUID(msg.imSessionID)].agentName =
+                                msg.fromAgentName;
+                        m_pendingFriendRequests[new UUID(msg.imSessionID)].count++;
+                    }
+                    else m_pendingFriendRequests.Add(new UUID(msg.imSessionID),
+                            new Transaction(new UUID(msg.fromAgentID),
+                            msg.fromAgentName));
+
+                    outPending();
+                }
+
+                return;
+            }
+
             // Just call the IM handler above
             // This event won't be raised unless we have that agent,
             // so we can depend on the above not trying to send
             // via grid again
             //
             OnInstantMessage(null, new UUID(msg.fromAgentID),
-                    new UUID(msg.fromAgentSession),
                     new UUID(msg.toAgentID), new UUID(msg.imSessionID),
                     msg.timestamp, msg.fromAgentName, msg.message,
                     msg.dialog, msg.fromGroup, msg.offline,
@@ -604,7 +612,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             msg.toAgentID = friendID.Guid;
             msg.fromAgentID = agentID.Guid;
             msg.fromAgentName = client.Name;
-            msg.fromAgentSession = UUID.Zero.Guid; // server IMs don't have a session
             msg.fromGroup = false;
             msg.imSessionID = transactionID.Guid;
             msg.message = agentID.Guid.ToString();
@@ -664,7 +671,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             msg.toAgentID = friendID.Guid;
             msg.fromAgentID = agentID.Guid;
             msg.fromAgentName = client.Name;
-            msg.fromAgentSession = UUID.Zero.Guid; // server IMs don't have a session
             msg.fromGroup = false;
             msg.imSessionID = transactionID.Guid;
             msg.message = agentID.Guid.ToString();

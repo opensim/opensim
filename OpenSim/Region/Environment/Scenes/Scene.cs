@@ -977,7 +977,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                 GridInstantMessage msg = new GridInstantMessage();
                 msg.fromAgentID = new Guid(UUID.Zero.ToString()); // From server
-                msg.fromAgentSession = new Guid(transaction.ToString());
                 msg.toAgentID = new Guid(ret.Key.ToString());
                 msg.imSessionID = new Guid(transaction.ToString());
                 msg.timestamp = (uint)Util.UnixTimeSinceEpoch();

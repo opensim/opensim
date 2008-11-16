@@ -185,7 +185,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             bool successful = false;
             // various rational defaults
             UUID fromAgentID = UUID.Zero;
-            UUID fromAgentSession = UUID.Zero;
             UUID toAgentID = UUID.Zero;
             UUID imSessionID = UUID.Zero;
             uint timestamp = 0;
@@ -207,7 +206,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
             Hashtable requestData = (Hashtable)request.Params[0];
             // Check if it's got all the data
-            if (requestData.ContainsKey("from_agent_id") && requestData.ContainsKey("from_agent_session")
+            if (requestData.ContainsKey("from_agent_id")
                     && requestData.ContainsKey("to_agent_id") && requestData.ContainsKey("im_session_id")
                     && requestData.ContainsKey("timestamp") && requestData.ContainsKey("from_agent_name")
                     && requestData.ContainsKey("message") && requestData.ContainsKey("dialog")
@@ -219,7 +218,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             {
                 // Do the easy way of validating the UUIDs
                 UUID.TryParse((string)requestData["from_agent_id"], out fromAgentID);
-                UUID.TryParse((string)requestData["from_agent_session"], out fromAgentSession);
                 UUID.TryParse((string)requestData["to_agent_id"], out toAgentID);
                 UUID.TryParse((string)requestData["im_session_id"], out imSessionID);
                 UUID.TryParse((string)requestData["region_id"], out RegionID);
@@ -337,7 +335,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 GridInstantMessage gim = new GridInstantMessage();
                 gim.fromAgentID = fromAgentID.Guid;
                 gim.fromAgentName = fromAgentName;
-                gim.fromAgentSession = fromAgentSession.Guid;
                 gim.fromGroup = fromGroup;
                 gim.imSessionID = imSessionID.Guid;
                 gim.RegionID = RegionID.Guid;
@@ -598,7 +595,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         {
             Hashtable gim = new Hashtable();
             gim["from_agent_id"] = msg.fromAgentID.ToString();
-            gim["from_agent_session"] = msg.fromAgentSession.ToString();
+            // Kept for compatibility
+            gim["from_agent_session"] = UUID.Zero.ToString();
             gim["to_agent_id"] = msg.toAgentID.ToString();
             gim["im_session_id"] = msg.imSessionID.ToString();
             gim["timestamp"] = msg.timestamp.ToString();

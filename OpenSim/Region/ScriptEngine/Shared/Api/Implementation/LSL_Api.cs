@@ -2623,7 +2623,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             GridInstantMessage msg = new GridInstantMessage();
             msg.fromAgentID = new Guid(m_host.UUID.ToString()); // fromAgentID.Guid;
-            msg.fromAgentSession = new Guid(friendTransactionID.ToString());// fromAgentSession.UUID;
             msg.toAgentID = new Guid(user); // toAgentID.Guid;
             msg.imSessionID = new Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
 //            Console.WriteLine("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);

@@ -4030,13 +4030,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (handlerInstantMessage != null)
                     {
-                        handlerInstantMessage(this, msgpack.AgentData.AgentID, msgpack.AgentData.SessionID,
-                                              msgpack.MessageBlock.ToAgentID, msgpack.MessageBlock.ID,
-                                              msgpack.MessageBlock.Timestamp, IMfromName, IMmessage,
-                                              msgpack.MessageBlock.Dialog, msgpack.MessageBlock.FromGroup,
-                                              msgpack.MessageBlock.Offline, msgpack.MessageBlock.ParentEstateID,
-                                              msgpack.MessageBlock.Position, msgpack.MessageBlock.RegionID,
-                                              msgpack.MessageBlock.BinaryBucket);
+                        GridInstantMessage im = new GridInstantMessage(Scene,
+                                msgpack.AgentData.AgentID,
+                                IMfromName,
+                                msgpack.MessageBlock.ToAgentID,
+                                msgpack.MessageBlock.Dialog,
+                                msgpack.MessageBlock.FromGroup,
+                                IMmessage,
+                                msgpack.MessageBlock.ID,
+                                msgpack.MessageBlock.Offline != 0 ? true : false,
+                                msgpack.MessageBlock.Position,
+                                msgpack.MessageBlock.BinaryBucket);
+
+                        handlerInstantMessage(this, im);
                     }
                     break;
 
