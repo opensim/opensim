@@ -127,12 +127,25 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 return;
             }
 
-            IScene scene = client == null ? null : client.Scene;
-            GridInstantMessage im = new GridInstantMessage(scene,
+            GridInstantMessage im = new GridInstantMessage(client.Scene,
                     fromAgentID, fromAgentName, fromAgentSession, toAgentID,
                     dialog, fromGroup, message, imSessionID,
                     offline != 0 ? true : false, Position,
                     binaryBucket);
+            
+            ProcessInstantMessage(client, im);
+        }
+
+        private void ProcessInstantMessage(IClientAPI client, GridInstantMessage im)
+        {
+            byte dialog = im.dialog;
+
+            if (   dialog != (byte)InstantMessageDialog.MessageFromAgent
+                && dialog != (byte)InstantMessageDialog.StartTyping
+                && dialog != (byte)InstantMessageDialog.StopTyping)
+            {
+                return;
+            }
 
             if (m_TransferModule != null)
             {
@@ -147,10 +160,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
                         if ((client != null) && !success)
                         {
-                            client.SendInstantMessage(toAgentID,
+                            client.SendInstantMessage(new UUID(im.toAgentID),
                                     "Unable to send instant message. "+
                                     "User is not logged in.",
-                                    fromAgentID, "System",
+                                    new UUID(im.fromAgentID), "System",
                                     (byte)InstantMessageDialog.BusyAutoResponse,
                                     (uint)Util.UnixTimeSinceEpoch());
                         }
@@ -170,13 +183,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             // so we can depend on the above not trying to send
             // via grid again
             //
-            OnInstantMessage(null, new UUID(msg.fromAgentID),
-                    new UUID(msg.fromAgentSession),
-                    new UUID(msg.toAgentID), new UUID(msg.imSessionID),
-                    msg.timestamp, msg.fromAgentName, msg.message,
-                    msg.dialog, msg.fromGroup, msg.offline,
-                    msg.ParentEstateID, msg.Position,
-                    new UUID(msg.RegionID), msg.binaryBucket);
+            ProcessInstantMessage(null, msg);
         }
     }
 }
