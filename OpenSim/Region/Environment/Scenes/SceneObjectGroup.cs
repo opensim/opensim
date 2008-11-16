@@ -473,6 +473,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public SceneObjectGroup(string xmlData)
         {
+            SetFromXml(xmlData);
+        }
+
+        protected void SetFromXml(string xmlData)
+        {
             // libomv.types changes UUID to Guid
             xmlData = xmlData.Replace("<UUID>", "<Guid>");
             xmlData = xmlData.Replace("</UUID>", "</Guid>");
@@ -486,7 +491,7 @@ namespace OpenSim.Region.Environment.Scenes
             reader.Read();
 
             reader.ReadStartElement("SceneObjectGroup");
-            SetRootPart(SceneObjectPart.FromXml(reader));
+            SetRootPart(CreatePartFromXml(reader));
 
             reader.Read();
             bool more = true;
@@ -498,7 +503,7 @@ namespace OpenSim.Region.Environment.Scenes
                     case XmlNodeType.Element:
                         if (reader.Name == "SceneObjectPart")
                         {
-                            SceneObjectPart part = SceneObjectPart.FromXml(reader);
+                            SceneObjectPart part = CreatePartFromXml(reader);
                             AddPart(part);
                             part.StoreUndoState();
                         }
@@ -517,6 +522,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             reader.Close();
             sr.Close();
+        }
+
+        protected virtual SceneObjectPart CreatePartFromXml(XmlTextReader reader)
+        {
+            SceneObjectPart part = SceneObjectPart.FromXml(reader);
+            return part;
         }
 
         /// <summary>

@@ -1306,7 +1306,6 @@ if (m_shape != null) {
         /// <summary>
         /// Restore this part from the serialized xml representation.
         /// </summary>
-        /// <param name="xmlreader"></param>
         /// <returns></returns>
         public static SceneObjectPart FromXml(XmlReader xmlReader)
         {
