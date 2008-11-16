@@ -2255,7 +2255,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             folderID = userInfo.RootFolder.ID;
                         }
-                        permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(returnobjects[i].UUID, AgentId);
+                        permissionToDelete = ExternalChecks.ExternalChecksCanReturnObject(returnobjects[i].UUID, AgentId);
 
                         // If the user doesn't have permission, go on to the next one.
                         if (!permissionToDelete)
