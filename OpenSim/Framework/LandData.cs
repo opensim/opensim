@@ -42,7 +42,7 @@ namespace OpenSim.Framework
         private int _claimDate = 0;
         private int _claimPrice = 0; //Unemplemented
         private UUID _globalID = UUID.Zero;
-        private UUID _groupID = UUID.Zero; //Unemplemented
+        private UUID _groupID = UUID.Zero;
         private int _groupPrims = 0;
         private bool _isGroupOwned = false;
         private byte[] _bitmap = new byte[512];

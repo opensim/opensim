@@ -827,6 +827,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 {
                     landData.OwnerPrims += prim_count;
                 }
+                else if (obj.GroupID == landData.GroupID ||
+                         prim_owner  == landData.GroupID)
+                {
+                    landData.GroupPrims += prim_count;
+                }
                 else
                 {
                     landData.OtherPrims += prim_count;
@@ -850,7 +855,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     {
                         landData.OwnerPrims -= prim_count;
                     }
-                    else if (prim_owner == landData.GroupID)
+                    else if (obj.GroupID == landData.GroupID ||
+                             prim_owner  == landData.GroupID)
                     {
                         landData.GroupPrims -= prim_count;
                     }
