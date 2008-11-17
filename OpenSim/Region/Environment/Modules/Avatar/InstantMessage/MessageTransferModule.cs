@@ -53,20 +53,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            if (config.Configs["Messaging"] != null)
-            {
-                IConfig cnf = config.Configs["Messaging"];
-                if (cnf != null && cnf.GetString(
-                        "MessageTransferModule", "MessageTransferModule") !=
-                        "MessageTransferModule")
-                    return;
+            IConfig cnf = config.Configs["Messaging"];
+            if (cnf != null && cnf.GetString(
+                    "MessageTransferModule", "MessageTransferModule") !=
+                    "MessageTransferModule")
+                return;
 
-                cnf = config.Configs["Startup"];
-                if (cnf != null)
-                    m_Gridmode = cnf.GetBoolean("gridmode", false);
+            cnf = config.Configs["Startup"];
+            if (cnf != null)
+                m_Gridmode = cnf.GetBoolean("gridmode", false);
 
-                m_Enabled = true;
-            }
+            m_Enabled = true;
 
             lock (m_Scenes)
             {
