@@ -6145,8 +6145,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         handlerEconomoyDataRequest(AgentId);
                     }
-                    // TODO: handle this packet
-                    //m_log.Warn("[CLIENT]: unhandled EconomyDataRequest packet");
                     break;
                 case PacketType.RequestPayPrice:
                     RequestPayPricePacket requestPayPricePacket = (RequestPayPricePacket)Pack;
@@ -6288,12 +6286,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //m_log.Warn("[CLIENT]: unhandled ViewerStats packet");
                     break;
 
-                    //case PacketType.GenericMessage:
-                    // TODO: handle this packet
-                    //m_log.Warn("[CLIENT]: unhandled GenericMessage packet");
-                    //break;
                 case PacketType.MapItemRequest:
-                    // TODO: handle this packet
                     MapItemRequestPacket mirpk = (MapItemRequestPacket)Pack;
                     //System.Console.WriteLine(mirpk.ToString());
                     handlerMapItemRequest = OnMapItemRequest;
@@ -6304,7 +6297,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                               mirpk.RequestData.RegionHandle);
 
                     }
-                    //m_log.Warn("[CLIENT]: unhandled MapItemRequest packet");
                     break;
                 case PacketType.TransferAbort:
                     // TODO: handle this packet
@@ -6319,8 +6311,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //m_log.Warn("[CLIENT]: unhandled ParcelDwellRequest packet");
                     break;
                 case PacketType.UseCircuitCode:
-                    // TODO: Don't display this one, we handle it at a lower level
-                    //m_log.Warn("[CLIENT]: unhandled UseCircuitCode packet");
+                    // Don't display this one, we handle it at a lower level
                     break;
 
                 case PacketType.AgentHeightWidth:
