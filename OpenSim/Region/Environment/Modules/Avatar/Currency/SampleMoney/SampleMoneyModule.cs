@@ -183,6 +183,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             }
         }
 
+        // Please do not refactor these to be just one method
+        // Existing implementations need the distinction
+        //
         public void ApplyUploadCharge(UUID agentID)
         {
         }
@@ -1512,13 +1515,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             }
         }
 
-        public bool AmountCovered(IClientAPI client, int amount)
-        {
-            if (GetBalance(client) < amount)
-                return false;
-            return true;
-        }
-
+        // Please do not refactor these to be just one method
+        // Existing implementations need the distinction
+        //
         public bool UploadCovered(IClientAPI client)
         {
             return AmountCovered(client, PriceUpload);
@@ -1527,6 +1526,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         public bool GroupCreationCovered(IClientAPI client)
         {
             return AmountCovered(client, PriceGroupCreate);
+        }
+
+        public bool AmountCovered(IClientAPI client, int amount)
+        {
+            if (GetBalance(client) < amount)
+                return false;
+            return true;
         }
 
         #endregion
