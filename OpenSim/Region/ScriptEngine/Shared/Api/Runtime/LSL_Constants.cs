@@ -403,8 +403,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int REGION_FLAG_ALLOW_DIRECT_TELEPORT = 0x100000;          // region allows direct teleports
         public const int REGION_FLAG_RESTRICT_PUSHOBJECT = 0x400000;            // region restricts llPushObject
 
-        public const int PAY_HIDE = -1;
-        public const int PAY_DEFAULT = -2;
+        public static readonly LSLInteger PAY_HIDE = new LSLInteger(-1);
+        public static readonly LSLInteger PAY_DEFAULT = new LSLInteger(-2);
 
         public const string NULL_KEY = "00000000-0000-0000-0000-000000000000";
         public const string EOF = "\n\n\n";
