@@ -565,23 +565,23 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         /// </summary>
         /// <param name="regionID">UUID of region to get the region handle for</param>
         /// <returns></returns>
-        private ulong getLocalRegionHandleFromUUID(UUID regionID)
-        {
-            ulong returnhandle = 0;
-
-            lock (m_Scenes)
-            {
-                foreach (Scene sn in m_Scenes)
-                {
-                    if (sn.RegionInfo.RegionID == regionID)
-                    {
-                        returnhandle = sn.RegionInfo.RegionHandle;
-                        break;
-                    }
-                }
-            }
-            return returnhandle;
-        }
+//        private ulong getLocalRegionHandleFromUUID(UUID regionID)
+//        {
+//            ulong returnhandle = 0;
+//
+//            lock (m_Scenes)
+//            {
+//                foreach (Scene sn in m_Scenes)
+//                {
+//                    if (sn.RegionInfo.RegionID == regionID)
+//                    {
+//                        returnhandle = sn.RegionInfo.RegionHandle;
+//                        break;
+//                    }
+//                }
+//            }
+//            return returnhandle;
+//        }
 
         /// <summary>
         /// Takes a GridInstantMessage and converts it into a Hashtable for XMLRPC

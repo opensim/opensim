@@ -547,7 +547,7 @@ namespace OpenSim.Grid.MessagingServer
                     else
                         m_log.InfoFormat("[SERVER] Registered with {0}", srv);
                 }
-                catch (Exception ex)
+                catch
                 {
                     m_log.ErrorFormat("Unable to connect to server {0}. Server not running?", srv);
                     success = false;
@@ -593,9 +593,9 @@ namespace OpenSim.Grid.MessagingServer
                     if(!UserRespData.ContainsKey("responsestring"))
                         success = false;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    m_log.Error("Unable to connect to grid. User server not running?");
+                    m_log.ErrorFormat("Unable to connect to server {0}. Server not running?", srv);
                     success = false;
                 }
             }

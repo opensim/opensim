@@ -50,7 +50,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         #region IRegionModule Members
 
-        private bool gridmode = false;
+        //private bool gridmode = false;
 
         private IMessageTransferModule m_TransferModule = null;
 
