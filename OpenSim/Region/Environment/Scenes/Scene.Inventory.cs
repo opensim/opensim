@@ -2031,6 +2031,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                             List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
 
+                            group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
                             if (rootPart.OwnerID != item.Owner)
                             {
                                 //Need to kill the for sale here
@@ -2147,6 +2148,8 @@ namespace OpenSim.Region.Environment.Scenes
                     rootPart.Description = item.Description;
 
                     List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
+
+                    group.SetGroup(sourcePart.GroupID, null);
 
                     if (rootPart.OwnerID != item.OwnerID)
                     {

@@ -2825,6 +2825,7 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
                     part.SetGroup(GroupID, client);
+                    part.ChangeInventoryGroup(GroupID);
                 }
 
                 HasGroupChanged = true;

@@ -2304,7 +2304,8 @@ if (m_shape != null) {
         public void SetGroup(UUID groupID, IClientAPI client)
         {
             _groupID = groupID;
-            GetProperties(client);
+            if (client != null)
+                GetProperties(client);
             m_updateFlag = 2;
         }
 

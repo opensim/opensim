@@ -123,6 +123,28 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void ChangeInventoryGroup(UUID groupID)
+        {
+            lock (TaskInventory)
+            {
+                if (0 == TaskInventory.Count)
+                {
+                    return;
+                }
+
+                HasInventoryChanged = true;
+                ParentGroup.HasGroupChanged = true;
+                IList<TaskInventoryItem> items = new List<TaskInventoryItem>(TaskInventory.Values);
+                foreach (TaskInventoryItem item in items)
+                {
+                    if (groupID != item.GroupID)
+                    {
+                        item.GroupID = groupID;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Start all the scripts contained in this prim's inventory
         /// </summary>
