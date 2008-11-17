@@ -426,14 +426,15 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 if (IsAttachment)
                 {
-                    if (m_parentGroup != null && m_parentGroup.RootPart != null)
-                    {
-                        ScenePresence sp = m_parentGroup.Scene.GetScenePresence(m_parentGroup.RootPart.AttachedAvatar);
+//                    if (m_parentGroup != null && m_parentGroup.RootPart != null)
+//                    {
+//                        ScenePresence sp = m_parentGroup.Scene.GetScenePresence(m_parentGroup.RootPart.AttachedAvatar);
+                        ScenePresence sp = m_parentGroup.Scene.GetScenePresence(AttachedAvatar);
                         if (sp != null)
                         {
                             return sp.AbsolutePosition;
                         }
-                    }
+//                    }
                 }
 
                 return m_groupPosition;
