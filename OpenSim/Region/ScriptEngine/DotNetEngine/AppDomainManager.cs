@@ -29,6 +29,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Security;
+using System.Security.Policy;
+using System.Security.Permissions; 
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 
@@ -132,9 +135,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             ads.ConfigurationFile =
                     AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
 
-
             AppDomain AD = AppDomain.CreateDomain("ScriptAppDomain_" +
                     AppDomainNameCount, null, ads);
+
+            PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
+            AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
+            PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
+            PolicyStatement sandboxPolicyStatement = new PolicyStatement(sandboxPermissionSet);
+            CodeGroup sandboxCodeGroup = new UnionCodeGroup(sandboxMembershipCondition, sandboxPolicyStatement);
+            sandboxPolicy.RootCodeGroup = sandboxCodeGroup;
+            AD.SetAppDomainPolicy(sandboxPolicy);
+
             m_scriptEngine.Log.Info("[" + m_scriptEngine.ScriptEngineName +
                     "]: AppDomain Loading: " +
                     AssemblyName.GetAssemblyName(

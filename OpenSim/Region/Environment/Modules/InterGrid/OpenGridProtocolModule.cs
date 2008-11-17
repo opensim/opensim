@@ -46,9 +46,9 @@ using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-using LLSD = OpenMetaverse.StructuredData.LLSD;
-using LLSDMap = OpenMetaverse.StructuredData.LLSDMap;
-using LLSDArray = OpenMetaverse.StructuredData.LLSDArray;
+using OSD = OpenMetaverse.StructuredData.OSD;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 
 namespace OpenSim.Region.Environment.Modules.InterGrid
 {
@@ -218,7 +218,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
         #endregion
 
-        public LLSD ProcessRegionDomainSeed(string path, LLSD request, string endpoint)
+        public OSD ProcessRegionDomainSeed(string path, OSD request, string endpoint)
         {
             string[] pathSegments = path.Split('/');
             
@@ -234,11 +234,11 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             //m_log.InfoFormat("[OGP]: path {0}, segments {1} segment[1] {2} Last segment {3}",
             //                 path, pathSegments.Length, pathSegments[1], pathSegments[pathSegments.Length - 1]);
-            //return new LLSDMap();
+            //return new OSDMap();
 
         }
 
-        public LLSD ProcessAgentDomainMessage(string path, LLSD request, string endpoint)
+        public OSD ProcessAgentDomainMessage(string path, OSD request, string endpoint)
         {
             // /agent/*
 
@@ -288,7 +288,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             //return null;
         }
 
-        private LLSD GenerateRezAvatarRequestMessage(string regionname)
+        private OSD GenerateRezAvatarRequestMessage(string regionname)
         {
             Scene region = null;
             bool usedroot = false;
@@ -319,7 +319,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             RegionInfo reg = region.RegionInfo;
 
-            LLSDMap responseMap = new LLSDMap();
+            OSDMap responseMap = new OSDMap();
             string rezHttpProtocol = "http://";
             //string regionCapsHttpProtocol = "http://";
             string httpaddr = reg.ExternalHostName;
@@ -347,9 +347,9 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     httpaddr = httpsCN;
             }
 
-            responseMap["connect"] = LLSD.FromBoolean(true);
-            LLSDMap capabilitiesMap = new LLSDMap();
-            capabilitiesMap["rez_avatar/request"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + requestpath);
+            responseMap["connect"] = OSD.FromBoolean(true);
+            OSDMap capabilitiesMap = new OSDMap();
+            capabilitiesMap["rez_avatar/request"] = OSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + requestpath);
             responseMap["capabilities"] = capabilitiesMap;
             
             return responseMap;
@@ -376,11 +376,11 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
         }
 
 
-        public LLSD RequestRezAvatarMethod(string path, LLSD request)
+        public OSD RequestRezAvatarMethod(string path, OSD request)
         {
             //System.Console.WriteLine("[REQUESTREZAVATAR]: " + request.ToString());
 
-            LLSDMap requestMap = (LLSDMap)request;
+            OSDMap requestMap = (OSDMap)request;
 
 
             Scene homeScene = null;
@@ -441,27 +441,27 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             UpdateOGPState(LocalAgentID, userState);
 
-            LLSDMap responseMap = new LLSDMap();
+            OSDMap responseMap = new OSDMap();
 
             if (RemoteAgentID == UUID.Zero)
             {
-                responseMap["connect"] = LLSD.FromBoolean(false);
-                responseMap["message"] = LLSD.FromString("No agent ID was specified in rez_avatar/request");
+                responseMap["connect"] = OSD.FromBoolean(false);
+                responseMap["message"] = OSD.FromString("No agent ID was specified in rez_avatar/request");
                 m_log.Error("[OGP]: rez_avatar/request failed because no avatar UUID was provided in the request body");
                 return responseMap;
             }
 
-            responseMap["sim_host"] = LLSD.FromString(reg.ExternalHostName);
+            responseMap["sim_host"] = OSD.FromString(reg.ExternalHostName);
             
             // DEPRECIATED
-            responseMap["sim_ip"] = LLSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
+            responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
             
-            responseMap["connect"] = LLSD.FromBoolean(true);
-            responseMap["sim_port"] = LLSD.FromInteger(reg.InternalEndPoint.Port);
-            responseMap["region_x"] = LLSD.FromInteger(reg.RegionLocX * (uint)Constants.RegionSize); // LLX
-            responseMap["region_y"] = LLSD.FromInteger(reg.RegionLocY * (uint)Constants.RegionSize); // LLY
-            responseMap["region_id"] = LLSD.FromUUID(reg.originRegionID);
-            responseMap["sim_access"] = LLSD.FromString((reg.RegionSettings.Maturity == 1) ? "Mature" : "PG");
+            responseMap["connect"] = OSD.FromBoolean(true);
+            responseMap["sim_port"] = OSD.FromInteger(reg.InternalEndPoint.Port);
+            responseMap["region_x"] = OSD.FromInteger(reg.RegionLocX * (uint)Constants.RegionSize); // LLX
+            responseMap["region_y"] = OSD.FromInteger(reg.RegionLocY * (uint)Constants.RegionSize); // LLY
+            responseMap["region_id"] = OSD.FromUUID(reg.originRegionID);
+            responseMap["sim_access"] = OSD.FromString((reg.RegionSettings.Maturity == 1) ? "Mature" : "PG");
 
             // Generate a dummy agent for the user so we can get back a CAPS path
             AgentCircuitData agentData = new AgentCircuitData();
@@ -575,14 +575,14 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
 
             // DEPRECIATED
-            responseMap["seed_capability"] = LLSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
+            responseMap["seed_capability"] = OSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
             
             // REPLACEMENT
-            responseMap["region_seed_capability"] = LLSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
+            responseMap["region_seed_capability"] = OSD.FromString(regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
 
-            responseMap["rez_avatar"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);
-            responseMap["rez_avatar/rez"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);
-            responseMap["rez_avatar/derez"] = LLSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + derezAvatarPath);
+            responseMap["rez_avatar"] = OSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);
+            responseMap["rez_avatar/rez"] = OSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);
+            responseMap["rez_avatar/derez"] = OSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + derezAvatarPath);
 
             // Add the user to the list of CAPS that are outstanding.
             // well allow the caps hosts in this dictionary
@@ -605,27 +605,27 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             return responseMap;
         }
 
-        public LLSD RezAvatarMethod(string path, LLSD request)
+        public OSD RezAvatarMethod(string path, OSD request)
         {
             m_log.WarnFormat("[REZAVATAR]: {0}", request.ToString());
 
-            LLSDMap responseMap = new LLSDMap();
+            OSDMap responseMap = new OSDMap();
 
             AgentCircuitData userData = null;
 
             // Only people we've issued a cap can go further
             if (TryGetAgentCircuitData(path,out userData))
             {
-                LLSDMap requestMap = (LLSDMap)request;
+                OSDMap requestMap = (OSDMap)request;
 
                 // take these values to start.  There's a few more
                 UUID SecureSessionID=requestMap["secure_session_id"].AsUUID();
                 UUID SessionID = requestMap["session_id"].AsUUID();
                 int circuitcode = requestMap["circuit_code"].AsInteger();
-                LLSDArray Parameter = new LLSDArray();
+                OSDArray Parameter = new OSDArray();
                 if (requestMap.ContainsKey("parameter"))
                 {
-                   Parameter = (LLSDArray)((LLSD)requestMap["parameter"]);
+                   Parameter = (OSDArray)requestMap["parameter"];
                 }
 
                 //int version = 1;
@@ -636,7 +636,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
                 for (int i = 0; i < Parameter.Count; i++)
                 {
-                    LLSDMap item = (LLSDMap)Parameter[i];
+                    OSDMap item = (OSDMap)Parameter[i];
 //                    if (item.ContainsKey("version"))
 //                    {
 //                        version = item["version"].AsInteger();
@@ -714,15 +714,15 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     RegionInfo reg = homeScene.RegionInfo;
 
                     // Dummy positional and look at info..  we don't have it.
-                    LLSDArray PositionArray = new LLSDArray();
-                    PositionArray.Add(LLSD.FromInteger(128));
-                    PositionArray.Add(LLSD.FromInteger(128));
-                    PositionArray.Add(LLSD.FromInteger(40));
+                    OSDArray PositionArray = new OSDArray();
+                    PositionArray.Add(OSD.FromInteger(128));
+                    PositionArray.Add(OSD.FromInteger(128));
+                    PositionArray.Add(OSD.FromInteger(40));
 
-                    LLSDArray LookAtArray = new LLSDArray();
-                    LookAtArray.Add(LLSD.FromInteger(1));
-                    LookAtArray.Add(LLSD.FromInteger(1));
-                    LookAtArray.Add(LLSD.FromInteger(1));
+                    OSDArray LookAtArray = new OSDArray();
+                    LookAtArray.Add(OSD.FromInteger(1));
+                    LookAtArray.Add(OSD.FromInteger(1));
+                    LookAtArray.Add(OSD.FromInteger(1));
 
                     // Our region's X and Y position in OpenSimulator space.
                     uint fooX = reg.RegionLocX;
@@ -732,31 +732,31 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     m_log.InfoFormat("[OGO]: region UUID {0} ", reg.RegionID);
 
                     // Convert the X and Y position to LL space
-                    responseMap["region_x"] = LLSD.FromInteger(fooX * (uint)Constants.RegionSize); // convert it to LL X
-                    responseMap["region_y"] = LLSD.FromInteger(fooY * (uint)Constants.RegionSize); // convert it to LL Y
+                    responseMap["region_x"] = OSD.FromInteger(fooX * (uint)Constants.RegionSize); // convert it to LL X
+                    responseMap["region_y"] = OSD.FromInteger(fooY * (uint)Constants.RegionSize); // convert it to LL Y
 
                     // Give em a new seed capability
-                    responseMap["seed_capability"] = LLSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
-                    responseMap["region"] = LLSD.FromUUID(reg.originRegionID);
+                    responseMap["seed_capability"] = OSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
+                    responseMap["region"] = OSD.FromUUID(reg.originRegionID);
                     responseMap["look_at"] = LookAtArray;
 
-                    responseMap["sim_port"] = LLSD.FromInteger(reg.InternalEndPoint.Port);
-                    responseMap["sim_host"] = LLSD.FromString(reg.ExternalHostName);// + ":" + reg.InternalEndPoint.Port.ToString());
+                    responseMap["sim_port"] = OSD.FromInteger(reg.InternalEndPoint.Port);
+                    responseMap["sim_host"] = OSD.FromString(reg.ExternalHostName);// + ":" + reg.InternalEndPoint.Port.ToString());
                     
                     // DEPRECIATED
-                    responseMap["sim_ip"] = LLSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
+                    responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
 
-                    responseMap["session_id"] = LLSD.FromUUID(SessionID);
-                    responseMap["secure_session_id"] = LLSD.FromUUID(SecureSessionID);
-                    responseMap["circuit_code"] = LLSD.FromInteger(circuitcode);
+                    responseMap["session_id"] = OSD.FromUUID(SessionID);
+                    responseMap["secure_session_id"] = OSD.FromUUID(SecureSessionID);
+                    responseMap["circuit_code"] = OSD.FromInteger(circuitcode);
 
                     responseMap["position"] = PositionArray;
 
-                    responseMap["region_id"] = LLSD.FromUUID(reg.originRegionID);
+                    responseMap["region_id"] = OSD.FromUUID(reg.originRegionID);
 
-                    responseMap["sim_access"] = LLSD.FromString("Mature");
+                    responseMap["sim_access"] = OSD.FromString("Mature");
 
-                    responseMap["connect"] = LLSD.FromBoolean(true);
+                    responseMap["connect"] = OSD.FromBoolean(true);
 
                    
 
@@ -767,12 +767,12 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             return responseMap;
         }
 
-        public LLSD DerezAvatarMethod(string path, LLSD request)
+        public OSD DerezAvatarMethod(string path, OSD request)
         {
             m_log.ErrorFormat("DerezPath: {0}, Request: {1}", path, request.ToString());
 
             //LLSD llsdResponse = null;
-            LLSDMap responseMap = new LLSDMap();
+            OSDMap responseMap = new OSDMap();
 
             string[] PathArray = path.Split('/');
             m_log.InfoFormat("[OGP]: prefix {0}, uuid {1}, suffix {2}", PathArray[1], PathArray[2], PathArray[3]);
@@ -790,34 +790,34 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 OGPState userState = GetOGPState(LocalID);
                 if (userState.agent_id != UUID.Zero)
                 {
-                    //LLSDMap outboundRequestMap = new LLSDMap();
-                    LLSDMap inboundRequestMap = (LLSDMap)request;
+                    //OSDMap outboundRequestMap = new OSDMap();
+                    OSDMap inboundRequestMap = (OSDMap)request;
                     string rezAvatarString = inboundRequestMap["rez_avatar"].AsString();
                     if (rezAvatarString.Length == 0)
                     {
                         rezAvatarString = inboundRequestMap["rez_avatar/rez"].AsString();
                     }
-                    LLSDArray LookAtArray = new LLSDArray();
-                    LookAtArray.Add(LLSD.FromInteger(1));
-                    LookAtArray.Add(LLSD.FromInteger(1));
-                    LookAtArray.Add(LLSD.FromInteger(1));
+                    OSDArray LookAtArray = new OSDArray();
+                    LookAtArray.Add(OSD.FromInteger(1));
+                    LookAtArray.Add(OSD.FromInteger(1));
+                    LookAtArray.Add(OSD.FromInteger(1));
 
-                    LLSDArray PositionArray = new LLSDArray();
-                    PositionArray.Add(LLSD.FromInteger(128));
-                    PositionArray.Add(LLSD.FromInteger(128));
-                    PositionArray.Add(LLSD.FromInteger(40));
+                    OSDArray PositionArray = new OSDArray();
+                    PositionArray.Add(OSD.FromInteger(128));
+                    PositionArray.Add(OSD.FromInteger(128));
+                    PositionArray.Add(OSD.FromInteger(40));
 
-                    LLSDArray lookArray = new LLSDArray();
-                    lookArray.Add(LLSD.FromInteger(128));
-                    lookArray.Add(LLSD.FromInteger(128));
-                    lookArray.Add(LLSD.FromInteger(40));
+                    OSDArray lookArray = new OSDArray();
+                    lookArray.Add(OSD.FromInteger(128));
+                    lookArray.Add(OSD.FromInteger(128));
+                    lookArray.Add(OSD.FromInteger(40));
 
-                    responseMap["connect"] = LLSD.FromBoolean(true);// it's okay to give this user up
+                    responseMap["connect"] = OSD.FromBoolean(true);// it's okay to give this user up
                     responseMap["look_at"] = LookAtArray;
 
                     m_log.WarnFormat("[OGP]: Invoking rez_avatar on host:{0} for avatar: {1} {2}", rezAvatarString, userState.first_name, userState.last_name);
 
-                    LLSDMap rezResponseMap = invokeRezAvatarCap(responseMap, rezAvatarString,userState);
+                    OSDMap rezResponseMap = invokeRezAvatarCap(responseMap, rezAvatarString,userState);
 
                     // If invoking it returned an error, parse and end
                     if (rezResponseMap.ContainsKey("connect"))
@@ -852,34 +852,34 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                     int rrY = rezResponseMap["region_y"].AsInteger();
                     m_log.ErrorFormat("X:{0}, Y:{1}", rrX, rrY);
                     UUID rrRID = rezResponseMap["region_id"].AsUUID();
-                    LLSDArray RezResponsePositionArray = null;
+                    OSDArray RezResponsePositionArray = null;
                     string rrAccess = rezResponseMap["sim_access"].AsString();
                     if (rezResponseMap.ContainsKey("position"))
                     {
-                        RezResponsePositionArray = (LLSDArray)rezResponseMap["position"];
+                        RezResponsePositionArray = (OSDArray)rezResponseMap["position"];
                     }
                     // DEPRECIATED
-                    responseMap["seed_capability"] = LLSD.FromString(rezRespSeedCap);
+                    responseMap["seed_capability"] = OSD.FromString(rezRespSeedCap);
                     
                     // REPLACEMENT r3
-                    responseMap["region_seed_capability"] = LLSD.FromString(rezRespSeedCap);
+                    responseMap["region_seed_capability"] = OSD.FromString(rezRespSeedCap);
 
                     // DEPRECIATED
-                    responseMap["sim_ip"] = LLSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
+                    responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
                     
-                    responseMap["sim_host"] = LLSD.FromString(rezRespSim_host);
-                    responseMap["sim_port"] = LLSD.FromInteger(rrPort);
-                    responseMap["region_x"] = LLSD.FromInteger(rrX );
-                    responseMap["region_y"] = LLSD.FromInteger(rrY );
-                    responseMap["region_id"] = LLSD.FromUUID(rrRID);
-                    responseMap["sim_access"] = LLSD.FromString(rrAccess);
+                    responseMap["sim_host"] = OSD.FromString(rezRespSim_host);
+                    responseMap["sim_port"] = OSD.FromInteger(rrPort);
+                    responseMap["region_x"] = OSD.FromInteger(rrX );
+                    responseMap["region_y"] = OSD.FromInteger(rrY );
+                    responseMap["region_id"] = OSD.FromUUID(rrRID);
+                    responseMap["sim_access"] = OSD.FromString(rrAccess);
 
                     if (RezResponsePositionArray != null)
                     {
                         responseMap["position"] = RezResponsePositionArray;
                     }
                     responseMap["look_at"] = lookArray;
-                    responseMap["connect"] = LLSD.FromBoolean(true);
+                    responseMap["connect"] = OSD.FromBoolean(true);
 
                     ShutdownConnection(LocalID,this);
                     // PLEASE STOP CHANGING THIS TO an M_LOG, M_LOG DOESN'T WORK ON MULTILINE .TOSTRINGS
@@ -899,7 +899,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             //return responseMap;
         }
 
-        private LLSDMap invokeRezAvatarCap(LLSDMap responseMap, string CapAddress, OGPState userState)
+        private OSDMap invokeRezAvatarCap(OSDMap responseMap, string CapAddress, OGPState userState)
         {
             Scene reg = GetRootScene();
 
@@ -907,38 +907,38 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             DeRezRequest.Method = "POST";
             DeRezRequest.ContentType = "application/xml+llsd";
 
-            LLSDMap RAMap = new LLSDMap();
-            LLSDMap AgentParms = new LLSDMap();
-            LLSDMap RegionParms = new LLSDMap();
+            OSDMap RAMap = new OSDMap();
+            OSDMap AgentParms = new OSDMap();
+            OSDMap RegionParms = new OSDMap();
 
-            LLSDArray Parameter = new LLSDArray(2);
+            OSDArray Parameter = new OSDArray(2);
 
-            LLSDMap version = new LLSDMap();
-            version["version"] = LLSD.FromInteger(userState.src_version);
-            Parameter.Add((LLSD)version);
+            OSDMap version = new OSDMap();
+            version["version"] = OSD.FromInteger(userState.src_version);
+            Parameter.Add(version);
 
-            LLSDMap SrcData = new LLSDMap();
-            SrcData["estate_id"] = LLSD.FromInteger(reg.RegionInfo.EstateSettings.EstateID);
-            SrcData["parent_estate_id"] = LLSD.FromInteger((reg.RegionInfo.EstateSettings.ParentEstateID == 100 ? 1 : reg.RegionInfo.EstateSettings.ParentEstateID));
-            SrcData["region_id"] = LLSD.FromUUID(reg.RegionInfo.originRegionID);
-            SrcData["visible_to_parent"] = LLSD.FromBoolean(userState.visible_to_parent);
-            Parameter.Add((LLSD)SrcData);
+            OSDMap SrcData = new OSDMap();
+            SrcData["estate_id"] = OSD.FromInteger(reg.RegionInfo.EstateSettings.EstateID);
+            SrcData["parent_estate_id"] = OSD.FromInteger((reg.RegionInfo.EstateSettings.ParentEstateID == 100 ? 1 : reg.RegionInfo.EstateSettings.ParentEstateID));
+            SrcData["region_id"] = OSD.FromUUID(reg.RegionInfo.originRegionID);
+            SrcData["visible_to_parent"] = OSD.FromBoolean(userState.visible_to_parent);
+            Parameter.Add(SrcData);
 
-            AgentParms["first_name"] = LLSD.FromString(userState.first_name);
-            AgentParms["last_name"] = LLSD.FromString(userState.last_name);
-            AgentParms["agent_id"] = LLSD.FromUUID(userState.agent_id);
-            RegionParms["region_id"] = LLSD.FromUUID(userState.region_id);
-            AgentParms["circuit_code"] = LLSD.FromInteger(userState.circuit_code);
-            AgentParms["secure_session_id"] = LLSD.FromUUID(userState.secure_session_id);
-            AgentParms["session_id"] = LLSD.FromUUID(userState.session_id);
-            AgentParms["agent_access"] = LLSD.FromBoolean(userState.agent_access);
-            AgentParms["god_level"] = LLSD.FromInteger(userState.god_level);
-            AgentParms["god_overide"] = LLSD.FromBoolean(userState.god_overide);
-            AgentParms["identified"] = LLSD.FromBoolean(userState.identified);
-            AgentParms["transacted"] = LLSD.FromBoolean(userState.transacted);
-            AgentParms["age_verified"] = LLSD.FromBoolean(userState.age_verified);
-            AgentParms["limited_to_estate"] = LLSD.FromInteger(userState.limited_to_estate);
-            AgentParms["inventory_host"] = LLSD.FromString(userState.inventory_host);
+            AgentParms["first_name"] = OSD.FromString(userState.first_name);
+            AgentParms["last_name"] = OSD.FromString(userState.last_name);
+            AgentParms["agent_id"] = OSD.FromUUID(userState.agent_id);
+            RegionParms["region_id"] = OSD.FromUUID(userState.region_id);
+            AgentParms["circuit_code"] = OSD.FromInteger(userState.circuit_code);
+            AgentParms["secure_session_id"] = OSD.FromUUID(userState.secure_session_id);
+            AgentParms["session_id"] = OSD.FromUUID(userState.session_id);
+            AgentParms["agent_access"] = OSD.FromBoolean(userState.agent_access);
+            AgentParms["god_level"] = OSD.FromInteger(userState.god_level);
+            AgentParms["god_overide"] = OSD.FromBoolean(userState.god_overide);
+            AgentParms["identified"] = OSD.FromBoolean(userState.identified);
+            AgentParms["transacted"] = OSD.FromBoolean(userState.transacted);
+            AgentParms["age_verified"] = OSD.FromBoolean(userState.age_verified);
+            AgentParms["limited_to_estate"] = OSD.FromInteger(userState.limited_to_estate);
+            AgentParms["inventory_host"] = OSD.FromString(userState.inventory_host);
 
             // version 1
             RAMap = AgentParms;
@@ -951,11 +951,11 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
 
             string RAMapString = RAMap.ToString();
             m_log.InfoFormat("[OGP] RAMap string {0}", RAMapString);
-            LLSD LLSDofRAMap = RAMap; // RENAME if this works
+            OSD LLSDofRAMap = RAMap; // RENAME if this works
 
             m_log.InfoFormat("[OGP]: LLSD of map as string  was {0}", LLSDofRAMap.ToString());
             //m_log.InfoFormat("[OGP]: LLSD+XML: {0}", LLSDParser.SerializeXmlString(LLSDofRAMap));
-            byte[] buffer = LLSDParser.SerializeXmlBytes(LLSDofRAMap);
+            byte[] buffer = OSDParser.SerializeLLSDXmlBytes(LLSDofRAMap);
 
             //string bufferDump = System.Text.Encoding.ASCII.GetString(buffer);
             //m_log.InfoFormat("[OGP]: buffer form is {0}",bufferDump);
@@ -973,7 +973,7 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             catch (WebException ex)
             {
                 m_log.InfoFormat("[OGP] Bad send on de_rez_avatar {0}", ex.Message);
-                responseMap["connect"] = LLSD.FromBoolean(false);
+                responseMap["connect"] = OSD.FromBoolean(false);
 
                 return responseMap;
             }
@@ -997,21 +997,21 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
                 catch (WebException ex)
                 {
                     m_log.InfoFormat("[OGP]: exception on read after send of rez avatar {0}", ex.Message);
-                    responseMap["connect"] = LLSD.FromBoolean(false);
+                    responseMap["connect"] = OSD.FromBoolean(false);
 
                     return responseMap;
                 }
-                LLSD rezResponse = null;
+                OSD rezResponse = null;
                 try
                 {
-                    rezResponse = LLSDParser.DeserializeXml(rez_avatar_reply);
+                    rezResponse = OSDParser.DeserializeLLSDXml(rez_avatar_reply);
 
-                    responseMap = (LLSDMap)rezResponse;
+                    responseMap = (OSDMap)rezResponse;
                 }
                 catch (Exception ex)
                 {
                     m_log.InfoFormat("[OGP]: exception on parse of rez reply {0}", ex.Message);
-                    responseMap["connect"] = LLSD.FromBoolean(false);
+                    responseMap["connect"] = OSD.FromBoolean(false);
 
                     return responseMap;
                 }
@@ -1019,22 +1019,22 @@ namespace OpenSim.Region.Environment.Modules.InterGrid
             return responseMap;
         }
 
-        public LLSD GenerateNoHandlerMessage()
+        public OSD GenerateNoHandlerMessage()
         {
-            LLSDMap map = new LLSDMap();
-            map["reason"] = LLSD.FromString("LLSDRequest");
-            map["message"] = LLSD.FromString("No handler registered for LLSD Requests");
-            map["login"] = LLSD.FromString("false");
-            map["connect"] = LLSD.FromString("false");
+            OSDMap map = new OSDMap();
+            map["reason"] = OSD.FromString("LLSDRequest");
+            map["message"] = OSD.FromString("No handler registered for LLSD Requests");
+            map["login"] = OSD.FromString("false");
+            map["connect"] = OSD.FromString("false");
             return map;
         }
-        public LLSD GenerateNoStateMessage(UUID passedAvatar)
+        public OSD GenerateNoStateMessage(UUID passedAvatar)
         {
-            LLSDMap map = new LLSDMap();
-            map["reason"] = LLSD.FromString("derez failed");
-            map["message"] = LLSD.FromString("Unable to locate OGP state for avatar " + passedAvatar.ToString());
-            map["login"] = LLSD.FromString("false");
-            map["connect"] = LLSD.FromString("false");
+            OSDMap map = new OSDMap();
+            map["reason"] = OSD.FromString("derez failed");
+            map["message"] = OSD.FromString("Unable to locate OGP state for avatar " + passedAvatar.ToString());
+            map["login"] = OSD.FromString("false");
+            map["connect"] = OSD.FromString("false");
             return map;
         }
         private bool TryGetAgentCircuitData(string path, out AgentCircuitData userdata)

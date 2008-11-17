@@ -48,9 +48,9 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Types;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
 
-using LLSD = OpenMetaverse.StructuredData.LLSD;
-using LLSDMap = OpenMetaverse.StructuredData.LLSDMap;
-using LLSDArray = OpenMetaverse.StructuredData.LLSDArray;
+using OSD = OpenMetaverse.StructuredData.OSD;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 
 namespace OpenSim.Region.Environment.Modules.World.WorldMap
 {
@@ -202,7 +202,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 }
             }
             LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
-            mapResponse.LayerData.Array.Add(GetLLSDMapLayerResponse());
+            mapResponse.LayerData.Array.Add(GetOSDMapLayerResponse());
             return mapResponse.ToString();
         }
 
@@ -215,7 +215,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         {
             m_log.Debug("[CAPS]: MapLayer Request in region: " + m_scene.RegionInfo.RegionName);
             LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
-            mapResponse.LayerData.Array.Add(GetLLSDMapLayerResponse());
+            mapResponse.LayerData.Array.Add(GetOSDMapLayerResponse());
             return mapResponse;
         }
 
@@ -223,9 +223,9 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         ///
         /// </summary>
         /// <returns></returns>
-        protected static LLSDMapLayer GetLLSDMapLayerResponse()
+        protected static OSDMapLayer GetOSDMapLayerResponse()
         {
-            LLSDMapLayer mapLayer = new LLSDMapLayer();
+            OSDMapLayer mapLayer = new OSDMapLayer();
             mapLayer.Right = 5000;
             mapLayer.Top = 5000;
             mapLayer.ImageID = new UUID("00000000-0000-1111-9999-000000000006");
@@ -321,7 +321,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             }
             uint xstart = 0;
             uint ystart = 0;
-            Helpers.LongToUInts(m_scene.RegionInfo.RegionHandle, out xstart, out ystart);
+            Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out xstart, out ystart);
             if (itemtype == 6) // we only sevice 6 right now (avatar green dots)
             {
                 if (regionhandle == 0 || regionhandle == m_scene.RegionInfo.RegionHandle)
@@ -407,7 +407,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
                     if (dorequest)
                     {
-                        LLSDMap response = RequestMapItemsAsync("", st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
+                        OSDMap response = RequestMapItemsAsync("", st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
                         RequestMapItemsCompleted(response);
                     }
                 }
@@ -433,8 +433,8 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         /// <summary>
         /// Sends the mapitem response to the IClientAPI
         /// </summary>
-        /// <param name="response">The LLSDMap Response for the mapitem</param>
-        private void RequestMapItemsCompleted(LLSDMap response)
+        /// <param name="response">The OSDMap Response for the mapitem</param>
+        private void RequestMapItemsCompleted(OSDMap response)
         {
             UUID requestID = response["requestID"].AsUUID();
 
@@ -460,10 +460,10 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                         if (response.ContainsKey(mrs.itemtype.ToString()))
                         {
                             List<mapItemReply> returnitems = new List<mapItemReply>();
-                            LLSDArray itemarray = (LLSDArray)response[mrs.itemtype.ToString()];
+                            OSDArray itemarray = (OSDArray)response[mrs.itemtype.ToString()];
                             for (int i = 0; i < itemarray.Count; i++)
                             {
-                                LLSDMap mapitem = (LLSDMap)itemarray[i];
+                                OSDMap mapitem = (OSDMap)itemarray[i];
                                 mapItemReply mi = new mapItemReply();
                                 mi.x = (uint)mapitem["X"].AsInteger();
                                 mi.y = (uint)mapitem["Y"].AsInteger();
@@ -517,7 +517,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         /// <param name="itemtype">passed in from packet</param>
         /// <param name="regionhandle">Region we're looking up</param>
         /// <returns></returns>
-        private LLSDMap RequestMapItemsAsync(string httpserver, UUID id, uint flags,
+        private OSDMap RequestMapItemsAsync(string httpserver, UUID id, uint flags,
             uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
             bool blacklisted = false;
@@ -528,7 +528,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             }
 
             if (blacklisted)
-                return new LLSDMap();
+                return new OSDMap();
 
             UUID requestID = UUID.Random();
             lock (m_cachedRegionMapItemsAddress)
@@ -569,7 +569,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             // Can't find the http server
             if (httpserver.Length == 0 || blacklisted)
-                return new LLSDMap();
+                return new OSDMap();
 
             MapRequestState mrs = new MapRequestState();
             mrs.agentID = id;
@@ -585,14 +585,14 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             WebRequest mapitemsrequest = WebRequest.Create(httpserver);
             mapitemsrequest.Method = "POST";
             mapitemsrequest.ContentType = "application/xml+llsd";
-            LLSDMap RAMap = new LLSDMap();
+            OSDMap RAMap = new OSDMap();
 
             // string RAMapString = RAMap.ToString();
-            LLSD LLSDofRAMap = RAMap; // RENAME if this works
+            OSD LLSDofRAMap = RAMap; // RENAME if this works
 
-            byte[] buffer = LLSDParser.SerializeXmlBytes(LLSDofRAMap);
-            LLSDMap responseMap = new LLSDMap();
-            responseMap["requestID"] = LLSD.FromUUID(requestID);
+            byte[] buffer = OSDParser.SerializeLLSDXmlBytes(LLSDofRAMap);
+            OSDMap responseMap = new OSDMap();
+            responseMap["requestID"] = OSD.FromUUID(requestID);
 
             Stream os = null;
             try
@@ -606,7 +606,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             catch (WebException ex)
             {
                 m_log.InfoFormat("[WorldMap] Bad send on GetMapItems {0}", ex.Message);
-                responseMap["connect"] = LLSD.FromBoolean(false);
+                responseMap["connect"] = OSD.FromBoolean(false);
                 lock (m_blacklistedurls)
                 {
                     if (!m_blacklistedurls.ContainsKey(httpserver))
@@ -630,12 +630,12 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     }
                     else
                     {
-                        return new LLSDMap();
+                        return new OSDMap();
                     }
                 }
                 catch (WebException)
                 {
-                    responseMap["connect"] = LLSD.FromBoolean(false);
+                    responseMap["connect"] = OSD.FromBoolean(false);
                     lock (m_blacklistedurls)
                     {
                         if (!m_blacklistedurls.ContainsKey(httpserver))
@@ -646,18 +646,18 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
                     return responseMap;
                 }
-                LLSD rezResponse = null;
+                OSD rezResponse = null;
                 try
                 {
-                    rezResponse = LLSDParser.DeserializeXml(response_mapItems_reply);
+                    rezResponse = OSDParser.DeserializeLLSDXml(response_mapItems_reply);
 
-                    responseMap = (LLSDMap)rezResponse;
-                    responseMap["requestID"] = LLSD.FromUUID(requestID);
+                    responseMap = (OSDMap)rezResponse;
+                    responseMap["requestID"] = OSD.FromUUID(requestID);
                 }
                 catch (Exception)
                 {
                     //m_log.InfoFormat("[OGP]: exception on parse of rez reply {0}", ex.Message);
-                    responseMap["connect"] = LLSD.FromBoolean(false);
+                    responseMap["connect"] = OSD.FromBoolean(false);
 
                     return responseMap;
                 }
@@ -793,57 +793,57 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             return null;
         }
 
-        public LLSD HandleRemoteMapItemRequest(string path, LLSD request, string endpoint)
+        public OSD HandleRemoteMapItemRequest(string path, OSD request, string endpoint)
         {
             uint xstart = 0;
             uint ystart = 0;
             
-            Helpers.LongToUInts(m_scene.RegionInfo.RegionHandle,out xstart,out ystart);
+            Utils.LongToUInts(m_scene.RegionInfo.RegionHandle,out xstart,out ystart);
 
-            LLSDMap responsemap = new LLSDMap();
+            OSDMap responsemap = new OSDMap();
             List<ScenePresence> avatars = m_scene.GetAvatars();
-            LLSDArray responsearr = new LLSDArray(avatars.Count);
-            LLSDMap responsemapdata = new LLSDMap();
+            OSDArray responsearr = new OSDArray(avatars.Count);
+            OSDMap responsemapdata = new OSDMap();
             int tc = System.Environment.TickCount;
             /* 
             foreach (ScenePresence av in avatars)
             {
-                responsemapdata = new LLSDMap();
-                responsemapdata["X"] = LLSD.FromInteger((int)(xstart + av.AbsolutePosition.X));
-                responsemapdata["Y"] = LLSD.FromInteger((int)(ystart + av.AbsolutePosition.Y));
-                responsemapdata["ID"] = LLSD.FromUUID(UUID.Zero);
-                responsemapdata["Name"] = LLSD.FromString("TH");
-                responsemapdata["Extra"] = LLSD.FromInteger(0);
-                responsemapdata["Extra2"] = LLSD.FromInteger(0);
+                responsemapdata = new OSDMap();
+                responsemapdata["X"] = OSD.FromInteger((int)(xstart + av.AbsolutePosition.X));
+                responsemapdata["Y"] = OSD.FromInteger((int)(ystart + av.AbsolutePosition.Y));
+                responsemapdata["ID"] = OSD.FromUUID(UUID.Zero);
+                responsemapdata["Name"] = OSD.FromString("TH");
+                responsemapdata["Extra"] = OSD.FromInteger(0);
+                responsemapdata["Extra2"] = OSD.FromInteger(0);
                 responsearr.Add(responsemapdata);
             }
             responsemap["1"] = responsearr;
             */
             if (avatars.Count == 0)
             {
-                responsemapdata = new LLSDMap();
-                responsemapdata["X"] = LLSD.FromInteger((int)(xstart + 1));
-                responsemapdata["Y"] = LLSD.FromInteger((int)(ystart + 1));
-                responsemapdata["ID"] = LLSD.FromUUID(UUID.Zero);
-                responsemapdata["Name"] = LLSD.FromString(Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()));
-                responsemapdata["Extra"] = LLSD.FromInteger(0);
-                responsemapdata["Extra2"] = LLSD.FromInteger(0);
+                responsemapdata = new OSDMap();
+                responsemapdata["X"] = OSD.FromInteger((int)(xstart + 1));
+                responsemapdata["Y"] = OSD.FromInteger((int)(ystart + 1));
+                responsemapdata["ID"] = OSD.FromUUID(UUID.Zero);
+                responsemapdata["Name"] = OSD.FromString(Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()));
+                responsemapdata["Extra"] = OSD.FromInteger(0);
+                responsemapdata["Extra2"] = OSD.FromInteger(0);
                 responsearr.Add(responsemapdata);
                 
                 responsemap["6"] = responsearr;
             }
             else 
             {
-                responsearr = new LLSDArray(avatars.Count);
+                responsearr = new OSDArray(avatars.Count);
                 foreach (ScenePresence av in avatars)
                 {
-                    responsemapdata = new LLSDMap();
-                    responsemapdata["X"] = LLSD.FromInteger((int)(xstart + av.AbsolutePosition.X));
-                    responsemapdata["Y"] = LLSD.FromInteger((int)(ystart + av.AbsolutePosition.Y));
-                    responsemapdata["ID"] = LLSD.FromUUID(UUID.Zero);
-                    responsemapdata["Name"] = LLSD.FromString(Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()));
-                    responsemapdata["Extra"] = LLSD.FromInteger(1);
-                    responsemapdata["Extra2"] = LLSD.FromInteger(0);
+                    responsemapdata = new OSDMap();
+                    responsemapdata["X"] = OSD.FromInteger((int)(xstart + av.AbsolutePosition.X));
+                    responsemapdata["Y"] = OSD.FromInteger((int)(ystart + av.AbsolutePosition.Y));
+                    responsemapdata["ID"] = OSD.FromUUID(UUID.Zero);
+                    responsemapdata["Name"] = OSD.FromString(Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()));
+                    responsemapdata["Extra"] = OSD.FromInteger(1);
+                    responsemapdata["Extra2"] = OSD.FromInteger(0);
                     responsearr.Add(responsemapdata);
                 }
                 responsemap["6"] = responsearr;

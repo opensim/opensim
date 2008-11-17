@@ -153,7 +153,7 @@ namespace OpenSim.Data
                 simData.regionLocX = Convert.ToUInt32((string) responseData["region_locx"]);
                 simData.regionLocY = Convert.ToUInt32((string) responseData["region_locy"]);
                 simData.regionHandle =
-                    Helpers.UIntsToLong((simData.regionLocX*Constants.RegionSize),
+                    Utils.UIntsToLong((simData.regionLocX * Constants.RegionSize),
                                         (simData.regionLocY*Constants.RegionSize));
                 simData.serverIP = (string) responseData["sim_ip"];
                 simData.serverPort = Convert.ToUInt32((string) responseData["sim_port"]);

@@ -44,18 +44,18 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-using LLSD = OpenMetaverse.StructuredData.LLSD;
-using LLSDMap = OpenMetaverse.StructuredData.LLSDMap;
-using LLSDArray = OpenMetaverse.StructuredData.LLSDArray;
+using OSD = OpenMetaverse.StructuredData.OSD;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
-using BlockingLLSDQueue = OpenSim.Framework.BlockingQueue<OpenMetaverse.StructuredData.LLSD>;
+using BlockingLLSDQueue = OpenSim.Framework.BlockingQueue<OpenMetaverse.StructuredData.OSD>;
 
 namespace OpenSim.Region.Environment.Modules.Framework
 {
     public struct QueueItem
     {
         public int id;
-        public LLSDMap body;
+        public OSDMap body;
     }
 
     public class EventQueueGetModule : IEventQueue, IRegionModule
@@ -146,7 +146,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         
         #region IEventQueue Members
-        public bool Enqueue(LLSD ev, UUID avatarID)
+        public bool Enqueue(OSD ev, UUID avatarID)
         {
             m_log.DebugFormat("[EVENTQUEUE]: Enqueuing event for {0} in region {1}", avatarID, m_scene.RegionInfo.RegionName);
             try
@@ -308,7 +308,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 //            }
 
             BlockingLLSDQueue queue = GetQueue(agentID);
-            LLSD element = queue.Dequeue(15000); // 15s timeout
+            OSD element = queue.Dequeue(15000); // 15s timeout
 
             Hashtable responsedata = new Hashtable();
             
@@ -337,7 +337,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
             
 
-            LLSDArray array = new LLSDArray();
+            OSDArray array = new OSDArray();
             if (element == null) // didn't have an event in 15s
             {
                 // Send it a fake event to keep the client polling!   It doesn't like 502s like the proxys say!
@@ -354,10 +354,10 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 }
             }
 
-            LLSDMap events = new LLSDMap();
+            OSDMap events = new OSDMap();
             events.Add("events", array);
 
-            events.Add("id", new LLSDInteger(thisID));
+            events.Add("id", new OSDInteger(thisID));
             lock (m_ids)
             {
                 m_ids[agentID] = thisID + 1;
@@ -366,7 +366,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
             responsedata["int_response_code"] = 200;
             responsedata["content_type"] = "application/xml";
             responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = LLSDParser.SerializeXmlString(events);
+            responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(events);
             m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
 
             return responsedata;
@@ -424,7 +424,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         }
 
-        public LLSD EventQueueFallBack(string path, LLSD request, string endpoint)
+        public OSD EventQueueFallBack(string path, OSD request, string endpoint)
         {
             // This is a fallback element to keep the client from loosing EventQueueGet
             // Why does CAPS fail sometimes!?
@@ -473,7 +473,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
                         thisID = m_ids[AvatarID];
 
                     BlockingLLSDQueue queue = GetQueue(AvatarID);
-                    LLSDArray array = new LLSDArray();
+                    OSDArray array = new OSDArray();
                     LLSD element = queue.Dequeue(15000); // 15s timeout
                     if (element == null)
                     {
@@ -489,7 +489,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
                             thisID++;
                         }
                     }
-                    LLSDMap events = new LLSDMap();
+                    OSDMap events = new OSDMap();
                     events.Add("events", array);
 
                     events.Add("id", new LLSDInteger(thisID));
@@ -512,7 +512,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
             {
                 //return new LLSD();
             }
-            return new LLSDString("shutdown404!");
+            return new OSDString("shutdown404!");
         }
     }
 }

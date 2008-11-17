@@ -29,7 +29,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
-    [LLSDMap]
+    [OSDMap]
     public class LLSDTaskScriptUpdate
     {
         /// <summary>

@@ -29,7 +29,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
-    [LLSDMap]
+    [OSDMap]
     public class LLSDInventoryItem
     {
         public UUID parent_id;
@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         public int created_at;
     }
 
-    [LLSDMap]
+    [OSDMap]
     public class LLSDPermissions
     {
         public UUID creator_id;
@@ -61,20 +61,20 @@ namespace OpenSim.Framework.Communications.Capabilities
         public bool is_owner_group;
     }
 
-    [LLSDMap]
+    [OSDMap]
     public class LLSDSaleInfo
     {
         public int sale_price;
         public string sale_type;
     }
 
-    [LLSDMap]
+    [OSDMap]
     public class LLSDInventoryDescendents
     {
-        public LLSDArray folders = new LLSDArray();
+        public OSDArray folders = new OSDArray();
     }
 
-    [LLSDMap]
+    [OSDMap]
     public class LLSDFetchInventoryDescendents
     {
         public UUID folder_id;
@@ -84,13 +84,13 @@ namespace OpenSim.Framework.Communications.Capabilities
         public bool fetch_items;
     }
 
-    [LLSDMap]
+    [OSDMap]
     public class LLSDInventoryFolderContents
     {
         public UUID agent___id; // the (three "_") "___" so the serialising knows to change this to a "-"
         public int descendents;
         public UUID folder___id; //as LL can't decide if they are going to use "_" or "-" to separate words in the field names
-        public LLSDArray items = new LLSDArray();
+        public OSDArray items = new OSDArray();
         public UUID owner___id; // and of course we can't have field names with "-" in
         public int version;
     }

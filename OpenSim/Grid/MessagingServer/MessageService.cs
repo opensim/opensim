@@ -484,7 +484,7 @@ namespace OpenSim.Grid.MessagingServer
                 regionProfile = new RegionProfileData();
                 regionProfile.httpPort = (uint)Convert.ToInt32((string)responseData["http_port"]);
                 regionProfile.httpServerURI = "http://" + internalIpStr + ":" + regionProfile.httpPort + "/";
-                regionProfile.regionHandle = Helpers.UIntsToLong((regX * Constants.RegionSize), (regY * Constants.RegionSize));
+                regionProfile.regionHandle = Utils.UIntsToLong((regX * Constants.RegionSize), (regY * Constants.RegionSize));
                 regionProfile.regionLocX = regX;
                 regionProfile.regionLocY = regY;
 
