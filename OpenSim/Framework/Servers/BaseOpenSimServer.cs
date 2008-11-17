@@ -342,6 +342,7 @@ namespace OpenSim.Framework.Servers
         {
             switch (showParams[0])
             {
+                        
                 case "info":
                     Notice("Version: " + m_version);
                     Notice("Startup directory: " + m_startupDirectory);
@@ -363,7 +364,9 @@ namespace OpenSim.Framework.Servers
                     break;
 
                 case "version":
-                    Notice("Version: " + m_version);
+                    Notice(
+                        String.Format(
+                            "Version: {0} (interface version {1})", m_version, VersionInfo.MajorInterfaceVersion));
                     break;
             }
         }
