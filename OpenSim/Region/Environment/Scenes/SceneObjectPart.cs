@@ -424,7 +424,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_groupPosition.Y = PhysActor.Position.Y;
                     m_groupPosition.Z = PhysActor.Position.Z;
                 }
-                if (ParentGroup.RootPart.IsAttachment)
+                if (ParentGroup != null && ParentGroup.RootPart != null && ParentGroup.RootPart.IsAttachment)
                 {
                     ScenePresence sp = m_parentGroup.Scene.GetScenePresence(ParentGroup.RootPart.AttachedAvatar);
                     if (sp != null)
@@ -743,7 +743,7 @@ if (m_shape != null) {
         public Vector3 AbsolutePosition
         {
             get {
-                if (ParentGroup.RootPart.IsAttachment)
+                if (ParentGroup != null && ParentGroup.RootPart != null && ParentGroup.RootPart.IsAttachment)
                     return GroupPosition;
 
                 return m_offsetPosition + m_groupPosition; }
