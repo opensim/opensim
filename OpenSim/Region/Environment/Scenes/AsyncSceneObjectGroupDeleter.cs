@@ -126,18 +126,16 @@ namespace OpenSim.Region.Environment.Scenes
                             "[SCENE]: Sending deleted object to user's inventory, {0} item(s) remaining.", left);
                         
                         x = m_inventoryDeletes.Dequeue();
-                        if (!x.objectGroup.IsDeleted)
+
+                        try
                         {
-                            try
-                            {
-                                m_scene.DeleteToInventory(x.destination,
-                                        x.folderID, x.objectGroup, x.remoteClient,
-                                        x.permissionToDelete);
-                            }
-                            catch (Exception e)
-                            {
-                                m_log.DebugFormat("Exception background deleting object: "+e.ToString());
-                            }
+                            m_scene.DeleteToInventory(x.destination,
+                                    x.folderID, x.objectGroup, x.remoteClient,
+                                    x.permissionToDelete);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.DebugFormat("Exception background deleting object: "+e.ToString());
                         }
                         
                         return true;

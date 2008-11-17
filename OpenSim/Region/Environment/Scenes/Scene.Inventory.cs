@@ -1763,11 +1763,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-
-            // Finally remove the item, for reals this time.
-            if (permissionToDelete)
-                DeleteSceneObject(objectGroup, false);
-
+            
             return assetID;
         }
 
