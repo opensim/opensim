@@ -835,8 +835,9 @@
 
     ; OS Functions enable/disable
     ; For each function, you can add one line, as shown
+    ; The default for all functions allows them if below threat level
 
-    ; true is the default for all functions, and allows them if below threat level
+    ; true allows the use of the function unconditionally
     ; Allow_osSetRegionWaterHeight = true
 
     ; false disables the function completely

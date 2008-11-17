@@ -187,30 +187,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!m_FunctionPerms.ContainsKey(function))
             {
-                string perm = m_ScriptEngine.Config.GetString("Allow_"+function, "true");
-                bool allowed;
-
-                if (bool.TryParse(perm, out allowed))
+                string perm = m_ScriptEngine.Config.GetString("Allow_"+function, "");
+                if (perm == "")
                 {
-                    // Boolean given
-                    if (allowed)
-                        m_FunctionPerms[function] = null; // a null value is all
-                    else
-                        m_FunctionPerms[function] = new List<UUID>(); // Empty list = none
+                    m_FunctionPerms[function] = null; // a null value is default
                 }
                 else
                 {
-                    m_FunctionPerms[function] = new List<UUID>();
+                    bool allowed;
 
-                    string[] ids = perm.Split(new char[] {','});
-                    foreach (string id in ids)
+                    if (bool.TryParse(perm, out allowed))
                     {
-                        string current = id.Trim();
-                        UUID uuid;
-
-                        if (UUID.TryParse(current, out uuid))
+                        // Boolean given
+                        if (allowed)
                         {
-                            m_FunctionPerms[function].Add(uuid);
+                            m_FunctionPerms[function] = new List<UUID>();
+                            m_FunctionPerms[function].Add(UUID.Zero);
+                        }
+                        else
+                            m_FunctionPerms[function] = new List<UUID>(); // Empty list = none
+                    }
+                    else
+                    {
+                        m_FunctionPerms[function] = new List<UUID>();
+
+                        string[] ids = perm.Split(new char[] {','});
+                        foreach (string id in ids)
+                        {
+                            string current = id.Trim();
+                            UUID uuid;
+
+                            if (UUID.TryParse(current, out uuid))
+                            {
+                                if (uuid != uuid.Zero)
+                                    m_FunctionPerms[function].Add(uuid);
+                            }
                         }
                     }
                 }
@@ -223,6 +234,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // to use that particular function. False causes an empty
             // list and therefore means "no one"
             //
+            // To allow use by anyone, the list contains UUID.Zero
+            //
             if (m_FunctionPerms[function] == null) // No list = true
             {
                 if (level > m_MaxThreatLevel)
@@ -230,8 +243,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (!m_FunctionPerms[function].Contains(m_host.OwnerID))
-                    throw new Exception("Threat level too high - "+function);
+                if (!m_FunctionPerms[function].Contains(UUID.Zero))
+                {
+                    if (!m_FunctionPerms[function].Contains(m_host.OwnerID))
+                        throw new Exception("Threat level too high - "+function);
+                }
             }
         }
 
