@@ -81,9 +81,16 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         private bool m_ParcelOwnerIsGod = false;
         
         /// <value>
-        /// The set of users that are allowed to create scripts.
+        /// The set of users that are allowed to create scripts.  This is only active if permissions are not being
+        /// bypassed.  This overrides normal permissions.
         /// </value>
         private UserSet m_allowedScriptCreators = UserSet.All;
+
+        /// <value>
+        /// The set of users that are allowed to view (and in Second Life, edit) scripts.  This is only active if 
+        /// permissions are not being bypassed.  This overrides normal permissions.-
+        /// </value>        
+        //private UserSet m_allowedScriptViewers = UserSet.All;
 
         #endregion
 
@@ -162,26 +169,8 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_RegionOwnerIsGod = myConfig.GetBoolean("region_owner_is_god", true);
             m_ParcelOwnerIsGod = myConfig.GetBoolean("parcel_owner_is_god", true);
             
-            string allowedScriptCreators = myConfig.GetString("allowed_script_creators", UserSet.All.ToString());
-            
-            // Temporary measure to allow 'gods' to be specified in config for consistency's sake.  In the long term
-            // this should disappear.
-            if ("gods" == allowedScriptCreators.ToLower())
-                allowedScriptCreators = UserSet.Administrators.ToString();
-            
-            // Doing it this was so that we can do a case insensitive conversion
-            try
-            {
-                m_allowedScriptCreators = (UserSet)Enum.Parse(typeof(UserSet), allowedScriptCreators, true);
-            }
-            catch 
-            {
-                m_log.ErrorFormat(
-                    "[PERMISSIONS]: {0} is not a valid allowed_script_creators value, setting to {1}",
-                    allowedScriptCreators, m_allowedScriptCreators);
-            }            
-            
-            m_log.DebugFormat("[PERMISSIONS]: m_allowedScriptCreators {0}", m_allowedScriptCreators);
+            m_allowedScriptCreators 
+                = ParseUserSetConfigSetting(myConfig, "allowed_script_creators", m_allowedScriptCreators);
 
             if (m_bypassPermissions)
                 m_log.Info("[PERMISSIONS]: serviceside_object_permissions = false in ini file so disabling all region service permission checks");
@@ -199,9 +188,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckDuplicateObject(CanDuplicateObject); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckDeleteObject(CanDeleteObject); //MAYBE FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditObject(CanEditObject);//MAYBE FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckEditParcel(CanEditParcel); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckEditScript(CanEditScript); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckEditNotecard(CanEditNotecard); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckEditParcel(CanEditParcel); //FULLY IMPLEMENTED            
             m_scene.ExternalChecks.addCheckInstantMessage(CanInstantMessage); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckInventoryTransfer(CanInventoryTransfer); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckIssueEstateCommand(CanIssueEstateCommand); //FULLY IMPLEMENTED
@@ -215,19 +202,25 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckTakeObject(CanTakeObject); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckTakeCopyObject(CanTakeCopyObject); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckTerraformLand(CanTerraformLand); //FULL IMPLEMENTED (POINT ONLY!!! NOT AREA!!!)
-            m_scene.ExternalChecks.addCheckViewScript(CanViewScript); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckViewNotecard(CanViewNotecard); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanLinkObject(CanLinkObject); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanDelinkObject(CanDelinkObject); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanBuyLand(CanBuyLand); //NOT YET IMPLEMENTED
+            
+            m_scene.ExternalChecks.addCheckViewNotecard(CanViewNotecard); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckViewScript(CanViewScript); //NOT YET IMPLEMENTED                       
+            m_scene.ExternalChecks.addCheckEditNotecard(CanEditNotecard); //NOT YET IMPLEMENTED            
+            m_scene.ExternalChecks.addCheckEditScript(CanEditScript); //NOT YET IMPLEMENTED            
+            
             m_scene.ExternalChecks.addCheckCanCreateObjectInventory(CanCreateObjectInventory); //NOT IMPLEMENTED HERE 
             m_scene.ExternalChecks.addCheckEditObjectInventory(CanEditObjectInventory);//MAYBE FULLY IMPLEMENTED            
             m_scene.ExternalChecks.addCheckCanCopyObjectInventory(CanCopyObjectInventory); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanDeleteObjectInventory(CanDeleteObjectInventory); //NOT YET IMPLEMENTED
+            
             m_scene.ExternalChecks.addCheckCanCreateUserInventory(CanCreateUserInventory); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanCopyUserInventory(CanCopyUserInventory); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckCanEditUserInventory(CanEditUserInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanDeleteUserInventory(CanDeleteUserInventory); //NOT YET IMPLEMENTED            
+            m_scene.ExternalChecks.addCheckCanDeleteUserInventory(CanDeleteUserInventory); //NOT YET IMPLEMENTED
+            
             m_scene.ExternalChecks.addCheckCanTeleport(CanTeleport); //NOT YET IMPLEMENTED
 
             //Register Debug Commands
@@ -272,10 +265,46 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         {
             m_scene.EventManager.TriggerPermissionError(user, reason);
         }
+        
         protected void DebugPermissionInformation(string permissionCalled)
         {
             if (m_debugPermissions)
                 m_log.Debug("[PERMISSIONS]: " + permissionCalled + " was called from " + m_scene.RegionInfo.RegionName);
+        }
+        
+        /// <summary>
+        /// Parse a user set configuration setting
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="settingName"></param>
+        /// <param name="defaultValue">The default value for this attribute</param>
+        /// <returns>The parsed value</returns>
+        private static UserSet ParseUserSetConfigSetting(IConfig config, string settingName, UserSet defaultValue)
+        {
+            UserSet userSet = defaultValue;
+            
+            string rawSetting = config.GetString(settingName, defaultValue.ToString());
+            
+            // Temporary measure to allow 'gods' to be specified in config for consistency's sake.  In the long term
+            // this should disappear.
+            if ("gods" == rawSetting.ToLower())
+                rawSetting = UserSet.Administrators.ToString();
+            
+            // Doing it this was so that we can do a case insensitive conversion
+            try
+            {
+                userSet = (UserSet)Enum.Parse(typeof(UserSet), rawSetting, true);
+            }
+            catch 
+            {
+                m_log.ErrorFormat(
+                    "[PERMISSIONS]: {0} is not a valid {1} value, setting to {2}",
+                    rawSetting, settingName, userSet);
+            }            
+            
+            //m_log.DebugFormat("[PERMISSIONS]: {0} {1}", settingName, userSet);
+            
+            return userSet;
         }
 
         /// <summary>
@@ -683,6 +712,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return GenericParcelPermission(user, parcel);
         }
 
+        /// <summary>
+        /// Check whether the specified user can edit the given script
+        /// </summary>
+        /// <param name="script"></param>
+        /// <param name="objectID"></param>
+        /// <param name="user"></param>
+        /// <param name="scene"></param>
+        /// <returns></returns>
         private bool CanEditScript(UUID script, UUID objectID, UUID user, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
@@ -694,6 +731,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return CanViewScript(script, objectID, user, scene);
         }
 
+        /// <summary>
+        /// Check whether the specified user can edit the given notecard
+        /// </summary>
+        /// <param name="notecard"></param>
+        /// <param name="objectID"></param>
+        /// <param name="user"></param>
+        /// <param name="scene"></param>
+        /// <returns></returns>        
         private bool CanEditNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
@@ -852,7 +897,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 // Locked
                 if ((task.RootPart.OwnerMask & PERM_LOCKED) == 0)
                     permission = false;
-
             }
             else
             {
@@ -1073,6 +1117,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return false;
         }
 
+        /// <summary>
+        /// Check whether the specified user can view the given script
+        /// </summary>
+        /// <param name="script"></param>
+        /// <param name="objectID"></param>
+        /// <param name="user"></param>
+        /// <param name="scene"></param>
+        /// <returns></returns>        
         private bool CanViewScript(UUID script, UUID objectID, UUID user, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
@@ -1155,6 +1207,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return true;
         }
 
+        /// <summary>
+        /// Check whether the specified user can view the given notecard
+        /// </summary>
+        /// <param name="script"></param>
+        /// <param name="objectID"></param>
+        /// <param name="user"></param>
+        /// <param name="scene"></param>
+        /// <returns></returns>         
         private bool CanViewNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
@@ -1224,7 +1284,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
     #endregion
 
-        public bool CanLinkObject(UUID userID, UUID objectID)
+        private bool CanLinkObject(UUID userID, UUID objectID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1232,7 +1292,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return true;
         }
 
-        public bool CanDelinkObject(UUID userID, UUID objectID)
+        private bool CanDelinkObject(UUID userID, UUID objectID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1240,7 +1300,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return true;
         }
 
-        public bool CanBuyLand(UUID userID, ILandObject parcel, Scene scene)
+        private bool CanBuyLand(UUID userID, ILandObject parcel, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1248,7 +1308,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return true;
         }
 
-        public bool CanCopyObjectInventory(UUID itemID, UUID objectID, UUID userID)
+        private bool CanCopyObjectInventory(UUID itemID, UUID objectID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1256,7 +1316,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return true;
         }
 
-        public bool CanDeleteObjectInventory(UUID itemID, UUID objectID, UUID userID)
+        private bool CanDeleteObjectInventory(UUID itemID, UUID objectID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1272,7 +1332,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <param name="objectID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>
-        public bool CanCreateObjectInventory(int invType, UUID objectID, UUID userID)
+        private bool CanCreateObjectInventory(int invType, UUID objectID, UUID userID)
         {
             m_log.Debug("[PERMISSIONS]: CanCreateObjectInventory called");
             
@@ -1292,7 +1352,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <param name="invType"></param>
         /// <param name="userID"></param>
         /// <returns></returns>           
-        public bool CanCreateUserInventory(int invType, UUID userID)
+        private bool CanCreateUserInventory(int invType, UUID userID)
         {
             m_log.Debug("[PERMISSIONS]: CanCreateAvatarInventory called");
             
@@ -1312,7 +1372,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>           
-        public bool CanCopyUserInventory(UUID itemID, UUID userID)
+        private bool CanCopyUserInventory(UUID itemID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1326,7 +1386,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>           
-        public bool CanEditUserInventory(UUID itemID, UUID userID)
+        private bool CanEditUserInventory(UUID itemID, UUID userID)
         {            
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1340,7 +1400,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
         /// <returns></returns>           
-        public bool CanDeleteUserInventory(UUID itemID, UUID userID)
+        private bool CanDeleteUserInventory(UUID itemID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1348,7 +1408,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return true;            
         }        
 
-        public bool CanTeleport(UUID userID)
+        private bool CanTeleport(UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
