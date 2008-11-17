@@ -203,7 +203,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
             // disable warning on l1, don't see how we can
             // code this differently
-            #pragma warning disable 0168,0164,0162
+            #pragma warning disable 0168, 0164, 0162, 0219
             public static bool isDetNoneOut(object State, object Term)
             {
                 State = YP.getValue(State);
@@ -241,7 +241,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
                 return false;
             }
-            #pragma warning restore 0168,0164,0162
+            #pragma warning restore 0168, 0164, 0162, 0219
 
             /// <summary>
             /// Return false if any of args is out, otherwise true.

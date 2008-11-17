@@ -73,7 +73,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
         // disable warning on l1, don't see how we can
         // code this differently
-        #pragma warning disable 0168
+        #pragma warning disable 0168, 0219
 
         /// <summary>
         /// This is a simplified findall when the goal is a single call.
@@ -103,6 +103,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 findallAnswers.add();
             return findallAnswers.resultArray();
         }
-        #pragma warning restore 0168
+        #pragma warning restore 0168, 0219
     }
 }

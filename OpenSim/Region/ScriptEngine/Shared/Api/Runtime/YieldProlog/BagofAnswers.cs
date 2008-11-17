@@ -115,7 +115,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
         // disable warning on l1, don't see how we can
         // code this differently
-        #pragma warning disable 0168
+        #pragma warning disable 0168, 0219
 
         /// <summary>
         /// For each result, unify the _freeVariables and unify bagArrayVariable with the associated bag.
@@ -208,7 +208,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 bagOfAnswers.add();
             return bagOfAnswers.resultSet(Bag);
         }
-        #pragma warning restore 0168
+        #pragma warning restore 0168, 0219
 
         /// <summary>
         /// A TermArrayEqualityComparer implements IEqualityComparer to compare two object arrays using YP.termEqual.

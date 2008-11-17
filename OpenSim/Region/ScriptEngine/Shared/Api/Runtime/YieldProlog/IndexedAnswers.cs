@@ -249,7 +249,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             object[] arguments = YP.getFunctorArgs(Head);
 
             // We always match Head from _allAnswers, and the Body is Atom.a("true").
-            #pragma warning disable 0168
+            #pragma warning disable 0168, 0219
             foreach (bool l1 in YP.unify(Body, Atom.a("true")))
             {
                 // The caller can assert another answer into this same predicate during yield, so we have to
@@ -260,7 +260,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                         yield return false;
                 }
             }
-            #pragma warning restore 0168
+            #pragma warning restore 0168, 0219
         }
 
         public IEnumerable<bool> retract(object Head, object Body)
@@ -271,7 +271,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             object[] arguments = YP.getFunctorArgs(Head);
 
             // We always match Head from _allAnswers, and the Body is Atom.a("true").
-            #pragma warning disable 0168
+            #pragma warning disable 0168, 0219
             foreach (bool l1 in YP.unify(Body, Atom.a("true")))
             {
                 // The caller can assert another answer into this same predicate during yield, so we have to
@@ -286,7 +286,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                     }
                 }
             }
-            #pragma warning restore 0168
+            #pragma warning restore 0168, 0219
         }
 
         /// <summary>

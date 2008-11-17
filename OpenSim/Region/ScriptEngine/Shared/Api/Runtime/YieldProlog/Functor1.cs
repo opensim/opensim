@@ -51,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
         // disable warning on l1, don't see how we can
         // code this differently
-        #pragma warning disable 0168
+        #pragma warning disable 0168, 0219
         /// <summary>
         /// If arg is another Functor1, then succeed (yield once) if this and arg have the
         /// same name and the functor args unify, otherwise fail (don't yield).
@@ -78,7 +78,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                     yield return false;
             }
         }
-        #pragma warning restore 0168
+        #pragma warning restore 0168, 0219
 
 
         public override string ToString()

@@ -623,7 +623,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
         // disable warning on l1, don't see how we can
         // code this differently
-        #pragma warning disable 0168
+        #pragma warning disable 0168, 0219
         public static IEnumerable<bool> univ(object Term, object List)
         {
             Term = YP.getValue(Term);
@@ -704,10 +704,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                     object[] args = new object[(int)Arity];
                     for (int i = 0; i < args.Length; ++i)
                         args[i] = new Variable();
-                    #pragma warning disable 0219
                     foreach (bool l1 in YP.unify(Term, Functor.make((Atom)FunctorName, args)))
                         yield return false;
-                    #pragma warning restore 0219
                 }
             }
             else
@@ -2632,7 +2630,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 throw new NotImplementedException();
             }
         }
-        #pragma warning restore 0168
+        #pragma warning restore 0168, 0219
         /// <summary>
         /// A ClauseHeadAndBody is used in Compiler.compileAnonymousFunction as a base class
         /// in order to implement YP.IClause.  After creating the object, you must call setHeadAndBody.
@@ -2653,13 +2651,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 if (_Head == null || _Body == null)
                     yield break;
 
-                #pragma warning disable 0168
+                #pragma warning disable 0168, 0219
                 foreach (bool l1 in YP.unify(Head, _Head))
                 {
                     foreach (bool l2 in YP.unify(Body, _Body))
                         yield return false;
                 }
-                #pragma warning restore 0168
+                #pragma warning restore 0168, 0219
             }
         }
 
