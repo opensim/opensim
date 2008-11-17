@@ -286,7 +286,7 @@ namespace OpenSim.Framework
                            + 0.07f * (float)m_visualparams[78] / 255.0f    // Shoe platform height
                            + 0.3836f * (float)m_visualparams[125] / 255.0f    // Leg length
                            - m_avatarHeight / 2) * 0.3f - 0.04f;
-            System.Console.WriteLine("Height {0} Hip offset {1}", m_avatarHeight, m_hipOffset);
+            //System.Console.WriteLine("Height {0} Hip offset {1}", m_avatarHeight, m_hipOffset);
         }
 
         public virtual void SetWearable(int wearableId, AvatarWearable wearable)

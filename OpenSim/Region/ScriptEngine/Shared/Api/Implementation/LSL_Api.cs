@@ -1438,7 +1438,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.Shape.FlexiForceY = (float)Force.y;
                 part.Shape.FlexiForceZ = (float)Force.z;
                 part.Shape.PathCurve = 0x80;
-
             }
 
             part.ParentGroup.HasGroupChanged = true;
@@ -1447,9 +1446,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         /// <summary>
         /// Set a light point on a part
-        ///
-        /// FIXME: Much of this code should probably be in SceneObjectGroup
         /// </summary>
+        /// FIXME: Much of this code should probably be in SceneObjectGroup
+        /// 
         /// <param name="part"></param>
         /// <param name="light"></param>
         /// <param name="color"></param>
