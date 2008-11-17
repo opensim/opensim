@@ -29,8 +29,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
-using System.Reflection;
 using System.Threading;
+using System.Reflection;
 using OpenMetaverse;
 using log4net;
 using Nwc.XmlRpc;
@@ -52,6 +52,8 @@ namespace OpenSim.Grid.MessagingServer
         // a dictionary of all current regions this server knows about
         private Dictionary<ulong, RegionProfileData> m_regionInfoCache = new Dictionary<ulong,RegionProfileData>();
 
+        private System.Timers.Timer reconnectTimer = new System.Timers.Timer(300000); // 5 mins
+
         public MessageService(MessageServerConfig cfg)
         {
             m_cfg = cfg;
@@ -61,6 +63,9 @@ namespace OpenSim.Grid.MessagingServer
             uc.DatabaseProvider = cfg.DatabaseProvider;
 
             m_userManager.AddPlugin(cfg.DatabaseProvider, cfg.DatabaseConnect);
+
+            reconnectTimer.Elapsed += registerWithUserServer;
+            reconnectTimer.Start();
         }
 
 
@@ -495,6 +500,11 @@ namespace OpenSim.Grid.MessagingServer
             }
 
             return regionProfile;
+        }
+
+        public void registerWithUserServer(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            registerWithUserServer();
         }
 
         public bool registerWithUserServer ()
