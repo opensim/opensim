@@ -492,7 +492,7 @@ namespace OpenSim.Region.Environment.Scenes
                 StoreUndoState();
                 m_offsetPosition = value;
 
-                if (ParentGroup != null && ParentGroup.RootPart != null)
+                if (ParentGroup != null && !ParentGroup.IsDeleted)
                 {
                      if (_parentID != 0 && PhysActor != null)
                     {
@@ -1326,7 +1326,7 @@ if (m_shape != null) {
         {
             if (m_parentGroup == null)
                 return false;
-            if (m_parentGroup.RootPart == null)
+            if (m_parentGroup.IsDeleted)
                 return false;
 
             return m_parentGroup.RootPart.DIE_AT_EDGE;
@@ -1604,7 +1604,7 @@ if (m_shape != null) {
             }
             if (m_parentGroup == null)
                 return;
-            if (m_parentGroup.RootPart == null)
+            if (m_parentGroup.IsDeleted)
                 return;
 
             if ((m_parentGroup.RootPart.ScriptEvents & scriptEvents.collision_start) != 0)
@@ -2251,7 +2251,7 @@ if (m_shape != null) {
         {
             if (m_parentGroup == null)
                 return;
-            if (m_parentGroup.RootPart == null)
+            if (m_parentGroup.IsDeleted)
                 return;
 
             m_parentGroup.RootPart.DIE_AT_EDGE = p;
@@ -3022,7 +3022,7 @@ if (m_shape != null) {
                     DoPhysicsPropertyUpdate(UsePhysics, false);
                     if (m_parentGroup != null)
                     {
-                        if (m_parentGroup.RootPart != null)
+                        if (!m_parentGroup.IsDeleted)
                         {
                             if (LocalId == m_parentGroup.RootPart.LocalId)
                             {
@@ -3070,7 +3070,7 @@ if (m_shape != null) {
                         DoPhysicsPropertyUpdate(UsePhysics, true);
                         if (m_parentGroup != null)
                         {
-                            if (m_parentGroup.RootPart != null)
+                            if (!m_parentGroup.IsDeleted)
                             {
                                 if (LocalId == m_parentGroup.RootPart.LocalId)
                                 {
@@ -3086,7 +3086,7 @@ if (m_shape != null) {
                     DoPhysicsPropertyUpdate(UsePhysics, false);
                     if (m_parentGroup != null)
                     {
-                        if (m_parentGroup.RootPart != null)
+                        if (!m_parentGroup.IsDeleted)
                         {
                             if (LocalId == m_parentGroup.RootPart.LocalId)
                             {
@@ -3341,7 +3341,7 @@ if (m_shape != null) {
 
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
-            if (ParentGroup == null || ParentGroup.RootPart == null)
+            if (ParentGroup == null || ParentGroup.IsDeleted)
                 return;
 
             Vector3 lPos = OffsetPosition;

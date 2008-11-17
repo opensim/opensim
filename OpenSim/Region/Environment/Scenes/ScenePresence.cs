@@ -637,8 +637,10 @@ namespace OpenSim.Region.Environment.Scenes
             while (m_partsUpdateQueue.Count > 0)
             {
                 SceneObjectPart part = m_partsUpdateQueue.Dequeue();
-                if (part.ParentGroup == null || part.ParentGroup.RootPart == null)
+                
+                if (part.ParentGroup == null || part.ParentGroup.IsDeleted)
                     continue;
+                
                 if (m_updateTimes.ContainsKey(part.UUID))
                 {
                     ScenePartUpdate update = m_updateTimes[part.UUID];
@@ -2582,10 +2584,8 @@ namespace OpenSim.Region.Environment.Scenes
                     if (gobj == null)
                         return false;
 
-                    if (gobj.RootPart == null)
-                    {
+                    if (gobj.IsDeleted)
                         return false;
-                    }
                 }
             }
             return true;
@@ -2598,7 +2598,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // Validate
                 foreach (SceneObjectGroup gobj in m_attachments)
                 {
-                    if (gobj == null || gobj.RootPart == null)
+                    if (gobj == null || gobj.IsDeleted)
                         return false;
                 }
 

@@ -1145,7 +1145,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // TODO: this needs to trigger a persistance save as well
 
-            if (part == null || part.ParentGroup == null || part.ParentGroup.RootPart == null)
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
             if (scale.x < 0.01 || scale.y < 0.01 || scale.z < 0.01)
@@ -1859,7 +1859,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_host.ParentGroup != null)
             {
-                if (m_host.ParentGroup.RootPart != null)
+                if (!m_host.ParentGroup.IsDeleted)
                 {
                     if (local != 0)
                         force *= llGetRot();
@@ -1877,7 +1877,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_host.ParentGroup != null)
             {
-                if (m_host.ParentGroup.RootPart != null)
+                if (!m_host.ParentGroup.IsDeleted)
                 {
                     PhysicsVector tmpForce = m_host.ParentGroup.RootPart.GetForce();
                     force.x = tmpForce.X;
@@ -2701,7 +2701,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_host.ParentGroup != null)
             {
-                if (m_host.ParentGroup.RootPart != null)
+                if (!m_host.ParentGroup.IsDeleted)                
                 {
                     m_host.ParentGroup.RootPart.SetBuoyancy((float)buoyancy);
                 }
@@ -5473,7 +5473,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_host.ParentGroup != null)
             {
-                if (m_host.ParentGroup.RootPart != null)
+                if (!m_host.ParentGroup.IsDeleted)
                 {
                     m_host.ParentGroup.RootPart.SetVehicleType(type);
                 }
@@ -5488,7 +5488,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_host.ParentGroup != null)
             {
-                if (m_host.ParentGroup.RootPart != null)
+                if (!m_host.ParentGroup.IsDeleted)
                 {
                     m_host.ParentGroup.RootPart.SetVehicleFloatParam(param, (float)value);
                 }
@@ -5502,7 +5502,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_host.ParentGroup != null)
             {
-                if (m_host.ParentGroup.RootPart != null)
+                if (!m_host.ParentGroup.IsDeleted)
                 {
                     m_host.ParentGroup.RootPart.SetVehicleVectorParam(param, 
                         new PhysicsVector((float)vec.x, (float)vec.y, (float)vec.z) );
@@ -5517,7 +5517,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_host.ParentGroup != null)
             {
-                if (m_host.ParentGroup.RootPart != null)
+                if (!m_host.ParentGroup.IsDeleted)
                 {
                     m_host.ParentGroup.RootPart.SetVehicleRotationParam(param,
                         Rot2Quaternion(rot));

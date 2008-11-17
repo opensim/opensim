@@ -1552,7 +1552,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part == null)
                 return;
 
-            if (part.ParentGroup == null || part.ParentGroup.RootPart == null)
+            if (part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
             // Can't delete child prims
@@ -2379,7 +2379,7 @@ namespace OpenSim.Region.Environment.Scenes
         public UUID RezSingleAttachment(SceneObjectGroup att,
                 IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
-            if (att.RootPart != null)
+            if (!att.IsDeleted)
                 AttachmentPt = att.RootPart.AttachmentPoint;
 
             ScenePresence presence;

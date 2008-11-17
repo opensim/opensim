@@ -2015,7 +2015,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (grp == null)
                 return;
-            if (grp.RootPart == null)
+            if (grp.IsDeleted)
                 return;
 
             if (grp.RootPart.DIE_AT_EDGE)
@@ -2116,7 +2116,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    if (grp.RootPart != null)
+                    if (!grp.IsDeleted)
                     {
                         if (grp.RootPart.PhysActor != null)
                         {
@@ -2688,7 +2688,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetSceneObjectPart(localID);
             if (part != null) // It is a prim
             {
-                if (part.ParentGroup != null && part.ParentGroup.RootPart != null) // Valid
+                if (part.ParentGroup != null && !part.ParentGroup.IsDeleted) // Valid
                 {
                     if (part.ParentGroup.RootPart != part) // Child part
                         return;
@@ -4200,7 +4200,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part == null || part.ParentGroup == null)
                 return;
 
-            if (part.ParentGroup.RootPart == null)
+            if (part.ParentGroup.IsDeleted)
                 return;
 
             part = part.ParentGroup.RootPart;
@@ -4366,7 +4366,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     SceneObjectGroup grp = (SceneObjectGroup)obj;
 
-                    if (grp.RootPart != null)
+                    if (!grp.IsDeleted)
                     {
                         if ((grp.RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
                         {

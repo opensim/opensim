@@ -1035,9 +1035,6 @@ namespace OpenSim.Region.Environment.Scenes
         public void DeleteGroup(bool silent)
         {
             // We need to keep track of this state in case this group is still queued for backup.
-            // FIXME: This is a poor temporary solution, since it still leaves plenty of scope for race
-            // conditions where a user deletes an entity while it is being stored.  Really, the update
-            // code needs a redesign.
             m_isDeleted = true;
 
             DetachFromBackup();
@@ -1063,9 +1060,6 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
                 }
-
-                m_rootPart = null;
-                m_parts.Clear();
             }
         }
 
@@ -1228,7 +1222,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Since this is the top of the section of call stack for backing up a particular scene object, don't let
             // any exception propogate upwards.
 
-            if (RootPart == null || UUID == UUID.Zero)
+            if (IsDeleted || UUID == UUID.Zero)
             {
 //                DetachFromBackup();
                 return;
@@ -1932,8 +1926,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             m_scene.UnlinkSceneObject(objectGroup.UUID, true);
-            objectGroup.Children.Clear();
-            objectGroup.m_rootPart = null;
+//            objectGroup.Children.Clear();
+//            objectGroup.m_rootPart = null;
 
             // TODO Deleting the original group object may cause problems later on if they have already
             // made it into the update queue.  However, sending out updates for those parts is now
@@ -2803,6 +2797,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        
         public float GetMass()
         {
             float retmass = 0f;
@@ -2815,11 +2810,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return retmass;
         }
+        
         public void CheckSculptAndLoad()
         {
             lock (m_parts)
             {
-                if (RootPart != null)
+                if (!IsDeleted)
                 {
                     if ((RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) == 0)
                     {
