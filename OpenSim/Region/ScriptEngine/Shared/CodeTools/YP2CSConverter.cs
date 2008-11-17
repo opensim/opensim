@@ -72,7 +72,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
 // disable warning: don't see how we can code this differently short
 // of rewriting the whole thing
-#pragma warning disable 0168
+#pragma warning disable 0168, 0219
             foreach (bool l1 in Parser.parseInput(TermList))
             {
                 foreach (bool l2 in YPCompiler.makeFunctionPseudoCode(TermList, FunctionCode))
@@ -85,7 +85,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     //YPCompiler.convertStringCodesCSharp(VFC);
                 }
             }
-#pragma warning restore 0168
+#pragma warning restore 0168, 0219
             YP.seen();
             myCS_SW.Close();
             YP.told();
