@@ -57,11 +57,10 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// <summary>
         /// We will allow the client to request the same texture n times before dropping further requests
         ///
-        /// This number includes repeated requests for the same texture at different resolutions (which we don't
-        /// currently handle properly as far as I know).  However, this situation should be handled in a more
-        /// sophisticated way.
+        /// This number contains repeated requests for the same texture at different resolutions (which
+        /// are handled since r7368).  However, this situation should be handled in a more sophisticated way.
         /// </summary>
-        private static readonly int MAX_ALLOWED_TEXTURE_REQUESTS = 5;
+        private static readonly int MAX_ALLOWED_TEXTURE_REQUESTS = 15;
 
         /// <summary>
         /// XXX Also going to limit requests for found textures.
@@ -150,7 +149,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 
                         m_scene.AddPendingDownloads(1);
 
-                        TextureSender.TextureSender requestHandler = new TextureSender.TextureSender(m_client, e.DiscardLevel, e.PacketNumber);
+                        TextureSender.TextureSender requestHandler = new TextureSender.TextureSender(m_client, e.DiscardLevel, e.PacketNumber, e.Priority);
                         m_textureSenders.Add(e.RequestedAssetID, requestHandler);
 
                         m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);

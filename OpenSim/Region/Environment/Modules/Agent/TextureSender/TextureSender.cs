@@ -146,15 +146,17 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         private bool sendFirstPacket = false;
         private int initialDiscardLevel = 0;
         private int initialPacketNum = 0;
+        private float initialPriority = 0.0f;
 
         private ImageDownload download;
         private IClientAPI RequestUser;
 
-        public TextureSender(IClientAPI client, int discardLevel, uint packetNumber)
+        public TextureSender(IClientAPI client, int discardLevel, uint packetNumber, float priority)
         {
             RequestUser = client;
             initialDiscardLevel = discardLevel;
             initialPacketNum = (int)packetNumber;
+            initialPriority = priority;
         }
 
         #region ITextureSender Members
@@ -193,7 +195,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         // See ITextureSender
         public bool SendTexturePacket()
         {
-            if (!m_cancel && download.CurrentPacket <= download.StopPacket)
+            if (!m_cancel && (sendFirstPacket || download.CurrentPacket <= download.StopPacket))
             {
                 SendPacket();
                 return false;
@@ -224,7 +226,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                 OpenMetaverse.AssetTexture texture = new OpenMetaverse.AssetTexture(m_asset.FullID, m_asset.Data);
                 if (texture.DecodeLayerBoundaries())
                 {
-                    download = new ImageDownload(texture, initialDiscardLevel, 0.0f, initialPacketNum);
+                    download = new ImageDownload(texture, initialDiscardLevel, initialPriority, initialPacketNum);
                     ImageLoaded = true;
                     m_sending = true;
                     m_cancel = false;
@@ -258,15 +260,15 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                 {
                     sendFirstPacket = false;
 
-                    if (m_asset.Data.Length <= 600)
+                    if (m_asset.Data.Length <= ImageDownload.FIRST_IMAGE_PACKET_SIZE)
                     {
                         RequestUser.SendImageFirstPart(1, m_asset.FullID, (uint)m_asset.Data.Length, m_asset.Data, 2);
                         return;
                     }
                     else
                     {
-                        byte[] firstImageData = new byte[600];
-                        Buffer.BlockCopy(m_asset.Data, 0, firstImageData, 0, 600);
+                        byte[] firstImageData = new byte[ImageDownload.FIRST_IMAGE_PACKET_SIZE];
+                        Buffer.BlockCopy(m_asset.Data, 0, firstImageData, 0, ImageDownload.FIRST_IMAGE_PACKET_SIZE);
                         RequestUser.SendImageFirstPart((ushort)download.TexturePacketCount(), m_asset.FullID, (uint)m_asset.Data.Length, firstImageData, 2);
                     }
                 }
