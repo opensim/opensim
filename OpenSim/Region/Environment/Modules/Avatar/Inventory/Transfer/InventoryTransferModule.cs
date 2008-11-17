@@ -33,6 +33,7 @@ using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Region.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Communications.Cache;
@@ -48,6 +49,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
         private List<Scene> m_Scenelist = new List<Scene>();
         private Dictionary<UUID, Scene> m_AgentRegions =
                 new Dictionary<UUID, Scene>();
+
+        private IMessageTransferModule m_TransferModule = null;
 
         #region IRegionModule Members
 
@@ -65,6 +68,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
 
             if (!m_Scenelist.Contains(scene))
             {
+                if (m_Scenelist.Count == 0)
+                {
+                    m_TransferModule = scene.RequestModuleInterface<IMessageTransferModule>();
+                    if (m_TransferModule == null)
+                        m_log.Error("[INVENTORY TRANSFER] No Message transfer module found, transfers will be local only");
+                }
+
                 m_Scenelist.Add(scene);
 
                 scene.RegisterModuleInterface<IInventoryTransferModule>(this);
@@ -169,9 +179,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                 }
                 else
                 {
-                    // Send via grid services
-                    //
-                    // TODO: Implement grid sending
+                    if (m_TransferModule != null)
+                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {} );
                 }
             }
             else if (im.dialog == (byte) InstantMessageDialog.InventoryAccepted)
@@ -188,9 +197,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                 }
                 else
                 {
-                    // Send via grid
-                    //
-                    // TODO: Implement sending via grid
+                    if (m_TransferModule != null)
+                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {} );
                 }
             }
             else if (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
@@ -246,9 +254,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                 }
                 else
                 {
-                    // Send via grid
-                    //
-                    // TODO: Implement sending via grid
+                    if (m_TransferModule != null)
+                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {} );
                 }
             }
         }
