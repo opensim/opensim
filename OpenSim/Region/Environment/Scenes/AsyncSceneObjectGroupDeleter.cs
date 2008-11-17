@@ -131,7 +131,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         catch (Exception e)
                         {
-                            m_log.DebugFormat("Exception background deleting object: " +e);
+                            m_log.DebugFormat("Exception background deleting object: " + e);
                         }
                         
                         return true;

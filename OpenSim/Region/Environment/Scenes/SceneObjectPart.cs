@@ -2074,6 +2074,9 @@ if (m_shape != null) {
             //
             if (ParentGroup.IsSelected && IsAttachment)
                 return;
+            
+            if (ParentGroup.IsDeleted)
+                return;
 
             clientFlags &= ~(uint) PrimFlags.CreateSelected;
 
@@ -2179,16 +2182,7 @@ if (m_shape != null) {
         }
 
         /// <summary>
-        /// Send a terse update to the client.
-        /// </summary>
-        /// <param name="remoteClient"></param>
-//        public void SendTerseUpdate(IClientAPI remoteClient)
-//        {
-//            SendTerseUpdateToClient(remoteClient);
-//        }
-
-        /// <summary>
-        ///
+        /// Send a terse update to all clients
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
@@ -2198,11 +2192,6 @@ if (m_shape != null) {
                 SendTerseUpdateToClient(avatars[i].ControllingClient);
             }
         }
-
-//        public void SendTerseUpdateToClient(IClientAPI remoteClient, Vector3 lPos)
-//        {
-//            SendTerseUpdateToClient(remoteclient);
-//        }
 
         public void SetAttachmentPoint(uint AttachmentPoint)
         {

@@ -1682,6 +1682,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupFullUpdate()
         {
+            if (IsDeleted)
+                return;
+            
             RootPart.SendFullUpdateToAllClients();
 
             lock (m_parts)
@@ -1704,6 +1707,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupTerseUpdate()
         {
+            if (IsDeleted)
+                return;
+            
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
