@@ -518,22 +518,32 @@ namespace OpenSim.Grid.MessagingServer
             ArrayList SendParams = new ArrayList();
             SendParams.Add(UserParams);
 
-            // Send Request
-            try
-            {
-                XmlRpcRequest UserReq = new XmlRpcRequest("register_messageserver", SendParams);
-                XmlRpcResponse UserResp = UserReq.Send(m_cfg.UserServerURL, 16000);
+            bool success = true;
+            string[] servers = m_cfg.UserServerURL.Split(' ');
 
-                // Process Response
-                Hashtable GridRespData = (Hashtable)UserResp.Value;
-                // if we got a response, we were successful
-                return GridRespData.ContainsKey("responsestring");
-            }
-            catch (Exception ex)
+            foreach (string srv in servers)
             {
-                m_log.Error("Unable to connect to grid. User server not running?");
-                throw(ex);
+                // Send Request
+                try
+                {
+                    XmlRpcRequest UserReq = new XmlRpcRequest("register_messageserver", SendParams);
+                    XmlRpcResponse UserResp = UserReq.Send(srv, 16000);
+
+                    // Process Response
+                    Hashtable GridRespData = (Hashtable)UserResp.Value;
+                    // if we got a response, we were successful
+                    if (!GridRespData.ContainsKey("responsestring"))
+                        success = false;
+                    else
+                        m_log.InfoFormat("[SERVER] Registered with {0}", srv);
+                }
+                catch (Exception ex)
+                {
+                    m_log.ErrorFormat("Unable to connect to server {0}. Server not running?", srv);
+                    success = false;
+                }
             }
+            return success;
         }
 
         public bool deregisterWithUserServer()
@@ -557,21 +567,29 @@ namespace OpenSim.Grid.MessagingServer
             ArrayList SendParams = new ArrayList();
             SendParams.Add(UserParams);
 
+            bool success = true;
+            string[] servers = m_cfg.UserServerURL.Split(' ');
+
             // Send Request
-            try
+            foreach (string srv in servers)
             {
-                XmlRpcRequest UserReq = new XmlRpcRequest("deregister_messageserver", SendParams);
-                XmlRpcResponse UserResp = UserReq.Send(m_cfg.UserServerURL, 16000);
-                // Process Response
-                Hashtable UserRespData = (Hashtable)UserResp.Value;
-                // if we got a response, we were successful
-                return UserRespData.ContainsKey("responsestring");
+                try
+                {
+                    XmlRpcRequest UserReq = new XmlRpcRequest("deregister_messageserver", SendParams);
+                    XmlRpcResponse UserResp = UserReq.Send(m_cfg.UserServerURL, 16000);
+                    // Process Response
+                    Hashtable UserRespData = (Hashtable)UserResp.Value;
+                    // if we got a response, we were successful
+                    if(!UserRespData.ContainsKey("responsestring"))
+                        success = false;
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("Unable to connect to grid. User server not running?");
+                    success = false;
+                }
             }
-            catch (Exception ex)
-            {
-                m_log.Error("Unable to connect to grid. User server not running?");
-                throw (ex);
-            }
+            return success;
         }
 
         #endregion
