@@ -55,7 +55,7 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// <para>Initialises asset interface</para>
         /// </summary>
-        [Obsolete("Cannot be default-initialized!")]
+        // [Obsolete("Cannot be default-initialized!")]
         override public void Initialise()
         {
             m_log.Info("[MSSQLUserData]: " + Name + " cannot be default-initialized!");

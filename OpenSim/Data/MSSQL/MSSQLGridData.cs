@@ -54,7 +54,7 @@ namespace OpenSim.Data.MSSQL
 
         #region IPlugin Members
 
-        [Obsolete("Cannot be default-initialized!")]
+        // [Obsolete("Cannot be default-initialized!")]
         override public void Initialise()
         {
             m_log.Info("[GRID DB]: " + Name + " cannot be default-initialized!");

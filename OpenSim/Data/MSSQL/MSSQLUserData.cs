@@ -55,7 +55,7 @@ namespace OpenSim.Data.MSSQL
         private const string m_usersTableName = "users";
         private const string m_userFriendsTableName = "userfriends";
 
-        [Obsolete("Cannot be default-initialized!")]
+        // [Obsolete("Cannot be default-initialized!")]
         override public void Initialise()
         {
             m_log.Info("[MSSQLUserData]: " + Name + " cannot be default-initialized!");
