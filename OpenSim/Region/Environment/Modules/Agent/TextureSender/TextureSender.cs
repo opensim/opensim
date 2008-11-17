@@ -176,6 +176,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         // See ITextureSender
         public void UpdateRequest(int discardLevel, uint packetNumber)
         {
+            if (download == null)
+                return;
+
             lock (download)
             {
                 if (discardLevel < download.DiscardLevel)
