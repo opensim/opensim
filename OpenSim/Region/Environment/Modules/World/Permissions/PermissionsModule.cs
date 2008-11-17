@@ -87,10 +87,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         private UserSet m_allowedScriptCreators = UserSet.All;
 
         /// <value>
-        /// The set of users that are allowed to view (and in Second Life, edit) scripts.  This is only active if 
+        /// The set of users that are allowed to edit (save) scripts.  This is only active if 
         /// permissions are not being bypassed.  This overrides normal permissions.-
         /// </value>        
-        //private UserSet m_allowedScriptViewers = UserSet.All;
+        private UserSet m_allowedScriptEditors = UserSet.All;
 
         #endregion
 
@@ -171,6 +171,8 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             
             m_allowedScriptCreators 
                 = ParseUserSetConfigSetting(myConfig, "allowed_script_creators", m_allowedScriptCreators);
+            m_allowedScriptEditors
+                = ParseUserSetConfigSetting(myConfig, "allowed_script_editors", m_allowedScriptEditors);
 
             if (m_bypassPermissions)
                 m_log.Info("[PERMISSIONS]: serviceside_object_permissions = false in ini file so disabling all region service permission checks");
@@ -239,7 +241,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.EventManager.OnPluginConsole += new EventManager.OnPluginConsoleDelegate(EventManager_OnPluginConsole);
         }
 
-
         public void PostInitialise()
         {
         }
@@ -302,7 +303,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     rawSetting, settingName, userSet);
             }            
             
-            //m_log.DebugFormat("[PERMISSIONS]: {0} {1}", settingName, userSet);
+            m_log.DebugFormat("[PERMISSIONS]: {0} {1}", settingName, userSet);
             
             return userSet;
         }
@@ -724,8 +725,11 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-            // If you can view it, you can edit it
+                            
+            if (m_allowedScriptEditors == UserSet.Administrators && !IsAdministrator(user))
+                return false;   
+            
+            // Ordinarily, if you can view it, you can edit it
             // There is no viewing a no mod script
             //
             return CanViewScript(script, objectID, user, scene);
@@ -816,7 +820,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
-
 
             return GenericCommunicationPermission(user, target);
         }
@@ -1128,7 +1131,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         private bool CanViewScript(UUID script, UUID objectID, UUID user, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-            if (m_bypassPermissions) return m_bypassPermissionsValue;
+            if (m_bypassPermissions) return m_bypassPermissionsValue;           
 
             if (objectID == UUID.Zero) // User inventory
             {
@@ -1139,7 +1142,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 {
                     m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for administrator check", user);
                     return false;
-                }    
+                }                  
 
                 if (userInfo.RootFolder == null)
                     return false;

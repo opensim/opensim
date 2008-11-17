@@ -141,6 +141,15 @@
     ; Default value is all 
     ; allowed_script_creators = all
 
+    ; Control user types that are allowed to edit (save) scripts
+    ; Only enforced if serviceside_object_permissions is true
+    ;   
+    ; Current possible values are 
+    ;     all - anyone can edit scripts (subject to normal permissions)
+    ;     gods - only administrators can edit scripts (as long as allow_grid_gods is true)
+    ; Default value is all 
+    ; allowed_script_editors = all
+
     ; ##
     ; ## SCRIPT ENGINE
     ; ##
