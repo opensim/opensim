@@ -46,7 +46,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_Enabled = false;
+        // private bool m_Enabled = false;
         private bool m_Gridmode = false;
         private List<Scene> m_Scenes = new List<Scene>();
         private Dictionary<UUID, ulong> m_UserRegionMap = new Dictionary<UUID, ulong>();
@@ -63,7 +63,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             if (cnf != null)
                 m_Gridmode = cnf.GetBoolean("gridmode", false);
 
-            m_Enabled = true;
+            // m_Enabled = true;
 
             lock (m_Scenes)
             {
