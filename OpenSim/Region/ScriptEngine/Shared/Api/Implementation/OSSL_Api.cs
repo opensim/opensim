@@ -219,7 +219,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             if (UUID.TryParse(current, out uuid))
                             {
-                                if (uuid != uuid.Zero)
+                                if (uuid != UUID.Zero)
                                     m_FunctionPerms[function].Add(uuid);
                             }
                         }
