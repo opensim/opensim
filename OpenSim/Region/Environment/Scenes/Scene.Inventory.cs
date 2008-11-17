@@ -1639,10 +1639,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"> </param>
         /// <param name="objectGroup"></param>
         /// <param name="folderID"></param>
-        /// <param name="permissionToDelete"></param>
         public virtual UUID DeleteToInventory(int destination, UUID folderID,
-                SceneObjectGroup objectGroup, IClientAPI remoteClient,
-                bool permissionToDelete)
+            SceneObjectGroup objectGroup, IClientAPI remoteClient)
         {
             UUID assetID = UUID.Zero;
 

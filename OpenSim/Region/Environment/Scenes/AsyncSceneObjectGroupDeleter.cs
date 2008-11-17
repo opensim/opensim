@@ -42,7 +42,6 @@ namespace OpenSim.Region.Environment.Scenes
         public IClientAPI remoteClient;
         public SceneObjectGroup objectGroup;
         public UUID folderID;
-        public bool permissionToDelete;
     }
     
     /// <summary>
@@ -88,7 +87,6 @@ namespace OpenSim.Region.Environment.Scenes
                 dtis.folderID = folderID;
                 dtis.objectGroup = objectGroup;
                 dtis.remoteClient = remoteClient;
-                dtis.permissionToDelete = permissionToDelete;
 
                 m_inventoryDeletes.Enqueue(dtis);
             }
@@ -129,13 +127,11 @@ namespace OpenSim.Region.Environment.Scenes
 
                         try
                         {
-                            m_scene.DeleteToInventory(x.destination,
-                                    x.folderID, x.objectGroup, x.remoteClient,
-                                    x.permissionToDelete);
+                            m_scene.DeleteToInventory(x.destination, x.folderID, x.objectGroup, x.remoteClient);
                         }
                         catch (Exception e)
                         {
-                            m_log.DebugFormat("Exception background deleting object: "+e.ToString());
+                            m_log.DebugFormat("Exception background deleting object: " +e);
                         }
                         
                         return true;
