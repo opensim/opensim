@@ -1063,30 +1063,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void FakeDeleteGroup()
-        {
-            // If there are any updates queued for this object when the 'fake' delete happens, then make sure
-            // that they don't happen, otherwise the deleted objects will reappear
-            m_isDeleted = true;
-
-            DetachFromBackup();
-
-            foreach (SceneObjectPart part in m_parts.Values)
-            {
-                List<ScenePresence> avatars = Scene.GetScenePresences();
-                for (int i = 0; i < avatars.Count; i++)
-                {
-                    if (avatars[i].ParentID == LocalId)
-                    {
-                        avatars[i].StandUp();
-                    }
-
-                    if (m_rootPart != null && part == m_rootPart)
-                        avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
-                }
-            }
-        }
-
         public void AddScriptLPS(int count)
         {
             if (scriptScore + count >= float.MaxValue - count)

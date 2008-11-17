@@ -96,7 +96,7 @@ namespace OpenSim.Region.Environment.Scenes
         
             // Visually remove it, even if it isnt really gone yet.
             if (permissionToDelete)
-                objectGroup.FakeDeleteGroup();
+                objectGroup.DeleteGroup(false);
         }
         
         private void InventoryRunDeleteTimer(object sender, ElapsedEventArgs e)

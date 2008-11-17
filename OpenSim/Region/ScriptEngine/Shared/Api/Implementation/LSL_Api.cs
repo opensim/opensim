@@ -1425,13 +1425,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null)
                 return;
 
-            bool needs_fakedelete = false;
             if (flexi)
             {
-                if (!part.Shape.FlexiEntry)
-                {
-                    needs_fakedelete = true;
-                }
                 part.Shape.FlexiEntry = true;   // this setting flexi true isn't working, but the below parameters do
                                                 // work once the prim is already flexi
                 part.Shape.FlexiSoftness = softness;
@@ -1444,23 +1439,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.Shape.FlexiForceZ = (float)Force.z;
                 part.Shape.PathCurve = 0x80;
 
-            }
-            else
-            {
-                if (part.Shape.FlexiEntry)
-                {
-                    needs_fakedelete = true;
-                }
-                part.Shape.FlexiEntry = false;
-            }
-
-            needs_fakedelete = false;
-            if (needs_fakedelete)
-            {
-                if (part.ParentGroup != null)
-                {
-                    part.ParentGroup.FakeDeleteGroup();
-                }
             }
 
             part.ParentGroup.HasGroupChanged = true;
