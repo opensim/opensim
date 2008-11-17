@@ -57,7 +57,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         [Test]
         public void TestAddRootAgent()
         {
-            Scene scene = SceneTestUtils.SetupScene();
+            // Scene scene = SceneTestUtils.SetupScene();
+            SceneTestUtils.SetupScene();
             
             AgentCircuitData agent = new AgentCircuitData();
             agent.AgentID = UUID.Zero;
