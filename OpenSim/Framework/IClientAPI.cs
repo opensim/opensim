@@ -198,7 +198,7 @@ namespace OpenSim.Framework
     public delegate void UUIDNameRequest(UUID id, IClientAPI remote_client);
 
     public delegate void AddNewPrim(
-        UUID ownerID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape, byte bypassRaycast, Vector3 RayStart,
+        UUID ownerID, UUID groupID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape, byte bypassRaycast, Vector3 RayStart,
         UUID RayTargetID,
         byte RayEndIsIntersection);
 

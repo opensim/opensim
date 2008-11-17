@@ -468,7 +468,7 @@ namespace OpenSim.Region.Environment.Modules.ContentManagement
             m_log.Debug("[CONTENT MANAGEMENT]scale");
         }
 
-        protected void UpdateNewParts(UUID ownerID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape,
+        protected void UpdateNewParts(UUID ownerID, UUID groupID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape,
             byte bypassRaycast, Vector3 RayStart, UUID RayTargetID,
             byte RayEndIsIntersection)
         {

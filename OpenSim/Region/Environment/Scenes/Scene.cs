@@ -1738,7 +1738,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public virtual void AddNewPrim(UUID ownerID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape,
+        public virtual void AddNewPrim(UUID ownerID, UUID groupID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape,
                                        byte bypassRaycast, Vector3 RayStart, UUID RayTargetID,
                                        byte RayEndIsIntersection)
         {
@@ -1749,11 +1749,11 @@ namespace OpenSim.Region.Environment.Scenes
                 // rez ON the ground, not IN the ground
                 pos.Z += 0.25F;
 
-                AddNewPrim(ownerID, pos, rot, shape);
+                AddNewPrim(ownerID, groupID, pos, rot, shape);
             }
         }
 
-        public virtual SceneObjectGroup AddNewPrim(UUID ownerID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
+        public virtual SceneObjectGroup AddNewPrim(UUID ownerID, UUID groupID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
         {
             //m_log.DebugFormat(
             //    "[SCENE]: Scene.AddNewPrim() called for agent {0} in {1}", ownerID, RegionInfo.RegionName);
@@ -1772,6 +1772,7 @@ namespace OpenSim.Region.Environment.Scenes
                     AdaptTree(ref shape);
             }
 
+            sceneObject.SetGroup(groupID, null);
             AddNewSceneObject(sceneObject, true);
 
             return sceneObject;
@@ -1797,7 +1798,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public SceneObjectGroup AddTree(UUID uuid, Vector3 scale, Quaternion rotation, Vector3 position,
+        public SceneObjectGroup AddTree(UUID uuid, UUID groupID, Vector3 scale, Quaternion rotation, Vector3 position,
                                         Tree treeType, bool newTree)
         {
             PrimitiveBaseShape treeShape = new PrimitiveBaseShape();
@@ -1806,7 +1807,7 @@ namespace OpenSim.Region.Environment.Scenes
             treeShape.PCode = newTree ? (byte)PCode.NewTree : (byte)PCode.Tree;
             treeShape.Scale = scale;
             treeShape.State = (byte)treeType;
-            return AddNewPrim(uuid, position, rotation, treeShape);
+            return AddNewPrim(uuid, groupID, position, rotation, treeShape);
         }
 
         /// <summary>

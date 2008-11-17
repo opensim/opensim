@@ -234,7 +234,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
             position.Z = (float) m_scene.Heightmap[(int) position.X, (int) position.Y];
 
             SceneObjectGroup tree =
-                m_scene.AddTree(uuid, new Vector3(0.1f, 0.1f, 0.1f),
+                m_scene.AddTree(uuid, UUID.Zero, new Vector3(0.1f, 0.1f, 0.1f),
                                 Quaternion.Identity,
                                 position,
                                 Tree.Cypress1,

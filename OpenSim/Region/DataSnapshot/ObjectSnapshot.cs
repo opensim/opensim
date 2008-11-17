@@ -61,7 +61,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
             //Detect object data changes by hooking into the IClientAPI.
             //Very dirty, and breaks whenever someone changes the client API.
 
-            client.OnAddPrim += delegate (UUID ownerID, Vector3 RayEnd, Quaternion rot,
+            client.OnAddPrim += delegate (UUID ownerID, UUID groupID, Vector3 RayEnd, Quaternion rot,
                 PrimitiveBaseShape shape, byte bypassRaycast, Vector3 RayStart, UUID RayTargetID,
                 byte RayEndIsIntersection) { this.Stale = true; };
             client.OnLinkObjects += delegate (IClientAPI remoteClient, uint parent, List<uint> children)
