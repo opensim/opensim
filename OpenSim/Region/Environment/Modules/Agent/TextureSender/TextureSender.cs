@@ -34,6 +34,98 @@ using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
 {
+    public class ImageDownload
+    {
+        public const int FIRST_IMAGE_PACKET_SIZE = 600;
+        public const int IMAGE_PACKET_SIZE = 1000;
+
+        public OpenMetaverse.AssetTexture Texture;
+        public int DiscardLevel;
+        public float Priority;
+        public int CurrentPacket;
+        public int StopPacket;
+
+        public ImageDownload(OpenMetaverse.AssetTexture texture, int discardLevel, float priority, int packet)
+        {
+            Texture = texture;
+            Update(discardLevel, priority, packet);
+        }
+
+        /// <summary>
+        /// Updates an image transfer with new information and recalculates
+        /// offsets
+        /// </summary>
+        /// <param name="discardLevel">New requested discard level</param>
+        /// <param name="priority">New requested priority</param>
+        /// <param name="packet">New requested packet offset</param>
+        public void Update(int discardLevel, float priority, int packet)
+        {
+            Priority = priority;
+            DiscardLevel = Clamp(discardLevel, 0, Texture.LayerInfo.Length - 1);
+            StopPacket = GetPacketForBytePosition(Texture.LayerInfo[(Texture.LayerInfo.Length - 1) - DiscardLevel].End);
+            CurrentPacket = Clamp(packet, 1, TexturePacketCount());
+        }
+
+        /// <summary>
+        /// Returns the total number of packets needed to transfer this texture,
+        /// including the first packet of size FIRST_IMAGE_PACKET_SIZE
+        /// </summary>
+        /// <returns>Total number of packets needed to transfer this texture</returns>
+        public int TexturePacketCount()
+        {
+            return ((Texture.AssetData.Length - FIRST_IMAGE_PACKET_SIZE + IMAGE_PACKET_SIZE - 1) / IMAGE_PACKET_SIZE) + 1;
+        }
+
+        /// <summary>
+        /// Returns the current byte offset for this transfer, calculated from
+        /// the CurrentPacket
+        /// </summary>
+        /// <returns>Current byte offset for this transfer</returns>
+        public int CurrentBytePosition()
+        {
+            return FIRST_IMAGE_PACKET_SIZE + (CurrentPacket - 1) * IMAGE_PACKET_SIZE;
+        }
+
+        /// <summary>
+        /// Returns the size, in bytes, of the last packet. This will be somewhere
+        /// between 1 and IMAGE_PACKET_SIZE bytes
+        /// </summary>
+        /// <returns>Size of the last packet in the transfer</returns>
+        public int LastPacketSize()
+        {
+            return Texture.AssetData.Length - (FIRST_IMAGE_PACKET_SIZE + ((TexturePacketCount() - 2) * IMAGE_PACKET_SIZE));
+        }
+
+        /// <summary>
+        /// Find the packet number that contains a given byte position
+        /// </summary>
+        /// <param name="bytePosition">Byte position</param>
+        /// <returns>Packet number that contains the given byte position</returns>
+        int GetPacketForBytePosition(int bytePosition)
+        {
+            return ((bytePosition - FIRST_IMAGE_PACKET_SIZE + IMAGE_PACKET_SIZE - 1) / IMAGE_PACKET_SIZE);
+        }
+
+        /// <summary>
+        /// Clamp a given value between a range
+        /// </summary>
+        /// <param name="value">Value to clamp</param>
+        /// <param name="min">Minimum allowable value</param>
+        /// <param name="max">Maximum allowable value</param>
+        /// <returns>A value inclusively between lower and upper</returns>
+        static int Clamp(int value, int min, int max)
+        {
+            // First we check to see if we're greater than the max
+            value = (value > max) ? max : value;
+
+            // Then we check to see if we're less than the min.
+            value = (value < min) ? min : value;
+
+            // There's no check to see if min > max.
+            return value;
+        }
+    }
+
     /// <summary>
     /// A TextureSender handles the process of receiving a texture requested by the client from the
     /// AssetCache, and then sending that texture back to the client.
@@ -43,90 +135,76 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// Records the number of times texture send has been called.
-        /// </summary>
-        public int counter = 0;
-
         public bool ImageLoaded = false;
 
         /// <summary>
         /// Holds the texture asset to send.
         /// </summary>
         private AssetBase m_asset;
+        private bool m_cancel = false;
+        private bool m_sending = false;
+        private bool sendFirstPacket = false;
+        private int initialDiscardLevel = 0;
+        private int initialPacketNum = 0;
 
-        //public UUID assetID { get { return m_asset.FullID; } }
-
-        // private bool m_cancel = false;
-
-        // See ITextureSender
-
-        // private bool m_sending = false;
-
-        /// <summary>
-        /// This is actually the number of extra packets required to send the texture data!  We always assume
-        /// at least one is required.
-        /// </summary>
-        private int NumPackets = 0;
-
-        /// <summary>
-        /// Holds the packet number to send next.  In this case, each packet is 1000 bytes long and starts
-        /// at the 600th byte (0th indexed).
-        /// </summary>
-        private int PacketCounter = 0;
-
-        private int RequestedDiscardLevel = -1;
+        private ImageDownload download;
         private IClientAPI RequestUser;
-        private uint StartPacketNumber = 0;
 
         public TextureSender(IClientAPI client, int discardLevel, uint packetNumber)
         {
             RequestUser = client;
-            RequestedDiscardLevel = discardLevel;
-            StartPacketNumber = packetNumber;
+            initialDiscardLevel = discardLevel;
+            initialPacketNum = (int)packetNumber;
         }
 
         #region ITextureSender Members
 
         public bool Cancel
         {
-            get { return false; }
-            set 
-            { 
-                // m_cancel = value; 
-            }
+            get { return m_cancel; }
+            set { m_cancel = value; }
         }
 
         public bool Sending
         {
-            get { return false; }
-            set 
-            { 
-                // m_sending = value; 
-            }
+            get { return m_sending; }
+            set { m_sending = value; }
         }
 
         // See ITextureSender
         public void UpdateRequest(int discardLevel, uint packetNumber)
         {
-            RequestedDiscardLevel = discardLevel;
-            StartPacketNumber = packetNumber;
-            PacketCounter = (int) StartPacketNumber;
+            lock (download)
+            {
+                if (discardLevel < download.DiscardLevel)
+                    m_log.DebugFormat("Image download {0} is changing from DiscardLevel {1} to {2}",
+                        m_asset.FullID, download.DiscardLevel, discardLevel);
+
+                if (packetNumber != download.CurrentPacket)
+                    m_log.DebugFormat("Image download {0} is changing from Packet {1} to {2}",
+                        m_asset.FullID, download.CurrentPacket, packetNumber);
+
+                download.Update(discardLevel, download.Priority, (int)packetNumber);
+
+                sendFirstPacket = true;
+            }
         }
 
         // See ITextureSender
         public bool SendTexturePacket()
         {
-            //m_log.DebugFormat("[TEXTURE SENDER]: Sending packet for {0}", m_asset.FullID);
-
-            SendPacket();
-            counter++;
-            if ((NumPackets == 0) || (RequestedDiscardLevel == -1) || (PacketCounter > NumPackets) ||
-                ((RequestedDiscardLevel > 0) && (counter > 50 + (NumPackets / (RequestedDiscardLevel + 1)))))
+            if (!m_cancel && download.CurrentPacket <= download.StopPacket)
             {
+                SendPacket();
+                return false;
+            }
+            else
+            {
+                m_sending = false;
+                m_cancel = true;
+                sendFirstPacket = false;
                 return true;
             }
-            return false;
         }
 
         #endregion
@@ -140,9 +218,33 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         public void TextureReceived(AssetBase asset)
         {
             m_asset = asset;
-            NumPackets = CalculateNumPackets(asset.Data.Length);
-            PacketCounter = (int) StartPacketNumber;
-            ImageLoaded = true;
+
+            try
+            {
+                OpenMetaverse.AssetTexture texture = new OpenMetaverse.AssetTexture(m_asset.FullID, m_asset.Data);
+                if (texture.DecodeLayerBoundaries())
+                {
+                    download = new ImageDownload(texture, initialDiscardLevel, 0.0f, initialPacketNum);
+                    ImageLoaded = true;
+                    m_sending = true;
+                    m_cancel = false;
+                    sendFirstPacket = true;
+
+                    return;
+                }
+                else
+                {
+                    m_log.Error("JPEG2000 texture decoding failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("JPEG2000 texture decoding threw an exception", ex);
+            }
+
+            ImageLoaded = false;
+            m_sending = false;
+            m_cancel = true;
         }
 
         /// <summary>
@@ -150,66 +252,34 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         /// </summary>
         private void SendPacket()
         {
-            if (PacketCounter <= NumPackets)
+            lock (download)
             {
-                if (PacketCounter == 0)
+                if (sendFirstPacket)
                 {
-                    if (NumPackets == 0)
+                    sendFirstPacket = false;
+
+                    if (m_asset.Data.Length <= 600)
                     {
                         RequestUser.SendImageFirstPart(1, m_asset.FullID, (uint)m_asset.Data.Length, m_asset.Data, 2);
-                        PacketCounter++;
+                        return;
                     }
                     else
                     {
-                        byte[] ImageData1 = new byte[600];
-                        Array.Copy(m_asset.Data, 0, ImageData1, 0, 600);
-
-                        RequestUser.SendImageFirstPart(
-                            (ushort)(NumPackets), m_asset.FullID, (uint)m_asset.Data.Length, ImageData1, 2);
-                        PacketCounter++;
+                        byte[] firstImageData = new byte[600];
+                        Buffer.BlockCopy(m_asset.Data, 0, firstImageData, 0, 600);
+                        RequestUser.SendImageFirstPart((ushort)download.TexturePacketCount(), m_asset.FullID, (uint)m_asset.Data.Length, firstImageData, 2);
                     }
                 }
-                else
-                {
-                    int size = m_asset.Data.Length - 600 - (1000 * (PacketCounter - 1));
-                    if (size > 1000) size = 1000;
-                    byte[] imageData = new byte[size];
-                    try
-                    {
-                        Array.Copy(m_asset.Data, 600 + (1000 * (PacketCounter - 1)), imageData, 0, size);
-                    }
-                    catch (ArgumentOutOfRangeException)
-                    {
-                        m_log.Error("[TEXTURE SENDER]: Unable to separate texture into multiple packets: Array bounds failure on asset:" +
-                                    m_asset.FullID.ToString());
-                        return;
-                    }
-                    
-                    RequestUser.SendImageNextPart((ushort)PacketCounter, m_asset.FullID, imageData);
-                    PacketCounter++;
-                }
+
+                int imagePacketSize = (download.CurrentPacket == download.TexturePacketCount() - 1) ?
+                    download.LastPacketSize() : ImageDownload.IMAGE_PACKET_SIZE;
+
+                byte[] imageData = new byte[imagePacketSize];
+                Buffer.BlockCopy(m_asset.Data, download.CurrentBytePosition(), imageData, 0, imagePacketSize);
+
+                RequestUser.SendImageNextPart((ushort)download.CurrentPacket, m_asset.FullID, imageData);
+                ++download.CurrentPacket;
             }
-        }
-
-        /// <summary>
-        /// Calculate the number of packets that will be required to send the texture loaded into this sender
-        /// This is actually the number of 1000 byte packets not including an initial 600 byte packet...
-        /// </summary>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        private int CalculateNumPackets(int length)
-        {
-            int numPackets = 0;
-
-            if (length > 600)
-            {
-                //over 600 bytes so split up file
-                int restData = (length - 600);
-                int restPackets = ((restData + 999) / 1000);
-                numPackets = restPackets;
-            }
-
-            return numPackets;
         }
     }
 }
