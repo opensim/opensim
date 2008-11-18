@@ -431,6 +431,52 @@ namespace OpenSim.Data.Tests
         }
         
         [Test]
+        public void T023_AgentPersistency()
+        {
+            UUID user = user4;
+            UUID agent = agent4;
+            UUID secureagent = UUID.Random();
+            string agentip = RandomName();
+            uint agentport = (uint)random.Next();
+            int logintime = random.Next();
+            int logouttime = random.Next();
+            UUID regionid = UUID.Random();
+            ulong regionhandle = (ulong) random.Next();
+            Vector3 currentpos = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
+            Vector3 currentlookat = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
+            UUID orgregionid = UUID.Random();
+            
+            UserAgentData a = new UserAgentData();
+            a.ProfileID = user;
+            a.SessionID = agent;
+            a.SecureSessionID = secureagent;
+            a.AgentIP = agentip;
+            a.AgentPort = agentport;
+            a.LoginTime = logintime;
+            a.LogoutTime = logouttime;
+            a.Region = regionid;
+            a.Handle = regionhandle;
+            a.Position = currentpos;
+            a.LookAt = currentlookat;
+            a.InitialRegion = orgregionid;
+
+            db.AddNewUserAgent(a);
+
+            UserAgentData a1 = db.GetAgentByUUID(user4);
+            Assert.That(user,Is.EqualTo(a1.ProfileID));
+            Assert.That(agent,Is.EqualTo(a1.SessionID));
+            Assert.That(secureagent,Is.EqualTo(a1.SecureSessionID));
+            Assert.That(agentip,Is.EqualTo(a1.AgentIP));
+            Assert.That(agentport,Is.EqualTo(a1.AgentPort));
+            Assert.That(logintime,Is.EqualTo(a1.LoginTime));
+            Assert.That(logouttime,Is.EqualTo(a1.LogoutTime));
+            Assert.That(regionid,Is.EqualTo(a1.Region));
+            Assert.That(regionhandle,Is.EqualTo(a1.Handle));
+            Assert.That(currentpos,Is.EqualTo(a1.Position));
+            Assert.That(currentlookat,Is.EqualTo(a1.LookAt));
+        }
+
+        [Test]
         public void T030_CreateFriendList()
         {
             Dictionary<UUID, uint> perms = new Dictionary<UUID,uint>();
