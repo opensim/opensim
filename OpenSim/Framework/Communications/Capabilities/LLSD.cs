@@ -561,7 +561,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                         endPos = FindEnd(llsd, 1);
 
                         if (Double.TryParse(llsd.Substring(1, endPos - 1), NumberStyles.Float,
-                                            Helpers.EnUsCulture.NumberFormat, out value))
+                                            Utils.EnUsCulture.NumberFormat, out value))
                             return value;
                         else
                             throw new LLSDParseException("Failed to parse double value type");

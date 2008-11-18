@@ -27,7 +27,6 @@
 
 using System;
 using System.Reflection;
-using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -198,7 +197,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         // See ITextureSender
         public bool SendTexturePacket()
         {
-            if (!m_cancel && (sendFirstPacket || download.CurrentPacket <= download.StopPacket))
+            if (download != null && !m_cancel && (sendFirstPacket || download.CurrentPacket <= download.StopPacket))
             {
                 SendPacket();
                 return false;

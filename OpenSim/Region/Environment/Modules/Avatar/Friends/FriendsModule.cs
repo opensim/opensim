@@ -29,7 +29,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenMetaverse;
-using OpenMetaverse.Packets;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
