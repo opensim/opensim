@@ -1772,8 +1772,8 @@ namespace OpenSim.Region.Environment.Scenes
                     AdaptTree(ref shape);
             }
 
-            sceneObject.SetGroup(groupID, null);
             AddNewSceneObject(sceneObject, true);
+            sceneObject.SetGroup(groupID, null);
 
             return sceneObject;
         }

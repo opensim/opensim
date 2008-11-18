@@ -1699,6 +1699,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void QueueForUpdateCheck()
         {
+            if (m_scene == null) // Need to check here as it's null during object creation
+                return;
             m_scene.m_sceneGraph.AddToUpdateList(this);
         }
 
