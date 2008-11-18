@@ -775,7 +775,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 // Don't let a failure in an individual client thread crash the whole sim.
                 m_log.ErrorFormat(
-                    "[CLIENT]: Client thread for {0} {1} crashed.  Logging them out.  Exception {2}", Name, AgentId, e);
+                    "[CLIENT]: Client thread for {0} {1} crashed.  Logging them out.", Name, AgentId);
+                m_log.Error(e.ToString());
 
                 try
                 {

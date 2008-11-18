@@ -510,8 +510,9 @@ namespace OpenSim.Region.Environment.Scenes
             RegisterToEvents();
             SetDirectionVectors();
 
-            CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid); 
-            userInfo.OnItemReceived += ItemReceived;
+            CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid);
+            if (userInfo != null)
+                userInfo.OnItemReceived += ItemReceived;
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,

@@ -89,6 +89,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_localScene = value;
                 m_packetServer.LocalScene = m_localScene;
+
                 m_location = new Location(m_localScene.RegionInfo.RegionHandle);
             }
         }
@@ -404,6 +405,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="epProxy"></param>
         protected virtual void AddNewClient(UseCircuitCodePacket useCircuit, EndPoint epSender, EndPoint epProxy)
         {
+            m_log.Debug("[CONNECTION DEBUGGING] AddNewClient Called");
+
             //Slave regions don't accept new clients
             if (m_localScene.Region_Status != RegionStatus.SlaveScene)
             {                

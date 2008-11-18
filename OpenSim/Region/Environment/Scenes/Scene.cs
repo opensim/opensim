@@ -2746,6 +2746,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agent"></param>
         public void NewUserConnection(AgentCircuitData agent)
         {
+            m_log.DebugFormat("[CONNECTION DEBUGGING] Adding NewUserConnection for {0} with CC of {1}", agent.AgentID,
+                              agent.circuitcode);
+
             if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
             {
                 m_log.WarnFormat(

@@ -49,8 +49,7 @@ namespace OpenSim.Framework
 
         public void ForEachClient(ForEachClientDelegate whatToDo)
         {
-            // Wasteful, I know
-            IClientAPI[] LocalClients = new IClientAPI[0];
+            IClientAPI[] LocalClients;
             lock (m_clients)
             {
                 LocalClients = new IClientAPI[m_clients.Count];

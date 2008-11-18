@@ -166,7 +166,7 @@ namespace OpenSim.Framework.Communications
                     }
                     else if (requestData.Contains("web_login_key"))
                     {
-                        UUID webloginkey = UUID.Zero;
+                        UUID webloginkey;
                         try
                         {
                             webloginkey = new UUID((string)requestData["web_login_key"]);
