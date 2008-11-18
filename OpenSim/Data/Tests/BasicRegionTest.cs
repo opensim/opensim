@@ -467,7 +467,52 @@ namespace OpenSim.Data.Tests
             Assert.That(clickaction,Is.EqualTo(p.ClickAction));
             Assert.That(scale,Is.EqualTo(p.Scale));
         }
-
+        
+        [Test]
+        public void T015_LargeSceneObjects()
+        {
+            UUID id = UUID.Random();
+            Dictionary<UUID, SceneObjectPart> mydic = new Dictionary<UUID, SceneObjectPart>();
+            SceneObjectGroup sog = NewSOG("Test SOG",id);
+            mydic.Add(sog.RootPart.UUID,sog.RootPart);
+            Console.WriteLine("Let's Start!");
+            for (int i=0;i<30;i++) 
+            {
+                UUID tmp = UUID.Random();
+                SceneObjectPart sop = NewSOP(("Test SOP " + i.ToString()),tmp);
+                Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());             
+                Vector3 offset = new Vector3(random.Next(),random.Next(),random.Next());
+                Quaternion rotoff = new Quaternion(random.Next(),random.Next(),random.Next(),random.Next());
+                Vector3 velocity = new Vector3(random.Next(),random.Next(),random.Next());
+                Vector3 angvelo = new Vector3(random.Next(),random.Next(),random.Next());
+                Vector3 accel = new Vector3(random.Next(),random.Next(),random.Next());  
+                
+                sop.GroupPosition = groupos;
+                sop.RotationOffset = rotoff;
+                sop.OffsetPosition = offset;
+                sop.Velocity = velocity;
+                sop.AngularVelocity = angvelo;
+                sop.Acceleration = accel;
+                
+                mydic.Add(tmp,sop);
+                sog.AddPart(sop);
+                db.StoreObject(sog, region4);
+            }
+            
+            SceneObjectGroup retsog = FindSOG("Test SOG", region4);
+            SceneObjectPart[] parts = retsog.GetParts();
+            for (int i=0;i<30;i++)
+            {
+                SceneObjectPart cursop = mydic[parts[i].UUID];
+                Assert.That(cursop.GroupPosition,Is.EqualTo(parts[i].GroupPosition));
+                Assert.That(cursop.RotationOffset,Is.EqualTo(parts[i].RotationOffset));
+                Assert.That(cursop.OffsetPosition,Is.EqualTo(parts[i].OffsetPosition));
+                Assert.That(cursop.Velocity,Is.EqualTo(parts[i].Velocity));
+                Assert.That(cursop.AngularVelocity,Is.EqualTo(parts[i].AngularVelocity));
+                Assert.That(cursop.Acceleration,Is.EqualTo(parts[i].Acceleration));
+            }
+        }
+        
         [Test]
         public void T020_PrimInventoryEmpty()
         {
@@ -660,21 +705,106 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T101_UpdateRegionInfo()
         {
-            bool blockfly = true;
-            double sunpos = 0.5;
+            int agentlimit = random.Next();
+            double objectbonus = random.NextDouble();
+            int maturity = random.Next();
+            UUID tertex1 = UUID.Random();
+            UUID tertex2 = UUID.Random();
+            UUID tertex3 = UUID.Random();
+            UUID tertex4 = UUID.Random();
+            double elev1nw = random.NextDouble();
+            double elev2nw = random.NextDouble();
+            double elev1ne = random.NextDouble();
+            double elev2ne = random.NextDouble();
+            double elev1se = random.NextDouble();
+            double elev2se = random.NextDouble();
+            double elev1sw = random.NextDouble();
+            double elev2sw = random.NextDouble();
+            double waterh = random.NextDouble();
+            double terrainraise = random.NextDouble();
+            double terrainlower = random.NextDouble();
+            Vector3 sunvector = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
+            UUID terimgid = UUID.Random();
+            double sunpos = random.NextDouble();
             UUID cov = UUID.Random();
 
             RegionSettings r1 = db.LoadRegionSettings(region1);
-            r1.BlockFly = blockfly;
+            r1.BlockTerraform = true;
+            r1.BlockFly = true;
+            r1.AllowDamage = true;
+            r1.RestrictPushing = true;
+            r1.AllowLandResell = false;
+            r1.AllowLandJoinDivide = false;
+            r1.BlockShowInSearch = true;
+            r1.AgentLimit = agentlimit;
+            r1.ObjectBonus = objectbonus;
+            r1.Maturity = maturity;
+            r1.DisableScripts = true;
+            r1.DisableCollisions = true;
+            r1.DisablePhysics = true;
+            r1.TerrainTexture1 = tertex1;
+            r1.TerrainTexture2 = tertex2;
+            r1.TerrainTexture3 = tertex3;
+            r1.TerrainTexture4 = tertex4;
+            r1.Elevation1NW = elev1nw;
+            r1.Elevation2NW = elev2nw;
+            r1.Elevation1NE = elev1ne;
+            r1.Elevation2NE = elev2ne;
+            r1.Elevation1SE = elev1se;
+            r1.Elevation2SE = elev2se;
+            r1.Elevation1SW = elev1sw;
+            r1.Elevation2SW = elev2sw;
+            r1.WaterHeight = waterh;
+            r1.TerrainRaiseLimit = terrainraise;
+            r1.TerrainLowerLimit = terrainlower;
+            r1.UseEstateSun = false;
+            r1.Sandbox = true;
+            r1.SunVector = sunvector;
+            r1.TerrainImageID = terimgid;
+            r1.FixedSun = true;
             r1.SunPosition = sunpos;
             r1.Covenant = cov;
+            
             db.StoreRegionSettings(r1);
             
-            RegionSettings r2 = db.LoadRegionSettings(region1);
-            Assert.That(r2.RegionUUID, Is.EqualTo(region1));
-            Assert.That(r2.SunPosition, Is.EqualTo(sunpos));
-            Assert.That(r2.BlockFly, Is.EqualTo(blockfly));
-            Assert.That(r2.Covenant, Is.EqualTo(cov));
+            RegionSettings r1a = db.LoadRegionSettings(region1);
+            Assert.That(r1a.RegionUUID, Is.EqualTo(region1));
+            Assert.That(r1a.BlockTerraform,Is.True);
+            Assert.That(r1a.BlockFly,Is.True);
+            Assert.That(r1a.AllowDamage,Is.True);
+            Assert.That(r1a.RestrictPushing,Is.True);
+            Assert.That(r1a.AllowLandResell,Is.False);
+            Assert.That(r1a.AllowLandJoinDivide,Is.False);
+            Assert.That(r1a.BlockShowInSearch,Is.True);
+            Assert.That(r1a.AgentLimit,Is.EqualTo(agentlimit));
+            Assert.That(r1a.ObjectBonus,Is.EqualTo(objectbonus));
+            Assert.That(r1a.Maturity,Is.EqualTo(maturity));
+            Assert.That(r1a.DisableScripts,Is.True);
+            Assert.That(r1a.DisableCollisions,Is.True);
+            Assert.That(r1a.DisablePhysics,Is.True);
+            Assert.That(r1a.TerrainTexture1,Is.EqualTo(tertex1));
+            Assert.That(r1a.TerrainTexture2,Is.EqualTo(tertex2));
+            Assert.That(r1a.TerrainTexture3,Is.EqualTo(tertex3));
+            Assert.That(r1a.TerrainTexture4,Is.EqualTo(tertex4));
+            Assert.That(r1a.Elevation1NW,Is.EqualTo(elev1nw));
+            Assert.That(r1a.Elevation2NW,Is.EqualTo(elev2nw));
+            Assert.That(r1a.Elevation1NE,Is.EqualTo(elev1ne));
+            Assert.That(r1a.Elevation2NE,Is.EqualTo(elev2ne));
+            Assert.That(r1a.Elevation1SE,Is.EqualTo(elev1se));
+            Assert.That(r1a.Elevation2SE,Is.EqualTo(elev2se));
+            Assert.That(r1a.Elevation1SW,Is.EqualTo(elev1sw));
+            Assert.That(r1a.Elevation2SW,Is.EqualTo(elev2sw));
+            Assert.That(r1a.WaterHeight,Is.EqualTo(waterh));
+            Assert.That(r1a.TerrainRaiseLimit,Is.EqualTo(terrainraise));
+            Assert.That(r1a.TerrainLowerLimit,Is.EqualTo(terrainlower));
+            Assert.That(r1a.UseEstateSun,Is.False);
+            Assert.That(r1a.Sandbox,Is.True);
+            Assert.That(r1a.SunVector,Is.EqualTo(sunvector));
+            //Assert.That(r1a.TerrainImageID,Is.EqualTo(terimgid));
+            Assert.That(r1a.FixedSun,Is.True);
+            Assert.That(r1a.SunPosition, Is.EqualTo(sunpos));
+            Assert.That(r1a.Covenant, Is.EqualTo(cov));
+            
         }
 
         [Test]

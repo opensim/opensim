@@ -1064,6 +1064,9 @@ namespace OpenSim.Data.SQLite
             createCol(regionsettings, "terrain_lower_limit", typeof (Double));
             createCol(regionsettings, "use_estate_sun", typeof (Int32));
             createCol(regionsettings, "sandbox", typeof (Int32));
+            createCol(regionsettings, "sunvectorx",typeof (Double));
+            createCol(regionsettings, "sunvectory",typeof (Double));
+            createCol(regionsettings, "sunvectorz",typeof (Double));
             createCol(regionsettings, "fixed_sun", typeof (Int32));
             createCol(regionsettings, "sun_position", typeof (Double));
             createCol(regionsettings, "covenant", typeof(String));
@@ -1373,6 +1376,11 @@ namespace OpenSim.Data.SQLite
             newSettings.TerrainLowerLimit = Convert.ToDouble(row["terrain_lower_limit"]);
             newSettings.UseEstateSun = Convert.ToBoolean(row["use_estate_sun"]);
             newSettings.Sandbox = Convert.ToBoolean(row["sandbox"]);
+            newSettings.SunVector = new Vector3 (
+                                     Convert.ToSingle(row["sunvectorx"]),
+                                     Convert.ToSingle(row["sunvectory"]),
+                                     Convert.ToSingle(row["sunvectorz"])
+                                     );
             newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
             newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
             newSettings.Covenant = new UUID((String) row["covenant"]);
@@ -1681,6 +1689,9 @@ namespace OpenSim.Data.SQLite
             row["terrain_lower_limit"] = settings.TerrainLowerLimit;
             row["use_estate_sun"] = settings.UseEstateSun;
             row["sandbox"] = settings.Sandbox;
+            row["sunvectorx"] = settings.SunVector.X;
+            row["sunvectory"] = settings.SunVector.Y;
+            row["sunvectorz"] = settings.SunVector.Z;
             row["fixed_sun"] = settings.FixedSun;
             row["sun_position"] = settings.SunPosition;
             row["covenant"] = settings.Covenant.ToString();
