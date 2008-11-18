@@ -229,22 +229,41 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                 OpenMetaverse.AssetTexture texture = new OpenMetaverse.AssetTexture(m_asset.FullID, m_asset.Data);
                 if (texture.DecodeLayerBoundaries())
                 {
-                    download = new ImageDownload(texture, initialDiscardLevel, initialPriority, initialPacketNum);
-                    ImageLoaded = true;
-                    m_sending = true;
-                    m_cancel = false;
-                    sendFirstPacket = true;
+                    bool sane = true;
 
-                    return;
+                    // Sanity check all of the layers
+                    for (int i = 0; i < texture.LayerInfo.Length; i++)
+                    {
+                        if (texture.LayerInfo[i].End > texture.AssetData.Length)
+                        {
+                            sane = false;
+                            break;
+                        }
+                    }
+
+                    if (sane)
+                    {
+                        download = new ImageDownload(texture, initialDiscardLevel, initialPriority, initialPacketNum);
+                        ImageLoaded = true;
+                        m_sending = true;
+                        m_cancel = false;
+                        sendFirstPacket = true;
+                        return;
+                    }
+                    else
+                    {
+                        m_log.Error("JPEG2000 texture decoding succeeded, but sanity check failed for " +
+                            m_asset.FullID.ToString());
+                    }
                 }
                 else
                 {
-                    m_log.Error("JPEG2000 texture decoding failed");
+                    m_log.Error("JPEG2000 texture decoding failed for " + m_asset.FullID.ToString());
                 }
             }
             catch (Exception ex)
             {
-                m_log.Error("JPEG2000 texture decoding threw an exception", ex);
+                m_log.Error("JPEG2000 texture decoding threw an exception for " + m_asset.FullID.ToString(), ex);
             }
 
             ImageLoaded = false;
@@ -271,7 +290,14 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                     else
                     {
                         byte[] firstImageData = new byte[ImageDownload.FIRST_IMAGE_PACKET_SIZE];
-                        Buffer.BlockCopy(m_asset.Data, 0, firstImageData, 0, ImageDownload.FIRST_IMAGE_PACKET_SIZE);
+                        try { Buffer.BlockCopy(m_asset.Data, 0, firstImageData, 0, ImageDownload.FIRST_IMAGE_PACKET_SIZE); }
+                        catch (Exception)
+                        {
+                            m_log.Error("Texture data copy failed on first packet for " + m_asset.FullID.ToString());
+                            m_cancel = true;
+                            m_sending = false;
+                            return;
+                        }
                         RequestUser.SendImageFirstPart((ushort)download.TexturePacketCount(), m_asset.FullID, (uint)m_asset.Data.Length, firstImageData, 2);
                     }
                 }
@@ -280,7 +306,14 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                     download.LastPacketSize() : ImageDownload.IMAGE_PACKET_SIZE;
 
                 byte[] imageData = new byte[imagePacketSize];
-                Buffer.BlockCopy(m_asset.Data, download.CurrentBytePosition(), imageData, 0, imagePacketSize);
+                try { Buffer.BlockCopy(m_asset.Data, download.CurrentBytePosition(), imageData, 0, imagePacketSize); }
+                catch (Exception)
+                {
+                    m_log.Error("Texture data copy failed for " + m_asset.FullID.ToString());
+                    m_cancel = true;
+                    m_sending = false;
+                    return;
+                }
 
                 RequestUser.SendImageNextPart((ushort)download.CurrentPacket, m_asset.FullID, imageData);
                 ++download.CurrentPacket;
