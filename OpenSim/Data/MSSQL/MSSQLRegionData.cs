@@ -1048,6 +1048,9 @@ VALUES
             if (!primRow.IsNull("ClickAction"))
                 prim.ClickAction = Convert.ToByte(primRow["ClickAction"]);
 
+            prim.CollisionSound = new UUID(primRow["CollisionSound"].ToString());
+            prim.CollisionSoundVolume = Convert.ToSingle(primRow["CollisionSoundVolume"]);
+
             return prim;
         }
 
@@ -1419,6 +1422,9 @@ VALUES
             row["ClickAction"] = clickAction;
 
             row["Material"] = prim.Material;
+
+            row["CollisionSound"] = prim.CollisionSound.ToString();
+            row["CollisionSoundVolume"] = prim.CollisionSoundVolume;
         }
 
         /// <summary>
