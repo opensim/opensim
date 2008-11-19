@@ -340,6 +340,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event OfferCallingCard OnOfferCallingCard;
         public event AcceptCallingCard OnAcceptCallingCard;
         public event DeclineCallingCard OnDeclineCallingCard;
+        public event SoundTrigger OnSoundTrigger;
 
 
 #pragma warning restore 67

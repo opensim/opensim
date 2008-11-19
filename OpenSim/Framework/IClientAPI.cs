@@ -409,6 +409,9 @@ namespace OpenSim.Framework
 
     public delegate void DeclineCallingCard(IClientAPI remoteClient, UUID transactionID);
 
+    
+    public delegate void SoundTrigger(UUID soundId,UUID ownerid,UUID objid, UUID parentid,float Gain, Vector3 Position,UInt64 Handle);
+
     #endregion
 
     public struct DirPlacesReplyData
@@ -711,6 +714,7 @@ namespace OpenSim.Framework
         event OfferCallingCard OnOfferCallingCard;
         event AcceptCallingCard OnAcceptCallingCard;
         event DeclineCallingCard OnDeclineCallingCard;
+        event SoundTrigger OnSoundTrigger;
 
         //     void ActivateGesture(UUID assetId, UUID gestureId);
 

@@ -255,6 +255,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //Gesture
         private ActivateGesture handlerActivateGesture;
         private DeactivateGesture handlerDeactivateGesture;
+        //Sound
+        private SoundTrigger handlerSoundTrigger;
         private ObjectOwner handlerObjectOwner;
 
         private DirPlacesQuery handlerDirPlacesQuery;
@@ -981,14 +983,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event OfferCallingCard OnOfferCallingCard;
         public event AcceptCallingCard OnAcceptCallingCard;
         public event DeclineCallingCard OnDeclineCallingCard;
+        public event SoundTrigger OnSoundTrigger;
 
-        // voire si c'est necessaire
+
+        
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
         }
         public void DeactivateGesture(UUID assetId, UUID gestureId)
         {
         }
+
+        // Sound
+        public void SoundTrigger(UUID soundId, UUID owerid, UUID Objectid,UUID ParentId,float Gain, Vector3 Position,UInt64 Handle)
+        {
+           
+        }
+
         #region Scene/Avatar to Client
 
         public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
@@ -4384,6 +4395,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+                case PacketType.SoundTrigger:
+                    // TODO: handle this packet
+                    // SM 200811
+                    SoundTriggerPacket soundTriggerPacket = (SoundTriggerPacket)Pack;
+                    handlerSoundTrigger = OnSoundTrigger;
+                    if (handlerSoundTrigger != null)
+                    //UUID ownerID, UUID objectID, UUID parentID
+                    {
+                        handlerSoundTrigger(soundTriggerPacket.SoundData.SoundID, soundTriggerPacket.SoundData.OwnerID,
+                            soundTriggerPacket.SoundData.ObjectID, soundTriggerPacket.SoundData.ParentID,
+                            soundTriggerPacket.SoundData.Gain, soundTriggerPacket.SoundData.Position,
+                            soundTriggerPacket.SoundData.Handle);
+
+                    }
+                    else
+                        m_log.Error("Null pointer for Soundtrigger");
+                    break;
                 case PacketType.AvatarPickerRequest:
                     AvatarPickerRequestPacket avRequestQuery = (AvatarPickerRequestPacket)Pack;
                     AvatarPickerRequestPacket.AgentDataBlock Requestdata = avRequestQuery.AgentData;
@@ -6323,13 +6351,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // TODO: handle this packet
                     //m_log.Warn("[CLIENT]: unhandled ObjectSpinStop packet");
                     break;
-                case PacketType.SoundTrigger:
-                    // TODO: handle this packet
-                    //m_log.Warn("[CLIENT]: unhandled SoundTrigger packet");
-                    break;
+                
                 case PacketType.InventoryDescendents:
                     // TODO: handle this packet
                     //m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
+                    
                     break;
                 case PacketType.DirPlacesQuery:
                     DirPlacesQueryPacket dirPlacesQueryPacket = (DirPlacesQueryPacket)Pack;

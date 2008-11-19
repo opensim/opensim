@@ -235,6 +235,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event OfferCallingCard OnOfferCallingCard;
         public event AcceptCallingCard OnAcceptCallingCard;
         public event DeclineCallingCard OnDeclineCallingCard;
+        public event SoundTrigger OnSoundTrigger;
 
 
 #pragma warning restore 67
