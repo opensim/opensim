@@ -201,17 +201,17 @@ namespace OpenSim.Framework.Communications
             return (xmlRpcResponse);
         }
 
-        public LLSD GenerateFailureResponseLLSD(string reason, string message, string login)
+        public OSD GenerateFailureResponseLLSD(string reason, string message, string login)
         {
-            LLSDMap map = new LLSDMap();
+            OSDMap map = new OSDMap();
 
             // Ensure Login Failed message/reason;
             ErrorMessage = message;
             ErrorReason = reason;
 
-            map["reason"] = LLSD.FromString(ErrorReason);
-            map["message"] = LLSD.FromString(ErrorMessage);
-            map["login"] = LLSD.FromString(login);
+            map["reason"] = OSD.FromString(ErrorReason);
+            map["message"] = OSD.FromString(ErrorMessage);
+            map["login"] = OSD.FromString(login);
 
             return map;
         }
@@ -221,7 +221,7 @@ namespace OpenSim.Framework.Communications
             return (CreateLoginFailedResponse());
         }
 
-        public LLSD CreateFailedResponseLLSD()
+        public OSD CreateFailedResponseLLSD()
         {
             return CreateLoginFailedResponseLLSD();
         }
@@ -234,7 +234,7 @@ namespace OpenSim.Framework.Communications
                                          "false"));
         }
 
-        public LLSD CreateLoginFailedResponseLLSD()
+        public OSD CreateLoginFailedResponseLLSD()
         {
             return GenerateFailureResponseLLSD(
                 "key",
@@ -265,7 +265,7 @@ namespace OpenSim.Framework.Communications
                                          "false"));
         }
 
-        public LLSD CreateAlreadyLoggedInResponseLLSD()
+        public OSD CreateAlreadyLoggedInResponseLLSD()
         {
             return GenerateFailureResponseLLSD(
                 "presence",
@@ -283,7 +283,7 @@ namespace OpenSim.Framework.Communications
                                          "false"));
         }
 
-        public LLSD CreateLoginBlockedResponseLLSD()
+        public OSD CreateLoginBlockedResponseLLSD()
         {
             return GenerateFailureResponseLLSD(
                 "presence",
@@ -299,7 +299,7 @@ namespace OpenSim.Framework.Communications
                                          "false"));
         }
 
-        public LLSD CreateDeadRegionResponseLLSD()
+        public OSD CreateDeadRegionResponseLLSD()
         {
             return GenerateFailureResponseLLSD(
                 "key",
@@ -315,7 +315,7 @@ namespace OpenSim.Framework.Communications
                                          "false"));
         }
 
-        public LLSD CreateGridErrorResponseLLSD()
+        public OSD CreateGridErrorResponseLLSD()
         {
             return GenerateFailureResponseLLSD(
                 "key",
@@ -404,90 +404,90 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public LLSD ToLLSDResponse()
+        public OSD ToLLSDResponse()
         {
             try
             {
-                LLSDMap map = new LLSDMap();
+                OSDMap map = new OSDMap();
 
-                map["first_name"] = LLSD.FromString(Firstname);
-                map["last_name"] = LLSD.FromString(Lastname);
-                map["agent_access"] = LLSD.FromString(agentAccess);
+                map["first_name"] = OSD.FromString(Firstname);
+                map["last_name"] = OSD.FromString(Lastname);
+                map["agent_access"] = OSD.FromString(agentAccess);
 
-                map["sim_port"] = LLSD.FromInteger(SimPort);
-                map["sim_ip"] = LLSD.FromString(SimAddress);
+                map["sim_port"] = OSD.FromInteger(SimPort);
+                map["sim_ip"] = OSD.FromString(SimAddress);
 
-                map["agent_id"] = LLSD.FromUUID(AgentID);
-                map["session_id"] = LLSD.FromUUID(SessionID);
-                map["secure_session_id"] = LLSD.FromUUID(SecureSessionID);
-                map["circuit_code"] = LLSD.FromInteger(CircuitCode);
-                map["seconds_since_epoch"] = LLSD.FromInteger((int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds);
+                map["agent_id"] = OSD.FromUUID(AgentID);
+                map["session_id"] = OSD.FromUUID(SessionID);
+                map["secure_session_id"] = OSD.FromUUID(SecureSessionID);
+                map["circuit_code"] = OSD.FromInteger(CircuitCode);
+                map["seconds_since_epoch"] = OSD.FromInteger((int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds);
 
                 #region Login Flags
 
-                LLSDMap loginFlagsLLSD = new LLSDMap();
-                loginFlagsLLSD["daylight_savings"] = LLSD.FromString(DST);
-                loginFlagsLLSD["stipend_since_login"] = LLSD.FromString(StipendSinceLogin);
-                loginFlagsLLSD["gendered"] = LLSD.FromString(Gendered);
-                loginFlagsLLSD["ever_logged_in"] = LLSD.FromString(EverLoggedIn);
-                map["login-flags"] = WrapLLSDMap(loginFlagsLLSD);
+                OSDMap loginFlagsLLSD = new OSDMap();
+                loginFlagsLLSD["daylight_savings"] = OSD.FromString(DST);
+                loginFlagsLLSD["stipend_since_login"] = OSD.FromString(StipendSinceLogin);
+                loginFlagsLLSD["gendered"] = OSD.FromString(Gendered);
+                loginFlagsLLSD["ever_logged_in"] = OSD.FromString(EverLoggedIn);
+                map["login-flags"] = WrapOSDMap(loginFlagsLLSD);
 
                 #endregion Login Flags
 
                 #region Global Textures
 
-                LLSDMap globalTexturesLLSD = new LLSDMap();
-                globalTexturesLLSD["sun_texture_id"] = LLSD.FromString(SunTexture);
-                globalTexturesLLSD["cloud_texture_id"] = LLSD.FromString(CloudTexture);
-                globalTexturesLLSD["moon_texture_id"] = LLSD.FromString(MoonTexture);
+                OSDMap globalTexturesLLSD = new OSDMap();
+                globalTexturesLLSD["sun_texture_id"] = OSD.FromString(SunTexture);
+                globalTexturesLLSD["cloud_texture_id"] = OSD.FromString(CloudTexture);
+                globalTexturesLLSD["moon_texture_id"] = OSD.FromString(MoonTexture);
 
-                map["global-textures"] = WrapLLSDMap(globalTexturesLLSD);
+                map["global-textures"] = WrapOSDMap(globalTexturesLLSD);
 
                 #endregion Global Textures
 
-                map["seed_capability"] = LLSD.FromString(seedCapability);
+                map["seed_capability"] = OSD.FromString(seedCapability);
 
-                map["event_categories"] = ArrayListToLLSDArray(eventCategories);
-                //map["event_notifications"] = new LLSDArray(); // todo
-                map["classified_categories"] = ArrayListToLLSDArray(classifiedCategories);
+                map["event_categories"] = ArrayListToOSDArray(eventCategories);
+                //map["event_notifications"] = new OSDArray(); // todo
+                map["classified_categories"] = ArrayListToOSDArray(classifiedCategories);
 
                 #region UI Config
 
-                LLSDMap uiConfigLLSD = new LLSDMap();
-                uiConfigLLSD["allow_first_life"] = LLSD.FromString(allowFirstLife);
-                map["ui-config"] = WrapLLSDMap(uiConfigLLSD);
+                OSDMap uiConfigLLSD = new OSDMap();
+                uiConfigLLSD["allow_first_life"] = OSD.FromString(allowFirstLife);
+                map["ui-config"] = WrapOSDMap(uiConfigLLSD);
 
                 #endregion UI Config
 
                 #region Inventory
 
-                map["inventory-skeleton"] = ArrayListToLLSDArray(agentInventory);
+                map["inventory-skeleton"] = ArrayListToOSDArray(agentInventory);
 
-                map["inventory-skel-lib"] = ArrayListToLLSDArray(inventoryLibrary);
-                map["inventory-root"] = ArrayListToLLSDArray(inventoryRoot); ;
-                map["inventory-lib-root"] = ArrayListToLLSDArray(inventoryLibRoot);
-                map["inventory-lib-owner"] = ArrayListToLLSDArray(inventoryLibraryOwner);
+                map["inventory-skel-lib"] = ArrayListToOSDArray(inventoryLibrary);
+                map["inventory-root"] = ArrayListToOSDArray(inventoryRoot); ;
+                map["inventory-lib-root"] = ArrayListToOSDArray(inventoryLibRoot);
+                map["inventory-lib-owner"] = ArrayListToOSDArray(inventoryLibraryOwner);
 
                 #endregion Inventory
 
-                map["gestures"] = ArrayListToLLSDArray(activeGestures);
+                map["gestures"] = ArrayListToOSDArray(activeGestures);
 
-                map["initial-outfit"] = ArrayListToLLSDArray(initialOutfit);
-                map["start_location"] = LLSD.FromString(startLocation);
+                map["initial-outfit"] = ArrayListToOSDArray(initialOutfit);
+                map["start_location"] = OSD.FromString(startLocation);
 
-                map["seed_capability"] = LLSD.FromString(seedCapability);
-                map["home"] = LLSD.FromString(home);
-                map["look_at"] = LLSD.FromString(lookAt);
-                map["message"] = LLSD.FromString(welcomeMessage);
-                map["region_x"] = LLSD.FromInteger(RegionX * Constants.RegionSize);
-                map["region_y"] = LLSD.FromInteger(RegionY * Constants.RegionSize);
+                map["seed_capability"] = OSD.FromString(seedCapability);
+                map["home"] = OSD.FromString(home);
+                map["look_at"] = OSD.FromString(lookAt);
+                map["message"] = OSD.FromString(welcomeMessage);
+                map["region_x"] = OSD.FromInteger(RegionX * Constants.RegionSize);
+                map["region_y"] = OSD.FromInteger(RegionY * Constants.RegionSize);
 
                 if (m_buddyList != null)
                 {
-                    map["buddy-list"] = ArrayListToLLSDArray(m_buddyList.ToArray());
+                    map["buddy-list"] = ArrayListToOSDArray(m_buddyList.ToArray());
                 }
 
-                map["login"] = LLSD.FromString("true");
+                map["login"] = OSD.FromString("true");
 
                 return map;
             }
@@ -499,24 +499,24 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        public LLSDArray ArrayListToLLSDArray(ArrayList arrlst)
+        public OSDArray ArrayListToOSDArray(ArrayList arrlst)
         {
-            LLSDArray llsdBack = new LLSDArray();
+            OSDArray llsdBack = new OSDArray();
             foreach (Hashtable ht in arrlst)
             {
-                LLSDMap mp = new LLSDMap();
+                OSDMap mp = new OSDMap();
                 foreach (DictionaryEntry deHt in ht)
                 {
-                    mp.Add((string)deHt.Key, LLSDString.FromObject(deHt.Value));
+                    mp.Add((string)deHt.Key, OSDString.FromObject(deHt.Value));
                 }
                 llsdBack.Add(mp);
             }
             return llsdBack;
         }
 
-        private static LLSDArray WrapLLSDMap(LLSDMap wrapMe)
+        private static OSDArray WrapOSDMap(OSDMap wrapMe)
         {
-            LLSDArray array = new LLSDArray();
+            OSDArray array = new OSDArray();
             array.Add(wrapMe);
             return array;
         }

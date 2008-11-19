@@ -692,8 +692,8 @@ namespace OpenSim.Framework.Servers
             //m_log.DebugFormat("[OGP]: {0}:{1}", request.RawUrl, requestBody);
             response.KeepAlive = true;
 
-            LLSD llsdRequest = null;
-            LLSD llsdResponse = null;
+            OSD llsdRequest = null;
+            OSD llsdResponse = null;
             
             bool LegacyLLSDLoginLibOMV = (requestBody.Contains("passwd") && requestBody.Contains("mac") && requestBody.Contains("viewer_digest"));
             
@@ -704,7 +704,7 @@ namespace OpenSim.Framework.Servers
             }
             try
             {
-                llsdRequest = LLSDParser.DeserializeXml(requestBody);
+                llsdRequest = OSDParser.DeserializeLLSDXml(requestBody);
             }
             catch (Exception ex)
             {
@@ -756,7 +756,7 @@ namespace OpenSim.Framework.Servers
             {
                 response.ContentType = "application/llsd+xml";
                 //m_log.Info("[Debug BASE HTTP SERVER]: Response: " + llsdResponse.ToString());
-                buffer = LLSDParser.SerializeXmlBytes(llsdResponse);
+                buffer = OSDParser.SerializeLLSDXmlBytes(llsdResponse);
             }
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
@@ -948,12 +948,12 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        private LLSDMap GenerateNoLLSDHandlerResponse()
+        private OSDMap GenerateNoLLSDHandlerResponse()
         {
-            LLSDMap map = new LLSDMap();
-            map["reason"] = LLSD.FromString("LLSDRequest");
-            map["message"] = LLSD.FromString("No handler registered for LLSD Requests");
-            map["login"] = LLSD.FromString("false");
+            OSDMap map = new OSDMap();
+            map["reason"] = OSD.FromString("LLSDRequest");
+            map["message"] = OSD.FromString("No handler registered for LLSD Requests");
+            map["login"] = OSD.FromString("false");
             return map;
         }
         /// <summary>

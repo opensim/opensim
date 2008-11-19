@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             XmlTextWriter writer = new XmlTextWriter(sw);
             writer.Formatting = Formatting.None;
             writer.WriteStartElement(String.Empty, "llsd", String.Empty);
-            SerializeLLSDType(writer, obj);
+            SerializeOSDType(writer, obj);
             writer.WriteEndElement();
             writer.Close();
 
@@ -53,7 +53,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             return sw.ToString();
         }
 
-        private static void SerializeLLSDType(XmlTextWriter writer, object obj)
+        private static void SerializeOSDType(XmlTextWriter writer, object obj)
         {
             Type myType = obj.GetType();
             LLSDType[] llsdattributes = (LLSDType[]) myType.GetCustomAttributes(typeof (LLSDType), false);
@@ -76,7 +76,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                                 fieldName = fieldName.Replace("___", "-");
                                 writer.WriteString(fieldName);
                                 writer.WriteEndElement();
-                                SerializeLLSDType(writer, fieldValue);
+                                SerializeOSDType(writer, fieldValue);
                             }
                             else
                             {
@@ -87,13 +87,13 @@ namespace OpenSim.Framework.Communications.Capabilities
                                 writer.WriteEndElement();
                                 LLSD.LLSDWriteOne(writer, fieldValue);
                                 // OpenMetaverse.StructuredData.LLSDParser.SerializeXmlElement(
-                                //    writer, OpenMetaverse.StructuredData.LLSD.FromObject(fieldValue));
+                                //    writer, OpenMetaverse.StructuredData.OSD.FromObject(fieldValue));
                             }
                         }
                         writer.WriteEndElement();
                         break;
                     case "ARRAY":
-                        // LLSDArray arrayObject = obj as LLSDArray;
+                        // OSDArray arrayObject = obj as OSDArray;
                         // ArrayList a = arrayObject.Array;
                         ArrayList a = (ArrayList) obj.GetType().GetField("Array").GetValue(obj);
                         if (a != null)
@@ -101,7 +101,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                             writer.WriteStartElement(String.Empty, "array", String.Empty);
                             foreach (object item in a)
                             {
-                                SerializeLLSDType(writer, item);
+                                SerializeOSDType(writer, item);
                             }
                             writer.WriteEndElement();
                         }
@@ -112,11 +112,11 @@ namespace OpenSim.Framework.Communications.Capabilities
             {
                 LLSD.LLSDWriteOne(writer, obj);
                 //OpenMetaverse.StructuredData.LLSDParser.SerializeXmlElement(
-                //    writer, OpenMetaverse.StructuredData.LLSD.FromObject(obj));
+                //    writer, OpenMetaverse.StructuredData.OSD.FromObject(obj));
             }
         }
 
-        public static object DeserialiseLLSDMap(Hashtable llsd, object obj)
+        public static object DeserialiseOSDMap(Hashtable llsd, object obj)
         {
             Type myType = obj.GetType();
             LLSDType[] llsdattributes = (LLSDType[]) myType.GetCustomAttributes(typeof (LLSDType), false);
@@ -133,12 +133,12 @@ namespace OpenSim.Framework.Communications.Capabilities
                             FieldInfo field = myType.GetField(keyName);
                             if (field != null)
                             {
-                                // if (enumerator.Value is OpenMetaverse.StructuredData.LLSDMap)
+                                // if (enumerator.Value is OpenMetaverse.StructuredData.OSDMap)
                                 if (enumerator.Value is Hashtable)
                                 {
                                     object fieldValue = field.GetValue(obj);
-                                    DeserialiseLLSDMap((Hashtable) enumerator.Value, fieldValue);
-                                    //  DeserialiseLLSDMap((OpenMetaverse.StructuredData.LLSDMap) enumerator.Value, fieldValue);
+                                    DeserialiseOSDMap((Hashtable) enumerator.Value, fieldValue);
+                                    //  DeserialiseOSDMap((OpenMetaverse.StructuredData.OSDMap) enumerator.Value, fieldValue);
                                 }
                                 else if (enumerator.Value is ArrayList)
                                 {

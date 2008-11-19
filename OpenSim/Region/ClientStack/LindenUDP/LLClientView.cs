@@ -3890,7 +3890,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         uint regionX;
                         uint regionY;
-                        Helpers.LongToUInts(Scene.RegionInfo.RegionHandle, out regionX, out regionY);
+                        Utils.LongToUInts(Scene.RegionInfo.RegionHandle, out regionX, out regionY);
                         locx = Convert.ToSingle(Utils.BytesToString(gmParams[0].Parameter)) - regionX;
                         locy = Convert.ToSingle(Utils.BytesToString(gmParams[1].Parameter)) - regionY;
                         locz = Convert.ToSingle(Utils.BytesToString(gmParams[2].Parameter));
@@ -7175,7 +7175,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Transfer.TransferInfo.Params = new byte[20];
                 Array.Copy(req.RequestAssetID.GetBytes(), 0, Transfer.TransferInfo.Params, 0, 16);
                 int assType = req.AssetInf.Type;
-                Array.Copy(Helpers.IntToBytes(assType), 0, Transfer.TransferInfo.Params, 16, 4);
+                Array.Copy(Utils.IntToBytes(assType), 0, Transfer.TransferInfo.Params, 16, 4);
             }
             else if (req.AssetRequestSource == 3)
             {

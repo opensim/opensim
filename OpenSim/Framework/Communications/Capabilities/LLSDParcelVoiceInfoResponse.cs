@@ -30,7 +30,7 @@ using System.Collections;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
-    [LLSDMap]
+    [OSDMap]
     public class LLSDParcelVoiceInfoResponse
     {
         public int parcel_local_id;

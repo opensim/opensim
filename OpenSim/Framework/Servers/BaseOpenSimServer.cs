@@ -341,8 +341,7 @@ namespace OpenSim.Framework.Servers
         public virtual void Show(string[] showParams)
         {
             switch (showParams[0])
-            {
-                        
+            {                       
                 case "info":
                     Notice("Version: " + m_version);
                     Notice("Startup directory: " + m_startupDirectory);
@@ -350,9 +349,7 @@ namespace OpenSim.Framework.Servers
 
                 case "stats":
                     if (m_stats != null)
-                    {
                         Notice(m_stats.Report());
-                    }
                     break;
 
                 case "threads":

@@ -584,11 +584,11 @@ namespace OpenSim.Region.Environment.Scenes
 
                     invString.AddPermissionsStart();
 
-                    invString.AddNameValueLine("base_mask", Helpers.UIntToHexString(baseMask));
-                    invString.AddNameValueLine("owner_mask", Helpers.UIntToHexString(ownerMask));
-                    invString.AddNameValueLine("group_mask", Helpers.UIntToHexString(0));
-                    invString.AddNameValueLine("everyone_mask", Helpers.UIntToHexString(everyoneMask));
-                    invString.AddNameValueLine("next_owner_mask", Helpers.UIntToHexString(item.NextPermissions));
+                    invString.AddNameValueLine("base_mask", Utils.UIntToHexString(baseMask));
+                    invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(ownerMask));
+                    invString.AddNameValueLine("group_mask", Utils.UIntToHexString(0));
+                    invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(everyoneMask));
+                    invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
 
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
                     invString.AddNameValueLine("owner_id", ownerID.ToString());
@@ -601,7 +601,7 @@ namespace OpenSim.Region.Environment.Scenes
                     invString.AddNameValueLine("asset_id", item.AssetID.ToString());
                     invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
                     invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
-                    invString.AddNameValueLine("flags", Helpers.UIntToHexString(item.Flags));
+                    invString.AddNameValueLine("flags", Utils.UIntToHexString(item.Flags));
 
                     invString.AddSaleStart();
                     invString.AddNameValueLine("sale_type", "not");

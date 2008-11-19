@@ -36,7 +36,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Interfaces;
-using LLSD = OpenMetaverse.StructuredData.LLSD;
+using OSD = OpenMetaverse.StructuredData.OSD;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -284,7 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
                 IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
-                    LLSD Item = EventQueueHelper.EnableSimulator(regionHandle, endPoint);
+                    OSD Item = EventQueueHelper.EnableSimulator(regionHandle, endPoint);
                     eq.Enqueue(Item, avatar.UUID);
                 }
                 else
@@ -698,7 +698,7 @@ namespace OpenSim.Region.Environment.Scenes
                         
                         if (eq != null)
                         {
-                            LLSD Item = EventQueueHelper.TeleportFinishEvent(reg.RegionHandle, 13, reg.ExternalEndPoint,
+                            OSD Item = EventQueueHelper.TeleportFinishEvent(reg.RegionHandle, 13, reg.ExternalEndPoint,
                                                                              4, teleportFlags, capsPath, avatar.UUID);
                             eq.Enqueue(Item, avatar.UUID);
                         }
@@ -748,7 +748,7 @@ namespace OpenSim.Region.Environment.Scenes
                     
                     // and set the map-tile to '(Offline)'
                     uint regX, regY;
-                    Helpers.LongToUInts(regionHandle, out regX, out regY);
+                    Utils.LongToUInts(regionHandle, out regX, out regY);
                     
                     MapBlockData block = new MapBlockData();
                     block.X = (ushort)(regX / Constants.RegionSize);

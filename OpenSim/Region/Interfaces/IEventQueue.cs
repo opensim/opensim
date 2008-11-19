@@ -36,6 +36,6 @@ namespace OpenSim.Region.Interfaces
 {
     public interface IEventQueue
     {
-        bool Enqueue(LLSD o, UUID avatarID);
+        bool Enqueue(OSD o, UUID avatarID);
     }
 }
