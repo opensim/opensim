@@ -71,6 +71,9 @@ namespace OpenSim.Region.Environment.Scenes
         //public TerrainEngine Terrain;
         public ITerrainChannel Heightmap;
 
+        /// <value>
+        /// Allows retrieval of land information for this scene.
+        /// </value>
         public ILandChannel LandChannel;
 
         protected EventManager m_eventManager;

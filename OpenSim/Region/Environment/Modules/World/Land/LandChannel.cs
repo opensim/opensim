@@ -95,7 +95,6 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public ILandObject GetLandObject(int x, int y)
         {
-
             if (m_landManagementModule != null)
             {
                 return m_landManagementModule.GetLandObject(x, y);
@@ -185,6 +184,5 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         }
 
         #endregion
-
     }
 }

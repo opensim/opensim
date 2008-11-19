@@ -34,7 +34,6 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public interface ILandChannel
     {
-
         List<ILandObject> ParcelsNearPoint(Vector3 position);
         List<ILandObject> AllParcels();
         ILandObject GetLandObject(int x, int y);

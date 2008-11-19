@@ -29,6 +29,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
@@ -41,19 +42,27 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         /// <summary>
         /// Set up a test scene
         /// </summary>
+        /// <returns></returns>
         public static TestScene SetupScene()
         {
             RegionInfo regInfo = new RegionInfo(1000, 1000, null, null);
             regInfo.RegionName = "Unit test region";
+            regInfo.ExternalHostName = "1.2.3.4";
+            
             AgentCircuitManager acm = new AgentCircuitManager();
-            //CommunicationsManager cm = new CommunicationsManager(null, null, null, false, null);
-            CommunicationsManager cm = null;
+            CommunicationsManager cm = new CommunicationsManager(null, null, null, false, null);
             //SceneCommunicationService scs = new SceneCommunicationService(cm);
             SceneCommunicationService scs = null;
             StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
+            BaseHttpServer httpServer = new BaseHttpServer(666);
             IConfigSource configSource = new IniConfigSource();
             
-            return new TestScene(regInfo, acm, cm, scs, null, sm, null, null, false, false, false, configSource, null);            
+            TestScene testScene = new TestScene(
+                regInfo, acm, cm, scs, null, sm, httpServer, null, false, false, false, configSource, null);
+            
+            testScene.LandChannel = new TestLandChannel();
+            
+            return testScene;
         }
         
         /// <summary>

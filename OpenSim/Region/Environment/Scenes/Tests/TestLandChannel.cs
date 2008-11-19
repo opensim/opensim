@@ -25,55 +25,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using NUnit.Framework;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
-{  
+{       
     /// <summary>
-    /// Scene presence tests
+    /// Land channel for test purposes
     /// </summary>
-    [TestFixture]    
-    public class ScenePresenceTests
-    {        
-        [SetUp]
-        public void Init()
-        {
-            try
-            {
-                log4net.Config.XmlConfigurator.Configure();
-            }
-            catch
-            {
-                // I don't care, just leave log4net off
-            }            
-        }
-        
-        /// <summary>
-        /// Test adding a root agent to a scene.  Doesn't yet do what it says on the tin.
-        /// </summary>
-        [Test]
-        public void TestAddRootAgent()
-        {
-            Scene scene = SceneTestUtils.SetupScene();
-            
-            AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = UUID.Zero;
-            agent.firstname = "testfirstname";
-            agent.lastname = "testlastname";
-            agent.SessionID = UUID.Zero;
-            agent.SecureSessionID = UUID.Zero;
-            agent.circuitcode = 123;
-            agent.BaseFolder = UUID.Zero;
-            agent.InventoryFolder = UUID.Zero;
-            agent.startpos = Vector3.Zero;
-            agent.CapsPath = "http://wibble.com";
-            
-            scene.NewUserConnection(agent);
-            
-            // There are going to be more parts to this.
-        }
+    public class TestLandChannel : ILandChannel
+    {
+        public List<ILandObject> ParcelsNearPoint(Vector3 position) { return null; }
+        public List<ILandObject> AllParcels() { return null; }
+        public ILandObject GetLandObject(int x, int y) { return null; }        
+        public ILandObject GetLandObject(float x, float y) { return null; }
+        public bool IsLandPrimCountTainted() { return false; }
+        public bool IsForcefulBansAllowed() { return false; }
+        public void UpdateLandObject(int localID, LandData data) {}
+        public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient) {}
+        public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel) {}
+        public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel) {}
+        public void SetParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime) {}
     }
 }
