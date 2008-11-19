@@ -981,6 +981,9 @@ namespace OpenSim.Data.MySQL
             createCol(prims, "ClickAction", typeof (Byte));
             createCol(prims, "Material", typeof (Byte));
 
+            createCol(prims, "CollisionSound", typeof(String));
+            createCol(prims, "CollisionSoundVolume", typeof(Double));
+
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] {prims.Columns["UUID"]};
 
@@ -1270,6 +1273,9 @@ namespace OpenSim.Data.MySQL
 
             if (!row.IsNull("ClickAction"))
                 prim.ClickAction = Convert.ToByte(row["ClickAction"]);
+
+            prim.CollisionSound = new UUID(row["CollisionSound"].ToString());
+            prim.CollisionSoundVolume = Convert.ToSingle(row["CollisionSoundVolume"]);
 
             return prim;
         }
@@ -1589,6 +1595,9 @@ namespace OpenSim.Data.MySQL
             row["ClickAction"] = clickAction;
 
             row["Material"] = prim.Material;
+
+            row["CollisionSound"] = prim.CollisionSound.ToString();
+            row["CollisionSoundVolume"] = prim.CollisionSoundVolume;
         }
 
         /// <summary>

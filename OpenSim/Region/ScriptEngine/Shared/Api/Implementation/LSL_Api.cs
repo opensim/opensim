@@ -3490,7 +3490,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCollisionSound(string impact_sound, double impact_volume)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llCollisionSound");
+            //NotImplemented("llCollisionSound");
+
+            // TODO: Parameter check logic required.
+            UUID soundId = UUID.Zero;
+            if (!UUID.TryParse(impact_sound, out soundId))
+            {
+                foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+                {
+                    if (item.Type == (int)AssetType.Sound && item.Name == impact_sound)
+                    {
+                        soundId = item.AssetID;
+                        break;
+                    }
+                }
+            }
+            m_host.CollisionSound = soundId;
+            m_host.CollisionSoundVolume = (float)impact_volume;
         }
 
         public void llCollisionSprite(string impact_sprite)

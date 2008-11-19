@@ -201,6 +201,10 @@ namespace OpenSim.Region.Environment.Scenes
         private Vector3 m_cameraAtOffset = new Vector3(0.0f, 0.0f, 0.0f);
         private bool m_forceMouselook = false;
 
+        // TODO: Collision sound should have default.
+        private UUID m_collisionSound = UUID.Zero;
+        private float m_collisionSoundVolume = 0.0f;
+
         #endregion Fields
 
         #region Constructors
@@ -952,6 +956,22 @@ if (m_shape != null) {
             set { m_sitAnimation = value; }
         }
 
+        public UUID CollisionSound
+        {
+            get { return m_collisionSound; }
+            set
+            {
+                m_collisionSound = value;
+                aggregateScriptEvents();
+            }
+        }
+
+        public float CollisionSoundVolume
+        {
+            get { return m_collisionSoundVolume; }
+            set { m_collisionSoundVolume = value; }
+        }
+
         #endregion Public Properties with only Get
 
         
@@ -1606,6 +1626,12 @@ if (m_shape != null) {
                 return;
             if (m_parentGroup.IsDeleted)
                 return;
+
+            // play the sound.
+            if (startedColliders.Count > 0 && CollisionSound != UUID.Zero && CollisionSoundVolume > 0.0f)
+            {
+                SendSound(CollisionSound.ToString(), CollisionSoundVolume, true, (byte)0);
+            }
 
             if ((m_parentGroup.RootPart.ScriptEvents & scriptEvents.collision_start) != 0)
             {
@@ -3233,7 +3259,8 @@ if (m_shape != null) {
             if (
                 ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
                 ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-                ((AggregateScriptEvents & scriptEvents.collision_start) != 0)
+                ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+                (CollisionSound != null && CollisionSound != UUID.Zero)
                 )
             {
                 // subscribe to physics updates.
@@ -3252,6 +3279,13 @@ if (m_shape != null) {
                     PhysActor.OnCollisionUpdate -= PhysicsCollision;
                 }
             }
+
+            if (m_parentGroup == null)
+            {
+                ScheduleFullUpdate();
+                return;
+            }
+
             if ((GetEffectiveObjectFlags() & (uint)PrimFlags.Scripted) != 0)
             {
                 m_parentGroup.Scene.EventManager.OnScriptTimerEvent += handleTimerAccounting;
@@ -3360,6 +3394,7 @@ if (m_shape != null) {
         }
     }
 }
+
 
 
 
