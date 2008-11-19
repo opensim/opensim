@@ -461,7 +461,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
@@ -706,7 +706,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Runtime.Remoting"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
 
       <Files>
@@ -739,6 +739,8 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Interfaces"/>
       <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
+      <!-- FIXME: The OpenMetaverse.dll reference can be dropped when the TransferRequestPacket reference is removed from the code -->
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="XMLRPC.dll"/>
@@ -832,6 +834,7 @@
       <Reference name="System.Runtime.Remoting"/>
       <Reference name="System.Web"/>
       <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data" />
@@ -1137,6 +1140,7 @@
       <Reference name="System.Xml"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
@@ -1942,7 +1946,7 @@
       <Reference name="System.Web" localCopy="false"/>
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenSim" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -1983,7 +1987,7 @@
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="System.Runtime.Remoting" localCopy="false"/>
       <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="RAIL.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -2117,7 +2121,7 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Grid.Communications.OGS1"/>
       <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
 
