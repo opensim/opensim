@@ -1099,6 +1099,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // Reset the collision values to false
                 // since we don't know if we're colliding yet
 
+                // For some reason this can happen. Don't ask...
+                //
+                if (chr == null)
+                    continue;
+
                 chr.IsColliding = false;
                 chr.CollidingGround = false;
                 chr.CollidingObj = false;
