@@ -42,7 +42,7 @@ namespace OpenSim.Data.MSSQL
         private const string _migrationStore = "AssetStore";
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        private long TicksToEpoch; 
         /// <summary>
         /// Database manager
         /// </summary>
@@ -71,6 +71,8 @@ namespace OpenSim.Data.MSSQL
         /// <param name="connectionString">connect string</param>
         override public void Initialise(string connectionString)
         {
+            TicksToEpoch = new System.DateTime(1970, 1, 1).Ticks;
+
             if (!string.IsNullOrEmpty(connectionString))
             {
                 database = new MSSQLManager(connectionString);
@@ -156,18 +158,19 @@ namespace OpenSim.Data.MSSQL
             }
 
             using (AutoClosingSqlCommand command = database.Query(
-                    "INSERT INTO assets ([id], [name], [description], [assetType], [local], [temporary], [data])" +
+                    "INSERT INTO assets ([id], [name], [description], [assetType], [local], [temporary], [create_time], [access_time], [data])" +
                     " VALUES " +
-                    "(@id, @name, @description, @assetType, @local, @temporary, @data)"))
+                    "(@id, @name, @description, @assetType, @local, @temporary, @create_time, @access_time, @data)"))
             {
-                //SqlParameter p = cmd.Parameters.Add("id", SqlDbType.NVarChar);
-                //p.Value = asset.FullID.ToString();
+                int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
                 command.Parameters.Add(database.CreateParameter("id", asset.FullID));
                 command.Parameters.Add(database.CreateParameter("name", asset.Name));
                 command.Parameters.Add(database.CreateParameter("description", asset.Description));
                 command.Parameters.Add(database.CreateParameter("assetType", asset.Type));
                 command.Parameters.Add(database.CreateParameter("local", asset.Local));
                 command.Parameters.Add(database.CreateParameter("temporary", asset.Temporary));
+                command.Parameters.Add(database.CreateParameter("access_time", now));
+                command.Parameters.Add(database.CreateParameter("create_time", now));
                 command.Parameters.Add(database.CreateParameter("data", asset.Data));
 
                 command.ExecuteNonQuery();
@@ -201,6 +204,25 @@ namespace OpenSim.Data.MSSQL
                 try
                 {
                     command.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(e.ToString());
+                }
+            }
+        }
+
+
+        private void UpdateAccessTime(AssetBase asset)
+        {
+            using (AutoClosingSqlCommand cmd = database.Query("UPDATE assets SET access_time = @access_time WHERE id=@id"))
+            {
+                int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
+                cmd.Parameters.AddWithValue("@id", asset.FullID.ToString());
+                cmd.Parameters.AddWithValue("@access_time", now);
+                try
+                {
+                    cmd.ExecuteNonQuery();
                 }
                 catch (Exception e)
                 {

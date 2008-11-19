@@ -101,8 +101,6 @@ namespace OpenSim.Data.MSSQL
                 using (SqlCommand primSelectCmd = new SqlCommand(_PrimSelect, connection))
                 {
                     primSelectCmd.Parameters.AddWithValue("@RegionUUID", "");
-                    //primSelectCmd.Parameters.AddWithValue("@SceneGroupID", "%");
-                    //primSelectCmd.Parameters.AddWithValue("@UUID", "");
                     _PrimDataAdapter = new SqlDataAdapter(primSelectCmd);
 
                     DataTable primDataTable = new DataTable("prims");
@@ -110,8 +108,7 @@ namespace OpenSim.Data.MSSQL
                     primDataTable.PrimaryKey = new DataColumn[] { primDataTable.Columns["UUID"] };
                     _PrimsDataSet.Tables.Add(primDataTable);
 
-                    SetupCommands(_PrimDataAdapter); //, connection);
-                    //SetupPrimCommands(_PrimDataAdapter, connection);
+                    SetupCommands(_PrimDataAdapter); 
 
                     primDataTable.Clear();
                 }
@@ -119,8 +116,6 @@ namespace OpenSim.Data.MSSQL
                 using (SqlCommand shapeSelectCmd = new SqlCommand(_ShapeSelect, connection))
                 {
                     shapeSelectCmd.Parameters.AddWithValue("@RegionUUID", "");
-                    //shapeSelectCmd.Parameters.AddWithValue("@SceneGroupID", "%");
-                    //shapeSelectCmd.Parameters.AddWithValue("@UUID", "");
                     _ShapeDataAdapter = new SqlDataAdapter(shapeSelectCmd);
 
                     DataTable shapeDataTable = new DataTable("primshapes");
@@ -128,8 +123,7 @@ namespace OpenSim.Data.MSSQL
                     shapeDataTable.PrimaryKey = new DataColumn[] { shapeDataTable.Columns["UUID"] };
                     _PrimsDataSet.Tables.Add(shapeDataTable);
 
-                    SetupCommands(_ShapeDataAdapter); //, connection);
-                    //SetupShapeCommands(_ShapeDataAdapter, connection);
+                    SetupCommands(_ShapeDataAdapter); 
 
                     shapeDataTable.Clear();
                 }
@@ -137,8 +131,6 @@ namespace OpenSim.Data.MSSQL
                 using (SqlCommand itemSelectCmd = new SqlCommand(_ItemsSelect, connection))
                 {
                     itemSelectCmd.Parameters.AddWithValue("@RegionUUID", "");
-                    //itemSelectCmd.Parameters.AddWithValue("@SceneGroupID", "%");
-                    //itemSelectCmd.Parameters.AddWithValue("@UUID", "");
                     _ItemsDataAdapter = new SqlDataAdapter(itemSelectCmd);
 
                     DataTable itemsDataTable = new DataTable("primitems");
@@ -146,8 +138,7 @@ namespace OpenSim.Data.MSSQL
                     itemsDataTable.PrimaryKey = new DataColumn[] { itemsDataTable.Columns["itemID"] };
                     _PrimsDataSet.Tables.Add(itemsDataTable);
 
-                    SetupCommands(_ItemsDataAdapter); //, connection);
-                    //SetupItemsCommands(_ItemsDataAdapter, connection);
+                    SetupCommands(_ItemsDataAdapter);
 
                     itemsDataTable.Clear();
                 }
@@ -328,11 +319,6 @@ namespace OpenSim.Data.MSSQL
             //Retrieve all values of current region, and current scene/or prims
             //Build primID's, we use IN so I can select all prims from objgroup
             string primID = "";
-//            foreach (SceneObjectPart prim in obj.Children.Values)
-//            {
-//                primID += prim.UUID + "', '";
-//            }
-//            primID = primID.Remove(primID.LastIndexOf("',"));
 
             lock (_Database)
             {
@@ -352,14 +338,12 @@ namespace OpenSim.Data.MSSQL
                         DataRow primRow = prims.Rows.Find(prim.UUID.ToString());
                         if (primRow == null)
                         {
-//                            _Log.DebugFormat("[REGION DB]: Adding new prim with key: {0}", prim.UUID);
                             primRow = prims.NewRow();
                             fillPrimRow(primRow, prim, obj.UUID, regionUUID);
                             prims.Rows.Add(primRow);
                         }
                         else
                         {
-//                            _Log.DebugFormat("[REGION DB]: Changing prim with key: {0}", prim.UUID);
                             fillPrimRow(primRow, prim, obj.UUID, regionUUID);
                         }
 
@@ -440,11 +424,9 @@ namespace OpenSim.Data.MSSQL
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                foreach (TaskInventoryItem newItem in items)
+                foreach (TaskInventoryItem taskItem in items)
                 {
-                    //
-                    cmd.Parameters.AddRange(CreatePrimInventoryParameters(newItem));
-
+                    cmd.Parameters.AddRange(CreatePrimInventoryParameters(taskItem));                   
                     cmd.ExecuteNonQuery();
 
                     cmd.Parameters.Clear();
@@ -547,7 +529,6 @@ namespace OpenSim.Data.MSSQL
                 {
                     while (readerLandData.Read())
                     {
-                        //                        LandData data = buildLandData(readerLandData);
                         landDataForRegion.Add(buildLandData(readerLandData));
                     }
                 }
@@ -605,10 +586,9 @@ VALUES
             {
                 foreach (ParcelManager.ParcelAccessEntry parcelAccessEntry in parcel.landData.ParcelAccessList)
                 {
-                    cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.regionUUID));
+                    cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.regionUUID));                  
 
                     cmd.ExecuteNonQuery();
-
                     cmd.Parameters.Clear();
                 }
             }
@@ -699,7 +679,7 @@ VALUES
 ,[elevation_1_ne] = @elevation_1_ne ,[elevation_2_ne] = @elevation_2_ne ,[elevation_1_se] = @elevation_1_se ,[elevation_2_se] = @elevation_2_se 
 ,[elevation_1_sw] = @elevation_1_sw ,[elevation_2_sw] = @elevation_2_sw ,[water_height] = @water_height ,[terrain_raise_limit] = @terrain_raise_limit 
 ,[terrain_lower_limit] = @terrain_lower_limit ,[use_estate_sun] = @use_estate_sun ,[fixed_sun] = @fixed_sun ,[sun_position] = @sun_position 
-,[covenant] = @covenant ,[Sandbox] = @Sandbox WHERE [regionUUID] = @regionUUID";
+,[covenant] = @covenant , [sunvectorx] = @sunvectorx, [sunvectory] = @sunvectory, [sunvectorz] = @sunvectorz,  [Sandbox] = @Sandbox WHERE [regionUUID] = @regionUUID";
 
                 using (AutoClosingSqlCommand cmd = _Database.Query(sql))
                 {
@@ -779,13 +759,21 @@ VALUES
         private void StoreNewRegionSettings(RegionSettings regionSettings)
         {
             string sql = @"INSERT INTO [regionsettings]
-([regionUUID],[block_terraform],[block_fly],[allow_damage],[restrict_pushing],[allow_land_resell],[allow_land_join_divide],[block_show_in_search],[agent_limit],[object_bonus],[maturity],[disable_scripts],[disable_collisions],[disable_physics],[terrain_texture_1],[terrain_texture_2],[terrain_texture_3],[terrain_texture_4],[elevation_1_nw],[elevation_2_nw],[elevation_1_ne],[elevation_2_ne],[elevation_1_se],[elevation_2_se],[elevation_1_sw],[elevation_2_sw],[water_height],[terrain_raise_limit],[terrain_lower_limit],[use_estate_sun],[fixed_sun],[sun_position],[covenant],[Sandbox]) VALUES
-(@regionUUID,@block_terraform,@block_fly,@allow_damage,@restrict_pushing,@allow_land_resell,@allow_land_join_divide,@block_show_in_search,@agent_limit,@object_bonus,@maturity,@disable_scripts,@disable_collisions,@disable_physics,@terrain_texture_1,@terrain_texture_2,@terrain_texture_3,@terrain_texture_4,@elevation_1_nw,@elevation_2_nw,@elevation_1_ne,@elevation_2_ne,@elevation_1_se,@elevation_2_se,@elevation_1_sw,@elevation_2_sw,@water_height,@terrain_raise_limit,@terrain_lower_limit,@use_estate_sun,@fixed_sun,@sun_position,@covenant,@Sandbox)";
+                                ([regionUUID],[block_terraform],[block_fly],[allow_damage],[restrict_pushing],[allow_land_resell],[allow_land_join_divide],
+                                [block_show_in_search],[agent_limit],[object_bonus],[maturity],[disable_scripts],[disable_collisions],[disable_physics],
+                                [terrain_texture_1],[terrain_texture_2],[terrain_texture_3],[terrain_texture_4],[elevation_1_nw],[elevation_2_nw],[elevation_1_ne],
+                                [elevation_2_ne],[elevation_1_se],[elevation_2_se],[elevation_1_sw],[elevation_2_sw],[water_height],[terrain_raise_limit],
+                                [terrain_lower_limit],[use_estate_sun],[fixed_sun],[sun_position],[covenant],[Sandbox]) 
+                            VALUES
+                                (@regionUUID,@block_terraform,@block_fly,@allow_damage,@restrict_pushing,@allow_land_resell,@allow_land_join_divide,
+                                @block_show_in_search,@agent_limit,@object_bonus,@maturity,@disable_scripts,@disable_collisions,@disable_physics,@terrain_texture_1,
+                                @terrain_texture_2,@terrain_texture_3,@terrain_texture_4,@elevation_1_nw,@elevation_2_nw,@elevation_1_ne,@elevation_2_ne,
+                                @elevation_1_se,@elevation_2_se,@elevation_1_sw,@elevation_2_sw,@water_height,@terrain_raise_limit,@terrain_lower_limit,
+                                @use_estate_sun,@fixed_sun,@sun_position,@covenant,@sunvectorx,@sunvectory, @sunvectorz, @Sandbox)";
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                cmd.Parameters.AddRange(CreateRegionSettingParameters(regionSettings));
-
+                cmd.Parameters.AddRange(CreateRegionSettingParameters(regionSettings));              
                 cmd.ExecuteNonQuery();
             }
         }
@@ -835,6 +823,11 @@ VALUES
             newSettings.Sandbox = Convert.ToBoolean(row["sandbox"]);
             newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
             newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
+            newSettings.SunVector = new Vector3(
+                                                 Convert.ToSingle(row["sunvectorx"]),
+                                                 Convert.ToSingle(row["sunvectory"]),
+                                                 Convert.ToSingle(row["sunvectorz"])
+                                                 );
             newSettings.Covenant = new UUID((String)row["covenant"]);
 
             return newSettings;
@@ -1147,7 +1140,6 @@ VALUES
         #endregion
 
         #region Create parameters methods
-
         /// <summary>
         /// Creates the prim inventory parameters.
         /// </summary>
@@ -1189,7 +1181,7 @@ VALUES
         /// <returns></returns>
         private SqlParameter[] CreateRegionSettingParameters(RegionSettings settings)
         {
-            SqlParameter[] parameters = new SqlParameter[34];
+            SqlParameter[] parameters = new SqlParameter[37];
 
             parameters[0] = _Database.CreateParameter("regionUUID", settings.RegionUUID);
             parameters[1] = _Database.CreateParameter("block_terraform", settings.BlockTerraform);
@@ -1224,7 +1216,10 @@ VALUES
             parameters[30] = _Database.CreateParameter("sandbox", settings.Sandbox);
             parameters[31] = _Database.CreateParameter("fixed_sun", settings.FixedSun);
             parameters[32] = _Database.CreateParameter("sun_position", settings.SunPosition);
-            parameters[33] = _Database.CreateParameter("covenant", settings.Covenant);
+            parameters[33] = _Database.CreateParameter("sunvectorx", settings.SunVector.X);
+            parameters[34] = _Database.CreateParameter("sunvectory", settings.SunVector.Y);
+            parameters[35] = _Database.CreateParameter("sunvectorz", settings.SunVector.Z);
+            parameters[36] = _Database.CreateParameter("covenant", settings.Covenant);
 
             return parameters;
         }
@@ -1298,6 +1293,7 @@ VALUES
         }
 
         /// <summary>
+         /// <summary>
         /// Fills/Updates the prim datarow.
         /// </summary>
         /// <param name="row">datarow.</param>
@@ -1480,34 +1476,16 @@ VALUES
             {
                 _PrimDataAdapter.SelectCommand.Connection = connection;
                 _PrimDataAdapter.SelectCommand.Parameters["@RegionUUID"].Value = regionUUID.ToString();
-//                if (sceneGroupID != UUID.Zero)
-//                    _PrimDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = sceneGroupID.ToString();
-//                else
-//                    _PrimDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = "%";
-//                _PrimDataAdapter.SelectCommand.Parameters["@UUID"].Value = primID;
-
                 _PrimDataAdapter.Fill(_PrimsDataSet, "prims");
 
                 _Log.Debug("Prim row count: " + _PrimsDataSet.Tables["prims"].Rows.Count);
 
                 _ShapeDataAdapter.SelectCommand.Connection = connection;
                 _ShapeDataAdapter.SelectCommand.Parameters["@RegionUUID"].Value = regionUUID.ToString();
-//                if (sceneGroupID != UUID.Zero)
-//                    _ShapeDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = sceneGroupID.ToString();
-//                else
-//                    _ShapeDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = "%";
-//                _ShapeDataAdapter.SelectCommand.Parameters["@UUID"].Value = primID;
-
                 _ShapeDataAdapter.Fill(_PrimsDataSet, "primshapes");
 
                 _ItemsDataAdapter.SelectCommand.Connection = connection;
                 _ItemsDataAdapter.SelectCommand.Parameters["@RegionUUID"].Value = regionUUID.ToString();
-//                if (sceneGroupID != UUID.Zero)
-//                    _ItemsDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = sceneGroupID.ToString();
-//                else
-//                    _ItemsDataAdapter.SelectCommand.Parameters["@SceneGroupID"].Value = "%";
-//                _ItemsDataAdapter.SelectCommand.Parameters["@UUID"].Value = primID;
-
                 _ItemsDataAdapter.Fill(_PrimsDataSet, "primitems");
             }
         }
