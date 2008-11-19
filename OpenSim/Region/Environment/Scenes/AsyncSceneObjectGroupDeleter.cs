@@ -130,7 +130,7 @@ namespace OpenSim.Region.Environment.Scenes
                         try
                         {
                             if (x.permissionToDelete)
-                                m_scene.DeleteFromStorage(x.objectGroup.UUID);
+                                m_scene.DeleteSceneObject(x.objectGroup, false);
                             m_scene.DeleteToInventory(x.destination, x.folderID, x.objectGroup, x.remoteClient);
                         }
                         catch (Exception e)
