@@ -46,9 +46,9 @@ namespace OpenSim.Framework.Communications.Capabilities
     }
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class OSDMap : LLSDType
+    public class LLSDMap : LLSDType
     {
-        public OSDMap() : base("MAP")
+        public LLSDMap() : base("MAP")
         {
         }
     }

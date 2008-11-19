@@ -31,7 +31,7 @@ namespace OpenSim.Framework.Communications.Capabilities
     public class LLSDCapEvent
     {
         public int id = 0;
-        public OSDArray events = new OSDArray();
+        public LLSDArray events = new LLSDArray();
 
         public LLSDCapEvent()
         {

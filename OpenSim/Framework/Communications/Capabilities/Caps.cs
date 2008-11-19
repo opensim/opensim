@@ -159,7 +159,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                 m_capsHandlers["SEED"] = new RestStreamHandler("POST", capsBase + m_requestPath, CapsRequest);
                 m_log.Warn("[SEED]: " + capsBase + m_requestPath); 
                 //m_capsHandlers["MapLayer"] =
-                //    new LLSDStreamhandler<OSDMapRequest, OSDMapLayerResponse>("POST",
+                //    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST",
                 //                                                                capsBase + m_mapLayerPath,
                 //                                                                GetMapLayer);
                 m_capsHandlers["NewFileAgentInventory"] =
@@ -297,7 +297,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                 Hashtable inventoryhash = (Hashtable)foldersrequested[i];
 
                 LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
-                LLSDHelpers.DeserialiseOSDMap(inventoryhash, llsdRequest);
+                LLSDHelpers.DeserialiseLLSDMap(inventoryhash, llsdRequest);
                 LLSDInventoryDescendents reply = FetchInventoryReply(llsdRequest);
 
                 inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
@@ -431,7 +431,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         {
             m_log.Debug("[CAPS]: MapLayer Request in region: " + m_regionName);
             LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
-            mapResponse.LayerData.Array.Add(GetOSDMapLayerResponse());
+            mapResponse.LayerData.Array.Add(GetLLSDMapLayerResponse());
             return mapResponse;
         }
 
@@ -439,9 +439,9 @@ namespace OpenSim.Framework.Communications.Capabilities
         ///
         /// </summary>
         /// <returns></returns>
-        protected static OSDMapLayer GetOSDMapLayerResponse()
+        protected static LLSDMapLayer GetLLSDMapLayerResponse()
         {
-            OSDMapLayer mapLayer = new OSDMapLayer();
+            LLSDMapLayer mapLayer = new LLSDMapLayer();
             mapLayer.Right = 5000;
             mapLayer.Top = 5000;
             mapLayer.ImageID = new UUID("00000000-0000-1111-9999-000000000006");
@@ -545,7 +545,7 @@ namespace OpenSim.Framework.Communications.Capabilities
 
                 Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Utils.StringToBytes(request));
                 LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();
-                LLSDHelpers.DeserialiseOSDMap(hash, llsdUpdateRequest);
+                LLSDHelpers.DeserialiseLLSDMap(hash, llsdUpdateRequest);
 
                 string capsBase = "/CAPS/" + m_capsObjectPath;
                 string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
@@ -600,10 +600,10 @@ namespace OpenSim.Framework.Communications.Capabilities
                                              OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             m_log.Debug("[CAPS]: NoteCardAgentInventory Request in region: " + m_regionName);
-            //OpenMetaverse.StructuredData.OSDMap hash = (OpenMetaverse.StructuredData.OSDMap)OpenMetaverse.StructuredData.LLSDParser.DeserializeBinary(Utils.StringToBytes(request));
+            //OpenMetaverse.StructuredData.LLSDMap hash = (OpenMetaverse.StructuredData.LLSDMap)OpenMetaverse.StructuredData.LLSDParser.DeserializeBinary(Utils.StringToBytes(request));
             Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Utils.StringToBytes(request));
             LLSDItemUpdate llsdRequest = new LLSDItemUpdate();
-            LLSDHelpers.DeserialiseOSDMap(hash, llsdRequest);
+            LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
 
             string capsBase = "/CAPS/" + m_capsObjectPath;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");

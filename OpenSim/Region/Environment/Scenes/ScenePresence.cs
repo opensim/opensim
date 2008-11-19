@@ -39,7 +39,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Interfaces;
 using OpenSim.Region.Physics.Manager;
-using OSD = OpenMetaverse.StructuredData.OSD;
+using LLSD = OpenMetaverse.StructuredData.LLSD;
 
 
 namespace OpenSim.Region.Environment.Scenes
@@ -2171,7 +2171,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             Vector3 vel = m_velocity;
-            ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
+            ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
             SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null && ValidateAttachments())
             {
@@ -2209,7 +2209,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (eq != null)
                     {
                         
-                        OSD Item = EventQueueHelper.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
+                        LLSD Item = EventQueueHelper.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath, UUID, ControllingClient.SessionId);
                         eq.Enqueue(Item, UUID);
                     }

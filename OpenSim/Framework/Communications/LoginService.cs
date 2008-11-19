@@ -321,7 +321,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="request">The LLSD request</param>
         /// <returns>The response to send</returns>
-        public OSD LLSDLoginMethod(OSD request)
+        public LLSD LLSDLoginMethod(LLSD request)
         {
             // Temporary fix
             m_loginMutex.WaitOne();
@@ -335,9 +335,9 @@ namespace OpenSim.Framework.Communications
                 UserProfileData userProfile = null;
                 LoginResponse logResponse = new LoginResponse();
 
-                if (request.Type == OSDType.Map)
+                if (request.Type == LLSDType.Map)
                 {
-                    OSDMap map = (OSDMap)request;
+                    LLSDMap map = (LLSDMap)request;
 
                     if (map.ContainsKey("first") && map.ContainsKey("last") && map.ContainsKey("passwd"))
                     {
@@ -749,7 +749,7 @@ namespace OpenSim.Framework.Communications
             m_userManager.CreateAgent(profile, request);
         }
 
-        public void CreateAgent(UserProfileData profile, OSD request)
+        public void CreateAgent(UserProfileData profile, LLSD request)
         {
             m_userManager.CreateAgent(profile, request);
         }

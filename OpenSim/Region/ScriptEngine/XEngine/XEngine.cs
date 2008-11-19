@@ -30,7 +30,6 @@ using System.IO;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
-using System.Security;
 using System.Security.Policy;
 using System.Reflection;
 using System.Globalization;
@@ -541,7 +540,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                 AppDomain.CreateDomain(
                                     m_Scene.RegionInfo.RegionID.ToString(),
                                     evidence, appSetup);
-                            
+
                             m_AppDomains[appDomain].AssemblyResolve +=
                                 new ResolveEventHandler(
                                     AssemblyResolver.OnAssemblyResolve);

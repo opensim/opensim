@@ -30,11 +30,11 @@ using System.Collections;
 namespace OpenSim.Framework.Communications.Capabilities
 {
     [LLSDType("ARRAY")]
-    public class OSDArray
+    public class LLSDArray
     {
         public ArrayList Array = new ArrayList();
 
-        public OSDArray()
+        public LLSDArray()
         {
         }
     }

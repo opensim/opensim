@@ -874,7 +874,7 @@ namespace OpenSim.Framework
 
             for (int k = 0; k < extraParamCount; k++)
             {
-                ushort epType = Utils.BytesToUInt16(data, i);
+                ushort epType = Helpers.BytesToUInt16(data, i);
 
                 i += 2;
                 // uint paramLength = Helpers.BytesToUIntBig(data, i);
@@ -1014,9 +1014,9 @@ namespace OpenSim.Framework
                 _lightColorG = lColor.G;
                 _lightColorB = lColor.B;
 
-                _lightRadius = Utils.BytesToFloat(data, pos + 4);
-                _lightCutoff = Utils.BytesToFloat(data, pos + 8);
-                _lightFalloff = Utils.BytesToFloat(data, pos + 12);
+                _lightRadius = Helpers.BytesToFloat(data, pos + 4);
+                _lightCutoff = Helpers.BytesToFloat(data, pos + 8);
+                _lightFalloff = Helpers.BytesToFloat(data, pos + 12);
             }
             else
             {
@@ -1040,9 +1040,9 @@ namespace OpenSim.Framework
             Color4 tmpColor = new Color4(_lightColorR,_lightColorG,_lightColorB,_lightIntensity);
 
             tmpColor.GetBytes().CopyTo(data, 0);
-            Utils.FloatToBytes(_lightRadius).CopyTo(data, 4);
-            Utils.FloatToBytes(_lightCutoff).CopyTo(data, 8);
-            Utils.FloatToBytes(_lightFalloff).CopyTo(data, 12);
+            Helpers.FloatToBytes(_lightRadius).CopyTo(data, 4);
+            Helpers.FloatToBytes(_lightCutoff).CopyTo(data, 8);
+            Helpers.FloatToBytes(_lightFalloff).CopyTo(data, 12);
 
             return data;
         }

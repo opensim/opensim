@@ -369,7 +369,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             List<ParcelManager.ParcelAccessEntry> toRemove = new List<ParcelManager.ParcelAccessEntry>();
             foreach (ParcelManager.ParcelAccessEntry entry in newData.ParcelAccessList)
             {
-                if (entry.Flags == (AccessList)flags)
+                if (entry.Flags == (AccessList) flags)
                 {
                     toRemove.Add(entry);
                 }
@@ -384,7 +384,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 ParcelManager.ParcelAccessEntry temp = new ParcelManager.ParcelAccessEntry();
                 temp.AgentID = entry.AgentID;
                 temp.Time = new DateTime(); //Pointless? Yes.
-                temp.Flags = (AccessList)flags;
+                temp.Flags = (AccessList) flags;
 
                 if (!newData.ParcelAccessList.Contains(temp))
                 {

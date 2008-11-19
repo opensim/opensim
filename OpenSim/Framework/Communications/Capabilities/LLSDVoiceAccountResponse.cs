@@ -28,7 +28,7 @@
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
-    [OSDMap]
+    [LLSDMap]
     public class LLSDVoiceAccountResponse
     {
         public string username;

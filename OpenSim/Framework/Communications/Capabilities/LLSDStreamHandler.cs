@@ -53,12 +53,12 @@ namespace OpenSim.Framework.Communications.Capabilities
             //string requestBody = streamReader.ReadToEnd();
             //streamReader.Close();
 
-            // OpenMetaverse.StructuredData.OSDMap hash = (OpenMetaverse.StructuredData.OSDMap)
+            // OpenMetaverse.StructuredData.LLSDMap hash = (OpenMetaverse.StructuredData.LLSDMap)
             //    OpenMetaverse.StructuredData.LLSDParser.DeserializeXml(new XmlTextReader(request));
 
             Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(request);
             TRequest llsdRequest = new TRequest();
-            LLSDHelpers.DeserialiseOSDMap(hash, llsdRequest);
+            LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
 
             TResponse response = m_method(llsdRequest);
 

@@ -29,7 +29,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
-    [OSDMap]
+    [LLSDMap]
     public class LLSDItemUpdate
     {
         public UUID item_id;

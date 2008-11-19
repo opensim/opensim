@@ -30,7 +30,7 @@ using OpenMetaverse;
 namespace OpenSim.Framework.Communications.Capabilities
 {
     [LLSDType("MAP")]
-    public class OSDMapLayer
+    public class LLSDMapLayer
     {
         public int Left = 0;
         public int Right = 0;
@@ -38,7 +38,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         public int Bottom = 0;
         public UUID ImageID = UUID.Zero;
 
-        public OSDMapLayer()
+        public LLSDMapLayer()
         {
         }
     }

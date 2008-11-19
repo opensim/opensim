@@ -29,7 +29,7 @@ using System;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
-    [OSDMap]
+    [LLSDMap]
     public class LLSDAssetUploadResponse
     {
         public string uploader = String.Empty;

@@ -52,70 +52,70 @@ namespace OpenSim.Region.Environment
             };
         }
 
-        public static OSD buildEvent(string eventName, OSD eventBody)
+        public static LLSD buildEvent(string eventName, LLSD eventBody)
         {
-            OSDMap llsdEvent = new OSDMap(2);
-            llsdEvent.Add("message", new OSDString(eventName));
+            LLSDMap llsdEvent = new LLSDMap(2);
+            llsdEvent.Add("message", new LLSDString(eventName));
             llsdEvent.Add("body", eventBody);
 
             return llsdEvent;
         }
 
-        public static OSD EnableSimulator(ulong Handle, IPEndPoint endPoint)
+        public static LLSD EnableSimulator(ulong Handle, IPEndPoint endPoint)
         {
-            OSDMap llsdSimInfo = new OSDMap(3);
+            LLSDMap llsdSimInfo = new LLSDMap(3);
 
-            llsdSimInfo.Add("Handle", new OSDBinary(regionHandleToByteArray(Handle)));
-            llsdSimInfo.Add("IP", new OSDBinary(endPoint.Address.GetAddressBytes()));
-            llsdSimInfo.Add("Port", new OSDInteger(endPoint.Port));
+            llsdSimInfo.Add("Handle", new LLSDBinary(regionHandleToByteArray(Handle)));
+            llsdSimInfo.Add("IP", new LLSDBinary(endPoint.Address.GetAddressBytes()));
+            llsdSimInfo.Add("Port", new LLSDInteger(endPoint.Port));
 
-            OSDArray arr = new OSDArray(1);
+            LLSDArray arr = new LLSDArray(1);
             arr.Add(llsdSimInfo);
 
-            OSDMap llsdBody = new OSDMap(1);
+            LLSDMap llsdBody = new LLSDMap(1);
             llsdBody.Add("SimulatorInfo", arr);
 
             return buildEvent("EnableSimulator", llsdBody);
         }
 
-        public static OSD CrossRegion(ulong Handle, Vector3 pos, Vector3 lookAt,
+        public static LLSD CrossRegion(ulong Handle, Vector3 pos, Vector3 lookAt,
                                        IPEndPoint newRegionExternalEndPoint,
                                        string capsURL, UUID AgentID, UUID SessionID)
         {
-            OSDArray LookAtArr = new OSDArray(3);
-            LookAtArr.Add(OSD.FromReal(lookAt.X));
-            LookAtArr.Add(OSD.FromReal(lookAt.Y));
-            LookAtArr.Add(OSD.FromReal(lookAt.Z));
+            LLSDArray LookAtArr = new LLSDArray(3);
+            LookAtArr.Add(LLSD.FromReal(lookAt.X));
+            LookAtArr.Add(LLSD.FromReal(lookAt.Y));
+            LookAtArr.Add(LLSD.FromReal(lookAt.Z));
 
-            OSDArray PositionArr = new OSDArray(3);
-            PositionArr.Add(OSD.FromReal(pos.X));
-            PositionArr.Add(OSD.FromReal(pos.Y));
-            PositionArr.Add(OSD.FromReal(pos.Z));
+            LLSDArray PositionArr = new LLSDArray(3);
+            PositionArr.Add(LLSD.FromReal(pos.X));
+            PositionArr.Add(LLSD.FromReal(pos.Y));
+            PositionArr.Add(LLSD.FromReal(pos.Z));
 
-            OSDMap InfoMap = new OSDMap(2);
+            LLSDMap InfoMap = new LLSDMap(2);
             InfoMap.Add("LookAt", LookAtArr);
             InfoMap.Add("Position", PositionArr);
 
-            OSDArray InfoArr = new OSDArray(1);
+            LLSDArray InfoArr = new LLSDArray(1);
             InfoArr.Add(InfoMap);
 
-            OSDMap AgentDataMap = new OSDMap(2);
-            AgentDataMap.Add("AgentID", OSD.FromUUID(AgentID));
-            AgentDataMap.Add("SessionID",  OSD.FromUUID(SessionID));
+            LLSDMap AgentDataMap = new LLSDMap(2);
+            AgentDataMap.Add("AgentID", LLSD.FromUUID(AgentID));
+            AgentDataMap.Add("SessionID",  LLSD.FromUUID(SessionID));
 
-            OSDArray AgentDataArr = new OSDArray(1);
+            LLSDArray AgentDataArr = new LLSDArray(1);
             AgentDataArr.Add(AgentDataMap);
 
-            OSDMap RegionDataMap = new OSDMap(4);
-            RegionDataMap.Add("RegionHandle", OSD.FromBinary(regionHandleToByteArray(Handle)));
-            RegionDataMap.Add("SeedCapability", OSD.FromString(capsURL));
-            RegionDataMap.Add("SimIP", OSD.FromBinary(newRegionExternalEndPoint.Address.GetAddressBytes()));
-            RegionDataMap.Add("SimPort", OSD.FromInteger(newRegionExternalEndPoint.Port));
+            LLSDMap RegionDataMap = new LLSDMap(4);
+            RegionDataMap.Add("RegionHandle", LLSD.FromBinary(regionHandleToByteArray(Handle)));
+            RegionDataMap.Add("SeedCapability", LLSD.FromString(capsURL));
+            RegionDataMap.Add("SimIP", LLSD.FromBinary(newRegionExternalEndPoint.Address.GetAddressBytes()));
+            RegionDataMap.Add("SimPort", LLSD.FromInteger(newRegionExternalEndPoint.Port));
 
-            OSDArray RegionDataArr = new OSDArray(1);
+            LLSDArray RegionDataArr = new LLSDArray(1);
             RegionDataArr.Add(RegionDataMap);
 
-            OSDMap llsdBody = new OSDMap(3);
+            LLSDMap llsdBody = new LLSDMap(3);
             llsdBody.Add("Info", InfoArr);
             llsdBody.Add("AgentData", AgentDataArr);
             llsdBody.Add("RegionData", RegionDataArr);
@@ -123,49 +123,49 @@ namespace OpenSim.Region.Environment
             return buildEvent("CrossedRegion", llsdBody);
         }
 
-        public static OSD TeleportFinishEvent(
+        public static LLSD TeleportFinishEvent(
             ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
             uint locationID, uint flags, string capsURL, UUID AgentID)
         {
-            OSDMap info = new OSDMap();
-            info.Add("AgentID", OSD.FromUUID(AgentID));
-            info.Add("LocationID", OSD.FromInteger(4)); // TODO what is this?
-            info.Add("RegionHandle", OSD.FromBinary(regionHandleToByteArray(regionHandle)));
-            info.Add("SeedCapability", OSD.FromString(capsURL));
-            info.Add("SimAccess", OSD.FromInteger(simAccess));
-            info.Add("SimIP", OSD.FromBinary(regionExternalEndPoint.Address.GetAddressBytes()));
-            info.Add("SimPort", OSD.FromInteger(regionExternalEndPoint.Port));
-            info.Add("TeleportFlags", OSD.FromBinary(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
+            LLSDMap info = new LLSDMap();
+            info.Add("AgentID", LLSD.FromUUID(AgentID));
+            info.Add("LocationID", LLSD.FromInteger(4)); // TODO what is this?
+            info.Add("RegionHandle", LLSD.FromBinary(regionHandleToByteArray(regionHandle)));
+            info.Add("SeedCapability", LLSD.FromString(capsURL));
+            info.Add("SimAccess", LLSD.FromInteger(simAccess));
+            info.Add("SimIP", LLSD.FromBinary(regionExternalEndPoint.Address.GetAddressBytes()));
+            info.Add("SimPort", LLSD.FromInteger(regionExternalEndPoint.Port));
+            info.Add("TeleportFlags", LLSD.FromBinary(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
 
-            OSDArray infoArr = new OSDArray();
+            LLSDArray infoArr = new LLSDArray();
             infoArr.Add(info);
 
-            OSDMap body = new OSDMap();
+            LLSDMap body = new LLSDMap();
             body.Add("Info", infoArr);
 
             return buildEvent("TeleportFinish", body);
         }
 
-        public static OSD ScriptRunningReplyEvent(UUID objectID, UUID itemID, bool running, bool mono)
+        public static LLSD ScriptRunningReplyEvent(UUID objectID, UUID itemID, bool running, bool mono)
         {
-            OSDMap script = new OSDMap();
-            script.Add("ObjectID", OSD.FromUUID(objectID));
-            script.Add("ItemID", OSD.FromUUID(itemID));
-            script.Add("Running", OSD.FromBoolean(running));
-            script.Add("Mono", OSD.FromBoolean(mono));
+            LLSDMap script = new LLSDMap();
+            script.Add("ObjectID", LLSD.FromUUID(objectID));
+            script.Add("ItemID", LLSD.FromUUID(itemID));
+            script.Add("Running", LLSD.FromBoolean(running));
+            script.Add("Mono", LLSD.FromBoolean(mono));
             
-            OSDArray scriptArr = new OSDArray();
+            LLSDArray scriptArr = new LLSDArray();
             scriptArr.Add(script);
             
-            OSDMap body = new OSDMap();
+            LLSDMap body = new LLSDMap();
             body.Add("Script", scriptArr);
             
             return buildEvent("ScriptRunningReply", body);
         }
 
-        public static OSD KeepAliveEvent()
+        public static LLSD KeepAliveEvent()
         {
-            return buildEvent("FAKEEVENT", new OSDMap());
+            return buildEvent("FAKEEVENT", new LLSDMap());
         }
     }
 }

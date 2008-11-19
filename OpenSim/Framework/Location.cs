@@ -50,7 +50,7 @@ namespace OpenSim.Framework
 
         public ulong RegionHandle
         {
-            get { return Utils.UIntsToLong((uint)m_x, (uint)m_y); }
+            get { return Helpers.UIntsToLong((uint) m_x, (uint) m_y); }
         }
 
         public int X

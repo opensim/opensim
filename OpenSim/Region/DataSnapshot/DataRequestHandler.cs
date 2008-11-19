@@ -77,7 +77,7 @@ namespace OpenSim.Region.DataSnapshot
         {
             //Very static for now, flexible enough to add new formats
             LLSDDiscoveryResponse llsd_response = new LLSDDiscoveryResponse();
-            llsd_response.snapshot_resources = new OSDArray();
+            llsd_response.snapshot_resources = new LLSDArray();
 
             LLSDDiscoveryDataURL llsd_dataurl = new LLSDDiscoveryDataURL();
             llsd_dataurl.snapshot_format = "os-datasnapshot-v1";

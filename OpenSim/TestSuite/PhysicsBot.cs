@@ -96,7 +96,7 @@ namespace OpenSim.TestSuite
                 client.Self.Movement.AtPos = true;
                 Thread.Sleep(somthing.Next(25, 75)); // Makes sure the bots keep walking for this time.
             }
-            client.Self.Jump(true);
+            client.Self.Jump();
 
             string randomf = talkarray[somthing.Next(talkarray.Length)];
             if (talkarray.Length > 1 && randomf.Length > 1)
@@ -142,7 +142,7 @@ namespace OpenSim.TestSuite
                     m_action.Elapsed += new ElapsedEventHandler(m_action_Elapsed);
                     m_action.Start();
                     OnConnected(this, EventType.CONNECTED);
-                    client.Self.Jump(true);
+                    client.Self.Jump();
                 }
             }
             else

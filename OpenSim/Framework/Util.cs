@@ -185,7 +185,7 @@ namespace OpenSim.Framework
 
         public static ulong UIntsToLong(uint X, uint Y)
         {
-            return Utils.UIntsToLong(X, Y);
+            return Helpers.UIntsToLong(X, Y);
         }
 
         public static T Clamp<T>(T x, T min, T max)
@@ -783,9 +783,9 @@ namespace OpenSim.Framework
         public static void ParseFakeParcelID(UUID parcelID, out ulong regionHandle, out uint x, out uint y)
         {
             byte[] bytes = parcelID.GetBytes();
-            regionHandle = Utils.BytesToUInt64(bytes);
-            x = Utils.BytesToUInt(bytes, 8);
-            y = Utils.BytesToUInt(bytes, 12);
+            regionHandle = Helpers.BytesToUInt64(bytes);
+            x = Helpers.BytesToUInt(bytes, 8);
+            y = Helpers.BytesToUInt(bytes, 12);
         }
 
         public static void FakeParcelIDToGlobalPosition(UUID parcelID, out uint x, out uint y)
@@ -794,7 +794,7 @@ namespace OpenSim.Framework
             uint rx, ry;
 
             ParseFakeParcelID(parcelID, out regionHandle, out x, out y);
-            Utils.LongToUInts(regionHandle, out rx, out ry);
+            Helpers.LongToUInts(regionHandle, out rx, out ry);
 
             x += rx;
             y += ry;

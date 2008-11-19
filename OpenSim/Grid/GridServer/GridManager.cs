@@ -582,12 +582,12 @@ namespace OpenSim.Grid.GridServer
                     {
                         if (
                             GetRegion(
-                                Utils.UIntsToLong((uint)((sim.regionLocX + x) * Constants.RegionSize),
+                                Helpers.UIntsToLong((uint)((sim.regionLocX + x) * Constants.RegionSize),
                                                     (uint)(sim.regionLocY + y) * Constants.RegionSize)) != null)
                         {
                             neighbour =
                                 GetRegion(
-                                    Utils.UIntsToLong((uint)((sim.regionLocX + x) * Constants.RegionSize),
+                                    Helpers.UIntsToLong((uint)((sim.regionLocX + x) * Constants.RegionSize),
                                                         (uint)(sim.regionLocY + y) * Constants.RegionSize));
 
                             NeighbourBlock = new Hashtable();
@@ -675,7 +675,7 @@ namespace OpenSim.Grid.GridServer
             }
             catch (KeyNotFoundException) { }
 
-            sim.regionHandle = Utils.UIntsToLong((sim.regionLocX * Constants.RegionSize), (sim.regionLocY * Constants.RegionSize));
+            sim.regionHandle = Helpers.UIntsToLong((sim.regionLocX * Constants.RegionSize), (sim.regionLocY * Constants.RegionSize));
             sim.serverURI = (string)requestData["server_uri"];
 
             sim.httpServerURI = "http://" + sim.serverIP + ":" + sim.httpPort + "/";
@@ -894,7 +894,7 @@ namespace OpenSim.Grid.GridServer
                 {
                     for (int y = ymin; y < ymax + 1; y++)
                     {
-                        ulong regHandle = Utils.UIntsToLong((uint)(x * Constants.RegionSize), (uint)(y * Constants.RegionSize));
+                        ulong regHandle = Helpers.UIntsToLong((uint)(x * Constants.RegionSize), (uint)(y * Constants.RegionSize));
                         simProfile = GetRegion(regHandle);
                         if (simProfile != null)
                         {
@@ -1124,12 +1124,12 @@ namespace OpenSim.Grid.GridServer
 
                     case "region_locx":
                         theSim.regionLocX = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
-                        theSim.regionHandle = Utils.UIntsToLong((theSim.regionLocX * Constants.RegionSize), (theSim.regionLocY * Constants.RegionSize));
+                        theSim.regionHandle = Helpers.UIntsToLong((theSim.regionLocX * Constants.RegionSize), (theSim.regionLocY * Constants.RegionSize));
                         break;
 
                     case "region_locy":
                         theSim.regionLocY = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
-                        theSim.regionHandle = Utils.UIntsToLong((theSim.regionLocX * Constants.RegionSize), (theSim.regionLocY * Constants.RegionSize));
+                        theSim.regionHandle = Helpers.UIntsToLong((theSim.regionLocX * Constants.RegionSize), (theSim.regionLocY * Constants.RegionSize));
                         break;
                 }
             }

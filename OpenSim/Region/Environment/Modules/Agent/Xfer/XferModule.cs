@@ -174,7 +174,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
                 {
                     // for now (testing) we only support files under 1000 bytes
                     byte[] transferData = new byte[Data.Length + 4];
-                    Array.Copy(Utils.IntToBytes(Data.Length), 0, transferData, 0, 4);
+                    Array.Copy(Helpers.IntToBytes(Data.Length), 0, transferData, 0, 4);
                     Array.Copy(Data, 0, transferData, 4, Data.Length);
                     Client.SendXferPacket(XferID, 0 + 0x80000000, transferData);
 
@@ -183,7 +183,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
                 else
                 {
                     byte[] transferData = new byte[1000 + 4];
-                    Array.Copy(Utils.IntToBytes(Data.Length), 0, transferData, 0, 4);
+                    Array.Copy(Helpers.IntToBytes(Data.Length), 0, transferData, 0, 4);
                     Array.Copy(Data, 0, transferData, 4, 1000);
                     Client.SendXferPacket(XferID, 0, transferData);
                     Packet++;

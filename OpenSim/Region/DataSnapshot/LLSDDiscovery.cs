@@ -30,13 +30,13 @@ using OpenSim.Framework.Communications.Capabilities;
 
 namespace OpenSim.Region.DataSnapshot
 {
-    [OSDMap]
+    [LLSDMap]
     public class LLSDDiscoveryResponse
     {
-        public OSDArray snapshot_resources;
+        public LLSDArray snapshot_resources;
     }
 
-    [OSDMap]
+    [LLSDMap]
     public class LLSDDiscoveryDataURL
     {
         public string snapshot_format;

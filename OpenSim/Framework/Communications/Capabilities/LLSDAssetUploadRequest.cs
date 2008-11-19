@@ -30,7 +30,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
-    [OSDMap]
+    [LLSDMap]
     public class LLSDAssetUploadRequest
     {
         public string asset_type = String.Empty;

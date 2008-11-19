@@ -156,7 +156,7 @@ namespace OpenSim.Framework
         /// </summary>
         public virtual ulong HomeRegion
         {
-            get { return Utils.UIntsToLong((_homeRegionX * (uint)Constants.RegionSize), (_homeRegionY * (uint)Constants.RegionSize)); }
+            get { return Helpers.UIntsToLong((_homeRegionX * (uint) Constants.RegionSize), (_homeRegionY * (uint) Constants.RegionSize)); }
             set
             {
                 _homeRegionX = (uint) (value >> 40);

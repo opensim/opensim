@@ -29,7 +29,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework.Communications.Capabilities
 {
-    [OSDMap]
+    [LLSDMap]
     public class LLSDTaskInventoryUploadComplete
     {
         /// <summary>

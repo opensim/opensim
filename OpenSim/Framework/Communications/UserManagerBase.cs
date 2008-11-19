@@ -448,7 +448,7 @@ namespace OpenSim.Framework.Communications
             profile.CurrentAgent = agent;
         }
 
-        public void CreateAgent(UserProfileData profile, OSD request)
+        public void CreateAgent(UserProfileData profile, LLSD request)
         {
             UserAgentData agent = new UserAgentData();
 
