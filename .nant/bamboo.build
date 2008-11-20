@@ -31,7 +31,7 @@
 
 
     <!-- Run the tests. -->
-    <nunit2 failonerror="false">
+    <nunit2 failonerror="false" verbose="true">
       <formatter type="Xml" usefile="true" extension=".xml" outputdir="../test-results" />
       <test>
         <assemblies>
@@ -43,7 +43,6 @@
           <include name="../bin/OpenSim.Region.Environment.Tests.dll" />
           <include name="../bin/OpenSim.Data.SQLite.Tests.dll" />
           <include name="../bin/OpenSim.Data.MySQL.Tests.dll" />
-          
         </assemblies>
       </test>
     </nunit2>
