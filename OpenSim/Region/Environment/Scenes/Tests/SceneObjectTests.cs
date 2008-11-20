@@ -72,6 +72,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         /// <summary>
         /// Test removing an object from a scene.
         /// </summary>
+        [Test]
         public void TestRemoveSceneObject()
         {
             TestScene scene = SceneTestUtils.SetupScene();         

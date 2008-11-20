@@ -71,6 +71,32 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         }
         
         /// <summary>
+        /// Add a root agent
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="agentId"></param>
+        /// <returns></returns>        
+        public static void AddRootAgent(Scene scene, UUID agentId)
+        {
+            string firstName = "testfirstname";
+            
+            AgentCircuitData agent = new AgentCircuitData();
+            agent.AgentID = agentId;
+            agent.firstname = firstName;
+            agent.lastname = "testlastname";
+            agent.SessionID = UUID.Zero;
+            agent.SecureSessionID = UUID.Zero;
+            agent.circuitcode = 123;
+            agent.BaseFolder = UUID.Zero;
+            agent.InventoryFolder = UUID.Zero;
+            agent.startpos = Vector3.Zero;
+            agent.CapsPath = "http://wibble.com";
+            
+            scene.NewUserConnection(agent);
+            scene.AddNewClient(new TestClient(agent), false);
+        }
+        
+        /// <summary>
         /// Add a test object
         /// </summary>
         /// <param name="scene"></param>
