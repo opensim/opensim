@@ -104,26 +104,26 @@ namespace OpenSim.Region.Physics.Manager
         }
 
         /// <summary>
-        /// Load all built-in 'plugins' and those in the bin/Physics diretory
+        /// Load all plugins in assemblies at the given path
         /// </summary>
-        public void LoadPlugins()
+        /// <param name="pluginsPath"></param>
+        public void LoadPluginsFromAssemblies(string assembliesPath)
         {
-            // And now walk all assemblies (DLLs effectively) and see if they are home
+            // Walk all assemblies (DLLs effectively) and see if they are home
             // of a plugin that is of interest for us
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Physics");
-            string[] pluginFiles = Directory.GetFiles(path, "*.dll");
+            string[] pluginFiles = Directory.GetFiles(assembliesPath, "*.dll");
 
             for (int i = 0; i < pluginFiles.Length; i++)
             {
-                LoadPlugin(pluginFiles[i]);
+                LoadPluginsFromAssembly(pluginFiles[i]);
             }
         }
 
         /// <summary>
-        /// Load plugins from a dll at the given path
+        /// Load plugins from an assembly at the given path
         /// </summary>
-        /// <param name="dllPath"></param>
-        public void LoadPlugin(string dllPath)
+        /// <param name="assemblyPath"></param>
+        public void LoadPluginsFromAssembly(string assemblyPath)
         {
             // TODO / NOTE
             // The assembly named 'OpenSim.Region.Physics.BasicPhysicsPlugin' was loaded from
@@ -138,11 +138,11 @@ namespace OpenSim.Region.Physics.Manager
 
             try
             {
-                pluginAssembly = Assembly.LoadFrom(dllPath);
+                pluginAssembly = Assembly.LoadFrom(assemblyPath);
             }
             catch (Exception ex)
             {
-                m_log.Error("[PHYSICS]: Failed to load plugin from " + dllPath, ex);
+                m_log.Error("[PHYSICS]: Failed to load plugin from " + assemblyPath, ex);
             }
 
             if (pluginAssembly != null)
@@ -153,12 +153,12 @@ namespace OpenSim.Region.Physics.Manager
                 }
                 catch (ReflectionTypeLoadException ex)
                 {
-                    m_log.Error("[PHYSICS]: Failed to enumerate types in plugin from " + dllPath + ": " +
+                    m_log.Error("[PHYSICS]: Failed to enumerate types in plugin from " + assemblyPath + ": " +
                         ex.LoaderExceptions[0].Message, ex);
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("[PHYSICS]: Failed to enumerate types in plugin from " + dllPath, ex);
+                    m_log.Error("[PHYSICS]: Failed to enumerate types in plugin from " + assemblyPath, ex);
                 }
 
                 if (types != null)

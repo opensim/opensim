@@ -26,6 +26,7 @@
  */
 
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Reflection;
 using OpenMetaverse;
@@ -102,7 +103,8 @@ namespace OpenSim.Region.ClientStack
         {
             PhysicsPluginManager physicsPluginManager;
             physicsPluginManager = new PhysicsPluginManager();
-            physicsPluginManager.LoadPlugins();
+            physicsPluginManager.LoadPluginsFromAssemblies("Physics");
+            
             return physicsPluginManager.GetPhysicsScene(engine, meshEngine, config);
         }
 
