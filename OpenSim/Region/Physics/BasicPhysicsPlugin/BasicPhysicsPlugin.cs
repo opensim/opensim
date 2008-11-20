@@ -34,7 +34,7 @@ using OpenSim.Region.Physics.Manager;
 namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 {
     /// <summary>
-    /// Will be the PhysX plugin but for now will be a very basic physics engine
+    /// Effectively a physics plugin that simulates no physics at all.
     /// </summary>
     public class BasicPhysicsPlugin : IPhysicsPlugin
     {

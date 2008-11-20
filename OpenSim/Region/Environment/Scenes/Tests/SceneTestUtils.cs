@@ -30,6 +30,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Scenes.Tests
@@ -50,7 +51,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             regInfo.ExternalHostName = "1.2.3.4";
             
             AgentCircuitManager acm = new AgentCircuitManager();
-            CommunicationsManager cm = new CommunicationsManager(null, null, null, false, null);
+            CommunicationsManager cm = new TestCommunicationsManager();
             //SceneCommunicationService scs = new SceneCommunicationService(cm);
             SceneCommunicationService scs = null;
             StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
@@ -62,6 +63,10 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             testScene.LandChannel = new TestLandChannel();
             
+            PhysicsPluginManager physicsPluginManager = new PhysicsPluginManager();
+            physicsPluginManager.LoadPlugins();
+            testScene.PhysicsScene = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", configSource);            
+                        
             return testScene;
         }
         

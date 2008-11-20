@@ -193,7 +193,7 @@ namespace OpenSim.Region.Environment.Scenes
         public PhysicsScene PhysicsScene
         {
             set { m_sceneGraph.PhysicsScene = value; }
-            get { return (m_sceneGraph.PhysicsScene); }
+            get { return m_sceneGraph.PhysicsScene; }
         }
 
         // This gets locked so things stay thread safe.

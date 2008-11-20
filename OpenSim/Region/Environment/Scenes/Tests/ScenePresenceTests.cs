@@ -26,6 +26,7 @@
  */
 
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
@@ -52,16 +53,18 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         }
         
         /// <summary>
-        /// Test adding a root agent to a scene.  Doesn't yet do what it says on the tin.
+        /// Test adding a root agent to a scene.  Doesn't yet actually complete crossing the agent into the scene.
         /// </summary>
         [Test]
         public void TestAddRootAgent()
         {
             Scene scene = SceneTestUtils.SetupScene();
+            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
+            string firstName = "testfirstname";
             
             AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = UUID.Zero;
-            agent.firstname = "testfirstname";
+            agent.AgentID = agentId;
+            agent.firstname = firstName;
             agent.lastname = "testlastname";
             agent.SessionID = UUID.Zero;
             agent.SecureSessionID = UUID.Zero;
@@ -72,8 +75,12 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             agent.CapsPath = "http://wibble.com";
             
             scene.NewUserConnection(agent);
+            scene.AddNewClient(new TestClient(agent), false);
             
-            // There are going to be more parts to this.
+            ScenePresence presence = scene.GetScenePresence(agentId);
+            
+            Assert.That(presence, Is.Not.Null, "presence is null");
+            Assert.That(presence.Firstname, Is.EqualTo(firstName), "First name not same"); 
         }
     }
 }

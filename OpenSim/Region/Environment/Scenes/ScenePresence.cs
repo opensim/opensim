@@ -2424,6 +2424,7 @@ namespace OpenSim.Region.Environment.Scenes
             PhysicsVector pVec =
                 new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
                                   AbsolutePosition.Z);
+            
             if (m_avHeight == 127.0f)
             {
                 m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, 1.56f));
@@ -2432,6 +2433,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, m_avHeight));
             }
+            
             //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             m_physicsActor.SubscribeEvents(1000);
