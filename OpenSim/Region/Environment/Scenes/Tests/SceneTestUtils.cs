@@ -52,8 +52,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             AgentCircuitManager acm = new AgentCircuitManager();
             CommunicationsManager cm = new TestCommunicationsManager();
-            //SceneCommunicationService scs = new SceneCommunicationService(cm);
-            SceneCommunicationService scs = null;
+            SceneCommunicationService scs = new SceneCommunicationService(cm);            
             StorageManager sm = new OpenSim.Region.Environment.StorageManager("OpenSim.Data.Null.dll", "", "");
             BaseHttpServer httpServer = new BaseHttpServer(666);
             IConfigSource configSource = new IniConfigSource();

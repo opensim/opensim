@@ -82,5 +82,23 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             Assert.That(presence, Is.Not.Null, "presence is null");
             Assert.That(presence.Firstname, Is.EqualTo(firstName), "First name not same"); 
         }
+        
+        /// <summary>
+        /// Test removing an uncrossed root agent from a scene.
+        /// </summary>        
+        [Test]
+        public void TestRemoveRootAgent()
+        {
+            Scene scene = SceneTestUtils.SetupScene();
+            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
+            
+            SceneTestUtils.AddRootAgent(scene, agentId);
+            
+            scene.RemoveClient(agentId);
+            
+            ScenePresence presence = scene.GetScenePresence(agentId);
+            
+            Assert.That(presence, Is.Null, "presence is not null");            
+        }
     }
 }
