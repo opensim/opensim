@@ -83,5 +83,14 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             Assert.That(retrievedPart, Is.Null);
         }
+ 
+        /// <summary>
+        /// Test removing an object 
+        /// </summary>
+        public void TestRemoveSceneObjectAsync()
+        {
+            TestScene scene = SceneTestUtils.SetupScene();         
+            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);            
+        }
     }
 }

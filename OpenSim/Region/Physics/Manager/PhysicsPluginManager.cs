@@ -44,10 +44,27 @@ namespace OpenSim.Region.Physics.Manager
         private Dictionary<string, IPhysicsPlugin> _PhysPlugins = new Dictionary<string, IPhysicsPlugin>();
         private Dictionary<string, IMeshingPlugin> _MeshPlugins = new Dictionary<string, IMeshingPlugin>();
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public PhysicsPluginManager()
         {
+            // Load "plugins", that are hard coded and not existing in form of an external lib, and hence always 
+            // available
+            IMeshingPlugin plugHard;
+            plugHard = new ZeroMesherPlugin();
+            _MeshPlugins.Add(plugHard.GetName(), plugHard);
+            
+            m_log.Info("[PHYSICS]: Added meshing engine: " + plugHard.GetName());            
         }
 
+        /// <summary>
+        /// Get a physics scene for the given physics engine and mesher.
+        /// </summary>
+        /// <param name="physEngineName"></param>
+        /// <param name="meshEngineName"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
         public PhysicsScene GetPhysicsScene(string physEngineName, string meshEngineName, IConfigSource config)
         {
             if (String.IsNullOrEmpty(physEngineName))
@@ -86,14 +103,11 @@ namespace OpenSim.Region.Physics.Manager
             }
         }
 
+        /// <summary>
+        /// Load all built-in 'plugins' and those in the bin/Physics diretory
+        /// </summary>
         public void LoadPlugins()
         {
-            // Load "plugins", that are hard coded and not existing in form of an external lib
-            IMeshingPlugin plugHard;
-            plugHard = new ZeroMesherPlugin();
-            _MeshPlugins.Add(plugHard.GetName(), plugHard);
-            m_log.Info("[PHYSICS]: Added meshing engine: " + plugHard.GetName());
-
             // And now walk all assemblies (DLLs effectively) and see if they are home
             // of a plugin that is of interest for us
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Physics");
@@ -101,11 +115,15 @@ namespace OpenSim.Region.Physics.Manager
 
             for (int i = 0; i < pluginFiles.Length; i++)
             {
-                AddPlugin(pluginFiles[i]);
+                LoadPlugin(pluginFiles[i]);
             }
         }
 
-        private void AddPlugin(string FileName)
+        /// <summary>
+        /// Load plugins from a dll at the given path
+        /// </summary>
+        /// <param name="dllPath"></param>
+        public void LoadPlugin(string dllPath)
         {
             // TODO / NOTE
             // The assembly named 'OpenSim.Region.Physics.BasicPhysicsPlugin' was loaded from
@@ -120,11 +138,11 @@ namespace OpenSim.Region.Physics.Manager
 
             try
             {
-                pluginAssembly = Assembly.LoadFrom(FileName);
+                pluginAssembly = Assembly.LoadFrom(dllPath);
             }
             catch (Exception ex)
             {
-                m_log.Error("[PHYSICS]: Failed to load plugin from " + FileName, ex);
+                m_log.Error("[PHYSICS]: Failed to load plugin from " + dllPath, ex);
             }
 
             if (pluginAssembly != null)
@@ -135,12 +153,12 @@ namespace OpenSim.Region.Physics.Manager
                 }
                 catch (ReflectionTypeLoadException ex)
                 {
-                    m_log.Error("[PHYSICS]: Failed to enumerate types in plugin from " + FileName + ": " +
+                    m_log.Error("[PHYSICS]: Failed to enumerate types in plugin from " + dllPath + ": " +
                         ex.LoaderExceptions[0].Message, ex);
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("[PHYSICS]: Failed to enumerate types in plugin from " + FileName, ex);
+                    m_log.Error("[PHYSICS]: Failed to enumerate types in plugin from " + dllPath, ex);
                 }
 
                 if (types != null)
