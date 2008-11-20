@@ -31,6 +31,7 @@ OpenSim Developers
 * mikem (3Di)
 * Melanie Thielker
 * Homer_Horwitz
+* idb (Ian Brown)
 
 
 Patches
@@ -50,7 +51,6 @@ Patches
 * dmiles (Daxtron Labs)
 * Godfrey
 * Grumly57
-* idb
 * jhurliman
 * jimbo2120 (IBM)
 * John R Sohn (XenReborn)
