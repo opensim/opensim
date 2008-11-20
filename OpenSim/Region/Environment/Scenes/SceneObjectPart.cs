@@ -1223,7 +1223,6 @@ if (m_shape != null) {
             if (userExposed)
                 dupe.UUID = UUID.Random();
 
-            dupe.LocalId = localID;
             dupe._ownerID = AgentID;
             dupe._groupID = GroupID;
             dupe.GroupPosition = GroupPosition;
@@ -1245,6 +1244,8 @@ if (m_shape != null) {
             if (userExposed)
                 dupe.ResetIDs(linkNum);
 
+	    // Move afterwards ResetIDs as it clears the localID
+            dupe.LocalId = localID;
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
             dupe._lastOwnerID = ObjectOwner;
 
@@ -1927,6 +1928,7 @@ if (m_shape != null) {
         {
             UUID = UUID.Random();
             LinkNum = linkNum;
+	    LocalId = 0;
 
             ResetInventoryIDs();
         }

@@ -591,17 +591,19 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_scene = scene;                        
             RegionHandle = m_scene.RegionInfo.RegionHandle;
-            
+
             m_rootPart.ParentID = 0;
-            m_rootPart.LocalId = m_scene.AllocateLocalId();
+	    if (m_rootPart.LocalId==0)
+		m_rootPart.LocalId = m_scene.AllocateLocalId();
             
+
             // No need to lock here since the object isn't yet in a scene
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 if (Object.ReferenceEquals(part, m_rootPart))
                     continue;
-                
-                part.LocalId = m_scene.AllocateLocalId();
+                if (part.LocalId==0) 
+		    part.LocalId = m_scene.AllocateLocalId();
                 part.ParentID = m_rootPart.LocalId;
                 //m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
             }

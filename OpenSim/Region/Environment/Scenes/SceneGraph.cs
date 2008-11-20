@@ -1669,7 +1669,6 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID, true);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
-                    copy.ResetIDs();
 
                     lock (Entities)
                     {
