@@ -1277,14 +1277,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
-            SendPartFullUpdate(remoteClient, RootPart, m_scene.ExternalChecks.ExternalChecksGenerateClientFlags(remoteClient.AgentId, RootPart.UUID));
+            SendPartFullUpdate(remoteClient, RootPart, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, RootPart.UUID));
 
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
                     if (part != RootPart)
-                        SendPartFullUpdate(remoteClient, part, m_scene.ExternalChecks.ExternalChecksGenerateClientFlags(remoteClient.AgentId, part.UUID));
+                        SendPartFullUpdate(remoteClient, part, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, part.UUID));
                 }
             }
         }
@@ -1493,7 +1493,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part.OwnerID != cAgentID)
             {
                 // Apply Next Owner Permissions if we're not bypassing permissions
-                if (!m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                if (!m_scene.Permissions.BypassPermissions())
                     ApplyNextOwnerPermissions();
             }
 

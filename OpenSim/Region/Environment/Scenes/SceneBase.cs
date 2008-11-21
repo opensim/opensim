@@ -84,10 +84,10 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
 
-        protected SceneExternalChecks m_externalChecks;
-        public SceneExternalChecks ExternalChecks
+        protected ScenePermissions m_permissions;
+        public ScenePermissions Permissions
         {
-            get { return m_externalChecks; }
+            get { return m_permissions; }
         }
 
         protected string m_datastore;

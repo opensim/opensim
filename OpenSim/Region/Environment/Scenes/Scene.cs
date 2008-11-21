@@ -293,7 +293,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_seeIntoRegionFromNeighbor = SeeIntoRegionFromNeighbor;
 
             m_eventManager = new EventManager();
-            m_externalChecks = new SceneExternalChecks(this);
+            m_permissions = new ScenePermissions(this);
             
             m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
             m_asyncSceneObjectDeleter.Enabled = true;
@@ -1750,7 +1750,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             Vector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new Vector3(0.5f, 0.5f, 0.5f), false);
 
-            if (ExternalChecks.ExternalChecksCanRezObject(1, ownerID, pos))
+            if (Permissions.CanRezObject(1, ownerID, pos))
             {
                 // rez ON the ground, not IN the ground
                 pos.Z += 0.25F;
@@ -3450,7 +3450,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
 
                     // First check that this is the sim owner
-                    if (ExternalChecks.ExternalChecksCanBeGodLike(agentID))
+                    if (Permissions.IsGod(agentID))
                     {
                         // Next we check for spoofing.....
                         UUID testSessionID = m_scenePresences[agentID].ControllingClient.SessionId;
@@ -3527,7 +3527,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_scenePresences.ContainsKey(agentID) || agentID == kickUserID)
                 {
-                    if (ExternalChecks.ExternalChecksCanBeGodLike(godID))
+                    if (Permissions.IsGod(godID))
                     {
                         if (agentID == kickUserID)
                         {
@@ -3848,7 +3848,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else if ((parcel.landData.Flags & (uint)Parcel.ParcelFlags.AllowGroupScripts) != 0)
                     {
-                        if (part.OwnerID == parcel.landData.OwnerID || (parcel.landData.IsGroupOwned && part.GroupID == parcel.landData.GroupID) || ExternalChecks.ExternalChecksCanBeGodLike(part.OwnerID))
+                        if (part.OwnerID == parcel.landData.OwnerID || (parcel.landData.IsGroupOwned && part.GroupID == parcel.landData.GroupID) || Permissions.IsGod(part.OwnerID))
                         {
                             return true;
                         }
@@ -4273,7 +4273,7 @@ namespace OpenSim.Region.Environment.Scenes
                 List<SceneObjectPart> partList =
                     new List<SceneObjectPart>(group.Children.Values);
 
-                if (ExternalChecks.ExternalChecksPropagatePermissions())
+                if (Permissions.PropagatePermissions())
                 {
                     foreach (SceneObjectPart child in partList)
                     {

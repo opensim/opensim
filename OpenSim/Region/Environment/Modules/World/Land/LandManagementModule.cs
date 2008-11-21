@@ -729,7 +729,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             //If we are still here, then they are subdividing within one piece of land
             //Check owner
-            if (!m_scene.ExternalChecks.ExternalChecksCanEditParcel(attempting_user_id, startLandObject))
+            if (!m_scene.Permissions.CanEditParcel(attempting_user_id, startLandObject))
             {
                 return;
             }
@@ -797,7 +797,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 return;
             }
-            if (!m_scene.ExternalChecks.ExternalChecksCanEditParcel(attempting_user_id, masterLandObject))
+            if (!m_scene.Permissions.CanEditParcel(attempting_user_id, masterLandObject))
             {
                 return;
             }
@@ -1009,7 +1009,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             if (land != null)
             {
-                if (m_scene.ExternalChecks.ExternalChecksCanBeGodLike(remote_client.AgentId))
+                if (m_scene.Permissions.IsGod(remote_client.AgentId))
                 {
                     land.landData.OwnerID = ownerID;
 
@@ -1029,7 +1029,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             if (land != null)
             {
-                if (m_scene.ExternalChecks.ExternalChecksCanAbandonParcel(remote_client.AgentId, land))
+                if (m_scene.Permissions.CanAbandonParcel(remote_client.AgentId, land))
                 {
                     if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                         land.landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
@@ -1051,7 +1051,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             if (land != null)
             {
-                if (m_scene.ExternalChecks.ExternalChecksCanReclaimParcel(remote_client.AgentId, land))
+                if (m_scene.Permissions.CanReclaimParcel(remote_client.AgentId, land))
                 {
                     if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                         land.landData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
@@ -1321,7 +1321,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             if (land == null) return;
 
-            if (!m_scene.ExternalChecks.ExternalChecksCanEditParcel(remoteClient.AgentId, land))
+            if (!m_scene.Permissions.CanEditParcel(remoteClient.AgentId, land))
                 return;
 
             land.landData.OtherCleanTime = otherCleanTime;

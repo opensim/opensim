@@ -616,7 +616,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         private void client_OnModifyTerrain(UUID user, float height, float seconds, byte size, byte action,
                                             float north, float west, float south, float east, UUID agentId)
         {
-            bool god = m_scene.ExternalChecks.ExternalChecksCanBeGodLike(user);
+            bool god = m_scene.Permissions.IsGod(user);
             bool allowed = false;
             if (north == south && east == west)
             {
@@ -641,7 +641,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                             int y = zy + dy;
                             if (x>=0 && y>=0 && x<m_channel.Width && y<m_channel.Height)
                             {
-                                if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(agentId, new Vector3(x,y,0)))
+                                if (m_scene.Permissions.CanTerraformLand(agentId, new Vector3(x,y,0)))
                                 {
                                     allowMask[x, y] = true;
                                     allowed = true;
@@ -679,7 +679,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                             {
                                 if (y < north && y > south)
                                 {
-                                    if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(agentId, new Vector3(x,y,0)))
+                                    if (m_scene.Permissions.CanTerraformLand(agentId, new Vector3(x,y,0)))
                                     {
                                         fillArea[x, y] = true;
                                         allowed = true;
@@ -709,7 +709,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             // Not a good permissions check (see client_OnModifyTerrain above), need to check the entire area.
             // for now check a point in the centre of the region
 
-            if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remoteClient.AgentId, true))
+            if (m_scene.Permissions.CanIssueEstateCommand(remoteClient.AgentId, true))
             {
                 InterfaceBakeTerrain(null); //bake terrain does not use the passed in parameter
             }

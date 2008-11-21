@@ -276,7 +276,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (x > 255 || x < 0 || y > 255 || y < 0)
                 OSSLError("osTerrainSetHeight: Coordinate out of bounds");
 
-            if (World.ExternalChecks.ExternalChecksCanTerraformLand(m_host.OwnerID, new Vector3(x, y, 0)))
+            if (World.Permissions.CanTerraformLand(m_host.OwnerID, new Vector3(x, y, 0)))
             {
                 World.Heightmap[x, y] = val;
                 return 1;
@@ -309,7 +309,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osRegionRestart");
 
             m_host.AddScriptLPS(1);
-            if (World.ExternalChecks.ExternalChecksCanIssueEstateCommand(m_host.OwnerID, false))
+            if (World.Permissions.CanIssueEstateCommand(m_host.OwnerID, false))
             {
                 World.Restart((float)seconds);
                 return 1;
@@ -461,7 +461,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if (World.ExternalChecks.ExternalChecksCanRunConsoleCommand(m_host.OwnerID))
+            if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
             {
                 MainConsole.Instance.RunCommand(command);
                 return true;
@@ -663,7 +663,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             //Check to make sure that the script's owner is the estate manager/master
             //World.Permissions.GenericEstatePermission(
-            if (World.ExternalChecks.ExternalChecksCanBeGodLike(m_host.OwnerID))
+            if (World.Permissions.IsGod(m_host.OwnerID))
             {
                 World.EventManager.TriggerRequestChangeWaterHeight((float)height);
             }

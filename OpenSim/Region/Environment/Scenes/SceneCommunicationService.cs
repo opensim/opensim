@@ -599,7 +599,7 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void RequestTeleportToLocation(ScenePresence avatar, ulong regionHandle, Vector3 position,
                                                       Vector3 lookAt, uint teleportFlags)
         {
-            if (!avatar.Scene.ExternalChecks.ExternalChecksCanTeleport(avatar.UUID))
+            if (!avatar.Scene.Permissions.CanTeleport(avatar.UUID))
                 return;
 
             bool destRegionUp = false;

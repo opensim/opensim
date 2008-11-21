@@ -2997,7 +2997,7 @@ if (m_shape != null) {
         public void UpdatePermissions(UUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
         {
             bool set = addRemTF == 1;
-            bool god = m_parentGroup.Scene.ExternalChecks.ExternalChecksCanBeGodLike(AgentID);
+            bool god = m_parentGroup.Scene.Permissions.IsGod(AgentID);
 
             uint baseMask = _baseMask;
             if (god)

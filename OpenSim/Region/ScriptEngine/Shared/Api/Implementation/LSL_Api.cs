@@ -5111,7 +5111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             if (m_host.ObjectOwner == parcel.landData.OwnerID ||
                                 (m_host.OwnerID == m_host.GroupID && m_host.GroupID == parcel.landData.GroupID
-                                && parcel.landData.IsGroupOwned) || World.ExternalChecks.ExternalChecksCanBeGodLike(m_host.OwnerID))
+                                && parcel.landData.IsGroupOwned) || World.Permissions.IsGod(m_host.OwnerID))
                             {
                                 av.StandUp();
                             }
@@ -7408,7 +7408,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (config.Configs["XEngine"].GetBoolean("AllowGodFunctions", false))
             {
-                if (World.ExternalChecks.ExternalChecksCanRunConsoleCommand(m_host.OwnerID))
+                if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
                 {
                     if (mask == ScriptBaseClass.MASK_BASE)//0
                     {
@@ -7701,7 +7701,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // according to the docs, this command only works if script owner and land owner are the same
             // lets add estate owners and gods, too, and use the generic permission check.
             ILandObject landObject = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
-            if (!World.ExternalChecks.ExternalChecksCanEditParcel(m_host.ObjectOwner, landObject)) return;
+            if (!World.Permissions.CanEditParcel(m_host.ObjectOwner, landObject)) return;
 
             bool update = false; // send a ParcelMediaUpdate (and possibly change the land's media URL)? 
 

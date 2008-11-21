@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment.Scenes
                 userInfo.AddItem(item);
 
                 int userlevel = 0;
-                if (ExternalChecks.ExternalChecksCanBeGodLike(AgentID))
+                if (Permissions.IsGod(AgentID))
                 {
                     userlevel = 1;
                 }
@@ -171,7 +171,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         if ((InventoryType) item.InvType == InventoryType.Notecard)
                         {
-                            if (!ExternalChecks.ExternalChecksCanEditNotecard(itemID, UUID.Zero, remoteClient.AgentId))
+                            if (!Permissions.CanEditNotecard(itemID, UUID.Zero, remoteClient.AgentId))
                             {
                                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
                                 return UUID.Zero;
@@ -180,7 +180,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else if ((InventoryType) item.InvType == InventoryType.LSL)
                         {
-                            if (!ExternalChecks.ExternalChecksCanEditScript(itemID, UUID.Zero, remoteClient.AgentId))
+                            if (!Permissions.CanEditScript(itemID, UUID.Zero, remoteClient.AgentId))
                             {
                                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
                                 return UUID.Zero;
@@ -243,7 +243,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, UUID itemId,
                                                        UUID primId, bool isScriptRunning, byte[] data)
         {
-            if (!ExternalChecks.ExternalChecksCanEditScript(itemId, primId, remoteClient.AgentId))
+            if (!Permissions.CanEditScript(itemId, primId, remoteClient.AgentId))
             {
                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
                 return;
@@ -432,7 +432,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (item != null)
                 {
-                    if (!ExternalChecks.ExternalChecksBypassPermissions())
+                    if (!Permissions.BypassPermissions())
                     {
                         if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
                             return null;
@@ -458,7 +458,7 @@ namespace OpenSim.Region.Environment.Scenes
                         itemCopy.AssetType = item.AssetType;
                         itemCopy.InvType = item.InvType;
                         itemCopy.Folder = UUID.Zero;
-                        if (ExternalChecks.ExternalChecksPropagatePermissions())
+                        if (Permissions.PropagatePermissions())
                         {
                             if (item.InvType == 6)
                             {
@@ -500,7 +500,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         recipientUserInfo.AddItem(itemCopy);
 
-                        if (!ExternalChecks.ExternalChecksBypassPermissions())
+                        if (!Permissions.BypassPermissions())
                         {
                             if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                                 senderUserInfo.DeleteItem(itemId);
@@ -764,7 +764,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
 
-            if (!ExternalChecks.ExternalChecksCanCreateUserInventory(invType, remoteClient.AgentId))
+            if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
                 
             if (transactionID == UUID.Zero)
@@ -975,7 +975,7 @@ namespace OpenSim.Region.Environment.Scenes
             agentItem.InvType = taskItem.InvType;
             agentItem.Flags = taskItem.Flags;
 
-            if ((destAgent != taskItem.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+            if ((destAgent != taskItem.OwnerID) && Permissions.PropagatePermissions())
             {
                 agentItem.BasePermissions = taskItem.NextPermissions;
                 agentItem.CurrentPermissions = taskItem.NextPermissions | 8;
@@ -992,7 +992,7 @@ namespace OpenSim.Region.Environment.Scenes
                 agentItem.GroupPermissions = taskItem.GroupPermissions;
             }
 
-            if (!ExternalChecks.ExternalChecksBypassPermissions())
+            if (!Permissions.BypassPermissions())
             {
                 if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     part.Inventory.RemoveInventoryItem(itemId);
@@ -1165,7 +1165,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (destPart.OwnerID != part.OwnerID)
             {
-                if (ExternalChecks.ExternalChecksPropagatePermissions())
+                if (Permissions.PropagatePermissions())
                 {
                     destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions &
                             srcTaskItem.NextPermissions;
@@ -1262,7 +1262,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // AllowInventoryDrop flag has been set. Don't however let
                 // them update an item unless they pass the external checks
                 //
-                if (!ExternalChecks.ExternalChecksCanEditObjectInventory(part.UUID, remoteClient.AgentId)
+                if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId)
                     && (currentItem != null || !allowInventoryDrop))
                     return;
 
@@ -1291,7 +1291,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}",
                                     item.Name, primLocalID, remoteClient.Name);
                                 part.GetProperties(remoteClient);
-                                if (!ExternalChecks.ExternalChecksBypassPermissions())
+                                if (!Permissions.BypassPermissions())
                                 {
                                     if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                                         RemoveInventoryItem(remoteClient, itemID);
@@ -1358,7 +1358,7 @@ namespace OpenSim.Region.Environment.Scenes
                         SceneObjectPart part = GetSceneObjectPart(localID);
                         if (part != null)
                         {
-                            if (!ExternalChecks.ExternalChecksCanEditObjectInventory(part.UUID, remoteClient.AgentId))
+                            if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
                                 return;
 
                             part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
@@ -1400,7 +1400,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return;
                 
-                if (!ExternalChecks.ExternalChecksCanCreateObjectInventory(
+                if (!Permissions.CanCreateObjectInventory(
                     itemBase.InvType, part.UUID, remoteClient.AgentId))               
                     return;             
 
@@ -1506,7 +1506,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (destPart.OwnerID != srcPart.OwnerID)
             {
-                if (ExternalChecks.ExternalChecksPropagatePermissions())
+                if (Permissions.PropagatePermissions())
                 {
                     destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions &
                             srcTaskItem.NextPermissions;
@@ -1567,20 +1567,20 @@ namespace OpenSim.Region.Environment.Scenes
             if (destination == 1) // Take Copy
             {
                 permissionToTake =
-                        ExternalChecks.ExternalChecksCanTakeCopyObject(
+                        Permissions.CanTakeCopyObject(
                         grp.UUID,
                         remoteClient.AgentId);
             }
             else if (destination == 5) // God take copy
             {
                 permissionToTake =
-                        ExternalChecks.ExternalChecksCanBeGodLike(
+                        Permissions.IsGod(
                         remoteClient.AgentId);
             }
             else if (destination == 4) // Take
             {
                 permissionToTake =
-                        ExternalChecks.ExternalChecksCanTakeObject(
+                        Permissions.CanTakeObject(
                         grp.UUID,
                         remoteClient.AgentId);
 
@@ -1590,11 +1590,11 @@ namespace OpenSim.Region.Environment.Scenes
             else if (destination == 6) //Delete
             {
                 permissionToTake =
-                        ExternalChecks.ExternalChecksCanDeleteObject(
+                        Permissions.CanDeleteObject(
                         grp.UUID,
                         remoteClient.AgentId);
                 permissionToDelete =
-                        ExternalChecks.ExternalChecksCanDeleteObject(
+                        Permissions.CanDeleteObject(
                         grp.UUID,
                         remoteClient.AgentId);
             }
@@ -1603,11 +1603,11 @@ namespace OpenSim.Region.Environment.Scenes
                 if (remoteClient != null)
                 {
                     permissionToTake =
-                            ExternalChecks.ExternalChecksCanDeleteObject(
+                            Permissions.CanDeleteObject(
                             grp.UUID,
                             remoteClient.AgentId);
                     permissionToDelete =
-                            ExternalChecks.ExternalChecksCanDeleteObject(
+                            Permissions.CanDeleteObject(
                             grp.UUID,
                             remoteClient.AgentId);
                     if (permissionToDelete)
@@ -1722,7 +1722,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.InvType = (int)InventoryType.Object;
                 item.Folder = folderID;
                 
-                if (remoteClient != null && (remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+                if (remoteClient != null && (remoteClient.AgentId != objectGroup.RootPart.OwnerID) && Permissions.PropagatePermissions())
                 {
                     uint perms=objectGroup.GetEffectivePermissions();
                     uint nextPerms=(perms & 7) << 13;
@@ -1877,7 +1877,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     item.Folder = UUID.Zero; // Objects folder!
 
-                    if ((remoteClient.AgentId != grp.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+                    if ((remoteClient.AgentId != grp.RootPart.OwnerID) && Permissions.PropagatePermissions())
                     {
                         item.BasePermissions = grp.RootPart.NextOwnerMask;
                         item.CurrentPermissions = grp.RootPart.NextOwnerMask;
@@ -1988,7 +1988,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             string xmlData = Utils.BytesToString(rezAsset.Data);
                             SceneObjectGroup group = new SceneObjectGroup(xmlData, true);
-                            if (!ExternalChecks.ExternalChecksCanRezObject(
+                            if (!Permissions.CanRezObject(
                                 group.Children.Count, remoteClient.AgentId, pos) 
                                 && !attachment)
                             {
@@ -2043,7 +2043,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 rootPart.ObjectSaleType = 0;
                                 rootPart.SalePrice = 10;
 
-                                if (ExternalChecks.ExternalChecksPropagatePermissions())
+                                if (Permissions.PropagatePermissions())
                                 {
                                     if ((item.CurrentPermissions & 8) != 0)
                                     {
@@ -2093,7 +2093,7 @@ namespace OpenSim.Region.Environment.Scenes
                             if (!attachment)
                                 rootPart.ScheduleFullUpdate();
 
-                            if (!ExternalChecks.ExternalChecksBypassPermissions())
+                            if (!Permissions.BypassPermissions())
                             {
                                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                                     userInfo.DeleteItem(item.ID);
@@ -2133,7 +2133,7 @@ namespace OpenSim.Region.Environment.Scenes
                     string xmlData = Utils.BytesToString(rezAsset.Data);
                     SceneObjectGroup group = new SceneObjectGroup(xmlData, true);
 
-                    if (!ExternalChecks.ExternalChecksCanRezObject(group.Children.Count, ownerID, pos))
+                    if (!Permissions.CanRezObject(group.Children.Count, ownerID, pos))
                     {
                         return null;
                     }
@@ -2158,7 +2158,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (rootPart.OwnerID != item.OwnerID)
                     {
-                        if (ExternalChecks.ExternalChecksPropagatePermissions())
+                        if (Permissions.PropagatePermissions())
                         {
                             if ((item.CurrentPermissions & 8) != 0)
                             {
@@ -2197,7 +2197,7 @@ namespace OpenSim.Region.Environment.Scenes
                     group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
                     rootPart.ScheduleFullUpdate();
 
-                    if (!ExternalChecks.ExternalChecksBypassPermissions())
+                    if (!Permissions.BypassPermissions())
                     {
                         if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                             sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
@@ -2315,7 +2315,7 @@ namespace OpenSim.Region.Environment.Scenes
             ScenePresence presence;
             if (TryGetAvatar(remoteClient.AgentId, out presence))
             {
-                if (!ExternalChecks.ExternalChecksCanRezObject(part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
+                if (!Permissions.CanRezObject(part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
                     return;
 
                 presence.Appearance.DetachAttachment(itemID);
@@ -2359,7 +2359,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         void ObjectOwner(IClientAPI remoteClient, UUID ownerID, UUID groupID, List<uint> localIDs)
         {
-            if (!ExternalChecks.ExternalChecksCanBeGodLike(remoteClient.AgentId))
+            if (!Permissions.IsGod(remoteClient.AgentId))
                 return;
 
             foreach (uint localID in localIDs)

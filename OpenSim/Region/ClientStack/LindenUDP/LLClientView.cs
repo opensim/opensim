@@ -1095,7 +1095,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                        string fromName, byte dialog, uint timeStamp,
                                        UUID transactionID, bool fromGroup, byte[] binaryBucket)
         {
-            if (((Scene)(m_scene)).ExternalChecks.ExternalChecksCanInstantMessage(fromAgent, toAgent))
+            if (((Scene)(m_scene)).Permissions.CanInstantMessage(fromAgent, toAgent))
             {
                 ImprovedInstantMessagePacket msg
                     = (ImprovedInstantMessagePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedInstantMessage);
@@ -4984,7 +4984,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         UUID taskID = new UUID(transfer.TransferInfo.Params, 48);
                         UUID itemID = new UUID(transfer.TransferInfo.Params, 64);
                         UUID requestID = new UUID(transfer.TransferInfo.Params, 80);
-                        if (!(((Scene)m_scene).ExternalChecks.ExternalChecksBypassPermissions()))
+                        if (!(((Scene)m_scene).Permissions.BypassPermissions()))
                         {
                             if (taskID != UUID.Zero) // Prim
                             {
@@ -5040,7 +5040,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 //
                                 if (assetRequestItem.AssetType == 10)
                                 {
-                                    if (!((Scene)m_scene).ExternalChecks.ExternalChecksCanViewScript(itemID, UUID.Zero, AgentId))
+                                    if (!((Scene)m_scene).Permissions.CanViewScript(itemID, UUID.Zero, AgentId))
                                     {
                                         SendAgentAlertMessage("Insufficient permissions to view script", false);
                                         break;
@@ -5048,7 +5048,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 }
                                 else if (assetRequestItem.AssetType == 7)
                                 {
-                                    if (!((Scene)m_scene).ExternalChecks.ExternalChecksCanViewNotecard(itemID, UUID.Zero, AgentId))
+                                    if (!((Scene)m_scene).Permissions.CanViewNotecard(itemID, UUID.Zero, AgentId))
                                     {
                                         SendAgentAlertMessage("Insufficient permissions to view notecard", false);
                                         break;
@@ -5799,13 +5799,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     switch (Utils.BytesToString(messagePacket.MethodData.Method))
                     {
                         case "getinfo":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 OnDetailedEstateDataRequest(this, messagePacket.MethodData.Invoice);
                             }
                             break;
                         case "setregioninfo":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 OnSetEstateFlagsRequest(convertParamStringToBool(messagePacket.ParamList[0].Parameter), convertParamStringToBool(messagePacket.ParamList[1].Parameter),
                                                         convertParamStringToBool(messagePacket.ParamList[2].Parameter), !convertParamStringToBool(messagePacket.ParamList[3].Parameter),
@@ -5818,7 +5818,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             break;
 //                            case "texturebase":
-//                                if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+//                                if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
 //                                {
 //                                    foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
 //                                    {
@@ -5833,7 +5833,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                                }
 //                                break;
                         case "texturedetail":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
                                 {
@@ -5851,7 +5851,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             break;
                         case "textureheights":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
                                 {
@@ -5872,7 +5872,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             OnCommitEstateTerrainTextureRequest(this);
                             break;
                         case "setregionterrain":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 if (messagePacket.ParamList.Length != 9)
                                 {
@@ -5910,7 +5910,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             break;
                         case "restart":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 // There's only 1 block in the estateResetSim..   and that's the number of seconds till restart.
                                 foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
@@ -5924,7 +5924,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             break;
                         case "estatechangecovenantid":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
                                 {
@@ -5934,7 +5934,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             break;
                         case "estateaccessdelta": // Estate access delta manages the banlist and allow list too.
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 int estateAccessType = Convert.ToInt16(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
                                 OnUpdateEstateAccessDeltaRequest(this, messagePacket.MethodData.Invoice, estateAccessType, new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter)));
@@ -5942,7 +5942,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             break;
                         case "simulatormessage":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 UUID invoice = messagePacket.MethodData.Invoice;
                                 UUID SenderID = new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter));
@@ -5953,7 +5953,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             break;
                         case "instantmessage":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 if (messagePacket.ParamList.Length < 5)
                                     break;
@@ -5966,7 +5966,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             break;
                         case "setregiondebug":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 UUID invoice = messagePacket.MethodData.Invoice;
                                 UUID SenderID = messagePacket.AgentData.AgentID;
@@ -5978,7 +5978,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             break;
                         case "teleporthomeuser":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 UUID invoice = messagePacket.MethodData.Invoice;
                                 UUID SenderID = messagePacket.AgentData.AgentID;
@@ -5990,7 +5990,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             break;
                         case "teleporthomeallusers":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 UUID invoice = messagePacket.MethodData.Invoice;
                                 UUID SenderID = messagePacket.AgentData.AgentID;
@@ -6012,7 +6012,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             break;
                         case "terrain":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 if (messagePacket.ParamList.Length > 0)
                                 {
@@ -6054,7 +6054,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             break;
 
                         case "estatechangeinfo":
-                            if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(AgentId, false))
+                            if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                             {
                                 UUID invoice = messagePacket.MethodData.Invoice;
                                 UUID SenderID = messagePacket.AgentData.AgentID;

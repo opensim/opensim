@@ -63,7 +63,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             else
                 estateOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
 
-            if (m_scene.ExternalChecks.ExternalChecksCanBeGodLike(remote_client.AgentId))
+            if (m_scene.Permissions.IsGod(remote_client.AgentId))
                 estateOwner = remote_client.AgentId;
 
             remote_client.SendDetailedEstateData(invoice,
@@ -233,7 +233,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             switch (estateAccessType)
             {
                 case 64:
-                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId, false) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                    if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || m_scene.Permissions.BypassPermissions())
                     {
                         EstateBan[] banlistcheck = m_scene.RegionInfo.EstateSettings.EstateBans;
 
@@ -285,7 +285,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     }
                     break;
                 case 128:
-                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId, false) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                    if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || m_scene.Permissions.BypassPermissions())
                     {
                         EstateBan[] banlistcheck = m_scene.RegionInfo.EstateSettings.EstateBans;
 
@@ -321,7 +321,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     break;
                 case 256:
 
-                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId, true) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                    if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
                     {
                         m_scene.RegionInfo.EstateSettings.AddEstateManager(user);
                         m_scene.RegionInfo.EstateSettings.Save();
@@ -334,7 +334,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
                     break;
                 case 512:
-                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId, true) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                    if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
                     {
                         m_scene.RegionInfo.EstateSettings.RemoveEstateManager(user);
                         m_scene.RegionInfo.EstateSettings.Save();
@@ -742,7 +742,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 args.SimOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
 
             // Fudge estate owner
-            //if (m_scene.ExternalChecks.ExternalChecksCanBeGodLike(remoteClient.AgentId))
+            //if (m_scene.Permissions.IsGod(remoteClient.AgentId))
             //    args.SimOwner = remoteClient.AgentId;
 
             args.terrainBase0 = UUID.Zero;

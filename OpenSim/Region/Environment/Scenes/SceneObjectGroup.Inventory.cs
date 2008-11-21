@@ -157,7 +157,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (remoteClient != null &&
                         remoteClient.AgentId != part.OwnerID &&
-                        m_scene.ExternalChecks.ExternalChecksPropagatePermissions())
+                        m_scene.Permissions.PropagatePermissions())
                 {
                     taskItem.BasePermissions = item.BasePermissions &
                             item.NextPermissions;

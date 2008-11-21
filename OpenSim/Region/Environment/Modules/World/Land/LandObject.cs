@@ -181,14 +181,14 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void updateLandProperties(LandUpdateArgs args, IClientAPI remote_client)
         {
-            if (m_scene.ExternalChecks.ExternalChecksCanEditParcel(remote_client.AgentId,this))
+            if (m_scene.Permissions.CanEditParcel(remote_client.AgentId,this))
             {
                 //Needs later group support
                 LandData newData = landData.Copy();
 
                 if (args.AuthBuyerID != newData.AuthBuyerID || args.SalePrice != newData.SalePrice)
                 {
-                    if (m_scene.ExternalChecks.ExternalChecksCanSellParcel(remote_client.AgentId, this))
+                    if (m_scene.Permissions.CanSellParcel(remote_client.AgentId, this))
                     {
                         newData.AuthBuyerID = args.AuthBuyerID;
                         newData.SalePrice = args.SalePrice;
@@ -647,7 +647,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void sendForceObjectSelect(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client)
         {
-            if (m_scene.ExternalChecks.ExternalChecksCanEditParcel(remote_client.AgentId, this))
+            if (m_scene.Permissions.CanEditParcel(remote_client.AgentId, this))
             {
                 List<uint> resultLocalIDs = new List<uint>();
                 try
@@ -697,7 +697,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// </param>
         public void sendLandObjectOwners(IClientAPI remote_client)
         {
-            if (m_scene.ExternalChecks.ExternalChecksCanEditParcel(remote_client.AgentId, this))
+            if (m_scene.Permissions.CanEditParcel(remote_client.AgentId, this))
             {
                 Dictionary<UUID, int> primCount = new Dictionary<UUID, int>();
 

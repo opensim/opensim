@@ -230,7 +230,7 @@ namespace OpenSim.Region.Environment.Scenes
             //     "Starting script {0}, {1} in prim {2}, {3}",
             //     item.Name, item.ItemID, Name, UUID);
 
-            if (!m_part.ParentGroup.Scene.ExternalChecks.ExternalChecksCanRunScript(item.ItemID, m_part.UUID, item.OwnerID))
+            if (!m_part.ParentGroup.Scene.Permissions.CanRunScript(item.ItemID, m_part.UUID, item.OwnerID))
                 return;
 
             m_part.AddFlag(PrimFlags.Scripted);

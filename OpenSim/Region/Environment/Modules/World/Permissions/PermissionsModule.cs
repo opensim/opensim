@@ -180,50 +180,50 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 m_log.Debug("[PERMISSIONS]: Enabling all region service permission checks");
 
             //Register functions with Scene External Checks!
-            m_scene.ExternalChecks.addBypassPermissions(BypassPermissions); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addSetBypassPermissions(SetBypassPermissions); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addPropagatePermissions(PropagatePermissions); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckAbandonParcel(CanAbandonParcel); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckReclaimParcel(CanReclaimParcel); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addGenerateClientFlags(GenerateClientFlags); //NOT YET FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckBeGodLike(CanBeGodLike); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckDuplicateObject(CanDuplicateObject); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckDeleteObject(CanDeleteObject); //MAYBE FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckEditObject(CanEditObject);//MAYBE FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckEditParcel(CanEditParcel); //FULLY IMPLEMENTED            
-            m_scene.ExternalChecks.addCheckInstantMessage(CanInstantMessage); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckInventoryTransfer(CanInventoryTransfer); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckIssueEstateCommand(CanIssueEstateCommand); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckMoveObject(CanMoveObject); //HOPEFULLY FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckObjectEntry(CanObjectEntry); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckReturnObject(CanReturnObject); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckRezObject(CanRezObject); //HOPEFULLY FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckRunConsoleCommand(CanRunConsoleCommand); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckRunScript(CanRunScript); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckSellParcel(CanSellParcel); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckTakeObject(CanTakeObject); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckTakeCopyObject(CanTakeCopyObject); //FULLY IMPLEMENTED
-            m_scene.ExternalChecks.addCheckTerraformLand(CanTerraformLand); //FULL IMPLEMENTED (POINT ONLY!!! NOT AREA!!!)
-            m_scene.ExternalChecks.addCheckCanLinkObject(CanLinkObject); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanDelinkObject(CanDelinkObject); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanBuyLand(CanBuyLand); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddBypassPermissionsHandler(BypassPermissions); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddSetBypassPermissionsHandler(SetBypassPermissions); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddPropagatePermissionsHandler(PropagatePermissions); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddGenerateClientFlagsHandler(GenerateClientFlags); //NOT YET FULLY IMPLEMENTED
+            m_scene.Permissions.AddAbandonParcelHandler(CanAbandonParcel); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddReclaimParcelHandler(CanReclaimParcel); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddIsGodHandler(IsGod); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddDuplicateObjectHandler(CanDuplicateObject); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddDeleteObjectHandler(CanDeleteObject); //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.AddEditObjectHandler(CanEditObject);//MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.AddEditParcelHandler(CanEditParcel); //FULLY IMPLEMENTED            
+            m_scene.Permissions.AddInstantMessageHandler(CanInstantMessage); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddInventoryTransferHandler(CanInventoryTransfer); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddIssueEstateCommandHandler(CanIssueEstateCommand); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddMoveObjectHandler(CanMoveObject); //HOPEFULLY FULLY IMPLEMENTED
+            m_scene.Permissions.AddObjectEntryHandler(CanObjectEntry); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddReturnObjectHandler(CanReturnObject); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddRezObjectHandler(CanRezObject); //HOPEFULLY FULLY IMPLEMENTED
+            m_scene.Permissions.AddRunConsoleCommandHandler(CanRunConsoleCommand); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddRunScriptHandler(CanRunScript); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddSellParcelHandler(CanSellParcel); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddTakeObjectHandler(CanTakeObject); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddTakeCopyObjectHandler(CanTakeCopyObject); //FULLY IMPLEMENTED
+            m_scene.Permissions.AddTerraformLandHandler(CanTerraformLand); //FULL IMPLEMENTED (POINT ONLY!!! NOT AREA!!!)
+            m_scene.Permissions.AddCanLinkObjectHandler(CanLinkObject); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddCanDelinkObjectHandler(CanDelinkObject); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddCanBuyLandHandler(CanBuyLand); //NOT YET IMPLEMENTED
             
-            m_scene.ExternalChecks.addCheckViewNotecard(CanViewNotecard); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckViewScript(CanViewScript); //NOT YET IMPLEMENTED                       
-            m_scene.ExternalChecks.addCheckEditNotecard(CanEditNotecard); //NOT YET IMPLEMENTED            
-            m_scene.ExternalChecks.addCheckEditScript(CanEditScript); //NOT YET IMPLEMENTED            
+            m_scene.Permissions.AddViewNotecardHandler(CanViewNotecard); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddViewScriptHandler(CanViewScript); //NOT YET IMPLEMENTED                       
+            m_scene.Permissions.AddEditNotecardHandler(CanEditNotecard); //NOT YET IMPLEMENTED            
+            m_scene.Permissions.AddEditScriptHandler(CanEditScript); //NOT YET IMPLEMENTED            
             
-            m_scene.ExternalChecks.addCheckCanCreateObjectInventory(CanCreateObjectInventory); //NOT IMPLEMENTED HERE 
-            m_scene.ExternalChecks.addCheckEditObjectInventory(CanEditObjectInventory);//MAYBE FULLY IMPLEMENTED            
-            m_scene.ExternalChecks.addCheckCanCopyObjectInventory(CanCopyObjectInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanDeleteObjectInventory(CanDeleteObjectInventory); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddCanCreateObjectInventoryHandler(CanCreateObjectInventory); //NOT IMPLEMENTED HERE 
+            m_scene.Permissions.AddEditObjectInventoryHandler(CanEditObjectInventory);//MAYBE FULLY IMPLEMENTED            
+            m_scene.Permissions.AddCanCopyObjectInventoryHandler(CanCopyObjectInventory); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddCanDeleteObjectInventoryHandler(CanDeleteObjectInventory); //NOT YET IMPLEMENTED
             
-            m_scene.ExternalChecks.addCheckCanCreateUserInventory(CanCreateUserInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanCopyUserInventory(CanCopyUserInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanEditUserInventory(CanEditUserInventory); //NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckCanDeleteUserInventory(CanDeleteUserInventory); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddCanCreateUserInventoryHandler(CanCreateUserInventory); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddCanCopyUserInventoryHandler(CanCopyUserInventory); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddCanEditUserInventoryHandler(CanEditUserInventory); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddCanDeleteUserInventoryHandler(CanDeleteUserInventory); //NOT YET IMPLEMENTED
             
-            m_scene.ExternalChecks.addCheckCanTeleport(CanTeleport); //NOT YET IMPLEMENTED
+            m_scene.Permissions.AddCanTeleportHandler(CanTeleport); //NOT YET IMPLEMENTED
 
             //Register Debug Commands
             Command bypassCommand = new Command("bypass", CommandIntentions.COMMAND_HAZARDOUS, InterfaceBypassPermissions, "Force the permissions a specific way to test permissions");
@@ -651,7 +651,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return GenericParcelPermission(user, parcel);
         }
 
-        private bool CanBeGodLike(UUID user, Scene scene)
+        private bool IsGod(UUID user, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
