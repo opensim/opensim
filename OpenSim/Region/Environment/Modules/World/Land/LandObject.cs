@@ -664,9 +664,14 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                                 }
                                 else if (request_type == LandChannel.LAND_SELECT_OBJECTS_GROUP && obj.GroupID == landData.GroupID && landData.GroupID != UUID.Zero)
                                 {
+                                    resultLocalIDs.Add(obj.LocalId);
                                 }
                                 else if (request_type == LandChannel.LAND_SELECT_OBJECTS_OTHER &&
                                          obj.OwnerID != remote_client.AgentId)
+                                {
+                                    resultLocalIDs.Add(obj.LocalId);
+                                }
+                                else if (request_type == (int)ObjectReturnType.List && returnIDs.Contains(obj.OwnerID))
                                 {
                                     resultLocalIDs.Add(obj.LocalId);
                                 }
