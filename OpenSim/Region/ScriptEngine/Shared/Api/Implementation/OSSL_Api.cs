@@ -183,7 +183,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void CheckThreatLevel(ThreatLevel level, string function)
         {
             if (!m_OSFunctionsEnabled)
-                OSSLError(function+": permission denied"); // throws
+                OSSLError(String.Format("{0} permission denied.  All OS functions are disabled.", function)); // throws
 
             if (!m_FunctionPerms.ContainsKey(function))
             {
@@ -239,14 +239,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_FunctionPerms[function] == null) // No list = true
             {
                 if (level > m_MaxThreatLevel)
-                    throw new Exception("Threat level too high - "+function);
+                    OSSLError(
+                        String.Format(
+                            "{0} permission denied.  Allowed threat level is {1} but function threat level is {2}.",
+                            function, m_MaxThreatLevel, level));
             }
             else
             {
                 if (!m_FunctionPerms[function].Contains(UUID.Zero))
                 {
                     if (!m_FunctionPerms[function].Contains(m_host.OwnerID))
-                        throw new Exception("Threat level too high - "+function);
+                        OSSLError(
+                            String.Format("{0} permission denied.  Prim owner is not in the list of users allowed to execute this function.",
+                            function));
                 }
             }
         }
