@@ -1224,7 +1224,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     parcel.landData.OtherCleanTime)
                             {
                                 m_log.InfoFormat("[SCENE] Returning object {0} due to parcel auto return", RootPart.UUID.ToString());
-                                m_scene.AddReturn(OwnerID, Name, AbsolutePosition);
+                                m_scene.AddReturn(OwnerID, Name, AbsolutePosition, "parcel auto return");
                                 m_scene.DeRezObject(null, RootPart.LocalId,
                                     RootPart.GroupID, 9, UUID.Zero);
 

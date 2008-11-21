@@ -1149,10 +1149,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             if (selectedParcel == null) return;
 
-            if (returnType == 16) // parcel return
-            {
-                selectedParcel.returnLandObjects(returnType, agentIDs, remoteClient);
-            }
+            selectedParcel.returnLandObjects(returnType, agentIDs, taskIDs, remoteClient);
         }
 
         public void NoLandDataFromStorage()

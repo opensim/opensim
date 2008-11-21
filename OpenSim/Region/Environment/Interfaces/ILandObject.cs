@@ -71,7 +71,7 @@ namespace OpenSim.Region.Environment.Interfaces
         void sendForceObjectSelect(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client);
         void sendLandObjectOwners(IClientAPI remote_client);
         void returnObject(SceneObjectGroup obj);
-        void returnLandObjects(uint type, UUID[] owners, IClientAPI remote_client);
+        void returnLandObjects(uint type, UUID[] owners, UUID[] tasks, IClientAPI remote_client);
         void resetLandPrimCounts();
         void addPrimToCount(SceneObjectGroup obj);
         void removePrimFromCount(SceneObjectGroup obj);

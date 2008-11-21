@@ -776,28 +776,73 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             m_scene.returnObjects(objs, obj.OwnerID);
         }
 
-        public void returnLandObjects(uint type, UUID[] owners, IClientAPI remote_client)
+        public void returnLandObjects(uint type, UUID[] owners, UUID[] tasks, IClientAPI remote_client)
         {
-            List<SceneObjectGroup> objlist = new List<SceneObjectGroup>();
-            for (int i = 0; i < owners.Length; i++)
+            Dictionary<UUID,List<SceneObjectGroup>> returns =
+                    new Dictionary<UUID,List<SceneObjectGroup>>();
+
+            lock (primsOverMe)
             {
-                lock (primsOverMe)
+                if (type == (uint)ObjectReturnType.Owner)
                 {
-                    try
+                    foreach (SceneObjectGroup obj in primsOverMe)
                     {
-                        foreach (SceneObjectGroup obj in primsOverMe)
+                        if (obj.OwnerID == m_landData.OwnerID)
                         {
-                            if (obj.OwnerID == owners[i])
-                                objlist.Add(obj);
+                            if (!returns.ContainsKey(obj.OwnerID))
+                                returns[obj.OwnerID] =
+                                        new List<SceneObjectGroup>();
+                            returns[obj.OwnerID].Add(obj);
                         }
                     }
-                    catch (InvalidOperationException)
+                }
+                else if (type == (uint)ObjectReturnType.Group && m_landData.GroupID != UUID.Zero)
+                {
+                    foreach (SceneObjectGroup obj in primsOverMe)
                     {
-                        m_log.Info("[PARCEL]: Unable to figure out all the objects owned by " + owners[i].ToString() + " arr.");
+                        if (obj.GroupID == m_landData.GroupID)
+                        {
+                            if (!returns.ContainsKey(obj.OwnerID))
+                                returns[obj.OwnerID] =
+                                        new List<SceneObjectGroup>();
+                            returns[obj.OwnerID].Add(obj);
+                        }
+                    }
+                }
+                else if (type == (uint)ObjectReturnType.Other)
+                {
+                    foreach (SceneObjectGroup obj in primsOverMe)
+                    {
+                        if (obj.OwnerID != m_landData.OwnerID &&
+                            (obj.GroupID != m_landData.GroupID ||
+                            m_landData.GroupID == UUID.Zero))
+                        {
+                            if (!returns.ContainsKey(obj.OwnerID))
+                                returns[obj.OwnerID] =
+                                        new List<SceneObjectGroup>();
+                            returns[obj.OwnerID].Add(obj);
+                        }
+                    }
+                }
+                else if (type == (uint)ObjectReturnType.List)
+                {
+                    List<UUID> ownerlist = new List<UUID>(owners);
+
+                    foreach (SceneObjectGroup obj in primsOverMe)
+                    {
+                        if (ownerlist.Contains(obj.OwnerID))
+                        {
+                            if (!returns.ContainsKey(obj.OwnerID))
+                                returns[obj.OwnerID] =
+                                        new List<SceneObjectGroup>();
+                            returns[obj.OwnerID].Add(obj);
+                        }
                     }
                 }
             }
-            m_scene.returnObjects(objlist.ToArray(), remote_client.AgentId);
+
+            foreach (List<SceneObjectGroup> ol in returns.Values)
+                m_scene.returnObjects(ol.ToArray(), remote_client.AgentId);
         }
 
         #endregion

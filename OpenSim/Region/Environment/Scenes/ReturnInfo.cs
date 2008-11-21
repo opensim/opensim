@@ -34,5 +34,6 @@ namespace OpenSim.Region.Environment.Scenes
         public int count;
         public Vector3 location;
         public string objectName;
+        public string reason;
     }
 }

@@ -1610,6 +1610,10 @@ namespace OpenSim.Region.Environment.Scenes
                             ExternalChecks.ExternalChecksCanDeleteObject(
                             grp.UUID,
                             remoteClient.AgentId);
+                    if (permissionToDelete)
+                    {
+                        AddReturn(grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
+                    }
                 }
                 else // Auto return passes through here with null agent
                 {
@@ -2207,145 +2211,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects, UUID AgentId)
         {
-            string message = "";
-            if (returnobjects.Length <= 0)
-                return false;
-
-            // for the moment we're going to store them individually..   however, in the future, the rezObject
-            // will be able to have more items.
-
-            //string returnstring = "";
-            //returnstring += "<scene>\n";
-            //for (int i = 0; i < returnobjects.Length; i++)
-            //{
-            //    returnstring += grp.ToXmlString2();
-            //}
-            //returnstring += "</scene>\n";
-
-            bool permissionToDelete = false;
-
-            for (int i = 0; i < returnobjects.Length; i++)
+            foreach (SceneObjectGroup grp in returnobjects)
             {
-                CachedUserInfo userInfo =
-                    CommsManager.UserProfileCacheService.GetUserDetails(returnobjects[i].OwnerID);
-                if (userInfo == null)
-                {
-                    CommsManager.UserProfileCacheService.AddNewUser(returnobjects[i].OwnerID);
-
-                }
-                if (userInfo != null)
-                {
-                    if (userInfo.HasReceivedInventory)
-                    {
-                        UUID folderID = UUID.Zero;
-
-                        List<InventoryFolderBase> subrootfolders = userInfo.RootFolder.RequestListOfFolders();
-                        foreach (InventoryFolderBase flder in subrootfolders)
-                        {
-                            if (flder.Name == "Lost And Found")
-                            {
-                                folderID = flder.ID;
-                                break;
-                            }
-                        }
-
-                        if (folderID == UUID.Zero)
-                        {
-                            folderID = userInfo.RootFolder.ID;
-                        }
-                        permissionToDelete = ExternalChecks.ExternalChecksCanReturnObject(returnobjects[i].UUID, AgentId);
-
-                        // If the user doesn't have permission, go on to the next one.
-                        if (!permissionToDelete)
-                            continue;
-
-                        string sceneObjectXml = returnobjects[i].ToXmlString2();
-                        AssetBase asset = CreateAsset(
-                            returnobjects[i].GetPartName(returnobjects[i].LocalId),
-                            returnobjects[i].GetPartDescription(returnobjects[i].LocalId),
-                            (sbyte)AssetType.Object,
-                            Utils.StringToBytes(sceneObjectXml));
-                        AssetCache.AddAsset(asset);
-
-                        InventoryItemBase item = new InventoryItemBase();
-                        item.Creator = returnobjects[i].RootPart.CreatorID;
-                        item.Owner = returnobjects[i].OwnerID;
-                        item.ID = UUID.Random();
-                        item.AssetID = asset.FullID;
-                        item.Description = asset.Description;
-                        item.Name = asset.Name;
-                        item.AssetType = asset.Type;
-                        item.InvType = (int)InventoryType.Object;
-                        item.Folder = folderID;
-
-                        if ((AgentId != returnobjects[i].RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
-                        {
-                            uint perms = returnobjects[i].GetEffectivePermissions();
-                            uint nextPerms = (perms & 7) << 13;
-                            if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                                perms &= ~(uint)PermissionMask.Copy;
-                            if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                                perms &= ~(uint)PermissionMask.Transfer;
-                            if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                                perms &= ~(uint)PermissionMask.Modify;
-
-                            item.BasePermissions = perms & returnobjects[i].RootPart.NextOwnerMask;
-                            item.CurrentPermissions = item.BasePermissions;
-                            item.NextPermissions = returnobjects[i].RootPart.NextOwnerMask;
-                            item.EveryOnePermissions = returnobjects[i].RootPart.EveryoneMask & returnobjects[i].RootPart.NextOwnerMask;
-                            item.GroupPermissions = returnobjects[i].RootPart.GroupMask & returnobjects[i].RootPart.NextOwnerMask;
-                            item.CurrentPermissions |= 8; // Slam!
-                        }
-                        else
-                        {
-                            item.BasePermissions = returnobjects[i].GetEffectivePermissions();
-                            item.CurrentPermissions = returnobjects[i].GetEffectivePermissions();
-                            item.NextPermissions = returnobjects[i].RootPart.NextOwnerMask;
-                            item.EveryOnePermissions = returnobjects[i].RootPart.EveryoneMask;
-                            item.GroupPermissions = returnobjects[i].RootPart.GroupMask;
-                        }
-
-                        // TODO: add the new fields (Flags, Sale info, etc)
-
-                        userInfo.AddItem(item);
-
-                        ScenePresence notifyUser = GetScenePresence(item.Owner);
-                        if (notifyUser != null)
-                        {
-                            notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
-                        }
-
-                        SceneObjectGroup ObjectDeleting = returnobjects[i];
-
-                        returnobjects[i] = null;
-
-                        DeleteSceneObject(ObjectDeleting, false);
-                        ObjectDeleting = null;
-                    }
-                    else
-                    {
-                        CommsManager.UserProfileCacheService.RequestInventoryForUser(returnobjects[i].OwnerID);
-                        message = "Still waiting on the inventory service, some of the items won't be returned until the inventory services completes it's task.  Try again shortly.";
-                    }
-                }
-                else
-                {
-                    message = "Still waiting on the inventory service, some of the items won't be returned until the inventory services completes it's task.  Try again shortly.";
-                }
-                //return true;
-            }
-
-            if (message.Length != 0)
-            {
-                ScenePresence returningavatar = GetScenePresence(AgentId);
-                if (returningavatar != null)
-                {
-                    returningavatar.ControllingClient.SendAlertMessage(message);
-                }
-                return false;
+                AddReturn(grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
+                DeRezObject(null, grp.RootPart.LocalId,
+                        grp.RootPart.GroupID, 9, UUID.Zero);
             }
             return true;
-
         }
 
         public void SetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID, bool running)
