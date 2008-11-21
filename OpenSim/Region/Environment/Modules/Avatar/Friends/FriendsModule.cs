@@ -133,8 +133,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
         public void PostInitialise()
         {
-            List<Scene> scenes = new List<Scene>(m_scenes.Values);
-            m_TransferModule = scenes[0].RequestModuleInterface<IMessageTransferModule>();
+            if(m_scenes.Count > 0)
+            {
+                m_TransferModule = m_initialScene.RequestModuleInterface<IMessageTransferModule>();
+            }
             if (m_TransferModule == null)
                 m_log.Error("[FRIENDS]: Unable to find a message transfer module, friendship offers will not work");
         }
