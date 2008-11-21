@@ -212,24 +212,24 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-
-        private void UpdateAccessTime(AssetBase asset)
-        {
-            using (AutoClosingSqlCommand cmd = database.Query("UPDATE assets SET access_time = @access_time WHERE id=@id"))
-            {
-                int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
-                cmd.Parameters.AddWithValue("@id", asset.FullID.ToString());
-                cmd.Parameters.AddWithValue("@access_time", now);
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(e.ToString());
-                }
-            }
-        }
+// Commented out since currently unused - this probably should be called in FetchAsset()       
+//        private void UpdateAccessTime(AssetBase asset)
+//        {
+//            using (AutoClosingSqlCommand cmd = database.Query("UPDATE assets SET access_time = @access_time WHERE id=@id"))
+//            {
+//                int now = (int)((System.DateTime.Now.Ticks - TicksToEpoch) / 10000000);
+//                cmd.Parameters.AddWithValue("@id", asset.FullID.ToString());
+//                cmd.Parameters.AddWithValue("@access_time", now);
+//                try
+//                {
+//                    cmd.ExecuteNonQuery();
+//                }
+//                catch (Exception e)
+//                {
+//                    m_log.Error(e.ToString());
+//                }
+//            }
+//        }
 
         /// <summary>
         /// Check if asset exist in database

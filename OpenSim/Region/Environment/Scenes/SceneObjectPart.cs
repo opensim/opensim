@@ -3378,7 +3378,6 @@ if (m_shape != null) {
 
         #endregion Public Methods
 
-
         private byte GetAttachPointEncoded()
         {
             return (byte)((AttachmentPoint % 16) * 16 + (AttachmentPoint / 16));
