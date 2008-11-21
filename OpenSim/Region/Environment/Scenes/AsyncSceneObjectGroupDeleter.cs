@@ -42,7 +42,6 @@ namespace OpenSim.Region.Environment.Scenes
         public IClientAPI remoteClient;
         public SceneObjectGroup objectGroup;
         public UUID folderID;
-        public bool permissionToDelete;
     }
     
     /// <summary>
@@ -88,7 +87,6 @@ namespace OpenSim.Region.Environment.Scenes
                 dtis.folderID = folderID;
                 dtis.objectGroup = objectGroup;
                 dtis.remoteClient = remoteClient;
-                dtis.permissionToDelete = permissionToDelete;
 
                 m_inventoryDeletes.Enqueue(dtis);
             }
@@ -96,9 +94,8 @@ namespace OpenSim.Region.Environment.Scenes
             if (Enabled)
                 m_inventoryTicker.Start();
         
-            // Visually remove it, even if it isnt really gone yet.
             if (permissionToDelete)
-                objectGroup.DeleteGroup(false);
+                m_scene.DeleteSceneObject(objectGroup, false);
         }
         
         private void InventoryRunDeleteTimer(object sender, ElapsedEventArgs e)
@@ -129,8 +126,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                         try
                         {
-                            if (x.permissionToDelete)
-                                m_scene.DeleteSceneObject(x.objectGroup, false);
                             m_scene.DeleteToInventory(x.destination, x.folderID, x.objectGroup, x.remoteClient);
                         }
                         catch (Exception e)

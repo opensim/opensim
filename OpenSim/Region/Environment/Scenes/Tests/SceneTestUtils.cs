@@ -75,7 +75,7 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         /// <param name="scene"></param>
         /// <param name="agentId"></param>
         /// <returns></returns>        
-        public static void AddRootAgent(Scene scene, UUID agentId)
+        public static IClientAPI AddRootAgent(Scene scene, UUID agentId)
         {
             string firstName = "testfirstname";
             
@@ -92,7 +92,10 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             agent.CapsPath = "http://wibble.com";
             
             scene.NewUserConnection(agent);
-            scene.AddNewClient(new TestClient(agent), false);
+            IClientAPI client = new TestClient(agent);
+            scene.AddNewClient(client, false);
+            
+            return client;
         }
         
         /// <summary>

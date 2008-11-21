@@ -70,27 +70,35 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         }
         
         /// <summary>
-        /// Test removing an object from a scene.
+        /// Test deleting an object from a scene.
         /// </summary>
         [Test]
-        public void TestRemoveSceneObject()
+        public void TestDeleteSceneObject()
         {
             TestScene scene = SceneTestUtils.SetupScene();         
             SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
             scene.DeleteSceneObject(part.ParentGroup, false);
             
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-            
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);            
             Assert.That(retrievedPart, Is.Null);
         }
  
         /// <summary>
-        /// Test removing an object 
+        /// Test deleting an object to user inventory 
         /// </summary>
-        public void TestRemoveSceneObjectAsync()
+        [Test]
+        public void TestDeleteSceneObjectToUserInventory()
         {
+            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
+            
             TestScene scene = SceneTestUtils.SetupScene();         
-            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);            
+            SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
+            
+            IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);
+            scene.DeRezObject(client, part.LocalId, UUID.Zero, 9, UUID.Zero);
+            
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);            
+            Assert.That(retrievedPart, Is.Null);
         }
     }
 }
