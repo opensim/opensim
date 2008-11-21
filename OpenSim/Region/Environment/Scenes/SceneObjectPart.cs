@@ -3262,7 +3262,7 @@ if (m_shape != null) {
                 ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
                 ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
                 ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
-                (CollisionSound != null && CollisionSound != UUID.Zero)
+                (CollisionSound != UUID.Zero)
                 )
             {
                 // subscribe to physics updates.
