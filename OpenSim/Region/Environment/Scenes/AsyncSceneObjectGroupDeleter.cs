@@ -114,7 +114,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }            
 
-        private bool InventoryDeQueueAndDelete()
+        /// <summary>
+        /// Move the next object in the queue to inventory.  Then delete it properly from the scene.
+        /// </summary>
+        /// <returns></returns>
+        public bool InventoryDeQueueAndDelete()
         {
             DeleteToInventoryHolder x = null;            
  

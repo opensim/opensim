@@ -91,7 +91,12 @@ namespace OpenSim.Region.Environment.Scenes.Tests
         {
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
-            TestScene scene = SceneTestUtils.SetupScene();         
+            TestScene scene = SceneTestUtils.SetupScene();
+            
+            // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
+            AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
+            sogd.Enabled = false;
+                
             SceneObjectPart part = SceneTestUtils.AddSceneObject(scene);
             
             IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);
@@ -99,6 +104,12 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart, Is.Not.Null);
+            
+            sogd.InventoryDeQueueAndDelete();
+            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
+            Assert.That(retrievedPart2, Is.Null);    
+            
+            // TODO: test that the object actually made it successfully into inventory
         }
     }
 }
