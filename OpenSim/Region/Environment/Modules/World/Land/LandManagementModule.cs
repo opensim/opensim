@@ -976,9 +976,9 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             join(west, south, east, north, remote_client.AgentId);
         }
 
-        public void handleParcelSelectObjectsRequest(int local_id, int request_type, IClientAPI remote_client)
+        public void handleParcelSelectObjectsRequest(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client)
         {
-            m_landList[local_id].sendForceObjectSelect(local_id, request_type, remote_client);
+            m_landList[local_id].sendForceObjectSelect(local_id, request_type, returnIDs, remote_client);
         }
 
         public void handleParcelObjectOwnersRequest(int local_id, IClientAPI remote_client)

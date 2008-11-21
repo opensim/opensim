@@ -645,7 +645,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         #region Object Select and Object Owner Listing
 
-        public void sendForceObjectSelect(int local_id, int request_type, IClientAPI remote_client)
+        public void sendForceObjectSelect(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client)
         {
             if (m_scene.ExternalChecks.ExternalChecksCanEditParcel(remote_client.AgentId, this))
             {
@@ -662,9 +662,9 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                                 {
                                     resultLocalIDs.Add(obj.LocalId);
                                 }
-                                // else if (request_type == LandManager.LAND_SELECT_OBJECTS_GROUP && ...) // TODO: group support
-                                // {
-                                // }
+                                else if (request_type == LandChannel.LAND_SELECT_OBJECTS_GROUP && obj.GroupID == landData.GroupID && landData.GroupID != UUID.Zero)
+                                {
+                                }
                                 else if (request_type == LandChannel.LAND_SELECT_OBJECTS_OTHER &&
                                          obj.OwnerID != remote_client.AgentId)
                                 {

@@ -68,7 +68,7 @@ namespace OpenSim.Region.Environment.Interfaces
         bool[,] getSquareLandBitmap(int start_x, int start_y, int end_x, int end_y);
         bool[,] modifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y, bool set_value);
         bool[,] mergeLandBitmaps(bool[,] bitmap_base, bool[,] bitmap_add);
-        void sendForceObjectSelect(int local_id, int request_type, IClientAPI remote_client);
+        void sendForceObjectSelect(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client);
         void sendLandObjectOwners(IClientAPI remote_client);
         void returnObject(SceneObjectGroup obj);
         void returnLandObjects(uint type, UUID[] owners, IClientAPI remote_client);

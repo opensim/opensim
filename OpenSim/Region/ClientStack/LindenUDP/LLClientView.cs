@@ -5713,12 +5713,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.ParcelSelectObjects:
                     ParcelSelectObjectsPacket selectPacket = (ParcelSelectObjectsPacket)Pack;
 
+                    List<UUID> returnIDs = new List<UUID>();
+
+                    foreach(ParcelSelectObjectsPacket.ReturnIDsBlock rb in
+                            selectPacket.ReturnIDs)
+                    {
+                        returnIDs.Add(rb.ReturnID);
+                    }
+
                     handlerParcelSelectObjects = OnParcelSelectObjects;
 
                     if (handlerParcelSelectObjects != null)
                     {
                         handlerParcelSelectObjects(selectPacket.ParcelData.LocalID,
-                                                   Convert.ToInt32(selectPacket.ParcelData.ReturnType), this);
+                                                   Convert.ToInt32(selectPacket.ParcelData.ReturnType), returnIDs, this);
                     }
                     break;
                 case PacketType.ParcelObjectOwnersRequest:

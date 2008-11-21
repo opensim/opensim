@@ -174,7 +174,7 @@ namespace OpenSim.Framework
 
     public delegate void ParcelPropertiesUpdateRequest(LandUpdateArgs args, int local_id, IClientAPI remote_client);
 
-    public delegate void ParcelSelectObjects(int land_local_id, int request_type, IClientAPI remote_client);
+    public delegate void ParcelSelectObjects(int land_local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client);
 
     public delegate void ParcelObjectOwnerRequest(int local_id, IClientAPI remote_client);
 
