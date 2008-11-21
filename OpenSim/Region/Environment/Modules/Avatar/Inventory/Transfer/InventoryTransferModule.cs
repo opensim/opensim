@@ -152,6 +152,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory.Transfer
                         new UUID(im.toAgentID),
                         client.AgentId, itemID);
 
+                if (itemCopy == null)
+                {
+                    client.SendAgentAlertMessage("Can't find item to give. Nothing given.", false);
+                    return;
+                }
+
                 byte[] itemCopyID = itemCopy.ID.GetBytes();
 
                 Array.Copy(itemCopyID, 0, im.binaryBucket, 1, 16);
