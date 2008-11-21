@@ -97,8 +97,8 @@ namespace OpenSim.Region.Environment.Scenes.Tests
             IClientAPI client = SceneTestUtils.AddRootAgent(scene, agentId);
             scene.DeRezObject(client, part.LocalId, UUID.Zero, 9, UUID.Zero);
             
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);            
-            Assert.That(retrievedPart, Is.Null);
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+            Assert.That(retrievedPart, Is.Not.Null);
         }
     }
 }
