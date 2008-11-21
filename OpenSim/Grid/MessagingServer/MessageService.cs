@@ -590,7 +590,7 @@ namespace OpenSim.Grid.MessagingServer
                     // Process Response
                     Hashtable UserRespData = (Hashtable)UserResp.Value;
                     // if we got a response, we were successful
-                    if(!UserRespData.ContainsKey("responsestring"))
+                    if (!UserRespData.ContainsKey("responsestring"))
                         success = false;
                 }
                 catch

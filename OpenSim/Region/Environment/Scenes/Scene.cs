@@ -966,7 +966,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public void Backup()
         {
-            lock(m_returns)
+            lock (m_returns)
             {
                 EventManager.TriggerOnBackup(m_storageManager.DataStore);
                 m_backingup = false;
@@ -1003,7 +1003,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddReturn(UUID agentID, string objectName, Vector3 location, string reason)
         {
-            lock(m_returns)
+            lock (m_returns)
             {
                 if (m_returns.ContainsKey(agentID))
                 {
@@ -2428,7 +2428,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (regionInfo == null)
                 {
                     regionInfo = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegion);
-                    if(regionInfo != null) // home region can be away temporarily, too
+                    if (regionInfo != null) // home region can be away temporarily, too
                     {
                         UserProfile.HomeRegionID = regionInfo.RegionID;
                         CommsManager.UserService.UpdateUserProfile(UserProfile);

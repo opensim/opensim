@@ -5715,8 +5715,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     List<UUID> returnIDs = new List<UUID>();
 
-                    foreach(ParcelSelectObjectsPacket.ReturnIDsBlock rb in
-                            selectPacket.ReturnIDs)
+                    foreach (ParcelSelectObjectsPacket.ReturnIDsBlock rb in
+                             selectPacket.ReturnIDs)
                     {
                         returnIDs.Add(rb.ReturnID);
                     }

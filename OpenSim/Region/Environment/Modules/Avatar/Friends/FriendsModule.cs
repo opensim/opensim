@@ -516,7 +516,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // if it's a local friend, we don't have to do the lookup
             ScenePresence friendPresence = GetAnyPresenceFromAgentID(friendID);
 
-            if(friendPresence != null)
+            if (friendPresence != null)
             {
                 m_log.Debug("[FRIEND]: Local agent detected.");
 
